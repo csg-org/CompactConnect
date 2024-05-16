@@ -1,2 +1,3 @@
-# licensure-compact-system
-A system to share professional licensure data between state licensing boards for participating in occupational licensure compacts.
+# Licensure Compact System
+
+The Audiology and Speech Language Pathology, Counseling, and Occupational Therapy compact commissions are collectively building a system to share professional licensure data between their state licensing boards to facilitate participation in their repsective occupational licensure compacts. This project is getting underway in 2024.
