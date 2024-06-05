@@ -1,0 +1,51 @@
+name: Check-Python
+
+on:
+  pull_request:
+    branches:
+      - main
+      - development
+
+env:
+  AWS_REGION : "us-east-1"
+
+# Permission can be added at job level or workflow level
+permissions:
+  id-token: write   # This is required for requesting the JWT
+  contents: read    # This is required for actions/checkout
+
+jobs:
+  LintPython:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Install dev dependencies
+        run: "pip install -r backend/requirements-dev.txt"
+
+      - name: Lint Code
+        run: "cd backend; pylint $(git ls-files '*.py')"
+
+  TestPython:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Install dev dependencies
+        run: "pip install -r backend/requirements-dev.txt"
+
+      - name: Install all dependencies
+        run: "cd backend; bin/sync_deps.sh"
+
+      - name: Test backend
+        run: "cd backend; bin/run_tests.sh no-report"
