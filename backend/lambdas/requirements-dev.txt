@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url lambdas/requirements-dev.in
 #
-boto3==1.34.118
+boto3==1.34.120
     # via moto
-botocore==1.34.118
+botocore==1.34.120
     # via
     #   boto3
     #   moto
@@ -17,7 +17,7 @@ cffi==1.16.0
     # via cryptography
 charset-normalizer==3.3.2
     # via requests
-cryptography==42.0.7
+cryptography==42.0.8
     # via moto
 docker==7.1.0
     # via moto

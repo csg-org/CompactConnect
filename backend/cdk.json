@@ -16,20 +16,28 @@
   },
   "context": {
     "tags": {
-      "compact": "audiology",
       "project": "licensure-compact-system",
       "service": "license-data"
     },
     "compacts": {
-      "audiology": {
+      "aslp": {
         "license_types": [
           "speech language",
           "pathology"
         ],
-        "jurisdictions": [
-          "co",
-          "ky"
-        ]
+        "jurisdictions": ["al"]
+      },
+      "ot": {
+        "license_types": [
+          "occupational therapy"
+        ],
+        "jurisdictions": ["al"]
+      },
+      "c": {
+        "license_types": [
+          "counseling"
+        ],
+        "jurisdictions": ["al"]
       }
     },
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,

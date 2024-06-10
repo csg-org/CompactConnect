@@ -15,6 +15,7 @@ class LicensureApp(App):
         compact_context = self.node.get_context('compacts')[compact_name]
 
         tags = self.node.get_context('tags')
+        tags['compact'] = compact_name
 
         self.persistent_stack = PersistentStack(
             self, 'PersistentStack',

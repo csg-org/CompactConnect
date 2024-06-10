@@ -1,4 +1,9 @@
-# Licensure Compact System - Back End
+# Licensure Compact System - Back End developer documentation
+
+## Looking for technical user documentation?
+[Find it here](./docs/README.md)
+
+## Introduction
 
 This is an [AWS-CDK](https://aws.amazon.com/cdk/) based project for the backend components of the licensure compact system.
 

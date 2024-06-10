@@ -58,7 +58,7 @@ class PostLicenses:
         if hasattr(api, 'post_license_model'):
             return api.post_license_model
 
-        ymd_format = '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+        ymd_format = '^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
         post_license_model = api.add_model(
             'PostLicenseModel',
             schema=JsonSchema(
@@ -68,14 +68,13 @@ class PostLicenses:
                     type=JsonSchemaType.OBJECT,
                     required=[
                         'ssn',
-                        'first_name',
-                        'last_name',
+                        'given_name',
+                        'family_name',
                         'date_of_birth',
                         'home_state_street_1',
                         'home_state_street_2',
                         'home_state_city',
                         'home_state_postal_code',
-                        'jurisdiction',
                         'license_type',
                         'date_of_issuance',
                         'date_of_renewal',
@@ -84,42 +83,44 @@ class PostLicenses:
                     ],
                     additional_properties=False,
                     properties={
-                        'ssn': JsonSchema(type=JsonSchemaType.STRING),
-                        'npi': JsonSchema(type=JsonSchemaType.STRING),
-                        'first_name': JsonSchema(type=JsonSchemaType.STRING),
-                        'middle_name': JsonSchema(type=JsonSchemaType.STRING),
-                        'last_name': JsonSchema(type=JsonSchemaType.STRING),
+                        'ssn': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            pattern='^[0-9]{3}-[0-9]{2}-[0-9]{4}$'
+                        ),
+                        'npi': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            pattern='^[0-9]{10}$'
+                        ),
+                        'given_name': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                        'middle_name': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                        'family_name': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
                         'date_of_birth': JsonSchema(
                             type=JsonSchemaType.STRING,
-                            pattern=ymd_format,
-                            format='date'
-                        ),
-                        'other_identifiers': JsonSchema(
-                            type=JsonSchemaType.OBJECT,
-                            additional_properties=JsonSchema(type=JsonSchemaType.STRING)
+                            format='date',
+                            pattern=ymd_format
                         ),
                         'home_state_street_1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
-                        'home_state_street_2': JsonSchema(type=JsonSchemaType.STRING),
-                        'home_state_city': JsonSchema(type=JsonSchemaType.STRING, min_length=2),
-                        'home_state_postal_code': JsonSchema(type=JsonSchemaType.STRING, min_length=5),
+                        'home_state_street_2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                        'home_state_city': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
+                        'home_state_postal_code': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
                         'license_type': JsonSchema(
                             type=JsonSchemaType.STRING,
                             enum=api.compact_context['license_types']
                         ),
                         'date_of_issuance': JsonSchema(
                             type=JsonSchemaType.STRING,
-                            pattern=ymd_format,
-                            format='date'
+                            format='date',
+                            pattern=ymd_format
                         ),
                         'date_of_renewal': JsonSchema(
                             type=JsonSchemaType.STRING,
-                            pattern=ymd_format,
-                            format='date'
+                            format='date',
+                            pattern=ymd_format
                         ),
                         'date_of_expiration': JsonSchema(
                             type=JsonSchemaType.STRING,
-                            pattern=ymd_format,
-                            format='date'
+                            format='date',
+                            pattern=ymd_format
                         ),
                         'license_status': JsonSchema(
                             type=JsonSchemaType.STRING,

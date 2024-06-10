@@ -3,3 +3,4 @@ pytest-cov
 coverage
 pylint
 pip-tools
+pip-audit
