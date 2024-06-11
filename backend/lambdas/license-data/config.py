@@ -23,8 +23,8 @@ class _Config:
         return os.environ['BULK_BUCKET_NAME']
 
     @property
-    def jurisdiction(self):
-        return os.environ['JURISDICTION']
+    def resource_server(self):
+        return os.environ['RESOURCE_SERVER']
 
 
 config = _Config()

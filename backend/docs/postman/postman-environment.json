@@ -3,14 +3,20 @@
 	"name": "JCC License Data - sandbox",
 	"values": [
 		{
-			"key": "cognitoBaseUrl",
-			"value": "https://aslp-board-compact.auth.us-east-1.amazoncognito.com",
+			"key": "boardUserPoolUrl",
+			"value": "https://licensure-compact.auth.us-east-1.amazoncognito.com",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "adminUserPoolUrl",
+			"value": "https://jcc-admin.auth.us-east-1.amazoncognito.com",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "baseUrl",
-			"value": "https://6kmjw2zkyh.execute-api.us-east-1.amazonaws.com/sandbox",
+			"value": "https://z8esfh6iu2.execute-api.us-east-1.amazonaws.com/sandbox",
 			"type": "default",
 			"enabled": true
 		},
@@ -40,6 +46,6 @@
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2024-06-06T03:37:19.685Z",
-	"_postman_exported_using": "Postman/11.1.17-240522-0631"
+	"_postman_exported_at": "2024-06-10T22:31:46.225Z",
+	"_postman_exported_using": "Postman/11.1.28-240604-0452"
 }

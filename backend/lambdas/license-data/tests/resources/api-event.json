@@ -1,6 +1,6 @@
 {
-    "resource": "/v0/boards/co/licenses",
-    "path": "/v0/boards/co/licenses",
+    "resource": "/v0/boards/{jurisdiction}/licenses",
+    "path": "/v0/boards/{jurisdiction}/licenses",
     "httpMethod": "GET",
     "headers": {
         "Accept": "*/*",
@@ -88,37 +88,38 @@
     },
     "queryStringParameters": null,
     "multiValueQueryStringParameters": null,
-    "pathParameters": {},
+    "pathParameters": {
+        "jurisdiction": "al",
+        "compact": "aslp"
+    },
     "stageVariables": null,
     "requestContext": {
-        "resourceId": "to7h7s",
+        "resourceId": "niuigd",
         "authorizer": {
             "claims": {
-                "at_hash": "5fJ3CY6qADiWRNTFXa20mg",
-                "sub": "c7c2c982-8bdb-4e63-a2ea-108c6668aa81",
-                "iss": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_txUTxubUZ",
-                "origin_jti": "909a753e-495c-435e-b228-d3e3b0f8394a",
-                "aud": "1ad5iq2obsekqm701avf4b0vp9",
-                "event_id": "72810792-eca5-4950-aa11-cc3737ca8e5e",
-                "token_use": "id",
-                "auth_time": "1706909769",
-                "exp": "Fri Feb 02 22:36:09 UTC 2024",
-                "iat": "Fri Feb 02 21:36:09 UTC 2024",
-                "jti": "3484ec42-be03-4d8d-ad7c-40670fd0d5bd",
-                "email": "justin@inspiringapps.com"
+                "sub": "4kq74be0isgt7shnhhfgi5dk9k",
+                "token_use": "access",
+                "scope": "openid email aslp/al",
+                "auth_time": "1717782706",
+                "iss": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xS47lbscb",
+                "exp": "Fri Jun 07 18:51:46 UTC 2024",
+                "iat": "Fri Jun 07 17:51:46 UTC 2024",
+                "version": "2",
+                "jti": "b4490af3-478f-49a9-90f5-373886ebe5c2",
+                "client_id": "4kq74be0isgt7shnhhfgi5dk9k"
             }
         },
-        "resourcePath": "/v0/boards/co/licenses",
+        "resourcePath": "/v0/boards/{jurisdiction}/licenses/bulk-upload",
         "httpMethod": "GET",
-        "extendedRequestId": "ShwdoFo5IAMEmQw=",
-        "requestTime": "02/Feb/2024:21:39:47 +0000",
-        "path": "/v0/boards/co/licenses",
+        "extendedRequestId": "ZAmXuH9bIAMEjZA=",
+        "requestTime": "07/Jun/2024:18:27:09 +0000",
+        "path": "/sandbox/v0/boards/al/licenses/bulk-upload",
         "accountId": "058264452476",
         "protocol": "HTTP/1.1",
         "stage": "sandbox",
-        "domainPrefix": "xib7bpau43",
-        "requestTimeEpoch": 1706909987771,
-        "requestId": "1200ff86-9893-449e-b0a8-cdd580e1c3c7",
+        "domainPrefix": "j9hs0bq9i9",
+        "requestTimeEpoch": 1717784829944,
+        "requestId": "6003a0c9-c61c-4d83-a2df-963e51f1a82f",
         "identity": {
             "cognitoIdentityPoolId": null,
             "accountId": null,
@@ -130,12 +131,12 @@
             "cognitoAuthenticationType": null,
             "cognitoAuthenticationProvider": null,
             "userArn": null,
-            "userAgent": "PostmanRuntime/7.36.1",
+            "userAgent": "PostmanRuntime/7.39.0",
             "user": null
         },
-        "domainName": "xib7bpau43.execute-api.us-east-1.amazonaws.com",
-        "deploymentId": "o8mdgv",
-        "apiId": "xib7bpau43"
+        "domainName": "j9hs0bq9i9.execute-api.us-east-1.amazonaws.com",
+        "deploymentId": "okxjb3",
+        "apiId": "j9hs0bq9i9"
     },
     "body": null,
     "isBase64Encoded": false

@@ -11,11 +11,7 @@ class LicensureApp(App):
         super().__init__(*args, **kwargs)
         environment_name = self.node.get_context('environment_name')
 
-        compact_name = self.node.get_context('compact')
-        compact_context = self.node.get_context('compacts')[compact_name]
-
         tags = self.node.get_context('tags')
-        tags['compact'] = compact_name
 
         self.persistent_stack = PersistentStack(
             self, 'PersistentStack',
@@ -23,9 +19,7 @@ class LicensureApp(App):
                 **tags,
                 environment=environment_name
             ),
-            environment_name=environment_name,
-            compact_name=compact_name,
-            compact_context=compact_context
+            environment_name=environment_name
         )
 
         self.api_stack = ApiStack(
@@ -35,7 +29,6 @@ class LicensureApp(App):
                 environment=environment_name
             ),
             environment_name=environment_name,
-            compact_context=compact_context,
             persistent_stack=self.persistent_stack
         )
 

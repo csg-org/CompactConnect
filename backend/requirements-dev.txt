@@ -52,7 +52,7 @@ msgpack==1.0.8
     # via cachecontrol
 packageurl-python==0.15.0
     # via cyclonedx-python-lib
-packaging==24.0
+packaging==24.1
     # via
     #   build
     #   pip-audit
@@ -74,7 +74,7 @@ py-serializable==1.0.3
     # via cyclonedx-python-lib
 pygments==2.18.0
     # via rich
-pylint==3.2.2
+pylint==3.2.3
     # via -r requirements-dev.in
 pyparsing==3.1.2
     # via pip-requirements-parser

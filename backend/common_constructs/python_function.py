@@ -4,6 +4,7 @@ import jsii
 from aws_cdk import Stack, Duration
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_lambda_python_alpha import PythonFunction as CdkPythonFunction, ICommandHooks, BundlingOptions
+from aws_cdk.aws_logs import RetentionDays
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
@@ -16,7 +17,9 @@ class PythonFunction(CdkPythonFunction):
     requirements-dev.txt, then executing and removing tests.
     """
     def __init__(
-            self, scope: Construct, construct_id: str, **kwargs
+            self, scope: Construct, construct_id: str, *,
+            log_retention: RetentionDays = RetentionDays.ONE_MONTH,
+            **kwargs
     ):
         defaults = {
             'timeout': Duration.seconds(28),
@@ -27,6 +30,7 @@ class PythonFunction(CdkPythonFunction):
             scope, construct_id,
             bundling=BundlingOptions(command_hooks=TestingHooks()),
             runtime=Runtime.PYTHON_3_12,
+            log_retention=log_retention,
             **defaults
         )
 
@@ -54,6 +58,30 @@ class PythonFunction(CdkPythonFunction):
                         'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
                     ],
                     'reason': 'The BasicExecutionRole policy is appropriate for these lambdas'
+                }
+            ]
+        )
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            path=f'{stack.node.path}/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM4',
+                    'applies_to':
+                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
+                    'reason': 'This policy is appropriate for the log retention lambda'
+                }
+            ]
+        )
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            path=f'{stack.node.path}/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'applies_to': ['Resource::*'],
+                    'reason': 'This lambda needs to be able to configure log groups across the account, though the'
+                              ' actions it is allowed are scoped specifically for this task.'
                 }
             ]
         )

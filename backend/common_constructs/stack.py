@@ -10,14 +10,12 @@ class StandardTags(dict):
     """
     def __init__(
             self, *,
-            compact: str,
             project: str,
             service: str,
             environment: str,
             **kwargs
     ):
         super().__init__(
-            Compact=compact,
             Project=project,
             Service=service,
             Environment=environment,

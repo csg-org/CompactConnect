@@ -10,7 +10,6 @@ class ApiStack(Stack):
     def __init__(
             self, scope: Construct, construct_id: str, *,
             environment_name: str,
-            compact_context: dict,
             persistent_stack: ps.PersistentStack,
             **kwargs
     ):
@@ -18,6 +17,5 @@ class ApiStack(Stack):
         self.license_api = LicenseApi(
             self, 'LicenseApi',
             environment_name=environment_name,
-            compact_context=compact_context,
             persistent_stack=persistent_stack
         )

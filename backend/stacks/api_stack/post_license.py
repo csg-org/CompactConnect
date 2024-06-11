@@ -105,7 +105,7 @@ class PostLicenses:
                         'home_state_postal_code': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
                         'license_type': JsonSchema(
                             type=JsonSchemaType.STRING,
-                            enum=api.compact_context['license_types']
+                            enum=api.node.get_context('license_types')
                         ),
                         'date_of_issuance': JsonSchema(
                             type=JsonSchemaType.STRING,

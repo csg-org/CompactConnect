@@ -19,27 +19,25 @@
       "project": "licensure-compact-system",
       "service": "license-data"
     },
-    "compacts": {
-      "aslp": {
-        "license_types": [
-          "speech language",
-          "pathology"
-        ],
-        "jurisdictions": ["al"]
-      },
-      "ot": {
-        "license_types": [
-          "occupational therapy"
-        ],
-        "jurisdictions": ["al"]
-      },
-      "c": {
-        "license_types": [
-          "counseling"
-        ],
-        "jurisdictions": ["al"]
-      }
-    },
+    "jurisdictions": [
+      "al", "ak", "az", "ar", "ca", "co", "ct", "de", "dc", "fl",
+      "ga", "hi", "id", "il", "in", "ia", "ks", "ky", "la", "me",
+      "md", "ma", "mi", "mn", "ms", "mo", "mt", "ne", "nv", "nh",
+      "nj", "nm", "ny", "nc", "nd", "oh", "ok", "or", "pa", "pr",
+      "ri", "sc", "sd", "tn", "tx", "ut", "vt", "va", "vi", "wa",
+      "wv", "wi", "wy"
+    ],
+    "license_types": [
+      "audiology",
+      "counseling",
+      "occupational therapy",
+      "speech language pathology"
+    ],
+    "compacts": [
+      "aslp",
+      "ot",
+      "counseling"
+    ],
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
     "@aws-cdk/core:target-partitions": [

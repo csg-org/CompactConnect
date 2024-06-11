@@ -19,7 +19,6 @@ class LicenseApi(RestApi):
     def __init__(
             self, scope: Construct, construct_id: str, *,
             environment_name: str,
-            compact_context: dict,
             persistent_stack: ps.PersistentStack,
             **kwargs
     ):
@@ -76,7 +75,6 @@ class LicenseApi(RestApi):
         )
 
         self._persistent_stack = persistent_stack
-        self.compact_context = compact_context
 
         self.web_acl = WebACL(
             self, 'WebACL',
@@ -87,7 +85,6 @@ class LicenseApi(RestApi):
         self.add_gateway_response(
             'BadBodyResponse',
             type=ResponseType.BAD_REQUEST_BODY,
-            status_code='400',
             response_headers={
                 'Access-Control-Allow-Origin': "'*'"
             },
@@ -97,46 +94,50 @@ class LicenseApi(RestApi):
         )
 
         v0_resource = self.root.add_resource('v0')
-        # /v0/boards
-        board_resource = v0_resource.add_resource('boards')
+        providers_resource = v0_resource.add_resource('providers')
+        compact_resource = providers_resource.add_resource('{compact}')
+        # /v0/providers/{compact}/{jurisdiction}
+        jurisdiction_resource = compact_resource.add_resource('{jurisdiction}')
 
-        for jurisdiction in compact_context['jurisdictions']:
-            jurisdiction_resource = board_resource.add_resource(jurisdiction)
-            # No auth mock endpoints
-            license_noauth_resource = jurisdiction_resource.add_resource('licenses-noauth')
-            # POST /v0/boards/co/licenses-noauth
-            method_options = MethodOptions(
-                authorization_type=AuthorizationType.NONE
-            )
-            PostLicenses(
-                license_noauth_resource,
-                method_options=method_options
-            )
-            BulkUploadUrl(
-                resource=license_noauth_resource,
-                jurisdiction=jurisdiction,
-                method_options=method_options,
-                persistent_stack=persistent_stack
-            )
+        # No auth mock endpoints
+        license_noauth_resource = jurisdiction_resource.add_resource('licenses-noauth')
+        # POST /v0/boards/co/licenses-noauth
+        method_options = MethodOptions(
+            authorization_type=AuthorizationType.NONE
+        )
+        PostLicenses(
+            license_noauth_resource,
+            method_options=method_options
+        )
+        BulkUploadUrl(
+            mock_bucket=True,
+            resource=license_noauth_resource,
+            method_options=method_options,
+            bulk_uploads_bucket=persistent_stack.mock_bulk_uploads_bucket
+        )
 
-            # Authenticated endpoints
-            licenses_resource = jurisdiction_resource.add_resource('licenses')
-            # POST /v0/boards/co/licenses
-            method_options = MethodOptions(
-                authorization_type=AuthorizationType.COGNITO,
-                authorizer=self.board_users_authorizer,
-                authorization_scopes=[persistent_stack.board_users.scopes[jurisdiction].scope_name]
-            )
-            PostLicenses(
-                licenses_resource,
-                method_options=method_options
-            )
-            BulkUploadUrl(
-                resource=licenses_resource,
-                jurisdiction=jurisdiction,
-                method_options=method_options,
-                persistent_stack=persistent_stack
-            )
+        # Authenticated endpoints
+        licenses_resource = jurisdiction_resource.add_resource('licenses')
+        # POST /v0/providers/{compact}/{jurisdiction}/licenses
+        scopes = [
+            f'{resource_server}/{scope}'
+            for resource_server in persistent_stack.board_users.resource_servers.keys()
+            for scope in persistent_stack.board_users.scopes.keys()
+        ]
+        method_options = MethodOptions(
+            authorization_type=AuthorizationType.COGNITO,
+            authorizer=self.board_users_authorizer,
+            authorization_scopes=scopes
+        )
+        PostLicenses(
+            licenses_resource,
+            method_options=method_options
+        )
+        BulkUploadUrl(
+            resource=licenses_resource,
+            method_options=method_options,
+            bulk_uploads_bucket=persistent_stack.bulk_uploads_bucket
+        )
 
         stack = Stack.of(self)
         NagSuppressions.add_resource_suppressions_by_path(

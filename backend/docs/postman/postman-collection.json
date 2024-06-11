@@ -133,7 +133,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "[\n  {\n    \"date_of_issuance\": \"2024-06-06\",\n    \"npi\": \"0608337260\",\n    \"date_of_birth\": \"2024-06-06\",\n    \"license_type\": \"speech language\",\n    \"family_name\": \"string\",\n    \"home_state_city\": \"string\",\n    \"middle_name\": \"string\",\n    \"license_status\": \"active\",\n    \"ssn\": \"529-31-5408\",\n    \"home_state_street_2\": \"string\",\n    \"home_state_street_1\": \"string\",\n    \"license_id\": \"string\",\n    \"date_of_expiration\": \"2024-06-06\",\n    \"home_state_postal_code\": \"string\",\n    \"given_name\": \"string\",\n    \"date_of_renewal\": \"2024-06-06\"\n  }\n]",
+													"raw": "[\n  {\n    \"date_of_issuance\": \"2024-06-06\",\n    \"npi\": \"0608337260\",\n    \"date_of_birth\": \"2024-06-06\",\n    \"license_type\": \"speech language\",\n    \"last_name\": \"string\",\n    \"home_state_city\": \"string\",\n    \"middle_name\": \"string\",\n    \"license_status\": \"active\",\n    \"ssn\": \"529-31-5408\",\n    \"home_state_street_2\": \"string\",\n    \"home_state_street_1\": \"string\",\n    \"license_id\": \"string\",\n    \"date_of_expiration\": \"2024-06-06\",\n    \"home_state_postal_code\": \"string\",\n    \"first_name\": \"string\",\n    \"date_of_renewal\": \"2024-06-06\"\n  }\n]",
 													"options": {
 														"raw": {
 															"headerFamily": "json",
@@ -171,7 +171,7 @@
 														],
 														"body": {
 															"mode": "raw",
-															"raw": "[\n  {\n    \"date_of_birth\": \"<date>\",\n    \"date_of_expiration\": \"<date>\",\n    \"date_of_issuance\": \"<date>\",\n    \"date_of_renewal\": \"<date>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"family_name\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"pathology\",\n    \"ssn\": \"924-59-0249\",\n    \"npi\": \"3089238157\",\n    \"middle_name\": \"<string>\",\n    \"license_id\": \"<string>\"\n  },\n  {\n    \"date_of_birth\": \"<date>\",\n    \"date_of_expiration\": \"<date>\",\n    \"date_of_issuance\": \"<date>\",\n    \"date_of_renewal\": \"<date>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"family_name\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"pathology\",\n    \"ssn\": \"826-43-2844\",\n    \"npi\": \"0484105477\",\n    \"middle_name\": \"<string>\",\n    \"license_id\": \"<string>\"\n  }\n]",
+															"raw": "[\n  {\n    \"date_of_birth\": \"<date>\",\n    \"date_of_expiration\": \"<date>\",\n    \"date_of_issuance\": \"<date>\",\n    \"date_of_renewal\": \"<date>\",\n    \"first_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"last_name\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"pathology\",\n    \"ssn\": \"924-59-0249\",\n    \"npi\": \"3089238157\",\n    \"middle_name\": \"<string>\",\n    \"license_id\": \"<string>\"\n  },\n  {\n    \"date_of_birth\": \"<date>\",\n    \"date_of_expiration\": \"<date>\",\n    \"date_of_issuance\": \"<date>\",\n    \"date_of_renewal\": \"<date>\",\n    \"first_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"last_name\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"pathology\",\n    \"ssn\": \"826-43-2844\",\n    \"npi\": \"0484105477\",\n    \"middle_name\": \"<string>\",\n    \"license_id\": \"<string>\"\n  }\n]",
 															"options": {
 																"raw": {
 																	"headerFamily": "json",
@@ -274,21 +274,11 @@
 													],
 													"request": {
 														"auth": {
-															"type": "apikey",
-															"apikey": [
+															"type": "bearer",
+															"bearer": [
 																{
-																	"key": "key",
-																	"value": "Authorization",
-																	"type": "string"
-																},
-																{
-																	"key": "value",
-																	"value": "{{apiKey}}",
-																	"type": "string"
-																},
-																{
-																	"key": "in",
-																	"value": "header",
+																	"key": "token",
+																	"value": "{{accessToken}}",
 																	"type": "string"
 																}
 															]
@@ -301,13 +291,14 @@
 															}
 														],
 														"url": {
-															"raw": "{{baseUrl}}/v0/boards/al/licenses/bulk-upload",
+															"raw": "{{baseUrl}}/v0/providers/aslp/al/licenses/bulk-upload",
 															"host": [
 																"{{baseUrl}}"
 															],
 															"path": [
 																"v0",
-																"boards",
+																"providers",
+																"aslp",
 																"al",
 																"licenses",
 																"bulk-upload"
@@ -396,7 +387,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "[\n  {\n    \"date_of_birth\": \"<date>\",\n    \"date_of_expiration\": \"<date>\",\n    \"date_of_issuance\": \"<date>\",\n    \"date_of_renewal\": \"<date>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"family_name\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"pathology\",\n    \"ssn\": \"924-59-0249\",\n    \"npi\": \"3089238157\",\n    \"middle_name\": \"<string>\",\n    \"license_id\": \"<string>\"\n  },\n  {\n    \"date_of_birth\": \"<date>\",\n    \"date_of_expiration\": \"<date>\",\n    \"date_of_issuance\": \"<date>\",\n    \"date_of_renewal\": \"<date>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"family_name\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"pathology\",\n    \"ssn\": \"826-43-2844\",\n    \"npi\": \"0484105477\",\n    \"middle_name\": \"<string>\",\n    \"license_id\": \"<string>\"\n  }\n]",
+													"raw": "[\n  {\n    \"date_of_birth\": \"<date>\",\n    \"date_of_expiration\": \"<date>\",\n    \"date_of_issuance\": \"<date>\",\n    \"date_of_renewal\": \"<date>\",\n    \"first_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"last_name\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"pathology\",\n    \"ssn\": \"924-59-0249\",\n    \"npi\": \"3089238157\",\n    \"middle_name\": \"<string>\",\n    \"license_id\": \"<string>\"\n  },\n  {\n    \"date_of_birth\": \"<date>\",\n    \"date_of_expiration\": \"<date>\",\n    \"date_of_issuance\": \"<date>\",\n    \"date_of_renewal\": \"<date>\",\n    \"first_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"last_name\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"pathology\",\n    \"ssn\": \"826-43-2844\",\n    \"npi\": \"0484105477\",\n    \"middle_name\": \"<string>\",\n    \"license_id\": \"<string>\"\n  }\n]",
 													"options": {
 														"raw": {
 															"headerFamily": "json",
@@ -439,7 +430,7 @@
 														],
 														"body": {
 															"mode": "raw",
-															"raw": "[\n  {\n    \"date_of_birth\": \"<date>\",\n    \"date_of_expiration\": \"<date>\",\n    \"date_of_issuance\": \"<date>\",\n    \"date_of_renewal\": \"<date>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"family_name\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"pathology\",\n    \"ssn\": \"924-59-0249\",\n    \"npi\": \"3089238157\",\n    \"middle_name\": \"<string>\",\n    \"license_id\": \"<string>\"\n  },\n  {\n    \"date_of_birth\": \"<date>\",\n    \"date_of_expiration\": \"<date>\",\n    \"date_of_issuance\": \"<date>\",\n    \"date_of_renewal\": \"<date>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"family_name\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"pathology\",\n    \"ssn\": \"826-43-2844\",\n    \"npi\": \"0484105477\",\n    \"middle_name\": \"<string>\",\n    \"license_id\": \"<string>\"\n  }\n]",
+															"raw": "[\n  {\n    \"date_of_birth\": \"<date>\",\n    \"date_of_expiration\": \"<date>\",\n    \"date_of_issuance\": \"<date>\",\n    \"date_of_renewal\": \"<date>\",\n    \"first_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"last_name\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"pathology\",\n    \"ssn\": \"924-59-0249\",\n    \"npi\": \"3089238157\",\n    \"middle_name\": \"<string>\",\n    \"license_id\": \"<string>\"\n  },\n  {\n    \"date_of_birth\": \"<date>\",\n    \"date_of_expiration\": \"<date>\",\n    \"date_of_issuance\": \"<date>\",\n    \"date_of_renewal\": \"<date>\",\n    \"first_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"last_name\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"pathology\",\n    \"ssn\": \"826-43-2844\",\n    \"npi\": \"0484105477\",\n    \"middle_name\": \"<string>\",\n    \"license_id\": \"<string>\"\n  }\n]",
 															"options": {
 																"raw": {
 																	"headerFamily": "json",
@@ -483,7 +474,7 @@
 			]
 		},
 		{
-			"name": "Auth",
+			"name": "Board-Auth",
 			"item": [
 				{
 					"name": "client-credentials-grant",
@@ -492,9 +483,9 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"",
 									"pm.test('Access token returned', () => {",
 									"    var access_token = pm.response.json().access_token;",
+									"    pm.expect(access_token).not.to.be.empty;",
 									"    pm.environment.set(\"accessToken\", access_token);",
 									"    console.log('Access token: ' + access_token);",
 									"});"
@@ -520,9 +511,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{cognitoBaseUrl}}/oauth2/token?grant_type=client_credentials&client_id={{clientId}}&client_secret={{clientSecret}}&scope=license-data/{{jurisdiction}}&redirect_uri=http://localhost:8080/",
+							"raw": "{{boardUserPoolUrl}}/oauth2/token?grant_type=client_credentials&client_id={{clientId}}&client_secret={{clientSecret}}&scope=license-data/{{jurisdiction}}",
 							"host": [
-								"{{cognitoBaseUrl}}"
+								"{{boardUserPoolUrl}}"
 							],
 							"path": [
 								"oauth2",
@@ -544,10 +535,6 @@
 								{
 									"key": "scope",
 									"value": "license-data/{{jurisdiction}}"
-								},
-								{
-									"key": "redirect_uri",
-									"value": "http://localhost:8080/"
 								}
 							]
 						}
@@ -563,21 +550,24 @@
 								"exec": [
 									"pm.test('Access token returned', () => {",
 									"    var access_token = pm.response.json().access_token;",
+									"    pm.expect(access_token).not.to.be.empty;",
 									"    pm.environment.set(\"accessToken\", access_token);",
 									"    console.log('Access token: ' + access_token);",
 									"});",
 									"",
 									"pm.test('Identity token returned', () => {",
 									"    var id_token = pm.response.json().id_token;",
+									"    pm.expect(id_token).not.to.be.empty;",
 									"    pm.environment.set(\"idToken\", id_token);",
 									"    console.log('id token: ' + id_token);",
-									"})",
+									"});",
 									"",
 									"pm.test('Refresh token returned', () => {",
 									"    var refresh_token = pm.response.json().refresh_token;",
-									"    pm.environment.set(\"refreshToken\", referesh_token);",
+									"    pm.expect(refresh_token).not.to.be.empty;",
+									"    pm.environment.set(\"refreshToken\", refresh_token);",
 									"    console.log('refresh token: ' + refresh_token);",
-									"})"
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -600,9 +590,9 @@
 							}
 						],
 						"url": {
-							"raw": "{{cognitoBaseUrl}}/oauth2/token?grant_type=authorization_code&code=d63f516b-9fa4-446b-920e-07942e36ccf7&client_id={{clientId}}&scope=openid+license-data/{{jurisdiction}}&redirect_uri=http://localhost:8080/",
+							"raw": "{{boardUserPoolUrl}}/oauth2/token?grant_type=authorization_code&code=5a27ed47-02c4-45bb-a6ec-cbfbbae64a13&client_id={{clientId}}&scope=openid&redirect_uri=http://localhost:8000/auth",
 							"host": [
-								"{{cognitoBaseUrl}}"
+								"{{boardUserPoolUrl}}"
 							],
 							"path": [
 								"oauth2",
@@ -615,7 +605,7 @@
 								},
 								{
 									"key": "code",
-									"value": "d63f516b-9fa4-446b-920e-07942e36ccf7"
+									"value": "5a27ed47-02c4-45bb-a6ec-cbfbbae64a13"
 								},
 								{
 									"key": "client_id",
@@ -623,11 +613,11 @@
 								},
 								{
 									"key": "scope",
-									"value": "openid+license-data/{{jurisdiction}}"
+									"value": "openid"
 								},
 								{
 									"key": "redirect_uri",
-									"value": "http://localhost:8080/"
+									"value": "http://localhost:8000/auth"
 								}
 							]
 						}
@@ -641,7 +631,6 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"",
 									"pm.test('Access token returned', () => {",
 									"    var access_token = pm.response.json().access_token;",
 									"    pm.environment.set(\"accessToken\", access_token);",
@@ -652,7 +641,7 @@
 									"    var id_token = pm.response.json().id_token;",
 									"    pm.environment.set(\"idToken\", id_token);",
 									"    console.log('id token: ' + id_token);",
-									"})"
+									"});"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -677,9 +666,165 @@
 							}
 						],
 						"url": {
-							"raw": "{{cognitoBaseUrl}}/oauth2/token?grant_type=refresh_token&client_id={{clientId}}&refresh_token={{refreshToken}}",
+							"raw": "{{boardUserPoolUrl}}/oauth2/token?grant_type=refresh_token&client_id={{clientId}}&refresh_token={{refreshToken}}",
 							"host": [
-								"{{cognitoBaseUrl}}"
+								"{{boardUserPoolUrl}}"
+							],
+							"path": [
+								"oauth2",
+								"token"
+							],
+							"query": [
+								{
+									"key": "grant_type",
+									"value": "refresh_token"
+								},
+								{
+									"key": "client_id",
+									"value": "{{clientId}}"
+								},
+								{
+									"key": "refresh_token",
+									"value": "{{refreshToken}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin-Auth",
+			"item": [
+				{
+					"name": "authorization-code-grant-token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Access token returned', () => {",
+									"    var access_token = pm.response.json().access_token;",
+									"    pm.expect(access_token).not.to.be.empty;",
+									"    pm.environment.set(\"accessToken\", access_token);",
+									"    console.log('Access token: ' + access_token);",
+									"});",
+									"",
+									"pm.test('Identity token returned', () => {",
+									"    var id_token = pm.response.json().id_token;",
+									"    pm.expect(id_token).not.to.be.empty;",
+									"    pm.environment.set(\"idToken\", id_token);",
+									"    console.log('id token: ' + id_token);",
+									"});",
+									"",
+									"pm.test('Refresh token returned', () => {",
+									"    var refresh_token = pm.response.json().refresh_token;",
+									"    pm.expect(refresh_token).not.to.be.empty;",
+									"    pm.environment.set(\"refreshToken\", refresh_token);",
+									"    console.log('refresh token: ' + refresh_token);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{adminUserPoolUrl}}/oauth2/token?grant_type=authorization_code&code=a2bccaf1-2920-4005-afd7-23b80dd476d4&client_id={{clientId}}&scope=openid email admin/*&redirect_uri=http://localhost:8000/auth",
+							"host": [
+								"{{adminUserPoolUrl}}"
+							],
+							"path": [
+								"oauth2",
+								"token"
+							],
+							"query": [
+								{
+									"key": "grant_type",
+									"value": "authorization_code"
+								},
+								{
+									"key": "code",
+									"value": "a2bccaf1-2920-4005-afd7-23b80dd476d4"
+								},
+								{
+									"key": "client_id",
+									"value": "{{clientId}}"
+								},
+								{
+									"key": "scope",
+									"value": "openid email admin/*"
+								},
+								{
+									"key": "redirect_uri",
+									"value": "http://localhost:8000/auth"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "refresh-token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Access token returned', () => {",
+									"    var access_token = pm.response.json().access_token;",
+									"    pm.environment.set(\"accessToken\", access_token);",
+									"    console.log('Access token: ' + access_token);",
+									"});",
+									"",
+									"pm.test('Identity token returned', () => {",
+									"    var id_token = pm.response.json().id_token;",
+									"    pm.environment.set(\"idToken\", id_token);",
+									"    console.log('id token: ' + id_token);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded",
+								"type": "text"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{adminUserPoolUrl}}/oauth2/token?grant_type=refresh_token&client_id={{clientId}}&refresh_token={{refreshToken}}",
+							"host": [
+								"{{adminUserPoolUrl}}"
 							],
 							"path": [
 								"oauth2",
@@ -754,7 +899,7 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "CnU2yGPwd/licenses.csv"
+							"src": "_2jFXlWDV/postman-collection.json"
 						}
 					]
 				},
@@ -766,6 +911,38 @@
 				}
 			},
 			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
 		}
 	],
 	"variable": [

@@ -4,6 +4,7 @@ from constructs import Construct
 
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.stack import Stack
+from stacks.persistent_stack.admin_users import AdminUsers
 from stacks.persistent_stack.board_users import BoardUsers
 
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
@@ -18,8 +19,6 @@ class PersistentStack(Stack):
     def __init__(
             self, scope: Construct, construct_id: str, *,
             environment_name: str,
-            compact_name: str,
-            compact_context: dict,
             **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -27,13 +26,25 @@ class PersistentStack(Stack):
         removal_policy = RemovalPolicy.RETAIN if environment_name == 'prod' else RemovalPolicy.DESTROY
 
         self.access_logs_bucket = AccessLogsBucket(
-            self, 'AccessLogsBucket'
+            self, 'AccessLogsBucket',
+            removal_policy=removal_policy,
+            auto_delete_objects=removal_policy == RemovalPolicy.DESTROY
         )
 
         self.shared_encryption_key = Key(
             self, 'SharedEncryptionKey',
             enable_key_rotation=True,
-            alias=f'{self.stack_name}-shared-encryption-key'
+            alias=f'{self.stack_name}-shared-encryption-key',
+            removal_policy=removal_policy
+        )
+
+        self.mock_bulk_uploads_bucket = BulkUploadsBucket(
+            self, 'MockBulkUploadsBucket',
+            mock_bucket=True,
+            access_logs_bucket=self.access_logs_bucket,
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy,
+            auto_delete_objects=environment_name != 'prod'
         )
 
         self.bulk_uploads_bucket = BulkUploadsBucket(
@@ -44,11 +55,18 @@ class PersistentStack(Stack):
             auto_delete_objects=environment_name != 'prod'
         )
 
+        self.admin_users = AdminUsers(
+            self, 'AdminUsers',
+            cognito_domain_prefix='jcc-admin',
+            environment_name=environment_name,
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy
+        )
+
         self.board_users = BoardUsers(
             self, 'BoardUsers',
-            cognito_domain_prefix=f'{compact_name}-board-compact',
+            cognito_domain_prefix='licensure-compact',
             environment_name=environment_name,
-            compact_context=compact_context,
             encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy
         )

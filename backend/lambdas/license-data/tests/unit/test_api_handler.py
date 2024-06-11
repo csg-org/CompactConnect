@@ -53,3 +53,19 @@ class TestApiHandler(TstLambdas):
 
         with self.assertRaises(RuntimeError):
             lambda_handler(event, self.mock_context)
+
+    def test_null_headers(self):
+        from utils import api_handler
+
+        @api_handler
+        def lambda_handler(event, context):  # pylint: disable=unused-argument
+            return {'message': 'OK'}
+
+        with open('tests/resources/api-event.json', 'r') as f:
+            event = json.load(f)
+        event['headers'] = None
+
+        resp = lambda_handler(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        self.assertEqual('{"message": "OK"}', resp['body'])

@@ -1,4 +1,3 @@
-import json
 import os
 from unittest import TestCase
 from unittest.mock import MagicMock
@@ -11,8 +10,7 @@ class TstLambdas(TestCase):
     def setUpClass(cls):
         os.environ.update({
             'DEBUG': 'true',
-            'BULK_BUCKET_NAME': 'bulk-bucket',
-            'JURISDICTION': 'co'
+            'BULK_BUCKET_NAME': 'bulk-bucket'
         })
         # Monkey-patch config object to be sure we have it based
         # on the env vars we set above

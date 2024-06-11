@@ -1,7 +1,7 @@
 [run]
 include =
   **/*.py
-data_file = ../.coverage
+data_file = ../../.coverage
 
 omit =
   */cdk.out/*
