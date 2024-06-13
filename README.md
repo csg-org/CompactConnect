@@ -1,3 +1,3 @@
-# Licensure Compact System
+# CompactConnect
 
-The Audiology and Speech Language Pathology, Counseling, and Occupational Therapy compact commissions are collectively building a system to share professional licensure data between their state licensing boards to facilitate participation in their repsective occupational licensure compacts. This project is getting underway in 2024.
+The Audiology and Speech Language Pathology, Counseling, and Occupational Therapy compact commissions are collectively building this system to share professional licensure data between their state licensing boards to facilitate participation in their repsective occupational licensure compacts. Software development began in June 2024.
