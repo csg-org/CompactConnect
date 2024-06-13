@@ -1,0 +1,123 @@
+//
+//  reset.less
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 4/12/20.
+//  Copyright © 2024. InspiringApps. All rights reserved.
+//
+
+// @NOTE: There should only be base HTML tag definitions in this file.
+
+/* stylelint-disable selector-list-comma-newline-after */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+form, fieldset, label, legend, caption,
+article, aside, canvas, details, embed,
+figure, figcaption, footer, header, hgroup,
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+    position: relative;        // So that we can position child elements reliably as needed
+    box-sizing: border-box;    // So that the box model is made more intuitive
+    margin: 0;                 // So that we explicitly define most spacing
+    padding: 0;                // So that we explicitly define most spacing
+    border: 0;                 // So that we explicitly define most spacing
+    font: inherit;             // So browsers don't override our fonts
+    line-height: 1.5;          // So that we explicitly define most spacing
+}
+/* stylelint-enable selector-list-comma-newline-after */
+
+html {
+    font-size: 62.5%;          // So that 1rem = 10px
+    font-family: @fontFamily;  // So there is an explicit root font-family definition to inherit
+}
+
+body {
+    min-height: 100vh;
+    color: @fontColor;         // So there is an explicit root color definition to inherit
+    font-weight: @fontWeightLight;  // So there is an explicit root font-weight definition to inherit
+    font-size: @fontSize;
+    background-color: @white;  // So that there is an explicit background-color set
+}
+
+body > #app {
+    height: 100%;
+    min-height: inherit;
+}
+
+a,
+a:link,
+a:visited,
+a:active {                     // So that links look / behave consistently in all components
+    @linkColor: @primaryColor;
+    @linkHoverColor: darken(@primaryColor, 10%);
+    @linkHoverTransition: 0.2s ease-out;
+
+    color: @linkColor;
+    text-decoration: none;
+    transition: color @linkHoverTransition;
+
+    svg {
+        transition: fill @linkHoverTransition;
+        fill: @linkColor;
+    }
+
+    &:hover {
+        color: @linkHoverColor;
+
+        svg {
+            fill: @linkHoverColor;
+        }
+    }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: @fontWeightBold;  // So there is an explicit root font-weight definition to inherit
+}
+
+h1 {
+    font-size: @h1FontSize;    // So that header size is explicitly defined to match designs
+}
+
+h2 {
+    font-size: @h2FontSize;    // So that header size is explicitly defined to match designs
+}
+
+h3 {
+    font-size: @h3FontSize;    // So that header size is explicitly defined to match designs
+}
+
+h4 {
+    font-size: @h4FontSize;    // So that header size is explicitly defined to match designs
+}
+
+h5 {
+    font-size: @h5FontSize;    // So that header size is explicitly defined to match designs
+}
+
+h6 {
+    font-size: @h6FontSize;    // So that header size is explicitly defined to match designs
+}
+
+ul {
+    .ul-allow-good-wrap();
+
+    list-style-type: none;     // So that lists are easily used for accessible elements w/out worrying about browser styles
+
+    li {
+        list-style: none;      // So that lists are easily used for accessible elements w/out worrying about browser styles
+    }
+}
+
+ol {
+    .ol-allow-good-wrap();
+}

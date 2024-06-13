@@ -1,0 +1,33 @@
+//
+//  PageHeader.less
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 5/4/2020.
+//  Copyright © 2024. InspiringApps. All rights reserved.
+//
+
+.page-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    height: @appHeaderHeight;
+    padding: 0 1.6rem;
+    border-bottom: 0.1rem solid @lightGrey;
+    background-color: @white;
+
+    .header-content {
+        display: flex;
+        flex-grow: 1;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .nav-container {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+}

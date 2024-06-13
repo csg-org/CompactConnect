@@ -1,0 +1,12 @@
+[
+    {
+        "relation": [ "delegate_permission/common.handle_all_urls" ],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "Ex: com.fnf.inhere.dev",
+            "sha256_cert_fingerprints": [
+                "Ex: 59:72:B8:7F:98:5F:EB:E8:7A:0E:4B:AC:76:CA:5A:03:7A:1D:C7:F1:0A:E2:6F:AC:2A:24:B2:DE"
+            ]
+        }
+    }
+]

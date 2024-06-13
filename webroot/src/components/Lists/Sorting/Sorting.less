@@ -1,0 +1,86 @@
+//
+//  Sorting.less
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 6/2/2020.
+//  Copyright © 2024. InspiringApps. All rights reserved.
+//
+.sort-container {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    width: 100%;
+
+    @media @tabletWidth {
+        flex-direction: row;
+        align-items: center;
+        width: auto;
+    }
+
+    .sort-icon-container {
+        display: flex;
+        justify-content: flex-end;
+        height: 2.0rem;
+        margin-bottom: 0.8rem;
+
+        @media @tabletWidth {
+            display: none;
+        }
+
+        .sort-icon {
+            height: 100%;
+            cursor: pointer;
+        }
+    }
+
+    .sort-toggle {
+        &.collapsed {
+            height: 0;
+            overflow: hidden;
+        }
+
+        @media @tabletWidth {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            width: auto;
+        }
+
+        .sort-label {
+            margin-bottom: 1.0rem;
+
+            &.order-by {
+                @media @tabletWidth {
+                    display: none;
+                }
+            }
+        }
+
+        .sort-group {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: flex-end;
+            margin: 0.8rem 0;
+            border-bottom: 0.1rem solid @lightGrey;
+
+            @media @tabletWidth {
+                flex-direction: row;
+                align-items: center;
+                border-bottom: none;
+            }
+        }
+
+        .group-separator {
+            display: none;
+
+            @media @tabletWidth {
+                display: flex;
+                height: 4rem;
+                margin: 0 1.6rem 0.8rem 0.2rem;
+                border: 0.5px solid @midGrey;
+            }
+        }
+    }
+}

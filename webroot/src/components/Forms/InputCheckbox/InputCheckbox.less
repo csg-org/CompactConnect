@@ -1,0 +1,97 @@
+//
+//  InputCheckbox.less
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 1/22/2021.
+//  Copyright © 2024. InspiringApps. All rights reserved.
+//
+
+div.checkbox-container {
+    @checkboxBGColor: @white;
+    @checkboxFontColor: @white;
+    @checkboxBorderColor: @darkGrey;
+    @checkboxBorderWidth: 1px;
+    @checkboxBorderRadius: 2px;
+    @checkboxActiveBorderColor: @primaryColor;
+    @checkboxSize: 20px;
+    @checkboxFontSize: @checkboxSize - 2px;
+
+    position: relative;
+    display: flex;
+    margin: 16px 0 8px 0;
+    font-family: @fontFamily;
+
+    .checkbox-wrapper {
+        position: relative;
+        display: inline-block;
+        display: flex;
+        margin: 0;
+        padding-left: 24px;
+    }
+
+    // Checkbox input positioned on top of the replacement
+    input[type="checkbox"] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1;
+        width: @checkboxSize;
+        height: @checkboxSize;
+        margin: 0;
+        cursor: pointer;
+        opacity: 0;
+
+        // A sibling element will act as the replacement
+        & + .checkbox-replacement {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: inline-block;
+            margin: 0;
+            padding: 0;
+
+            // Replacement checkbox display
+            &::before {
+                display: inline-block;
+                box-sizing: border-box;
+                width: @checkboxSize;
+                height: @checkboxSize;
+                padding: 0 (@checkboxSize - @checkboxFontSize);
+                font-size: @checkboxFontSize;
+                line-height: @checkboxSize;
+                text-align: center;
+            }
+        }
+
+        // Unchecked replacement
+        &:not(:checked) + .checkbox-replacement::before {
+            border: solid @checkboxBorderWidth @checkboxBorderColor;
+            border-radius: @checkboxBorderRadius;
+            color: transparent;
+            font-style: normal;
+            background-color: @checkboxBGColor;
+            content: "\002E";
+        }
+
+        // Checked replacement
+        &:checked + .checkbox-replacement::before {
+            border: solid @checkboxBorderWidth @checkboxBorderColor;
+            border-radius: @checkboxBorderRadius;
+            color: @checkboxFontColor;
+            font-style: normal;
+            background-color: @primaryColor;
+            content: " \2713";
+        }
+
+        // Active focus replacement
+        &:focus + .checkbox-replacement::before {
+            width: @checkboxSize + 2px;
+            height: @checkboxSize + 2px;
+            border: @checkboxBorderWidth + 1px solid @checkboxActiveBorderColor;
+        }
+    }
+
+    label {
+        cursor: pointer;
+    }
+}

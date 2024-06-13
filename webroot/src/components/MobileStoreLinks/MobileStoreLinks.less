@@ -1,0 +1,51 @@
+//
+//  MobileStoreLinks.less
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 9/4/2020.
+//  Copyright © 2024. InspiringApps. All rights reserved.
+//
+
+.download-link-container {
+    @gap: 2.4rem;
+
+    .lazy-load();
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    @media @tabletWidth {
+        flex-direction: row;
+    }
+
+    a.download-link {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        max-width: 50%;
+        height: 100%;
+
+        &:not(:first-child) {
+            margin-top: @gap;
+        }
+
+        @media @tabletWidth {
+            &:not(:first-child) {
+                margin-top: 0;
+                margin-left: @gap;
+            }
+        }
+
+        img {
+            flex-grow: 1;
+            width: 100%;
+        }
+    }
+}

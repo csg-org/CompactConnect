@@ -1,0 +1,48 @@
+//
+//  envConfig.plugin.ts
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 4/12/20.
+//  Copyright © 2024. InspiringApps. All rights reserved.
+//
+
+// https://vuejs.org/v2/guide/plugins.html
+
+//
+// @NOTE: Any custom keys in .env have to start with VUE_APP.... to be recognized at runtime
+//
+
+const ENV_PRODUCTION = 'production';
+const ENV_TEST = 'test';
+const ENV_DEVELOPMENT = 'development';
+
+export interface EnvConfig {
+    name?: string;
+    isProduction?: boolean;
+    isTest?: boolean;
+    isDevelopment?: boolean;
+    baseUrl?: string;
+    domain?: string;
+    apiUrlExample?: string;
+    apiKeyExample?: string;
+    isUsingMockApi?: boolean;
+}
+
+// @NOTE: Any custom keys in .env have to start with VUE_APP_ to be accessible at runtime
+export const config: EnvConfig = {
+    name: process.env.NODE_ENV,
+    isProduction: (process.env.NODE_ENV === ENV_PRODUCTION),
+    isTest: (process.env.NODE_ENV === ENV_TEST),
+    isDevelopment: (process.env.NODE_ENV === ENV_DEVELOPMENT),
+    baseUrl: process.env.BASE_URL,
+    domain: process.env.VUE_APP_DOMAIN,
+    apiUrlExample: process.env.VUE_APP_API_EXAMPLE_ROOT,
+    apiKeyExample: process.env.VUE_APP_API_EXAMPLE_KEY,
+    isUsingMockApi: (process.env.VUE_APP_MOCK_API === 'true'),
+};
+
+export default {
+    install: (app) => {
+        app.config.globalProperties.$envConfig = config;
+    },
+};

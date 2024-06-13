@@ -1,0 +1,43 @@
+//
+//  InputDate.less
+//  <the-app-name>
+//
+//  Created by InspiringApps on 6/7/2024.
+//  Copyright © 2024. <the-customer-name>. All rights reserved.
+//
+
+.input-container {
+    --dp-font-size: @fontSize;
+
+    &::v-deep(.dp__main) {
+        & > div {
+            position: static;
+        }
+
+        .dp__input_wrap div {
+            position: static;
+        }
+
+        .dp__input_icon_pad {
+            padding: 0 30px;
+        }
+
+        .dp__instance_calendar {
+            .dp__menu_inner {
+                position: static;
+            }
+
+            .dp--header-wrap {
+                position: static;
+            }
+
+            .dp__month_year_wrap {
+                position: static;
+            }
+
+            .dp__overlay_container {
+                --dp-overlay-height: 90%;
+            }
+        }
+    }
+}

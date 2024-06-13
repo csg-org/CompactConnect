@@ -1,0 +1,87 @@
+//
+//  InputFile.less
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 7/8/2020.
+//  Copyright © 2024. InspiringApps. All rights reserved.
+//
+
+.input-container {
+    display: flex;
+
+    &.is-drag-over {
+        background-color: @veryLightBlue;
+    }
+
+    // Overlay mask so child drag events don't fire while dragging
+    .drop-mask {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 600;
+        display: none;
+        border: 2px dashed @primaryColor;
+        border-radius: 4px;
+        cursor: copy;
+        content: "";
+
+        &.is-drag-over {
+            display: block;
+        }
+    }
+
+    input[type=file] {
+        width: 0;
+        min-width: 0;
+        height: 0;
+        min-height: 0;
+        margin: 0;
+        padding: 0;
+        visibility: hidden;
+    }
+
+    .input-file-container {
+        display: flex;
+
+        .add-files,
+        .reset-files {
+            display: flex;
+            align-items: center;
+            height: 24px;
+            margin-right: 4px;
+            padding: 2px 4px;
+            border-radius: 9999px;
+            color: @white;
+            font-weight: @fontWeight;
+            background-color: @primaryColor;
+            cursor: pointer;
+        }
+
+        .selected-files {
+            display: flex;
+            flex-wrap: wrap;
+
+            .selected-file {
+                display: flex;
+                align-items: center;
+                margin-right: 4px;
+                margin-bottom: 4px;
+                padding: 2px 8px;
+                border-radius: 9999px;
+                color: @fontColor;
+                background-color: @veryLightGrey;
+
+                &.has-error {
+                    background-color: @lightRed;
+                }
+            }
+
+            .file-size {
+                margin-left: 4px;
+                font-size: @fontSizeSmall;
+            }
+        }
+    }
+}

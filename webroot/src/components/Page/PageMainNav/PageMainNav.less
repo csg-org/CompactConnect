@@ -1,0 +1,92 @@
+//
+//  PageMainNav.less
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 11/20/2020.
+//  Copyright © 2024. InspiringApps. All rights reserved.
+//
+
+.main-nav-container {
+    display: flex;
+    align-items: center;
+
+    .nav-toggle {
+        width: 3.6rem;
+        cursor: pointer;
+
+        & > div {
+            width: 100%;
+            height: 0.6rem;
+            border-radius: @borderRadiusSmall;
+            background-color: @primaryColor;
+
+            &:not(:first-child) {
+                margin-top: 0.6rem;
+            }
+        }
+    }
+
+    ul.main-nav {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        z-index: 1;
+        width: 70vw;
+        background-color: @white;
+        box-shadow: -0.8rem 0.8rem 2.0rem 0.4rem fadeout(@black, 90%);
+
+        @media @desktopWidth {
+            position: relative;
+            top: initial;
+            right: initial;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-end;
+            width: auto;
+            overflow: visible;
+            box-shadow: none;
+        }
+
+        li {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 0 0.6rem;
+            cursor: pointer;
+
+            &.page-nav {
+                a {
+                    padding: 1.2rem;
+                    color: @fontColor;
+
+                    &.router-link-active {
+                        font-weight: @fontWeightBold;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Nav menu slide transition
+.nav-slide-enter,
+.nav-slide-leave-to {
+    max-height: 0;
+    opacity: 0;
+}
+
+.nav-slide-enter-to,
+.nav-slide-leave {
+    max-height: 40.0rem;
+    opacity: 1;
+}
+
+.nav-slide-enter-active {
+    transition: all 0.25s linear;
+}
+
+.nav-slide-leave-active {
+    transition: all 0.25s linear;
+}

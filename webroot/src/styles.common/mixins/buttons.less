@@ -1,0 +1,78 @@
+//
+//  buttons.less
+//  InspiringApps modules
+//
+//  Created by InspirinApps on 7/15/20.
+//  Copyright © 2024. InspiringApps. All rights reserved.
+//
+
+.button-primary() {
+    @buttonEnabledBGColor: @primaryColor;
+    @buttonEnabledTextColor: @white;
+    @buttonDisabledBGColor: @lightGrey;
+    @buttonDisabledTextColor: @white;
+    @buttonHoverBGColor: darken(@primaryColor, 8%);
+    @buttonHoverTextColor: @white;
+    @buttonTransparentBGColor: transparent;
+    @buttonTransparentTextColor: @primaryColor;
+    @buttonTransparentHoverTextColor: darken(@primaryColor, 8%);
+    @transition: 0.2s ease-out;
+
+    padding: 1.2rem;
+    border: 0.2rem solid @buttonEnabledBGColor;
+    border-radius: @borderRadiusPillShape;
+    color: @buttonEnabledTextColor;
+    font-weight: 500;
+    font-size: 1.6rem;
+    font-family: @fontFamily;
+    letter-spacing: 0.04rem;
+    background-color: @buttonEnabledBGColor;
+    cursor: pointer;
+    transition:
+        color @transition,
+        background-color @transition,
+        border-color @transition;
+
+    &:disabled {
+        border-color: @buttonDisabledBGColor;
+        color: @buttonDisabledTextColor;
+        background-color: @buttonDisabledBGColor;
+        cursor: default;
+    }
+
+    &:not(:disabled):not(.transparent):not(.text-like) {
+        &:hover,
+        &:focus,
+        &:active {
+            border-color: @buttonHoverBGColor;
+            color: @buttonHoverTextColor;
+            background-color: @buttonHoverBGColor;
+        }
+    }
+
+    &.no-text-transform {
+        text-transform: none;
+    }
+
+    &.transparent {
+        border-color: @buttonTransparentBGColor;
+        color: @buttonTransparentTextColor;
+        background-color: @buttonTransparentBGColor;
+
+        &:hover {
+            color: @buttonTransparentHoverTextColor;
+        }
+    }
+
+    &.text-like {
+        border: none;
+        color: @primaryColor;
+        background-color: transparent;
+
+        &:hover {
+            border: none;
+            text-decoration: underline;
+            background-color: transparent;
+        }
+    }
+}
