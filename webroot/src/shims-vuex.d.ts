@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 4/08/24.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 import { Store } from 'vuex';

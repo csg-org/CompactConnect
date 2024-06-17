@@ -3,7 +3,6 @@
     inHere
 
     Created by InspiringApps on 1/22/2021.
-    Copyright © 2024. InspiringApps. All rights reserved.
 -->
 
 <template>

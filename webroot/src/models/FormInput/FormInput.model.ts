@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 4/25/2020.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 import deleteUndefinedProperties from '@models/_helpers';
 import { ComputedRef } from 'vue';

@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 11/20/2020.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 import { reactive, computed } from 'vue';

@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 6/12/24.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 import mutations, { MutationTypes } from './styleguide.mutations';

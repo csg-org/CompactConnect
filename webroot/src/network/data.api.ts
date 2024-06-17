@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 5/6/20.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 import { exampleDataApi } from '@/network/exampleApi/data.api';

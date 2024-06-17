@@ -3,7 +3,6 @@
 //  <the-app-name>
 //
 //  Created by InspiringApps on 6/7/2024.
-//  Copyright © 2024. <the-customer-name>. All rights reserved.
 //
 
 import {

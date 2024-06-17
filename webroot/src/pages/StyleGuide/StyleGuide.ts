@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 4/28/2021.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
@@ -12,7 +11,6 @@ import ExampleLanguageSelector from '@components/StyleGuide/ExampleLanguageSelec
 import ExampleForm from '@components/StyleGuide/ExampleForm/ExampleForm.vue';
 import ExampleModal from '@components/StyleGuide/ExampleModal/ExampleModal.vue';
 import ExampleLoadingSpinner from '@components/StyleGuide/ExampleLoadingSpinner/ExampleLoadingSpinner.vue';
-import ExampleMobileLinks from '@components/StyleGuide/ExampleMobileLinks/ExampleMobileLinks.vue';
 
 @Component({
     components: {
@@ -21,7 +19,6 @@ import ExampleMobileLinks from '@components/StyleGuide/ExampleMobileLinks/Exampl
         ExampleForm,
         ExampleModal,
         ExampleLoadingSpinner,
-        ExampleMobileLinks,
     }
 })
 export default class StyleGuide extends Vue {

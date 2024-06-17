@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 04/27/2021.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 /* eslint-disable import/no-extraneous-dependencies */

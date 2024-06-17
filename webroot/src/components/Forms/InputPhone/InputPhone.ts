@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 6/19/2020.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 import {
@@ -43,7 +42,7 @@ class InputPhone extends mixins(MixinInput) {
     // Computed
     //
     get countryCodes(): Array<{ value: string, name: string }> {
-        const allowedCountryCodes = ['US', 'CA', 'MX', 'AU'];
+        const allowedCountryCodes = ['US'];
         const allowedCountries = countryData.filter((country) => allowedCountryCodes.includes(country.code));
         const sortedCountries = allowedCountries.sort((a, b) =>
             allowedCountryCodes.indexOf(a.code) - allowedCountryCodes.indexOf(b.code));
@@ -139,14 +138,6 @@ class InputPhone extends mixins(MixinInput) {
             formInput.errorMessage = ``;
             formInput.isValid = true;
         }
-
-        // // @DEBUG
-        // console.log(``);
-        // console.log(`localValue: ${this.localValue}`);
-        // console.log(`FormInput.value: ${formInput.value}`);
-        // console.log(`Formatted: ${this.phoneDisplay}`);
-        // console.log(`Raw: ${this.phoneRaw}`);
-        // console.log(`Valid: ${this.isPhoneValid}`);
     }
 
     input(formInput: FormInput): void {

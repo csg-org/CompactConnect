@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 5/19/20.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 import { axeConfig } from '../support/axe-config';
 

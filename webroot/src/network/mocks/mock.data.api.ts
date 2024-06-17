@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 5/27/20.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 import { UserSerializer } from '@models/User/User.model';

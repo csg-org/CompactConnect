@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 4/14/20.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 const axeConfig = {

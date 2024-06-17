@@ -3,8 +3,7 @@
 //  inHere
 //
 //  Created by InspiringApps on 6/1/2020.
-//  //  Copyright © 2024. InspiringApps. All rights reserved.
-//
+//  //
 
 // ========================================================
 // =                       Interface                      =

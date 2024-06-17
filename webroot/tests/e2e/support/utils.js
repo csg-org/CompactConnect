@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 8/25/21.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 export const hexToRgb = (hex) => {

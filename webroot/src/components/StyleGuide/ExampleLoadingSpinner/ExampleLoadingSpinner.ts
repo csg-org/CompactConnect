@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 5/5/2021.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 import { Component, Vue, toNative } from 'vue-facing-decorator';

@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 5/21/2020.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 import sinon from 'sinon';
@@ -152,7 +151,7 @@ describe('Pagination component', async () => {
         expect(pages[5]).to.equal('...');
         expect(pages[6]).to.equal(19);
     });
-    it('should return an array of [1, ..., 4, 5, 6, ..., 19] when the list size is 94, and the current page is 4 at size 5', async () => {
+    it('should return an array of [1, ..., 3, 4, 5, ..., 19] when the list size is 94, and the current page is 4 at size 5', async () => {
         const spy = sinon.spy();
         const wrapper = await mountShallow(Pagination, {
             props: {

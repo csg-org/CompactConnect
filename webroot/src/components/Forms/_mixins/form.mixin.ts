@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 5/3/2024.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 import { Component, Vue, Watch } from 'vue-facing-decorator';
@@ -82,7 +81,6 @@ class MixinForm extends Vue {
         this.formKeys.forEach((key) => {
             if (!formData[key].isSubmitInput) {
                 this.$watch(`formData.${key}`, () => {
-                    // console.log(`${key} changed`); // @DEBUG
                     this.checkValidForAll();
                     this.updateFormSubmitSuccess('');
                     this.updateFormSubmitError('');
@@ -116,11 +114,6 @@ class MixinForm extends Vue {
 
     checkValidForAll(): void {
         const { formData } = this;
-
-        // // @DEBUG
-        // this.formKeys.forEach((key) => {
-        //     console.log(`${key}.isValid: ${formData[key].isValid}`);
-        // });
 
         this.isFormValid = this.formKeys.every((key) => formData[key].isValid);
     }

@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 4/27/21.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 import { createApp } from 'vue';

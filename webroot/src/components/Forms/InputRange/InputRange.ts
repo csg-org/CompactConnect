@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 5/21/2024.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 import {

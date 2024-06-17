@@ -3,12 +3,11 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 5/6/20.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 export const userData = {
     id: 'userId',
-    email: 'mock.account@email.com',
+    email: 'mock.account@example.com',
     firstName: 'Jane',
     lastName: 'Doe',
 };

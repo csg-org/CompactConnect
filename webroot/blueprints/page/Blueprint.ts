@@ -1,23 +1,30 @@
 //
 //  Blueprint.ts
-//  <the-app-name>
+//  CompactConnect
 //
 //  Created by InspiringApps on MM/DD/YYYY.
-//  Copyright © 2024. <the-customer-name>. All rights reserved.
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
 
 @Component({
+    name: 'Blueprint',
     components: {}
 })
 export default class Blueprint extends Vue {
-    // Lifecycle
-    // mounted() {
     //
-    // }
+    // Data
+    //
 
+    //
+    // Lifecycle
+    //
+
+    //
     // Computed
+    //
 
+    //
     // Methods
+    //
 }

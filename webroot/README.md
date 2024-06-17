@@ -171,4 +171,3 @@ Note that testing the **built** app locally will require a running web server; f
     - _Otherwise the PWA will get cached and testing a clean state or volatile in-progress work will require lots of manual cache storage clearing._
 
 ---
-_Copyright © 2024. The Council of State Governments. All rights reserved._

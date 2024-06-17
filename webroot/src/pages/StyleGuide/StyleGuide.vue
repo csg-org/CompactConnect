@@ -3,7 +3,6 @@
     InspiringApps modules
 
     Created by InspiringApps on 4/28/2021.
-    Copyright © 2024. InspiringApps. All rights reserved.
 -->
 
 <template>
@@ -14,7 +13,6 @@
         <ExampleForm />
         <ExampleModal />
         <ExampleLoadingSpinner />
-        <ExampleMobileLinks />
     </div>
 </template>
 

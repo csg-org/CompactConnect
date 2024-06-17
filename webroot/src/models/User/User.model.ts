@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 4/12/20.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 import deleteUndefinedProperties from '@models/_helpers';
@@ -72,9 +71,6 @@ export class UserSerializer {
             lastName: json.lastName,
             serverPage: (fetchConfig && fetchConfig.pageNum) ? fetchConfig.pageNum : 0,
         };
-
-        // @DEBUG
-        // console.log(userData);
 
         return new User(userData);
     }

@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 4/30/2021.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 import {
@@ -115,12 +114,10 @@ class ExampleList extends Vue {
     }
 
     async sortingChange() {
-        // console.log('sort changed'); // @DEBUG
         await this.fetchListData();
     }
 
     async paginationChange() {
-        // console.log('pagination changed'); // @DEBUG
         await this.fetchListData();
     }
 }

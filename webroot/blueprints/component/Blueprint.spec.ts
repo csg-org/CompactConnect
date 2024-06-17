@@ -1,9 +1,8 @@
 //
 //  Blueprint.spec.ts
-//  <the-app-name>
+//  CompactConnect
 //
 //  Created by InspiringApps on MM/DD/YYYY.
-//  Copyright © 2024. <the-customer-name>. All rights reserved.
 //
 
 import { expect } from 'chai';

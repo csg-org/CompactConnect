@@ -1,9 +1,8 @@
 //
 //  Blueprint.ts
-//  <the-app-name>
+//  CompactConnect
 //
 //  Created by InspiringApps on MM/DD/YYYY.
-//  Copyright © 2024. <the-customer-name>. All rights reserved.
 //
 
 import deleteUndefinedProperties from '@models/_helpers';
@@ -39,9 +38,6 @@ export class BlueprintSerializer {
         const blueprintData = {
             id: json.id,
         };
-
-        // @DEBUG
-        // console.log(blueprintData);
 
         return new Blueprint(blueprintData);
     }

@@ -3,7 +3,6 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 7/27/20.
-//  Copyright © 2024. InspiringApps. All rights reserved.
 //
 
 import sinon from 'sinon';
