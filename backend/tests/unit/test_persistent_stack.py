@@ -22,6 +22,7 @@ class TestLicensureApp(TestCase):
 
         # Identify any findings from our AwsSolutions or HIPAASecurity rule sets
         self._check_no_annotations(app.persistent_stack)
+        self._check_no_annotations(app.ui_stack)
         self._check_no_annotations(app.api_stack)
 
         api_template = Template.from_stack(app.api_stack)

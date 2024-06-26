@@ -101,7 +101,7 @@ class LicenseApi(RestApi):
 
         # No auth mock endpoints
         license_noauth_resource = jurisdiction_resource.add_resource('licenses-noauth')
-        # POST /v0/boards/co/licenses-noauth
+        # POST /v0/providers/aslp/co/licenses-noauth
         method_options = MethodOptions(
             authorization_type=AuthorizationType.NONE
         )

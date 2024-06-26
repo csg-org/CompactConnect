@@ -4,6 +4,7 @@ from aws_cdk import App
 from common_constructs.stack import StandardTags
 from stacks.api_stack import ApiStack
 from stacks.persistent_stack import PersistentStack
+from stacks.ui_stack import UIStack
 
 
 class LicensureApp(App):
@@ -20,6 +21,15 @@ class LicensureApp(App):
                 environment=environment_name
             ),
             environment_name=environment_name
+        )
+
+        self.ui_stack = UIStack(
+            self, 'UIStack',
+            standard_tags=StandardTags(
+                **tags,
+                environment=environment_name
+            ),
+            persistent_stack=self.persistent_stack
         )
 
         self.api_stack = ApiStack(
