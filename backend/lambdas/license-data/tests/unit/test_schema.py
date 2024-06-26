@@ -16,8 +16,8 @@ class TestLicensePostSchema(TstLambdas):
         from schema import LicensePostSchema
 
         with open('tests/resources/license.json', 'r') as f:
-            licenase_data = json.load(f)
-        licenase_data.pop('ssn')
+            license_data = json.load(f)
+        license_data.pop('ssn')
 
         with self.assertRaises(ValidationError):
-            LicensePostSchema().load(licenase_data)
+            LicensePostSchema().load(license_data)
