@@ -1,0 +1,15 @@
+[run]
+include =
+  backend/**/*
+data_file = .coverage
+
+omit =
+  */cdk.out/*
+  */smoke-test/*
+  */tests/*
+
+[report]
+skip_empty = true
+
+[html]
+directory = coverage

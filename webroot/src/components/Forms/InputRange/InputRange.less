@@ -1,0 +1,104 @@
+//
+//  InputRange.less
+//  <the-app-name>
+//
+//  Created by InspiringApps on 5/21/2024.
+//
+
+.input-range-container {
+    .range-container {
+        display: flex;
+        align-items: center;
+
+        .range-value {
+            min-width: 40px;
+            margin-left: 8px;
+            font-size: @fontSizeLarge;
+        }
+
+        &.has-tick-marks,
+        &.has-tick-labels {
+            min-height: 5.2rem;
+
+            .range-value {
+                align-self: flex-start;
+            }
+        }
+
+        .range-wrapper {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
+            height: auto;
+            min-height: 3rem;
+        }
+    }
+
+    input[type=range] {
+        width: 100%;
+        height: 6px;
+        min-height: 6px;
+        margin: 0;
+        padding: 0;
+        border: none;
+        border-radius: 15px;
+        background: @lightGrey;
+        outline: none;
+        cursor: pointer;
+        appearance: none;
+
+        &::-webkit-slider-thumb {
+            width: 15px;
+            height: 15px;
+            border: none;
+            border-radius: 50%;
+            background-color: @primaryColor;
+            transition: 0.2s ease-in-out;
+            appearance: none;
+
+            &:hover {
+                box-shadow: 0 0 0 10px rgba(@primaryColor, 0.1);
+            }
+        }
+
+        &::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            border: none;
+            border-radius: 50%;
+            background-color: @primaryColor;
+            transition: 0.2s ease-in-out;
+
+            &:hover {
+                box-shadow: 0 0 0 10px rgba(@primaryColor, 0.1);
+            }
+        }
+
+        &:active,
+        &:focus {
+            &::-webkit-slider-thumb {
+                box-shadow: 0 0 0 13px rgba(@primaryColor, 0.2);
+            }
+
+            ::-moz-range-thumb {
+                box-shadow: 0 0 0 13px rgba(@primaryColor, 0.2);
+            }
+        }
+    }
+
+    .tick-markers {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 1.5%;
+
+        .tick-marker {
+            display: flex;
+            justify-content: center;
+            width: 1px;
+            height: 10px;
+            line-height: 40px;
+            background: @lightGrey;
+        }
+    }
+}

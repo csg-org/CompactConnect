@@ -1,0 +1,392 @@
+{
+    "common": {
+        "yes": "Sí",
+        "no": "No",
+        "back": "Volver",
+        "continue": "Continuar",
+        "cancel": "Cancelar",
+        "close": "Cerrar",
+        "skip": "Saltear",
+        "choose": "Elige",
+        "chooseOne": "Elige uno",
+        "change": "Cambiar",
+        "reset": "Restablecer",
+        "save": "Guardar",
+        "submit": "Enviar",
+        "clear": "Borrar",
+        "success": "Correcto",
+        "error": "Error",
+        "saveAndContinue": "Guardar y continuar",
+        "saveAndClose": "Guardar y cerrar",
+        "saving": "Guardando...",
+        "loading": "Cargando...",
+        "firstName": "Nombre",
+        "lastName": "Apellido",
+        "dateOfBirth": "Fecha de nacimiento",
+        "dateOfBirthShort": "Fecha de nacim.",
+        "dateFormat": "mm/dd/aaaa",
+        "emailAddress": "Dirección de correo electrónico",
+        "phoneNumber": "Número de teléfono",
+        "address": "Dirección",
+        "city": "Ciudad",
+        "state": "Estado",
+        "zipCode": "Código postal",
+        "language": "Idioma",
+        "gender": "Género",
+        "race": "Raza",
+        "ethnicity": "Origen étnico",
+        "daysOfTheWeek": {
+            "monday": {
+                "full": "Lunes",
+                "abbrev": "lun"
+            },
+            "tuesday": {
+                "full": "Martes",
+                "abbrev": "mar"
+            },
+            "wednesday": {
+                "full": "Miércoles",
+                "abbrev": "mié"
+            },
+            "thursday": {
+                "full": "Jueves",
+                "abbrev": "jue"
+            },
+            "friday": {
+                "full": "Viernes",
+                "abbrev": "vie"
+            },
+            "saturday": {
+                "full": "Sabado",
+                "abbrev": "sab"
+            },
+            "sunday": {
+                "full": "Domingo",
+                "abbrev": "dom"
+            }
+        },
+        "states": [
+            {
+                "full": "Alabama",
+                "abbrev": "AL"
+            },
+            {
+                "full": "Alaska",
+                "abbrev": "AK"
+            },
+            {
+                "full": "Arizona",
+                "abbrev": "AZ"
+            },
+            {
+                "full": "Arkansas",
+                "abbrev": "AR"
+            },
+            {
+                "full": "California",
+                "abbrev": "CA"
+            },
+            {
+                "full": "Colorado",
+                "abbrev": "CO"
+            },
+            {
+                "full": "Connecticut",
+                "abbrev": "CT"
+            },
+            {
+                "full": "Delaware",
+                "abbrev": "DE"
+            },
+            {
+                "full": "Florida",
+                "abbrev": "FL"
+            },
+            {
+                "full": "Georgia",
+                "abbrev": "GA"
+            },
+            {
+                "full": "Hawái",
+                "abbrev": "HI"
+            },
+            {
+                "full": "Idaho",
+                "abbrev": "ID"
+            },
+            {
+                "full": "Illinois",
+                "abbrev": "IL"
+            },
+            {
+                "full": "Indiana",
+                "abbrev": "IN"
+            },
+            {
+                "full": "Iowa",
+                "abbrev": "IA"
+            },
+            {
+                "full": "Kansas",
+                "abbrev": "KS"
+            },
+            {
+                "full": "Kentucky",
+                "abbrev": "KY"
+            },
+            {
+                "full": "Luisiana",
+                "abbrev": "LA"
+            },
+            {
+                "full": "Maine",
+                "abbrev": "ME"
+            },
+            {
+                "full": "Maryland",
+                "abbrev": "MD"
+            },
+            {
+                "full": "Massachusetts",
+                "abbrev": "MA"
+            },
+            {
+                "full": "Míchigan",
+                "abbrev": "MI"
+            },
+            {
+                "full": "Minnesota",
+                "abbrev": "MN"
+            },
+            {
+                "full": "Misisipi",
+                "abbrev": "MS"
+            },
+            {
+                "full": "Misuri",
+                "abbrev": "MO"
+            },
+            {
+                "full": "Montana",
+                "abbrev": "MT"
+            },
+            {
+                "full": "Nebraska",
+                "abbrev": "NE"
+            },
+            {
+                "full": "Nevada",
+                "abbrev": "NV"
+            },
+            {
+                "full": "Nuevo Hampshire",
+                "abbrev": "NH"
+            },
+            {
+                "full": "Nueva Jersey",
+                "abbrev": "NJ"
+            },
+            {
+                "full": "Nuevo México",
+                "abbrev": "NM"
+            },
+            {
+                "full": "Nueva York",
+                "abbrev": "NY"
+            },
+            {
+                "full": "Carolina del Norte",
+                "abbrev": "NC"
+            },
+            {
+                "full": "Dakota del Norte",
+                "abbrev": "ND"
+            },
+            {
+                "full": "Ohio",
+                "abbrev": "OH"
+            },
+            {
+                "full": "Oklahoma",
+                "abbrev": "OK"
+            },
+            {
+                "full": "Oregón",
+                "abbrev": "OR"
+            },
+            {
+                "full": "Pensilvania",
+                "abbrev": "PA"
+            },
+            {
+                "full": "Rhode Island",
+                "abbrev": "RI"
+            },
+            {
+                "full": "Carolina del Sur",
+                "abbrev": "SC"
+            },
+            {
+                "full": "Dakota del Sur",
+                "abbrev": "SD"
+            },
+            {
+                "full": "Tennessee",
+                "abbrev": "TN"
+            },
+            {
+                "full": "Texas",
+                "abbrev": "TX"
+            },
+            {
+                "full": "Utah",
+                "abbrev": "UT"
+            },
+            {
+                "full": "Vermont",
+                "abbrev": "VT"
+            },
+            {
+                "full": "Virginia",
+                "abbrev": "VA"
+            },
+            {
+                "full": "Washington",
+                "abbrev": "WA"
+            },
+            {
+                "full": "Virginia Occidental",
+                "abbrev": "WV"
+            },
+            {
+                "full": "Wisconsin",
+                "abbrev": "WI"
+            },
+            {
+                "full": "Wyoming",
+                "abbrev": "WY"
+            }
+        ],
+        "communicationPreference": "Preferencias de comunicación",
+        "communicationPreferenceOptions": {
+            "email": "Correo electrónico",
+            "text": "Mensaje de texto"
+        },
+        "password": "Contraseña",
+        "currentPassword": "Contraseña actual",
+        "newPassword": "Nueva contraseña",
+        "changePasswordFormTitle": "Cambiar la contraseña",
+        "passwordCreationInstruction": "Para crear una nueva contraseña, debe cumplir todos los siguientes requisitos",
+        "passwordRules": [
+            "Mínimo 8 caracteres",
+            "1 mayúscula",
+            "1 minúscula",
+            "1 número",
+            "1 símbolo"
+        ],
+        "lastLogin": "Último inicio de sesión",
+        "description": "Descripción",
+        "copyright": "Copyright"
+    },
+    "navigation": {
+        "login": "Iniciar sesión",
+        "home": "Hogar",
+        "styleGuide": "Guía de estilo",
+        "account": "Cuenta",
+        "logout": "Cerrar sesión"
+    },
+    "paging": {
+        "previousPage": "Pagina anterior",
+        "nextPage": "Siguiente página",
+        "goToPage": "Ir a la página",
+        "notClickable": "No es posible hacer clic",
+        "pageSize": "Tamaño de página"
+    },
+    "sorting": {
+        "sortBy": "Ordenar por",
+        "order": "Orden",
+        "asc": "Ascendente",
+        "desc": "Descendente"
+    },
+    "inputErrors": {
+        "required": "Requerido",
+        "email": "Debe ser una dirección de correo electrónico válida",
+        "minLength": "Debe tener al menos {min} caracteres",
+        "maxLength": "Debe tener menos o igual a {max} caracteres",
+        "remainingCharacters": "Letras restante",
+        "minOfUppercase": "Debe tener al menos {min} letras mayúsculas",
+        "minOfLowercase": "Debe tener al menos {min} caracteres en minúscula",
+        "minOfNumeric": "Debe tener al menos {min} números",
+        "minOfSpecialCharacters": "Debe tener al menos {min} caracteres especiales",
+        "noWhiteSpaces": "No debe contener espacios en blanco.",
+        "onlyLatinCharacters": "Sólo debe contener caracteres latinos.",
+        "doesNotInclude": "No debe incluir su nombre de usuario u otras cadenas comunes",
+        "sizeTooLargeBy": "El tamaño es demasiado grande por",
+        "fileTooLargeBy": "El archivo es demasiado grande por",
+        "fileGroupTooLargeBy": "El grupo de archivos es demasiado grande por",
+        "oneOrMoreFilesTooLarge": "Uno o más archivos son demasiado grandes",
+        "fileMaxSize": "El tamaño máximo del archivo es",
+        "tooManyFiles": "Demasiados archivos, solo se permite 1"
+    },
+    "serverErrors": {
+        "dobFormat": "La fecha de nacimiento debe estar en el formato MM/DD/AAAA y debe ser una fecha real que existió.",
+        "dobMaxDate": "La fecha de nacimiento debe ser anterior o igual al día de hoy.",
+        "dobMinDate": "La fecha de nacimiento debe ser posterior o igual al 01/01/1900."
+    },
+    "phoneVerification": {
+        "pleaseVerifyYourNumber": "Verifique su número de teléfono siguiendo las indicaciones a continuación.",
+        "sendCode": "Enviar código",
+        "receiveCodeLabel": "¿Cómo le gustaría recibir un código?",
+        "textMe": "Mensaje de texto",
+        "callMe": "Llamada",
+        "wrongCode": "Código incorrecto, vuelva a intentarlo",
+        "pleaseEnterTheCode": "Escriba el código que recibió a continuación",
+        "verifyPhoneNumber": "Verificar el número de teléfono",
+        "verificationSuccess": "Este número de teléfono se ha verificado correctamente",
+        "verifyPhoneSubheader": "No podremos enviar ninguna notificación a este número de teléfono hasta que se lo haya verificado."
+    },
+    "styleGuide": {
+        "headerPlaceholder": "Contenido del encabezado",
+        "styleGuide": "Guía de estilo",
+        "exampleList": "Lista de ejemplo",
+        "list": {
+            "name": "Nombre",
+            "size": "Tamaño",
+            "isEvil": "Es malo"
+        },
+        "exampleLanguagePicker": "Ejemplo de selector de idioma",
+        "exampleForm": "Ejemplo de formulario",
+        "subscribe": "Suscribir",
+        "status": "Estatus",
+        "statusOptions": [
+            {
+                "name": "No empezado",
+                "value": "not-started"
+            },
+            {
+                "name": "En curso",
+                "value": "in-progress"
+            },
+            {
+                "name": "Completo",
+                "value": "complete"
+            }
+        ],
+        "documents": "Documentos",
+        "happiness": "Felicidad",
+        "exampleModal": "Ejemplo modal",
+        "modal": "Modal",
+        "errorModal": "Error Modal",
+        "openModal": "Abre el modal",
+        "defaultModalContent": "Este es un ejemplo de un modal.",
+        "errorModalContent": "Este es un ejemplo de un modal con estilo de error.",
+        "customModalContent": "Puede agregar acciones personalizadas (botones) cuando incluye v-slot:actions en su Modal",
+        "customAction1": "Acción personalizada 1",
+        "customAction2": "Acción personalizada 2",
+        "openErrorModal": "Abre el modal de error",
+        "openModalCustomActions": "Abre el modal con acciones personalizadas.",
+        "loadingSpinner": "Indicador de funcionamiento",
+        "showSpinner": "Mostrar el indicador",
+        "mobileStoreLinks": "Enlaces de tiendas móviles"
+    }
+}

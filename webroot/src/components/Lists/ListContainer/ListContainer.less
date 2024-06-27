@@ -1,0 +1,110 @@
+//
+//  ListContainer.less
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 5/27/2020.
+//
+
+.list-container {
+    width: 100%;
+    background-color: @white;
+
+    .list {
+        width: 100%;
+    }
+
+    .list-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding-top: 12px;
+        color: @fontColor;
+        font-style: italic;
+        text-align: center;
+
+        .ellipsis-container {
+            display: inline-block;
+            width: 74px;
+            height: 40px;
+
+            div.ellipsis {
+                position: absolute;
+                top: 12px;
+                width: 14px;
+                height: 14px;
+                border-radius: 50%;
+                background: @lightGrey;
+                animation-timing-function: cubic-bezier(0, 1, 1, 0);
+
+                &:nth-child(1) {
+                    left: 8px;
+                    animation: loading-ellipsis1 0.6s infinite;
+                }
+
+                &:nth-child(2) {
+                    left: 8px;
+                    animation: loading-ellipsis2 0.6s infinite;
+                }
+
+                &:nth-child(3) {
+                    left: 32px;
+                    animation: loading-ellipsis2 0.6s infinite;
+                }
+
+                &:nth-child(4) {
+                    left: 56px;
+                    animation: loading-ellipsis3 0.6s infinite;
+                }
+            }
+        }
+    }
+
+    .no-records {
+        font-style: italic;
+        text-align: center;
+    }
+
+    .filter-bar {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+
+        @media @desktopWidth {
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+    }
+}
+
+@keyframes loading-ellipsis1 {
+    0% {
+        transform: scale(0);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes loading-ellipsis3 {
+    0% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(0);
+    }
+}
+
+@keyframes loading-ellipsis2 {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    100% {
+        transform: translate(24px, 0);
+    }
+}

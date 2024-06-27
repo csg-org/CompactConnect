@@ -1,0 +1,48 @@
+//
+//  CompactToggle.less
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 6/10/2020.
+//
+
+.compact-toggle-container {
+    display: flex;
+    flex-grow: 0;
+    flex-shrink: 1;
+    align-items: center;
+    margin-bottom: 1.0rem;
+
+    .compact-toggle {
+        width: 3.2rem;
+        padding: 0.4rem;
+        border-color: transparent;
+        border-style: solid;
+        border-width: 0.1rem;
+        border-radius: @borderRadiusSmall;
+        line-height: 0.9;
+        cursor: pointer;
+        transition: border-color 0.2s linear;
+
+        &.active {
+            border-color: @primaryColor;
+        }
+
+        svg.ico {
+            fill: @lightGrey;
+        }
+    }
+
+    .break {
+        display: none;
+        height: 1.0rem;
+        margin-right: 0.8rem;
+        padding-left: 0.8rem;
+        border-right: 0.1rem solid @fontColor;
+    }
+
+    @media @desktopWidth {
+        .break {
+            display: flex;
+        }
+    }
+}

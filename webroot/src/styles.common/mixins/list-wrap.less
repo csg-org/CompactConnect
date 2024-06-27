@@ -1,0 +1,95 @@
+//
+//  list-wrap.less
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 4/12/20.
+//
+
+// List elements <UL>, <OL> with text that wraps nicely within each list item.
+
+/**
+ * To be used on <UL> elements for which text wrapping should be applied based on the
+ * bullet postion rather than the far left of the container.
+ */
+.ul-allow-good-wrap() {
+    @bulletSize: 0.8rem;
+    @bulletColor: @primaryColor;
+
+    &.good-wrap li {
+        position: relative;
+        box-sizing: border-box;
+        width: 100%;
+        padding-left: 1.5rem;
+        list-style: none;
+
+        &::before {
+            position: absolute;
+            top: @fontSize / 2;
+            left: 0;
+            width: @bulletSize;
+            height: @bulletSize;
+            border-radius: 50%;
+            background-color: @bulletColor;
+            content: '';
+        }
+    }
+}
+
+/**
+ * To be used on <OL> elements for which text wrapping should be applied based on the
+ * bullet postion rather than the far left of the container.
+ */
+.ol-allow-good-wrap() {
+    &.good-wrap {
+        // Customizable level numbering schemes
+        @firstLevel: decimal;
+        @secondLevel: lower-alpha;
+        @thirdLevel: lower-roman;
+        @spacing: 16px;
+
+        display: table;
+        margin: 0;
+        padding: 0;
+        counter-reset: section;
+
+        li {
+            display: table-row;
+            font-size: @fontSize;
+            list-style: none;
+            counter-increment: section;
+        }
+
+        li::before {
+            display: table-cell;
+            padding: @spacing 4px 4px 0;
+            text-align: right;
+            content: counter(section, @firstLevel) ".";
+        }
+
+        & > li {
+            font-weight: 600;
+
+            p {
+                margin: 0;
+                padding-top: @spacing;
+                font-weight: 400;
+            }
+
+            & > ol {
+                & > li::before {
+                    content: counter(section, @secondLevel) ".";
+                }
+
+                & > li {
+                    font-weight: 400;
+
+                    & > ol {
+                        & > li::before {
+                            content: counter(section, @thirdLevel) ".";
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

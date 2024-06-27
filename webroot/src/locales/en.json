@@ -1,0 +1,392 @@
+{
+    "common": {
+        "yes": "Yes",
+        "no": "No",
+        "back": "Back",
+        "continue": "Continue",
+        "cancel": "Cancel",
+        "close": "Close",
+        "skip": "Skip",
+        "choose": "Choose",
+        "chooseOne": "Choose one",
+        "change": "Change",
+        "reset": "Reset",
+        "save": "Save",
+        "submit": "Submit",
+        "clear": "Clear",
+        "success": "Success",
+        "error": "Error",
+        "saveAndContinue": "Save & Continue",
+        "saveAndClose": "Save & Close",
+        "saving": "Saving...",
+        "loading": "Loading...",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "dateOfBirth": "Date of Birth",
+        "dateOfBirthShort": "DOB",
+        "dateFormat": "mm/dd/yyyy",
+        "emailAddress": "Email Address",
+        "phoneNumber": "Phone Number",
+        "address": "Address",
+        "city": "City",
+        "state": "State",
+        "zipCode": "Zip Code",
+        "language": "Language",
+        "gender": "Gender",
+        "race": "Race",
+        "ethnicity": "Ethnicity",
+        "daysOfTheWeek": {
+            "monday": {
+                "full": "Monday",
+                "abbrev": "Mon"
+            },
+            "tuesday": {
+                "full": "Tuesday",
+                "abbrev": "Tue"
+            },
+            "wednesday": {
+                "full": "Wednesday",
+                "abbrev": "Wed"
+            },
+            "thursday": {
+                "full": "Thursday",
+                "abbrev": "Thu"
+            },
+            "friday": {
+                "full": "Friday",
+                "abbrev": "Fri"
+            },
+            "saturday": {
+                "full": "Saturday",
+                "abbrev": "Sat"
+            },
+            "sunday": {
+                "full": "Sunday",
+                "abbrev": "Sun"
+            }
+        },
+        "states": [
+            {
+                "full": "Alabama",
+                "abbrev": "AL"
+            },
+            {
+                "full": "Alaska",
+                "abbrev": "AK"
+            },
+            {
+                "full": "Arizona",
+                "abbrev": "AZ"
+            },
+            {
+                "full": "Arkansas",
+                "abbrev": "AR"
+            },
+            {
+                "full": "California",
+                "abbrev": "CA"
+            },
+            {
+                "full": "Colorado",
+                "abbrev": "CO"
+            },
+            {
+                "full": "Connecticut",
+                "abbrev": "CT"
+            },
+            {
+                "full": "Delaware",
+                "abbrev": "DE"
+            },
+            {
+                "full": "Florida",
+                "abbrev": "FL"
+            },
+            {
+                "full": "Georgia",
+                "abbrev": "GA"
+            },
+            {
+                "full": "Hawaii",
+                "abbrev": "HI"
+            },
+            {
+                "full": "Idaho",
+                "abbrev": "ID"
+            },
+            {
+                "full": "Illinois",
+                "abbrev": "IL"
+            },
+            {
+                "full": "Indiana",
+                "abbrev": "IN"
+            },
+            {
+                "full": "Iowa",
+                "abbrev": "IA"
+            },
+            {
+                "full": "Kansas",
+                "abbrev": "KS"
+            },
+            {
+                "full": "Kentucky",
+                "abbrev": "KY"
+            },
+            {
+                "full": "Louisiana",
+                "abbrev": "LA"
+            },
+            {
+                "full": "Maine",
+                "abbrev": "ME"
+            },
+            {
+                "full": "Maryland",
+                "abbrev": "MD"
+            },
+            {
+                "full": "Massachusetts",
+                "abbrev": "MA"
+            },
+            {
+                "full": "Michigan",
+                "abbrev": "MI"
+            },
+            {
+                "full": "Minnesota",
+                "abbrev": "MN"
+            },
+            {
+                "full": "Mississippi",
+                "abbrev": "MS"
+            },
+            {
+                "full": "Missouri",
+                "abbrev": "MO"
+            },
+            {
+                "full": "Montana",
+                "abbrev": "MT"
+            },
+            {
+                "full": "Nebraska",
+                "abbrev": "NE"
+            },
+            {
+                "full": "Nevada",
+                "abbrev": "NV"
+            },
+            {
+                "full": "New Hampshire",
+                "abbrev": "NH"
+            },
+            {
+                "full": "New Jersey",
+                "abbrev": "NJ"
+            },
+            {
+                "full": "New Mexico",
+                "abbrev": "NM"
+            },
+            {
+                "full": "New York",
+                "abbrev": "NY"
+            },
+            {
+                "full": "North Carolina",
+                "abbrev": "NC"
+            },
+            {
+                "full": "North Dakota",
+                "abbrev": "ND"
+            },
+            {
+                "full": "Ohio",
+                "abbrev": "OH"
+            },
+            {
+                "full": "Oklahoma",
+                "abbrev": "OK"
+            },
+            {
+                "full": "Oregon",
+                "abbrev": "OR"
+            },
+            {
+                "full": "Pennsylvania",
+                "abbrev": "PA"
+            },
+            {
+                "full": "Rhode Island",
+                "abbrev": "RI"
+            },
+            {
+                "full": "South Carolina",
+                "abbrev": "SC"
+            },
+            {
+                "full": "South Dakota",
+                "abbrev": "SD"
+            },
+            {
+                "full": "Tennessee",
+                "abbrev": "TN"
+            },
+            {
+                "full": "Texas",
+                "abbrev": "TX"
+            },
+            {
+                "full": "Utah",
+                "abbrev": "UT"
+            },
+            {
+                "full": "Vermont",
+                "abbrev": "VT"
+            },
+            {
+                "full": "Virginia",
+                "abbrev": "VA"
+            },
+            {
+                "full": "Washington",
+                "abbrev": "WA"
+            },
+            {
+                "full": "West Virginia",
+                "abbrev": "WV"
+            },
+            {
+                "full": "Wisconsin",
+                "abbrev": "WI"
+            },
+            {
+                "full": "Wyoming",
+                "abbrev": "WY"
+            }
+        ],
+        "communicationPreference": "Communication Preference",
+        "communicationPreferenceOptions": {
+            "email": "Email",
+            "text": "Text"
+        },
+        "password": "Password",
+        "currentPassword": "Current password",
+        "newPassword": "New password",
+        "changePasswordFormTitle": "Change password",
+        "passwordCreationInstruction": "To create a new password, you have to meet all of the following requirements",
+        "passwordRules": [
+            "Min 8 characters",
+            "1 uppercase",
+            "1 lowercase",
+            "1 number",
+            "1 symbol"
+        ],
+        "lastLogin": "Last Login",
+        "description": "Description",
+        "copyright": "Copyright"
+    },
+    "navigation": {
+        "login": "Login",
+        "home": "Home",
+        "styleGuide": "Styleguide",
+        "account": "Account",
+        "logout": "Logout"
+    },
+    "paging": {
+        "previousPage": "Previous Page",
+        "nextPage": "Next Page",
+        "goToPage": "Go to page",
+        "notClickable": "Not clickable",
+        "pageSize": "Page size"
+    },
+    "sorting": {
+        "sortBy": "Sort by",
+        "order": "Order",
+        "asc": "Ascending",
+        "desc": "Descending"
+    },
+    "inputErrors": {
+        "required": "Required",
+        "email": "Must be a valid email address",
+        "minLength": "Must be at least {min} characters",
+        "maxLength": "Must be less than or equal to {max} characters",
+        "remainingCharacters": "Remaining characters",
+        "minOfUppercase": "Must have at least {min} uppercase characters",
+        "minOfLowercase": "Must have at least {min} lowercase characters",
+        "minOfNumeric": "Must have at least {min} numbers",
+        "minOfSpecialCharacters": "Must have at least {min} special characters",
+        "noWhiteSpaces": "Must not contain white spaces",
+        "onlyLatinCharacters": "Must only contain latin characters",
+        "doesNotInclude": "Must not include your username or other common strings",
+        "sizeTooLargeBy": "Size is too large by",
+        "fileTooLargeBy": "File is too large by",
+        "fileGroupTooLargeBy": "File group is too large by",
+        "oneOrMoreFilesTooLarge": "One or more files are too large",
+        "fileMaxSize": "File max size is",
+        "tooManyFiles": "Too many files, only 1 allowed"
+    },
+    "serverErrors": {
+        "dobFormat": "Date of Birth must be in the format MM/DD/YYYY.",
+        "dobMaxDate": "Date of Birth must be earlier than than or equal to today.",
+        "dobMinDate": "Date of Birth must be later than or equal to 01/01/1900."
+    },
+    "phoneVerification": {
+        "pleaseVerifyYourNumber": "Please verify your phone number by following the prompts below.",
+        "sendCode": "Send code",
+        "receiveCodeLabel": "How would you like to receive a code?",
+        "textMe": "Text Me",
+        "callMe": "Call Me",
+        "wrongCode": "Wrong code, please try again",
+        "pleaseEnterTheCode": "Please enter the code you received below",
+        "verifyPhoneNumber": "Verify Phone Number",
+        "verificationSuccess": "This phone number has successfully been verified",
+        "verifyPhoneSubheader": "We will not be able to send any notifications to this phone number until it has been verified."
+    },
+    "styleGuide": {
+        "headerPlaceholder": "Header Content",
+        "styleGuide": "Style Guide",
+        "exampleList": "Example List",
+        "list": {
+            "name": "Name",
+            "size": "Size",
+            "isEvil": "Is Evil"
+        },
+        "exampleLanguagePicker": "Example Language Picker",
+        "exampleForm": "Example Form",
+        "subscribe": "Subscribe",
+        "status": "Status",
+        "statusOptions": [
+            {
+                "name": "Not started",
+                "value": "not-started"
+            },
+            {
+                "name": "In progress",
+                "value": "in-progress"
+            },
+            {
+                "name": "Complete",
+                "value": "complete"
+            }
+        ],
+        "documents": "Documents",
+        "happiness": "Happiness",
+        "exampleModal": "Example Modal",
+        "modal": "Modal",
+        "errorModal": "Error Modal",
+        "openModal": "Open Modal",
+        "defaultModalContent": "This is an example of a Modal",
+        "errorModalContent": "This is an example of a error-styled Modal",
+        "customModalContent": "You can add custom actions (buttons) when you include the v-slot:actions in your Modal",
+        "customAction1": "Custom Action 1",
+        "customAction2": "Custom Action 2",
+        "openErrorModal": "Open Error Modal",
+        "openModalCustomActions": "Open Modal with Custom Actions",
+        "loadingSpinner": "Loading Spinner",
+        "showSpinner": "Show Spinner",
+        "mobileStoreLinks": "Mobile Store Links"
+    }
+}

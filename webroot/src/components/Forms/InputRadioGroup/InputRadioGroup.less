@@ -1,0 +1,72 @@
+//
+//  InputRadioGroup.less
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 5/12/2024.
+//
+
+.radio-group-container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.0rem;
+
+    .radio-button-group-container {
+        display: flex;
+        flex-direction: column;
+
+        &:focus-within {
+            border: 2px solid @midBlue;
+            border-radius: 4px;
+        }
+
+        &.is-horizontal {
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+    }
+
+    .radio-button-container {
+        display: flex;
+        margin-right: 1.2rem;
+        margin-bottom: 0.8rem;
+
+        input[type='radio'] {
+            position: absolute;
+            opacity: 0;
+        }
+
+        label {
+            display: flex;
+            align-items: center;
+            font-weight: @fontWeightLight;
+            cursor: pointer;
+
+            &::before {
+                display: inline-block;
+                width: 2.0rem;
+                height: 2.0rem;
+                margin: 0 0.3rem 0 0;
+                border: 0.1rem solid @darkGrey;
+                border-radius: 50%;
+                vertical-align: middle;
+                background-color: transparent;
+                cursor: pointer;
+                content: ' ';
+            }
+        }
+
+        // Checked style
+        input[type='radio']:checked + label::after {
+            position: absolute;
+            top: 0.4rem;
+            left: 0.4rem;
+            display: block;
+            width: 1.4rem;
+            height: 1.4rem;
+            border-radius: 50%;
+            background-color: @primaryColor;
+            content: ' ';
+        }
+    }
+}

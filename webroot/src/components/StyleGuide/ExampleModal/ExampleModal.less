@@ -1,0 +1,33 @@
+//
+//  ExampleModal.less
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 5/4/2021.
+//
+
+.example-modal-section {
+    justify-content: center;
+    height: 20vh;
+
+    .buttons-container,
+    .custom-actions-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-top: 3rem;
+
+        > *:not(:first-of-type) {
+            margin-top: 1rem;
+
+            @media @tabletWidth {
+                margin-top: 0;
+                margin-left: 1rem;
+            }
+        }
+
+        @media @tabletWidth {
+            flex-direction: row;
+        }
+    }
+}

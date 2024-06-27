@@ -1,0 +1,16 @@
+- This readme.txt file does not need to be translated. It is a read-only instruction for translating the non-English .json files in this folder.
+- The English .json file (en.json) is already up-to-date and can be used as a reference for updating non-English files.
+- Non-English .json files (e.g. es.json) are meant to ultimately have **English key names** and **non-English values**.
+    - Examples:
+        - "frequency": "Frecuencia",
+        - "firstName": "Nombre",
+        - "saving": "Guardando...",
+- Another way to state the above:
+    - "leaveThisAsIs": "Translate this"
+    - All the key names (left side of :) across all the .json files should match exactly and not need to be touched.
+    - All the values (right side of :) in all the non-English .json files should be checked for translation completeness.
+- The overall goal is to make the non-English files values fully translated, so that they are 1-for-1 replacements with the English file.
+- Some values in non-English files may already be translated. This is OK and they should be checked for accuracy and completeness.
+- You may choose to edit the non-English files directly, or make copies and edit those (either is fine).
+- Please return this translation bundle to us in the same folder structure you received it.
+- Thank you!

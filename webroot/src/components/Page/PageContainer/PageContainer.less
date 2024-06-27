@@ -1,0 +1,33 @@
+//
+//  PageContainer.less
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 5/4/2020.
+//
+
+.page-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100vh;
+    background-color: @white;
+
+    &.include-page-header {
+        padding-top: @appHeaderHeight;
+    }
+
+    header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1001;
+        display: flex;
+        width: 100%;
+        height: @appHeaderHeight;
+    }
+
+    .page-content {
+        flex-grow: 1;
+        flex-shrink: 0;
+    }
+}

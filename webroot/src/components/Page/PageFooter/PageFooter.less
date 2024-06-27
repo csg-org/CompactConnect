@@ -1,0 +1,24 @@
+//
+//  PageFooter.less
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 5/4/2020.
+//
+
+footer.app-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: @appFooterHeight;
+    margin-top: 2rem;
+    padding: 0.8rem;
+    color: @white;
+    background-color: @midBlue;
+
+    @media @desktopWidth {
+        flex-direction: row;
+        margin-top: 3rem;
+    }
+}

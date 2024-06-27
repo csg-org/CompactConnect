@@ -1,0 +1,21 @@
+{
+    "extends": [
+        "stylelint-config-standard",
+        "stylelint-config-rational-order"
+    ],
+    "rules": {
+        "indentation": 4,
+        "number-no-trailing-zeros": null,
+        "selector-pseudo-element-no-unknown": [
+            true,
+            {
+                "ignorePseudoElements": ["v-deep", "deep"]
+            }
+        ],
+        "order/properties-order": [],
+        "plugin/rational-order": [true, {
+            "border-in-box-model": true,
+            "empty-line-between-groups": false
+        }]
+    }
+}

@@ -1,0 +1,12 @@
+{
+  "account_id": "000011112222",
+  "region": "us-east-1",
+  "account_name_prefix": "jcc-compact-connect",
+  "email_domain": "example.com",
+  "governed_regions": [
+    "us-east-1",
+    "us-east-2",
+    "us-west-1",
+    "us-west-2"
+  ]
+}

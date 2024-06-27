@@ -1,0 +1,35 @@
+{
+    "version": "2",
+    "triggerSource": "TokenGeneration_HostedAuth",
+    "region": "us-east-1",
+    "userPoolId": "us-east-1_abcdefghi",
+    "userName": "justin",
+    "callerContext": {
+        "awsSdkVersion": "aws-sdk-unknown-unknown",
+        "clientId": "1234567890abcdefghijkl"
+    },
+    "request": {
+        "userAttributes": {
+            "sub": "a4182428-d061-701c-82e5-a3d1d547d797",
+            "cognito:user_status": "CONFIRMED",
+            "custom:compact": "aslp",
+            "custom:jurisdiction": "al",
+            "email": "joe@example.com"
+        },
+        "groupConfiguration": {
+            "groupsToOverride": [],
+            "iamRolesToOverride": [],
+            "preferredRole": null
+        },
+        "scopes": [
+            "aws.cognito.signin.user.admin",
+            "phone",
+            "openid",
+            "profile",
+            "email"
+        ]
+    },
+    "response": {
+        "claimsAndScopeOverrideDetails": null
+    }
+}

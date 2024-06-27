@@ -1,0 +1,28 @@
+//
+//  lazy-load.less
+//  InspiringApps modules
+//
+//  Created by Inspiring Apps on 11/12/2020.
+//
+
+.lazy-load() {
+    img[lazy='loaded'] {
+        opacity: 0;
+        animation-name: fadein;
+        animation-duration: 0.25s;
+        animation-timing-function: ease-out;
+        animation-iteration-count: 1;
+        animation-direction: normal;
+        animation-fill-mode: forwards;
+
+        @keyframes fadein {
+            0% {
+                opacity: 0;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+    }
+}

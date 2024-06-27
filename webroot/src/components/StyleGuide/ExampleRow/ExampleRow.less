@@ -1,0 +1,41 @@
+//
+//  ExampleRow.less
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 4/30/2021.
+//
+
+.example-row {
+    display: flex;
+    flex-direction: column;
+    padding: 0.8rem 0;
+    border-bottom: 0.1rem solid @midGrey;
+
+    @media @tabletWidth {
+        flex-direction: row;
+    }
+
+    .cell {
+        flex-basis: 0;
+        flex-grow: 1;
+        flex-shrink: 1;
+        color: @veryDarkGrey;
+
+        &.is-header {
+            display: none;
+            font-weight: @fontWeightBold;
+
+            @media @tabletWidth {
+                display: flex;
+            }
+        }
+
+        &.is-evil:not(.is-header) {
+            color: @midRed;
+        }
+
+        .cell-title {
+            font-weight: @fontWeightBold;
+        }
+    }
+}
