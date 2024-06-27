@@ -1,0 +1,17 @@
+{
+  "date_of_issuance": "2024-06-06",
+  "npi": "0608337260",
+  "date_of_birth": "2024-06-06",
+  "license_type": "speech language",
+  "family_name": "string",
+  "home_state_city": "string",
+  "middle_name": "string",
+  "license_status": "active",
+  "ssn": "529-31-5408",
+  "home_state_street_2": "string",
+  "home_state_street_1": "string",
+  "date_of_expiration": "2024-06-06",
+  "home_state_postal_code": "string",
+  "given_name": "string",
+  "date_of_renewal": "2024-06-06"
+}
