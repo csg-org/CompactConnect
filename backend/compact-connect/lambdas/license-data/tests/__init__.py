@@ -12,11 +12,7 @@ class TstLambdas(TestCase):
             'DEBUG': 'true',
             'AWS_DEFAULT_REGION': 'us-east-1',
             'BULK_BUCKET_NAME': 'bulk-bucket',
-            'LICENSE_TABLE_NAME': 'license-table',
-            'CJNS_INDEX_NAME': 'CJNS',
-            'UPDATED_INDEX_NAME': 'upd-ssn',
-            'COMPACTS': '["aslp", "ot", "counseling"]',
-            'JURISDICTIONS': '["al", "co"]'
+            'LICENSE_TABLE_NAME': 'license-table'
         })
         # Monkey-patch config object to be sure we have it based
         # on the env vars we set above

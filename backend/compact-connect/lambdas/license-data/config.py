@@ -14,20 +14,19 @@ logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false').lower() == 'tr
 
 class _Config:
     presigned_post_ttl_seconds = 3600
-    default_page_size = 100
+    default_page_size = 20
 
     @cached_property
     def s3_client(self):
         return boto3.client('s3', config=BotoConfig(signature_version='s3v4'))
 
     @cached_property
-    def data_client(self):
-        from data_model.client import DataClient
-        return DataClient(self)
-
-    @cached_property
     def license_table(self):
         return boto3.resource('dynamodb').Table(self.license_table_name)
+
+    @property
+    def license_table_name(self):
+        return os.environ['LICENSE_TABLE_NAME']
 
     @property
     def compacts(self):

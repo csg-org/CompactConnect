@@ -1,16 +1,13 @@
 import json
 from base64 import b64decode, b64encode
 from functools import wraps
-from typing import List
 from urllib.parse import quote
 
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
-from marshmallow import ValidationError
 
 from config import _Config, logger, config
-from data_model.schema.base_record import BaseRecordSchema
-from exceptions import CCInvalidRequestException, CCInternalException
+from exceptions import CCInvalidRequestException
 
 
 def paginated(fn):
@@ -27,14 +24,14 @@ def paginated(fn):
     def process_pagination_parameters(*args, pagination: dict = None, **kwargs):
         if pagination is None:
             pagination = {}
-        # We b64 encode/decode the lastKey just for convenience passing to/from the client over HTTP
-        last_key = pagination.get('lastKey')
+        # We b64 encode/decode the last_key just for convenience passing to/from the client over HTTP
+        last_key = pagination.get('last_key')
         if last_key is not None:
             try:
                 last_key = json.loads(b64decode(last_key).decode('ascii'))
             except Exception as e:
                 raise CCInvalidRequestException(message='Invalid lastKey') from e
-        page_size = pagination.get('pageSize', config.default_page_size)
+        page_size = pagination.get('page_size', config.default_page_size)
 
         dynamo_pagination = {
             'Limit': page_size,
@@ -79,53 +76,4 @@ class DataClient():
             KeyConditionExpression=Key('pk').eq(quote(ssn)),
             **dynamo_pagination
         )
-        resp['Items'] = self._load_records(resp.get('Items', []))
         return resp
-
-    @paginated
-    def get_licenses_sorted_by_family_name(
-            self, *,
-            compact: str,
-            jurisdiction: str,
-            dynamo_pagination: dict,
-            scan_forward: bool = True
-    ):  # pylint: disable-redefined-outer-name
-        logger.info('Getting licenses by family name')
-        resp = self.config.license_table.query(
-            IndexName=config.cjns_index_name,
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('compact_jur').eq(f'{quote(compact)}/{quote(jurisdiction)}'),
-            ScanIndexForward=scan_forward,
-            **dynamo_pagination
-        )
-        resp['Items'] = self._load_records(resp.get('Items', []))
-        return resp
-
-    @paginated
-    def get_licenses_sorted_by_date_updated(
-            self, *,
-            compact: str,
-            jurisdiction: str,
-            dynamo_pagination: dict,
-            scan_forward: bool = True
-    ):  # pylint: disable-redefined-outer-name
-        logger.info('Getting licenses by date updated')
-        resp = self.config.license_table.query(
-            IndexName=config.updated_index_name,
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('compact_jur').eq(f'{quote(compact)}/{quote(jurisdiction)}'),
-            ScanIndexForward=scan_forward,
-            **dynamo_pagination
-        )
-        resp['Items'] = self._load_records(resp.get('Items', []))
-        return resp
-
-    @staticmethod
-    def _load_records(records: List[dict]):
-        try:
-            return [
-                BaseRecordSchema.get_schema_by_type(item['type']).load(item)
-                for item in records
-            ]
-        except (KeyError, ValidationError) as e:
-            raise CCInternalException('Data validation failure!') from e
