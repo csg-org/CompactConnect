@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 11/20/2020.
 //
 
-import { reactive, computed } from 'vue';
+import { reactive } from 'vue';
 import { Component, Vue, toNative } from 'vue-facing-decorator';
 
 @Component({
@@ -33,21 +33,21 @@ class PageMainNav extends Vue {
     }
 
     get mainLinks() {
-        return reactive([
-            {
-                to: '/',
-                label: computed(() => this.$t('navigation.home')),
-                isEnabled: true,
-                isExternal: false,
-                isExactActive: true,
-            },
-            {
-                to: '/styleguide',
-                label: computed(() => this.$t('navigation.styleGuide')),
-                isEnabled: true,
-                isExternal: false,
-                isExactActive: false,
-            },
+        return reactive([{} as any
+            // {
+            //     to: '/',
+            //     label: computed(() => this.$t('navigation.home')),
+            //     isEnabled: true,
+            //     isExternal: false,
+            //     isExactActive: true,
+            // },
+            // {
+            //     to: '/styleguide',
+            //     label: computed(() => this.$t('navigation.styleGuide')),
+            //     isEnabled: true,
+            //     isExternal: false,
+            //     isExactActive: false,
+            // },
         ].filter((link) => link.isEnabled));
     }
 

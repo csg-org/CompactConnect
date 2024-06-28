@@ -7,9 +7,15 @@
 
 .input-container {
     display: flex;
+    border: 2px solid transparent;
 
     &.is-drag-over {
         background-color: @veryLightBlue;
+    }
+
+    &:focus-within {
+        border: 2px solid @primaryColor;
+        border-radius: 4px;
     }
 
     // Overlay mask so child drag events don't fire while dragging
@@ -31,6 +37,11 @@
         }
     }
 
+    .hint {
+        margin-bottom: 1.2rem;
+        color: @fontColorLight;
+    }
+
     input[type=file] {
         width: 0;
         min-width: 0;
@@ -38,36 +49,39 @@
         min-height: 0;
         margin: 0;
         padding: 0;
-        visibility: hidden;
+        opacity: 0;
     }
 
     .input-file-container {
         display: flex;
+        flex-direction: column;
 
         .add-files,
         .reset-files {
-            display: flex;
-            align-items: center;
-            height: 24px;
-            margin-right: 4px;
-            padding: 2px 4px;
-            border-radius: 9999px;
-            color: @white;
-            font-weight: @fontWeight;
-            background-color: @primaryColor;
-            cursor: pointer;
+            .button-primary();
+
+            margin-right: auto;
+            padding: 0.4rem 0.8rem;
+
+            .icon {
+                width: 2.4rem;
+                height: auto;
+                fill: @white;
+            }
         }
 
         .selected-files {
             display: flex;
+            flex-direction: column;
             flex-wrap: wrap;
+            margin-top: 0.8rem;
 
             .selected-file {
                 display: flex;
                 align-items: center;
-                margin-right: 4px;
-                margin-bottom: 4px;
-                padding: 2px 8px;
+                margin-right: auto;
+                margin-bottom: 8px;
+                padding: 4px 10px;
                 border-radius: 9999px;
                 color: @fontColor;
                 background-color: @veryLightGrey;

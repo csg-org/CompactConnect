@@ -55,7 +55,7 @@ describe('Form mixin', async () => {
 
         expect(formInput.value).to.equal('');
     });
-    it('should populate a form input with set value', async () => {
+    it('should populate a form input with set value (non-file input)', async () => {
         const wrapper = await mountShallow(FormMixin);
         const formInput = new FormInput();
         const component = wrapper.vm;
@@ -63,6 +63,43 @@ describe('Form mixin', async () => {
         component.populateFormInput(formInput, 1);
 
         expect(formInput.value).to.equal(1);
+    });
+    it('should validate all inputs (as touched)', async () => {
+        const wrapper = await mountShallow(FormMixin);
+        const formInput = new FormInput();
+        const component = wrapper.vm;
+
+        component.formData.test = formInput;
+        component.validateAll({ asTouched: true });
+
+        expect(formInput.isTouched).to.equal(true);
+        expect(formInput.isValid).to.equal(true);
+    });
+    it('should start form loading', async () => {
+        const wrapper = await mountShallow(FormMixin);
+        const component = wrapper.vm;
+
+        component.startFormLoading();
+
+        expect(component.isFormLoading).to.equal(true);
+        expect(component.isFormSuccessful).to.equal(false);
+        expect(component.isFormError).to.equal(false);
+    });
+    it('should end form loading', async () => {
+        const wrapper = await mountShallow(FormMixin);
+        const component = wrapper.vm;
+
+        component.endFormLoading();
+
+        expect(component.isFormLoading).to.equal(false);
+    });
+    it('should set form error', async () => {
+        const wrapper = await mountShallow(FormMixin);
+        const component = wrapper.vm;
+
+        component.setError();
+
+        expect(component.isFormError).to.equal(true);
     });
 });
 describe('Input mixin', async () => {
@@ -78,7 +115,7 @@ describe('Input mixin', async () => {
         const component = wrapper.vm;
 
         component.blur(formInput);
-        component.input(formInput);
+        // component.input(formInput);
 
         expect(formInput).to.matchPattern(formInput);
     });

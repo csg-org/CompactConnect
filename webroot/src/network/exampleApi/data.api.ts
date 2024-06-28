@@ -11,7 +11,7 @@ import {
     requestSuccess,
     responseSuccess,
     responseError
-} from '@/network/exampleApi/interceptors';
+} from '@network/exampleApi/interceptors';
 import { userData, pets } from '@network/mocks/mock.data';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 

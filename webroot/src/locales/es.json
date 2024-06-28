@@ -9,6 +9,12 @@
         "skip": "Saltear",
         "choose": "Elige",
         "chooseOne": "Elige uno",
+        "select": "Seleccionar",
+        "selectOption": "- Seleccionar -",
+        "selectFile": "Seleccione Archivo",
+        "selectFiles": "Selecciona archivos",
+        "replaceFile": "Reemplazar el archivo",
+        "replaceFiles": "Reemplazar archivos",
         "change": "Cambiar",
         "reset": "Restablecer",
         "save": "Guardar",
@@ -29,7 +35,7 @@
         "phoneNumber": "Número de teléfono",
         "address": "Dirección",
         "city": "Ciudad",
-        "state": "Estado",
+        "state": "Estado o Jurisdicción",
         "zipCode": "Código postal",
         "language": "Idioma",
         "gender": "Género",
@@ -97,6 +103,10 @@
             {
                 "full": "Delaware",
                 "abbrev": "DE"
+            },
+            {
+                "full": "Distrito de Columbia",
+                "abbrev": "DC"
             },
             {
                 "full": "Florida",
@@ -265,6 +275,26 @@
             {
                 "full": "Wyoming",
                 "abbrev": "WY"
+            },
+            {
+                "full": "Samoa Americana",
+                "abbrev": "AS"
+            },
+            {
+                "full": "Guam",
+                "abbrev": "GU"
+            },
+            {
+                "full": "Islas Marianas del Norte",
+                "abbrev": "MP"
+            },
+            {
+                "full": "Puerto Rico",
+                "abbrev": "PR"
+            },
+            {
+                "full": "Islas Vírgenes de EE.UU",
+                "abbrev": "VI"
             }
         ],
         "communicationPreference": "Preferencias de comunicación",
@@ -286,7 +316,9 @@
         ],
         "lastLogin": "Último inicio de sesión",
         "description": "Descripción",
-        "copyright": "Copyright"
+        "copyright": "Copyright",
+        "compact": "Compacto",
+        "uploadDocument": "Subir documento"
     },
     "navigation": {
         "login": "Iniciar sesión",
@@ -309,7 +341,7 @@
         "desc": "Descendente"
     },
     "inputErrors": {
-        "required": "Requerido",
+        "required": "Campo requerido",
         "email": "Debe ser una dirección de correo electrónico válida",
         "minLength": "Debe tener al menos {min} caracteres",
         "maxLength": "Debe tener menos o igual a {max} caracteres",
@@ -321,12 +353,19 @@
         "noWhiteSpaces": "No debe contener espacios en blanco.",
         "onlyLatinCharacters": "Sólo debe contener caracteres latinos.",
         "doesNotInclude": "No debe incluir su nombre de usuario u otras cadenas comunes",
+        "minItems": "Debe contener al menos {min}",
+        "maxItems": "Debe contener menos o igual a {max}",
+        "lengthItems": "Debe contener exactamente {length}",
+        "minFiles": "Must contain at least {min} archivo(s)",
+        "maxFiles": "Must contain less than or equal to {max} archivo(s)",
+        "lengthFiles": "Must contain exactly {length} archivo(s)",
         "sizeTooLargeBy": "El tamaño es demasiado grande por",
         "fileTooLargeBy": "El archivo es demasiado grande por",
         "fileGroupTooLargeBy": "El grupo de archivos es demasiado grande por",
         "oneOrMoreFilesTooLarge": "Uno o más archivos son demasiado grandes",
         "fileMaxSize": "El tamaño máximo del archivo es",
-        "tooManyFiles": "Demasiados archivos, solo se permite 1"
+        "tooManyFiles": "Demasiados archivos, solo se permite 1",
+        "fileWrongType": "Tipo de archivo incorrecto"
     },
     "serverErrors": {
         "dobFormat": "La fecha de nacimiento debe estar en el formato MM/DD/AAAA y debe ser una fecha real que existió.",
@@ -345,6 +384,27 @@
         "verificationSuccess": "Este número de teléfono se ha verificado correctamente",
         "verifyPhoneSubheader": "No podremos enviar ninguna notificación a este número de teléfono hasta que se lo haya verificado."
     },
+    "compacts": [
+        {
+            "name": "Patología del audio y del habla y el lenguaje",
+            "key": "aslp"
+        },
+        {
+            "name": "Terapia ocupacional",
+            "key": "ot"
+        },
+        {
+            "name": "Asesoramiento",
+            "key": "counseling"
+        }
+    ],
+    "stateUpload": {
+        "formTitle": "Carga de datos compacta",
+        "formSubtext": "No subas datos reales",
+        "uploadHint": "Sólo 1 archivo CSV",
+        "successTitle": "Su documento ha sido subido exitosamente",
+        "successSubtext": "Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet"
+    },
     "styleGuide": {
         "headerPlaceholder": "Contenido del encabezado",
         "styleGuide": "Guía de estilo",
@@ -356,6 +416,7 @@
         },
         "exampleLanguagePicker": "Ejemplo de selector de idioma",
         "exampleForm": "Ejemplo de formulario",
+        "mockPopulate": "Población simulada",
         "subscribe": "Suscribir",
         "status": "Estatus",
         "statusOptions": [

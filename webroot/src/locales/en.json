@@ -9,6 +9,12 @@
         "skip": "Skip",
         "choose": "Choose",
         "chooseOne": "Choose one",
+        "select": "Select",
+        "selectOption": "- Select -",
+        "selectFile": "Select file",
+        "selectFiles": "Select files",
+        "replaceFile": "Replace file",
+        "replaceFiles": "Replace files",
         "change": "Change",
         "reset": "Reset",
         "save": "Save",
@@ -29,7 +35,7 @@
         "phoneNumber": "Phone Number",
         "address": "Address",
         "city": "City",
-        "state": "State",
+        "state": "State/Jurisdiction",
         "zipCode": "Zip Code",
         "language": "Language",
         "gender": "Gender",
@@ -97,6 +103,10 @@
             {
                 "full": "Delaware",
                 "abbrev": "DE"
+            },
+            {
+                "full": "District of Columbia",
+                "abbrev": "DC"
             },
             {
                 "full": "Florida",
@@ -265,6 +275,26 @@
             {
                 "full": "Wyoming",
                 "abbrev": "WY"
+            },
+            {
+                "full": "American Samoa",
+                "abbrev": "AS"
+            },
+            {
+                "full": "Guam",
+                "abbrev": "GU"
+            },
+            {
+                "full": "Northern Mariana Islands",
+                "abbrev": "MP"
+            },
+            {
+                "full": "Puerto Rico",
+                "abbrev": "PR"
+            },
+            {
+                "full": "U.S. Virgin Islands",
+                "abbrev": "VI"
             }
         ],
         "communicationPreference": "Communication Preference",
@@ -286,7 +316,9 @@
         ],
         "lastLogin": "Last Login",
         "description": "Description",
-        "copyright": "Copyright"
+        "copyright": "Copyright",
+        "compact": "Compact",
+        "uploadDocument": "Upload document"
     },
     "navigation": {
         "login": "Login",
@@ -309,7 +341,7 @@
         "desc": "Descending"
     },
     "inputErrors": {
-        "required": "Required",
+        "required": "Required field",
         "email": "Must be a valid email address",
         "minLength": "Must be at least {min} characters",
         "maxLength": "Must be less than or equal to {max} characters",
@@ -321,12 +353,19 @@
         "noWhiteSpaces": "Must not contain white spaces",
         "onlyLatinCharacters": "Must only contain latin characters",
         "doesNotInclude": "Must not include your username or other common strings",
+        "minItems": "Must contain at least {min}",
+        "maxItems": "Must contain less than or equal to {max}",
+        "lengthItems": "Must contain exactly {length}",
+        "minFiles": "Must contain at least {min} file",
+        "maxFiles": "Must contain less than or equal to {max} files",
+        "lengthFiles": "Must contain exactly {length} file(s)",
         "sizeTooLargeBy": "Size is too large by",
         "fileTooLargeBy": "File is too large by",
         "fileGroupTooLargeBy": "File group is too large by",
         "oneOrMoreFilesTooLarge": "One or more files are too large",
         "fileMaxSize": "File max size is",
-        "tooManyFiles": "Too many files, only 1 allowed"
+        "tooManyFiles": "Too many files, only 1 allowed",
+        "fileWrongType": "Wrong file type"
     },
     "serverErrors": {
         "dobFormat": "Date of Birth must be in the format MM/DD/YYYY.",
@@ -345,6 +384,27 @@
         "verificationSuccess": "This phone number has successfully been verified",
         "verifyPhoneSubheader": "We will not be able to send any notifications to this phone number until it has been verified."
     },
+    "compacts": [
+        {
+            "name": "Audio and Speech Language Pathology",
+            "key": "aslp"
+        },
+        {
+            "name": "Occupational Therapy",
+            "key": "ot"
+        },
+        {
+            "name": "Counseling",
+            "key": "counseling"
+        }
+    ],
+    "stateUpload": {
+        "formTitle": "Compact data upload",
+        "formSubtext": "Do not upload real data",
+        "uploadHint": "Only 1 CSV",
+        "successTitle": "Your document has been uploaded successfully",
+        "successSubtext": "Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet"
+    },
     "styleGuide": {
         "headerPlaceholder": "Header Content",
         "styleGuide": "Style Guide",
@@ -356,6 +416,7 @@
         },
         "exampleLanguagePicker": "Example Language Picker",
         "exampleForm": "Example Form",
+        "mockPopulate": "Mock Populate",
         "subscribe": "Subscribe",
         "status": "Status",
         "statusOptions": [

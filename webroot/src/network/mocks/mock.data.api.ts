@@ -6,7 +6,11 @@
 //
 
 import { UserSerializer } from '@models/User/User.model';
-import { userData, pets } from '@network/mocks/mock.data';
+import {
+    userData,
+    stateUploadRequestData,
+    pets
+} from '@network/mocks/mock.data';
 
 let mockStore: any = null;
 
@@ -30,6 +34,27 @@ export class DataApi {
         return true;
     }
 
+    // Get state upload request configuration.
+    public getStateUploadRequestConfig(compact: string, state: string) {
+        return this.wait(500).then(() => ({
+            ...stateUploadRequestData,
+            compact,
+            state,
+        }));
+    }
+
+    // Post state upload
+    public stateUploadRequest(url: string, file: File) {
+        return this.wait(500).then(() => ({
+            status: true,
+            url,
+            file,
+        }));
+    }
+
+    // ========================================================================
+    //                              EXAMPLE API
+    // ========================================================================
     // Get styleguide example count
     public getStyleguidePetsCount() {
         return this.wait(0).then(async () => pets.length);

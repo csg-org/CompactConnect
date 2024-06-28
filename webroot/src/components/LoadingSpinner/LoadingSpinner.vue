@@ -9,10 +9,7 @@
     <div class="loading-spinner">
         <div class="loading-spinner-mask" :class="{ 'no-bg-color': noBgColor }"></div>
         <div class="loading-spinner-container">
-            <div class="spinner">
-                <div class="dot primary"></div>
-                <div class="dot secondary"></div>
-            </div>
+            <div class="spinner"></div>
         </div>
     </div>
 </template>

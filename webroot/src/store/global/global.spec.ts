@@ -6,9 +6,11 @@
 //
 
 import mutations, { MutationTypes } from './global.mutations';
+import actions from './global.actions';
 
 const chaiMatchPattern = require('chai-match-pattern');
 const chai = require('chai').use(chaiMatchPattern);
+const sinon = require('sinon');
 
 const { expect } = chai;
 
@@ -28,13 +30,21 @@ describe('Global Store Mutations', () => {
 
         expect(state.isLoading).to.equal(false);
     });
-    it('should successfully set error', () => {
+    it('should successfully set error (Error)', () => {
         const state = {};
         const error = new Error();
 
         mutations[MutationTypes.SET_ERROR](state, error);
 
         expect(state.error).to.equal(error);
+    });
+    it('should successfully set error (null)', () => {
+        const state = {};
+        const error = '';
+
+        mutations[MutationTypes.SET_ERROR](state, error);
+
+        expect(state.error).to.equal(null);
     });
     it('should successfully push a message (no messages exist)', () => {
         const state = {};
@@ -87,5 +97,66 @@ describe('Global Store Mutations', () => {
         mutations[MutationTypes.SET_MODAL_LOGOUT_ONLY](state, isModalLogoutOnly);
 
         expect(state.isModalLogoutOnly).to.equal(isModalLogoutOnly);
+    });
+});
+describe('Global Store Actions', () => {
+    it('should successfully start store loading', () => {
+        const commit = sinon.spy();
+
+        actions.startLoading({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.BEGIN_LOADING]);
+    });
+    it('should successfully end store loading', () => {
+        const commit = sinon.spy();
+
+        actions.endLoading({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.END_LOADING]);
+    });
+    it('should successfully reset store', () => {
+        const commit = sinon.spy();
+
+        actions.reset({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_RESET_GLOBAL]);
+    });
+    it('should successfully add message', () => {
+        const commit = sinon.spy();
+        const message = 'message';
+
+        actions.addMessage({ commit }, message);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.PUSH_MESSAGE, message]);
+    });
+    it('should successfully clear messages', () => {
+        const commit = sinon.spy();
+
+        actions.clearMessages({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CLEAR_MESSAGES]);
+    });
+    it('should successfully set modal to open', () => {
+        const commit = sinon.spy();
+        const isOpen = true;
+
+        actions.setModalIsOpen({ commit }, isOpen);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_MODAL_OPEN, isOpen]);
+    });
+    it('should successfully set modal to logout only', () => {
+        const commit = sinon.spy();
+        const isLogoutOnly = true;
+
+        actions.setModalIsLogoutOnly({ commit }, isLogoutOnly);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_MODAL_LOGOUT_ONLY, isLogoutOnly]);
     });
 });

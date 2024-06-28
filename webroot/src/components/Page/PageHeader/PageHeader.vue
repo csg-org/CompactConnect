@@ -7,7 +7,7 @@
 
 <template>
     <div class="page-header">
-        <div class="header-content">{{ $t('styleGuide.headerPlaceholder') }}</div>
+        <div class="header-content"></div>
         <div class="nav-container">
             <PageNav />
         </div>

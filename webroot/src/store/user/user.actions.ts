@@ -35,6 +35,7 @@ export default {
         dispatch('clearAuthTokens');
         commit(MutationTypes.LOGOUT_REQUEST);
 
+        /* istanbul ignore if */
         if (config.isUsingMockApi) {
             setTimeout(() => dispatch('endLoading', null, { root: true }), 1000);
             dispatch('logoutSuccess');

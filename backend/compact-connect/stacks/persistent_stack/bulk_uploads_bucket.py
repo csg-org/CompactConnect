@@ -2,7 +2,7 @@ import os
 
 from aws_cdk import Stack
 from aws_cdk.aws_kms import IKey
-from aws_cdk.aws_s3 import BucketEncryption, EventType
+from aws_cdk.aws_s3 import BucketEncryption, EventType, CorsRule, HttpMethods
 from aws_cdk.aws_s3_notifications import LambdaDestination
 from cdk_nag import NagSuppressions
 from constructs import Construct
@@ -26,6 +26,13 @@ class BulkUploadsBucket(Bucket):
             encryption_key=encryption_key,
             server_access_logs_bucket=access_logs_bucket,
             versioned=False,
+            cors=[
+                 CorsRule(
+                     allowed_methods=[HttpMethods.GET, HttpMethods.POST],
+                     allowed_origins=['*'],
+                     allowed_headers=['*']
+                 )
+             ],
             **kwargs
         )
 

@@ -8,12 +8,24 @@
 .input-container {
     display: flex;
     flex-direction: column;
-    margin-bottom: 0.8rem;
+    margin-bottom: 4rem;
 
     label,
     .input-label {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.6rem;
         color: @fontColor;
-        font-weight: @fontWeight;
+        font-weight: @fontWeightBold;
+        font-size: @h4FontSize;
+
+        .icon {
+            padding-right: 0.6rem;
+        }
+    }
+
+    .required-indicator {
+        padding-left: 4px;
     }
 
     input,
@@ -21,11 +33,13 @@
     select {
         display: flex;
         box-sizing: border-box;
-        min-height: 3rem;
+        min-height: 4rem;
         padding: 0 0.4rem;
-        border: 1px solid @midGrey;
-        border-radius: 4px;
+        border: 1px solid @black;
+        border-radius: 0;
+        font-size: @fontSize;
         font-family: @fontFamily;
+        background-color: @white;
 
         &[type=button],
         &[type=submit] {
@@ -37,22 +51,28 @@
         }
 
         &:focus {
-            outline-width: 2px;
-            outline-style: solid;
-            outline-color: @primaryColor;
+            outline: 2px solid @primaryColor;
         }
 
-        &.select-dropdown {
+        &:disabled {
+            background-color: #e9e9e9;
+            cursor: not-allowed;
+        }
+
+        &.select-dropdown:not(:disabled) {
             cursor: pointer;
         }
 
         &.has-error {
             border-color: @midRed;
+            border-width: 2px;
         }
     }
 
     .form-field-error {
+        margin-top: 0.6rem;
         color: @midRed;
+        font-weight: 500;
     }
 }
 

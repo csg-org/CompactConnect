@@ -29,13 +29,17 @@
             @blur="blur(formInput)"
             @change="input(formInput)"
             class="select-dropdown"
+            :class="{
+                'has-error': !!formInput.errorMessage
+            }"
+            :disabled="formInput.isDisabled"
         >
             <option
-                v-for="{ value, name } in formInput.valueOptions"
-                :key="value"
-                :value="value"
+                v-for="(option, index) in formInput.valueOptions"
+                :key="index"
+                :value="option.value"
             >
-                {{name}}
+                {{ option.name }}
             </option>
         </select>
         <span

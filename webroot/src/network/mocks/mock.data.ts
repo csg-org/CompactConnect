@@ -12,6 +12,17 @@ export const userData = {
     lastName: 'Doe',
 };
 
+export const stateUploadRequestData = {
+    upload: {
+        url: `https://example.com`,
+        fields: {
+            field1: 'field1',
+            field2: 'field2',
+            field3: 'field3',
+        },
+    },
+};
+
 export const pets = [
     {
         id: 1,
