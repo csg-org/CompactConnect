@@ -1,0 +1,141 @@
+# Compact Connect - Web Frontend Deployment - Development
+
+name: Webroot-Deploy-Development
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on pushes to trunk branches involving changes to web frontend files
+  push:
+    branches:
+      - development
+    paths:
+      - webroot/**
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  WebrootDeploy:
+    # Only run this workflow in certian repos
+    if: github.repository == 'InspiringApps/JCC-IA'
+
+    # Runner OS
+    runs-on: ubuntu-latest
+
+    # Job needs id-token access to work with GitHub OIDC to AWS IAM Role
+    permissions:
+      id-token: write
+      contents: read
+
+    # Define environment-specific values
+    env:
+      ENVIRONMENT_NAME: Development Frontend
+      AWS_REGION: us-east-1
+      AWS_ROLE: ${{ secrets.DEV_WEBROOT_AWS_ROLE }}
+      AWS_ROLE_SESSION: WebrootDeployDevelopment
+      AWS_S3_BUCKET: ${{ secrets.DEV_WEBROOT_AWS_S3_BUCKET }}
+      AWS_CLOUDFRONT_DISTRIBUTION: ${{ secrets.DEV_WEBROOT_AWS_CLOUDFRONT_DISTRIBUTION }}
+      SLACK_BOT_TOKEN: ${{ secrets.IA_SLACK_BOT_TOKEN }}
+      BASE_URL: /
+      VUE_APP_DOMAIN: https://d130azwkbquf2a.cloudfront.net
+      VUE_APP_ROBOTS_META: noindex,nofollow
+      VUE_APP_API_STATE_ROOT: https://m848119752.execute-api.us-east-1.amazonaws.com/test
+
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+
+      # Set AWS CLI credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE }}
+          role-session-name: ${{ env.AWS_ROLE_SESSION }}
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+
+      # Setup Node
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '22.1.0'
+
+      # Use any cached yarn dependencies (saves build time)
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      # Install Yarn Dependencies
+      - name: Install JS dependencies
+        run: yarn install --ignore-engines
+        working-directory: ./webroot
+
+      # Run Linter Checks
+      - name: Run linter
+        run: yarn lint --no-fix
+        working-directory: ./webroot
+
+      # Build app
+      - name: Build Vue app
+        env:
+          NODE_ENV: production
+          BASE_URL: ${{ env.BASE_URL }}
+          VUE_APP_DOMAIN: ${{ env.VUE_APP_DOMAIN }}
+          VUE_APP_ROBOTS_META: ${{ env.VUE_APP_ROBOTS_META }}
+          VUE_APP_API_STATE_ROOT: ${{ env.VUE_APP_API_STATE_ROOT }}
+        run: yarn build
+        working-directory: ./webroot
+
+      # Clear out S3 bucket
+      - name: Clear S3 bucket
+        run: aws s3 rm ${{ env.AWS_S3_BUCKET }} --recursive
+        working-directory: ./webroot
+
+      # Upload build directory to S3
+      - name: Upload files to S3
+        run: aws s3 cp dist ${{ env.AWS_S3_BUCKET }} --recursive
+        working-directory: ./webroot
+
+      # Initiate Cloudfront invalidation
+      - name: Invalidate cache on Cloudfront distribution
+        run: >
+          CLOUDFRONT_INVALIDATION_ID=$(aws cloudfront create-invalidation
+          --distribution-id ${{ env.AWS_CLOUDFRONT_DISTRIBUTION }}
+          --paths "/"
+          --query Invalidation.Id
+          --output text)
+          && echo "CLOUDFRONT_INVALIDATION_ID=$CLOUDFRONT_INVALIDATION_ID" >> $GITHUB_ENV
+
+      # Wait for Cloudfront invalidation to complete
+      - name: Wait for Cloudfront invalidation
+        run: aws cloudfront wait invalidation-completed --distribution-id ${{ env.AWS_CLOUDFRONT_DISTRIBUTION }} --id ${{ env.CLOUDFRONT_INVALIDATION_ID }}
+
+      # Notify to Slack
+      - name: Post to a Slack channel
+        uses: slackapi/slack-github-action@v1.26.0
+        # https://github.com/slackapi/slack-github-action?tab=readme-ov-file#technique-2-slack-app
+        with:
+          channel-id: 'app-test'
+          # https://app.slack.com/block-kit-builder
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "CompactConnect deployment:\n\n*<${{ env.VUE_APP_DOMAIN }}|${{ env.ENVIRONMENT_NAME }} environment>* :rocket:"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ env.SLACK_BOT_TOKEN }}

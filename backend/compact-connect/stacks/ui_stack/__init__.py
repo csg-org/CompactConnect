@@ -57,6 +57,7 @@ class UIStack(Stack):
             role_name='github_ui_push'
         )
         self.distribution.grant_create_invalidation(github_actions)
+        self.distribution.grant(github_actions, 'cloudfront:GetInvalidation')
         ui_bucket.grant_read_write(github_actions)
         NagSuppressions.add_resource_suppressions_by_path(
             self,
