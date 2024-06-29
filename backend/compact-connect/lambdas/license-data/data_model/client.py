@@ -1,13 +1,16 @@
 import json
 from base64 import b64decode, b64encode
 from functools import wraps
+from typing import List
 from urllib.parse import quote
 
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
+from marshmallow import ValidationError
 
 from config import _Config, logger, config
-from exceptions import CCInvalidRequestException
+from data_model.schema.base_record_schema import BaseRecordSchema
+from exceptions import CCInvalidRequestException, CCInternalException
 
 
 def paginated(fn):
@@ -76,4 +79,49 @@ class DataClient():
             KeyConditionExpression=Key('pk').eq(quote(ssn)),
             **dynamo_pagination
         )
+        resp['Items'] = self._load_records(resp.get('Items', []))
         return resp
+
+    @paginated
+    def get_licenses_sorted_by_family_name(
+            self, *,
+            board: str,
+            jurisdiction: str,
+            dynamo_pagination: dict
+    ):  # pylint: disable-redefined-outer-name
+        logger.info('Getting licenses')
+        resp = self.config.license_table.query(
+            IndexName=config.bjns_index_name,
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('board_jur').eq(f'{quote(board)}/{quote(jurisdiction)}'),
+            **dynamo_pagination
+        )
+        resp['Items'] = self._load_records(resp.get('Items', []))
+        return resp
+
+    @paginated
+    def get_licenses_sorted_by_date_updated(
+            self, *,
+            board: str,
+            jurisdiction: str,
+            dynamo_pagination: dict
+    ):  # pylint: disable-redefined-outer-name
+        logger.info('Getting licenses')
+        resp = self.config.license_table.query(
+            IndexName=config.updated_index_name,
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('board_jur').eq(f'{quote(board)}/{quote(jurisdiction)}'),
+            **dynamo_pagination
+        )
+        resp['Items'] = self._load_records(resp.get('Items', []))
+        return resp
+
+    @staticmethod
+    def _load_records(records: List[dict]):
+        try:
+            return [
+                BaseRecordSchema.get_schema_by_type(item['type']).load(item)
+                for item in records
+            ]
+        except (KeyError, ValidationError) as e:
+            raise CCInternalException('Data validation failure!') from e

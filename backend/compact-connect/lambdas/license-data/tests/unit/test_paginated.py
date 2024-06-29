@@ -87,7 +87,7 @@ class TestPaginated(TstLambdas):
                     'kwargs': {
                         'dynamo_pagination': {
                             # Should fall back to default from config
-                            'Limit': 20
+                            'Limit': 100
                         }
                     }
                 }]

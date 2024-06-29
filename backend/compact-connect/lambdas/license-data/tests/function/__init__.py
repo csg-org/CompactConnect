@@ -1,6 +1,5 @@
 import logging
 import os
-from unittest.mock import patch
 
 import boto3
 from moto import mock_aws
@@ -22,12 +21,6 @@ class TstFunction(TstLambdas):
     def setUp(self):  # pylint: disable=invalid-name
         super().setUp()
 
-        self._os_patch = patch.dict(os.environ, {
-            'DEBUG': 'true',
-            'JURISDICTION': 'co'
-        })
-        self._os_patch.start()
-
         self.build_resources()
 
         import config
@@ -48,6 +41,18 @@ class TstFunction(TstLambdas):
                 {
                     'AttributeName': 'sk',
                     'AttributeType': 'S'
+                },
+                {
+                    'AttributeName': 'board_jur',
+                    'AttributeType': 'S'
+                },
+                {
+                    'AttributeName': 'fam_giv_mid_ssn',
+                    'AttributeType': 'S'
+                },
+                {
+                    'AttributeName': 'upd_ssn',
+                    'AttributeType': 'S'
                 }
             ],
             TableName=os.environ['LICENSE_TABLE_NAME'],
@@ -61,7 +66,41 @@ class TstFunction(TstLambdas):
                     'KeyType': 'RANGE'
                 }
             ],
-            BillingMode='PAY_PER_REQUEST'
+            BillingMode='PAY_PER_REQUEST',
+            GlobalSecondaryIndexes=[
+                {
+                    'IndexName': os.environ['BJNS_INDEX_NAME'],
+                    'KeySchema': [
+                        {
+                            'AttributeName': 'board_jur',
+                            'KeyType': 'HASH'
+                        },
+                        {
+                            'AttributeName': 'fam_giv_mid_ssn',
+                            'KeyType': 'RANGE'
+                        }
+                    ],
+                    'Projection': {
+                        'ProjectionType': 'ALL'
+                    },
+                },
+                {
+                    'IndexName': os.environ['UPDATED_INDEX_NAME'],
+                    'KeySchema': [
+                        {
+                            'AttributeName': 'board_jur',
+                            'KeyType': 'HASH'
+                        },
+                        {
+                            'AttributeName': 'upd_ssn',
+                            'KeyType': 'RANGE'
+                        }
+                    ],
+                    'Projection': {
+                        'ProjectionType': 'ALL'
+                    },
+                },
+            ]
         )
 
     def delete_resources(self):

@@ -14,7 +14,7 @@ logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false').lower() == 'tr
 
 class _Config:
     presigned_post_ttl_seconds = 3600
-    default_page_size = 20
+    default_page_size = 100
 
     @cached_property
     def s3_client(self):
@@ -25,24 +25,24 @@ class _Config:
         return boto3.resource('dynamodb').Table(self.license_table_name)
 
     @property
-    def license_table_name(self):
-        return os.environ['LICENSE_TABLE_NAME']
-
-    @property
     def compacts(self):
         return json.loads(os.environ['COMPACTS'])
 
     @property
-    def jurisdictions(self):
-        return json.loads(os.environ['JURISDICTIONS'])
-
-    @property
     def license_table_name(self):
         return os.environ['LICENSE_TABLE_NAME']
 
     @property
-    def cjns_index_name(self):
-        return os.environ['CJNS_INDEX_NAME']
+    def bjns_index_name(self):
+        return os.environ['BJNS_INDEX_NAME']
+
+    @property
+    def updated_index_name(self):
+        return os.environ['UPDATED_INDEX_NAME']
+
+    @property
+    def bulk_bucket_name(self):
+        return os.environ['BULK_BUCKET_NAME']
 
     @property
     def updated_index_name(self):
