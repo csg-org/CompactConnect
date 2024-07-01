@@ -8,10 +8,10 @@ from tests.function import TstFunction
 class TestClient(TstFunction):
     def test_get_ssn(self):
         from data_model.client import DataClient
-        from data_model.schema.license_schema import LicensePostSchema, LicenseRecordSchema
-        from data_model.schema.privilege_schema import PrivilegePostSchema, PrivilegeRecordSchema
+        from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
+        from data_model.schema.privilege import PrivilegePostSchema, PrivilegeRecordSchema
 
-        with open('tests/resources/license.json', 'r') as f:
+        with open('tests/resources/api/license.json', 'r') as f:
             license_data = LicensePostSchema().loads(f.read())
 
         self._table.put_item(
@@ -23,7 +23,7 @@ class TestClient(TstFunction):
             })
         )
 
-        with open('tests/resources/privilege.json', 'r') as f:
+        with open('tests/resources/api/privilege.json', 'r') as f:
             privilege = PrivilegePostSchema().loads(f.read())
 
         self._table.put_item(
@@ -38,6 +38,37 @@ class TestClient(TstFunction):
 
         resp = client.get_ssn(ssn='123-12-1234')  # pylint: disable=missing-kwoa
         self.assertEqual(2, len(resp['items']))
+
+    def test_get_ssn_garbage_in_db(self):
+        """
+        Because of the risk of exposing sensitive data to the public if we manage to get corrupted
+        data into our database, we'll specifically validate data coming _out_ of the database
+        and throw an error if it doesn't look as expected.
+        """
+        from data_model.client import DataClient
+        from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
+        from exceptions import CCInternalException
+
+        with open('tests/resources/api/license.json', 'r') as f:
+            license_data = LicensePostSchema().loads(f.read())
+
+        self._table.put_item(
+            Item={
+                # Oh, no! We've somehow put somebody's SSN in the wrong place!
+                'something_unexpected': '123-12-1234',
+                **LicenseRecordSchema().dump({
+                    'compact': 'aslp',
+                    'jurisdiction': 'co',
+                    **license_data
+                })
+            }
+        )
+
+        client = DataClient(self.config)
+
+        # This record should not be allowed out via API
+        with self.assertRaises(CCInternalException):
+            client.get_ssn(ssn='123-12-1234')  # pylint: disable=missing-kwoa
 
     def test_get_licenses_sorted_by_family_name(self):
         from data_model.client import DataClient
@@ -92,13 +123,13 @@ class TestClient(TstFunction):
         self.assertNotIn('lastKey', resp.keys())
 
     def _generate_licensees(self, home: str, priv: str, start_serial: int):
-        from data_model.schema.license_schema import LicensePostSchema, LicenseRecordSchema
-        from data_model.schema.privilege_schema import PrivilegePostSchema, PrivilegeRecordSchema
+        from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
+        from data_model.schema.privilege import PrivilegePostSchema, PrivilegeRecordSchema
 
-        with open('tests/resources/license.json', 'r') as f:
+        with open('tests/resources/api/license.json', 'r') as f:
             license_data = LicensePostSchema().loads(f.read())
 
-        with open('tests/resources/privilege.json', 'r') as f:
+        with open('tests/resources/api/privilege.json', 'r') as f:
             privilege_data = PrivilegePostSchema().loads(f.read())
 
         # Generate 100 licensees, each with a license and a privilege

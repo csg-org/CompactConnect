@@ -1,6 +1,6 @@
 from urllib.parse import quote
 
-from marshmallow import pre_dump, post_load
+from marshmallow import pre_dump
 from marshmallow.fields import String, Date
 from marshmallow.validate import Regexp, Length, OneOf
 
@@ -34,13 +34,6 @@ class PrivilegeRecordSchema(BaseRecordSchema, PrivilegePostSchema):
     # Generated fields
     upd_ssn = String(required=True, allow_none=False)
     fam_giv_mid_ssn = String(required=True, allow_none=False)
-    birth_month_day = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
-
-    @post_load
-    def drop_index_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
-        del in_data['fam_giv_mid_ssn']
-        del in_data['upd_ssn']
-        return in_data
 
     @pre_dump
     def populate_priv_gen_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument

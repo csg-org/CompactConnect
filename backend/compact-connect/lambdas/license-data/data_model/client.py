@@ -9,7 +9,7 @@ from botocore.exceptions import ClientError
 from marshmallow import ValidationError
 
 from config import _Config, logger, config
-from data_model.schema.base_record_schema import BaseRecordSchema
+from data_model.schema.base_record import BaseRecordSchema
 from exceptions import CCInvalidRequestException, CCInternalException
 
 

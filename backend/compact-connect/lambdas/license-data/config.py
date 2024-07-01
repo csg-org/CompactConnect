@@ -44,13 +44,5 @@ class _Config:
     def bulk_bucket_name(self):
         return os.environ['BULK_BUCKET_NAME']
 
-    @property
-    def updated_index_name(self):
-        return os.environ['UPDATED_INDEX_NAME']
-
-    @property
-    def bulk_bucket_name(self):
-        return os.environ['BULK_BUCKET_NAME']
-
 
 config = _Config()
