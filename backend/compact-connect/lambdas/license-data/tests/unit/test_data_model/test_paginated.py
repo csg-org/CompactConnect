@@ -33,8 +33,8 @@ class TestPaginated(TstLambdas):
             'arg1',
             'arg2',
             pagination={
-                'last_key': b64encode(json.dumps({'pk': '안녕하세요', 'sk': '2'}).encode('utf-8')),
-                'page_size': 5
+                'lastKey': b64encode(json.dumps({'pk': '안녕하세요', 'sk': '2'}).encode('utf-8')),
+                'pageSize': 5
             },
             kwarg1='baf'
         )
@@ -106,7 +106,7 @@ class TestPaginated(TstLambdas):
             }
 
         with self.assertRaises(CCInvalidRequestException):
-            get_something(pagination={'last_key': 'not-b64-string'})
+            get_something(pagination={'lastKey': 'not-b64-string'})
 
     def test_db_invalid_key(self):
         from data_model.client import paginated

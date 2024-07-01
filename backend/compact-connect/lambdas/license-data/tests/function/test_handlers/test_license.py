@@ -6,7 +6,7 @@ from tests.function import TstFunction
 
 @mock_aws
 class TestLicense(TstFunction):
-    def test_query_one_license(self):
+    def test_get_license(self):
         # Pre-load our license into the db
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
 
@@ -23,7 +23,7 @@ class TestLicense(TstFunction):
         )
 
         # Run the API query
-        from handlers.license import query_licenses
+        from handlers.license import query_one_license
 
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
@@ -33,7 +33,7 @@ class TestLicense(TstFunction):
             'ssn': '123-12-1234'
         })
 
-        resp = query_licenses(event, self.mock_context)
+        resp = query_one_license(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
 
@@ -59,8 +59,8 @@ class TestLicense(TstFunction):
             body
         )
 
-    def test_query_licenses_updated(self):
-        from handlers.license import query_licenses
+    def test_get_licenses_updated(self):
+        from handlers.license import query_licenses_updated
 
         # 100 licenses homed in co with privileges in fl
         self._generate_licensees('co', 'al', 9999)
@@ -70,16 +70,13 @@ class TestLicense(TstFunction):
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
 
-        event['pathParameters'] = {}
-        event['body'] = json.dumps({
-            'sorting': {
-                'key': 'date_of_update'
-            },
+        event['pathParameters'] = {
             'compact': 'aslp',
             'jurisdiction': 'co'
-        })
+        }
+        event['body'] = json.dumps({})
 
-        resp = query_licenses(event, self.mock_context)
+        resp = query_licenses_updated(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
 
@@ -87,8 +84,8 @@ class TestLicense(TstFunction):
         self.assertEqual(100, len(body['items']))
         self.assertEqual({'items', 'lastKey'}, body.keys())
 
-    def test_query_licenses_family_name(self):
-        from handlers.license import query_licenses
+    def test_get_licenses_family_name(self):
+        from handlers.license import query_licenses_family
 
         # 100 licenses homed in co with privileges in fl
         self._generate_licensees('co', 'al', 9999)
@@ -98,61 +95,16 @@ class TestLicense(TstFunction):
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
 
-        event['pathParameters'] = {}
-        event['body'] = json.dumps({
-            'sorting': {
-                'key': 'family_name'
-            },
+        event['pathParameters'] = {
             'compact': 'aslp',
             'jurisdiction': 'co'
-        })
+        }
+        event['body'] = json.dumps({})
 
-        resp = query_licenses(event, self.mock_context)
+        resp = query_licenses_family(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
 
         body = json.loads(resp['body'])
         self.assertEqual(100, len(body['items']))
         self.assertEqual({'items', 'lastKey'}, body.keys())
-
-    def test_query_licenses_missing_sorting(self):
-        from handlers.license import query_licenses
-
-        with open('tests/resources/api-event.json', 'r') as f:
-            event = json.load(f)
-
-        event['pathParameters'] = {}
-        event['body'] = json.dumps({
-            'compact': 'aslp',
-            'jurisdiction': 'co'
-        })
-
-        resp = query_licenses(event, self.mock_context)
-
-        self.assertEqual(400, resp['statusCode'])
-        self.assertTrue(
-            json.loads(resp['body'])['message'].startswith("'sorting' must be specified")
-        )
-
-    def test_query_licenses_invalid_sorting(self):
-        from handlers.license import query_licenses
-
-        with open('tests/resources/api-event.json', 'r') as f:
-            event = json.load(f)
-
-        event['pathParameters'] = {}
-        event['body'] = json.dumps({
-            'sorting': {
-                'key': 'invalid'
-            },
-            'compact': 'aslp',
-            'jurisdiction': 'co'
-        })
-
-        resp = query_licenses(event, self.mock_context)
-
-        self.assertEqual(400, resp['statusCode'])
-        self.assertEqual(
-            {'message': "Invalid sort key: 'invalid'"},
-            json.loads(resp['body'])
-        )

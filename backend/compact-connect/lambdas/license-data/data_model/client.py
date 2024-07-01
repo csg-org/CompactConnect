@@ -27,14 +27,14 @@ def paginated(fn):
     def process_pagination_parameters(*args, pagination: dict = None, **kwargs):
         if pagination is None:
             pagination = {}
-        # We b64 encode/decode the last_key just for convenience passing to/from the client over HTTP
-        last_key = pagination.get('last_key')
+        # We b64 encode/decode the lastKey just for convenience passing to/from the client over HTTP
+        last_key = pagination.get('lastKey')
         if last_key is not None:
             try:
                 last_key = json.loads(b64decode(last_key).decode('ascii'))
             except Exception as e:
                 raise CCInvalidRequestException(message='Invalid lastKey') from e
-        page_size = pagination.get('page_size', config.default_page_size)
+        page_size = pagination.get('pageSize', config.default_page_size)
 
         dynamo_pagination = {
             'Limit': page_size,
@@ -85,15 +85,15 @@ class DataClient():
     @paginated
     def get_licenses_sorted_by_family_name(
             self, *,
-            board: str,
+            compact: str,
             jurisdiction: str,
             dynamo_pagination: dict
     ):  # pylint: disable-redefined-outer-name
-        logger.info('Getting licenses')
+        logger.info('Getting licenses by family name')
         resp = self.config.license_table.query(
-            IndexName=config.bjns_index_name,
+            IndexName=config.cjns_index_name,
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('board_jur').eq(f'{quote(board)}/{quote(jurisdiction)}'),
+            KeyConditionExpression=Key('compact_jur').eq(f'{quote(compact)}/{quote(jurisdiction)}'),
             **dynamo_pagination
         )
         resp['Items'] = self._load_records(resp.get('Items', []))
@@ -102,15 +102,15 @@ class DataClient():
     @paginated
     def get_licenses_sorted_by_date_updated(
             self, *,
-            board: str,
+            compact: str,
             jurisdiction: str,
             dynamo_pagination: dict
     ):  # pylint: disable-redefined-outer-name
-        logger.info('Getting licenses')
+        logger.info('Getting licenses by date updated')
         resp = self.config.license_table.query(
             IndexName=config.updated_index_name,
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('board_jur').eq(f'{quote(board)}/{quote(jurisdiction)}'),
+            KeyConditionExpression=Key('compact_jur').eq(f'{quote(compact)}/{quote(jurisdiction)}'),
             **dynamo_pagination
         )
         resp['Items'] = self._load_records(resp.get('Items', []))

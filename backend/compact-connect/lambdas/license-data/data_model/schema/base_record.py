@@ -46,7 +46,7 @@ class BaseRecordSchema(StrictSchema, ABC):
     # Generated fields
     pk = SocialSecurityNumber(required=True, allow_none=False)
     sk = String(required=True, allow_none=False, validate=Length(2, 100))
-    board_jur = String(required=True, allow_none=False, validate=Length(2, 200))
+    compact_jur = String(required=True, allow_none=False, validate=Length(2, 200))
     date_of_update = Date(required=True, allow_none=False)
 
     # Provided fields
@@ -56,14 +56,16 @@ class BaseRecordSchema(StrictSchema, ABC):
     )))
     ssn = String(required=True, allow_none=False, validate=Regexp('^[0-9]{3}-[0-9]{2}-[0-9]{4}$'))
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
+    jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
 
     @post_load
-    def drop_pk_sk(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def drop_base_gen_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
         """
         Drop the db-specific pk and sk fields before returning loaded data
         """
-        in_data.pop('pk')
-        in_data.pop('sk')
+        del in_data['pk']
+        del in_data['sk']
+        del in_data['compact_jur']
         return in_data
 
     @pre_dump
@@ -78,7 +80,7 @@ class BaseRecordSchema(StrictSchema, ABC):
             self._record_type
         ))
         in_data['type'] = self._record_type
-        in_data['board_jur'] = '/'.join((
+        in_data['compact_jur'] = '/'.join((
             quote(in_data['compact']),
             quote(in_data['jurisdiction'])
         ))

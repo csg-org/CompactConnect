@@ -16,10 +16,12 @@
   "date_of_birth": "2024-06-06",
   "pk": "123-12-1234",
   "sk": "aslp/co/license-home",
-  "board_jur": "aslp/co",
+  "compact_jur": "aslp/co",
   "date_of_update": "2024-07-01",
   "type": "license-home",
   "compact": "aslp",
+  "jurisdiction": "co",
   "upd_ssn": "2024-07-01/123-12-1234",
-  "fam_giv_mid_ssn": "string/string/string/123-12-1234"
+  "fam_giv_mid_ssn": "string/string/string/123-12-1234",
+  "birth_month_day": "06-06"
 }

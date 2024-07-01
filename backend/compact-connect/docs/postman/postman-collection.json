@@ -386,19 +386,710 @@
 					"name": "providers",
 					"item": [
 						{
-							"name": "licenses-noauth",
+							"name": "{compact}",
 							"item": [
 								{
-									"name": "{compact}",
+									"name": "{jurisdiction}",
 									"item": [
 										{
-											"name": "{jurisdiction}",
+											"name": "licenses-noauth",
 											"item": [
+												{
+													"name": "query",
+													"item": [
+														{
+															"name": "by-updated",
+															"item": [
+																{
+																	"name": "/v0/providers/:compact/:jurisdiction/licenses-noauth/query/by-updated",
+																	"event": [
+																		{
+																			"listen": "test",
+																			"script": {
+																				"exec": [
+																					"pm.test('Save lastKey', () => {",
+																					"    var lastKey = pm.response.json().lastKey;",
+																					"    pm.environment.set(\"lastKey\", lastKey);",
+																					"    console.log('Last Key: ' + lastKey);",
+																					"});"
+																				],
+																				"type": "text/javascript",
+																				"packages": {}
+																			}
+																		}
+																	],
+																	"request": {
+																		"method": "POST",
+																		"header": [
+																			{
+																				"key": "Content-Type",
+																				"value": "application/json"
+																			},
+																			{
+																				"key": "Accept",
+																				"value": "application/json"
+																			}
+																		],
+																		"body": {
+																			"mode": "raw",
+																			"raw": "{\n    \"pagination\": {\n        \"pageSize\": 5\n    }\n}",
+																			"options": {
+																				"raw": {
+																					"headerFamily": "json",
+																					"language": "json"
+																				}
+																			}
+																		},
+																		"url": {
+																			"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth/query/by-updated",
+																			"host": [
+																				"{{baseUrl}}"
+																			],
+																			"path": [
+																				"v0",
+																				"providers",
+																				":compact",
+																				":jurisdiction",
+																				"licenses-noauth",
+																				"query",
+																				"by-updated"
+																			],
+																			"variable": [
+																				{
+																					"key": "compact",
+																					"value": "aslp",
+																					"description": "(Required) "
+																				},
+																				{
+																					"key": "jurisdiction",
+																					"value": "co",
+																					"description": "(Required) "
+																				}
+																			]
+																		}
+																	},
+																	"response": [
+																		{
+																			"name": "200 response",
+																			"originalRequest": {
+																				"method": "POST",
+																				"header": [
+																					{
+																						"key": "Content-Type",
+																						"value": "application/json"
+																					},
+																					{
+																						"key": "Accept",
+																						"value": "application/json"
+																					}
+																				],
+																				"body": {
+																					"mode": "raw",
+																					"raw": "{\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  }\n}",
+																					"options": {
+																						"raw": {
+																							"headerFamily": "json",
+																							"language": "json"
+																						}
+																					}
+																				},
+																				"url": {
+																					"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth/query/by-updated",
+																					"host": [
+																						"{{baseUrl}}"
+																					],
+																					"path": [
+																						"v0",
+																						"providers",
+																						":compact",
+																						":jurisdiction",
+																						"licenses-noauth",
+																						"query",
+																						"by-updated"
+																					],
+																					"variable": [
+																						{
+																							"key": "compact"
+																						},
+																						{
+																							"key": "jurisdiction"
+																						}
+																					]
+																				}
+																			},
+																			"status": "OK",
+																			"code": 200,
+																			"_postman_previewlanguage": "json",
+																			"header": [
+																				{
+																					"key": "Content-Type",
+																					"value": "application/json"
+																				}
+																			],
+																			"cookie": [],
+																			"body": "[\n  {\n    \"compact\": \"aslp\",\n    \"date_of_birth\": \"2559-09-00\",\n    \"date_of_expiration\": \"2703-18-19\",\n    \"date_of_issuance\": \"2584-00-19\",\n    \"date_of_renewal\": \"1202-02-05\",\n    \"date_of_update\": \"2265-09-29\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"jurisdiction\": \"ok\",\n    \"license_type\": \"audiologist\",\n    \"ssn\": \"172-68-4431\",\n    \"status\": \"inactive\",\n    \"type\": \"license-home\",\n    \"npi\": \"2444112442\",\n    \"middle_name\": \"<string>\"\n  },\n  {\n    \"compact\": \"aslp\",\n    \"date_of_birth\": \"1652-03-14\",\n    \"date_of_expiration\": \"1923-10-21\",\n    \"date_of_issuance\": \"1939-08-30\",\n    \"date_of_renewal\": \"2025-07-03\",\n    \"date_of_update\": \"1409-05-28\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"jurisdiction\": \"ma\",\n    \"license_type\": \"speech language pathologist\",\n    \"ssn\": \"408-85-7572\",\n    \"status\": \"active\",\n    \"type\": \"license-home\",\n    \"npi\": \"0713303511\",\n    \"middle_name\": \"<string>\"\n  }\n]"
+																		}
+																	]
+																},
+																{
+																	"name": "/v0/providers/:compact/:jurisdiction/licenses-noauth/query/by-updated",
+																	"request": {
+																		"method": "OPTIONS",
+																		"header": [],
+																		"url": {
+																			"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth/query/by-updated",
+																			"host": [
+																				"{{baseUrl}}"
+																			],
+																			"path": [
+																				"v0",
+																				"providers",
+																				":compact",
+																				":jurisdiction",
+																				"licenses-noauth",
+																				"query",
+																				"by-updated"
+																			],
+																			"variable": [
+																				{
+																					"key": "compact",
+																					"value": "<string>",
+																					"description": "(Required) "
+																				},
+																				{
+																					"key": "jurisdiction",
+																					"value": "<string>",
+																					"description": "(Required) "
+																				}
+																			]
+																		}
+																	},
+																	"response": [
+																		{
+																			"name": "204 response",
+																			"originalRequest": {
+																				"method": "OPTIONS",
+																				"header": [],
+																				"url": {
+																					"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth/query/by-updated",
+																					"host": [
+																						"{{baseUrl}}"
+																					],
+																					"path": [
+																						"v0",
+																						"providers",
+																						":compact",
+																						":jurisdiction",
+																						"licenses-noauth",
+																						"query",
+																						"by-updated"
+																					],
+																					"variable": [
+																						{
+																							"key": "compact"
+																						},
+																						{
+																							"key": "jurisdiction"
+																						}
+																					]
+																				}
+																			},
+																			"status": "No Content",
+																			"code": 204,
+																			"_postman_previewlanguage": "text",
+																			"header": [
+																				{
+																					"key": "Access-Control-Allow-Origin",
+																					"value": "<string>",
+																					"description": {
+																						"content": "",
+																						"type": "text/plain"
+																					}
+																				},
+																				{
+																					"key": "Access-Control-Allow-Methods",
+																					"value": "<string>",
+																					"description": {
+																						"content": "",
+																						"type": "text/plain"
+																					}
+																				},
+																				{
+																					"key": "Access-Control-Allow-Headers",
+																					"value": "<string>",
+																					"description": {
+																						"content": "",
+																						"type": "text/plain"
+																					}
+																				}
+																			],
+																			"cookie": [],
+																			"body": ""
+																		}
+																	]
+																}
+															]
+														},
+														{
+															"name": "by-family-name",
+															"item": [
+																{
+																	"name": "/v0/providers/:compact/:jurisdiction/licenses-noauth/query/by-family-name",
+																	"event": [
+																		{
+																			"listen": "test",
+																			"script": {
+																				"exec": [
+																					"pm.test('Save lastKey', () => {",
+																					"    var lastKey = pm.response.json().lastKey;",
+																					"    pm.environment.set(\"lastKey\", lastKey);",
+																					"    console.log('Last Key: ' + lastKey);",
+																					"});"
+																				],
+																				"type": "text/javascript",
+																				"packages": {}
+																			}
+																		}
+																	],
+																	"request": {
+																		"method": "POST",
+																		"header": [
+																			{
+																				"key": "Content-Type",
+																				"value": "application/json"
+																			},
+																			{
+																				"key": "Accept",
+																				"value": "application/json"
+																			}
+																		],
+																		"body": {
+																			"mode": "raw",
+																			"raw": "{\n    \"pagination\": {\n        \"pageSize\": 5,\n        \"lastKey\": \"{{lastKey}}\"\n    }\n}",
+																			"options": {
+																				"raw": {
+																					"headerFamily": "json",
+																					"language": "json"
+																				}
+																			}
+																		},
+																		"url": {
+																			"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth/query/by-family-name",
+																			"host": [
+																				"{{baseUrl}}"
+																			],
+																			"path": [
+																				"v0",
+																				"providers",
+																				":compact",
+																				":jurisdiction",
+																				"licenses-noauth",
+																				"query",
+																				"by-family-name"
+																			],
+																			"variable": [
+																				{
+																					"key": "compact",
+																					"value": "aslp",
+																					"description": "(Required) "
+																				},
+																				{
+																					"key": "jurisdiction",
+																					"value": "co",
+																					"description": "(Required) "
+																				}
+																			]
+																		}
+																	},
+																	"response": [
+																		{
+																			"name": "200 response",
+																			"originalRequest": {
+																				"method": "POST",
+																				"header": [
+																					{
+																						"key": "Content-Type",
+																						"value": "application/json"
+																					},
+																					{
+																						"key": "Accept",
+																						"value": "application/json"
+																					}
+																				],
+																				"body": {
+																					"mode": "raw",
+																					"raw": "{\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  }\n}",
+																					"options": {
+																						"raw": {
+																							"headerFamily": "json",
+																							"language": "json"
+																						}
+																					}
+																				},
+																				"url": {
+																					"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth/query/by-family-name",
+																					"host": [
+																						"{{baseUrl}}"
+																					],
+																					"path": [
+																						"v0",
+																						"providers",
+																						":compact",
+																						":jurisdiction",
+																						"licenses-noauth",
+																						"query",
+																						"by-family-name"
+																					],
+																					"variable": [
+																						{
+																							"key": "compact"
+																						},
+																						{
+																							"key": "jurisdiction"
+																						}
+																					]
+																				}
+																			},
+																			"status": "OK",
+																			"code": 200,
+																			"_postman_previewlanguage": "json",
+																			"header": [
+																				{
+																					"key": "Content-Type",
+																					"value": "application/json"
+																				}
+																			],
+																			"cookie": [],
+																			"body": "[\n  {\n    \"compact\": \"aslp\",\n    \"date_of_birth\": \"2559-09-00\",\n    \"date_of_expiration\": \"2703-18-19\",\n    \"date_of_issuance\": \"2584-00-19\",\n    \"date_of_renewal\": \"1202-02-05\",\n    \"date_of_update\": \"2265-09-29\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"jurisdiction\": \"ok\",\n    \"license_type\": \"audiologist\",\n    \"ssn\": \"172-68-4431\",\n    \"status\": \"inactive\",\n    \"type\": \"license-home\",\n    \"npi\": \"2444112442\",\n    \"middle_name\": \"<string>\"\n  },\n  {\n    \"compact\": \"aslp\",\n    \"date_of_birth\": \"1652-03-14\",\n    \"date_of_expiration\": \"1923-10-21\",\n    \"date_of_issuance\": \"1939-08-30\",\n    \"date_of_renewal\": \"2025-07-03\",\n    \"date_of_update\": \"1409-05-28\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"jurisdiction\": \"ma\",\n    \"license_type\": \"speech language pathologist\",\n    \"ssn\": \"408-85-7572\",\n    \"status\": \"active\",\n    \"type\": \"license-home\",\n    \"npi\": \"0713303511\",\n    \"middle_name\": \"<string>\"\n  }\n]"
+																		}
+																	]
+																},
+																{
+																	"name": "/v0/providers/:compact/:jurisdiction/licenses-noauth/query/by-family-name",
+																	"request": {
+																		"method": "OPTIONS",
+																		"header": [],
+																		"url": {
+																			"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth/query/by-family-name",
+																			"host": [
+																				"{{baseUrl}}"
+																			],
+																			"path": [
+																				"v0",
+																				"providers",
+																				":compact",
+																				":jurisdiction",
+																				"licenses-noauth",
+																				"query",
+																				"by-family-name"
+																			],
+																			"variable": [
+																				{
+																					"key": "compact",
+																					"value": "<string>",
+																					"description": "(Required) "
+																				},
+																				{
+																					"key": "jurisdiction",
+																					"value": "<string>",
+																					"description": "(Required) "
+																				}
+																			]
+																		}
+																	},
+																	"response": [
+																		{
+																			"name": "204 response",
+																			"originalRequest": {
+																				"method": "OPTIONS",
+																				"header": [],
+																				"url": {
+																					"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth/query/by-family-name",
+																					"host": [
+																						"{{baseUrl}}"
+																					],
+																					"path": [
+																						"v0",
+																						"providers",
+																						":compact",
+																						":jurisdiction",
+																						"licenses-noauth",
+																						"query",
+																						"by-family-name"
+																					],
+																					"variable": [
+																						{
+																							"key": "compact"
+																						},
+																						{
+																							"key": "jurisdiction"
+																						}
+																					]
+																				}
+																			},
+																			"status": "No Content",
+																			"code": 204,
+																			"_postman_previewlanguage": "text",
+																			"header": [
+																				{
+																					"key": "Access-Control-Allow-Origin",
+																					"value": "<string>",
+																					"description": {
+																						"content": "",
+																						"type": "text/plain"
+																					}
+																				},
+																				{
+																					"key": "Access-Control-Allow-Methods",
+																					"value": "<string>",
+																					"description": {
+																						"content": "",
+																						"type": "text/plain"
+																					}
+																				},
+																				{
+																					"key": "Access-Control-Allow-Headers",
+																					"value": "<string>",
+																					"description": {
+																						"content": "",
+																						"type": "text/plain"
+																					}
+																				}
+																			],
+																			"cookie": [],
+																			"body": ""
+																		}
+																	]
+																}
+															]
+														},
+														{
+															"name": "/v0/providers/:compact/:jurisdiction/licenses-noauth/query",
+															"event": [
+																{
+																	"listen": "test",
+																	"script": {
+																		"exec": [
+																			""
+																		],
+																		"type": "text/javascript",
+																		"packages": {}
+																	}
+																}
+															],
+															"request": {
+																"method": "POST",
+																"header": [
+																	{
+																		"key": "Content-Type",
+																		"value": "application/json"
+																	},
+																	{
+																		"key": "Accept",
+																		"value": "application/json"
+																	}
+																],
+																"body": {
+																	"mode": "raw",
+																	"raw": "{\n  \"ssn\": \"111-48-9904\",\n  \"pagination\": {\n    \"pageSize\": 5\n  }\n}",
+																	"options": {
+																		"raw": {
+																			"headerFamily": "json",
+																			"language": "json"
+																		}
+																	}
+																},
+																"url": {
+																	"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth/query",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v0",
+																		"providers",
+																		":compact",
+																		":jurisdiction",
+																		"licenses-noauth",
+																		"query"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact",
+																			"value": "aslp",
+																			"description": "(Required) "
+																		},
+																		{
+																			"key": "jurisdiction",
+																			"value": "co",
+																			"description": "(Required) "
+																		}
+																	]
+																}
+															},
+															"response": [
+																{
+																	"name": "200 response",
+																	"originalRequest": {
+																		"method": "POST",
+																		"header": [
+																			{
+																				"key": "Content-Type",
+																				"value": "application/json"
+																			},
+																			{
+																				"key": "Accept",
+																				"value": "application/json"
+																			}
+																		],
+																		"body": {
+																			"mode": "raw",
+																			"raw": "{\n  \"ssn\": \"291-96-7935\",\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  }\n}",
+																			"options": {
+																				"raw": {
+																					"headerFamily": "json",
+																					"language": "json"
+																				}
+																			}
+																		},
+																		"url": {
+																			"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth/query",
+																			"host": [
+																				"{{baseUrl}}"
+																			],
+																			"path": [
+																				"v0",
+																				"providers",
+																				":compact",
+																				":jurisdiction",
+																				"licenses-noauth",
+																				"query"
+																			],
+																			"variable": [
+																				{
+																					"key": "compact"
+																				},
+																				{
+																					"key": "jurisdiction"
+																				}
+																			]
+																		}
+																	},
+																	"status": "OK",
+																	"code": 200,
+																	"_postman_previewlanguage": "json",
+																	"header": [
+																		{
+																			"key": "Content-Type",
+																			"value": "application/json"
+																		}
+																	],
+																	"cookie": [],
+																	"body": "[\n  {\n    \"compact\": \"aslp\",\n    \"date_of_birth\": \"2559-09-00\",\n    \"date_of_expiration\": \"2703-18-19\",\n    \"date_of_issuance\": \"2584-00-19\",\n    \"date_of_renewal\": \"1202-02-05\",\n    \"date_of_update\": \"2265-09-29\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"jurisdiction\": \"ok\",\n    \"license_type\": \"audiologist\",\n    \"ssn\": \"172-68-4431\",\n    \"status\": \"inactive\",\n    \"type\": \"license-home\",\n    \"npi\": \"2444112442\",\n    \"middle_name\": \"<string>\"\n  },\n  {\n    \"compact\": \"aslp\",\n    \"date_of_birth\": \"1652-03-14\",\n    \"date_of_expiration\": \"1923-10-21\",\n    \"date_of_issuance\": \"1939-08-30\",\n    \"date_of_renewal\": \"2025-07-03\",\n    \"date_of_update\": \"1409-05-28\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"jurisdiction\": \"ma\",\n    \"license_type\": \"speech language pathologist\",\n    \"ssn\": \"408-85-7572\",\n    \"status\": \"active\",\n    \"type\": \"license-home\",\n    \"npi\": \"0713303511\",\n    \"middle_name\": \"<string>\"\n  }\n]"
+																}
+															]
+														},
+														{
+															"name": "/v0/providers/:compact/:jurisdiction/licenses-noauth/query",
+															"request": {
+																"method": "OPTIONS",
+																"header": [],
+																"url": {
+																	"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth/query",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v0",
+																		"providers",
+																		":compact",
+																		":jurisdiction",
+																		"licenses-noauth",
+																		"query"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact",
+																			"value": "<string>",
+																			"description": "(Required) "
+																		},
+																		{
+																			"key": "jurisdiction",
+																			"value": "<string>",
+																			"description": "(Required) "
+																		}
+																	]
+																}
+															},
+															"response": [
+																{
+																	"name": "204 response",
+																	"originalRequest": {
+																		"method": "OPTIONS",
+																		"header": [],
+																		"url": {
+																			"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth/query",
+																			"host": [
+																				"{{baseUrl}}"
+																			],
+																			"path": [
+																				"v0",
+																				"providers",
+																				":compact",
+																				":jurisdiction",
+																				"licenses-noauth",
+																				"query"
+																			],
+																			"variable": [
+																				{
+																					"key": "compact"
+																				},
+																				{
+																					"key": "jurisdiction"
+																				}
+																			]
+																		}
+																	},
+																	"status": "No Content",
+																	"code": 204,
+																	"_postman_previewlanguage": "text",
+																	"header": [
+																		{
+																			"key": "Access-Control-Allow-Origin",
+																			"value": "<string>",
+																			"description": {
+																				"content": "",
+																				"type": "text/plain"
+																			}
+																		},
+																		{
+																			"key": "Access-Control-Allow-Methods",
+																			"value": "<string>",
+																			"description": {
+																				"content": "",
+																				"type": "text/plain"
+																			}
+																		},
+																		{
+																			"key": "Access-Control-Allow-Headers",
+																			"value": "<string>",
+																			"description": {
+																				"content": "",
+																				"type": "text/plain"
+																			}
+																		}
+																	],
+																	"cookie": [],
+																	"body": ""
+																}
+															]
+														}
+													]
+												},
 												{
 													"name": "bulk-upload",
 													"item": [
 														{
-															"name": "/v0/providers/licenses-noauth/:compact/:jurisdiction/bulk-upload",
+															"name": "/v0/providers/:compact/:jurisdiction/licenses-noauth/bulk-upload",
 															"request": {
 																"method": "GET",
 																"header": [
@@ -408,16 +1099,16 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/v0/providers/licenses-noauth/:compact/:jurisdiction/bulk-upload",
+																	"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth/bulk-upload",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
 																	"path": [
 																		"v0",
 																		"providers",
-																		"licenses-noauth",
 																		":compact",
 																		":jurisdiction",
+																		"licenses-noauth",
 																		"bulk-upload"
 																	],
 																	"variable": [
@@ -446,16 +1137,16 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/v0/providers/licenses-noauth/:compact/:jurisdiction/bulk-upload",
+																			"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth/bulk-upload",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
 																			"path": [
 																				"v0",
 																				"providers",
-																				"licenses-noauth",
 																				":compact",
 																				":jurisdiction",
+																				"licenses-noauth",
 																				"bulk-upload"
 																			],
 																			"variable": [
@@ -478,26 +1169,26 @@
 																		}
 																	],
 																	"cookie": [],
-																	"body": "{\n  \"fields\": {\n    \"exa\": \"<string>\"\n  },\n  \"url\": \"<string>\"\n}"
+																	"body": "{\n  \"fields\": {\n    \"magna_2\": \"<string>\",\n    \"tempor45_\": \"<string>\"\n  },\n  \"url\": \"<string>\"\n}"
 																}
 															]
 														},
 														{
-															"name": "/v0/providers/licenses-noauth/:compact/:jurisdiction/bulk-upload",
+															"name": "/v0/providers/:compact/:jurisdiction/licenses-noauth/bulk-upload",
 															"request": {
 																"method": "OPTIONS",
 																"header": [],
 																"url": {
-																	"raw": "{{baseUrl}}/v0/providers/licenses-noauth/:compact/:jurisdiction/bulk-upload",
+																	"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth/bulk-upload",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
 																	"path": [
 																		"v0",
 																		"providers",
-																		"licenses-noauth",
 																		":compact",
 																		":jurisdiction",
+																		"licenses-noauth",
 																		"bulk-upload"
 																	],
 																	"variable": [
@@ -521,16 +1212,16 @@
 																		"method": "OPTIONS",
 																		"header": [],
 																		"url": {
-																			"raw": "{{baseUrl}}/v0/providers/licenses-noauth/:compact/:jurisdiction/bulk-upload",
+																			"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth/bulk-upload",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
 																			"path": [
 																				"v0",
 																				"providers",
-																				"licenses-noauth",
 																				":compact",
 																				":jurisdiction",
+																				"licenses-noauth",
 																				"bulk-upload"
 																			],
 																			"variable": [
@@ -580,7 +1271,7 @@
 													]
 												},
 												{
-													"name": "/v0/providers/licenses-noauth/:compact/:jurisdiction",
+													"name": "/v0/providers/:compact/:jurisdiction/licenses-noauth",
 													"request": {
 														"method": "POST",
 														"header": [
@@ -595,7 +1286,7 @@
 														],
 														"body": {
 															"mode": "raw",
-															"raw": "[\n  {\n    \"date_of_birth\": \"2383-15-23\",\n    \"date_of_expiration\": \"2177-18-02\",\n    \"date_of_issuance\": \"1103-01-01\",\n    \"date_of_renewal\": \"2077-15-34\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"license_status\": \"active\",\n    \"license_type\": \"counselor\",\n    \"ssn\": \"971-06-1515\",\n    \"npi\": \"3674851034\",\n    \"middle_name\": \"<string>\"\n  },\n  {\n    \"date_of_birth\": \"1938-11-08\",\n    \"date_of_expiration\": \"1147-19-01\",\n    \"date_of_issuance\": \"1935-02-19\",\n    \"date_of_renewal\": \"2567-00-16\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"license_status\": \"active\",\n    \"license_type\": \"counselor\",\n    \"ssn\": \"168-46-3457\",\n    \"npi\": \"5770477249\",\n    \"middle_name\": \"<string>\"\n  }\n]",
+															"raw": "[\n  {\n    \"date_of_birth\": \"2087-17-33\",\n    \"date_of_expiration\": \"1087-02-25\",\n    \"date_of_issuance\": \"1116-05-35\",\n    \"date_of_renewal\": \"2353-14-17\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"occupational therapy assistant\",\n    \"ssn\": \"441-20-6946\",\n    \"npi\": \"7972622514\",\n    \"middle_name\": \"<string>\"\n  },\n  {\n    \"date_of_birth\": \"1499-00-13\",\n    \"date_of_expiration\": \"2887-06-25\",\n    \"date_of_issuance\": \"1339-13-01\",\n    \"date_of_renewal\": \"2304-01-28\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"occupational therapist\",\n    \"ssn\": \"151-11-4500\",\n    \"npi\": \"2059520678\",\n    \"middle_name\": \"<string>\"\n  }\n]",
 															"options": {
 																"raw": {
 																	"headerFamily": "json",
@@ -604,32 +1295,35 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/v0/providers/licenses-noauth/:compact/:jurisdiction",
+															"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth",
 															"host": [
 																"{{baseUrl}}"
 															],
 															"path": [
 																"v0",
 																"providers",
-																"licenses-noauth",
 																":compact",
-																":jurisdiction"
+																":jurisdiction",
+																"licenses-noauth"
 															],
 															"variable": [
 																{
 																	"key": "compact",
-																	"value": "<string>",
+																	"value": "aslp",
 																	"description": "(Required) "
 																},
 																{
 																	"key": "jurisdiction",
-																	"value": "<string>",
+																	"value": "co",
 																	"description": "(Required) "
 																}
 															]
 														}
 													},
-													"response": [
+													"status": "No Content",
+													"code": 204,
+													"_postman_previewlanguage": "text",
+													"header": [
 														{
 															"name": "200 response",
 															"originalRequest": {
@@ -646,7 +1340,7 @@
 																],
 																"body": {
 																	"mode": "raw",
-																	"raw": "[\n  {\n    \"date_of_birth\": \"2383-15-23\",\n    \"date_of_expiration\": \"2177-18-02\",\n    \"date_of_issuance\": \"1103-01-01\",\n    \"date_of_renewal\": \"2077-15-34\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"license_status\": \"active\",\n    \"license_type\": \"counselor\",\n    \"ssn\": \"971-06-1515\",\n    \"npi\": \"3674851034\",\n    \"middle_name\": \"<string>\"\n  },\n  {\n    \"date_of_birth\": \"1938-11-08\",\n    \"date_of_expiration\": \"1147-19-01\",\n    \"date_of_issuance\": \"1935-02-19\",\n    \"date_of_renewal\": \"2567-00-16\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"license_status\": \"active\",\n    \"license_type\": \"counselor\",\n    \"ssn\": \"168-46-3457\",\n    \"npi\": \"5770477249\",\n    \"middle_name\": \"<string>\"\n  }\n]",
+																	"raw": "[\n  {\n    \"date_of_birth\": \"2087-17-33\",\n    \"date_of_expiration\": \"1087-02-25\",\n    \"date_of_issuance\": \"1116-05-35\",\n    \"date_of_renewal\": \"2353-14-17\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"occupational therapy assistant\",\n    \"ssn\": \"441-20-6946\",\n    \"npi\": \"7972622514\",\n    \"middle_name\": \"<string>\"\n  },\n  {\n    \"date_of_birth\": \"1499-00-13\",\n    \"date_of_expiration\": \"2887-06-25\",\n    \"date_of_issuance\": \"1339-13-01\",\n    \"date_of_renewal\": \"2304-01-28\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"occupational therapist\",\n    \"ssn\": \"151-11-4500\",\n    \"npi\": \"2059520678\",\n    \"middle_name\": \"<string>\"\n  }\n]",
 																	"options": {
 																		"raw": {
 																			"headerFamily": "json",
@@ -655,16 +1349,16 @@
 																	}
 																},
 																"url": {
-																	"raw": "{{baseUrl}}/v0/providers/licenses-noauth/:compact/:jurisdiction",
+																	"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
 																	"path": [
 																		"v0",
 																		"providers",
-																		"licenses-noauth",
 																		":compact",
-																		":jurisdiction"
+																		":jurisdiction",
+																		"licenses-noauth"
 																	],
 																	"variable": [
 																		{
@@ -691,21 +1385,21 @@
 													]
 												},
 												{
-													"name": "/v0/providers/licenses-noauth/:compact/:jurisdiction",
+													"name": "/v0/providers/:compact/:jurisdiction/licenses-noauth",
 													"request": {
 														"method": "OPTIONS",
 														"header": [],
 														"url": {
-															"raw": "{{baseUrl}}/v0/providers/licenses-noauth/:compact/:jurisdiction",
+															"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth",
 															"host": [
 																"{{baseUrl}}"
 															],
 															"path": [
 																"v0",
 																"providers",
-																"licenses-noauth",
 																":compact",
-																":jurisdiction"
+																":jurisdiction",
+																"licenses-noauth"
 															],
 															"variable": [
 																{
@@ -728,16 +1422,16 @@
 																"method": "OPTIONS",
 																"header": [],
 																"url": {
-																	"raw": "{{baseUrl}}/v0/providers/licenses-noauth/:compact/:jurisdiction",
+																	"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses-noauth",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
 																	"path": [
 																		"v0",
 																		"providers",
-																		"licenses-noauth",
 																		":compact",
-																		":jurisdiction"
+																		":jurisdiction",
+																		"licenses-noauth"
 																	],
 																	"variable": [
 																		{
@@ -786,365 +1480,13 @@
 											]
 										},
 										{
-											"name": "/v0/providers/licenses-noauth/:compact",
-											"request": {
-												"method": "OPTIONS",
-												"header": [],
-												"url": {
-													"raw": "{{baseUrl}}/v0/providers/licenses-noauth/:compact",
-													"host": [
-														"{{baseUrl}}"
-													],
-													"path": [
-														"v0",
-														"providers",
-														"licenses-noauth",
-														":compact"
-													],
-													"variable": [
-														{
-															"key": "compact",
-															"value": "<string>",
-															"description": "(Required) "
-														}
-													]
-												}
-											},
-											"response": [
-												{
-													"name": "204 response",
-													"originalRequest": {
-														"method": "OPTIONS",
-														"header": [],
-														"url": {
-															"raw": "{{baseUrl}}/v0/providers/licenses-noauth/:compact",
-															"host": [
-																"{{baseUrl}}"
-															],
-															"path": [
-																"v0",
-																"providers",
-																"licenses-noauth",
-																":compact"
-															],
-															"variable": [
-																{
-																	"key": "compact"
-																}
-															]
-														}
-													},
-													"status": "No Content",
-													"code": 204,
-													"_postman_previewlanguage": "text",
-													"header": [
-														{
-															"key": "Access-Control-Allow-Origin",
-															"value": "<string>",
-															"description": {
-																"content": "",
-																"type": "text/plain"
-															}
-														},
-														{
-															"key": "Access-Control-Allow-Methods",
-															"value": "<string>",
-															"description": {
-																"content": "",
-																"type": "text/plain"
-															}
-														},
-														{
-															"key": "Access-Control-Allow-Headers",
-															"value": "<string>",
-															"description": {
-																"content": "",
-																"type": "text/plain"
-															}
-														}
-													],
-													"cookie": [],
-													"body": ""
-												}
-											]
-										}
-									]
-								},
-								{
-									"name": "query",
-									"item": [
-										{
-											"name": "/v0/providers/licenses-noauth/query",
-											"request": {
-												"method": "POST",
-												"header": [
-													{
-														"key": "Content-Type",
-														"value": "application/json"
-													},
-													{
-														"key": "Accept",
-														"value": "application/json"
-													}
-												],
-												"body": {
-													"mode": "raw",
-													"raw": "{\n  \"sorting\": {\n    \"key\": \"date_of_update\",\n    \"direction\": \"ascending\"\n  },\n  \"pagination\": {\n    \"pageSize\": 5\n  },\n  \"compact\": \"aslp\",\n  \"jurisdiction\": \"co\"\n}",
-													"options": {
-														"raw": {
-															"headerFamily": "json",
-															"language": "json"
-														}
-													}
-												},
-												"url": {
-													"raw": "{{baseUrl}}/v0/providers/licenses-noauth/query",
-													"host": [
-														"{{baseUrl}}"
-													],
-													"path": [
-														"v0",
-														"providers",
-														"licenses-noauth",
-														"query"
-													]
-												}
-											},
-											"response": [
-												{
-													"name": "200 response",
-													"originalRequest": {
-														"method": "POST",
-														"header": [
-															{
-																"key": "Content-Type",
-																"value": "application/json"
-															},
-															{
-																"key": "Accept",
-																"value": "application/json"
-															}
-														],
-														"body": {
-															"mode": "raw",
-															"raw": "{\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"key\": \"<string>\",\n    \"direction\": \"ascending\"\n  },\n  \"ssn\": \"541-78-0626\"\n}",
-															"options": {
-																"raw": {
-																	"headerFamily": "json",
-																	"language": "json"
-																}
-															}
-														},
-														"url": {
-															"raw": "{{baseUrl}}/v0/providers/licenses-noauth/query",
-															"host": [
-																"{{baseUrl}}"
-															],
-															"path": [
-																"v0",
-																"providers",
-																"licenses-noauth",
-																"query"
-															]
-														}
-													},
-													"status": "OK",
-													"code": 200,
-													"_postman_previewlanguage": "json",
-													"header": [
-														{
-															"key": "Content-Type",
-															"value": "application/json"
-														}
-													],
-													"cookie": [],
-													"body": "{\n  \"items\": [\n    {\n      \"compact\": \"aslp\",\n      \"date_of_birth\": \"1583-16-15\",\n      \"date_of_expiration\": \"1810-10-19\",\n      \"date_of_issuance\": \"2706-09-21\",\n      \"date_of_renewal\": \"1268-04-32\",\n      \"date_of_update\": \"2854-14-26\",\n      \"family_name\": \"<string>\",\n      \"given_name\": \"<string>\",\n      \"home_state_city\": \"<string>\",\n      \"home_state_postal_code\": \"<string>\",\n      \"home_state_street_1\": \"<string>\",\n      \"home_state_street_2\": \"<string>\",\n      \"jurisdiction\": \"ut\",\n      \"license_type\": \"speech language pathologist\",\n      \"ssn\": \"175-84-7496\",\n      \"status\": \"active\",\n      \"type\": \"license-home\",\n      \"npi\": \"9078707566\",\n      \"middle_name\": \"<string>\"\n    },\n    {\n      \"compact\": \"aslp\",\n      \"date_of_birth\": \"2141-01-36\",\n      \"date_of_expiration\": \"2439-08-39\",\n      \"date_of_issuance\": \"2645-03-33\",\n      \"date_of_renewal\": \"1782-06-07\",\n      \"date_of_update\": \"1141-11-06\",\n      \"family_name\": \"<string>\",\n      \"given_name\": \"<string>\",\n      \"home_state_city\": \"<string>\",\n      \"home_state_postal_code\": \"<string>\",\n      \"home_state_street_1\": \"<string>\",\n      \"home_state_street_2\": \"<string>\",\n      \"jurisdiction\": \"pa\",\n      \"license_type\": \"occupational therapy assistant\",\n      \"ssn\": \"602-84-9341\",\n      \"status\": \"inactive\",\n      \"type\": \"license-home\",\n      \"npi\": \"8249862563\",\n      \"middle_name\": \"<string>\"\n    }\n  ],\n  \"lastKey\": \"<string>\"\n}"
-												}
-											]
-										},
-										{
-											"name": "/v0/providers/licenses-noauth/query",
-											"request": {
-												"method": "OPTIONS",
-												"header": [],
-												"url": {
-													"raw": "{{baseUrl}}/v0/providers/licenses-noauth/query",
-													"host": [
-														"{{baseUrl}}"
-													],
-													"path": [
-														"v0",
-														"providers",
-														"licenses-noauth",
-														"query"
-													]
-												}
-											},
-											"response": [
-												{
-													"name": "204 response",
-													"originalRequest": {
-														"method": "OPTIONS",
-														"header": [],
-														"url": {
-															"raw": "{{baseUrl}}/v0/providers/licenses-noauth/query",
-															"host": [
-																"{{baseUrl}}"
-															],
-															"path": [
-																"v0",
-																"providers",
-																"licenses-noauth",
-																"query"
-															]
-														}
-													},
-													"status": "No Content",
-													"code": 204,
-													"_postman_previewlanguage": "text",
-													"header": [
-														{
-															"key": "Access-Control-Allow-Origin",
-															"value": "<string>",
-															"description": {
-																"content": "",
-																"type": "text/plain"
-															}
-														},
-														{
-															"key": "Access-Control-Allow-Methods",
-															"value": "<string>",
-															"description": {
-																"content": "",
-																"type": "text/plain"
-															}
-														},
-														{
-															"key": "Access-Control-Allow-Headers",
-															"value": "<string>",
-															"description": {
-																"content": "",
-																"type": "text/plain"
-															}
-														}
-													],
-													"cookie": [],
-													"body": ""
-												}
-											]
-										}
-									]
-								},
-								{
-									"name": "/v0/providers/licenses-noauth",
-									"request": {
-										"method": "OPTIONS",
-										"header": [],
-										"url": {
-											"raw": "{{baseUrl}}/v0/providers/licenses-noauth",
-											"host": [
-												"{{baseUrl}}"
-											],
-											"path": [
-												"v0",
-												"providers",
-												"licenses-noauth"
-											]
-										}
-									},
-									"response": [
-										{
-											"name": "204 response",
-											"originalRequest": {
-												"method": "OPTIONS",
-												"header": [],
-												"url": {
-													"raw": "{{baseUrl}}/v0/providers/licenses-noauth",
-													"host": [
-														"{{baseUrl}}"
-													],
-													"path": [
-														"v0",
-														"providers",
-														"licenses-noauth"
-													]
-												}
-											},
-											"status": "No Content",
-											"code": 204,
-											"_postman_previewlanguage": "text",
-											"header": [
-												{
-													"key": "Access-Control-Allow-Origin",
-													"value": "<string>",
-													"description": {
-														"content": "",
-														"type": "text/plain"
-													}
-												},
-												{
-													"key": "Access-Control-Allow-Methods",
-													"value": "<string>",
-													"description": {
-														"content": "",
-														"type": "text/plain"
-													}
-												},
-												{
-													"key": "Access-Control-Allow-Headers",
-													"value": "<string>",
-													"description": {
-														"content": "",
-														"type": "text/plain"
-													}
-												}
-											],
-											"cookie": [],
-											"body": ""
-										}
-									]
-								}
-							],
-							"auth": {
-								"type": "noauth"
-							},
-							"event": [
-								{
-									"listen": "prerequest",
-									"script": {
-										"type": "text/javascript",
-										"packages": {},
-										"exec": [
-											""
-										]
-									}
-								},
-								{
-									"listen": "test",
-									"script": {
-										"type": "text/javascript",
-										"packages": {},
-										"exec": [
-											""
-										]
-									}
-								}
-							]
-						},
-						{
-							"name": "licenses",
-							"item": [
-								{
-									"name": "{compact}",
-									"item": [
-										{
-											"name": "{jurisdiction}",
+											"name": "licenses",
 											"item": [
 												{
 													"name": "bulk-upload",
 													"item": [
 														{
-															"name": "/v0/providers/licenses/:compact/:jurisdiction/bulk-upload",
+															"name": "/v0/providers/:compact/:jurisdiction/licenses/bulk-upload",
 															"request": {
 																"auth": {
 																	"type": "apikey",
@@ -1174,16 +1516,16 @@
 																	}
 																],
 																"url": {
-																	"raw": "{{baseUrl}}/v0/providers/licenses/:compact/:jurisdiction/bulk-upload",
+																	"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses/bulk-upload",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
 																	"path": [
 																		"v0",
 																		"providers",
-																		"licenses",
 																		":compact",
 																		":jurisdiction",
+																		"licenses",
 																		"bulk-upload"
 																	],
 																	"variable": [
@@ -1217,16 +1559,16 @@
 																			}
 																		],
 																		"url": {
-																			"raw": "{{baseUrl}}/v0/providers/licenses/:compact/:jurisdiction/bulk-upload",
+																			"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses/bulk-upload",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
 																			"path": [
 																				"v0",
 																				"providers",
-																				"licenses",
 																				":compact",
 																				":jurisdiction",
+																				"licenses",
 																				"bulk-upload"
 																			],
 																			"variable": [
@@ -1249,26 +1591,26 @@
 																		}
 																	],
 																	"cookie": [],
-																	"body": "{\n  \"fields\": {\n    \"exa\": \"<string>\"\n  },\n  \"url\": \"<string>\"\n}"
+																	"body": "{\n  \"fields\": {\n    \"magna_2\": \"<string>\",\n    \"tempor45_\": \"<string>\"\n  },\n  \"url\": \"<string>\"\n}"
 																}
 															]
 														},
 														{
-															"name": "/v0/providers/licenses/:compact/:jurisdiction/bulk-upload",
+															"name": "/v0/providers/:compact/:jurisdiction/licenses/bulk-upload",
 															"request": {
 																"method": "OPTIONS",
 																"header": [],
 																"url": {
-																	"raw": "{{baseUrl}}/v0/providers/licenses/:compact/:jurisdiction/bulk-upload",
+																	"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses/bulk-upload",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
 																	"path": [
 																		"v0",
 																		"providers",
-																		"licenses",
 																		":compact",
 																		":jurisdiction",
+																		"licenses",
 																		"bulk-upload"
 																	],
 																	"variable": [
@@ -1292,16 +1634,16 @@
 																		"method": "OPTIONS",
 																		"header": [],
 																		"url": {
-																			"raw": "{{baseUrl}}/v0/providers/licenses/:compact/:jurisdiction/bulk-upload",
+																			"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses/bulk-upload",
 																			"host": [
 																				"{{baseUrl}}"
 																			],
 																			"path": [
 																				"v0",
 																				"providers",
-																				"licenses",
 																				":compact",
 																				":jurisdiction",
+																				"licenses",
 																				"bulk-upload"
 																			],
 																			"variable": [
@@ -1351,7 +1693,7 @@
 													]
 												},
 												{
-													"name": "/v0/providers/licenses/:compact/:jurisdiction",
+													"name": "/v0/providers/:compact/:jurisdiction/licenses",
 													"request": {
 														"auth": {
 															"type": "apikey",
@@ -1386,7 +1728,7 @@
 														],
 														"body": {
 															"mode": "raw",
-															"raw": "[\n  {\n    \"date_of_birth\": \"2383-15-23\",\n    \"date_of_expiration\": \"2177-18-02\",\n    \"date_of_issuance\": \"1103-01-01\",\n    \"date_of_renewal\": \"2077-15-34\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"license_status\": \"active\",\n    \"license_type\": \"counselor\",\n    \"ssn\": \"971-06-1515\",\n    \"npi\": \"3674851034\",\n    \"middle_name\": \"<string>\"\n  },\n  {\n    \"date_of_birth\": \"1938-11-08\",\n    \"date_of_expiration\": \"1147-19-01\",\n    \"date_of_issuance\": \"1935-02-19\",\n    \"date_of_renewal\": \"2567-00-16\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"license_status\": \"active\",\n    \"license_type\": \"counselor\",\n    \"ssn\": \"168-46-3457\",\n    \"npi\": \"5770477249\",\n    \"middle_name\": \"<string>\"\n  }\n]",
+															"raw": "[\n  {\n    \"date_of_birth\": \"2087-17-33\",\n    \"date_of_expiration\": \"1087-02-25\",\n    \"date_of_issuance\": \"1116-05-35\",\n    \"date_of_renewal\": \"2353-14-17\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"occupational therapy assistant\",\n    \"ssn\": \"441-20-6946\",\n    \"npi\": \"7972622514\",\n    \"middle_name\": \"<string>\"\n  },\n  {\n    \"date_of_birth\": \"1499-00-13\",\n    \"date_of_expiration\": \"2887-06-25\",\n    \"date_of_issuance\": \"1339-13-01\",\n    \"date_of_renewal\": \"2304-01-28\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"occupational therapist\",\n    \"ssn\": \"151-11-4500\",\n    \"npi\": \"2059520678\",\n    \"middle_name\": \"<string>\"\n  }\n]",
 															"options": {
 																"raw": {
 																	"headerFamily": "json",
@@ -1395,16 +1737,16 @@
 															}
 														},
 														"url": {
-															"raw": "{{baseUrl}}/v0/providers/licenses/:compact/:jurisdiction",
+															"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses",
 															"host": [
 																"{{baseUrl}}"
 															],
 															"path": [
 																"v0",
 																"providers",
-																"licenses",
 																":compact",
-																":jurisdiction"
+																":jurisdiction",
+																"licenses"
 															],
 															"variable": [
 																{
@@ -1422,7 +1764,7 @@
 													},
 													"response": [
 														{
-															"name": "200 response",
+															"name": "204 response",
 															"originalRequest": {
 																"method": "POST",
 																"header": [
@@ -1442,7 +1784,7 @@
 																],
 																"body": {
 																	"mode": "raw",
-																	"raw": "[\n  {\n    \"date_of_birth\": \"2383-15-23\",\n    \"date_of_expiration\": \"2177-18-02\",\n    \"date_of_issuance\": \"1103-01-01\",\n    \"date_of_renewal\": \"2077-15-34\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"license_status\": \"active\",\n    \"license_type\": \"counselor\",\n    \"ssn\": \"971-06-1515\",\n    \"npi\": \"3674851034\",\n    \"middle_name\": \"<string>\"\n  },\n  {\n    \"date_of_birth\": \"1938-11-08\",\n    \"date_of_expiration\": \"1147-19-01\",\n    \"date_of_issuance\": \"1935-02-19\",\n    \"date_of_renewal\": \"2567-00-16\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"license_status\": \"active\",\n    \"license_type\": \"counselor\",\n    \"ssn\": \"168-46-3457\",\n    \"npi\": \"5770477249\",\n    \"middle_name\": \"<string>\"\n  }\n]",
+																	"raw": "[\n  {\n    \"date_of_birth\": \"2087-17-33\",\n    \"date_of_expiration\": \"1087-02-25\",\n    \"date_of_issuance\": \"1116-05-35\",\n    \"date_of_renewal\": \"2353-14-17\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"occupational therapy assistant\",\n    \"ssn\": \"441-20-6946\",\n    \"npi\": \"7972622514\",\n    \"middle_name\": \"<string>\"\n  },\n  {\n    \"date_of_birth\": \"1499-00-13\",\n    \"date_of_expiration\": \"2887-06-25\",\n    \"date_of_issuance\": \"1339-13-01\",\n    \"date_of_renewal\": \"2304-01-28\",\n    \"family_name\": \"<string>\",\n    \"given_name\": \"<string>\",\n    \"home_state_city\": \"<string>\",\n    \"home_state_postal_code\": \"<string>\",\n    \"home_state_street_1\": \"<string>\",\n    \"home_state_street_2\": \"<string>\",\n    \"license_status\": \"inactive\",\n    \"license_type\": \"occupational therapist\",\n    \"ssn\": \"151-11-4500\",\n    \"npi\": \"2059520678\",\n    \"middle_name\": \"<string>\"\n  }\n]",
 																	"options": {
 																		"raw": {
 																			"headerFamily": "json",
@@ -1451,16 +1793,16 @@
 																	}
 																},
 																"url": {
-																	"raw": "{{baseUrl}}/v0/providers/licenses/:compact/:jurisdiction",
+																	"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
 																	"path": [
 																		"v0",
 																		"providers",
-																		"licenses",
 																		":compact",
-																		":jurisdiction"
+																		":jurisdiction",
+																		"licenses"
 																	],
 																	"variable": [
 																		{
@@ -1472,13 +1814,33 @@
 																	]
 																}
 															},
-															"status": "OK",
-															"code": 200,
-															"_postman_previewlanguage": "json",
+															"status": "No Content",
+															"code": 204,
+															"_postman_previewlanguage": "text",
 															"header": [
 																{
-																	"key": "Content-Type",
-																	"value": "application/json"
+																	"key": "Access-Control-Allow-Origin",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Methods",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Headers",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
 																}
 															],
 															"cookie": [],
@@ -1487,21 +1849,21 @@
 													]
 												},
 												{
-													"name": "/v0/providers/licenses/:compact/:jurisdiction",
+													"name": "/v0/providers/:compact/:jurisdiction/licenses",
 													"request": {
 														"method": "OPTIONS",
 														"header": [],
 														"url": {
-															"raw": "{{baseUrl}}/v0/providers/licenses/:compact/:jurisdiction",
+															"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses",
 															"host": [
 																"{{baseUrl}}"
 															],
 															"path": [
 																"v0",
 																"providers",
-																"licenses",
 																":compact",
-																":jurisdiction"
+																":jurisdiction",
+																"licenses"
 															],
 															"variable": [
 																{
@@ -1524,16 +1886,16 @@
 																"method": "OPTIONS",
 																"header": [],
 																"url": {
-																	"raw": "{{baseUrl}}/v0/providers/licenses/:compact/:jurisdiction",
+																	"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction/licenses",
 																	"host": [
 																		"{{baseUrl}}"
 																	],
 																	"path": [
 																		"v0",
 																		"providers",
-																		"licenses",
 																		":compact",
-																		":jurisdiction"
+																		":jurisdiction",
+																		"licenses"
 																	],
 																	"variable": [
 																		{
@@ -1582,24 +1944,29 @@
 											]
 										},
 										{
-											"name": "/v0/providers/licenses/:compact",
+											"name": "/v0/providers/:compact/:jurisdiction",
 											"request": {
 												"method": "OPTIONS",
 												"header": [],
 												"url": {
-													"raw": "{{baseUrl}}/v0/providers/licenses/:compact",
+													"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction",
 													"host": [
 														"{{baseUrl}}"
 													],
 													"path": [
 														"v0",
 														"providers",
-														"licenses",
-														":compact"
+														":compact",
+														":jurisdiction"
 													],
 													"variable": [
 														{
 															"key": "compact",
+															"value": "<string>",
+															"description": "(Required) "
+														},
+														{
+															"key": "jurisdiction",
 															"value": "<string>",
 															"description": "(Required) "
 														}
@@ -1613,19 +1980,22 @@
 														"method": "OPTIONS",
 														"header": [],
 														"url": {
-															"raw": "{{baseUrl}}/v0/providers/licenses/:compact",
+															"raw": "{{baseUrl}}/v0/providers/:compact/:jurisdiction",
 															"host": [
 																"{{baseUrl}}"
 															],
 															"path": [
 																"v0",
 																"providers",
-																"licenses",
-																":compact"
+																":compact",
+																":jurisdiction"
 															],
 															"variable": [
 																{
 																	"key": "compact"
+																},
+																{
+																	"key": "jurisdiction"
 																}
 															]
 														}
@@ -1667,19 +2037,26 @@
 									]
 								},
 								{
-									"name": "/v0/providers/licenses",
+									"name": "/v0/providers/:compact",
 									"request": {
 										"method": "OPTIONS",
 										"header": [],
 										"url": {
-											"raw": "{{baseUrl}}/v0/providers/licenses",
+											"raw": "{{baseUrl}}/v0/providers/:compact",
 											"host": [
 												"{{baseUrl}}"
 											],
 											"path": [
 												"v0",
 												"providers",
-												"licenses"
+												":compact"
+											],
+											"variable": [
+												{
+													"key": "compact",
+													"value": "<string>",
+													"description": "(Required) "
+												}
 											]
 										}
 									},
@@ -1690,14 +2067,19 @@
 												"method": "OPTIONS",
 												"header": [],
 												"url": {
-													"raw": "{{baseUrl}}/v0/providers/licenses",
+													"raw": "{{baseUrl}}/v0/providers/:compact",
 													"host": [
 														"{{baseUrl}}"
 													],
 													"path": [
 														"v0",
 														"providers",
-														"licenses"
+														":compact"
+													],
+													"variable": [
+														{
+															"key": "compact"
+														}
 													]
 												}
 											},

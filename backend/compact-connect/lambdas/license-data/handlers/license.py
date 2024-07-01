@@ -5,49 +5,45 @@ import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-from exceptions import CCInvalidRequestException
 from handlers.utils import api_handler
 from config import config
 
 
 @api_handler
-def query_licenses(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+def query_one_license(event: dict, context: LambdaContext):
     """
-    Query license data
+    Get one particular license's records, by SSN
     """
     body = json.loads(event['body'])
-    # Query one SSN
-    if 'ssn' in body.keys():
-        return config.data_client.get_ssn(
-            ssn=body['ssn'],
-            pagination=body.get('pagination')
-        )
+    return config.data_client.get_ssn(
+        ssn=body['ssn'],
+        pagination=body.get('pagination')
+    )
 
-    try:
-        sorting = body['sorting']
-        compact = body['compact']
-        jurisdiction = body['jurisdiction']
-    except KeyError as e:
-        raise CCInvalidRequestException(f"{e} must be specified if 'ssn' is not.") from e
 
-    key = sorting['key']
-    scan_forward = sorting.get('direction', 'ascending') == 'ascending'
+@api_handler
+def query_licenses_updated(event: dict, context: LambdaContext):
+    """
+    Get all licenses for a compact/jurisdiction, sorted by date updated
+    """
+    body = json.loads(event['body'])
+    path_params = event['pathParameters']
+    return config.data_client.get_licenses_sorted_by_date_updated(
+        compact=path_params['compact'],
+        jurisdiction=path_params['jurisdiction'],
+        pagination=body.get('pagination')
+    )
 
-    match key:
-        case 'date_of_update':
-            return config.data_client.get_licenses_sorted_by_date_updated(
-                compact=compact,
-                jurisdiction=jurisdiction,
-                scan_forward=scan_forward,
-                pagination=body.get('pagination')
-            )
-        case 'family_name':
-            return config.data_client.get_licenses_sorted_by_family_name(
-                compact=compact,
-                jurisdiction=jurisdiction,
-                scan_forward=scan_forward,
-                pagination=body.get('pagination')
-            )
-        case _:
-            # This shouldn't happen unless our api validation gets misconfigured
-            raise CCInvalidRequestException(f"Invalid sort key: '{key}'")
+
+@api_handler
+def query_licenses_family(event: dict, context: LambdaContext):
+    """
+    Get all licenses for a compact/jurisdiction, sorted by family name
+    """
+    body = json.loads(event['body'])
+    path_params = event['pathParameters']
+    return config.data_client.get_licenses_sorted_by_family_name(
+        compact=path_params['compact'],
+        jurisdiction=path_params['jurisdiction'],
+        pagination=body.get('pagination')
+    )

@@ -1,5 +1,5 @@
 from aws_cdk import RemovalPolicy
-from aws_cdk.aws_dynamodb import Table, TableEncryption, BillingMode, Attribute, AttributeType
+from aws_cdk.aws_dynamodb import Table, TableEncryption, BillingMode, Attribute, AttributeType, ProjectionType
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from constructs import Construct
@@ -25,6 +25,20 @@ class LicenseTable(Table):
             partition_key=Attribute(name='pk', type=AttributeType.STRING),
             sort_key=Attribute(name='sk', type=AttributeType.STRING),
             **kwargs
+        )
+        self.cjns_index_name = 'cjns'
+        self.add_global_secondary_index(
+            index_name=self.cjns_index_name,
+            partition_key=Attribute(name='compact_jur', type=AttributeType.STRING),
+            sort_key=Attribute(name='fam_giv_mid_ssn', type=AttributeType.STRING),
+            projection_type=ProjectionType.ALL
+        )
+        self.updated_index_name = 'upd-ssn'
+        self.add_global_secondary_index(
+            index_name=self.updated_index_name,
+            partition_key=Attribute(name='compact_jur', type=AttributeType.STRING),
+            sort_key=Attribute(name='upd_ssn', type=AttributeType.STRING),
+            projection_type=ProjectionType.ALL
         )
         NagSuppressions.add_resource_suppressions(
             self,

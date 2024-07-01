@@ -49,8 +49,8 @@ class PersistentStack(Stack):
             auto_delete_objects=environment_name != 'prod'
         )
 
-        self.license_table = LicenseTable(
-            self, 'LicenseTable',
+        self.mock_license_table = LicenseTable(
+            self, 'MockLicenseTable',
             encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy
         )

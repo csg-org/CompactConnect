@@ -21,6 +21,11 @@ class _Config:
         return boto3.client('s3', config=BotoConfig(signature_version='s3v4'))
 
     @cached_property
+    def data_client(self):
+        from data_model.client import DataClient
+        return DataClient(self)
+
+    @cached_property
     def license_table(self):
         return boto3.resource('dynamodb').Table(self.license_table_name)
 
@@ -29,12 +34,16 @@ class _Config:
         return json.loads(os.environ['COMPACTS'])
 
     @property
+    def jurisdictions(self):
+        return json.loads(os.environ['JURISDICTIONS'])
+
+    @property
     def license_table_name(self):
         return os.environ['LICENSE_TABLE_NAME']
 
     @property
-    def bjns_index_name(self):
-        return os.environ['BJNS_INDEX_NAME']
+    def cjns_index_name(self):
+        return os.environ['CJNS_INDEX_NAME']
 
     @property
     def updated_index_name(self):
