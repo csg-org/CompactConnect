@@ -108,12 +108,16 @@ class LicenseApi(RestApi):
         QueryLicenses(
             license_noauth_resource,
             method_options=method_options,
-        )
-        QueryLicenses(
-            license_noauth_resource,
-            method_options=method_options,
             data_encryption_key=persistent_stack.shared_encryption_key,
             license_data_table=persistent_stack.mock_license_table
+        )
+
+        # /v0/providers/license-noauth/{compact}/{jurisdiction}
+        noauth_compact_resource = license_noauth_resource.add_resource('{compact}')
+        noauth_jurisdiction_resource = noauth_compact_resource.add_resource('{jurisdiction}')
+        PostLicenses(
+             noauth_jurisdiction_resource,
+            method_options=method_options,
         )
         BulkUploadUrl(
             mock_bucket=True,

@@ -111,6 +111,7 @@ class TestClient(TstFunction):
         self.assertEqual(100, len(resp['items']))
         self.assertIn('lastKey', resp.keys())
 
+        # The second should be the last 100 licenses, so no lastKey for a next page
         last_key = resp['lastKey']
         resp = client.get_licenses_sorted_by_date_updated(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
             compact='aslp',
@@ -119,3 +120,12 @@ class TestClient(TstFunction):
         )
         self.assertEqual(100, len(resp['items']))
         self.assertNotIn('lastKey', resp.keys())
+        second_forward_items = resp['items']
+
+        # The first page sorted descending should be the same as the second page ascending, but reversed
+        resp = client.get_licenses_sorted_by_date_updated(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
+            compact='aslp',
+            jurisdiction='co',
+            scan_forward=False
+        )
+        self.assertEqual(list(reversed(second_forward_items)), resp['items'])

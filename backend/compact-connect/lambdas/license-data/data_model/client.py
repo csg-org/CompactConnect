@@ -87,13 +87,15 @@ class DataClient():
             self, *,
             compact: str,
             jurisdiction: str,
-            dynamo_pagination: dict
+            dynamo_pagination: dict,
+            scan_forward: bool = True
     ):  # pylint: disable-redefined-outer-name
         logger.info('Getting licenses by family name')
         resp = self.config.license_table.query(
             IndexName=config.cjns_index_name,
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('compact_jur').eq(f'{quote(compact)}/{quote(jurisdiction)}'),
+            ScanIndexForward=scan_forward,
             **dynamo_pagination
         )
         resp['Items'] = self._load_records(resp.get('Items', []))
@@ -104,13 +106,15 @@ class DataClient():
             self, *,
             compact: str,
             jurisdiction: str,
-            dynamo_pagination: dict
+            dynamo_pagination: dict,
+            scan_forward: bool = True
     ):  # pylint: disable-redefined-outer-name
         logger.info('Getting licenses by date updated')
         resp = self.config.license_table.query(
             IndexName=config.updated_index_name,
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('compact_jur').eq(f'{quote(compact)}/{quote(jurisdiction)}'),
+            ScanIndexForward=scan_forward,
             **dynamo_pagination
         )
         resp['Items'] = self._load_records(resp.get('Items', []))

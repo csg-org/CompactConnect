@@ -31,47 +31,40 @@ class QueryLicenses:
 
         self.resource = resource.add_resource('query')
         self.api: license_api.LicenseApi = resource.api
-        self._add_query_one_license(
-            method_options=method_options,
-            data_encryption_key=data_encryption_key,
-            license_data_table=license_data_table
-        )
-        self._add_query_licenses_by_family_name(
-            method_options=method_options,
-            data_encryption_key=data_encryption_key,
-            license_data_table=license_data_table
-        )
-        self._add_query_licenses_by_updated(
+        self._add_query_licenses(
             method_options=method_options,
             data_encryption_key=data_encryption_key,
             license_data_table=license_data_table
         )
 
-    def _add_query_one_license(
+    def _add_query_licenses(
             self,
             method_options: MethodOptions,
             data_encryption_key: IKey,
             license_data_table: LicenseTable
     ):
+        handler = self._get_query_licenses_handler(
+            data_encryption_key=data_encryption_key,
+            license_data_table=license_data_table
+        )
+        self.resource.api.log_groups.append(handler.log_group)
+
         self.resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
             request_models={
-                'application/json': self.get_query_one_license_request_model()
+                'application/json': self._get_query_licenses_request_model()
             },
             method_responses=[
                 MethodResponse(
                     status_code='200',
                     response_models={
-                        'application/json': self.get_query_license_response_model()
+                        'application/json': self._get_query_licenses_response_model()
                     }
                 )
             ],
             integration=LambdaIntegration(
-                self._get_query_one_license_handler(
-                    data_encryption_key=data_encryption_key,
-                    license_data_table=license_data_table
-                ),
+                handler,
                 timeout=Duration.seconds(29)
             ),
             request_parameters={
@@ -81,98 +74,7 @@ class QueryLicenses:
             authorizer=method_options.authorizer
         )
 
-    def _add_query_licenses_by_family_name(
-            self,
-            method_options: MethodOptions,
-            data_encryption_key: IKey,
-            license_data_table: LicenseTable
-    ):
-        resource = self.resource.add_resource('by-family-name')
-        resource.add_method(
-            'POST',
-            request_validator=self.api.parameter_body_validator,
-            request_models={
-                'application/json': self.get_query_licenses_request_model()
-            },
-            method_responses=[
-                MethodResponse(
-                    status_code='200',
-                    response_models={
-                        'application/json': self.get_query_license_response_model()
-                    }
-                )
-            ],
-            integration=LambdaIntegration(
-                self._get_query_licenses_by_family_name_handler(
-                    data_encryption_key=data_encryption_key,
-                    license_data_table=license_data_table
-                ),
-                timeout=Duration.seconds(29)
-            ),
-            request_parameters={
-                'method.request.header.Authorization': True
-            } if method_options.authorization_type != AuthorizationType.NONE else {},
-            authorization_type=method_options.authorization_type,
-            authorizer=method_options.authorizer
-        )
-
-    def _add_query_licenses_by_updated(
-            self,
-            method_options: MethodOptions,
-            data_encryption_key: IKey,
-            license_data_table: LicenseTable
-    ):
-        resource = self.resource.add_resource('by-updated')
-        resource.add_method(
-            'POST',
-            request_validator=self.api.parameter_body_validator,
-            request_models={
-                'application/json': self.get_query_licenses_request_model()
-            },
-            method_responses=[
-                MethodResponse(
-                    status_code='200',
-                    response_models={
-                        'application/json': self.get_query_license_response_model()
-                    }
-                )
-            ],
-            integration=LambdaIntegration(
-                self._get_query_licenses_by_updated_handler(
-                    data_encryption_key=data_encryption_key,
-                    license_data_table=license_data_table
-                ),
-                timeout=Duration.seconds(29)
-            ),
-            request_parameters={
-                'method.request.header.Authorization': True
-            } if method_options.authorization_type != AuthorizationType.NONE else {},
-            authorization_type=method_options.authorization_type,
-            authorizer=method_options.authorizer
-        )
-
-    def get_query_one_license_request_model(self) -> Model:
-        """
-        Return the query one license request model, which should only be created once per API
-        """
-        if not hasattr(self.api, 'query_license_request_model'):
-            self.api.query_license_request_model = self.api.add_model(
-                'QueryLicenseRequestModel',
-                schema=JsonSchema(
-                    type=JsonSchemaType.OBJECT,
-                    required=['ssn'],
-                    properties={
-                        'ssn': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            pattern=SSN_FORMAT
-                        ),
-                        'pagination': self.pagination_schema
-                    }
-                )
-            )
-        return self.api.query_license_request_model
-
-    def get_query_licenses_request_model(self) -> Model:
+    def _get_query_licenses_request_model(self) -> Model:
         """
         Return the query licenses request model, which should only be created once per API
         """
@@ -181,12 +83,48 @@ class QueryLicenses:
                 'QueryLicensesRequestModel',
                 schema=JsonSchema(
                     type=JsonSchemaType.OBJECT,
+                    additional_properties=False,
                     properties={
-                        'pagination': self.pagination_schema
+                        'ssn': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            description='Social security number to look up',
+                            pattern=SSN_FORMAT
+                        ),
+                        'compact': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            description="Required if 'ssn' not provided",
+                            enum=self.api.node.get_context('compacts')
+                        ),
+                        'jurisdiction': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            description="Required if 'ssn' not provided",
+                            enum=self.api.node.get_context('jurisdictions')
+                        ),
+                        'pagination': self.pagination_schema,
+                        'sorting': self.sorting_schema
                     }
                 )
             )
         return self.api.query_licenses_request_model
+
+    @property
+    def sorting_schema(self):
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            description='Required if ssn is not provided',
+            required=['key'],
+            properties={
+                'key': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    max_length=100,
+                    min_length=1
+                ),
+                'direction': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    enum=['ascending', 'descending']
+                )
+            }
+        )
 
     @property
     def pagination_schema(self):
@@ -198,17 +136,24 @@ class QueryLicenses:
             }
         )
 
-    def get_query_license_response_model(self) -> Model:
+    def _get_query_licenses_response_model(self) -> Model:
         """
         Return the query license response model, which should only be created once per API
         """
-        if not hasattr(self.api, 'query_license_response_model'):
+        if not hasattr(self.api, 'query_licenses_response_model'):
             self.api.query_license_response_model = self.api.add_model(
-                'QueryLicenseResponseModel',
+                'QueryLicensesResponseModel',
                 schema=JsonSchema(
-                    type=JsonSchemaType.ARRAY,
-                    max_length=100,
-                    items=self.license_response_schema
+                    type=JsonSchemaType.OBJECT,
+                    required=['items'],
+                    properties={
+                        'items': JsonSchema(
+                            type=JsonSchemaType.ARRAY,
+                            max_length=100,
+                            items=self.license_response_schema
+                        ),
+                        'lastKey': JsonSchema(type=JsonSchemaType.STRING)
+                    }
                 )
             )
         return self.api.query_license_response_model
@@ -305,89 +250,17 @@ class QueryLicenses:
             }
         )
 
-    def _get_query_one_license_handler(
+    def _get_query_licenses_handler(
             self,
             data_encryption_key: IKey,
             license_data_table: LicenseTable
     ) -> PythonFunction:
         stack = Stack.of(self.resource)
         handler = PythonFunction(
-            self.resource, 'QueryOneLicenseHandler',
+            self.resource, 'QueryLicensesHandler',
             entry=os.path.join('lambdas', 'license-data'),
             index='handlers/license.py',
-            handler='query_one_license',
-            environment={
-                'DEBUG': 'true',
-                'LICENSE_TABLE_NAME': license_data_table.table_name,
-                'CJNS_INDEX_NAME': license_data_table.cjns_index_name,
-                'UPDATED_INDEX_NAME': license_data_table.updated_index_name,
-                'COMPACTS': json.dumps(stack.node.get_context('compacts')),
-                'JURISDICTIONS': json.dumps(stack.node.get_context('jurisdictions'))
-            }
-        )
-        data_encryption_key.grant_decrypt(handler)
-        license_data_table.grant_read_data(handler)
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
-                              'and is scoped to one table and encryption key.'
-                }
-            ]
-        )
-        return handler
-
-    def _get_query_licenses_by_family_name_handler(
-            self,
-            data_encryption_key: IKey,
-            license_data_table: LicenseTable
-    ) -> PythonFunction:
-        stack = Stack.of(self.resource)
-        handler = PythonFunction(
-            self.resource, 'QueryLicensesByFamilyHandler',
-            entry=os.path.join('lambdas', 'license-data'),
-            index='handlers/license.py',
-            handler='query_licenses_family',
-            environment={
-                'DEBUG': 'true',
-                'LICENSE_TABLE_NAME': license_data_table.table_name,
-                'CJNS_INDEX_NAME': license_data_table.cjns_index_name,
-                'UPDATED_INDEX_NAME': license_data_table.updated_index_name,
-                'COMPACTS': json.dumps(stack.node.get_context('compacts')),
-                'JURISDICTIONS': json.dumps(stack.node.get_context('jurisdictions'))
-            }
-        )
-        data_encryption_key.grant_decrypt(handler)
-        license_data_table.grant_read_data(handler)
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
-                              'and is scoped to one table and encryption key.'
-                }
-            ]
-        )
-        return handler
-
-    def _get_query_licenses_by_updated_handler(
-            self,
-            data_encryption_key: IKey,
-            license_data_table: LicenseTable
-    ) -> PythonFunction:
-        stack = Stack.of(self.resource)
-        handler = PythonFunction(
-            self.resource, 'QueryLicensesByUpdatedHandler',
-            entry=os.path.join('lambdas', 'license-data'),
-            index='handlers/license.py',
-            handler='query_licenses_updated',
+            handler='query_licenses',
             environment={
                 'DEBUG': 'true',
                 'LICENSE_TABLE_NAME': license_data_table.table_name,
