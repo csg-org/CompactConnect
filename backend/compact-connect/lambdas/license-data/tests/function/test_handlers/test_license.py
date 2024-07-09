@@ -6,16 +6,20 @@ from tests.function import TstFunction
 
 @mock_aws
 class TestLicense(TstFunction):
-    def test_query_one_license(self):
+    def test_query_one_ssn(self):
         # Pre-load our license into the db
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
 
         with open('tests/resources/api/license.json', 'r') as f:
             license_data = LicensePostSchema().loads(f.read())
 
+        with open('tests/resources/dynamo/license.json', 'r') as f:
+            provider_id = json.load(f)['provider_id']
+
         self._table.put_item(
             # We'll use the schema/serializer to populate index fields for us
             Item=LicenseRecordSchema().dump({
+                'provider_id': provider_id,
                 'compact': 'aslp',
                 'jurisdiction': 'co',
                 **license_data
@@ -49,6 +53,65 @@ class TestLicense(TstFunction):
             {
                 'items': [
                     {
+                        'provider_id': provider_id,
+                        'compact': 'aslp',
+                        'jurisdiction': 'co',
+                        'type': 'license-home',
+                        **expected_license
+                    }
+                ]
+            },
+            body
+        )
+
+    def test_query_one_provider(self):
+        # Pre-load our license into the db
+        from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
+
+        with open('tests/resources/api/license.json', 'r') as f:
+            license_data = LicensePostSchema().loads(f.read())
+
+        with open('tests/resources/dynamo/license.json', 'r') as f:
+            provider_id = json.load(f)['provider_id']
+
+        self._table.put_item(
+            # We'll use the schema/serializer to populate index fields for us
+            Item=LicenseRecordSchema().dump({
+                'provider_id': provider_id,
+                'compact': 'aslp',
+                'jurisdiction': 'co',
+                **license_data
+            })
+        )
+
+        # Run the API query
+        from handlers.license import query_licenses
+
+        with open('tests/resources/api-event.json', 'r') as f:
+            event = json.load(f)
+
+        event['pathParameters'] = {}
+        event['body'] = json.dumps({
+            'provider_id': provider_id
+        })
+
+        resp = query_licenses(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        with open('tests/resources/api/license.json', 'r') as f:
+            expected_license = json.load(f)
+
+        body = json.loads(resp['body'])
+        # Drop generated fields
+        for o in body['items']:
+            del o['date_of_update']
+            del o['birth_month_day']
+        self.assertEqual(
+            {
+                'items': [
+                    {
+                        'provider_id': provider_id,
                         'compact': 'aslp',
                         'jurisdiction': 'co',
                         'type': 'license-home',

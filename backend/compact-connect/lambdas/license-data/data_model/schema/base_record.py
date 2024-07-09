@@ -1,10 +1,9 @@
 from abc import ABC
 from datetime import datetime, UTC
 from typing import Type
-from urllib.parse import quote
 
 from marshmallow import Schema, RAISE, EXCLUDE, post_load, pre_dump
-from marshmallow.fields import String, Date
+from marshmallow.fields import String, Date, UUID
 from marshmallow.validate import Regexp, Length, OneOf
 
 from config import config
@@ -44,7 +43,7 @@ class BaseRecordSchema(StrictSchema, ABC):
     _registered_schema = {}
 
     # Generated fields
-    pk = SocialSecurityNumber(required=True, allow_none=False)
+    pk = UUID(required=True, allow_none=False)
     sk = String(required=True, allow_none=False, validate=Length(2, 100))
     compact_jur = String(required=True, allow_none=False, validate=Length(2, 200))
     date_of_update = Date(required=True, allow_none=False)
@@ -54,6 +53,7 @@ class BaseRecordSchema(StrictSchema, ABC):
         'license-home',
         'license-privilege'
     )))
+    provider_id = UUID(required=True, allow_none=False)
     ssn = String(required=True, allow_none=False, validate=Regexp('^[0-9]{3}-[0-9]{2}-[0-9]{4}$'))
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
@@ -73,16 +73,20 @@ class BaseRecordSchema(StrictSchema, ABC):
         """
         Populate db-specific fields before dumping to the database
         """
-        in_data['pk'] = quote(in_data['ssn'])
+        provider_id = str(in_data['provider_id'])
+        compact = in_data['compact']
+        jurisdiction = in_data['jurisdiction']
+
+        in_data['pk'] = provider_id
         in_data['sk'] = '/'.join((
-            quote(in_data['compact']),
-            quote(in_data['jurisdiction']),
+            compact,
+            jurisdiction,
             self._record_type
         ))
         in_data['type'] = self._record_type
         in_data['compact_jur'] = '/'.join((
-            quote(in_data['compact']),
-            quote(in_data['jurisdiction'])
+            compact,
+            jurisdiction
         ))
         # YYYY-MM-DD
         in_data['date_of_update'] = datetime.now(tz=UTC).date()

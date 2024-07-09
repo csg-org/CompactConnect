@@ -17,9 +17,14 @@ def query_licenses(event: dict, context: LambdaContext):  # pylint: disable=unus
     """
     body = json.loads(event['body'])
     # Query one SSN
-    if 'ssn' in body.keys():
-        return config.data_client.get_ssn(
-            ssn=body['ssn'],
+    provider_id = None
+    if 'provider_id' in body.keys():
+        provider_id = body['provider_id']
+    elif 'ssn' in body.keys():
+        provider_id = config.data_client.get_provider_id(ssn=body['ssn'])
+    if provider_id is not None:
+        return config.data_client.get_provider(
+            provider_id=provider_id,
             pagination=body.get('pagination')
         )
 

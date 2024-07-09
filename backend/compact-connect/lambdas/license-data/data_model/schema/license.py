@@ -1,10 +1,17 @@
 from urllib.parse import quote
 
 from marshmallow import pre_dump, post_load
-from marshmallow.fields import String, Date
+from marshmallow.fields import String, Date, UUID
 from marshmallow.validate import Regexp, Length, OneOf
 
-from data_model.schema.base_record import BaseRecordSchema, SocialSecurityNumber, ForgivingSchema
+from data_model.schema.base_record import BaseRecordSchema, SocialSecurityNumber, ForgivingSchema, StrictSchema
+
+
+class SSNIndexRecordSchema(StrictSchema):
+    pk = UUID(required=True, allow_none=False)
+    sk = String(required=True, allow_none=False)
+    ssn = SocialSecurityNumber(required=True, allow_none=False)
+    license_home_provider_id = UUID(required=True, allow_none=False)
 
 
 class LicenseCommonSchema(ForgivingSchema):
@@ -46,27 +53,26 @@ class LicenseRecordSchema(BaseRecordSchema, LicensePostSchema):
     """
     _record_type = 'license-home'
 
+    # Provided fields
+    provider_id = UUID(required=True, allow_none=False)
+
     # Generated fields
-    upd_ssn = String(required=True, allow_none=False)
-    fam_giv_mid_ssn = String(required=True, allow_none=False)
+    fam_giv_mid = String(required=True, allow_none=False)
+    license_home_provider_id = UUID(required=True, allow_none=False)
 
     @post_load
     def drop_license_gen_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
-        del in_data['fam_giv_mid_ssn']
-        del in_data['upd_ssn']
+        del in_data['fam_giv_mid']
+        del in_data['license_home_provider_id']
         return in_data
 
     @pre_dump
     def populate_license_gen_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
+        in_data['license_home_provider_id'] = in_data['provider_id']
         in_data['birth_month_day'] = in_data['date_of_birth'].strftime('%m-%d')
-        in_data['fam_giv_mid_ssn'] = '/'.join((
-            quote(in_data['family_name']),
-            quote(in_data['given_name']),
-            quote(in_data.get('middle_name', '')),
-            quote(in_data['ssn'])
-        ))
-        in_data['upd_ssn'] = '/'.join((
-            in_data['date_of_update'].isoformat(),
-            quote(in_data['ssn'])
+        in_data['fam_giv_mid'] = '/'.join((
+            quote(in_data['family_name'], safe=''),
+            quote(in_data['given_name'], safe=''),
+            quote(in_data.get('middle_name', ''), safe='')
         ))
         return in_data

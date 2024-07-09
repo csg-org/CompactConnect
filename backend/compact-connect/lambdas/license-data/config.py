@@ -42,12 +42,16 @@ class _Config:
         return os.environ['LICENSE_TABLE_NAME']
 
     @property
-    def cjns_index_name(self):
-        return os.environ['CJNS_INDEX_NAME']
+    def ssn_index_name(self):
+        return os.environ['SSN_INDEX_NAME']
 
     @property
-    def updated_index_name(self):
-        return os.environ['UPDATED_INDEX_NAME']
+    def cj_name_index_name(self):
+        return os.environ['CJ_NAME_INDEX_NAME']
+
+    @property
+    def cj_updated_index_name(self):
+        return os.environ['CJ_UPDATED_INDEX_NAME']
 
     @property
     def bulk_bucket_name(self):

@@ -1,4 +1,5 @@
 import json
+from uuid import UUID
 
 from marshmallow import ValidationError
 
@@ -28,19 +29,19 @@ class TestLicensePostSchema(TstLambdas):
         with open('tests/resources/api/license.json', 'r') as f:
             license_data = LicensePostSchema().loads(f.read())
 
+        with open('tests/resources/dynamo/license.json', 'r') as f:
+            expected_license_record = json.load(f)
+        provider_id = expected_license_record['provider_id']
+
         license_record = LicenseRecordSchema().dump({
             'compact': 'aslp',
             'jurisdiction': 'co',
+            'provider_id': UUID(provider_id),
             **license_data
         })
-
-        with open('tests/resources/dynamo/license.json', 'r') as f:
-            expected_license_record = json.load(f)
 
         # These are dynamic and so won't match
         del expected_license_record['date_of_update']
         del license_record['date_of_update']
-        del expected_license_record['upd_ssn']
-        del license_record['upd_ssn']
 
         self.assertEqual(expected_license_record, license_record)

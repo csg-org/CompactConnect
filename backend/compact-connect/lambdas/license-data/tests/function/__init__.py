@@ -1,6 +1,8 @@
+import json
 import logging
 import os
 from random import randint
+from uuid import uuid4
 
 import boto3
 from moto import mock_aws
@@ -44,15 +46,23 @@ class TstFunction(TstLambdas):
                     'AttributeType': 'S'
                 },
                 {
+                    'AttributeName': 'ssn',
+                    'AttributeType': 'S'
+                },
+                {
+                    'AttributeName': 'date_of_update',
+                    'AttributeType': 'S'
+                },
+                {
+                    'AttributeName': 'license_home_provider_id',
+                    'AttributeType': 'S'
+                },
+                {
                     'AttributeName': 'compact_jur',
                     'AttributeType': 'S'
                 },
                 {
-                    'AttributeName': 'fam_giv_mid_ssn',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'upd_ssn',
+                    'AttributeName': 'fam_giv_mid',
                     'AttributeType': 'S'
                 }
             ],
@@ -70,14 +80,30 @@ class TstFunction(TstLambdas):
             BillingMode='PAY_PER_REQUEST',
             GlobalSecondaryIndexes=[
                 {
-                    'IndexName': os.environ['CJNS_INDEX_NAME'],
+                    'IndexName': os.environ['SSN_INDEX_NAME'],
+                    'KeySchema': [
+                        {
+                            'AttributeName': 'ssn',
+                            'KeyType': 'HASH'
+                        },
+                        {
+                            'AttributeName': 'license_home_provider_id',
+                            'KeyType': 'RANGE'
+                        }
+                    ],
+                    'Projection': {
+                        'ProjectionType': 'KEYS_ONLY'
+                    },
+                },
+                {
+                    'IndexName': os.environ['CJ_NAME_INDEX_NAME'],
                     'KeySchema': [
                         {
                             'AttributeName': 'compact_jur',
                             'KeyType': 'HASH'
                         },
                         {
-                            'AttributeName': 'fam_giv_mid_ssn',
+                            'AttributeName': 'fam_giv_mid',
                             'KeyType': 'RANGE'
                         }
                     ],
@@ -86,14 +112,14 @@ class TstFunction(TstLambdas):
                     },
                 },
                 {
-                    'IndexName': os.environ['UPDATED_INDEX_NAME'],
+                    'IndexName': os.environ['CJ_UPDATED_INDEX_NAME'],
                     'KeySchema': [
                         {
                             'AttributeName': 'compact_jur',
                             'KeyType': 'HASH'
                         },
                         {
-                            'AttributeName': 'upd_ssn',
+                            'AttributeName': 'date_of_update',
                             'KeyType': 'RANGE'
                         }
                     ],
@@ -121,25 +147,35 @@ class TstFunction(TstLambdas):
 
         # Generate 100 licensees, each with a license and a privilege
         for i in range(start_serial, start_serial-100, -1):
+            provider_id = str(uuid4())
             ssn = f'{randint(100, 999)}-{randint(10, 99)}-{i}'
-            license_data['ssn'] = ssn
+            license_data.update({
+                'provider_id': provider_id,
+                'ssn': ssn
+            })
+
+            # We'll use the schema/serializer to populate index fields for us
             item = LicenseRecordSchema().dump({
                 'compact': 'aslp',
                 'jurisdiction': home,
                 **license_data
             })
+            logger.debug('Putting license: %s', json.dumps(item))
             self._table.put_item(
-                # We'll use the schema/serializer to populate index fields for us
                 Item=item
             )
 
-            privilege_data['ssn'] = ssn
-            privilege_data['home_jurisdiction'] = home
+            privilege_data.update({
+                'provider_id': provider_id,
+                'ssn': ssn,
+                'home_jurisdiction': home
+            })
             item = PrivilegeRecordSchema().dump({
                 'compact': 'aslp',
                 'jurisdiction': priv,
                 **privilege_data
             })
+            logger.debug('Putting privilege: %s', json.dumps(item))
             self._table.put_item(
                 Item=item
             )

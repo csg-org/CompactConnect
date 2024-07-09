@@ -9,12 +9,14 @@ class TstLambdas(TestCase):
     @classmethod
     def setUpClass(cls):
         os.environ.update({
-            'DEBUG': 'true',
+            # Set to 'true' to enable debug logging
+            'DEBUG': 'false',
             'AWS_DEFAULT_REGION': 'us-east-1',
-            'BULK_BUCKET_NAME': 'bulk-bucket',
+            'BULK_BUCKET_NAME': 'cc-license-data-bulk-bucket',
             'LICENSE_TABLE_NAME': 'license-table',
-            'CJNS_INDEX_NAME': 'CJNS',
-            'UPDATED_INDEX_NAME': 'upd-ssn',
+            'SSN_INDEX_NAME': 'ssn',
+            'CJ_NAME_INDEX_NAME': 'cj_name',
+            'CJ_UPDATED_INDEX_NAME': 'cj_updated',
             'COMPACTS': '["aslp", "ot", "counseling"]',
             'JURISDICTIONS': '["al", "co"]'
         })
