@@ -167,6 +167,7 @@ class LandingZoneStack(Stack):
 
         config_aggregator_role = Role(
             self, 'AWSControlTowerConfigAggregatorRoleForOrganizations',
+            role_name='AWSControlTowerConfigAggregatorRoleForOrganizations',
             path='/service-role/',
             assumed_by=ServicePrincipal('config.amazonaws.com'),
             managed_policies=[

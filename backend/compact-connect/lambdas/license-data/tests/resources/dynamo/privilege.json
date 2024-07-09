@@ -1,0 +1,22 @@
+{
+  "ssn": "123-12-1234",
+  "npi": "0608337260",
+  "given_name": "string",
+  "middle_name": "string",
+  "family_name": "string",
+  "license_type": "speech language",
+  "date_of_birth": "2024-06-06",
+  "date_of_issuance": "2024-06-06",
+  "status": "active",
+  "home_jurisdiction": "co",
+  "pk": "123-12-1234",
+  "sk": "aslp/co/license-privilege",
+  "compact_jur": "aslp/co",
+  "date_of_update": "2024-07-01",
+  "type": "license-privilege",
+  "compact": "aslp",
+  "jurisdiction": "co",
+  "upd_ssn": "2024-07-01/123-12-1234",
+  "fam_giv_mid_ssn": "string/string/string/123-12-1234",
+  "birth_month_day": "06-06"
+}

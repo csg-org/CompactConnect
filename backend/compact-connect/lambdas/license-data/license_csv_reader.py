@@ -2,7 +2,7 @@ from csv import DictReader
 from io import TextIOBase
 from typing import Generator
 
-from schema import LicensePostSchema
+from data_model.schema.license import LicensePostSchema
 
 
 class LicenseCSVReader:

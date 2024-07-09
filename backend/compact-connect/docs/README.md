@@ -33,7 +33,7 @@ For your convenience, use of this feature is included in the [Postman Collection
 
 ### Example CSV
 ```csv
-date_of_issuance,npi,date_of_birth,license_type,family_name,home_state_city,middle_name,license_status,ssn,home_state_street_1,home_state_street_2,date_of_expiration,home_state_postal_code,given_name,date_of_renewal
+date_of_issuance,npi,date_of_birth,license_type,family_name,home_state_city,middle_name,status,ssn,home_state_street_1,home_state_street_2,date_of_expiration,home_state_postal_code,given_name,date_of_renewal
 2024-06-30,0608337260,2024-06-30,speech language,Guðmundsdóttir,Birmingham,Gunnar,active,529-31-5408,123 A St.,Apt 321,2024-06-30,35004,Björk,2024-06-30
 2024-06-30,0608337260,2024-06-30,audiology,Scott,Huntsville,Patricia,active,529-31-5409,321 B St.,,2024-06-30,35005,Elizabeth,2024-06-30
 2024-06-30,0608337260,2024-06-30,speech language,毛,Hoover,泽,active,529-31-5410,10101 Binary Ave.,,2024-06-30,35006,覃,2024-06-30
@@ -48,3 +48,6 @@ We will maintain the latest api specification here, in [latest-oas30.json](api-s
 
 ### Change summary:
 - 2024-06-03: Early draft specification
+- 2024-06-01: i
+  - Added compacts to api paths
+  - Added mock license data query endpoints

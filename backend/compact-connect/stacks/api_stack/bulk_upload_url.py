@@ -41,7 +41,7 @@ class BulkUploadUrl:
         handler = PythonFunction(
             self.resource, 'Handler',
             entry=os.path.join('lambdas', 'license-data'),
-            index='main.py',
+            index='handlers/bulk_upload.py',
             handler='bulk_upload_url_handler' if not mock_bucket else 'no_auth_bulk_upload_url_handler',
             environment={
                 'DEBUG': 'true',
@@ -50,6 +50,8 @@ class BulkUploadUrl:
         )
         # Grant the handler permissions to write to the bulk bucket
         bulk_uploads_bucket.grant_write(handler)
+
+        self.api.log_groups.append(handler.log_group)
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack,

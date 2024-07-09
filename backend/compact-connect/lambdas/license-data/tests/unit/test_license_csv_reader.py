@@ -10,4 +10,4 @@ class TestCSVParser(TstLambdas):
         with open('tests/resources/licenses.csv', 'r') as f:
             reader = LicenseCSVReader()
             for license_row in reader.validated_licenses(f):
-                logger.debug('Read validated license', license=reader.schema.dump(license_row))
+                logger.debug('Read validated license', license_data=reader.schema.dump(license_row))

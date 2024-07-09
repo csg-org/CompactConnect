@@ -92,14 +92,17 @@ To execute the tests, simply run `bin/run_tests.sh` from this directory.
 ### First deploy to a Sandbox environment
 The very first deploy to a new environment (like your personal sandbox account) requires a few steps to fully set up
 its environment:
-1) Copy [cdk.context.example.json](./cdk.context.example.json) to `cdk.context.json` and adapt it to your details
-   (i.e. replace `<your-name>` with your own name, the account id with your own, etc.)
-2) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account.
-3) Run `cdk deploy --all` to get the initial stack resources deployed.
+1) Copy [cdk.context.example.json](./cdk.context.example.json) to `cdk.context.json`.
+2) Add `"sandbox": true` and `"environment_name": "<your-name>"` fields to the file, to configure it for sandbox
+   deployments.
+3) Add a new environment entry under `ssm_context.environments`, using your name and your own AWS sandbox account id.
+4) Configure your aws cli to authenticate against your own account.
+5) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account.
+6) Run `cdk deploy 'Sandbox/*'` to get the initial stack resources deployed.
 
 ### Subsequent sandbox deploys:
-For any future deploys, everything is set up so a simple `cdk deploy --all` should update all your infrastructure to
-reflect the changes in your code.
+For any future deploys, everything is set up so a simple `cdk deploy 'Sandbox/*'` should update all your infrastructure
+to reflect the changes in your code.
 
 ### First deploy to the production environment
 The production environment requires a few steps to fully set up before deploys can be automated. Refer to the

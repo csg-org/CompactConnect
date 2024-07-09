@@ -28,10 +28,11 @@
       "wv", "wi", "wy"
     ],
     "license_types": [
-      "audiology",
-      "counseling",
-      "occupational therapy",
-      "speech language pathology"
+      "audiologist",
+      "counselor",
+      "occupational therapist",
+      "occupational therapy assistant",
+      "speech language pathologist"
     ],
     "compacts": [
       "aslp",

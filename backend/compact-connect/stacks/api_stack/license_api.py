@@ -4,7 +4,7 @@ from functools import cached_property
 from aws_cdk.aws_apigateway import RestApi, StageOptions, MethodLoggingLevel, LogGroupLogDestination, \
     AccessLogFormat, AuthorizationType, MethodOptions, JsonSchema, JsonSchemaType, ResponseType, CorsOptions, Cors, \
     CognitoUserPoolsAuthorizer
-from aws_cdk.aws_logs import LogGroup, RetentionDays
+from aws_cdk.aws_logs import LogGroup, RetentionDays, QueryDefinition, QueryString
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
@@ -13,6 +13,7 @@ from common_constructs.webacl import WebACL, WebACLScope
 from stacks.api_stack.bulk_upload_url import BulkUploadUrl
 from stacks.api_stack.post_license import PostLicenses
 from stacks import persistent_stack as ps
+from stacks.api_stack.query_licenses import QueryLicenses
 
 
 class LicenseApi(RestApi):
@@ -74,6 +75,8 @@ class LicenseApi(RestApi):
             **kwargs
         )
 
+        self.log_groups = [access_log_group]
+
         self._persistent_stack = persistent_stack
 
         self.web_acl = WebACL(
@@ -95,30 +98,37 @@ class LicenseApi(RestApi):
 
         v0_resource = self.root.add_resource('v0')
         providers_resource = v0_resource.add_resource('providers')
-        compact_resource = providers_resource.add_resource('{compact}')
-        # /v0/providers/{compact}/{jurisdiction}
-        jurisdiction_resource = compact_resource.add_resource('{jurisdiction}')
 
         # No auth mock endpoints
-        license_noauth_resource = jurisdiction_resource.add_resource('licenses-noauth')
-        # POST /v0/providers/aslp/co/licenses-noauth
+        # /v0/providers/license-noauth
+        license_noauth_resource = providers_resource.add_resource('licenses-noauth')
         method_options = MethodOptions(
             authorization_type=AuthorizationType.NONE
         )
-        PostLicenses(
+        QueryLicenses(
             license_noauth_resource,
-            method_options=method_options
+            method_options=method_options,
+            data_encryption_key=persistent_stack.shared_encryption_key,
+            license_data_table=persistent_stack.mock_license_table
+        )
+
+        # /v0/providers/license-noauth/{compact}/{jurisdiction}
+        noauth_compact_resource = license_noauth_resource.add_resource('{compact}')
+        noauth_jurisdiction_resource = noauth_compact_resource.add_resource('{jurisdiction}')
+        PostLicenses(
+             noauth_jurisdiction_resource,
+            method_options=method_options,
         )
         BulkUploadUrl(
             mock_bucket=True,
-            resource=license_noauth_resource,
+            resource=noauth_jurisdiction_resource,
             method_options=method_options,
             bulk_uploads_bucket=persistent_stack.mock_bulk_uploads_bucket
         )
 
         # Authenticated endpoints
-        licenses_resource = jurisdiction_resource.add_resource('licenses')
-        # POST /v0/providers/{compact}/{jurisdiction}/licenses
+        # /v0/providers/license
+        licenses_resource = providers_resource.add_resource('licenses')
         scopes = [
             f'{resource_server}/{scope}'
             for resource_server in persistent_stack.board_users.resource_servers.keys()
@@ -129,14 +139,38 @@ class LicenseApi(RestApi):
             authorizer=self.board_users_authorizer,
             authorization_scopes=scopes
         )
+
+        # /v0/providers/license/{compact}/{jurisdiction}
+        compact_resource = licenses_resource.add_resource('{compact}')
+        jurisdiction_resource = compact_resource.add_resource('{jurisdiction}')
         PostLicenses(
-            licenses_resource,
+            jurisdiction_resource,
             method_options=method_options
         )
         BulkUploadUrl(
-            resource=licenses_resource,
+            resource=jurisdiction_resource,
             method_options=method_options,
             bulk_uploads_bucket=persistent_stack.bulk_uploads_bucket
+        )
+
+        QueryDefinition(
+            self, 'RuntimeQuery',
+            query_definition_name=f'{construct_id}/Lambdas',
+            query_string=QueryString(
+                fields=[
+                    '@timestamp',
+                    '@log',
+                    'level',
+                    'status',
+                    'message',
+                    'http_method',
+                    'path',
+                    '@message'
+                ],
+                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
+                sort='@timestamp desc'
+            ),
+            log_groups=self.log_groups
         )
 
         stack = Stack.of(self)

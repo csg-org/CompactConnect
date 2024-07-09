@@ -7,7 +7,7 @@ from tests import TstLambdas
 
 class TestScopeByPath(TstLambdas):
     def test_scope_by_path(self):
-        from utils import scope_by_path
+        from handlers.utils import scope_by_path
 
         @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
@@ -21,7 +21,7 @@ class TestScopeByPath(TstLambdas):
         self.assertEqual({'body': 'Hurray!'}, example_entrypoint(event, self.mock_context))
 
     def test_no_path_param(self):
-        from utils import scope_by_path
+        from handlers.utils import scope_by_path
 
         @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
@@ -37,7 +37,7 @@ class TestScopeByPath(TstLambdas):
         self.assertEqual(401, resp['statusCode'])
 
     def test_no_authorizer(self):
-        from utils import scope_by_path
+        from handlers.utils import scope_by_path
 
         @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
@@ -53,7 +53,7 @@ class TestScopeByPath(TstLambdas):
         self.assertEqual(401, resp['statusCode'])
 
     def test_missing_scope(self):
-        from utils import scope_by_path
+        from handlers.utils import scope_by_path
 
         @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument

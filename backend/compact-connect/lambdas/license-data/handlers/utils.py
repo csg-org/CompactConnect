@@ -1,11 +1,33 @@
 import json
+from decimal import Decimal
 from functools import wraps
+from json import JSONEncoder
 from typing import Callable
+from datetime import date
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 
 from config import logger
+from exceptions import CCInvalidRequestException
+
+
+class ResponseEncoder(JSONEncoder):
+    """
+    JSON Encoder to handle data types that come out of our schema
+    """
+    def default(self, o):
+        if isinstance(o, Decimal):
+            ratio = o.as_integer_ratio()
+            if ratio[1] == 1:
+                return ratio[0]
+            return float(o)
+
+        if isinstance(o, date):
+            return o.isoformat()
+
+        # This is just a catch-all that shouldn't realistically ever be reached.
+        return super().default(o)
 
 
 def api_handler(fn: Callable):
@@ -35,7 +57,16 @@ def api_handler(fn: Callable):
                     'Access-Control-Allow-Origin': '*'
                 },
                 'statusCode': 200,
-                'body': json.dumps(fn(event, context))
+                'body': json.dumps(fn(event, context), cls=ResponseEncoder)
+            }
+        except CCInvalidRequestException as e:
+            logger.info('Invalid request', exc_info=e)
+            return {
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'statusCode': 400,
+                'body': json.dumps({'message': e.message})
             }
         except ClientError as e:
             # Any boto3 ClientErrors we haven't already caught and transformed are probably on us

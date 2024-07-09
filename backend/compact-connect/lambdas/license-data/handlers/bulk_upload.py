@@ -2,16 +2,15 @@ from uuid import uuid4
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-from utils import api_handler, scope_by_path
-
-from config import config, logger
+from config import logger, config
+from handlers.utils import scope_by_path, api_handler
 
 
 @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact')
 @api_handler
 def bulk_upload_url_handler(event: dict, context: LambdaContext):
     """
-    Generate a pre-
+    Generate a pre-signed POST to the bulk-upload s3 bucket
     """
     return _bulk_upload_url_handler(event, context)
 

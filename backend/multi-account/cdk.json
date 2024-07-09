@@ -16,8 +16,8 @@
   },
   "context": {
     "tags": {
-      "project": "compact-connect",
-      "service": "multi-account"
+      "Project": "compact-connect",
+      "Service": "multi-account"
     },
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,

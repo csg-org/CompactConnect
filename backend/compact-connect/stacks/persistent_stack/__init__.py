@@ -8,6 +8,7 @@ from stacks.persistent_stack.admin_users import AdminUsers
 from stacks.persistent_stack.board_users import BoardUsers
 
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
+from stacks.persistent_stack.license_table import LicenseTable
 
 
 class PersistentStack(Stack):
@@ -46,6 +47,12 @@ class PersistentStack(Stack):
             encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy,
             auto_delete_objects=environment_name != 'prod'
+        )
+
+        self.mock_license_table = LicenseTable(
+            self, 'MockLicenseTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy
         )
 
         self.bulk_uploads_bucket = BulkUploadsBucket(

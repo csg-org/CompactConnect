@@ -20,7 +20,7 @@ class PostLicenses:
             'POST',
             request_validator=self.api.parameter_body_validator,
             request_models={
-                'application/json': self.get_post_license_model(self.api)
+                'application/json': self._get_post_license_model(self.api)
             },
             method_responses=[
                 MethodResponse(
@@ -51,7 +51,7 @@ class PostLicenses:
         )
 
     @staticmethod
-    def get_post_license_model(api: license_api.LicenseApi) -> Model:
+    def _get_post_license_model(api: license_api.LicenseApi) -> Model:
         """
         Return the Post License Model, which should only be created once per API
         """
