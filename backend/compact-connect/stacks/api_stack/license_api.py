@@ -13,7 +13,7 @@ from common_constructs.webacl import WebACL, WebACLScope
 from stacks.api_stack.bulk_upload_url import BulkUploadUrl
 from stacks.api_stack.post_license import PostLicenses
 from stacks import persistent_stack as ps
-from stacks.api_stack.query_licenses import QueryLicenses
+from stacks.api_stack.query_providers import QueryProviders
 
 
 class LicenseApi(RestApi):
@@ -97,36 +97,40 @@ class LicenseApi(RestApi):
         )
 
         v0_resource = self.root.add_resource('v0')
-        providers_resource = v0_resource.add_resource('providers')
 
         # No auth mock endpoints
-        # /v0/providers/license-noauth
-        license_noauth_resource = providers_resource.add_resource('licenses-noauth')
+        # /v0/mock-providers
+        mock_providers_resource = v0_resource.add_resource('mock-providers')
         method_options = MethodOptions(
             authorization_type=AuthorizationType.NONE
         )
-        QueryLicenses(
-            license_noauth_resource,
+
+        # /v0/providers/query
+        QueryProviders(
+            mock_providers_resource,
             method_options=method_options,
             data_encryption_key=persistent_stack.shared_encryption_key,
             license_data_table=persistent_stack.mock_license_table
         )
 
-        # /v0/providers/license-noauth/{compact}/{jurisdiction}
-        noauth_compact_resource = license_noauth_resource.add_resource('{compact}')
-        noauth_jurisdiction_resource = noauth_compact_resource.add_resource('{jurisdiction}')
+        # /v0/mock-providers/license/{compact}/{jurisdiction}
+        mock_license_resource = mock_providers_resource.add_resource('licenses')
+        mock_compact_resource = mock_license_resource.add_resource('{compact}')
+        mock_jurisdiction_resource = mock_compact_resource.add_resource('{jurisdiction}')
         PostLicenses(
-             noauth_jurisdiction_resource,
+            mock_jurisdiction_resource,
             method_options=method_options,
         )
         BulkUploadUrl(
             mock_bucket=True,
-            resource=noauth_jurisdiction_resource,
+            resource=mock_jurisdiction_resource,
             method_options=method_options,
             bulk_uploads_bucket=persistent_stack.mock_bulk_uploads_bucket
         )
 
         # Authenticated endpoints
+        providers_resource = v0_resource.add_resource('providers')
+
         # /v0/providers/license
         licenses_resource = providers_resource.add_resource('licenses')
         scopes = [

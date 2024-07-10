@@ -13,7 +13,7 @@ class TestClient(TstFunction):
         from data_model.schema.privilege import PrivilegePostSchema, PrivilegeRecordSchema
         from exceptions import CCNotFoundException, CCInternalException
 
-        with open('tests/resources/api/license.json', 'r') as f:
+        with open('tests/resources/api/license-post.json', 'r') as f:
             license_data = LicensePostSchema().loads(f.read())
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
@@ -67,7 +67,7 @@ class TestClient(TstFunction):
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
         from data_model.schema.privilege import PrivilegePostSchema, PrivilegeRecordSchema
 
-        with open('tests/resources/api/license.json', 'r') as f:
+        with open('tests/resources/api/license-post.json', 'r') as f:
             license_data = LicensePostSchema().loads(f.read())
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
@@ -110,7 +110,7 @@ class TestClient(TstFunction):
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
         from exceptions import CCInternalException
 
-        with open('tests/resources/api/license.json', 'r') as f:
+        with open('tests/resources/api/license-post.json', 'r') as f:
             license_data = LicensePostSchema().loads(f.read())
 
         with open('tests/resources/dynamo/license.json', 'r') as f:

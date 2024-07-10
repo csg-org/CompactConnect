@@ -19,7 +19,7 @@ YMD_FORMAT = '^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
 SSN_FORMAT = '^[0-9]{3}-[0-9]{2}-[0-9]{4}$'
 
 
-class QueryLicenses:
+class QueryProviders:
     def __init__(
             self,
             resource: Resource,
@@ -29,37 +29,40 @@ class QueryLicenses:
     ):
         super().__init__()
 
-        self.resource = resource.add_resource('query')
+        self.resource = resource
+        self.query_resource = resource.add_resource('query')
         self.api: license_api.LicenseApi = resource.api
-        self._add_query_licenses(
+        self._add_query_providers(
+            method_options=method_options,
+            data_encryption_key=data_encryption_key,
+            license_data_table=license_data_table
+        )
+        self._add_get_provider(
             method_options=method_options,
             data_encryption_key=data_encryption_key,
             license_data_table=license_data_table
         )
 
-    def _add_query_licenses(
+    def _add_get_provider(
             self,
             method_options: MethodOptions,
             data_encryption_key: IKey,
             license_data_table: LicenseTable
     ):
-        handler = self._get_query_licenses_handler(
+        handler = self._get_provider_handler(
             data_encryption_key=data_encryption_key,
             license_data_table=license_data_table
         )
-        self.resource.api.log_groups.append(handler.log_group)
+        self.api.log_groups.append(handler.log_group)
 
         self.resource.add_method(
-            'POST',
+            'GET',
             request_validator=self.api.parameter_body_validator,
-            request_models={
-                'application/json': self._get_query_licenses_request_model()
-            },
             method_responses=[
                 MethodResponse(
                     status_code='200',
                     response_models={
-                        'application/json': self._get_query_licenses_response_model()
+                        'application/json': self._query_providers_response_model()
                     }
                 )
             ],
@@ -74,41 +77,45 @@ class QueryLicenses:
             authorizer=method_options.authorizer
         )
 
-    def _get_query_licenses_request_model(self) -> Model:
-        """
-        Return the query licenses request model, which should only be created once per API
-        """
-        if not hasattr(self.api, 'query_licenses_request_model'):
-            self.api.query_licenses_request_model = self.api.add_model(
-                'QueryLicensesRequestModel',
-                schema=JsonSchema(
-                    type=JsonSchemaType.OBJECT,
-                    additional_properties=False,
-                    properties={
-                        'ssn': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            description='Social security number to look up',
-                            pattern=SSN_FORMAT
-                        ),
-                        'compact': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            description="Required if 'ssn' not provided",
-                            enum=self.api.node.get_context('compacts')
-                        ),
-                        'jurisdiction': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            description="Required if 'ssn' not provided",
-                            enum=self.api.node.get_context('jurisdictions')
-                        ),
-                        'pagination': self.pagination_schema,
-                        'sorting': self.sorting_schema
+    def _add_query_providers(
+            self,
+            method_options: MethodOptions,
+            data_encryption_key: IKey,
+            license_data_table: LicenseTable
+    ):
+        handler = self._query_providers_handler(
+            data_encryption_key=data_encryption_key,
+            license_data_table=license_data_table
+        )
+        self.api.log_groups.append(handler.log_group)
+
+        self.query_resource.add_method(
+            'POST',
+            request_validator=self.api.parameter_body_validator,
+            request_models={
+                'application/json': self._query_providers_request_model()
+            },
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={
+                        'application/json': self._query_providers_response_model()
                     }
                 )
-            )
-        return self.api.query_licenses_request_model
+            ],
+            integration=LambdaIntegration(
+                handler,
+                timeout=Duration.seconds(29)
+            ),
+            request_parameters={
+                'method.request.header.Authorization': True
+            } if method_options.authorization_type != AuthorizationType.NONE else {},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer
+        )
 
     @property
-    def sorting_schema(self):
+    def _sorting_schema(self):
         return JsonSchema(
             type=JsonSchemaType.OBJECT,
             description='Required if ssn is not provided',
@@ -116,8 +123,7 @@ class QueryLicenses:
             properties={
                 'key': JsonSchema(
                     type=JsonSchemaType.STRING,
-                    max_length=100,
-                    min_length=1
+                    enum=['date_of_update', 'family_name']
                 ),
                 'direction': JsonSchema(
                     type=JsonSchemaType.STRING,
@@ -127,7 +133,7 @@ class QueryLicenses:
         )
 
     @property
-    def pagination_schema(self):
+    def _pagination_schema(self):
         return JsonSchema(
             type=JsonSchemaType.OBJECT,
             properties={
@@ -135,28 +141,6 @@ class QueryLicenses:
                 'pageSize': JsonSchema(type=JsonSchemaType.INTEGER, minimum=5, maximum=100)
             }
         )
-
-    def _get_query_licenses_response_model(self) -> Model:
-        """
-        Return the query license response model, which should only be created once per API
-        """
-        if not hasattr(self.api, 'query_licenses_response_model'):
-            self.api.query_license_response_model = self.api.add_model(
-                'QueryLicensesResponseModel',
-                schema=JsonSchema(
-                    type=JsonSchemaType.OBJECT,
-                    required=['items'],
-                    properties={
-                        'items': JsonSchema(
-                            type=JsonSchemaType.ARRAY,
-                            max_length=100,
-                            items=self.license_response_schema
-                        ),
-                        'lastKey': JsonSchema(type=JsonSchemaType.STRING)
-                    }
-                )
-            )
-        return self.api.query_license_response_model
 
     @property
     def license_response_schema(self):
@@ -250,17 +234,108 @@ class QueryLicenses:
             }
         )
 
-    def _get_query_licenses_handler(
+    def _query_providers_request_model(self) -> Model:
+        """
+        Return the query licenses request model, which should only be created once per API
+        """
+        if not hasattr(self.api, 'query_providers_request_model'):
+            self.api.query_providers_request_model = self.api.add_model(
+                'QueryLicensesRequestModel',
+                schema=JsonSchema(
+                    type=JsonSchemaType.OBJECT,
+                    additional_properties=False,
+                    properties={
+                        'ssn': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            description='Social security number to look up',
+                            pattern=SSN_FORMAT
+                        ),
+                        'compact': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            description="Required if 'ssn' not provided",
+                            enum=self.api.node.get_context('compacts')
+                        ),
+                        'jurisdiction': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            description="Required if 'ssn' not provided",
+                            enum=self.api.node.get_context('jurisdictions')
+                        ),
+                        'pagination': self._pagination_schema,
+                        'sorting': self._sorting_schema
+                    }
+                )
+            )
+        return self.api.query_providers_request_model
+
+    def _query_providers_response_model(self) -> Model:
+        """
+        Return the query license response model, which should only be created once per API
+        """
+        if not hasattr(self.api, 'query_providers_response_model'):
+            self.api.query_providers_response_model = self.api.add_model(
+                'QueryLicensesResponseModel',
+                schema=JsonSchema(
+                    type=JsonSchemaType.OBJECT,
+                    required=['items'],
+                    properties={
+                        'items': JsonSchema(
+                            type=JsonSchemaType.ARRAY,
+                            max_length=100,
+                            items=self.license_response_schema
+                        ),
+                        'lastKey': JsonSchema(type=JsonSchemaType.STRING)
+                    }
+                )
+            )
+        return self.api.query_providers_response_model
+
+    def _get_provider_handler(
             self,
             data_encryption_key: IKey,
             license_data_table: LicenseTable
     ) -> PythonFunction:
-        stack = Stack.of(self.resource)
+        stack = Stack.of(self.query_resource)
         handler = PythonFunction(
-            self.resource, 'QueryLicensesHandler',
+            self.query_resource, 'GetProviderHandler',
             entry=os.path.join('lambdas', 'license-data'),
-            index='handlers/license.py',
-            handler='query_licenses',
+            index='handlers/providers.py',
+            handler='get_provider',
+            environment={
+                'DEBUG': 'true',
+                'LICENSE_TABLE_NAME': license_data_table.table_name,
+                'CJNS_INDEX_NAME': license_data_table.cjns_index_name,
+                'UPDATED_INDEX_NAME': license_data_table.updated_index_name,
+                'COMPACTS': json.dumps(stack.node.get_context('compacts')),
+                'JURISDICTIONS': json.dumps(stack.node.get_context('jurisdictions'))
+            }
+        )
+        data_encryption_key.grant_decrypt(handler)
+        license_data_table.grant_read_data(handler)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
+                              'and is scoped to one table and encryption key.'
+                }
+            ]
+        )
+        return handler
+
+    def _query_providers_handler(
+            self,
+            data_encryption_key: IKey,
+            license_data_table: LicenseTable
+    ) -> PythonFunction:
+        stack = Stack.of(self.query_resource)
+        handler = PythonFunction(
+            self.query_resource, 'QueryProvidersHandler',
+            entry=os.path.join('lambdas', 'license-data'),
+            index='handlers/providers.py',
+            handler='query_providers',
             environment={
                 'DEBUG': 'true',
                 'LICENSE_TABLE_NAME': license_data_table.table_name,

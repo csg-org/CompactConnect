@@ -10,13 +10,13 @@ class TestLicensePostSchema(TstLambdas):
     def test_validate(self):
         from data_model.schema.license import LicensePostSchema
 
-        with open('tests/resources/api/license.json', 'r') as f:
+        with open('tests/resources/api/license-post.json', 'r') as f:
             LicensePostSchema().load(json.load(f))
 
     def test_invalid(self):
         from data_model.schema.license import LicensePostSchema
 
-        with open('tests/resources/api/license.json', 'r') as f:
+        with open('tests/resources/api/license-post.json', 'r') as f:
             license_data = json.load(f)
         license_data.pop('ssn')
 
@@ -26,7 +26,7 @@ class TestLicensePostSchema(TstLambdas):
     def test_serialize(self):
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
 
-        with open('tests/resources/api/license.json', 'r') as f:
+        with open('tests/resources/api/license-post.json', 'r') as f:
             license_data = LicensePostSchema().loads(f.read())
 
         with open('tests/resources/dynamo/license.json', 'r') as f:

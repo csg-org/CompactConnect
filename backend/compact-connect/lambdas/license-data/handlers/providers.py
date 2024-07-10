@@ -7,13 +7,13 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 
 from exceptions import CCInvalidRequestException
 from handlers.utils import api_handler
-from config import config
+from config import config, logger
 
 
 @api_handler
-def query_licenses(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+def query_providers(event: dict, context: LambdaContext):
     """
-    Query license data
+    Query providers data
     """
     body = json.loads(event['body'])
     # Query one SSN
@@ -22,6 +22,7 @@ def query_licenses(event: dict, context: LambdaContext):  # pylint: disable=unus
         provider_id = body['provider_id']
     elif 'ssn' in body.keys():
         provider_id = config.data_client.get_provider_id(ssn=body['ssn'])
+        logger.info('Found provider id by SSN', provider_id=provider_id)
     if provider_id is not None:
         return config.data_client.get_provider(
             provider_id=provider_id,
@@ -32,6 +33,7 @@ def query_licenses(event: dict, context: LambdaContext):  # pylint: disable=unus
         sorting = body['sorting']
         compact = body['compact']
         jurisdiction = body['jurisdiction']
+        logger.info('Querying by compact and jurisdiction')
     except KeyError as e:
         raise CCInvalidRequestException(f"{e} must be specified if 'ssn' is not.") from e
 
@@ -56,3 +58,15 @@ def query_licenses(event: dict, context: LambdaContext):  # pylint: disable=unus
         case _:
             # This shouldn't happen unless our api validation gets misconfigured
             raise CCInvalidRequestException(f"Invalid sort key: '{key}'")
+
+
+@api_handler
+def get_provider(event: dict, context: LambdaContext):
+    try:
+        provider_id = event['pathParameters']['provider_id']
+    except KeyError as e:
+        # This shouldn't happen without miss-configuring the API, but we'll handle it, anyway
+        logger.error(f'Missing argument: {e}')
+        raise CCInvalidRequestException('provider_id is required') from e
+
+    return config.data_client.get_provider(provider_id=provider_id)

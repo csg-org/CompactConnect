@@ -1,0 +1,23 @@
+{
+  "provider_id": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "ssn": "123-12-1234",
+  "npi": "0608337260",
+  "given_name": "Björk",
+  "middle_name": "Gunnar",
+  "family_name": "Guðmundsdóttir",
+  "license_type": "speech language",
+  "status": "active",
+  "home_state_street_1": "123 A St.",
+  "home_state_street_2": "Apt 321",
+  "home_state_city": "Birmingham",
+  "home_state_postal_code": "35004",
+  "date_of_issuance": "2024-06-06",
+  "date_of_birth": "2024-06-06",
+  "date_of_expiration": "2024-06-06",
+  "date_of_renewal": "2024-06-06",
+  "date_of_update": "2024-07-08",
+  "birth_month_day": "06-06",
+  "compact": "aslp",
+  "jurisdiction": "co",
+  "type": "license-home"
+}
