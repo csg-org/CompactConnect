@@ -17,6 +17,7 @@ from ..persistent_stack import LicenseTable
 
 YMD_FORMAT = '^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
 SSN_FORMAT = '^[0-9]{3}-[0-9]{2}-[0-9]{4}$'
+UUID4_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}'
 
 
 class QueryProviders:
@@ -30,28 +31,43 @@ class QueryProviders:
         super().__init__()
 
         self.resource = resource
-        self.query_resource = resource.add_resource('query')
         self.api: license_api.LicenseApi = resource.api
+
+        stack = Stack.of(resource)
+        lambda_environment = {
+            'DEBUG': 'true',
+            'COMPACTS': json.dumps(stack.node.get_context('compacts')),
+            'JURISDICTIONS': json.dumps(stack.node.get_context('jurisdictions')),
+            'LICENSE_TABLE_NAME': license_data_table.table_name,
+            'SSN_INDEX_NAME': license_data_table.ssn_index_name,
+            'CJ_NAME_INDEX_NAME': license_data_table.cj_name_index_name,
+            'CJ_UPDATED_INDEX_NAME': license_data_table.cj_updated_index_name
+        }
+
         self._add_query_providers(
             method_options=method_options,
             data_encryption_key=data_encryption_key,
-            license_data_table=license_data_table
+            license_data_table=license_data_table,
+            lambda_environment=lambda_environment
         )
         self._add_get_provider(
             method_options=method_options,
             data_encryption_key=data_encryption_key,
-            license_data_table=license_data_table
+            license_data_table=license_data_table,
+            lambda_environment=lambda_environment
         )
 
     def _add_get_provider(
             self,
             method_options: MethodOptions,
             data_encryption_key: IKey,
-            license_data_table: LicenseTable
+            license_data_table: LicenseTable,
+            lambda_environment: dict
     ):
         handler = self._get_provider_handler(
             data_encryption_key=data_encryption_key,
-            license_data_table=license_data_table
+            license_data_table=license_data_table,
+            lambda_environment=lambda_environment
         )
         self.api.log_groups.append(handler.log_group)
 
@@ -71,8 +87,12 @@ class QueryProviders:
                 timeout=Duration.seconds(29)
             ),
             request_parameters={
-                'method.request.header.Authorization': True
-            } if method_options.authorization_type != AuthorizationType.NONE else {},
+                'method.request.querystring.providerId': True,
+                **(
+                    {'method.request.header.Authorization': True}
+                    if method_options.authorization_type != AuthorizationType.NONE else {}
+                )
+            },
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer
         )
@@ -81,15 +101,19 @@ class QueryProviders:
             self,
             method_options: MethodOptions,
             data_encryption_key: IKey,
-            license_data_table: LicenseTable
+            license_data_table: LicenseTable,
+            lambda_environment: dict
     ):
+        query_resource = self.resource.add_resource('query')
+
         handler = self._query_providers_handler(
             data_encryption_key=data_encryption_key,
-            license_data_table=license_data_table
+            license_data_table=license_data_table,
+            lambda_environment=lambda_environment
         )
         self.api.log_groups.append(handler.log_group)
 
-        self.query_resource.add_method(
+        query_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
             request_models={
@@ -148,6 +172,7 @@ class QueryProviders:
         return JsonSchema(
             type=JsonSchemaType.OBJECT,
             required=[
+                'provider_id',
                 'type',
                 'compact',
                 'jurisdiction',
@@ -179,6 +204,10 @@ class QueryProviders:
                 'jurisdiction': JsonSchema(
                     type=JsonSchemaType.STRING,
                     enum=stack.node.get_context('jurisdictions')
+                ),
+                'provider_id': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    pattern=UUID4_FORMAT
                 ),
                 'ssn': JsonSchema(
                     type=JsonSchemaType.STRING,
@@ -250,6 +279,11 @@ class QueryProviders:
                             description='Social security number to look up',
                             pattern=SSN_FORMAT
                         ),
+                        'provider_id': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            description='Internal UUID for the provider',
+                            pattern=UUID4_FORMAT
+                        ),
                         'compact': JsonSchema(
                             type=JsonSchemaType.STRING,
                             description="Required if 'ssn' not provided",
@@ -292,22 +326,16 @@ class QueryProviders:
     def _get_provider_handler(
             self,
             data_encryption_key: IKey,
-            license_data_table: LicenseTable
+            license_data_table: LicenseTable,
+            lambda_environment: dict
     ) -> PythonFunction:
-        stack = Stack.of(self.query_resource)
+        stack = Stack.of(self.resource)
         handler = PythonFunction(
-            self.query_resource, 'GetProviderHandler',
+            self.api, 'GetProviderHandler',
             entry=os.path.join('lambdas', 'license-data'),
             index='handlers/providers.py',
             handler='get_provider',
-            environment={
-                'DEBUG': 'true',
-                'LICENSE_TABLE_NAME': license_data_table.table_name,
-                'CJNS_INDEX_NAME': license_data_table.cjns_index_name,
-                'UPDATED_INDEX_NAME': license_data_table.updated_index_name,
-                'COMPACTS': json.dumps(stack.node.get_context('compacts')),
-                'JURISDICTIONS': json.dumps(stack.node.get_context('jurisdictions'))
-            }
+            environment=lambda_environment
         )
         data_encryption_key.grant_decrypt(handler)
         license_data_table.grant_read_data(handler)
@@ -328,22 +356,16 @@ class QueryProviders:
     def _query_providers_handler(
             self,
             data_encryption_key: IKey,
-            license_data_table: LicenseTable
+            license_data_table: LicenseTable,
+            lambda_environment: dict
     ) -> PythonFunction:
-        stack = Stack.of(self.query_resource)
+        stack = Stack.of(self.api)
         handler = PythonFunction(
-            self.query_resource, 'QueryProvidersHandler',
+            self.api, 'QueryProvidersHandler',
             entry=os.path.join('lambdas', 'license-data'),
             index='handlers/providers.py',
             handler='query_providers',
-            environment={
-                'DEBUG': 'true',
-                'LICENSE_TABLE_NAME': license_data_table.table_name,
-                'CJNS_INDEX_NAME': license_data_table.cjns_index_name,
-                'UPDATED_INDEX_NAME': license_data_table.updated_index_name,
-                'COMPACTS': json.dumps(stack.node.get_context('compacts')),
-                'JURISDICTIONS': json.dumps(stack.node.get_context('jurisdictions'))
-            }
+            environment=lambda_environment
         )
         data_encryption_key.grant_decrypt(handler)
         license_data_table.grant_read_data(handler)

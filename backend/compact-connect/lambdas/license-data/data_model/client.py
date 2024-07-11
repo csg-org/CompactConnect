@@ -77,7 +77,7 @@ class DataClient():
         logger.info('Getting provider id by ssn')
         resp = self.config.license_table.query(
             IndexName=config.ssn_index_name,
-            Select='ALL_ATTRIBUTES',
+            Select='ALL_PROJECTED_ATTRIBUTES',
             KeyConditionExpression=Key('ssn').eq(quote(ssn)),
         )
         items = {

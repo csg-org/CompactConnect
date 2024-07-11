@@ -12,7 +12,7 @@ from tests import TstLambdas
 
 logger = logging.getLogger(__name__)
 logging.basicConfig()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false') == 'true' else logging.INFO)
 
 
 @mock_aws

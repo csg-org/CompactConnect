@@ -11,7 +11,7 @@ from config import config, logger
 
 
 @api_handler
-def query_providers(event: dict, context: LambdaContext):
+def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
     """
     Query providers data
     """
@@ -61,12 +61,12 @@ def query_providers(event: dict, context: LambdaContext):
 
 
 @api_handler
-def get_provider(event: dict, context: LambdaContext):
+def get_provider(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
     try:
-        provider_id = event['pathParameters']['provider_id']
-    except KeyError as e:
+        provider_id = event['queryStringParameters']['providerId']
+    except (KeyError, TypeError) as e:
         # This shouldn't happen without miss-configuring the API, but we'll handle it, anyway
-        logger.error(f'Missing argument: {e}')
+        logger.error(f'Missing query string parameter: {e}')
         raise CCInvalidRequestException('provider_id is required') from e
 
     return config.data_client.get_provider(provider_id=provider_id)

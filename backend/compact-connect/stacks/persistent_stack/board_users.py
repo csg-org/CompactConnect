@@ -2,6 +2,7 @@ import os
 
 from aws_cdk.aws_cognito import StringAttribute, ResourceServerScope, UserPoolOperation, LambdaVersion
 from aws_cdk.aws_kms import IKey
+from aws_cdk.aws_logs import RetentionDays
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
@@ -74,7 +75,8 @@ class BoardUsers(UserPool):
             handler='customize_scopes',
             environment={
                 'DEBUG': 'true'
-            }
+            },
+            log_retention=RetentionDays.ONE_MONTH
         )
         self.add_trigger(
             UserPoolOperation.PRE_TOKEN_GENERATION_CONFIG,

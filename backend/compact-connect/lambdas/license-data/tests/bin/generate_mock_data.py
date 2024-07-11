@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # Quick script to generate some mock data for test environments
 #
-# Run from 'backend/compact-connect'
+# Run from 'backend/compact-connect/lambdas/license-data' with:
+# python -m tests.bin.generate_mock_data
 # Required environment variables:
 # export LICENSE_TABLE_NAME='Sandbox-PersistentStack-MockLicenseTable12345-ETC'
 # export COMPACTS='["aslp", "ot", "counseling"]'
@@ -9,10 +10,12 @@
 
 import os
 from random import randint
+from uuid import uuid4
 
 from config import config, logger
 from license_csv_reader import LicenseCSVReader
 from data_model.schema.license import LicenseRecordSchema
+
 
 
 def generate_csv_rows(count):
@@ -30,7 +33,9 @@ def put_licenses(jurisdiction: str, count: int = 100):
     schema = LicenseRecordSchema()
     for i, license_data in generate_csv_rows(count):
         ssn = f'{randint(100, 999)}-{randint(10, 99)}-{9999-i}'
+        provider_id = uuid4()
         license_data.update({
+            'provider_id': provider_id,
             'ssn': ssn,
             'compact': 'aslp',
             'jurisdiction': jurisdiction
