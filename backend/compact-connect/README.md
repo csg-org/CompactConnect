@@ -65,26 +65,32 @@ To add additional dependencies, for example other CDK libraries, just add them t
 [Back to top](#compact-connect---backend-developer-documentation)
 
 Local development can be done by editing the python code and `cdk.json`. For development purposes, this is simply a
-Python project that executes locally. Be sure to install the development requirements:
+Python project that can be exercised with local tests. Be sure to install the development requirements:
 
 ```
 pip install -r requirements-dev.txt
 ```
 
-If you want to deploy this app to see how it runs in the cloud, you can do so by configuring context for your own
-sandbox AWS account with context variables in `cdk.context.json` and running the appropriate `cdk deploy` command.
+Note that this project is a cloud-native app that has many small modular runtimes and integrations. Simulating that
+distributed environment locally is not feasible, so the project relies heavily on test-driven development and solid
+unit/functional tests to be incorporated in the development workflow. If you want to deploy this app to see how it runs
+in the cloud, you can do so by configuring context for your own sandbox AWS account with context variables in
+`cdk.context.json` and running the appropriate `cdk deploy` command.
 
 ## Tests
 [Back to top](#compact-connect---backend-developer-documentation)
 
 Being a cloud project whose infrastructure is written in Python, establishing tests, using the python `unittest`
 library early will be critical to maintaining reliability and velocity. Be sure that any updates you add are covered
-by tests, so we don't introduce bugs or cost time identifying testable bugs after deployment. CDK tests are defined
-under the [tests](./tests) directory. Runtime code tests should be similarly bundled within the lambda folders. Any
-python lambda functions defined in cdk code that uses the `common_constructs.python_function.PythonFunction` construct
-will automatically run bundled tests on synthesis to facilitate automated testing of the entire app.
+by tests, so we don't introduce bugs or cost time identifying testable bugs after deployment. Note that all
+unit/functional tests bundled with this app should be designed to execute with zero requirements for environmental
+setup (including environment variables) beyond simply installing the dependencies in `requirements*.txt` files. CDK
+tests are defined under the [tests](./tests) directory. Runtime code tests should be similarly bundled within the
+lambda folders. Any python lambda functions defined in cdk code that uses the
+`common_constructs.python_function.PythonFunction` construct will automatically run bundled tests on synthesis to
+facilitate automated testing of the entire app.
 
-To execute the tests, simply run `bin/run_tests.sh` from this directory.
+To execute the tests, simply run `bin/run_tests.sh` from the `backend` directory.
 
 ## Deployment
 [Back to top](#compact-connect---backend-developer-documentation)
