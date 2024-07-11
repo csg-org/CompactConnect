@@ -19,6 +19,11 @@ const routes: Array<RouteConfig> = [
         component: () => import(/* webpackChunkName: "home" */ '@pages/Home/Home.vue'),
     },
     {
+        path: '/Licensing',
+        name: 'Licensing',
+        component: () => import(/* webpackChunkName: "licensing" */ '@pages/LicensingList/LicensingList.vue'),
+    },
+    {
         path: '/styleguide',
         name: 'StyleGuide',
         component: () => import(/* webpackChunkName: "styleGuide" */ '@pages/StyleGuide/StyleGuide.vue'),

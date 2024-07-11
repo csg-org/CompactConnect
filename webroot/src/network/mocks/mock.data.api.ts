@@ -9,8 +9,10 @@ import { UserSerializer } from '@models/User/User.model';
 import {
     userData,
     stateUploadRequestData,
+    licensees,
     pets
 } from '@network/mocks/mock.data';
+import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 
 let mockStore: any = null;
 
@@ -34,6 +36,9 @@ export class DataApi {
         return true;
     }
 
+    // ========================================================================
+    //                              STATE API
+    // ========================================================================
     // Get state upload request configuration.
     public getStateUploadRequestConfig(compact: string, state: string) {
         return this.wait(500).then(() => ({
@@ -50,6 +55,24 @@ export class DataApi {
             url,
             file,
         }));
+    }
+
+    // ========================================================================
+    //                              LICENSE API
+    // ========================================================================
+    // Get Licensees
+    public getLicensees(params: any = {}) {
+        return this.wait(500).then(() => ({
+            // count: licensees?.count,
+            lastKey: licensees.lastKey,
+            licensees: licensees.items.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
+            params,
+        }));
+    }
+
+    // Get Licensee by ID
+    public getLicensee() {
+        return this.wait(500).then(() => LicenseeSerializer.fromServer(licensees.items[0]));
     }
 
     // ========================================================================

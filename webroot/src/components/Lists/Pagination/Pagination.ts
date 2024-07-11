@@ -19,13 +19,13 @@ import LeftCaretIcon from '@components/Icons/LeftCaretIcon/LeftCaretIcon.vue';
 import RightCaretIcon from '@components/Icons/RightCaretIcon/RightCaretIcon.vue';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 
-const MAX_PAGES_VISIBLE = 7;
+// const MAX_PAGES_VISIBLE = 7;
 
 const createPaginationItem = (pageNum, currentPage) => ({
     id: pageNum,
     clickable: pageNum > 0,
     displayValue: (pageNum > 0) ? pageNum : '...',
-    selected: pageNum === currentPage
+    selected: pageNum > 0 && pageNum === currentPage
 });
 
 @Component({
@@ -49,9 +49,7 @@ export default class Pagination extends mixins(MixinForm) {
     paginationStore: any = {};
     ellipsis = (key) => createPaginationItem(key, -1);
     defaultPageSizeOptions = [
-        { value: 5, name: '5', isDefault: true },
-        { value: 10, name: '10', isDefault: false },
-        { value: 20, name: '20', isDefault: false },
+        { value: 25, name: '25', isDefault: true },
     ];
 
     defaultPageSize = DEFAULT_PAGE_SIZE;
@@ -136,50 +134,70 @@ export default class Pagination extends mixins(MixinForm) {
         return this.currentPage === this.pageCount;
     }
 
+    // Temp for limited server paging support
+    // get pages() {
+    //     const { currentPage, pageCount, ellipsis } = this;
+    //
+    //     const visiblePagesCount = Math.min(MAX_PAGES_VISIBLE, pageCount) || 1;
+    //     const visiblePagesThreshold = (visiblePagesCount - 1) / 2;
+    //     const tempArray = Array(visiblePagesCount - 1);
+    //     const paginationDisplaysArray = [...tempArray.keys()].map((i) => i + 1);
+    //     const firstPage = () => createPaginationItem(1, currentPage);
+    //     const lastPage = () => createPaginationItem(pageCount, currentPage);
+    //     let pageItems;
+    //
+    //     if (pageCount <= MAX_PAGES_VISIBLE) {
+    //         pageItems = paginationDisplaysArray.map((index) => {
+    //             const item = createPaginationItem(index, currentPage);
+    //
+    //             return item;
+    //         });
+    //         pageItems.push(lastPage());
+    //     } else if (currentPage <= visiblePagesThreshold) {
+    //         pageItems = paginationDisplaysArray.map((index) => {
+    //             const item = createPaginationItem(index, currentPage);
+    //
+    //             return item;
+    //         });
+    //         pageItems[pageItems.length - 1] = ellipsis(0);
+    //         pageItems.push(lastPage());
+    //     } else if (currentPage > pageCount - visiblePagesThreshold) {
+    //         pageItems = paginationDisplaysArray.map((paginationDisplay, index) => {
+    //             const item = createPaginationItem(pageCount - index, currentPage);
+    //
+    //             return item;
+    //         });
+    //         pageItems.reverse();
+    //         pageItems[0] = ellipsis(0);
+    //         pageItems.unshift(firstPage());
+    //     } else {
+    //         pageItems = [];
+    //         pageItems.push(firstPage());
+    //         pageItems.push(ellipsis(0));
+    //         pageItems.push(createPaginationItem(currentPage - 1, currentPage));
+    //         pageItems.push(createPaginationItem(currentPage, currentPage));
+    //         pageItems.push(createPaginationItem(currentPage + 1, currentPage));
+    //         pageItems.push(ellipsis(-1));
+    //         pageItems.push(lastPage());
+    //     }
+    //
+    //     return pageItems;
+    // }
+
+    // Temp for limited server paging support
     get pages() {
-        const { currentPage, pageCount, ellipsis } = this;
+        const { currentPage, ellipsis } = this;
+        const pageItems: Array<any> = [];
 
-        const visiblePagesCount = Math.min(MAX_PAGES_VISIBLE, pageCount) || 1;
-        const visiblePagesThreshold = (visiblePagesCount - 1) / 2;
-        const tempArray = Array(visiblePagesCount - 1);
-        const paginationDisplaysArray = [...tempArray.keys()].map((i) => i + 1);
-        const firstPage = () => createPaginationItem(1, currentPage);
-        const lastPage = () => createPaginationItem(pageCount, currentPage);
-        let pageItems;
-
-        if (pageCount <= MAX_PAGES_VISIBLE) {
-            pageItems = paginationDisplaysArray.map((index) => {
-                const item = createPaginationItem(index, currentPage);
-
-                return item;
-            });
-            pageItems.push(lastPage());
-        } else if (currentPage <= visiblePagesThreshold) {
-            pageItems = paginationDisplaysArray.map((index) => {
-                const item = createPaginationItem(index, currentPage);
-
-                return item;
-            });
-            pageItems[pageItems.length - 1] = ellipsis(0);
-            pageItems.push(lastPage());
-        } else if (currentPage > pageCount - visiblePagesThreshold) {
-            pageItems = paginationDisplaysArray.map((paginationDisplay, index) => {
-                const item = createPaginationItem(pageCount - index, currentPage);
-
-                return item;
-            });
-            pageItems.reverse();
-            pageItems[0] = ellipsis(0);
-            pageItems.unshift(firstPage());
-        } else {
-            pageItems = [];
-            pageItems.push(firstPage());
+        if (currentPage === 1) {
+            pageItems.push(createPaginationItem(1, currentPage));
+        } else if (currentPage === 2) {
+            pageItems.push(createPaginationItem(1, currentPage));
+            pageItems.push(createPaginationItem(2, currentPage));
+        } else if (currentPage > 2) {
+            pageItems.push(createPaginationItem(1, currentPage));
             pageItems.push(ellipsis(0));
-            pageItems.push(createPaginationItem(currentPage - 1, currentPage));
             pageItems.push(createPaginationItem(currentPage, currentPage));
-            pageItems.push(createPaginationItem(currentPage + 1, currentPage));
-            pageItems.push(ellipsis(-1));
-            pageItems.push(lastPage());
         }
 
         return pageItems;

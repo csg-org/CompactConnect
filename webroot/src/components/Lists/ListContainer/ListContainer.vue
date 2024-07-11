@@ -15,7 +15,7 @@
                 v-on="$listeners"
             />
             <Sorting
-                v-if="hasRecords && !excludeSorting"
+                v-if="hasRecords && !excludeSorting && $matches.tablet.max"
                 :listId="listId"
                 :sortOptions="sortOptions"
                 :sortChange="sortChange"
@@ -34,7 +34,7 @@
             <slot name="headers"></slot>
         </ul>
         <div v-if="isLoading" class="list-loading">
-            <div class="loading-text">Loading</div>
+            <div class="loading-text">{{ $t('common.loading') }}</div>
             <div class="ellipsis-container">
                 <div class="ellipsis"></div>
                 <div class="ellipsis"></div>
@@ -42,10 +42,11 @@
                 <div class="ellipsis"></div>
             </div>
         </div>
+        <div v-else-if="loadingError" class="loading-error">{{ $t('serverErrors.networkError') }}</div>
         <ul v-else-if="hasRecords" class="list">
             <slot name="list"></slot>
         </ul>
-        <div v-else class="no-records">No records to display</div>
+        <div v-else class="no-records">{{ $t('serverErrors.noRecords') }}</div>
         <div class="filter-bar">
             <Pagination
                 ariaLabel="Bottom Pagination"

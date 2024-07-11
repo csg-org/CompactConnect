@@ -102,7 +102,7 @@ describe('Pagination mixin', async () => {
         const wrapper = await mountShallow(PaginationMixin);
         const component = wrapper.vm;
 
-        expect(component.currentPageSize).to.equal(5);
+        expect(component.currentPageSize).to.equal(25);
     });
     it('should get current page size selected value', async () => {
         const wrapper = await mountShallow(PaginationMixin, {
@@ -114,10 +114,10 @@ describe('Pagination mixin', async () => {
 
         await component.$store.dispatch('pagination/updatePaginationSize', {
             paginationId: '1',
-            newSize: 100,
+            newSize: 200,
         });
 
-        expect(component.currentPageSize).to.equal(100);
+        expect(component.currentPageSize).to.equal(200);
     });
     it('should handle when pagination UI is excluded', async () => {
         const wrapper = await mountShallow(PaginationMixin, {

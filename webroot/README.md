@@ -35,6 +35,13 @@
     - **`BASE_URL`**
         - `/` to serve under domain root
         - Otherwise, a relative path under the domain root; don't include trailing slash
+    - **`VUE_APP_ROBOTS_META`**
+        - _Server_ :arrow_heading_up:
+            - Dev: `noindex,nofollow`
+            - Test: `noindex,nofollow`
+            - Prod: `nofollow`
+        - _Local_ :arrow_heading_down:
+            - `noindex,nofollow`
     - **`VUE_APP_DOMAIN`**
         - _Server_ :arrow_heading_up:
             - Dev: `TODO`
@@ -42,6 +49,20 @@
             - Prod: `TODO`
         - _Local_ :arrow_heading_down:
             - `http://localhost:3018`
+    - **`VUE_APP_API_STATE_ROOT`**
+        - _Server_ :arrow_heading_up:
+            - Dev: `https://m848119752.execute-api.us-east-1.amazonaws.com/test`
+            - Test: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `https://m848119752.execute-api.us-east-1.amazonaws.com/test`
+    - **`VUE_APP_API_LICENSE_ROOT`**
+        - _Server_ :arrow_heading_up:
+            - Dev: `https://m848119752.execute-api.us-east-1.amazonaws.com/test`
+            - Test: `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `https://m848119752.execute-api.us-east-1.amazonaws.com/test`
     - **`VUE_APP_MOCK_API`** :arrow_heading_down:
         - Only used for local development
         - `true` if mock API should be used

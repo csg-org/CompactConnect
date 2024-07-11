@@ -9,6 +9,7 @@ import {
     Component,
     Prop,
     mixins,
+    Watch,
     toNative
 } from 'vue-facing-decorator';
 import { reactive, computed } from 'vue';
@@ -48,6 +49,14 @@ class Sorting extends mixins(MixinForm) {
         return this.$store.state.sorting;
     }
 
+    get sortingStoreOption(): any {
+        return this.sortingStore.sortingMap[this.listId]?.option;
+    }
+
+    get sortingStoreDirection(): SortDirection {
+        return this.sortingStore.sortingMap[this.listId]?.direction;
+    }
+
     get isPhone() {
         return this.$matches.phone.only;
     }
@@ -81,22 +90,49 @@ class Sorting extends mixins(MixinForm) {
         this.isCollapsed = !this.isCollapsed;
     }
 
-    async sortOptionChange(formInput: FormInput) {
+    async sortOptionChange(formInput: FormInput, isExternal = false) {
         const { sortingId } = this;
         const { sortOptions, sortDirection } = this.formData;
-        const newOption = formInput.value;
 
-        await this.$store.dispatch('sorting/updateSortOption', { sortingId, newOption }); // Ideally, interested observers can just watch the store
-        this.sortChange(sortOptions.value, Boolean(sortDirection.value === SortDirection.asc)); // ...but we'll also fire the change method property too for now
+        if (sortOptions.value !== this.sortingStoreOption) {
+            if (isExternal) {
+                sortOptions.value = this.sortingStoreOption;
+            } else {
+                const newOption = formInput.value;
+
+                await this.$store.dispatch('sorting/updateSortOption', { sortingId, newOption });
+            }
+
+            this.sortChange(sortOptions.value, Boolean(sortDirection.value === SortDirection.asc));
+        }
     }
 
-    async sortDirectionChange(formInput: FormInput) {
+    async sortDirectionChange(formInput: FormInput, isExternal = false) {
         const { sortingId } = this;
         const { sortOptions, sortDirection } = this.formData;
-        const newDirection = formInput.value;
 
-        await this.$store.dispatch('sorting/updateSortDirection', { sortingId, newDirection }); // Ideally, interested observers can just watch the store
-        this.sortChange(sortOptions.value, Boolean(sortDirection.value === SortDirection.asc)); // ...but we'll also fire the change method property too for now
+        if (sortDirection.value !== this.sortingStoreDirection) {
+            if (isExternal) {
+                sortDirection.value = this.sortingStoreDirection;
+            } else {
+                const newDirection = formInput.value;
+
+                await this.$store.dispatch('sorting/updateSortDirection', { sortingId, newDirection });
+            }
+
+            this.sortChange(sortOptions.value, Boolean(sortDirection.value === SortDirection.asc)); // ...but we'll also fire the change method property too for now
+        }
+    }
+
+    //
+    // Watchers
+    //
+    @Watch('sortingStoreOption') sortStoreOptionUpdate() {
+        this.sortOptionChange(this.formData.sortOptions, true);
+    }
+
+    @Watch('sortingStoreDirection') sortStoreDirectionUpdate() {
+        this.sortDirectionChange(this.formData.sortDirection, true);
     }
 }
 

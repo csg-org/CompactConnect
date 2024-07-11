@@ -41,6 +41,7 @@ jobs:
       VUE_APP_DOMAIN: https://d130azwkbquf2a.cloudfront.net
       VUE_APP_ROBOTS_META: noindex,nofollow
       VUE_APP_API_STATE_ROOT: https://m848119752.execute-api.us-east-1.amazonaws.com/test
+      VUE_APP_API_LICENSE_ROOT: https://m848119752.execute-api.us-east-1.amazonaws.com/test
 
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
@@ -91,6 +92,7 @@ jobs:
           VUE_APP_DOMAIN: ${{ env.VUE_APP_DOMAIN }}
           VUE_APP_ROBOTS_META: ${{ env.VUE_APP_ROBOTS_META }}
           VUE_APP_API_STATE_ROOT: ${{ env.VUE_APP_API_STATE_ROOT }}
+          VUE_APP_API_LICENSE_ROOT: ${{ env.VUE_APP_API_LICENSE_ROOT }}
         run: yarn build
         working-directory: ./webroot
 

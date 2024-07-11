@@ -1,0 +1,116 @@
+//
+//  lists.less
+//  InspiringApps modules
+//
+//  Created by Inspiring Apps on 6/1/20.
+//
+
+@listBorder: 1px solid @lightGrey;
+@listBorderRadius: 8px;
+
+.list-title {
+    margin-bottom: 3.2rem;
+}
+
+.first-list-row() {
+    border-top: @listBorder;
+    border-top-left-radius: @listBorderRadius;
+    border-top-right-radius: @listBorderRadius;
+}
+
+.last-list-row() {
+    border: @listBorder;
+    border-top-left-radius: @listBorderRadius;
+    border-top-right-radius: @listBorderRadius;
+    border-bottom-right-radius: @listBorderRadius;
+    border-bottom-left-radius: @listBorderRadius;
+
+    @media @tabletWidth {
+        border-top: 0;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
+}
+
+.list-row() {
+    display: flex;
+    flex-direction: column;
+    padding: 0.8rem 0;
+    border: @listBorder;
+    border-top: 0;
+
+    @media @tabletWidth {
+        flex-direction: row;
+    }
+
+    &.is-header {
+        .first-list-row();
+
+        display: none;
+        font-weight: @fontWeightBold;
+
+        @media @tabletWidth {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+    }
+
+    &:first-child:not(.is-header) {
+        .first-list-row();
+
+        @media @tabletWidth {
+            border-top: 0;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+    }
+
+    &:last-child:not(:first-child) {
+        .last-list-row();
+    }
+
+    .cell {
+        flex-basis: 0;
+        flex-grow: 1;
+        flex-shrink: 1;
+        align-content: center;
+        padding: 0 12px;
+        color: @veryDarkGrey;
+
+        &.is-sort-enabled {
+            cursor: pointer;
+
+            &:hover {
+                background-color: @lightGrey;
+
+                // .sort-icon {
+                //     display: inline-block;
+                // }
+            }
+        }
+
+        .cell-title {
+            font-weight: @fontWeightBold;
+        }
+    }
+
+    .sort-icon {
+        display: none;
+        width: 0;
+        height: 0;
+        margin-left: 2px;
+        border: solid 5px transparent;
+        border-top: solid 7px @primaryColor;
+        border-bottom-width: 0;
+
+        &.is-selected {
+            display: inline-block;
+        }
+
+        &.asc {
+            border-top-width: 0;
+            border-bottom: solid 7px @primaryColor;
+        }
+    }
+}

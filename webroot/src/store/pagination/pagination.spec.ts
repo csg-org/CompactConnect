@@ -12,7 +12,7 @@ const chai = require('chai').use(chaiMatchPattern);
 
 const { expect } = chai;
 const defaultPageNum = 1;
-const defaultPageSize = 5;
+const defaultPageSize = 25;
 
 describe('Pagniation Store Mutations', () => {
     it('should successfully update pagination page (id does not exist in store)', () => {
