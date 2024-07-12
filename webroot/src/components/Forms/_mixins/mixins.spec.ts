@@ -115,7 +115,7 @@ describe('Input mixin', async () => {
         const component = wrapper.vm;
 
         component.blur(formInput);
-        // component.input(formInput);
+        component.input(formInput);
 
         expect(formInput).to.matchPattern(formInput);
     });

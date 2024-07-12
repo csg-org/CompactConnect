@@ -118,7 +118,7 @@ jobs:
       - name: Wait for Cloudfront invalidation
         run: aws cloudfront wait invalidation-completed --distribution-id ${{ env.AWS_CLOUDFRONT_DISTRIBUTION }} --id ${{ env.CLOUDFRONT_INVALIDATION_ID }}
 
-      # Notify to Slack
+      # Notify to Slack (IA)
       - name: Post to a Slack channel
         uses: slackapi/slack-github-action@v1.26.0
         # https://github.com/slackapi/slack-github-action?tab=readme-ov-file#technique-2-slack-app
