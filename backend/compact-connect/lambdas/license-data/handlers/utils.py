@@ -127,3 +127,39 @@ class scope_by_path:  # pylint: disable=invalid-name
                 return {'statusCode': 403}
             return fn(event, context)
         return authorized
+
+
+def sqs_handler(fn: Callable):
+    """
+    Process messages from the ingest queue.
+
+    This handler uses batch item failure reporting:
+    https://docs.aws.amazon.com/lambda/latest/dg/example_serverless_SQS_Lambda_batch_item_failures_section.html
+    This allows the queue to continue to scale under load, even if a number of the messages are failing. It
+    also improves efficiency, as we don't have to throw away the entire batch for a single failure.
+    """
+    @wraps(fn)
+    @logger.inject_lambda_context
+    def process_messages(event, context: LambdaContext):  # pylint: disable=unused-argument
+        records = event['Records']
+        logger.info('Starting batch', batch_count=len(records))
+        batch_failures = []
+        for record in records:
+            try:
+                message = json.loads(record['body'])
+                logger.info(
+                    'Processing message',
+                    message_id=record['messageId'],
+                    message_attributes=record.get('messageAttributes')
+                )
+                # No exception here means success
+                fn(message)
+            except Exception as e:  # pylint: disable=broad-exception-caught
+                logger.error('Failed to process message', exc_info=e)
+                batch_failures.append({'itemIdentifier': record['messageId']})
+        logger.info('Completed batch', batch_failures=len(batch_failures))
+        return {
+            'batchItemFailures': batch_failures
+        }
+
+    return process_messages

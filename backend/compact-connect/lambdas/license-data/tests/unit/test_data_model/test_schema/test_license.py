@@ -31,17 +31,17 @@ class TestLicensePostSchema(TstLambdas):
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
             expected_license_record = json.load(f)
-        provider_id = expected_license_record['provider_id']
+        provider_id = expected_license_record['providerId']
 
         license_record = LicenseRecordSchema().dump({
             'compact': 'aslp',
             'jurisdiction': 'co',
-            'provider_id': UUID(provider_id),
+            'providerId': UUID(provider_id),
             **license_data
         })
 
         # These are dynamic and so won't match
-        del expected_license_record['date_of_update']
-        del license_record['date_of_update']
+        del expected_license_record['dateOfUpdate']
+        del license_record['dateOfUpdate']
 
         self.assertEqual(expected_license_record, license_record)

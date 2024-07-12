@@ -50,19 +50,19 @@ class TstFunction(TstLambdas):
                     'AttributeType': 'S'
                 },
                 {
-                    'AttributeName': 'date_of_update',
+                    'AttributeName': 'dateOfUpdate',
                     'AttributeType': 'S'
                 },
                 {
-                    'AttributeName': 'license_home_provider_id',
+                    'AttributeName': 'licenseHomeProviderId',
                     'AttributeType': 'S'
                 },
                 {
-                    'AttributeName': 'compact_jur',
+                    'AttributeName': 'compactJur',
                     'AttributeType': 'S'
                 },
                 {
-                    'AttributeName': 'fam_giv_mid',
+                    'AttributeName': 'famGivMid',
                     'AttributeType': 'S'
                 }
             ],
@@ -87,7 +87,7 @@ class TstFunction(TstLambdas):
                             'KeyType': 'HASH'
                         },
                         {
-                            'AttributeName': 'license_home_provider_id',
+                            'AttributeName': 'licenseHomeProviderId',
                             'KeyType': 'RANGE'
                         }
                     ],
@@ -99,11 +99,11 @@ class TstFunction(TstLambdas):
                     'IndexName': os.environ['CJ_NAME_INDEX_NAME'],
                     'KeySchema': [
                         {
-                            'AttributeName': 'compact_jur',
+                            'AttributeName': 'compactJur',
                             'KeyType': 'HASH'
                         },
                         {
-                            'AttributeName': 'fam_giv_mid',
+                            'AttributeName': 'famGivMid',
                             'KeyType': 'RANGE'
                         }
                     ],
@@ -115,11 +115,11 @@ class TstFunction(TstLambdas):
                     'IndexName': os.environ['CJ_UPDATED_INDEX_NAME'],
                     'KeySchema': [
                         {
-                            'AttributeName': 'compact_jur',
+                            'AttributeName': 'compactJur',
                             'KeyType': 'HASH'
                         },
                         {
-                            'AttributeName': 'date_of_update',
+                            'AttributeName': 'dateOfUpdate',
                             'KeyType': 'RANGE'
                         }
                     ],
@@ -150,7 +150,7 @@ class TstFunction(TstLambdas):
             provider_id = str(uuid4())
             ssn = f'{randint(100, 999)}-{randint(10, 99)}-{i}'
             license_data.update({
-                'provider_id': provider_id,
+                'providerId': provider_id,
                 'ssn': ssn
             })
 
@@ -166,7 +166,7 @@ class TstFunction(TstLambdas):
             )
 
             privilege_data.update({
-                'provider_id': provider_id,
+                'providerId': provider_id,
                 'ssn': ssn,
                 'home_jurisdiction': home
             })

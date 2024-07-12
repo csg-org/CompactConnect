@@ -17,12 +17,12 @@ class TestClient(TstFunction):
             license_data = LicensePostSchema().loads(f.read())
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
-            provider_id = json.load(f)['provider_id']
+            provider_id = json.load(f)['providerId']
 
         self._table.put_item(
             # We'll use the schema/serializer to populate index fields for us
             Item=LicenseRecordSchema().dump({
-                'provider_id': provider_id,
+                'providerId': provider_id,
                 'compact': 'aslp',
                 'jurisdiction': 'co',
                 **license_data
@@ -34,7 +34,7 @@ class TestClient(TstFunction):
 
         self._table.put_item(
             Item=PrivilegeRecordSchema().dump({
-                'provider_id': provider_id,
+                'providerId': provider_id,
                 'compact': 'aslp',
                 'jurisdiction': 'co',
                 **privilege
@@ -53,7 +53,7 @@ class TestClient(TstFunction):
         self._table.put_item(
             # We'll use the schema/serializer to populate index fields for us
             Item=LicenseRecordSchema().dump({
-                'provider_id': str(uuid4()),
+                'providerId': str(uuid4()),
                 'compact': 'aslp',
                 'jurisdiction': 'co',
                 **license_data
@@ -71,12 +71,12 @@ class TestClient(TstFunction):
             license_data = LicensePostSchema().loads(f.read())
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
-            provider_id = json.load(f)['provider_id']
+            provider_id = json.load(f)['providerId']
 
         self._table.put_item(
             # We'll use the schema/serializer to populate index fields for us
             Item=LicenseRecordSchema().dump({
-                'provider_id': provider_id,
+                'providerId': provider_id,
                 'compact': 'aslp',
                 'jurisdiction': 'co',
                 **license_data
@@ -88,7 +88,7 @@ class TestClient(TstFunction):
 
         self._table.put_item(
             Item=PrivilegeRecordSchema().dump({
-                'provider_id': provider_id,
+                'providerId': provider_id,
                 'compact': 'aslp',
                 'jurisdiction': 'co',
                 **privilege
@@ -114,14 +114,14 @@ class TestClient(TstFunction):
             license_data = LicensePostSchema().loads(f.read())
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
-            provider_id = json.load(f)['provider_id']
+            provider_id = json.load(f)['providerId']
 
         self._table.put_item(
             Item={
                 # Oh, no! We've somehow put somebody's SSN in the wrong place!
                 'something_unexpected': '123-12-1234',
                 **LicenseRecordSchema().dump({
-                    'provider_id': provider_id,
+                    'providerId': provider_id,
                     'compact': 'aslp',
                     'jurisdiction': 'co',
                     **license_data

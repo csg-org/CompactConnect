@@ -147,7 +147,7 @@ class QueryProviders:
             properties={
                 'key': JsonSchema(
                     type=JsonSchemaType.STRING,
-                    enum=['date_of_update', 'family_name']
+                    enum=['dateOfUpdate', 'familyName']
                 ),
                 'direction': JsonSchema(
                     type=JsonSchemaType.STRING,
@@ -172,23 +172,23 @@ class QueryProviders:
         return JsonSchema(
             type=JsonSchemaType.OBJECT,
             required=[
-                'provider_id',
+                'providerId',
                 'type',
                 'compact',
                 'jurisdiction',
                 'ssn',
-                'given_name',
-                'family_name',
-                'date_of_birth',
-                'home_state_street_1',
-                'home_state_street_2',
-                'home_state_city',
-                'home_state_postal_code',
-                'license_type',
-                'date_of_issuance',
-                'date_of_renewal',
-                'date_of_expiration',
-                'date_of_update',
+                'givenName',
+                'familyName',
+                'dateOfBirth',
+                'homeStateStreet1',
+                'homeStateStreet2',
+                'homeStateCity',
+                'homeStatePostalCode',
+                'licenseType',
+                'dateOfIssuance',
+                'dateOfRenewal',
+                'dateOfExpiration',
+                'dateOfUpdate',
                 'status'
             ],
             additional_properties=False,
@@ -205,7 +205,7 @@ class QueryProviders:
                     type=JsonSchemaType.STRING,
                     enum=stack.node.get_context('jurisdictions')
                 ),
-                'provider_id': JsonSchema(
+                'providerId': JsonSchema(
                     type=JsonSchemaType.STRING,
                     pattern=UUID4_FORMAT
                 ),
@@ -217,38 +217,38 @@ class QueryProviders:
                     type=JsonSchemaType.STRING,
                     pattern='^[0-9]{10}$'
                 ),
-                'given_name': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-                'middle_name': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-                'family_name': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-                'date_of_birth': JsonSchema(
+                'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'middleName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'dateOfBirth': JsonSchema(
                     type=JsonSchemaType.STRING,
                     format='date',
                     pattern=YMD_FORMAT
                 ),
-                'home_state_street_1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
-                'home_state_street_2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-                'home_state_city': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
-                'home_state_postal_code': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
-                'license_type': JsonSchema(
+                'homeStateStreet1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
+                'homeStateStreet2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'homeStateCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
+                'homeStatePostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
+                'licenseType': JsonSchema(
                     type=JsonSchemaType.STRING,
                     enum=stack.node.get_context('license_types')
                 ),
-                'date_of_issuance': JsonSchema(
+                'dateOfIssuance': JsonSchema(
                     type=JsonSchemaType.STRING,
                     format='date',
                     pattern=YMD_FORMAT
                 ),
-                'date_of_renewal': JsonSchema(
+                'dateOfRenewal': JsonSchema(
                     type=JsonSchemaType.STRING,
                     format='date',
                     pattern=YMD_FORMAT
                 ),
-                'date_of_expiration': JsonSchema(
+                'dateOfExpiration': JsonSchema(
                     type=JsonSchemaType.STRING,
                     format='date',
                     pattern=YMD_FORMAT
                 ),
-                'date_of_update': JsonSchema(
+                'dateOfUpdate': JsonSchema(
                     type=JsonSchemaType.STRING,
                     format='date',
                     pattern=YMD_FORMAT
@@ -279,7 +279,7 @@ class QueryProviders:
                             description='Social security number to look up',
                             pattern=SSN_FORMAT
                         ),
-                        'provider_id': JsonSchema(
+                        'providerId': JsonSchema(
                             type=JsonSchemaType.STRING,
                             description='Internal UUID for the provider',
                             pattern=UUID4_FORMAT
@@ -333,7 +333,7 @@ class QueryProviders:
         handler = PythonFunction(
             self.api, 'GetProviderHandler',
             entry=os.path.join('lambdas', 'license-data'),
-            index='handlers/providers.py',
+            index=os.path.join('handlers', 'providers.py'),
             handler='get_provider',
             environment=lambda_environment
         )
@@ -363,7 +363,7 @@ class QueryProviders:
         handler = PythonFunction(
             self.api, 'QueryProvidersHandler',
             entry=os.path.join('lambdas', 'license-data'),
-            index='handlers/providers.py',
+            index=os.path.join('handlers', 'providers.py'),
             handler='query_providers',
             environment=lambda_environment
         )

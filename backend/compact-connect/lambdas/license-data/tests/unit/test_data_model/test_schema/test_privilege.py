@@ -31,17 +31,17 @@ class TestPrivilegePostSchema(TstLambdas):
 
         with open('tests/resources/dynamo/privilege.json', 'r') as f:
             expected_privilege_record = json.load(f)
-        provider_id = expected_privilege_record['provider_id']
+        provider_id = expected_privilege_record['providerId']
 
         privilege_record = PrivilegeRecordSchema().dump({
             'compact': 'aslp',
             'jurisdiction': 'co',
-            'provider_id': UUID(provider_id),
+            'providerId': UUID(provider_id),
             **privilege_data
         })
 
         # These are dynamic and so won't match
-        del expected_privilege_record['date_of_update']
-        del privilege_record['date_of_update']
+        del expected_privilege_record['dateOfUpdate']
+        del privilege_record['dateOfUpdate']
 
         self.assertEqual(expected_privilege_record, privilege_record)

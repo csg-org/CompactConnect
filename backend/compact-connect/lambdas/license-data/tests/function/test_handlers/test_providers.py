@@ -14,12 +14,12 @@ class TestProviders(TstFunction):
             license_data = LicensePostSchema().loads(f.read())
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
-            provider_id = json.load(f)['provider_id']
+            provider_id = json.load(f)['providerId']
 
         self._table.put_item(
             # We'll use the schema/serializer to populate index fields for us
             Item=LicenseRecordSchema().dump({
-                'provider_id': provider_id,
+                'providerId': provider_id,
                 'compact': 'aslp',
                 'jurisdiction': 'co',
                 **license_data
@@ -47,13 +47,13 @@ class TestProviders(TstFunction):
         body = json.loads(resp['body'])
         # Drop generated fields
         for o in body['items']:
-            del o['date_of_update']
-            del o['birth_month_day']
+            del o['dateOfUpdate']
+            del o['birthMonthDay']
         self.assertEqual(
             {
                 'items': [
                     {
-                        'provider_id': provider_id,
+                        'providerId': provider_id,
                         'compact': 'aslp',
                         'jurisdiction': 'co',
                         'type': 'license-home',
@@ -72,12 +72,12 @@ class TestProviders(TstFunction):
             license_data = LicensePostSchema().loads(f.read())
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
-            provider_id = json.load(f)['provider_id']
+            provider_id = json.load(f)['providerId']
 
         self._table.put_item(
             # We'll use the schema/serializer to populate index fields for us
             Item=LicenseRecordSchema().dump({
-                'provider_id': provider_id,
+                'providerId': provider_id,
                 'compact': 'aslp',
                 'jurisdiction': 'co',
                 **license_data
@@ -92,7 +92,7 @@ class TestProviders(TstFunction):
 
         event['pathParameters'] = {}
         event['body'] = json.dumps({
-            'provider_id': provider_id
+            'providerId': provider_id
         })
 
         resp = query_providers(event, self.mock_context)
@@ -105,13 +105,13 @@ class TestProviders(TstFunction):
         body = json.loads(resp['body'])
         # Drop generated fields
         for o in body['items']:
-            del o['date_of_update']
-            del o['birth_month_day']
+            del o['dateOfUpdate']
+            del o['birthMonthDay']
         self.assertEqual(
             {
                 'items': [
                     {
-                        'provider_id': provider_id,
+                        'providerId': provider_id,
                         'compact': 'aslp',
                         'jurisdiction': 'co',
                         'type': 'license-home',
@@ -136,7 +136,7 @@ class TestProviders(TstFunction):
         event['pathParameters'] = {}
         event['body'] = json.dumps({
             'sorting': {
-                'key': 'date_of_update'
+                'key': 'dateOfUpdate'
             },
             'compact': 'aslp',
             'jurisdiction': 'co'
@@ -164,7 +164,7 @@ class TestProviders(TstFunction):
         event['pathParameters'] = {}
         event['body'] = json.dumps({
             'sorting': {
-                'key': 'family_name'
+                'key': 'familyName'
             },
             'compact': 'aslp',
             'jurisdiction': 'co'
@@ -228,12 +228,12 @@ class TestProviders(TstFunction):
             license_data = LicensePostSchema().loads(f.read())
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
-            provider_id = json.load(f)['provider_id']
+            provider_id = json.load(f)['providerId']
 
         self._table.put_item(
             # We'll use the schema/serializer to populate index fields for us
             Item=LicenseRecordSchema().dump({
-                'provider_id': provider_id,
+                'providerId': provider_id,
                 'compact': 'aslp',
                 'jurisdiction': 'co',
                 **license_data
@@ -258,8 +258,8 @@ class TestProviders(TstFunction):
         license_data = json.loads(resp['body'])['items'][0]
 
         # Deleting a dynamic field that won't match canned data
-        del expected_license['date_of_update']
-        del license_data['date_of_update']
+        del expected_license['dateOfUpdate']
+        del license_data['dateOfUpdate']
 
         self.assertEqual(expected_license, license_data)
 
@@ -271,12 +271,12 @@ class TestProviders(TstFunction):
             license_data = LicensePostSchema().loads(f.read())
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
-            provider_id = json.load(f)['provider_id']
+            provider_id = json.load(f)['providerId']
 
         self._table.put_item(
             # We'll use the schema/serializer to populate index fields for us
             Item=LicenseRecordSchema().dump({
-                'provider_id': provider_id,
+                'providerId': provider_id,
                 'compact': 'aslp',
                 'jurisdiction': 'co',
                 **license_data

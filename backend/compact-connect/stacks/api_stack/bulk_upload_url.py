@@ -41,7 +41,7 @@ class BulkUploadUrl:
         handler = PythonFunction(
             self.resource, 'Handler',
             entry=os.path.join('lambdas', 'license-data'),
-            index='handlers/bulk_upload.py',
+            index=os.path.join('handlers', 'bulk_upload.py'),
             handler='bulk_upload_url_handler' if not mock_bucket else 'no_auth_bulk_upload_url_handler',
             environment={
                 'DEBUG': 'true',

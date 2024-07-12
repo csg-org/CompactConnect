@@ -32,20 +32,20 @@ class LicenseTable(Table):
 
         self.add_global_secondary_index(
             index_name=self.cj_name_index_name,
-            partition_key=Attribute(name='compact_jur', type=AttributeType.STRING),
-            sort_key=Attribute(name='fam_giv_mid', type=AttributeType.STRING),
+            partition_key=Attribute(name='compactJur', type=AttributeType.STRING),
+            sort_key=Attribute(name='famGivMid', type=AttributeType.STRING),
             projection_type=ProjectionType.ALL
         )
         self.add_global_secondary_index(
             index_name=self.cj_updated_index_name,
-            partition_key=Attribute(name='compact_jur', type=AttributeType.STRING),
-            sort_key=Attribute(name='date_of_update', type=AttributeType.STRING),
+            partition_key=Attribute(name='compactJur', type=AttributeType.STRING),
+            sort_key=Attribute(name='dateOfUpdate', type=AttributeType.STRING),
             projection_type=ProjectionType.ALL
         )
         self.add_global_secondary_index(
             index_name=self.ssn_index_name,
             partition_key=Attribute(name='ssn', type=AttributeType.STRING),
-            sort_key=Attribute(name='license_home_provider_id', type=AttributeType.STRING),
+            sort_key=Attribute(name='licenseHomeProviderId', type=AttributeType.STRING),
             projection_type=ProjectionType.KEYS_ONLY
         )
         NagSuppressions.add_resource_suppressions(

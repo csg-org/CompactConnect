@@ -9,6 +9,7 @@ from stacks.persistent_stack.board_users import BoardUsers
 
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.license_table import LicenseTable
+from stacks.persistent_stack.event_bus import EventBus
 
 
 class PersistentStack(Stack):
@@ -63,6 +64,12 @@ class PersistentStack(Stack):
             auto_delete_objects=environment_name != 'prod'
         )
 
+        self.license_table = LicenseTable(
+            self, 'LicenseTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy
+        )
+
         admin_prefix = f'{app_name}-admins'
         self.admin_users = AdminUsers(
             self, 'AdminUsers',
@@ -82,3 +89,5 @@ class PersistentStack(Stack):
             encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy
         )
+
+        self.data_event_bus = EventBus(self, 'DataEventBus')

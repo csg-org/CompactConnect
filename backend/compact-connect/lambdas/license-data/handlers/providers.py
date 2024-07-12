@@ -18,8 +18,8 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
     body = json.loads(event['body'])
     # Query one SSN
     provider_id = None
-    if 'provider_id' in body.keys():
-        provider_id = body['provider_id']
+    if 'providerId' in body.keys():
+        provider_id = body['providerId']
     elif 'ssn' in body.keys():
         provider_id = config.data_client.get_provider_id(ssn=body['ssn'])
         logger.info('Found provider id by SSN', provider_id=provider_id)
@@ -41,14 +41,14 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
     scan_forward = sorting.get('direction', 'ascending') == 'ascending'
 
     match key:
-        case 'date_of_update':
+        case 'dateOfUpdate':
             return config.data_client.get_licenses_sorted_by_date_updated(
                 compact=compact,
                 jurisdiction=jurisdiction,
                 scan_forward=scan_forward,
                 pagination=body.get('pagination')
             )
-        case 'family_name':
+        case 'familyName':
             return config.data_client.get_licenses_sorted_by_family_name(
                 compact=compact,
                 jurisdiction=jurisdiction,

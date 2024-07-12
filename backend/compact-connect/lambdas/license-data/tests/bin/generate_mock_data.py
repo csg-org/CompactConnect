@@ -17,7 +17,6 @@ from license_csv_reader import LicenseCSVReader
 from data_model.schema.license import LicenseRecordSchema
 
 
-
 def generate_csv_rows(count):
     i = 0
     while i < count:
@@ -35,7 +34,7 @@ def put_licenses(jurisdiction: str, count: int = 100):
         ssn = f'{randint(100, 999)}-{randint(10, 99)}-{9999-i}'
         provider_id = uuid4()
         license_data.update({
-            'provider_id': provider_id,
+            'providerId': provider_id,
             'ssn': ssn,
             'compact': 'aslp',
             'jurisdiction': jurisdiction

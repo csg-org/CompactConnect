@@ -81,7 +81,7 @@ class DataClient():
             KeyConditionExpression=Key('ssn').eq(quote(ssn)),
         )
         items = {
-            self.ssn_index_record_schema.load(item)['license_home_provider_id']
+            self.ssn_index_record_schema.load(item)['licenseHomeProviderId']
             for item in resp['Items']
         }
         item_count = len(items)
@@ -120,7 +120,7 @@ class DataClient():
         resp = self.config.license_table.query(
             IndexName=config.cj_name_index_name,
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('compact_jur').eq(f'{quote(compact)}/{quote(jurisdiction)}'),
+            KeyConditionExpression=Key('compactJur').eq(f'{quote(compact)}/{quote(jurisdiction)}'),
             ScanIndexForward=scan_forward,
             **dynamo_pagination
         )
@@ -142,7 +142,7 @@ class DataClient():
         resp = self.config.license_table.query(
             IndexName=config.cj_updated_index_name,
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('compact_jur').eq(f'{compact}/{jurisdiction}'),
+            KeyConditionExpression=Key('compactJur').eq(f'{compact}/{jurisdiction}'),
             ScanIndexForward=scan_forward,
             **dynamo_pagination
         )

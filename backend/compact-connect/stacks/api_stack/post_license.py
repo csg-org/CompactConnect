@@ -69,7 +69,7 @@ class PostLicenses:
                     required=[
                         'ssn',
                         'given_name',
-                        'family_name',
+                        'familyName',
                         'date_of_birth',
                         'home_state_street_1',
                         'home_state_street_2',
@@ -93,7 +93,7 @@ class PostLicenses:
                         ),
                         'given_name': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
                         'middle_name': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-                        'family_name': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                        'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
                         'date_of_birth': JsonSchema(
                             type=JsonSchemaType.STRING,
                             format='date',
