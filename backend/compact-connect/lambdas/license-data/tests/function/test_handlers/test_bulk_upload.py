@@ -1,5 +1,7 @@
 import json
+from uuid import uuid4
 
+from botocore.exceptions import ClientError
 from moto import mock_aws
 from tests.function import TstFunction
 
@@ -41,3 +43,33 @@ class TestBulkUpload(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         body = json.loads(resp['body'])
         self.assertEqual({'url', 'fields'}, body['upload'].keys())
+
+
+@mock_aws
+class TestProcessObjects(TstFunction):
+
+    def test_uploaded_csv(self):
+        from handlers.bulk_upload import process_s3_event
+
+        # Upload a bulk license csv file
+        object_key = f'aslp/co/{uuid4().hex}'
+        self._bucket.upload_file('tests/resources/licenses.csv', object_key)
+
+        # Simulate the s3 bucket event
+        with open('tests/resources/put-event.json', 'r') as f:
+            event = json.load(f)
+
+        event['Records'][0]['s3']['bucket'] = {
+            'name': self._bucket.name,
+            'arn': f'arn:aws:s3:::{self._bucket.name}',
+            'ownerIdentity': {
+                'principalId': 'ASDFG123'
+            }
+        }
+        event['Records'][0]['s3']['object']['key'] = object_key
+
+        process_s3_event(event, self.mock_context)
+
+        # The object should be gone, once parsing is complete
+        with self.assertRaises(ClientError):
+            self._bucket.Object(object_key).get()

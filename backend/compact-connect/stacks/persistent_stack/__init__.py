@@ -41,13 +41,16 @@ class PersistentStack(Stack):
             removal_policy=removal_policy
         )
 
+        self.data_event_bus = EventBus(self, 'DataEventBus')
+
         self.mock_bulk_uploads_bucket = BulkUploadsBucket(
             self, 'MockBulkUploadsBucket',
             mock_bucket=True,
             access_logs_bucket=self.access_logs_bucket,
             encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy,
-            auto_delete_objects=environment_name != 'prod'
+            auto_delete_objects=environment_name != 'prod',
+            event_bus=self.data_event_bus
         )
 
         self.mock_license_table = LicenseTable(
@@ -61,7 +64,8 @@ class PersistentStack(Stack):
             access_logs_bucket=self.access_logs_bucket,
             encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy,
-            auto_delete_objects=environment_name != 'prod'
+            auto_delete_objects=environment_name != 'prod',
+            event_bus=self.data_event_bus
         )
 
         self.license_table = LicenseTable(
@@ -89,5 +93,3 @@ class PersistentStack(Stack):
             encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy
         )
-
-        self.data_event_bus = EventBus(self, 'DataEventBus')

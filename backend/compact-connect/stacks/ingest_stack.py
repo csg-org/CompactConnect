@@ -8,6 +8,7 @@ from aws_cdk.aws_events import Rule, EventPattern
 from aws_cdk.aws_events_targets import SqsQueue
 from aws_cdk.aws_lambda_event_sources import SqsEventSource
 from aws_cdk.aws_sqs import Queue, QueueEncryption, DeadLetterQueue
+from cdk_nag import NagSuppressions
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
@@ -67,6 +68,17 @@ class IngestStack(Stack):
                 'SSN_INDEX_NAME': persistent_stack.license_table.ssn_index_name,
             }
         )
+        persistent_stack.license_table.grant_read_write_data(ingest_handler)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{ingest_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[{
+                'id': 'AwsSolutions-IAM5',
+                'reason': 'This policy contains wild-carded actions and resources but they are scoped to the specific'
+                          ' actions, KMS key and Table that this lambda specifically needs access to.'
+            }]
+        )
+
         ingest_handler.add_event_source(
             SqsEventSource(
                 self.ingest_queue,

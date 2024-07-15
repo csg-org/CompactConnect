@@ -26,6 +26,14 @@ class _Config:
         return DataClient(self)
 
     @cached_property
+    def events_client(self):
+        return boto3.client('events', config=BotoConfig(retries={'mode': 'standard'}))
+
+    @cached_property
+    def event_bus_name(self):
+        return os.environ['EVENT_BUS_NAME']
+
+    @cached_property
     def license_table(self):
         return boto3.resource('dynamodb').Table(self.license_table_name)
 

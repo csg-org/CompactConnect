@@ -13,6 +13,7 @@ class TstLambdas(TestCase):
             'DEBUG': 'false',
             'AWS_DEFAULT_REGION': 'us-east-1',
             'BULK_BUCKET_NAME': 'cc-license-data-bulk-bucket',
+            'EVENT_BUS_NAME': 'license-data-events',
             'LICENSE_TABLE_NAME': 'license-table',
             'SSN_INDEX_NAME': 'ssn',
             'CJ_NAME_INDEX_NAME': 'cj_name',

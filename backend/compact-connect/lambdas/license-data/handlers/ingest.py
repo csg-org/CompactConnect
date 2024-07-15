@@ -22,6 +22,7 @@ def process_license_message(message: dict):
 
     try:
         provider_id = config.data_client.get_provider_id(ssn=license_post['ssn'])
+        logger.info('Updating existing provider', provider_id=provider_id)
     except CCNotFoundException:
         provider_id = uuid4()
         logger.info('Creating new provider', provider_id=provider_id)

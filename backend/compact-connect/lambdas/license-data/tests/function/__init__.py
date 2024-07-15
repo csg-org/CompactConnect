@@ -130,10 +130,17 @@ class TstFunction(TstLambdas):
             ]
         )
 
+        boto3.client('events').create_event_bus(
+            Name=os.environ['EVENT_BUS_NAME']
+        )
+
     def delete_resources(self):
         self._bucket.objects.delete()
         self._bucket.delete()
         self._table.delete()
+        boto3.client('events').delete_event_bus(
+            Name=os.environ['EVENT_BUS_NAME']
+        )
 
     def _generate_licensees(self, home: str, priv: str, start_serial: int):
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema

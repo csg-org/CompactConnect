@@ -16,7 +16,7 @@ class TestCSVParser(TstFunction):
         # test our reader's ability to process data from boto3's StreamingBody
         key = f'/co/{uuid4().hex}'
         self._bucket.upload_file('tests/resources/licenses.csv', key)
-        stream = TextIOWrapper(self._bucket.Object(key).get()['Body'])
+        stream = TextIOWrapper(self._bucket.Object(key).get()['Body'], encoding='utf-8')
 
         reader = LicenseCSVReader()
         for license_row in reader.validated_licenses(stream):
