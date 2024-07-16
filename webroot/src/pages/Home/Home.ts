@@ -6,17 +6,15 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
+import Section from '@components/Section/Section.vue';
+import StateUpload from '@components/StateUpload/StateUpload.vue';
 
 @Component({
-    components: {}
+    name: 'HomePage',
+    components: {
+        Section,
+        StateUpload,
+    }
 })
 export default class Home extends Vue {
-    // Lifecycle
-    // mounted() {
-    //
-    // }
-
-    // Computed
-
-    // Methods
 }

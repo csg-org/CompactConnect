@@ -17,14 +17,14 @@
     @buttonTransparentHoverTextColor: darken(@primaryColor, 8%);
     @transition: 0.2s ease-out;
 
-    padding: 1.2rem;
-    border: 0.2rem solid @buttonEnabledBGColor;
-    border-radius: @borderRadiusPillShape;
+    padding: 0.4rem 2.4rem;
+    border: 0.1rem solid @buttonEnabledBGColor;
+    border-radius: 4px;
     color: @buttonEnabledTextColor;
     font-weight: 500;
-    font-size: 1.6rem;
+    font-size: @fontSize;
     font-family: @fontFamily;
-    letter-spacing: 0.04rem;
+    letter-spacing: 0.02rem;
     background-color: @buttonEnabledBGColor;
     cursor: pointer;
     transition:
@@ -54,12 +54,20 @@
     }
 
     &.transparent {
-        border-color: @buttonTransparentBGColor;
+        border-color: @buttonTransparentTextColor;
         color: @buttonTransparentTextColor;
         background-color: @buttonTransparentBGColor;
 
+        .icon {
+            fill: @buttonTransparentTextColor;
+        }
+
         &:hover {
             color: @buttonTransparentHoverTextColor;
+
+            .icon {
+                fill: @buttonTransparentHoverTextColor;
+            }
         }
     }
 

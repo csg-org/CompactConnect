@@ -1,0 +1,76 @@
+# Compact Connect - Web Frontend Checks
+
+name: Check-Webroot
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on pull requests to trunk branches involving changes to web frontend files
+  pull_request:
+    branches:
+      - main
+      - development
+    paths:
+      - webroot/**
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  CheckWebroot:
+    runs-on: ubuntu-latest
+
+    env:
+      BASE_URL: /
+      VUE_APP_DOMAIN: https://d130azwkbquf2a.cloudfront.net
+      VUE_APP_ROBOTS_META: noindex,nofollow
+      VUE_APP_API_STATE_ROOT: https://m848119752.execute-api.us-east-1.amazonaws.com/test
+
+    steps:
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+
+      # Setup Node
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '22.1.0'
+
+      # Use any cached yarn dependencies (saves build time)
+      - uses: actions/cache@v2
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
+
+      # Install Yarn Dependencies
+      - name: Install JS dependencies
+        run: yarn install --ignore-engines
+        working-directory: ./webroot
+
+      # Run Linter Checks
+      - name: Run linter
+        run: yarn lint --no-fix
+        working-directory: ./webroot
+
+      # Run Unit Tests
+      - name: Run unit tests
+        run: yarn test:unit:all
+        working-directory: ./webroot
+
+      # Build app
+      - name: Build Vue app
+        env:
+          NODE_ENV: production
+          BASE_URL: ${{ env.BASE_URL }}
+          VUE_APP_DOMAIN: ${{ env.VUE_APP_DOMAIN }}
+          VUE_APP_ROBOTS_META: ${{ env.VUE_APP_ROBOTS_META }}
+          VUE_APP_API_STATE_ROOT: ${{ env.VUE_APP_API_STATE_ROOT }}
+        run: yarn build
+        working-directory: ./webroot

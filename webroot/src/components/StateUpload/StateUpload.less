@@ -1,0 +1,83 @@
+//
+//  StateUpload.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 6/18/2024.
+//
+
+.state-upload {
+    flex-grow: 1;
+    width: 100%;
+
+    @media @desktopWidth {
+        width: 50%;
+        max-width: 60rem;
+    }
+
+    .state-upload-form {
+        display: flex;
+        flex-basis: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+
+        .sub-title {
+            font-style: italic;
+        }
+
+        .state-upload-form-container {
+            display: flex;
+            flex-grow: 1;
+            margin-top: 4.8rem;
+
+            .state-select {
+                width: 16.8rem;
+            }
+
+            .compact-select {
+                width: 25.4rem;
+            }
+
+            .input-submit-container {
+                margin-top: auto;
+            }
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+    }
+
+    .state-upload-success {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        align-items: center;
+        justify-content: center;
+        padding: 0 0.8rem;
+        text-align: center;
+
+        .icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 6.4rem;
+            height: 6.4rem;
+            margin-bottom: 1.6rem;
+            border-radius: 50%;
+            overflow: hidden;
+            background-color: @primaryColor;
+
+            .icon-check-circle {
+                width: 100%;
+                fill: @white;
+            }
+        }
+
+        .sub-title {
+            margin-top: 1.6rem;
+            padding: 0 8.2rem;
+        }
+    }
+}

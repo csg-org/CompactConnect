@@ -17,8 +17,10 @@ describe('InputButton component', async () => {
                 onClick: () => 'test',
             }
         });
+        const component = wrapper.vm;
 
         expect(wrapper.exists()).to.equal(true);
         expect(wrapper.findComponent(InputButton).exists()).to.equal(true);
+        expect(component.onClick()).to.equal('test');
     });
 });

@@ -26,6 +26,7 @@ export interface InterfaceFormInput {
         allowMultiple?: boolean;
         maxSizeMbPer?: number;
         maxSizeMbAll?: number;
+        hint?: string | ComputedRef<string>;
     };
     rangeConfig?: {
         min?: number;
@@ -41,6 +42,7 @@ export interface InterfaceFormInput {
     isValid?: boolean;
     isSubmitInput?: boolean;
     isFormRow?: boolean;
+    isDisabled?: boolean;
 }
 
 // ========================================================
@@ -61,6 +63,7 @@ export class FormInput implements InterfaceFormInput {
         allowMultiple: false,
         maxSizeMbPer: 0,
         maxSizeMbAll: 0,
+        hint: '',
     };
     public rangeConfig = { // eslint-disable-line lines-between-class-members
         min: 0,
@@ -78,6 +81,7 @@ export class FormInput implements InterfaceFormInput {
     public isValid = false;
     public isSubmitInput = false;
     public isFormRow = false;
+    public isDisabled = false;
 
     constructor(data?: InterfaceFormInput) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -85,12 +89,12 @@ export class FormInput implements InterfaceFormInput {
         Object.assign(this, cleanDataObject);
     }
 
-    public blur() {
+    public blur(): void {
         this.isTouched = true;
         this.validate();
     }
 
-    public input() {
+    public input(): void {
         this.isEdited = true;
 
         if (this.enforceMax) {
@@ -100,7 +104,7 @@ export class FormInput implements InterfaceFormInput {
         this.validate();
     }
 
-    public maxLength() {
+    public maxLength(): number {
         const { validation } = this;
         let max = -1;
 
@@ -116,7 +120,7 @@ export class FormInput implements InterfaceFormInput {
         return max;
     }
 
-    public enforceLength() {
+    public enforceLength(): void {
         const { enforceMax, value } = this;
         const maxLength = this.maxLength();
 
@@ -129,7 +133,7 @@ export class FormInput implements InterfaceFormInput {
         }
     }
 
-    public validate() {
+    public validate(): void {
         // @TODO: Better typing for Joi schemas
         const { validation } = this;
 

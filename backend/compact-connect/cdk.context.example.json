@@ -1,0 +1,21 @@
+{
+  "ssm_context": {
+    "github_repo_string": "csg-org/CompactConnect",
+    "app_name": "compact-connect",
+    "environments": {
+      "pipeline": {
+        "account_id": "000000000000",
+        "region": "us-east-1",
+        "connection_id": "11111111-1111-1111-111111111111"
+      },
+      "prod": {
+        "account_id": "000011112222",
+        "region": "us-east-1"
+      },
+      "test": {
+        "account_id": "111122223333",
+        "region": "us-east-1"
+      }
+    }
+  }
+}

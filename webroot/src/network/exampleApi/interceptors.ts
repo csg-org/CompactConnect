@@ -1,5 +1,5 @@
 //
-//  _interceptors.ts
+//  interceptors.ts
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 4/12/20.

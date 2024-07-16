@@ -17,6 +17,9 @@ class MixinForm extends Vue {
     //
     formData: any = {};
     isFormValid = false;
+    isFormLoading = false;
+    isFormSuccessful = false;
+    isFormError = false;
 
     //
     // Computed
@@ -62,6 +65,16 @@ class MixinForm extends Vue {
                 'password.noWhiteSpaces': this.$t('inputErrors.noWhiteSpaces'),
                 'password.onlyLatinCharacters': this.$t('inputErrors.onlyLatinCharacters'),
                 'password.doesNotInclude': this.$t('inputErrors.doesNotInclude'),
+            },
+            array: {
+                'array.min': this.$t('inputErrors.minItems', { min: '{#limit}' }),
+                'array.max': this.$t('inputErrors.maxItems', { max: '{#limit}' }),
+                'array.length': this.$t('inputErrors.lengthItems', { length: '{#limit}' }),
+            },
+            files: {
+                'array.min': this.$t('inputErrors.required'),
+                'array.max': this.$t('inputErrors.maxFiles', { max: '{#limit}' }),
+                'array.length': this.$t('inputErrors.lengthFiles', { length: '{#limit}' }),
             }
         };
 
@@ -91,9 +104,20 @@ class MixinForm extends Vue {
         this.validateAll();
     }
 
-    populateFormInput(formInput: FormInput, value): void {
-        formInput.value = value || '';
-        formInput.validate();
+    populateFormInput(formInput: FormInput, value: any): void {
+        /* istanbul ignore next */
+        if (formInput.fileConfig.accepts.length && value instanceof File) {
+            // File inputs have special handling & validation
+            const fileInput: any = document.getElementById(formInput.id) || document.createElement('input');
+            const container: any = new DataTransfer();
+
+            container.items.add(value);
+            fileInput.files = container.files;
+            fileInput.dispatchEvent(new Event('change'));
+        } else {
+            formInput.value = value || '';
+            formInput.validate();
+        }
     }
 
     blur(formInput: FormInput): void {
@@ -104,10 +128,14 @@ class MixinForm extends Vue {
         console.log(`Example: Optional Parent Input: ${formInput.name}`);
     }
 
-    validateAll(): void {
+    validateAll(config: any = {}): void {
         const { formData } = this;
 
         this.formKeys.forEach((key) => {
+            if (config.asTouched) {
+                formData[key].isTouched = true;
+            }
+
             formData[key].validate();
         });
     }
@@ -136,6 +164,23 @@ class MixinForm extends Vue {
 
     handleSubmit(): void { // Placeholder method in case an implementing child decides not to use a specific submit handler.
         // Continue
+    }
+
+    startFormLoading(): void {
+        this.isFormLoading = true;
+        this.isFormSuccessful = false;
+        this.isFormError = false;
+        this.updateFormSubmitSuccess('');
+        this.updateFormSubmitError('');
+    }
+
+    endFormLoading(): void {
+        this.isFormLoading = false;
+    }
+
+    setError(errorMessage = ''): void {
+        this.isFormError = true;
+        this.updateFormSubmitError(errorMessage);
     }
 
     @Watch('locale') localeChanged() {

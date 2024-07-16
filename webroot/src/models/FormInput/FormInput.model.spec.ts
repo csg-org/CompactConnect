@@ -33,6 +33,7 @@ describe('FormInput model', () => {
         expect(formInput.fileConfig.allowMultiple).to.equal(false);
         expect(formInput.fileConfig.maxSizeMbPer).to.equal(0);
         expect(formInput.fileConfig.maxSizeMbAll).to.equal(0);
+        expect(formInput.fileConfig.hint).to.equal('');
         expect(formInput.rangeConfig).to.be.an('object');
         expect(formInput.rangeConfig.min).to.equal(0);
         expect(formInput.rangeConfig.max).to.equal(0);
@@ -54,6 +55,7 @@ describe('FormInput model', () => {
         expect(formInput.isValid).to.equal(false);
         expect(formInput.isSubmitInput).to.equal(false);
         expect(formInput.isFormRow).to.equal(false);
+        expect(formInput.isDisabled).to.equal(false);
         expect(formInput.maxLength()).to.equal(-1);
 
         // Test methods
@@ -90,6 +92,7 @@ describe('FormInput model', () => {
                 allowMultiple: true,
                 maxSizeMbPer: 1,
                 maxSizeMbAll: 1,
+                hint: 'test',
             },
             rangeConfig: {
                 min: 1,
@@ -107,6 +110,7 @@ describe('FormInput model', () => {
             isValid: true,
             isSubmitInput: true,
             isFormRow: true,
+            isDisabled: true,
         };
         const formInput = new FormInput(values);
 
@@ -128,6 +132,7 @@ describe('FormInput model', () => {
         expect(formInput.fileConfig.allowMultiple).to.equal(values.fileConfig.allowMultiple);
         expect(formInput.fileConfig.maxSizeMbPer).to.equal(values.fileConfig.maxSizeMbPer);
         expect(formInput.fileConfig.maxSizeMbAll).to.equal(values.fileConfig.maxSizeMbAll);
+        expect(formInput.fileConfig.hint).to.equal(values.fileConfig.hint);
         expect(formInput.rangeConfig).to.be.an('object');
         expect(formInput.rangeConfig.min).to.equal(values.rangeConfig.min);
         expect(formInput.rangeConfig.max).to.equal(values.rangeConfig.max);
@@ -149,6 +154,7 @@ describe('FormInput model', () => {
         expect(formInput.isValid).to.equal(values.isValid);
         expect(formInput.isSubmitInput).to.equal(values.isSubmitInput);
         expect(formInput.isFormRow).to.equal(values.isFormRow);
+        expect(formInput.isDisabled).to.equal(true);
         expect(formInput.maxLength()).to.equal(1);
 
         // Test methods

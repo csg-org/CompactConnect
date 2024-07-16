@@ -8,10 +8,14 @@
 import { Component, mixins, toNative } from 'vue-facing-decorator';
 import { reactive } from 'vue';
 import MixinInput from '@components/Forms/_mixins/input.mixin';
+import UploadFileIcon from '@components/Icons/UploadFile/UploadFile.vue';
 import { FormInput } from '@models/FormInput/FormInput.model';
 
 @Component({
     name: 'InputFile',
+    components: {
+        UploadFileIcon,
+    },
 })
 class InputFile extends mixins(MixinInput) {
     selectedFiles: Array<File> = reactive([]);
@@ -22,10 +26,10 @@ class InputFile extends mixins(MixinInput) {
     //
     get selectLabel(): string {
         const { allowMultiple } = this.formInput.fileConfig;
-        let label = (allowMultiple) ? this.$t('common.choose') : this.$t('common.chooseOne');
+        let label = (allowMultiple) ? this.$t('common.selectFiles') : this.$t('common.selectFile');
 
         if (this.selectedFiles.length) {
-            label = this.$t('common.change');
+            label = (allowMultiple) ? this.$t('common.replaceFiles') : this.$t('common.replaceFile');
         }
 
         return label;
@@ -47,6 +51,10 @@ class InputFile extends mixins(MixinInput) {
         }
 
         return formatted;
+    }
+
+    blur(formInput: FormInput): void {
+        this.validateSelectedFiles(formInput);
     }
 
     input(formInput: FormInput): void {
@@ -107,7 +115,7 @@ class InputFile extends mixins(MixinInput) {
         const { isRequired } = this;
         const files = this.selectedFiles;
         const { fileConfig } = formInput;
-        const { maxSizeMbPer, maxSizeMbAll } = fileConfig;
+        const { maxSizeMbPer, maxSizeMbAll, accepts } = fileConfig;
         const maxSizePer = maxSizeMbPer * 1024 * 1024;
         const maxSizeAll = maxSizeMbAll * 1024 * 1024;
         let areMissing = false;
@@ -115,6 +123,7 @@ class InputFile extends mixins(MixinInput) {
         let areAnyTooLarge = false;
         let areAllTooLarge = false;
         let sizeAll = 0;
+        let areAnyWrongType = false;
 
         // Check number of files
         if (!files.length && isRequired) {
@@ -125,13 +134,18 @@ class InputFile extends mixins(MixinInput) {
 
         // Check each selected file
         files.forEach((file) => {
-            const { size } = file;
+            const { size, type } = file;
 
             sizeAll += size;
 
             if (size > maxSizePer) {
+                // Size
                 (file as any).ia_errorMessage = `${this.$t('inputErrors.sizeTooLargeBy')} ${this.formatBytes(size - maxSizePer)}`;
                 areAnyTooLarge = true;
+            } else if (!accepts.includes((type as never))) {
+                // Type
+                (file as any).ia_errorMessage = `${this.$t('inputErrors.fileWrongType')}`;
+                areAnyWrongType = true;
             }
         });
 
@@ -163,6 +177,9 @@ class InputFile extends mixins(MixinInput) {
                 formInput.errorMessage = `${this.$t('inputErrors.fileMaxSize')} ${maxSizeMbPer} MB`;
                 formInput.isValid = false;
             }
+        } else if (areAnyWrongType) {
+            formInput.errorMessage = this.$t('inputErrors.fileWrongType');
+            formInput.isValid = false;
         } else {
             formInput.errorMessage = '';
             formInput.isValid = true;

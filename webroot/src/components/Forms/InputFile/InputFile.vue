@@ -31,6 +31,9 @@
             {{ formInput.label }}
             <span v-if="isRequired" class="required-indicator">*</span>
         </div>
+        <div v-if="formInput.fileConfig.hint" class="hint">
+            {{ formInput.fileConfig.hint }}
+        </div>
         <input
             type="file"
             ref="inputFiles"
@@ -46,15 +49,10 @@
             :class="{ 'has-error': !!formInput.errorMessage }"
         />
         <div class="input-file-container">
-            <label :for="formInput.id" class="add-files">{{ selectLabel }}</label>
-            <div
-                v-if="selectedFiles.length"
-                class="reset-files"
-                @click.prevent="resetFiles"
-                @keyup.enter.prevent="resetFiles"
-            >
-                {{ $t('common.reset') }}
-            </div>
+            <label :for="formInput.id" class="add-files transparent">
+                <UploadFileIcon class="icon-upload-file" />
+                {{ selectLabel }}
+            </label>
             <div v-if="selectedFiles.length" class="selected-files">
                 <div
                     v-for="(file, index) in $refs.inputFiles.files"

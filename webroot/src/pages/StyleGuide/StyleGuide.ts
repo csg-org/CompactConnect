@@ -13,6 +13,7 @@ import ExampleModal from '@components/StyleGuide/ExampleModal/ExampleModal.vue';
 import ExampleLoadingSpinner from '@components/StyleGuide/ExampleLoadingSpinner/ExampleLoadingSpinner.vue';
 
 @Component({
+    name: 'StyleguidePage',
     components: {
         ExampleList,
         ExampleLanguageSelector,

@@ -80,6 +80,7 @@
     "favicons": "^7.2.0",
     "favicons-webpack-plugin": "6.0.1",
     "flush-promises": "^1.0.2",
+    "happy-dom": "^14.12.3",
     "inquirer": "7.1.0",
     "less": "^3.0.4",
     "less-loader": "^5.0.0",

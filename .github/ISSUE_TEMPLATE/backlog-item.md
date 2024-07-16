@@ -12,6 +12,6 @@ assignees: ''
 ### Acceptance Criteria
 - Criterion A
 
-### Discussion items 
+### Discussion items
 
 ### Useful links / document

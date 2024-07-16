@@ -73,33 +73,145 @@ export const relativeTimeFormats = {
     yy: '%dy'
 };
 
-export const mobileStoreLinks = {
-    APPLE_STORE_LINK: '/',
-    GOOGLE_STORE_LINK: '/',
+// =============================
+// =  Upload File Types        =
+// =============================
+export enum UploadFileType {
+    DATA = 'data',
+    IMAGE = 'image',
+    DOCUMENT = 'document',
+}
+
+export interface InterfaceUploadFile {
+    mime: string;
+    ext: string;
+    type: UploadFileType,
+}
+
+export const uploadTypes = {
+    CSV: <InterfaceUploadFile> {
+        mime: `text/csv`,
+        ext: `.csv`,
+        type: UploadFileType.DATA,
+    }
 };
 
 // =============================
-// =  Upload File Extensions   =
+// =  Compact configuration    =
 // =============================
-export const uploadImageExtensions = [
-    '.bmp',
-    '.gif',
-    '.jpeg',
-    '.jpg',
-    '.png',
-    '.tif',
-    '.tiff',
-];
-
-export const uploadDataExtensions = [
-    '.csv',
-    '.tsv',
-    '.pdf',
-    '.txt',
-    '.xls',
-    '.xml',
-    '.xlsx',
-];
+export const compacts = {
+    aslp: {
+        memberStates: [
+            'AL',
+            'AK',
+            'AR',
+            'CO',
+            'DE',
+            'FL',
+            'GA',
+            'ID',
+            'IN',
+            'IA',
+            'KS',
+            'KY',
+            'LA',
+            'ME',
+            'MD',
+            'MN',
+            'MS',
+            'MO',
+            'MT',
+            'NE',
+            'NH',
+            'NC',
+            'OH',
+            'OK',
+            'SC',
+            'TN',
+            'UT',
+            'VT',
+            'VA',
+            'WA',
+            'WV',
+            'WI',
+            'WY',
+        ],
+    },
+    ot: {
+        memberStates: [
+            'AL',
+            'AZ',
+            'AR',
+            'CO',
+            'DE',
+            'GA',
+            'IN',
+            'IA',
+            'KY',
+            'LA',
+            'ME',
+            'MD',
+            'MN',
+            'MS',
+            'MO',
+            'MT',
+            'NE',
+            'NH',
+            'NC',
+            'OH',
+            'SC',
+            'SD',
+            'TN',
+            'UT',
+            'VT',
+            'VA',
+            'WA',
+            'WV',
+            'WI',
+            'WY',
+        ],
+    },
+    counseling: {
+        memberStates: [
+            'AL',
+            'AZ',
+            'AR',
+            'CO',
+            'CT',
+            'DE',
+            'FL',
+            'GA',
+            'IN',
+            'IA',
+            'KS',
+            'KY',
+            'LA',
+            'ME',
+            'MD',
+            'MN',
+            'MS',
+            'MO',
+            'MT',
+            'NE',
+            'NH',
+            'NJ',
+            'NC',
+            'ND',
+            'OH',
+            'OK',
+            'SC',
+            'SD',
+            'TN',
+            'UT',
+            'VT',
+            'VA',
+            'WA',
+            'WV',
+            'WI',
+            'WY',
+        ],
+    },
+};
 
 export default {
     languagesEnabled,
@@ -109,7 +221,7 @@ export default {
     displayDateFormat,
     displayDatetimeFormat,
     relativeTimeFormats,
-    mobileStoreLinks,
-    uploadImageExtensions,
-    uploadDataExtensions,
+    UploadFileType,
+    uploadTypes,
+    compacts,
 };

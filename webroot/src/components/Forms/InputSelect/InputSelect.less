@@ -5,57 +5,14 @@
 //  Created by InspiringApps on 5/28/2020.
 //
 
-.dropdown-container {
-    @border: 0.1rem solid @lightGrey;
-    @height: 3.2rem;
-    @triangle: 0.5rem;
-    @borderDistance: 0.6rem;
-
-    position: relative;
-    display: flex;
-
-    .select-dropdown {
-        z-index: 1;
-        width: 6rem;
-        height: @height;
-        padding-left: 1rem;
-        border: @border;
-        border-radius: @borderRadiusSmall;
-        color: @midGrey;
-        background-color: transparent;
-        cursor: pointer;
+.input-container {
+    select {
+        padding-right: 20px;
+        color: @fontColor; // Mobile safari doesn't naturally inherit
+        background-image: url('@assets/icons/ico-select-arrow.svg');
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+        background-size: auto 18px;
         appearance: none;
-    }
-
-    .dropdown-arrows {
-        position: absolute;
-        right: 0;
-        z-index: 0;
-        width: calc(~'6rem - @{height}');
-        height: @height;
-        border-left: @border;
-        cursor: pointer;
-
-        &::before,
-        &::after {
-            position: absolute;
-            right: 0.8rem;
-            width: 0;
-            height: 0;
-            border-right: @triangle solid transparent;
-            border-left: @triangle solid transparent;
-            border-radius: @borderRadiusSmall;
-            content: '';
-        }
-
-        &::before {
-            top: @borderDistance;
-            border-bottom: calc(~'0.1rem + @{triangle}') solid @midGrey;
-        }
-
-        &::after {
-            bottom: @borderDistance;
-            border-top: calc(~'0.1rem + @{triangle}') solid @midGrey;
-        }
     }
 }
