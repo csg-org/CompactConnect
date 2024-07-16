@@ -23,7 +23,7 @@ class TestApp(TestCase):
         """
         with open('cdk.json', 'r') as f:
             context = json.load(f)['context']
-        with open('cdk.context.example.json', 'r') as f:
+        with open('cdk.context.production-example.json', 'r') as f:
             context['ssm_context'] = json.load(f)['ssm_context']
 
         # Suppresses lambda bundling for tests
@@ -57,14 +57,8 @@ class TestApp(TestCase):
         """
         with open('cdk.json', 'r') as f:
             context = json.load(f)['context']
-        with open('cdk.context.example.json', 'r') as f:
+        with open('cdk.context.sandbox-example.json', 'r') as f:
             context.update(json.load(f))
-        context['sandbox'] = True
-        context['environment_name'] = 'justin'
-        context['ssm_context']['environments']['justin'] = {
-            'account_id': '012345678901',
-            'region': 'us-east-1'
-        }
 
         # Suppresses lambda bundling for tests
         context['aws:cdk:bundling-stacks'] = []
