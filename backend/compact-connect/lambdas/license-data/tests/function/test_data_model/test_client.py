@@ -162,9 +162,9 @@ class TestClient(TstFunction):
             jurisdiction='co'
         )
         self.assertEqual(100, len(resp['items']))
-        self.assertIn('lastKey', resp.keys())
+        self.assertIsInstance(resp['pagination']['lastKey'], str)
 
-        last_key = resp['lastKey']
+        last_key = resp['pagination']['lastKey']
         resp = client.get_licenses_sorted_by_family_name(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
             compact='aslp',
             jurisdiction='co',
@@ -173,7 +173,7 @@ class TestClient(TstFunction):
         # moto does not properly mimic dynamodb pagination in the case of an index with duplicate keys,
         # so we cannot test for the expected length of 100 records, here.
         # Possibly related to this issue: https://github.com/getmoto/moto/issues/7834
-        self.assertNotIn('lastKey', resp.keys())
+        self.assertIsNone(resp['pagination']['lastKey'])
 
     def test_get_licenses_sorted_by_updated_date(self):
         from data_model.client import DataClient
@@ -190,10 +190,10 @@ class TestClient(TstFunction):
             jurisdiction='co'
         )
         self.assertEqual(100, len(resp['items']))
-        self.assertIn('lastKey', resp.keys())
+        self.assertIsInstance(resp['pagination']['lastKey'], str)
 
         # The second should be the last 100 licenses, so no lastKey for a next page
-        last_key = resp['lastKey']
+        last_key = resp['pagination']['lastKey']
         resp = client.get_licenses_sorted_by_date_updated(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
             compact='aslp',
             jurisdiction='co',

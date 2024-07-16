@@ -150,11 +150,31 @@ class QueryProviders:
         )
 
     @property
-    def _pagination_schema(self):
+    def _pagination_request_schema(self):
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            additional_properties=False,
+            properties={
+                'lastKey': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=1024),
+                'pageSize': JsonSchema(type=JsonSchemaType.INTEGER, minimum=5, maximum=100)
+            }
+        )
+
+    @property
+    def _pagination_response_schema(self):
         return JsonSchema(
             type=JsonSchemaType.OBJECT,
             properties={
-                'lastKey': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=1024),
+                'lastKey': JsonSchema(
+                    type=[JsonSchemaType.STRING, JsonSchemaType.NULL],
+                    min_length=1,
+                    max_length=1024
+                ),
+                'prevLastKey': JsonSchema(
+                    type=[JsonSchemaType.STRING, JsonSchemaType.NULL],
+                    min_length=1,
+                    max_length=1024
+                ),
                 'pageSize': JsonSchema(type=JsonSchemaType.INTEGER, minimum=5, maximum=100)
             }
         )
@@ -170,28 +190,37 @@ class QueryProviders:
                 schema=JsonSchema(
                     type=JsonSchemaType.OBJECT,
                     additional_properties=False,
+                    required=[
+                        'query'
+                    ],
                     properties={
-                        'ssn': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            description='Social security number to look up',
-                            pattern=license_api.SSN_FORMAT
+                        'query': JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            description='The query parameters',
+                            properties={
+                                'ssn': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    description='Social security number to look up',
+                                    pattern=license_api.SSN_FORMAT
+                                ),
+                                'providerId': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    description='Internal UUID for the provider',
+                                    pattern=license_api.UUID4_FORMAT
+                                ),
+                                'compact': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    description="Required if 'ssn' not provided",
+                                    enum=self.api.node.get_context('compacts')
+                                ),
+                                'jurisdiction': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    description="Required if 'ssn' not provided",
+                                    enum=self.api.node.get_context('jurisdictions')
+                                )
+                            }
                         ),
-                        'providerId': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            description='Internal UUID for the provider',
-                            pattern=license_api.UUID4_FORMAT
-                        ),
-                        'compact': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            description="Required if 'ssn' not provided",
-                            enum=self.api.node.get_context('compacts')
-                        ),
-                        'jurisdiction': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            description="Required if 'ssn' not provided",
-                            enum=self.api.node.get_context('jurisdictions')
-                        ),
-                        'pagination': self._pagination_schema,
+                        'pagination': self._pagination_request_schema,
                         'sorting': self._sorting_schema
                     }
                 )
@@ -208,14 +237,15 @@ class QueryProviders:
                 description='Query providers response model',
                 schema=JsonSchema(
                     type=JsonSchemaType.OBJECT,
-                    required=['items'],
+                    required=['items', 'pagination'],
                     properties={
                         'items': JsonSchema(
                             type=JsonSchemaType.ARRAY,
                             max_length=100,
                             items=self.api.license_response_schema
                         ),
-                        'lastKey': JsonSchema(type=JsonSchemaType.STRING)
+                        'pagination': self._pagination_response_schema,
+                        'sorting': self._sorting_schema
                     }
                 )
             )

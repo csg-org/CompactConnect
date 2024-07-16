@@ -38,7 +38,9 @@ class TestProviders(TstFunction):
 
         event['pathParameters'] = {}
         event['body'] = json.dumps({
-            'ssn': '123-12-1234'
+            'query': {
+                'ssn': '123-12-1234'
+            }
         })
 
         resp = query_providers(event, self.mock_context)
@@ -63,7 +65,15 @@ class TestProviders(TstFunction):
                         'type': 'license-home',
                         **expected_license
                     }
-                ]
+                ],
+                'pagination': {
+                    'pageSize': 100,
+                    'lastKey': None,
+                    'prevLastKey': None
+                },
+                'query': {
+                    'ssn': '123-12-1234'
+                }
             },
             body
         )
@@ -100,7 +110,9 @@ class TestProviders(TstFunction):
 
         event['pathParameters'] = {}
         event['body'] = json.dumps({
-            'providerId': provider_id
+            'query': {
+                'providerId': provider_id
+            }
         })
 
         resp = query_providers(event, self.mock_context)
@@ -125,7 +137,15 @@ class TestProviders(TstFunction):
                         'type': 'license-home',
                         **expected_license
                     }
-                ]
+                ],
+                'pagination': {
+                    'pageSize': 100,
+                    'lastKey': None,
+                    'prevLastKey': None
+                },
+                'query': {
+                    'providerId': provider_id
+                }
             },
             body
         )
@@ -146,8 +166,10 @@ class TestProviders(TstFunction):
             'sorting': {
                 'key': 'dateOfUpdate'
             },
-            'compact': 'aslp',
-            'jurisdiction': 'co'
+            'query': {
+                'compact': 'aslp',
+                'jurisdiction': 'co'
+            }
         })
 
         resp = query_providers(event, self.mock_context)
@@ -156,7 +178,8 @@ class TestProviders(TstFunction):
 
         body = json.loads(resp['body'])
         self.assertEqual(100, len(body['items']))
-        self.assertEqual({'items', 'lastKey'}, body.keys())
+        self.assertEqual({'items', 'pagination', 'query', 'sorting'}, body.keys())
+        self.assertIsInstance(body['pagination']['lastKey'], str)
 
     def test_query_providers_family_name(self):
         from handlers.providers import query_providers
@@ -174,8 +197,10 @@ class TestProviders(TstFunction):
             'sorting': {
                 'key': 'familyName'
             },
-            'compact': 'aslp',
-            'jurisdiction': 'co'
+            'query': {
+                'compact': 'aslp',
+                'jurisdiction': 'co'
+            }
         })
 
         resp = query_providers(event, self.mock_context)
@@ -184,7 +209,8 @@ class TestProviders(TstFunction):
 
         body = json.loads(resp['body'])
         self.assertEqual(100, len(body['items']))
-        self.assertEqual({'items', 'lastKey'}, body.keys())
+        self.assertEqual({'items', 'pagination', 'query', 'sorting'}, body.keys())
+        self.assertIsInstance(body['pagination']['lastKey'], str)
 
     def test_query_providers_missing_sorting(self):
         from handlers.providers import query_providers
@@ -194,15 +220,22 @@ class TestProviders(TstFunction):
 
         event['pathParameters'] = {}
         event['body'] = json.dumps({
-            'compact': 'aslp',
-            'jurisdiction': 'co'
+            'query': {
+                'compact': 'aslp',
+                'jurisdiction': 'co'
+            }
         })
 
         resp = query_providers(event, self.mock_context)
 
-        self.assertEqual(400, resp['statusCode'])
-        self.assertTrue(
-            json.loads(resp['body'])['message'].startswith("'sorting' must be specified")
+        self.assertEqual(200, resp['statusCode'])
+        body = json.loads(resp['body'])
+        self.assertEqual(
+            {
+                'key': 'familyName',
+                'direction': 'ascending'
+            },
+            body['sorting']
         )
 
     def test_query_providers_invalid_sorting(self):
@@ -216,8 +249,10 @@ class TestProviders(TstFunction):
             'sorting': {
                 'key': 'invalid'
             },
-            'compact': 'aslp',
-            'jurisdiction': 'co'
+            'query': {
+                'compact': 'aslp',
+                'jurisdiction': 'co'
+            }
         })
 
         resp = query_providers(event, self.mock_context)

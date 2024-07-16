@@ -35,7 +35,9 @@ class TestIngest(TstFunction):
             event = json.load(f)
 
         event['body'] = json.dumps({
-            'ssn': '123-12-1234'
+            'query': {
+                'ssn': '123-12-1234'
+            }
         })
         resp = query_providers(event, self.mock_context)
         self.assertEqual(resp['statusCode'], 200)

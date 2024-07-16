@@ -52,12 +52,18 @@ def paginated(fn):
             raise
 
         resp = {
-            'items': raw_resp.get('Items', [])
+            'items': raw_resp.get('Items', []),
+            'pagination': {
+                'pageSize': page_size,
+                'prevLastKey': pagination.get('lastKey')
+            }
         }
-        last_key = raw_resp.get('LastEvaluatedKey')
+
         # Last key, if present, will be a dict like {'pk': '123-12-1234', 'sk': 'aslp/co/license-home'}
+        last_key = raw_resp.get('LastEvaluatedKey')
         if last_key is not None:
-            resp['lastKey'] = b64encode(json.dumps(last_key).encode('utf-8')).decode('ascii')
+            last_key = b64encode(json.dumps(last_key).encode('utf-8')).decode('ascii')
+        resp['pagination']['lastKey'] = last_key
         return resp
     return process_pagination_parameters
 

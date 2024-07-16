@@ -7,6 +7,7 @@
 # export LICENSE_TABLE_NAME='Sandbox-PersistentStack-MockLicenseTable12345-ETC'
 # export COMPACTS='["aslp", "ot", "counseling"]'
 # export JURISDICTIONS='["al", "co"]'
+# export LICENSE_TYPES='{"aslp": ["audiologist", "speech-language pathologist", "speech and language pathologist"]}'
 
 import os
 from random import randint
@@ -22,9 +23,14 @@ def generate_csv_rows(count):
     while i < count:
         with open(os.path.join('tests', 'resources', 'licenses.csv'), 'r') as f:
             reader = LicenseCSVReader()
-            for license_row in reader.validated_licenses(f):
-                logger.debug('Read validated license', license_data=reader.schema.dump(license_row))
-                yield i, license_row
+            for license_row in reader.licenses(f):
+                validated_license = reader.schema.load({
+                    'compact': 'aslp',
+                    'jurisdiction': 'co',
+                    **license_row
+                })
+                logger.debug('Read validated license', license_data=reader.schema.dump(validated_license))
+                yield i, validated_license
                 i += 1
 
 

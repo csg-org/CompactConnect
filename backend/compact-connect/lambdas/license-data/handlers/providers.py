@@ -16,45 +16,70 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
     Query providers data
     """
     body = json.loads(event['body'])
+    query = body.get('query', {})
     # Query one SSN
     provider_id = None
-    if 'providerId' in body.keys():
-        provider_id = body['providerId']
-    elif 'ssn' in body.keys():
-        provider_id = config.data_client.get_provider_id(ssn=body['ssn'])
+    if 'providerId' in query.keys():
+        provider_id = query['providerId']
+        query = {'providerId': provider_id}
+    elif 'ssn' in query.keys():
+        ssn = query['ssn']
+        provider_id = config.data_client.get_provider_id(ssn=ssn)
+        query = {'ssn': ssn}
         logger.info('Found provider id by SSN', provider_id=provider_id)
     if provider_id is not None:
-        return config.data_client.get_provider(
+        resp = config.data_client.get_provider(
             provider_id=provider_id,
             pagination=body.get('pagination')
         )
+        resp['query'] = query
+        return resp
 
     try:
-        sorting = body['sorting']
-        compact = body['compact']
-        jurisdiction = body['jurisdiction']
+        sorting = body.get('sorting', {})
+        compact = query['compact']
+        jurisdiction = query['jurisdiction']
+        query = {
+            'compact': compact,
+            'jurisdiction': jurisdiction
+        }
         logger.info('Querying by compact and jurisdiction')
     except KeyError as e:
-        raise CCInvalidRequestException(f"{e} must be specified if 'ssn' is not.") from e
+        raise CCInvalidRequestException(f"{e} must be specified if 'ssn' or 'providerId' is not.") from e
 
-    key = sorting['key']
-    scan_forward = sorting.get('direction', 'ascending') == 'ascending'
+    key = sorting.get('key')
+    sort_direction = sorting.get('direction', 'ascending')
+    scan_forward = sort_direction == 'ascending'
 
     match key:
+        case None | 'familyName':
+            return {
+                'query': query,
+                'sorting': {
+                    'key': 'familyName',
+                    'direction': sort_direction
+                },
+                **config.data_client.get_licenses_sorted_by_family_name(
+                    compact=compact,
+                    jurisdiction=jurisdiction,
+                    scan_forward=scan_forward,
+                    pagination=body.get('pagination')
+                )
+            }
         case 'dateOfUpdate':
-            return config.data_client.get_licenses_sorted_by_date_updated(
-                compact=compact,
-                jurisdiction=jurisdiction,
-                scan_forward=scan_forward,
-                pagination=body.get('pagination')
-            )
-        case 'familyName':
-            return config.data_client.get_licenses_sorted_by_family_name(
-                compact=compact,
-                jurisdiction=jurisdiction,
-                scan_forward=scan_forward,
-                pagination=body.get('pagination')
-            )
+            return {
+                'query': query,
+                'sorting': {
+                    'key': 'dateOfUpdate',
+                    'direction': sort_direction
+                },
+                **config.data_client.get_licenses_sorted_by_date_updated(
+                    compact=compact,
+                    jurisdiction=jurisdiction,
+                    scan_forward=scan_forward,
+                    pagination=body.get('pagination')
+                )
+            }
         case _:
             # This shouldn't happen unless our api validation gets misconfigured
             raise CCInvalidRequestException(f"Invalid sort key: '{key}'")
