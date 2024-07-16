@@ -1,3 +1,4 @@
+import json
 import os
 from unittest import TestCase
 from unittest.mock import MagicMock
@@ -19,7 +20,14 @@ class TstLambdas(TestCase):
             'CJ_NAME_INDEX_NAME': 'cj_name',
             'CJ_UPDATED_INDEX_NAME': 'cj_updated',
             'COMPACTS': '["aslp", "ot", "counseling"]',
-            'JURISDICTIONS': '["al", "co"]'
+            'JURISDICTIONS': '["al", "co"]',
+            'LICENSE_TYPES': json.dumps({
+                'aslp': [
+                    "audiologist",
+                    "speech-language pathologist",
+                    "speech and language pathologist"
+                ]
+            })
         })
         # Monkey-patch config object to be sure we have it based
         # on the env vars we set above

@@ -147,7 +147,11 @@ class TstFunction(TstLambdas):
         from data_model.schema.privilege import PrivilegePostSchema, PrivilegeRecordSchema
 
         with open('tests/resources/api/license-post.json', 'r') as f:
-            license_data = LicensePostSchema().loads(f.read())
+            license_data = LicensePostSchema().load({
+                'compact': 'aslp',
+                'jurisdiction': home,
+                **json.load(f)
+            })
 
         with open('tests/resources/api/privilege.json', 'r') as f:
             privilege_data = PrivilegePostSchema().loads(f.read())
@@ -162,11 +166,11 @@ class TstFunction(TstLambdas):
             })
 
             # We'll use the schema/serializer to populate index fields for us
-            item = LicenseRecordSchema().dump({
+            license_data.update({
                 'compact': 'aslp',
                 'jurisdiction': home,
-                **license_data
             })
+            item = LicenseRecordSchema().dump(license_data)
             logger.debug('Putting license: %s', json.dumps(item))
             self._table.put_item(
                 Item=item

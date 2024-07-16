@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import json
 from functools import cached_property
 
@@ -14,6 +16,12 @@ from stacks.api_stack.bulk_upload_url import BulkUploadUrl
 from stacks.api_stack.post_license import PostLicenses
 from stacks import persistent_stack as ps
 from stacks.api_stack.query_providers import QueryProviders
+
+
+
+YMD_FORMAT = '^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
+SSN_FORMAT = '^[0-9]{3}-[0-9]{2}-[0-9]{4}$'
+UUID4_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}'
 
 
 class LicenseApi(RestApi):
@@ -118,9 +126,12 @@ class LicenseApi(RestApi):
         mock_compact_resource = mock_license_resource.add_resource('{compact}')
         mock_jurisdiction_resource = mock_compact_resource.add_resource('{jurisdiction}')
         PostLicenses(
-            mock_jurisdiction_resource,
+            mock_resource=True,
+            resource=mock_jurisdiction_resource,
             method_options=method_options,
+            event_bus=persistent_stack.data_event_bus
         )
+
         BulkUploadUrl(
             mock_bucket=True,
             resource=mock_jurisdiction_resource,
@@ -148,9 +159,12 @@ class LicenseApi(RestApi):
         compact_resource = licenses_resource.add_resource('{compact}')
         jurisdiction_resource = compact_resource.add_resource('{jurisdiction}')
         PostLicenses(
-            jurisdiction_resource,
-            method_options=method_options
+            mock_resource=False,
+            resource=jurisdiction_resource,
+            method_options=method_options,
+            event_bus=persistent_stack.data_event_bus
         )
+
         BulkUploadUrl(
             resource=jurisdiction_resource,
             method_options=method_options,
@@ -235,6 +249,7 @@ class LicenseApi(RestApi):
     def message_response_model(self):
         return self.add_model(
             'MessageResponseModel',
+            description='Basic message response model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 required=['message'],
@@ -243,4 +258,108 @@ class LicenseApi(RestApi):
                     'message': JsonSchema(type=JsonSchemaType.STRING)
                 }
             )
+        )
+
+    @property
+    def common_license_properties(self) -> dict:
+        stack = Stack.of(self)
+
+        return {
+            'ssn': JsonSchema(
+                type=JsonSchemaType.STRING,
+                pattern=SSN_FORMAT
+            ),
+            'npi': JsonSchema(
+                type=JsonSchemaType.STRING,
+                pattern='^[0-9]{10}$'
+            ),
+            'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'middleName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'dateOfBirth': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='date',
+                pattern=YMD_FORMAT
+            ),
+            'homeStateStreet1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
+            'homeStateStreet2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'homeStateCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
+            'homeStatePostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
+            'licenseType': JsonSchema(
+                type=JsonSchemaType.STRING,
+                enum=stack.license_types
+            ),
+            'dateOfIssuance': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='date',
+                pattern=YMD_FORMAT
+            ),
+            'dateOfRenewal': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='date',
+                pattern=YMD_FORMAT
+            ),
+            'dateOfExpiration': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='date',
+                pattern=YMD_FORMAT
+            ),
+            'status': JsonSchema(
+                type=JsonSchemaType.STRING,
+                enum=[
+                    'active',
+                    'inactive'
+                ]
+            )
+        }
+
+    @property
+    def license_response_schema(self):
+        stack = Stack.of(self)
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            required=[
+                'providerId',
+                'type',
+                'compact',
+                'jurisdiction',
+                'ssn',
+                'givenName',
+                'familyName',
+                'dateOfBirth',
+                'homeStateStreet1',
+                'homeStateCity',
+                'homeStatePostalCode',
+                'licenseType',
+                'dateOfIssuance',
+                'dateOfRenewal',
+                'dateOfExpiration',
+                'dateOfUpdate',
+                'status'
+            ],
+            additional_properties=False,
+            properties={
+                'type': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    enum=['license-home']
+                ),
+                'compact': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    enum=stack.node.get_context('compacts')
+                ),
+                'jurisdiction': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    enum=stack.node.get_context('jurisdictions')
+                ),
+                'providerId': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    pattern=UUID4_FORMAT
+                ),
+                'dateOfUpdate': JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    format='date',
+                    pattern=YMD_FORMAT
+                ),
+                **self.common_license_properties
+            }
         )

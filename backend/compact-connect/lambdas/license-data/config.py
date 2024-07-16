@@ -46,6 +46,13 @@ class _Config:
         return json.loads(os.environ['JURISDICTIONS'])
 
     @property
+    def license_types(self):
+        return json.loads(os.environ['LICENSE_TYPES'])
+
+    def license_types_for_compact(self, compact):
+        return self.license_types[compact]
+
+    @property
     def license_table_name(self):
         return os.environ['LICENSE_TABLE_NAME']
 

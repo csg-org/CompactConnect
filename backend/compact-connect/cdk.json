@@ -27,13 +27,23 @@
       "ri", "sc", "sd", "tn", "tx", "ut", "vt", "va", "vi", "wa",
       "wv", "wi", "wy"
     ],
-    "license_types": [
-      "audiologist",
-      "counselor",
-      "occupational therapist",
-      "occupational therapy assistant",
-      "speech language pathologist"
-    ],
+    "license_types": {
+      "aslp": [
+        "audiologist",
+        "speech-language pathologist",
+        "speech and language pathologist"
+      ],
+      "ot": [
+        "occupational therapist",
+        "occupational therapy assistant"
+      ],
+      "counseling": [
+        "licensed professional counselor",
+        "licensed mental health counselor",
+        "licensed clinical mental health counselor",
+        "licensed professional clinical counselor"
+      ]
+    },
     "compacts": [
       "aslp",
       "ot",

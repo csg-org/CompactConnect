@@ -18,7 +18,11 @@ def process_license_message(message: dict):
     # This should already have been validated at this point, before the data was ever sent for ingest,
     # but validation is cheap. We can do it again, just to protect ourselves from something unexpected
     # happening on the way here.
-    license_post = license_schema.load(detail)
+    license_post = license_schema.load({
+        'compact': compact,
+        'jurisdiction': jurisdiction,
+        **detail
+    })
 
     try:
         provider_id = config.data_client.get_provider_id(ssn=license_post['ssn'])

@@ -1,9 +1,8 @@
-import json
 import os
 
-from aws_cdk import Stack
 from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_kms import IKey
+from aws_cdk.aws_logs import QueryDefinition, QueryString
 from aws_cdk.aws_s3 import BucketEncryption, EventType, CorsRule, HttpMethods
 from aws_cdk.aws_s3_notifications import LambdaDestination
 from cdk_nag import NagSuppressions
@@ -12,6 +11,7 @@ from constructs import Construct
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.bucket import Bucket
 from common_constructs.python_function import PythonFunction
+from common_constructs.stack import Stack
 
 
 class BulkUploadsBucket(Bucket):
@@ -38,11 +38,30 @@ class BulkUploadsBucket(Bucket):
              ],
             **kwargs
         )
+        self.log_groups = []
 
         if mock_bucket:
             self._add_delete_object_events()
         else:
             self._add_ingest_object_events(event_bus)
+
+        QueryDefinition(
+            self, 'RuntimeQuery',
+            query_definition_name=f'{construct_id}/Lambdas',
+            query_string=QueryString(
+                fields=[
+                    '@timestamp',
+                    '@log',
+                    'level',
+                    'status',
+                    'message',
+                    '@message'
+                ],
+                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
+                sort='@timestamp desc'
+            ),
+            log_groups=self.log_groups
+        )
 
         NagSuppressions.add_resource_suppressions(
             self,
@@ -74,7 +93,9 @@ class BulkUploadsBucket(Bucket):
             event=EventType.OBJECT_CREATED,
             dest=LambdaDestination(delete_objects_handler)
         )
-        stack = Stack.of(self)
+        self.log_groups.append(delete_objects_handler.log_group)
+
+        stack: Stack = Stack.of(self)
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
             path=f'{delete_objects_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
@@ -116,21 +137,21 @@ class BulkUploadsBucket(Bucket):
         """
         Read any objects that get uploaded and trigger ingest events
         """
+        stack: Stack = Stack.of(self)
         parse_objects_handler = PythonFunction(
             self, 'ParseObjectsHandler',
             entry=os.path.join('lambdas', 'license-data'),
             index=os.path.join('handlers', 'bulk_upload.py'),
             handler='process_s3_event',
             environment={
-                'DEBUG': 'true',
-                'COMPACTS': json.dumps(self.node.get_context('compacts')),
-                'JURISDICTIONS': json.dumps(self.node.get_context('jurisdictions')),
-                'EVENT_BUS_NAME': event_bus.event_bus_name
+                'EVENT_BUS_NAME': event_bus.event_bus_name,
+                **stack.common_env_vars
             }
         )
         self.grant_delete(parse_objects_handler)
         self.grant_read(parse_objects_handler)
         event_bus.grant_put_events_to(parse_objects_handler)
+        self.log_groups.append(parse_objects_handler.log_group)
 
         self.add_event_notification(
             event=EventType.OBJECT_CREATED,

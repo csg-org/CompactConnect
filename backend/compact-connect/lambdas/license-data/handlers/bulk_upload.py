@@ -93,7 +93,7 @@ def process_s3_event(event: dict, context: LambdaContext):  # pylint: disable=un
                 Bucket=bucket_name,
                 Key=key
             )
-    except Exception as e:  # pylint: disable=broad-exception-caught
+    except Exception as e:
         logger.error('Failed to process s3 event!', exc_info=e)
         raise
 
@@ -112,8 +112,13 @@ def process_bulk_upload_file(body: StreamingBody, object_key: str):
     stream = TextIOWrapper(body, encoding='utf-8')
     with EventBatchWriter(config.events_client) as event_writer:
         for i, raw_license in enumerate(reader.licenses(stream)):
+            logger.debug('Processing line %s', i)
             try:
-                validated_license = schema.load(raw_license)
+                validated_license = schema.load({
+                    'compact': compact,
+                    'jurisdiction': jurisdiction,
+                    **raw_license
+                })
             except ValidationError as e:
                 # This CSV line has failed validation. We will carefully collect what information we can
                 # and publish it as a failure event. Because this data may eventually be sent back over
@@ -122,7 +127,11 @@ def process_bulk_upload_file(body: StreamingBody, object_key: str):
                     public_license_data = public_schema.load(raw_license)
                 except ValidationError as exc_second_try:
                     public_license_data = exc_second_try.valid_data
-                logger.info(f'Invalid license uploaded: {e}', valid_data=public_license_data, exc_info=e)
+                logger.info(
+                    'Invalid license in line %s uploaded: %s', i, str(e),
+                    valid_data=public_license_data,
+                    exc_info=e
+                )
                 event_writer.put_event(
                     Entry={
                         'Source': f'org.compactconnect.bulk-ingest.{object_key}',

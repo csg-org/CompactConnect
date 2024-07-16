@@ -1,10 +1,11 @@
 # pylint: disable=invalid-name
 from urllib.parse import quote
 
-from marshmallow import pre_dump, post_load
+from marshmallow import pre_dump, post_load, validates_schema, ValidationError
 from marshmallow.fields import String, Date, UUID
 from marshmallow.validate import Regexp, Length, OneOf
 
+from config import config
 from data_model.schema.base_record import BaseRecordSchema, SocialSecurityNumber, ForgivingSchema, StrictSchema
 
 
@@ -16,15 +17,23 @@ class SSNIndexRecordSchema(StrictSchema):
 
 
 class LicenseCommonSchema(ForgivingSchema):
+    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
+    jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
-    licenseType = String(required=True, allow_none=False, validate=OneOf(['audiology', 'speech language']))
+    licenseType = String(required=True, allow_none=False)
     dateOfIssuance = Date(required=True, allow_none=False)
     dateOfRenewal = Date(required=True, allow_none=False)
     dateOfExpiration = Date(required=True, allow_none=False)
     status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+
+    @validates_schema
+    def validate_license_type(self, data, **kwargs):  # pylint: disable=unused-argument
+        license_types = config.license_types_for_compact(data['compact'])
+        if data['licenseType'] not in license_types:
+            raise ValidationError({'licenseType': f"'licenseType' must be one of {license_types}"})
 
 
 class LicensePublicSchema(LicenseCommonSchema):

@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import json
 import os
 
 from aws_cdk import Duration
 from aws_cdk.aws_events import Rule, EventPattern
 from aws_cdk.aws_events_targets import SqsQueue
 from aws_cdk.aws_lambda_event_sources import SqsEventSource
+from aws_cdk.aws_logs import QueryDefinition, QueryString
 from aws_cdk.aws_sqs import Queue, QueueEncryption, DeadLetterQueue
 from cdk_nag import NagSuppressions
 from constructs import Construct
@@ -61,11 +61,9 @@ class IngestStack(Stack):
             index=os.path.join('handlers', 'ingest.py'),
             handler='process_license_message',
             environment={
-                'DEBUG': 'true',
-                'COMPACTS': json.dumps(self.node.get_context('compacts')),
-                'JURISDICTIONS': json.dumps(self.node.get_context('jurisdictions')),
                 'LICENSE_TABLE_NAME': persistent_stack.license_table.table_name,
                 'SSN_INDEX_NAME': persistent_stack.license_table.ssn_index_name,
+                **self.common_env_vars
             }
         )
         persistent_stack.license_table.grant_read_write_data(ingest_handler)
@@ -86,4 +84,22 @@ class IngestStack(Stack):
                 max_batching_window=Duration.minutes(5),
                 report_batch_item_failures=True
             )
+        )
+
+        QueryDefinition(
+            self, 'RuntimeQuery',
+            query_definition_name=f'{construct_id}/Lambdas',
+            query_string=QueryString(
+                fields=[
+                    '@timestamp',
+                    '@log',
+                    'level',
+                    'status',
+                    'message',
+                    '@message'
+                ],
+                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
+                sort='@timestamp desc'
+            ),
+            log_groups=[ingest_handler.log_group]
         )

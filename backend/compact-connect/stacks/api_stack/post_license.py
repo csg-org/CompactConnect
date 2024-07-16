@@ -1,26 +1,79 @@
 from __future__ import annotations
 
-from aws_cdk.aws_apigateway import Resource, MethodResponse, MockIntegration, IntegrationResponse, JsonSchema, \
-    JsonSchemaType, MethodOptions, AuthorizationType, Model
+import os
 
+from aws_cdk import Duration
+from aws_cdk.aws_apigateway import Resource, MethodResponse, MockIntegration, IntegrationResponse, JsonSchema, \
+    JsonSchemaType, MethodOptions, AuthorizationType, Model, LambdaIntegration
+from aws_cdk.aws_events import EventBus
+from cdk_nag import NagSuppressions
+
+from common_constructs.python_function import PythonFunction
+from common_constructs.stack import Stack
 # Importing module level to allow lazy loading for typing
 from . import license_api
 
 
 class PostLicenses:
-    def __init__(self, resource: Resource, method_options: MethodOptions):
+    def __init__(
+            self, *,
+            resource: Resource,
+            method_options: MethodOptions,
+            event_bus: EventBus,
+            mock_resource: bool = True
+    ):
         super().__init__()
 
         self.resource = resource
         self.api: license_api.LicenseApi = resource.api
-        self._add_post_license(method_options=method_options)
+        self.log_groups = []
 
-    def _add_post_license(self, method_options: MethodOptions):
+        if mock_resource:
+            self._add_mock_post_license(method_options=method_options)
+        else:
+            self._add_post_license(
+                method_options=method_options,
+                event_bus=event_bus
+            )
+        self.api.log_groups.extend(self.log_groups)
+
+    def _add_post_license(
+            self,
+            method_options: MethodOptions,
+            event_bus: EventBus
+    ):
         self.resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
             request_models={
-                'application/json': self._get_post_license_model(self.api)
+                'application/json': self.post_license_model
+            },
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={
+                        'application/json': self.api.message_response_model
+                    }
+                )
+            ],
+            integration=LambdaIntegration(
+                handler=self._post_licenses_handler(event_bus=event_bus),
+                timeout=Duration.seconds(29)
+            ),
+            request_parameters={
+                'method.request.header.Authorization': True
+            } if method_options.authorization_type != AuthorizationType.NONE else {},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes
+        )
+
+    def _add_mock_post_license(self, method_options: MethodOptions):
+        self.resource.add_method(
+            'POST',
+            request_validator=self.api.parameter_body_validator,
+            request_models={
+                'application/json': self.post_license_model
             },
             method_responses=[
                 MethodResponse(
@@ -47,20 +100,21 @@ class PostLicenses:
                 'method.request.header.Authorization': True
             } if method_options.authorization_type != AuthorizationType.NONE else {},
             authorization_type=method_options.authorization_type,
-            authorizer=method_options.authorizer
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes
         )
 
-    @staticmethod
-    def _get_post_license_model(api: license_api.LicenseApi) -> Model:
+    @property
+    def post_license_model(self) -> Model:
         """
         Return the Post License Model, which should only be created once per API
         """
-        if hasattr(api, 'post_license_model'):
-            return api.post_license_model
+        if hasattr(self.api, '_post_license_model'):
+            return self.api._post_license_model  # pylint: disable=protected-access
 
-        ymd_format = '^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
-        post_license_model = api.add_model(
+        self.api._post_license_model = self.api.add_model(  # pylint: disable=protected-access
             'PostLicenseModel',
+            description='POST licenses request model',
             schema=JsonSchema(
                 type=JsonSchemaType.ARRAY,
                 max_length=100,
@@ -68,70 +122,52 @@ class PostLicenses:
                     type=JsonSchemaType.OBJECT,
                     required=[
                         'ssn',
-                        'given_name',
+                        'givenName',
                         'familyName',
-                        'date_of_birth',
-                        'home_state_street_1',
-                        'home_state_street_2',
-                        'home_state_city',
-                        'home_state_postal_code',
-                        'license_type',
-                        'date_of_issuance',
-                        'date_of_renewal',
-                        'date_of_expiration',
-                        'license_status'
+                        'dateOfBirth',
+                        'homeStateStreet1',
+                        'homeStateCity',
+                        'homeStatePostalCode',
+                        'licenseType',
+                        'dateOfIssuance',
+                        'dateOfRenewal',
+                        'dateOfExpiration',
+                        'status'
                     ],
                     additional_properties=False,
-                    properties={
-                        'ssn': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            pattern='^[0-9]{3}-[0-9]{2}-[0-9]{4}$'
-                        ),
-                        'npi': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            pattern='^[0-9]{10}$'
-                        ),
-                        'given_name': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-                        'middle_name': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-                        'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-                        'date_of_birth': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            format='date',
-                            pattern=ymd_format
-                        ),
-                        'home_state_street_1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
-                        'home_state_street_2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-                        'home_state_city': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
-                        'home_state_postal_code': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
-                        'license_type': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            enum=api.node.get_context('license_types')
-                        ),
-                        'date_of_issuance': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            format='date',
-                            pattern=ymd_format
-                        ),
-                        'date_of_renewal': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            format='date',
-                            pattern=ymd_format
-                        ),
-                        'date_of_expiration': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            format='date',
-                            pattern=ymd_format
-                        ),
-                        'license_status': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            enum=[
-                                'active',
-                                'inactive'
-                            ]
-                        )
-                    }
+                    properties=self.api.common_license_properties
                 )
             )
         )
-        api.post_license_model = post_license_model
-        return post_license_model
+        return self.api._post_license_model  # pylint: disable=protected-access
+
+    def _post_licenses_handler(
+            self,
+            event_bus: EventBus
+    ) -> PythonFunction:
+        stack: Stack = Stack.of(self.resource)
+        handler = PythonFunction(
+            self.api, 'PostLicensesHandler',
+            entry=os.path.join('lambdas', 'license-data'),
+            index=os.path.join('handlers', 'licenses.py'),
+            handler='post_licenses',
+            environment={
+                'EVENT_BUS_NAME': event_bus.event_bus_name,
+                **stack.common_env_vars
+            }
+        )
+        event_bus.grant_put_events_to(handler)
+        self.log_groups.append(handler.log_group)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
+                              'and is scoped to one table and encryption key.'
+                }
+            ]
+        )
+        return handler

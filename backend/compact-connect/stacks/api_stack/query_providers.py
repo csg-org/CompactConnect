@@ -1,23 +1,18 @@
 from __future__ import annotations
 
-import json
 import os
 
-from aws_cdk import Duration, Stack
+from aws_cdk import Duration
 from aws_cdk.aws_apigateway import Resource, MethodResponse, JsonSchema, \
     JsonSchemaType, MethodOptions, AuthorizationType, Model, LambdaIntegration
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 
 from common_constructs.python_function import PythonFunction
+from common_constructs.stack import Stack
 # Importing module level to allow lazy loading for typing
 from . import license_api
 from ..persistent_stack import LicenseTable
-
-
-YMD_FORMAT = '^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
-SSN_FORMAT = '^[0-9]{3}-[0-9]{2}-[0-9]{4}$'
-UUID4_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}'
 
 
 class QueryProviders:
@@ -33,15 +28,13 @@ class QueryProviders:
         self.resource = resource
         self.api: license_api.LicenseApi = resource.api
 
-        stack = Stack.of(resource)
+        stack: Stack = Stack.of(resource)
         lambda_environment = {
-            'DEBUG': 'true',
-            'COMPACTS': json.dumps(stack.node.get_context('compacts')),
-            'JURISDICTIONS': json.dumps(stack.node.get_context('jurisdictions')),
             'LICENSE_TABLE_NAME': license_data_table.table_name,
             'SSN_INDEX_NAME': license_data_table.ssn_index_name,
             'CJ_NAME_INDEX_NAME': license_data_table.cj_name_index_name,
-            'CJ_UPDATED_INDEX_NAME': license_data_table.cj_updated_index_name
+            'CJ_UPDATED_INDEX_NAME': license_data_table.cj_updated_index_name,
+            **stack.common_env_vars
         }
 
         self._add_query_providers(
@@ -166,110 +159,14 @@ class QueryProviders:
             }
         )
 
-    @property
-    def license_response_schema(self):
-        stack = Stack.of(self.api)
-        return JsonSchema(
-            type=JsonSchemaType.OBJECT,
-            required=[
-                'providerId',
-                'type',
-                'compact',
-                'jurisdiction',
-                'ssn',
-                'givenName',
-                'familyName',
-                'dateOfBirth',
-                'homeStateStreet1',
-                'homeStateStreet2',
-                'homeStateCity',
-                'homeStatePostalCode',
-                'licenseType',
-                'dateOfIssuance',
-                'dateOfRenewal',
-                'dateOfExpiration',
-                'dateOfUpdate',
-                'status'
-            ],
-            additional_properties=False,
-            properties={
-                'type': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    enum=['license-home']
-                ),
-                'compact': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    enum=stack.node.get_context('compacts')
-                ),
-                'jurisdiction': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    enum=stack.node.get_context('jurisdictions')
-                ),
-                'providerId': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    pattern=UUID4_FORMAT
-                ),
-                'ssn': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    pattern=SSN_FORMAT
-                ),
-                'npi': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    pattern='^[0-9]{10}$'
-                ),
-                'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-                'middleName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-                'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-                'dateOfBirth': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    format='date',
-                    pattern=YMD_FORMAT
-                ),
-                'homeStateStreet1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
-                'homeStateStreet2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-                'homeStateCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
-                'homeStatePostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
-                'licenseType': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    enum=stack.node.get_context('license_types')
-                ),
-                'dateOfIssuance': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    format='date',
-                    pattern=YMD_FORMAT
-                ),
-                'dateOfRenewal': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    format='date',
-                    pattern=YMD_FORMAT
-                ),
-                'dateOfExpiration': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    format='date',
-                    pattern=YMD_FORMAT
-                ),
-                'dateOfUpdate': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    format='date',
-                    pattern=YMD_FORMAT
-                ),
-                'status': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    enum=[
-                        'active',
-                        'inactive'
-                    ]
-                )
-            }
-        )
-
     def _query_providers_request_model(self) -> Model:
         """
         Return the query licenses request model, which should only be created once per API
         """
         if not hasattr(self.api, 'query_providers_request_model'):
             self.api.query_providers_request_model = self.api.add_model(
-                'QueryLicensesRequestModel',
+                'QueryProvidersRequestModel',
+                description='Query providers request model',
                 schema=JsonSchema(
                     type=JsonSchemaType.OBJECT,
                     additional_properties=False,
@@ -277,12 +174,12 @@ class QueryProviders:
                         'ssn': JsonSchema(
                             type=JsonSchemaType.STRING,
                             description='Social security number to look up',
-                            pattern=SSN_FORMAT
+                            pattern=license_api.SSN_FORMAT
                         ),
                         'providerId': JsonSchema(
                             type=JsonSchemaType.STRING,
                             description='Internal UUID for the provider',
-                            pattern=UUID4_FORMAT
+                            pattern=license_api.UUID4_FORMAT
                         ),
                         'compact': JsonSchema(
                             type=JsonSchemaType.STRING,
@@ -307,7 +204,8 @@ class QueryProviders:
         """
         if not hasattr(self.api, 'query_providers_response_model'):
             self.api.query_providers_response_model = self.api.add_model(
-                'QueryLicensesResponseModel',
+                'QueryProvidersResponseModel',
+                description='Query providers response model',
                 schema=JsonSchema(
                     type=JsonSchemaType.OBJECT,
                     required=['items'],
@@ -315,7 +213,7 @@ class QueryProviders:
                         'items': JsonSchema(
                             type=JsonSchemaType.ARRAY,
                             max_length=100,
-                            items=self.license_response_schema
+                            items=self.api.license_response_schema
                         ),
                         'lastKey': JsonSchema(type=JsonSchemaType.STRING)
                     }

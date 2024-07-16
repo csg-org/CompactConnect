@@ -14,7 +14,11 @@ class TestClient(TstFunction):
         from exceptions import CCNotFoundException, CCInternalException
 
         with open('tests/resources/api/license-post.json', 'r') as f:
-            license_data = LicensePostSchema().loads(f.read())
+            license_data = LicensePostSchema().load({
+                'compact': 'aslp',
+                'jurisdiction': 'co',
+                **json.load(f)
+            })
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
             provider_id = json.load(f)['providerId']
@@ -68,7 +72,11 @@ class TestClient(TstFunction):
         from data_model.schema.privilege import PrivilegePostSchema, PrivilegeRecordSchema
 
         with open('tests/resources/api/license-post.json', 'r') as f:
-            license_data = LicensePostSchema().loads(f.read())
+            license_data = LicensePostSchema().load({
+                'compact': 'aslp',
+                'jurisdiction': 'co',
+                **json.load(f)
+            })
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
             provider_id = json.load(f)['providerId']
@@ -111,7 +119,11 @@ class TestClient(TstFunction):
         from exceptions import CCInternalException
 
         with open('tests/resources/api/license-post.json', 'r') as f:
-            license_data = LicensePostSchema().loads(f.read())
+            license_data = LicensePostSchema().load({
+                'compact': 'aslp',
+                'jurisdiction': 'co',
+                **json.load(f)
+            })
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
             provider_id = json.load(f)['providerId']
@@ -139,9 +151,9 @@ class TestClient(TstFunction):
         from data_model.client import DataClient
 
         # 100 licenses homed in co with privileges in fl
-        self._generate_licensees('co', 'fl', 9999)
+        self._generate_licensees('co', 'al', 9999)
         # 100 licenses homed in fl with privileges in co
-        self._generate_licensees('fl', 'co', 9899)
+        self._generate_licensees('al', 'co', 9899)
         client = DataClient(self.config)
 
         # We expect to see 100 co licenses, 100 co privileges, none of the al licenses/privileges
@@ -167,9 +179,9 @@ class TestClient(TstFunction):
         from data_model.client import DataClient
 
         # 100 licenses homed in co with privileges in fl
-        self._generate_licensees('co', 'fl', 9999)
+        self._generate_licensees('co', 'al', 9999)
         # 100 licenses homed in fl with privileges in co
-        self._generate_licensees('fl', 'co', 9899)
+        self._generate_licensees('al', 'co', 9899)
         client = DataClient(self.config)
 
         # We expect to see 100 co licenses, 100 co privileges, none of the fl licenses/privileges

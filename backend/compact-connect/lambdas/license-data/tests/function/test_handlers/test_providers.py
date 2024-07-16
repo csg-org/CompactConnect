@@ -11,7 +11,11 @@ class TestProviders(TstFunction):
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
 
         with open('tests/resources/api/license-post.json', 'r') as f:
-            license_data = LicensePostSchema().loads(f.read())
+            license_data = LicensePostSchema().load({
+                'compact': 'aslp',
+                'jurisdiction': 'co',
+                **json.load(f)
+            })
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
             provider_id = json.load(f)['providerId']
@@ -69,7 +73,11 @@ class TestProviders(TstFunction):
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
 
         with open('tests/resources/api/license-post.json', 'r') as f:
-            license_data = LicensePostSchema().loads(f.read())
+            license_data = LicensePostSchema().load({
+                'compact': 'aslp',
+                'jurisdiction': 'co',
+                **json.load(f)
+            })
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
             provider_id = json.load(f)['providerId']
@@ -225,7 +233,11 @@ class TestProviders(TstFunction):
         from handlers.providers import get_provider
 
         with open('tests/resources/api/license-post.json', 'r') as f:
-            license_data = LicensePostSchema().loads(f.read())
+            license_data = LicensePostSchema().load({
+                'compact': 'aslp',
+                'jurisdiction': 'co',
+                **json.load(f)
+            })
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
             provider_id = json.load(f)['providerId']
@@ -268,7 +280,11 @@ class TestProviders(TstFunction):
         from handlers.providers import get_provider
 
         with open('tests/resources/api/license-post.json', 'r') as f:
-            license_data = LicensePostSchema().loads(f.read())
+            license_data = LicensePostSchema().load({
+                'compact': 'aslp',
+                'jurisdiction': 'co',
+                **json.load(f)
+            })
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
             provider_id = json.load(f)['providerId']

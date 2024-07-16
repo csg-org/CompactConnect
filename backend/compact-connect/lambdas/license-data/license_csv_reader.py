@@ -18,7 +18,3 @@ class LicenseCSVReader:
                 del license_row[k]
 
             yield license_row
-
-    def validated_licenses(self, stream: TextIOBase) -> Generator[dict, None, None]:
-        for license_row in self.licenses(stream):
-            yield self.schema.load(license_row)
