@@ -415,6 +415,8 @@
         "residenceLocation": "Ubicación residente",
         "stateOfLicense": "estado de licencia",
         "practicingLocations": "Lugar(es) de práctica",
+        "issueDate": "Fecha de asunto",
+        "expireDate": "Fecha de caducidad",
         "lastUpdate": "Última carga",
         "status": {
             "active": "Activo",

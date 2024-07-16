@@ -21,6 +21,7 @@ export interface RequestParamsInterface {
     lastKey?: string;
     sortBy?: string;
     sortDirection?: string;
+    licenseeId?: string;
 }
 
 export interface DataApiInterface {
@@ -76,35 +77,6 @@ export class LicenseDataApi implements DataApiInterface {
     }
 
     /**
-     * Prep a URI query parameter string for GET requests.
-     * @param  {RequestParamsInterface} params The request query parameters config.
-     * @return {string}                        The URI query param string.
-     */
-    public prepRequestGetParams(params: RequestParamsInterface = {}): string {
-        let requestParams = '';
-
-        if (params.pageSize) {
-            requestParams += `?pageSize=${params.pageSize}`;
-        } else {
-            requestParams += `?pageSize=100`;
-        }
-
-        if (params.pageNumber) {
-            requestParams += `&pageNumber=${params.pageNumber}`;
-        }
-
-        if (params.sortBy) {
-            requestParams += `&sortBy=${params.sortBy}`;
-        }
-
-        if (params.sortDirection) {
-            requestParams += `&sortDir=${params.sortDirection}`;
-        }
-
-        return requestParams;
-    }
-
-    /**
      * Prep a URI query parameter object for POST requests.
      * @param  {RequestParamsInterface} params The request query parameters config.
      * @return {object}                        The URI query param object.
@@ -112,25 +84,29 @@ export class LicenseDataApi implements DataApiInterface {
     public prepRequestPostParams(params: RequestParamsInterface = {}): string {
         const requestParams: any = {};
 
-        if (params.pageSize || params.lastKey) {
-            requestParams.pagination = {};
+        if (params.licenseeId) {
+            requestParams.providerId = params.licenseeId;
+        } else {
+            if (params.pageSize || params.lastKey) {
+                requestParams.pagination = {};
 
-            if (params.pageSize) {
-                requestParams.pagination.pageSize = params.pageSize;
+                if (params.pageSize) {
+                    requestParams.pagination.pageSize = params.pageSize;
+                }
+                if (params.lastKey) {
+                    requestParams.pagination.lastKey = params.lastKey;
+                }
             }
-            if (params.lastKey) {
-                requestParams.pagination.lastKey = params.lastKey;
-            }
-        }
 
-        if (params.sortBy || params.sortDirection) {
-            requestParams.sorting = {};
+            if (params.sortBy || params.sortDirection) {
+                requestParams.sorting = {};
 
-            if (params.sortBy) {
-                requestParams.sorting.key = params.sortBy;
-            }
-            if (params.sortDirection) {
-                requestParams.sorting.direction = params.sortDirection;
+                if (params.sortBy) {
+                    requestParams.sorting.key = params.sortBy;
+                }
+                if (params.sortDirection) {
+                    requestParams.sorting.direction = params.sortDirection;
+                }
             }
         }
 
@@ -139,8 +115,8 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * GET Licensees.
-     * @param  {RequestParamsInterface} [params] The request query parameters config.
-     * @return {Promise<object>}                 Response metadata + an array of licensees.
+     * @param  {RequestParamsInterface} [params={}] The request query parameters config.
+     * @return {Promise<object>}                    Response metadata + an array of licensees.
      */
     public async getLicensees(params: RequestParamsInterface = {}) {
         const requestParams: any = this.prepRequestPostParams(params);
@@ -161,16 +137,17 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * GET Licensee by ID.
-     * @param  {string}                 licenseeId   A licensee ID.
-     * @param  {RequestParamsInterface} [params] The request query parameters config.
-     * @return {Promise<Licensee>}               A licensee server response.
+     * @param  {string}                 licenseeId  A licensee ID.
+     * @param  {RequestParamsInterface} [params={}] The request query parameters config.
+     * @return {Promise<object>}                    A licensee server response.
      */
     public async getLicensee(licenseeId: string, params: RequestParamsInterface = {}) {
-        const requestParams = this.prepRequestGetParams(params);
-        const serverReponse = await this.api.get(`/v0/licensees/${licenseeId}${requestParams}`);
+        const requestParams = this.prepRequestPostParams({ ...params, licenseeId });
+        const serverReponse = await this.api.post(`/v0/providers/licenses-noauth/query`, requestParams);
         const licensee = LicenseeSerializer.fromServer(serverReponse);
+        const response = { licensee };
 
-        return licensee;
+        return response;
     }
 }
 

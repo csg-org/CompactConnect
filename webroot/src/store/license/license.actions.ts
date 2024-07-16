@@ -39,9 +39,9 @@ export default {
         commit(MutationTypes.GET_LICENSEES_FAILURE, error);
     },
     // GET LICENSEE
-    getLicenseeRequest: async ({ commit, dispatch }, { userId, params }: any) => {
+    getLicenseeRequest: async ({ commit, dispatch }, { licenseeId, params }: any) => {
         commit(MutationTypes.GET_LICENSEE_REQUEST);
-        await dataApi.getLicensee(userId, params).then(async (licensee) => {
+        await dataApi.getLicensee(licenseeId, params).then(async ({ licensee }) => {
             await dispatch('setStoreLicensee', licensee);
             dispatch('getLicenseeSuccess', licensee);
         }).catch((error) => {
