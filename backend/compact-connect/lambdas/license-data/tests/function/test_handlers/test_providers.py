@@ -290,10 +290,10 @@ class TestProviders(TstFunction):
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
 
-        event['pathParameters'] = {}
-        event['queryStringParameters'] = {
+        event['pathParameters'] = {
             'providerId': provider_id
         }
+        event['queryStringParameters'] = {}
 
         with open('tests/resources/api/license-response.json', 'r') as f:
             expected_license = json.load(f)

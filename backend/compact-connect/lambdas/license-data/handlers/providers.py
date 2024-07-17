@@ -88,10 +88,10 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
 @api_handler
 def get_provider(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
     try:
-        provider_id = event['queryStringParameters']['providerId']
+        provider_id = event['pathParameters']['providerId']
     except (KeyError, TypeError) as e:
         # This shouldn't happen without miss-configuring the API, but we'll handle it, anyway
-        logger.error(f'Missing query string parameter: {e}')
-        raise CCInvalidRequestException('provider_id is required') from e
+        logger.error(f'Missing parameter: {e}')
+        raise CCInvalidRequestException('providerId is required') from e
 
     return config.data_client.get_provider(provider_id=provider_id)

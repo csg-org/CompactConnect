@@ -70,6 +70,7 @@ class BoardUsers(UserPool):
         """
         scope_customization_handler = PythonFunction(
             self, 'ScopeCustomizationHandler',
+            description='Auth scope customization handler',
             entry=os.path.join('lambdas', 'board-user-pre-token'),
             index='main.py',
             handler='customize_scopes',

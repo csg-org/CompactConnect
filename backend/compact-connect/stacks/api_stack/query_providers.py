@@ -64,7 +64,7 @@ class QueryProviders:
         )
         self.api.log_groups.append(handler.log_group)
 
-        self.resource.add_method(
+        self.resource.add_resource('{providerId}').add_method(
             'GET',
             request_validator=self.api.parameter_body_validator,
             method_responses=[
@@ -80,12 +80,8 @@ class QueryProviders:
                 timeout=Duration.seconds(29)
             ),
             request_parameters={
-                'method.request.querystring.providerId': True,
-                **(
-                    {'method.request.header.Authorization': True}
-                    if method_options.authorization_type != AuthorizationType.NONE else {}
-                )
-            },
+                'method.request.header.Authorization': True
+            } if method_options.authorization_type != AuthorizationType.NONE else {},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer
         )
@@ -259,7 +255,8 @@ class QueryProviders:
     ) -> PythonFunction:
         stack = Stack.of(self.resource)
         handler = PythonFunction(
-            self.api, 'GetProviderHandler',
+            self.resource, 'GetProviderHandler',
+            description='Get provider handler',
             entry=os.path.join('lambdas', 'license-data'),
             index=os.path.join('handlers', 'providers.py'),
             handler='get_provider',
@@ -289,7 +286,8 @@ class QueryProviders:
     ) -> PythonFunction:
         stack = Stack.of(self.api)
         handler = PythonFunction(
-            self.api, 'QueryProvidersHandler',
+            self.resource, 'QueryProvidersHandler',
+            description='Query providers handler',
             entry=os.path.join('lambdas', 'license-data'),
             index=os.path.join('handlers', 'providers.py'),
             handler='query_providers',

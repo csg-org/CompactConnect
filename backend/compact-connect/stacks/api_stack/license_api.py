@@ -18,7 +18,6 @@ from stacks import persistent_stack as ps
 from stacks.api_stack.query_providers import QueryProviders
 
 
-
 YMD_FORMAT = '^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
 SSN_FORMAT = '^[0-9]{3}-[0-9]{2}-[0-9]{4}$'
 UUID4_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}'
@@ -104,70 +103,74 @@ class LicenseApi(RestApi):
             }
         )
 
-        v0_resource = self.root.add_resource('v0')
-
-        # No auth mock endpoints
-        # /v0/mock-providers
-        mock_providers_resource = v0_resource.add_resource('mock-providers')
-        method_options = MethodOptions(
+        mock_resource = self.root.add_resource('mock')
+        noauth_method_options = MethodOptions(
             authorization_type=AuthorizationType.NONE
         )
 
-        # /v0/providers/query
+        # No auth mock endpoints
+        # /mock/providers/query
+        mock_providers_resource = mock_resource.add_resource('providers')
         QueryProviders(
             mock_providers_resource,
-            method_options=method_options,
+            method_options=noauth_method_options,
             data_encryption_key=persistent_stack.shared_encryption_key,
             license_data_table=persistent_stack.mock_license_table
         )
 
-        # /v0/mock-providers/license/{compact}/{jurisdiction}
-        mock_license_resource = mock_providers_resource.add_resource('licenses')
-        mock_compact_resource = mock_license_resource.add_resource('{compact}')
-        mock_jurisdiction_resource = mock_compact_resource.add_resource('{jurisdiction}')
+        # /mock/licenses/{compact}/{jurisdiction}
+        mock_jurisdiction_resource = mock_resource \
+            .add_resource('licenses') \
+            .add_resource('{compact}') \
+            .add_resource('{jurisdiction}')
         PostLicenses(
             mock_resource=True,
             resource=mock_jurisdiction_resource,
-            method_options=method_options,
+            method_options=noauth_method_options,
             event_bus=persistent_stack.data_event_bus
         )
-
         BulkUploadUrl(
             mock_bucket=True,
             resource=mock_jurisdiction_resource,
-            method_options=method_options,
+            method_options=noauth_method_options,
             bulk_uploads_bucket=persistent_stack.mock_bulk_uploads_bucket
         )
 
         # Authenticated endpoints
-        providers_resource = v0_resource.add_resource('providers')
-
-        # /v0/providers/license
-        licenses_resource = providers_resource.add_resource('licenses')
+        # /v0/licenses
+        v0_resource = self.root.add_resource('v0')
         scopes = [
             f'{resource_server}/{scope}'
             for resource_server in persistent_stack.board_users.resource_servers.keys()
             for scope in persistent_stack.board_users.scopes.keys()
         ]
-        method_options = MethodOptions(
+        auth_method_options = MethodOptions(
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.board_users_authorizer,
             authorization_scopes=scopes
         )
-
-        # /v0/providers/license/{compact}/{jurisdiction}
-        compact_resource = licenses_resource.add_resource('{compact}')
-        jurisdiction_resource = compact_resource.add_resource('{jurisdiction}')
+        # /v0/providers
+        providers_resource = v0_resource.add_resource('providers')
+        QueryProviders(
+            providers_resource,
+            method_options=auth_method_options,
+            data_encryption_key=persistent_stack.shared_encryption_key,
+            license_data_table=persistent_stack.license_table
+        )
+        # /v0/licenses/{compact}/{jurisdiction}
+        jurisdiction_resource = v0_resource \
+            .add_resource('licenses') \
+            .add_resource('{compact}') \
+            .add_resource('{jurisdiction}')
         PostLicenses(
             mock_resource=False,
             resource=jurisdiction_resource,
-            method_options=method_options,
+            method_options=auth_method_options,
             event_bus=persistent_stack.data_event_bus
         )
-
         BulkUploadUrl(
             resource=jurisdiction_resource,
-            method_options=method_options,
+            method_options=auth_method_options,
             bulk_uploads_bucket=persistent_stack.bulk_uploads_bucket
         )
 

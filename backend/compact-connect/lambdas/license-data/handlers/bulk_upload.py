@@ -33,8 +33,8 @@ def no_auth_bulk_upload_url_handler(event: dict, context: LambdaContext):
 
 
 def _bulk_upload_url_handler(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    compact = event['pathParameters']['compact']
-    jurisdiction = event['pathParameters']['jurisdiction']
+    compact = event['pathParameters']['compact'].lower()
+    jurisdiction = event['pathParameters']['jurisdiction'].lower()
 
     logger.debug('Creating pre-signed POST', compact=compact, jurisdiction=jurisdiction)
 
@@ -107,7 +107,7 @@ def process_bulk_upload_file(body: StreamingBody, object_key: str):
     reader = LicenseCSVReader()
 
     # Extract the compact and jurisdiction from the object upload path
-    compact, jurisdiction = object_key.split('/')[:2]
+    compact, jurisdiction = (i.lower() for i in object_key.split('/')[:2])
 
     stream = TextIOWrapper(body, encoding='utf-8')
     with EventBatchWriter(config.events_client) as event_writer:

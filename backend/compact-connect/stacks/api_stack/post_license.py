@@ -148,6 +148,7 @@ class PostLicenses:
         stack: Stack = Stack.of(self.resource)
         handler = PythonFunction(
             self.api, 'PostLicensesHandler',
+            description='Post licenses handler',
             entry=os.path.join('lambdas', 'license-data'),
             index=os.path.join('handlers', 'licenses.py'),
             handler='post_licenses',

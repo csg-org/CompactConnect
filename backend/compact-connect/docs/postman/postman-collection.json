@@ -1,117 +1,2591 @@
 {
-	"id": "65234e00-5ac9-4819-8620-d1b9076dcbce",
-	"name": "License Data - sandbox",
-	"values": [
+	"info": {
+		"_postman_id": "837ac2a9-af62-452b-9a36-8751bab26f58",
+		"name": "LicenseApi",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31543764"
+	},
+	"item": [
 		{
-			"key": "boardUserPoolUrl",
-			"value": "https://ia-cc-boards-justin.auth.us-east-1.amazoncognito.com",
-			"type": "default",
-			"enabled": true
+			"name": "Board-Auth",
+			"item": [
+				{
+					"name": "client-credentials-grant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Access token returned', () => {",
+									"    var access_token = pm.response.json().access_token;",
+									"    pm.expect(access_token).not.to.be.empty;",
+									"    pm.environment.set(\"accessToken\", access_token);",
+									"    console.log('Access token: ' + access_token);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{boardUserPoolUrl}}/oauth2/token?grant_type=client_credentials&client_id={{clientId}}&client_secret={{clientSecret}}&scope=license-data/{{jurisdiction}}",
+							"host": [
+								"{{boardUserPoolUrl}}"
+							],
+							"path": [
+								"oauth2",
+								"token"
+							],
+							"query": [
+								{
+									"key": "grant_type",
+									"value": "client_credentials"
+								},
+								{
+									"key": "client_id",
+									"value": "{{clientId}}"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{clientSecret}}"
+								},
+								{
+									"key": "scope",
+									"value": "license-data/{{jurisdiction}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "authorization-code-grant-token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Access token returned', () => {",
+									"    var access_token = pm.response.json().access_token;",
+									"    pm.expect(access_token).not.to.be.empty;",
+									"    pm.environment.set(\"accessToken\", access_token);",
+									"    console.log('Access token: ' + access_token);",
+									"});",
+									"",
+									"pm.test('Identity token returned', () => {",
+									"    var id_token = pm.response.json().id_token;",
+									"    pm.expect(id_token).not.to.be.empty;",
+									"    pm.environment.set(\"idToken\", id_token);",
+									"    console.log('id token: ' + id_token);",
+									"});",
+									"",
+									"pm.test('Refresh token returned', () => {",
+									"    var refresh_token = pm.response.json().refresh_token;",
+									"    pm.expect(refresh_token).not.to.be.empty;",
+									"    pm.environment.set(\"refreshToken\", refresh_token);",
+									"    console.log('refresh token: ' + refresh_token);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{boardUserPoolUrl}}/oauth2/token?grant_type=authorization_code&code=d3222758-3d1f-4392-8359-0f9f4fc0f29e&client_id={{clientId}}&scope=openid&redirect_uri=http://localhost:8000/auth",
+							"host": [
+								"{{boardUserPoolUrl}}"
+							],
+							"path": [
+								"oauth2",
+								"token"
+							],
+							"query": [
+								{
+									"key": "grant_type",
+									"value": "authorization_code"
+								},
+								{
+									"key": "code",
+									"value": "d3222758-3d1f-4392-8359-0f9f4fc0f29e"
+								},
+								{
+									"key": "client_id",
+									"value": "{{clientId}}"
+								},
+								{
+									"key": "scope",
+									"value": "openid"
+								},
+								{
+									"key": "redirect_uri",
+									"value": "http://localhost:8000/auth"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "refresh-token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Access token returned', () => {",
+									"    var access_token = pm.response.json().access_token;",
+									"    pm.environment.set(\"accessToken\", access_token);",
+									"    console.log('Access token: ' + access_token);",
+									"});",
+									"",
+									"pm.test('Identity token returned', () => {",
+									"    var id_token = pm.response.json().id_token;",
+									"    pm.environment.set(\"idToken\", id_token);",
+									"    console.log('id token: ' + id_token);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{boardUserPoolUrl}}/oauth2/token?grant_type=refresh_token&client_id={{clientId}}&refresh_token={{refreshToken}}",
+							"host": [
+								"{{boardUserPoolUrl}}"
+							],
+							"path": [
+								"oauth2",
+								"token"
+							],
+							"query": [
+								{
+									"key": "grant_type",
+									"value": "refresh_token"
+								},
+								{
+									"key": "client_id",
+									"value": "{{clientId}}"
+								},
+								{
+									"key": "refresh_token",
+									"value": "{{refreshToken}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		},
 		{
-			"key": "adminUserPoolUrl",
-			"value": "",
-			"type": "default",
-			"enabled": true
+			"name": "Admin-Auth",
+			"item": [
+				{
+					"name": "authorization-code-grant-token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Access token returned', () => {",
+									"    var access_token = pm.response.json().access_token;",
+									"    pm.expect(access_token).not.to.be.empty;",
+									"    pm.environment.set(\"accessToken\", access_token);",
+									"    console.log('Access token: ' + access_token);",
+									"});",
+									"",
+									"pm.test('Identity token returned', () => {",
+									"    var id_token = pm.response.json().id_token;",
+									"    pm.expect(id_token).not.to.be.empty;",
+									"    pm.environment.set(\"idToken\", id_token);",
+									"    console.log('id token: ' + id_token);",
+									"});",
+									"",
+									"pm.test('Refresh token returned', () => {",
+									"    var refresh_token = pm.response.json().refresh_token;",
+									"    pm.expect(refresh_token).not.to.be.empty;",
+									"    pm.environment.set(\"refreshToken\", refresh_token);",
+									"    console.log('refresh token: ' + refresh_token);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{adminUserPoolUrl}}/oauth2/token?grant_type=authorization_code&code=d3222758-3d1f-4392-8359-0f9f4fc0f29e&client_id={{clientId}}&scope=openid email admin/*&redirect_uri=http://localhost:8000/auth",
+							"host": [
+								"{{adminUserPoolUrl}}"
+							],
+							"path": [
+								"oauth2",
+								"token"
+							],
+							"query": [
+								{
+									"key": "grant_type",
+									"value": "authorization_code"
+								},
+								{
+									"key": "code",
+									"value": "d3222758-3d1f-4392-8359-0f9f4fc0f29e"
+								},
+								{
+									"key": "client_id",
+									"value": "{{clientId}}"
+								},
+								{
+									"key": "scope",
+									"value": "openid email admin/*"
+								},
+								{
+									"key": "redirect_uri",
+									"value": "http://localhost:8000/auth"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "refresh-token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Access token returned', () => {",
+									"    var access_token = pm.response.json().access_token;",
+									"    pm.environment.set(\"accessToken\", access_token);",
+									"    console.log('Access token: ' + access_token);",
+									"});",
+									"",
+									"pm.test('Identity token returned', () => {",
+									"    var id_token = pm.response.json().id_token;",
+									"    pm.environment.set(\"idToken\", id_token);",
+									"    console.log('id token: ' + id_token);",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{adminUserPoolUrl}}/oauth2/token?grant_type=refresh_token&client_id={{clientId}}&refresh_token={{refreshToken}}",
+							"host": [
+								"{{adminUserPoolUrl}}"
+							],
+							"path": [
+								"oauth2",
+								"token"
+							],
+							"query": [
+								{
+									"key": "grant_type",
+									"value": "refresh_token"
+								},
+								{
+									"key": "client_id",
+									"value": "{{clientId}}"
+								},
+								{
+									"key": "refresh_token",
+									"value": "{{refreshToken}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "mock",
+			"item": [
+				{
+					"name": "licenses",
+					"item": [
+						{
+							"name": "{compact}",
+							"item": [
+								{
+									"name": "{jurisdiction}",
+									"item": [
+										{
+											"name": "bulk-upload",
+											"item": [
+												{
+													"name": "/mock/licenses/:compact/:jurisdiction/bulk-upload",
+													"event": [
+														{
+															"listen": "test",
+															"script": {
+																"exec": [
+																	"pm.test(\"Response status code is 200\", function () {",
+																	"    pm.expect(pm.response.code).to.equal(200);",
+																	"});",
+																	"",
+																	"pm.test(\"URL must exist in the response\", function () {",
+																	"    const responseData = pm.response.json();",
+																	"    ",
+																	"    pm.expect(responseData.upload.url).to.exist;",
+																	"    pm.environment.set('docUrl', responseData.upload.url);",
+																	"});",
+																	"",
+																	"",
+																	"pm.test(\"Fields must be in response\", function () {",
+																	"    const responseData = pm.response.json();",
+																	"    ",
+																	"    pm.expect(responseData.upload.fields).to.exist;",
+																	"    for (const [key, value] of Object.entries(responseData.upload.fields)) {",
+																	"        pm.environment.set(key, value);",
+																	"    }",
+																	"});",
+																	""
+																],
+																"type": "text/javascript",
+																"packages": {}
+															}
+														}
+													],
+													"request": {
+														"auth": {
+															"type": "noauth"
+														},
+														"method": "GET",
+														"header": [
+															{
+																"key": "Accept",
+																"value": "application/json"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/mock/licenses/:compact/:jurisdiction/bulk-upload",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"mock",
+																"licenses",
+																":compact",
+																":jurisdiction",
+																"bulk-upload"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "<string>",
+																	"description": "(Required) "
+																},
+																{
+																	"key": "jurisdiction",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "200 response",
+															"originalRequest": {
+																"method": "GET",
+																"header": [
+																	{
+																		"key": "Accept",
+																		"value": "application/json"
+																	}
+																],
+																"url": {
+																	"raw": "{{baseUrl}}/mock/licenses/:compact/:jurisdiction/bulk-upload",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"mock",
+																		"licenses",
+																		":compact",
+																		":jurisdiction",
+																		"bulk-upload"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		},
+																		{
+																			"key": "jurisdiction"
+																		}
+																	]
+																}
+															},
+															"status": "OK",
+															"code": 200,
+															"_postman_previewlanguage": "json",
+															"header": [
+																{
+																	"key": "Content-Type",
+																	"value": "application/json"
+																}
+															],
+															"cookie": [],
+															"body": "{\n  \"fields\": {\n    \"sint_6\": \"<string>\"\n  },\n  \"url\": \"<string>\"\n}"
+														}
+													]
+												},
+												{
+													"name": "/mock/licenses/:compact/:jurisdiction/bulk-upload",
+													"request": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/mock/licenses/:compact/:jurisdiction/bulk-upload",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"mock",
+																"licenses",
+																":compact",
+																":jurisdiction",
+																"bulk-upload"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "<string>",
+																	"description": "(Required) "
+																},
+																{
+																	"key": "jurisdiction",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "204 response",
+															"originalRequest": {
+																"method": "OPTIONS",
+																"header": [],
+																"url": {
+																	"raw": "{{baseUrl}}/mock/licenses/:compact/:jurisdiction/bulk-upload",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"mock",
+																		"licenses",
+																		":compact",
+																		":jurisdiction",
+																		"bulk-upload"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		},
+																		{
+																			"key": "jurisdiction"
+																		}
+																	]
+																}
+															},
+															"status": "No Content",
+															"code": 204,
+															"_postman_previewlanguage": "text",
+															"header": [
+																{
+																	"key": "Access-Control-Allow-Origin",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Methods",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Headers",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																}
+															],
+															"cookie": [],
+															"body": ""
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "/mock/licenses/:compact/:jurisdiction",
+											"request": {
+												"auth": {
+													"type": "noauth"
+												},
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "[\n  {\n    \"dateOfBirth\": \"1963-07-30\",\n    \"dateOfExpiration\": \"2025-08-11\",\n    \"dateOfIssuance\": \"2020-12-30\",\n    \"dateOfRenewal\": \"2022-12-31\",\n    \"familyName\": \"Guðmundsdóttir\",\n    \"givenName\": \"Björk\",\n    \"homeStateCity\": \"Birmingham\",\n    \"homeStatePostalCode\": \"35004\",\n    \"homeStateStreet1\": \"123 A St.\",\n    \"status\": \"inactive\",\n    \"licenseType\": \"audiologist\",\n    \"ssn\": \"337-66-6786\",\n    \"npi\": \"5045836020\",\n    \"middleName\": \"Gunnar\"\n  },\n  {\n    \"dateOfBirth\": \"2950-07-15\",\n    \"dateOfExpiration\": \"2198-06-13\",\n    \"dateOfIssuance\": \"1625-17-11\",\n    \"dateOfRenewal\": \"1912-02-28\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeStateCity\": \"<string>\",\n    \"homeStatePostalCode\": \"<string>\",\n    \"homeStateStreet1\": \"<string>\",\n    \"licenseType\": \"speech and language pathologist\",\n    \"ssn\": \"023-09-1574\",\n    \"status\": \"active\",\n    \"homeStateStreet2\": \"<string>\",\n    \"npi\": \"9588895602\",\n    \"middleName\": \"<string>\"\n  }\n]",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/mock/licenses/:compact/:jurisdiction",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"mock",
+														"licenses",
+														":compact",
+														":jurisdiction"
+													],
+													"variable": [
+														{
+															"key": "compact",
+															"value": "aslp",
+															"description": "(Required) "
+														},
+														{
+															"key": "jurisdiction",
+															"value": "al",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "200 response",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Accept",
+																"value": "application/json"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "[\n  {\n    \"dateOfBirth\": \"2627-12-30\",\n    \"dateOfExpiration\": \"2056-09-18\",\n    \"dateOfIssuance\": \"2661-02-09\",\n    \"dateOfRenewal\": \"1735-04-00\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeStateCity\": \"<string>\",\n    \"homeStatePostalCode\": \"<string>\",\n    \"homeStateStreet1\": \"<string>\",\n    \"licenseType\": \"speech and language pathologist\",\n    \"ssn\": \"821-91-2494\",\n    \"status\": \"inactive\",\n    \"homeStateStreet2\": \"<string>\",\n    \"npi\": \"9932829209\",\n    \"middleName\": \"<string>\"\n  },\n  {\n    \"dateOfBirth\": \"2950-07-15\",\n    \"dateOfExpiration\": \"2198-06-13\",\n    \"dateOfIssuance\": \"1625-17-11\",\n    \"dateOfRenewal\": \"1912-02-28\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeStateCity\": \"<string>\",\n    \"homeStatePostalCode\": \"<string>\",\n    \"homeStateStreet1\": \"<string>\",\n    \"licenseType\": \"speech and language pathologist\",\n    \"ssn\": \"023-09-1574\",\n    \"status\": \"active\",\n    \"homeStateStreet2\": \"<string>\",\n    \"npi\": \"9588895602\",\n    \"middleName\": \"<string>\"\n  }\n]",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/mock/licenses/:compact/:jurisdiction",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"mock",
+																"licenses",
+																":compact",
+																":jurisdiction"
+															],
+															"variable": [
+																{
+																	"key": "compact"
+																},
+																{
+																	"key": "jurisdiction"
+																}
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "json",
+													"header": [
+														{
+															"key": "Content-Type",
+															"value": "application/json"
+														}
+													],
+													"cookie": [],
+													"body": "{\n  \"message\": \"<string>\"\n}"
+												}
+											]
+										},
+										{
+											"name": "/mock/licenses/:compact/:jurisdiction",
+											"request": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/mock/licenses/:compact/:jurisdiction",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"mock",
+														"licenses",
+														":compact",
+														":jurisdiction"
+													],
+													"variable": [
+														{
+															"key": "compact",
+															"value": "<string>",
+															"description": "(Required) "
+														},
+														{
+															"key": "jurisdiction",
+															"value": "<string>",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "204 response",
+													"originalRequest": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/mock/licenses/:compact/:jurisdiction",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"mock",
+																"licenses",
+																":compact",
+																":jurisdiction"
+															],
+															"variable": [
+																{
+																	"key": "compact"
+																},
+																{
+																	"key": "jurisdiction"
+																}
+															]
+														}
+													},
+													"status": "No Content",
+													"code": 204,
+													"_postman_previewlanguage": "text",
+													"header": [
+														{
+															"key": "Access-Control-Allow-Origin",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Methods",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Headers",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														}
+													],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "/mock/licenses/:compact",
+									"request": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/mock/licenses/:compact",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"mock",
+												"licenses",
+												":compact"
+											],
+											"variable": [
+												{
+													"key": "compact",
+													"value": "<string>",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "204 response",
+											"originalRequest": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/mock/licenses/:compact",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"mock",
+														"licenses",
+														":compact"
+													],
+													"variable": [
+														{
+															"key": "compact"
+														}
+													]
+												}
+											},
+											"status": "No Content",
+											"code": 204,
+											"_postman_previewlanguage": "text",
+											"header": [
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Methods",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Headers",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": ""
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "/mock/licenses",
+							"request": {
+								"method": "OPTIONS",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/mock/licenses",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"mock",
+										"licenses"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "204 response",
+									"originalRequest": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/mock/licenses",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"mock",
+												"licenses"
+											]
+										}
+									},
+									"status": "No Content",
+									"code": 204,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Methods",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Headers",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										}
+									],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "providers",
+					"item": [
+						{
+							"name": "{providerId}",
+							"item": [
+								{
+									"name": "/mock/providers/:providerId",
+									"request": {
+										"auth": {
+											"type": "noauth"
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/mock/providers/:providerId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"mock",
+												"providers",
+												":providerId"
+											],
+											"variable": [
+												{
+													"key": "providerId",
+													"value": "2d8cfae4-0193-4075-b457-171ecdebb912",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "200 response",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/mock/providers/:providerId",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"mock",
+														"providers",
+														":providerId"
+													],
+													"variable": [
+														{
+															"key": "providerId"
+														}
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"items\": [\n    {\n      \"compact\": \"ot\",\n      \"dateOfBirth\": \"1638-02-01\",\n      \"dateOfExpiration\": \"2711-17-11\",\n      \"dateOfIssuance\": \"2914-17-29\",\n      \"dateOfRenewal\": \"2757-08-13\",\n      \"dateOfUpdate\": \"2089-04-23\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"homeStateCity\": \"<string>\",\n      \"homeStatePostalCode\": \"<string>\",\n      \"homeStateStreet1\": \"<string>\",\n      \"jurisdiction\": \"wv\",\n      \"licenseType\": \"licensed clinical mental health counselor\",\n      \"providerId\": \"cb2f7c48-4b25-4c55-8e68-6dd951a32e3a\",\n      \"ssn\": \"992-17-0232\",\n      \"status\": \"active\",\n      \"type\": \"license-home\",\n      \"homeStateStreet2\": \"<string>\",\n      \"npi\": \"4514937963\",\n      \"middleName\": \"<string>\"\n    },\n    {\n      \"compact\": \"counseling\",\n      \"dateOfBirth\": \"2523-13-09\",\n      \"dateOfExpiration\": \"1263-00-18\",\n      \"dateOfIssuance\": \"2986-03-25\",\n      \"dateOfRenewal\": \"1678-15-06\",\n      \"dateOfUpdate\": \"2820-08-31\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"homeStateCity\": \"<string>\",\n      \"homeStatePostalCode\": \"<string>\",\n      \"homeStateStreet1\": \"<string>\",\n      \"jurisdiction\": \"mn\",\n      \"licenseType\": \"occupational therapy assistant\",\n      \"providerId\": \"8291634b-2963-4b51-8b12-31c07da00ca4\",\n      \"ssn\": \"537-95-4784\",\n      \"status\": \"inactive\",\n      \"type\": \"license-home\",\n      \"homeStateStreet2\": \"<string>\",\n      \"npi\": \"7397291251\",\n      \"middleName\": \"<string>\"\n    }\n  ],\n  \"pagination\": {\n    \"prevLastKey\": {},\n    \"lastKey\": {},\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"key\": \"familyName\",\n    \"direction\": \"descending\"\n  }\n}"
+										}
+									]
+								},
+								{
+									"name": "/mock/providers/:providerId",
+									"request": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/mock/providers/:providerId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"mock",
+												"providers",
+												":providerId"
+											],
+											"variable": [
+												{
+													"key": "providerId",
+													"value": "<string>",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "204 response",
+											"originalRequest": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/mock/providers/:providerId",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"mock",
+														"providers",
+														":providerId"
+													],
+													"variable": [
+														{
+															"key": "providerId"
+														}
+													]
+												}
+											},
+											"status": "No Content",
+											"code": 204,
+											"_postman_previewlanguage": "text",
+											"header": [
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Methods",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Headers",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": ""
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "query",
+							"item": [
+								{
+									"name": "/mock/providers/query",
+									"request": {
+										"auth": {
+											"type": "noauth"
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"query\": {\n    \"compact\": \"counseling\",\n    \"providerId\": \"f9738ab1-8507-4219-9e25-67acf3cc636b\",\n    \"jurisdiction\": \"mt\",\n    \"ssn\": \"769-18-3753\"\n  },\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"key\": \"familyName\",\n    \"direction\": \"descending\"\n  }\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/mock/providers/query",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"mock",
+												"providers",
+												"query"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "200 response",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"query\": {\n    \"compact\": \"counseling\",\n    \"providerId\": \"f9738ab1-8507-4219-9e25-67acf3cc636b\",\n    \"jurisdiction\": \"mt\",\n    \"ssn\": \"769-18-3753\"\n  },\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"key\": \"familyName\",\n    \"direction\": \"descending\"\n  }\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/mock/providers/query",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"mock",
+														"providers",
+														"query"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"items\": [\n    {\n      \"compact\": \"ot\",\n      \"dateOfBirth\": \"1638-02-01\",\n      \"dateOfExpiration\": \"2711-17-11\",\n      \"dateOfIssuance\": \"2914-17-29\",\n      \"dateOfRenewal\": \"2757-08-13\",\n      \"dateOfUpdate\": \"2089-04-23\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"homeStateCity\": \"<string>\",\n      \"homeStatePostalCode\": \"<string>\",\n      \"homeStateStreet1\": \"<string>\",\n      \"jurisdiction\": \"wv\",\n      \"licenseType\": \"licensed clinical mental health counselor\",\n      \"providerId\": \"cb2f7c48-4b25-4c55-8e68-6dd951a32e3a\",\n      \"ssn\": \"992-17-0232\",\n      \"status\": \"active\",\n      \"type\": \"license-home\",\n      \"homeStateStreet2\": \"<string>\",\n      \"npi\": \"4514937963\",\n      \"middleName\": \"<string>\"\n    },\n    {\n      \"compact\": \"counseling\",\n      \"dateOfBirth\": \"2523-13-09\",\n      \"dateOfExpiration\": \"1263-00-18\",\n      \"dateOfIssuance\": \"2986-03-25\",\n      \"dateOfRenewal\": \"1678-15-06\",\n      \"dateOfUpdate\": \"2820-08-31\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"homeStateCity\": \"<string>\",\n      \"homeStatePostalCode\": \"<string>\",\n      \"homeStateStreet1\": \"<string>\",\n      \"jurisdiction\": \"mn\",\n      \"licenseType\": \"occupational therapy assistant\",\n      \"providerId\": \"8291634b-2963-4b51-8b12-31c07da00ca4\",\n      \"ssn\": \"537-95-4784\",\n      \"status\": \"inactive\",\n      \"type\": \"license-home\",\n      \"homeStateStreet2\": \"<string>\",\n      \"npi\": \"7397291251\",\n      \"middleName\": \"<string>\"\n    }\n  ],\n  \"pagination\": {\n    \"prevLastKey\": {},\n    \"lastKey\": {},\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"key\": \"familyName\",\n    \"direction\": \"descending\"\n  }\n}"
+										}
+									]
+								},
+								{
+									"name": "/mock/providers/query",
+									"request": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/mock/providers/query",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"mock",
+												"providers",
+												"query"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "204 response",
+											"originalRequest": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/mock/providers/query",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"mock",
+														"providers",
+														"query"
+													]
+												}
+											},
+											"status": "No Content",
+											"code": 204,
+											"_postman_previewlanguage": "text",
+											"header": [
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Methods",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Headers",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": ""
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "/mock/providers",
+							"request": {
+								"method": "OPTIONS",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/mock/providers",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"mock",
+										"providers"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "204 response",
+									"originalRequest": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/mock/providers",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"mock",
+												"providers"
+											]
+										}
+									},
+									"status": "No Content",
+									"code": 204,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Methods",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Headers",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										}
+									],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "/mock",
+					"request": {
+						"method": "OPTIONS",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/mock",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"mock"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "204 response",
+							"originalRequest": {
+								"method": "OPTIONS",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/mock",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"mock"
+									]
+								}
+							},
+							"status": "No Content",
+							"code": 204,
+							"_postman_previewlanguage": "text",
+							"header": [
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "<string>",
+									"description": {
+										"content": "",
+										"type": "text/plain"
+									}
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "<string>",
+									"description": {
+										"content": "",
+										"type": "text/plain"
+									}
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "<string>",
+									"description": {
+										"content": "",
+										"type": "text/plain"
+									}
+								}
+							],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "v0",
+			"item": [
+				{
+					"name": "licenses",
+					"item": [
+						{
+							"name": "{compact}",
+							"item": [
+								{
+									"name": "{jurisdiction}",
+									"item": [
+										{
+											"name": "bulk-upload",
+											"item": [
+												{
+													"name": "/v0/licenses/:compact/:jurisdiction/bulk-upload",
+													"event": [
+														{
+															"listen": "test",
+															"script": {
+																"exec": [
+																	"pm.test(\"Response status code is 200\", function () {",
+																	"    pm.expect(pm.response.code).to.equal(200);",
+																	"});",
+																	"",
+																	"pm.test(\"URL must exist in the response\", function () {",
+																	"    const responseData = pm.response.json();",
+																	"    ",
+																	"    pm.expect(responseData.upload.url).to.exist;",
+																	"    pm.environment.set('docUrl', responseData.upload.url);",
+																	"});",
+																	"",
+																	"",
+																	"pm.test(\"Fields must be in response\", function () {",
+																	"    const responseData = pm.response.json();",
+																	"    ",
+																	"    pm.expect(responseData.upload.fields).to.exist;",
+																	"    for (const [key, value] of Object.entries(responseData.upload.fields)) {",
+																	"        pm.environment.set(key, value);",
+																	"    }",
+																	"});",
+																	""
+																],
+																"type": "text/javascript",
+																"packages": {}
+															}
+														}
+													],
+													"request": {
+														"method": "GET",
+														"header": [
+															{
+																"key": "Accept",
+																"value": "application/json"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/v0/licenses/:compact/:jurisdiction/bulk-upload",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v0",
+																"licenses",
+																":compact",
+																":jurisdiction",
+																"bulk-upload"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "<string>",
+																	"description": "(Required) "
+																},
+																{
+																	"key": "jurisdiction",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "200 response",
+															"originalRequest": {
+																"method": "GET",
+																"header": [
+																	{
+																		"key": "Accept",
+																		"value": "application/json"
+																	},
+																	{
+																		"key": "Authorization",
+																		"value": "<API Key>",
+																		"description": "Added as a part of security scheme: apikey"
+																	}
+																],
+																"url": {
+																	"raw": "{{baseUrl}}/v0/licenses/:compact/:jurisdiction/bulk-upload",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v0",
+																		"licenses",
+																		":compact",
+																		":jurisdiction",
+																		"bulk-upload"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		},
+																		{
+																			"key": "jurisdiction"
+																		}
+																	]
+																}
+															},
+															"status": "OK",
+															"code": 200,
+															"_postman_previewlanguage": "json",
+															"header": [
+																{
+																	"key": "Content-Type",
+																	"value": "application/json"
+																}
+															],
+															"cookie": [],
+															"body": "{\n  \"fields\": {\n    \"sint_6\": \"<string>\"\n  },\n  \"url\": \"<string>\"\n}"
+														}
+													]
+												},
+												{
+													"name": "/v0/licenses/:compact/:jurisdiction/bulk-upload",
+													"request": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v0/licenses/:compact/:jurisdiction/bulk-upload",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v0",
+																"licenses",
+																":compact",
+																":jurisdiction",
+																"bulk-upload"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "<string>",
+																	"description": "(Required) "
+																},
+																{
+																	"key": "jurisdiction",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "204 response",
+															"originalRequest": {
+																"method": "OPTIONS",
+																"header": [],
+																"url": {
+																	"raw": "{{baseUrl}}/v0/licenses/:compact/:jurisdiction/bulk-upload",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v0",
+																		"licenses",
+																		":compact",
+																		":jurisdiction",
+																		"bulk-upload"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		},
+																		{
+																			"key": "jurisdiction"
+																		}
+																	]
+																}
+															},
+															"status": "No Content",
+															"code": 204,
+															"_postman_previewlanguage": "text",
+															"header": [
+																{
+																	"key": "Access-Control-Allow-Origin",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Methods",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Headers",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																}
+															],
+															"cookie": [],
+															"body": ""
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "/v0/licenses/:compact/:jurisdiction",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "[\n  {\n    \"dateOfBirth\": \"1963-07-30\",\n    \"dateOfExpiration\": \"2025-08-11\",\n    \"dateOfIssuance\": \"2020-12-30\",\n    \"dateOfRenewal\": \"2022-12-31\",\n    \"familyName\": \"Guðmundsdóttir\",\n    \"givenName\": \"Björk\",\n    \"homeStateCity\": \"Birmingham\",\n    \"homeStatePostalCode\": \"35004\",\n    \"homeStateStreet1\": \"123 A St.\",\n    \"status\": \"inactive\",\n    \"licenseType\": \"audiologist\",\n    \"ssn\": \"337-66-6786\",\n    \"npi\": \"5045836020\",\n    \"middleName\": \"Gunnar\"\n  },\n  {\n    \"dateOfBirth\": \"2950-07-15\",\n    \"dateOfExpiration\": \"2198-06-13\",\n    \"dateOfIssuance\": \"1625-17-11\",\n    \"dateOfRenewal\": \"1912-02-28\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeStateCity\": \"<string>\",\n    \"homeStatePostalCode\": \"<string>\",\n    \"homeStateStreet1\": \"<string>\",\n    \"licenseType\": \"speech and language pathologist\",\n    \"ssn\": \"023-09-1574\",\n    \"status\": \"active\",\n    \"homeStateStreet2\": \"<string>\",\n    \"npi\": \"9588895602\",\n    \"middleName\": \"<string>\"\n  }\n]",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/v0/licenses/:compact/:jurisdiction",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v0",
+														"licenses",
+														":compact",
+														":jurisdiction"
+													],
+													"variable": [
+														{
+															"key": "compact",
+															"value": "aslp",
+															"description": "(Required) "
+														},
+														{
+															"key": "jurisdiction",
+															"value": "al",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "200 response",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Accept",
+																"value": "application/json"
+															},
+															{
+																"key": "Authorization",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "[\n  {\n    \"dateOfBirth\": \"2627-12-30\",\n    \"dateOfExpiration\": \"2056-09-18\",\n    \"dateOfIssuance\": \"2661-02-09\",\n    \"dateOfRenewal\": \"1735-04-00\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeStateCity\": \"<string>\",\n    \"homeStatePostalCode\": \"<string>\",\n    \"homeStateStreet1\": \"<string>\",\n    \"licenseType\": \"speech and language pathologist\",\n    \"ssn\": \"821-91-2494\",\n    \"status\": \"inactive\",\n    \"homeStateStreet2\": \"<string>\",\n    \"npi\": \"9932829209\",\n    \"middleName\": \"<string>\"\n  },\n  {\n    \"dateOfBirth\": \"2950-07-15\",\n    \"dateOfExpiration\": \"2198-06-13\",\n    \"dateOfIssuance\": \"1625-17-11\",\n    \"dateOfRenewal\": \"1912-02-28\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeStateCity\": \"<string>\",\n    \"homeStatePostalCode\": \"<string>\",\n    \"homeStateStreet1\": \"<string>\",\n    \"licenseType\": \"speech and language pathologist\",\n    \"ssn\": \"023-09-1574\",\n    \"status\": \"active\",\n    \"homeStateStreet2\": \"<string>\",\n    \"npi\": \"9588895602\",\n    \"middleName\": \"<string>\"\n  }\n]",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/v0/licenses/:compact/:jurisdiction",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v0",
+																"licenses",
+																":compact",
+																":jurisdiction"
+															],
+															"variable": [
+																{
+																	"key": "compact"
+																},
+																{
+																	"key": "jurisdiction"
+																}
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "json",
+													"header": [
+														{
+															"key": "Content-Type",
+															"value": "application/json"
+														}
+													],
+													"cookie": [],
+													"body": "{\n  \"message\": \"<string>\"\n}"
+												}
+											]
+										},
+										{
+											"name": "/v0/licenses/:compact/:jurisdiction",
+											"request": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v0/licenses/:compact/:jurisdiction",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v0",
+														"licenses",
+														":compact",
+														":jurisdiction"
+													],
+													"variable": [
+														{
+															"key": "compact",
+															"value": "<string>",
+															"description": "(Required) "
+														},
+														{
+															"key": "jurisdiction",
+															"value": "<string>",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "204 response",
+													"originalRequest": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v0/licenses/:compact/:jurisdiction",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v0",
+																"licenses",
+																":compact",
+																":jurisdiction"
+															],
+															"variable": [
+																{
+																	"key": "compact"
+																},
+																{
+																	"key": "jurisdiction"
+																}
+															]
+														}
+													},
+													"status": "No Content",
+													"code": 204,
+													"_postman_previewlanguage": "text",
+													"header": [
+														{
+															"key": "Access-Control-Allow-Origin",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Methods",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Headers",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														}
+													],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "/v0/licenses/:compact",
+									"request": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v0/licenses/:compact",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v0",
+												"licenses",
+												":compact"
+											],
+											"variable": [
+												{
+													"key": "compact",
+													"value": "<string>",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "204 response",
+											"originalRequest": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v0/licenses/:compact",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v0",
+														"licenses",
+														":compact"
+													],
+													"variable": [
+														{
+															"key": "compact"
+														}
+													]
+												}
+											},
+											"status": "No Content",
+											"code": 204,
+											"_postman_previewlanguage": "text",
+											"header": [
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Methods",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Headers",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": ""
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "/v0/licenses",
+							"request": {
+								"method": "OPTIONS",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/v0/licenses",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v0",
+										"licenses"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "204 response",
+									"originalRequest": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v0/licenses",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v0",
+												"licenses"
+											]
+										}
+									},
+									"status": "No Content",
+									"code": 204,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Methods",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Headers",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										}
+									],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "providers",
+					"item": [
+						{
+							"name": "{providerId}",
+							"item": [
+								{
+									"name": "/v0/providers/:providerId",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/v0/providers/:providerId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v0",
+												"providers",
+												":providerId"
+											],
+											"variable": [
+												{
+													"key": "providerId",
+													"value": "<string>",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "200 response",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "<API Key>",
+														"description": "Added as a part of security scheme: apikey"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/v0/providers/:providerId",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v0",
+														"providers",
+														":providerId"
+													],
+													"variable": [
+														{
+															"key": "providerId"
+														}
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"items\": [\n    {\n      \"compact\": \"ot\",\n      \"dateOfBirth\": \"1638-02-01\",\n      \"dateOfExpiration\": \"2711-17-11\",\n      \"dateOfIssuance\": \"2914-17-29\",\n      \"dateOfRenewal\": \"2757-08-13\",\n      \"dateOfUpdate\": \"2089-04-23\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"homeStateCity\": \"<string>\",\n      \"homeStatePostalCode\": \"<string>\",\n      \"homeStateStreet1\": \"<string>\",\n      \"jurisdiction\": \"wv\",\n      \"licenseType\": \"licensed clinical mental health counselor\",\n      \"providerId\": \"cb2f7c48-4b25-4c55-8e68-6dd951a32e3a\",\n      \"ssn\": \"992-17-0232\",\n      \"status\": \"active\",\n      \"type\": \"license-home\",\n      \"homeStateStreet2\": \"<string>\",\n      \"npi\": \"4514937963\",\n      \"middleName\": \"<string>\"\n    },\n    {\n      \"compact\": \"counseling\",\n      \"dateOfBirth\": \"2523-13-09\",\n      \"dateOfExpiration\": \"1263-00-18\",\n      \"dateOfIssuance\": \"2986-03-25\",\n      \"dateOfRenewal\": \"1678-15-06\",\n      \"dateOfUpdate\": \"2820-08-31\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"homeStateCity\": \"<string>\",\n      \"homeStatePostalCode\": \"<string>\",\n      \"homeStateStreet1\": \"<string>\",\n      \"jurisdiction\": \"mn\",\n      \"licenseType\": \"occupational therapy assistant\",\n      \"providerId\": \"8291634b-2963-4b51-8b12-31c07da00ca4\",\n      \"ssn\": \"537-95-4784\",\n      \"status\": \"inactive\",\n      \"type\": \"license-home\",\n      \"homeStateStreet2\": \"<string>\",\n      \"npi\": \"7397291251\",\n      \"middleName\": \"<string>\"\n    }\n  ],\n  \"pagination\": {\n    \"prevLastKey\": {},\n    \"lastKey\": {},\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"key\": \"familyName\",\n    \"direction\": \"descending\"\n  }\n}"
+										}
+									]
+								},
+								{
+									"name": "/v0/providers/:providerId",
+									"request": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v0/providers/:providerId",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v0",
+												"providers",
+												":providerId"
+											],
+											"variable": [
+												{
+													"key": "providerId",
+													"value": "<string>",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "204 response",
+											"originalRequest": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v0/providers/:providerId",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v0",
+														"providers",
+														":providerId"
+													],
+													"variable": [
+														{
+															"key": "providerId"
+														}
+													]
+												}
+											},
+											"status": "No Content",
+											"code": 204,
+											"_postman_previewlanguage": "text",
+											"header": [
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Methods",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Headers",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": ""
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "query",
+							"item": [
+								{
+									"name": "/v0/providers/query",
+									"request": {
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"query\": {\n    \"compact\": \"counseling\",\n    \"providerId\": \"f9738ab1-8507-4219-9e25-67acf3cc636b\",\n    \"jurisdiction\": \"mt\",\n    \"ssn\": \"769-18-3753\"\n  },\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"key\": \"familyName\",\n    \"direction\": \"descending\"\n  }\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/v0/providers/query",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v0",
+												"providers",
+												"query"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "200 response",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "<API Key>",
+														"description": "Added as a part of security scheme: apikey"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"query\": {\n    \"compact\": \"counseling\",\n    \"providerId\": \"f9738ab1-8507-4219-9e25-67acf3cc636b\",\n    \"jurisdiction\": \"mt\",\n    \"ssn\": \"769-18-3753\"\n  },\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"key\": \"familyName\",\n    \"direction\": \"descending\"\n  }\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/v0/providers/query",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v0",
+														"providers",
+														"query"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"items\": [\n    {\n      \"compact\": \"ot\",\n      \"dateOfBirth\": \"1638-02-01\",\n      \"dateOfExpiration\": \"2711-17-11\",\n      \"dateOfIssuance\": \"2914-17-29\",\n      \"dateOfRenewal\": \"2757-08-13\",\n      \"dateOfUpdate\": \"2089-04-23\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"homeStateCity\": \"<string>\",\n      \"homeStatePostalCode\": \"<string>\",\n      \"homeStateStreet1\": \"<string>\",\n      \"jurisdiction\": \"wv\",\n      \"licenseType\": \"licensed clinical mental health counselor\",\n      \"providerId\": \"cb2f7c48-4b25-4c55-8e68-6dd951a32e3a\",\n      \"ssn\": \"992-17-0232\",\n      \"status\": \"active\",\n      \"type\": \"license-home\",\n      \"homeStateStreet2\": \"<string>\",\n      \"npi\": \"4514937963\",\n      \"middleName\": \"<string>\"\n    },\n    {\n      \"compact\": \"counseling\",\n      \"dateOfBirth\": \"2523-13-09\",\n      \"dateOfExpiration\": \"1263-00-18\",\n      \"dateOfIssuance\": \"2986-03-25\",\n      \"dateOfRenewal\": \"1678-15-06\",\n      \"dateOfUpdate\": \"2820-08-31\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"homeStateCity\": \"<string>\",\n      \"homeStatePostalCode\": \"<string>\",\n      \"homeStateStreet1\": \"<string>\",\n      \"jurisdiction\": \"mn\",\n      \"licenseType\": \"occupational therapy assistant\",\n      \"providerId\": \"8291634b-2963-4b51-8b12-31c07da00ca4\",\n      \"ssn\": \"537-95-4784\",\n      \"status\": \"inactive\",\n      \"type\": \"license-home\",\n      \"homeStateStreet2\": \"<string>\",\n      \"npi\": \"7397291251\",\n      \"middleName\": \"<string>\"\n    }\n  ],\n  \"pagination\": {\n    \"prevLastKey\": {},\n    \"lastKey\": {},\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"key\": \"familyName\",\n    \"direction\": \"descending\"\n  }\n}"
+										}
+									]
+								},
+								{
+									"name": "/v0/providers/query",
+									"request": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v0/providers/query",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v0",
+												"providers",
+												"query"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "204 response",
+											"originalRequest": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v0/providers/query",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v0",
+														"providers",
+														"query"
+													]
+												}
+											},
+											"status": "No Content",
+											"code": 204,
+											"_postman_previewlanguage": "text",
+											"header": [
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Methods",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Headers",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": ""
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "/v0/providers",
+							"request": {
+								"method": "OPTIONS",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/v0/providers",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v0",
+										"providers"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "204 response",
+									"originalRequest": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v0/providers",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v0",
+												"providers"
+											]
+										}
+									},
+									"status": "No Content",
+									"code": 204,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Methods",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Headers",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										}
+									],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "/v0",
+					"request": {
+						"method": "OPTIONS",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/v0",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"v0"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "204 response",
+							"originalRequest": {
+								"method": "OPTIONS",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/v0",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v0"
+									]
+								}
+							},
+							"status": "No Content",
+							"code": 204,
+							"_postman_previewlanguage": "text",
+							"header": [
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "<string>",
+									"description": {
+										"content": "",
+										"type": "text/plain"
+									}
+								},
+								{
+									"key": "Access-Control-Allow-Methods",
+									"value": "<string>",
+									"description": {
+										"content": "",
+										"type": "text/plain"
+									}
+								},
+								{
+									"key": "Access-Control-Allow-Headers",
+									"value": "<string>",
+									"description": {
+										"content": "",
+										"type": "text/plain"
+									}
+								}
+							],
+							"cookie": [],
+							"body": ""
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Upload Document",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "key",
+							"value": "{{key}}",
+							"type": "text"
+						},
+						{
+							"key": "x-amz-algorithm",
+							"value": "{{x-amz-algorithm}}",
+							"type": "text"
+						},
+						{
+							"key": "x-amz-credential",
+							"value": "{{x-amz-credential}}",
+							"type": "text"
+						},
+						{
+							"key": "x-amz-date",
+							"value": "{{x-amz-date}}",
+							"type": "text"
+						},
+						{
+							"key": "x-amz-signature",
+							"value": "{{x-amz-signature}}",
+							"type": "text"
+						},
+						{
+							"key": "x-amz-security-token",
+							"value": "{{x-amz-security-token}}",
+							"type": "text"
+						},
+						{
+							"key": "policy",
+							"value": "{{policy}}",
+							"type": "text"
+						},
+						{
+							"key": "file",
+							"type": "file",
+							"src": "s1m0lfnA4/licenses.csv"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{docUrl}}",
+					"host": [
+						"{{docUrl}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "basePath",
+			"value": "sandbox"
 		},
 		{
 			"key": "baseUrl",
-			"value": "https://gykzc2lemg.execute-api.us-east-1.amazonaws.com/justin",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "uiUrl",
-			"value": "",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "jurisdiction",
-			"value": "al",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "clientId",
-			"value": "",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "clientSecret",
-			"value": "",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "accessToken",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "idToken",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "refreshToken",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "docUrl",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "key",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "x-amz-algorithm",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "x-amz-credential",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "x-amz-date",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "x-amz-security-token",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "policy",
-			"value": "",
-			"type": "any",
-			"enabled": true
-		},
-		{
-			"key": "x-amz-signature",
-			"value": "",
-			"type": "any",
-			"enabled": true
+			"value": "https://6kmjw2zkyh.execute-api.us-east-1.amazonaws.com/{{basePath}}"
 		}
-	],
-	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2024-07-16T23:38:17.121Z",
-	"_postman_exported_using": "Postman/11.4.0-240705-0657"
+	]
 }

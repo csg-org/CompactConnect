@@ -84,6 +84,7 @@ class BulkUploadsBucket(Bucket):
         """
         delete_objects_handler = PythonFunction(
             self, 'DeleteObjectsHandler',
+            description='Delete S3 objects handler',
             entry=os.path.join('lambdas', 'delete-objects'),
             index='main.py',
             handler='delete_objects'
@@ -140,6 +141,7 @@ class BulkUploadsBucket(Bucket):
         stack: Stack = Stack.of(self)
         parse_objects_handler = PythonFunction(
             self, 'ParseObjectsHandler',
+            description='Parse s3 objects handler',
             entry=os.path.join('lambdas', 'license-data'),
             index=os.path.join('handlers', 'bulk_upload.py'),
             handler='process_s3_event',

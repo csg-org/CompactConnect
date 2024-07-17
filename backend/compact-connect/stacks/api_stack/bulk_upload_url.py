@@ -43,6 +43,7 @@ class BulkUploadUrl:
         stack: Stack = Stack.of(self.resource)
         handler = PythonFunction(
             self.api, 'BulkUrlHandler' if not mock_bucket else 'MockBulkUrlHandler',
+            description='Get upload url handler',
             entry=os.path.join('lambdas', 'license-data'),
             index=os.path.join('handlers', 'bulk_upload.py'),
             handler='bulk_upload_url_handler' if not mock_bucket else 'no_auth_bulk_upload_url_handler',

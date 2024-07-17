@@ -57,6 +57,7 @@ class IngestStack(Stack):
 
         ingest_handler = PythonFunction(
             self, 'IngestHandler',
+            description='Ingest license data handler',
             entry=os.path.join('lambdas', 'license-data'),
             index=os.path.join('handlers', 'ingest.py'),
             handler='process_license_message',
