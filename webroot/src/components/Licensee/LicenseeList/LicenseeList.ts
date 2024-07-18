@@ -134,11 +134,11 @@ class LicenseeList extends Vue {
 
         if (option) {
             const serverSortByMap = {
-                firstName: 'given_name',
-                lastName: 'family_name',
+                firstName: 'givenName',
+                lastName: 'familyName',
                 residenceLocation: 'jurisdiction',
                 stateOfLicense: 'jurisdiction',
-                lastUpdate: 'date_of_update',
+                lastUpdate: 'dateOfUpdate',
             };
 
             requestConfig.sortBy = serverSortByMap[option];
@@ -157,6 +157,8 @@ class LicenseeList extends Vue {
         if (page && page !== 1 && !this.licenseStore.error) {
             requestConfig.getNextPage = true;
         }
+        requestConfig.compact = 'aslp';
+        requestConfig.jurisdiction = 'al';
 
         await this.$store.dispatch('license/getLicenseesRequest', {
             params: {
