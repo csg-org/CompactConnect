@@ -86,11 +86,14 @@ class DataClient():
             Select='ALL_PROJECTED_ATTRIBUTES',
             KeyConditionExpression=Key('ssn').eq(quote(ssn)),
         )
+        # Create a set of provider ids (which will ensure no duplicate values) from all license-home records
         items = {
             self.ssn_index_record_schema.load(item)['licenseHomeProviderId']
             for item in resp['Items']
         }
         item_count = len(items)
+        # If there is more than one value in the set, we have multiple provider ids associated with
+        # the requested SSN, which is a problem.
         if item_count > 1:
             raise CCInternalException('Data consistency error!')
 
