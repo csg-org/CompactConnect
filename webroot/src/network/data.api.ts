@@ -58,11 +58,10 @@ export class DataApi {
     /**
      * GET Licensee by ID.
      * @param  {string}          licenseeId A licensee ID.
-     * @param  {object}          [params]   The request query parameters config.
      * @return {Promise<object>}            A licensee server response.
      */
-    public getLicensee(licenseeId, params) {
-        return licenseDataApi.getLicensee(licenseeId, params);
+    public getLicensee(licenseeId) {
+        return licenseDataApi.getLicensee(licenseeId);
     }
 
     // ========================================================================

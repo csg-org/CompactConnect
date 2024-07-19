@@ -71,8 +71,23 @@ export class DataApi {
     }
 
     // Get Licensee by ID
-    public getLicensee() {
-        return this.wait(500).then(() => LicenseeSerializer.fromServer(licensees.items[0]));
+    public getLicensee(licenseeId, params: any = {}) {
+        const serverResponse = licensees.items.find((item) => item.providerId === licenseeId);
+        let response;
+
+        if (serverResponse) {
+            response = this.wait(500).then(() => ({
+                licensee: LicenseeSerializer.fromServer(licensees.items[0]),
+                licenseeId,
+                params,
+            }));
+        } else {
+            response = this.wait(500).then(() => {
+                throw new Error('not found');
+            });
+        }
+
+        return response;
     }
 
     // ========================================================================

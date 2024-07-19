@@ -172,10 +172,10 @@ describe('License Store Actions', async () => {
     it('should successfully start licensee request', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
-        const userId = '1';
+        const licenseeId = '1';
         const params = {};
 
-        await actions.getLicenseeRequest({ commit, dispatch }, { userId, params });
+        await actions.getLicenseeRequest({ commit, dispatch }, { licenseeId, params });
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_LICENSEE_REQUEST]);
@@ -249,5 +249,18 @@ describe('License Store Getters', async () => {
         const lastKey = getters.lastKey(state);
 
         expect(lastKey).to.equal(state.lastKey);
+    });
+    it('should successfully get licensee by id (not found)', async () => {
+        const state = {};
+        const licensee = getters.licenseeById(state)('1');
+
+        expect(licensee).to.equal(undefined);
+    });
+    it('should successfully get licensee by id (not found)', async () => {
+        const record = { id: '1' };
+        const state = { model: [record]};
+        const licensee = getters.licenseeById(state)('1');
+
+        expect(licensee).to.matchPattern(record);
     });
 });
