@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - development
+      - frontend/license-detail-ui
     paths:
       - webroot/**
 
@@ -38,10 +39,10 @@ jobs:
       AWS_CLOUDFRONT_DISTRIBUTION: ${{ secrets.DEV_WEBROOT_AWS_CLOUDFRONT_DISTRIBUTION }}
       SLACK_BOT_TOKEN: ${{ secrets.IA_SLACK_BOT_TOKEN }}
       BASE_URL: /
-      VUE_APP_DOMAIN: https://d130azwkbquf2a.cloudfront.net
+      VUE_APP_DOMAIN: https://d1sntjunv5lr23.cloudfront.net
       VUE_APP_ROBOTS_META: noindex,nofollow
-      VUE_APP_API_STATE_ROOT: https://m848119752.execute-api.us-east-1.amazonaws.com/test
-      VUE_APP_API_LICENSE_ROOT: https://m848119752.execute-api.us-east-1.amazonaws.com/test
+      VUE_APP_API_STATE_ROOT: https://9avvh7mvqg.execute-api.us-east-1.amazonaws.com/test
+      VUE_APP_API_LICENSE_ROOT: https://9avvh7mvqg.execute-api.us-east-1.amazonaws.com/test
 
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
