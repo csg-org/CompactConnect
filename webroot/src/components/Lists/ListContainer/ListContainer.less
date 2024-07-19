@@ -14,6 +14,8 @@
     }
 
     .list-loading {
+        .last-list-row();
+
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -62,6 +64,17 @@
     }
 
     .no-records {
+        .last-list-row();
+
+        padding: 3.2rem 0;
+        font-style: italic;
+        text-align: center;
+    }
+
+    .loading-error {
+        .last-list-row();
+
+        padding: 3.2rem 0;
         font-style: italic;
         text-align: center;
     }

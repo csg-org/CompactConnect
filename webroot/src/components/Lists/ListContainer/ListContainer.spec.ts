@@ -8,7 +8,6 @@
 import { expect } from 'chai';
 import { mountShallow } from '@tests/helpers/setup';
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
-import CompactToggle from '@components/Lists/CompactToggle/CompactToggle.vue';
 import Sorting from '@components/Lists/Sorting/Sorting.vue';
 import Pagination from '@components/Lists/Pagination/Pagination.vue';
 
@@ -43,7 +42,6 @@ describe('ListContainer component', async () => {
         expect(wrapper.find('.no-records').exists(), 'no records').to.equal(true);
         expect(wrapper.findAllComponents(Sorting).length, 'sorting elements').to.equal(0);
         expect(wrapper.findAllComponents(Pagination).length, 'pagination elements').to.equal(0);
-        expect(wrapper.findAllComponents(CompactToggle).length, 'compact toggle elements').to.equal(0);
     });
     it('should have expected default UI with records', async () => {
         const wrapper = await mountShallow(ListContainer, {
@@ -58,9 +56,8 @@ describe('ListContainer component', async () => {
         });
 
         expect(wrapper.find('.no-records').exists(), 'no records').to.equal(false);
-        expect(wrapper.findAllComponents(Sorting).length, 'sorting elements').to.equal(1);
+        expect(wrapper.findAllComponents(Sorting).length, 'sorting elements').to.equal(0);
         expect(wrapper.findAllComponents(Pagination).length, 'pagination elements').to.equal(2);
-        expect(wrapper.findAllComponents(CompactToggle).length, 'compact toggle elements').to.equal(0);
     });
     it('should exclude top pagination', async () => {
         const wrapper = await mountShallow(ListContainer, {
@@ -119,23 +116,6 @@ describe('ListContainer component', async () => {
         });
 
         expect(wrapper.findAllComponents(Sorting).length).to.equal(0);
-    });
-    it('should include compact toggle', async () => {
-        const wrapper = await mountShallow(ListContainer, {
-            props: {
-                listData: ['x'],
-                paginationId: 'component',
-                pageChange: () => null,
-                sortingId: 'component',
-                // sortChange: () => null,
-                sortOptions: [],
-                includeCompactToggle: true,
-            },
-        });
-
-        expect(wrapper.findAllComponents(Sorting).length).to.equal(1);
-        expect(wrapper.findAllComponents(Pagination).length).to.equal(2);
-        expect(wrapper.findAllComponents(CompactToggle).length).to.equal(1);
     });
     it('should calculate list total size', async () => {
         const wrapper = await mountShallow(ListContainer, {

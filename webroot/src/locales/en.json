@@ -27,6 +27,7 @@
         "saving": "Saving...",
         "loading": "Loading...",
         "firstName": "First Name",
+        "middleName": "Middle Name",
         "lastName": "Last Name",
         "dateOfBirth": "Date of Birth",
         "dateOfBirthShort": "DOB",
@@ -323,13 +324,15 @@
     "navigation": {
         "login": "Login",
         "home": "Home",
+        "upload": "Upload",
+        "licensing": "Licensing",
         "styleGuide": "Styleguide",
         "account": "Account",
         "logout": "Logout"
     },
     "paging": {
-        "previousPage": "Previous Page",
-        "nextPage": "Next Page",
+        "previousPage": "Previous",
+        "nextPage": "Next",
         "goToPage": "Go to page",
         "notClickable": "Not clickable",
         "pageSize": "Page size"
@@ -368,6 +371,8 @@
         "fileWrongType": "Wrong file type"
     },
     "serverErrors": {
+        "networkError": "Network error",
+        "noRecords": "No records to display",
         "dobFormat": "Date of Birth must be in the format MM/DD/YYYY.",
         "dobMaxDate": "Date of Birth must be earlier than than or equal to today.",
         "dobMinDate": "Date of Birth must be later than or equal to 01/01/1900."
@@ -404,6 +409,17 @@
         "uploadHint": "Only 1 CSV",
         "successTitle": "Your document has been uploaded successfully",
         "successSubtext": "Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet"
+    },
+    "licensing": {
+        "licensingListTitle": "Licensing Data",
+        "residenceLocation": "Resident location",
+        "stateOfLicense": "State of licensure",
+        "practicingLocations": "Practicing location(s)",
+        "lastUpdate": "Latest upload",
+        "status": {
+            "active": "Active",
+            "inactive": "Inactive"
+        }
     },
     "styleGuide": {
         "headerPlaceholder": "Header Content",

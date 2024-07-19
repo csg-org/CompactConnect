@@ -23,6 +23,7 @@ export interface EnvConfig {
     baseUrl?: string;
     domain?: string;
     apiUrlState?: string;
+    apiUrlLicense?: string;
     apiUrlExample?: string;
     apiKeyExample?: string;
     isUsingMockApi?: boolean;
@@ -37,6 +38,7 @@ export const config: EnvConfig = {
     baseUrl: process.env.BASE_URL,
     domain: process.env.VUE_APP_DOMAIN,
     apiUrlState: process.env.VUE_APP_API_STATE_ROOT,
+    apiUrlLicense: process.env.VUE_APP_API_LICENSE_ROOT,
     apiUrlExample: '/api',
     apiKeyExample: 'example',
     isUsingMockApi: (process.env.VUE_APP_MOCK_API === 'true'),

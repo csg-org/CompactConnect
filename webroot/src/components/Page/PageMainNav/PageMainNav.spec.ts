@@ -19,7 +19,7 @@ describe('PageMainNav component', async () => {
     it('should have the expected links', async () => {
         const mainNavLinks = [
             {
-                to: '/Home',
+                to: 'Home',
                 label: 'Router link',
                 isEnabled: true,
                 isExternal: false,
@@ -31,7 +31,7 @@ describe('PageMainNav component', async () => {
                 isExternal: true,
             },
             {
-                to: '/Disabled',
+                to: 'Disabled',
                 label: 'Disabled link',
                 isEnabled: false,
                 isExternal: false,
@@ -61,7 +61,7 @@ describe('PageMainNav component', async () => {
         expect(links.length).to.equal(2);
 
         expect(links[0].text()).to.equal('Router link');
-        expect(links[0].attributes().href).to.equal('/Home');
+        expect(links[0].attributes().href).to.equal('/');
         expect(links[0].attributes().target).to.be.undefined;
         expect(links[0].attributes().rel).to.be.undefined;
 

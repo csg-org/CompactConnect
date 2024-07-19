@@ -30,6 +30,7 @@ class ListContainer extends mixins(MixinListManipulation) {
     @Prop({ required: true }) private sortChange!: (newSortOption: string, ascending: boolean) => any;
     @Prop({ default: 0 }) private listSize?: number;
     @Prop({ default: false }) private isLoading?: boolean;
+    @Prop({ default: null }) private loadingError?: any;
 
     //
     // Computed

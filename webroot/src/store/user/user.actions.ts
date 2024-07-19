@@ -35,7 +35,7 @@ export default {
         dispatch('clearAuthTokens');
         commit(MutationTypes.LOGOUT_REQUEST);
 
-        /* istanbul ignore if */
+        /* istanbul ignore next */
         if (config.isUsingMockApi) {
             setTimeout(() => dispatch('endLoading', null, { root: true }), 1000);
             dispatch('logoutSuccess');
@@ -81,6 +81,7 @@ export default {
         dispatch('reset', null, { root: true });
     },
     clearAuthTokens: () => {
+        /* istanbul ignore next */
         localStorage.removeItem(AUTH_TOKEN); // Used by the mock or custom auth API
     },
 };

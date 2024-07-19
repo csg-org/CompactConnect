@@ -2,7 +2,7 @@
 //  Blueprint.model.spec.ts
 //  CompactConnect
 //
-//  Created by InspiringApps on MM/DD/YY.
+//  Created by InspiringApps on MM/DD/YYYY.
 //
 
 import { expect } from 'chai';

@@ -2,7 +2,7 @@
 //  User.model.spec.ts
 //  InspiringApps modules
 //
-//  Created by InspiringApps on 4/12/20.
+//  Created by InspiringApps on 4/12/2020.
 //
 
 import { expect } from 'chai';

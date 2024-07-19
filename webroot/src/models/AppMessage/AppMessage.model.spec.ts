@@ -2,7 +2,7 @@
 //  AppMessage.model.spec.ts
 //  inHere
 //
-//  Created by InspiringApps on 4/12/20.
+//  Created by InspiringApps on 4/12/2020.
 //  //
 
 import { expect } from 'chai';

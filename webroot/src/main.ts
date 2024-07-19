@@ -83,6 +83,24 @@ app.use(VueLazyload, {
 app.mount('#app');
 
 //
+// ALLOW ACCESS TO VUE INSTANCE SERVICES
+//
+// Attach any services that aren't automatically attached to the Vue instance
+const { globalProperties } = app.config;
+const { t: $t, tm: $tm } = i18n.global;
+
+if (!globalProperties.$t) {
+    (globalProperties as any).$t = $t;
+}
+
+if (!globalProperties.$tm) {
+    (globalProperties as any).$tm = $tm;
+}
+
+// Make Vue available globally
+(window as any).Vue = app || {};
+
+//
 // E2E TESTS INJECTION
 //
 if ((window as any).Cypress) {
