@@ -36,7 +36,7 @@ class PipelineStack(Stack):
         if value != 'dummy-value-for-compact-connect-context':
             ssm_context = json.loads(value)
         else:
-            with open('cdk.context.example.json', 'r') as f:
+            with open('cdk.context.production-example.json', 'r') as f:
                 ssm_context = json.load(f)['ssm_context']
         pipeline_environment_context = ssm_context['environments']['pipeline']
         connection_id = pipeline_environment_context['connection_id']

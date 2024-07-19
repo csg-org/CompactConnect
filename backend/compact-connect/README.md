@@ -98,17 +98,21 @@ To execute the tests, simply run `bin/run_tests.sh` from the `backend` directory
 ### First deploy to a Sandbox environment
 The very first deploy to a new environment (like your personal sandbox account) requires a few steps to fully set up
 its environment:
-1) Copy [cdk.context.example.json](./cdk.context.example.json) to `cdk.context.json`.
-2) Add `"sandbox": true` and `"environment_name": "<your-name>"` fields to the file, to configure it for sandbox
-   deployments.
-3) Add a new environment entry under `ssm_context.environments`, using your name and your own AWS sandbox account id.
+1) Copy [cdk.context.sandbox-example.json](./cdk.context.sandbox-example.json) to `cdk.context.json`.
+2) At the top level of the JSON structure update the `"environment_name"` field to your own name.
+3) Update the environment entry under `ssm_context.environments` to your own name and your own AWS sandbox account id.
+   The key under `environments` must match the value you put under `environment_name`.
 4) Configure your aws cli to authenticate against your own account.
 5) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account.
 6) Run `cdk deploy 'Sandbox/*'` to get the initial stack resources deployed.
 
 ### Subsequent sandbox deploys:
 For any future deploys, everything is set up so a simple `cdk deploy 'Sandbox/*'` should update all your infrastructure
-to reflect the changes in your code.
+to reflect the changes in your code. Full deployment steps are:
+1) Make sure your python environment is active.
+2) Run `bin/sync_deps.sh` from `backend/` to ensure you have the latest requirements installed.
+3) Configure your aws cli to authenticate against your own account.
+4) Run `cdk deploy 'Sandbox/*'` to deploy the app to your AWS account.
 
 ### First deploy to the production environment
 The production environment requires a few steps to fully set up before deploys can be automated. Refer to the
@@ -116,13 +120,12 @@ The production environment requires a few steps to fully set up before deploys c
 that is done, perform the following steps to deploy the CI/CD pipeline into the appropriate AWS account:
 - Have someone with suitable permissions in the GitHub organization that hosts this code navigate to the AWS Console
   for the Deploy account, go to the
-  [AWS CodeStar Connections](https://us-east-1.console.aws.amazon.com/codesuite/settings/connections) page and create a
-  connection that grants AWS permission to receive GitHub events. Note the identifier of the resulting connection for
-  the next step.
-- Copy the `cdk.context.example.json` file to `cdk.context.json` and update accounts and other identifiers, including
-  the Code Star connection you just had created to match the identifiers for your actual accounts and resources.
-- With the [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html), set up your local
-  machine to authenticate against the Deploy account as an administrator.
+  [AWS CodeStar Connections](https://us-east-1.console.aws.amazon.com/codesuite/settings/connections) page and create a connection that grants AWS permission to receive GitHub events.
+  Note the identifier of the resulting connection for the next step.
+- Copy the `cdk.context.production-example.json` file to `cdk.context.json` and update accounts and other identifiers,
+  including the Code Star connection you just had created to match the identifiers for your actual accounts and
+  resources.
+- With the [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html), set up your local machine to authenticate against the Deploy account as an administrator.
 - Run the `bin/put_ssm_context.sh` script to push relevant content from your `cdk.context.json` script into an SSM
   Parameter Store in your Deploy account.
 - Set cli-environment variables `CDK_DEFAULT_ACCOUNT` and `CDK_DEFAULT_REGION` to your deploy account id and
@@ -156,5 +159,5 @@ Console, then looking at the resources after its delete is complete, to look for
 ## More Info
 [Back to top](#compact-connect---backend-developer-documentation)
 
-- [cdk-workshop](https://cdkworkshop.com/): If you are new to CDK, I highly recommend you go through the CDK Workshop
-  for a quick introduction to the technology and its concepts before getting too deep into any particular project.
+- [cdk-workshop](https://cdkworkshop.com/): If you are new to CDK, I highly recommend you go through the CDK Workshop for a quick
+  introduction to the technology and its concepts before getting too deep into any particular project.

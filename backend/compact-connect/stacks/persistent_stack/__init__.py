@@ -9,6 +9,7 @@ from stacks.persistent_stack.board_users import BoardUsers
 
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.license_table import LicenseTable
+from stacks.persistent_stack.event_bus import EventBus
 
 
 class PersistentStack(Stack):
@@ -40,13 +41,16 @@ class PersistentStack(Stack):
             removal_policy=removal_policy
         )
 
+        self.data_event_bus = EventBus(self, 'DataEventBus')
+
         self.mock_bulk_uploads_bucket = BulkUploadsBucket(
             self, 'MockBulkUploadsBucket',
             mock_bucket=True,
             access_logs_bucket=self.access_logs_bucket,
             encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy,
-            auto_delete_objects=environment_name != 'prod'
+            auto_delete_objects=environment_name != 'prod',
+            event_bus=self.data_event_bus
         )
 
         self.mock_license_table = LicenseTable(
@@ -60,7 +64,14 @@ class PersistentStack(Stack):
             access_logs_bucket=self.access_logs_bucket,
             encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy,
-            auto_delete_objects=environment_name != 'prod'
+            auto_delete_objects=environment_name != 'prod',
+            event_bus=self.data_event_bus
+        )
+
+        self.license_table = LicenseTable(
+            self, 'LicenseTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy
         )
 
         admin_prefix = f'{app_name}-admins'

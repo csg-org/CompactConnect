@@ -23,7 +23,7 @@ class TestApp(TestCase):
         """
         with open('cdk.json', 'r') as f:
             context = json.load(f)['context']
-        with open('cdk.context.example.json', 'r') as f:
+        with open('cdk.context.production-example.json', 'r') as f:
             context['ssm_context'] = json.load(f)['ssm_context']
 
         # Suppresses lambda bundling for tests
@@ -36,10 +36,12 @@ class TestApp(TestCase):
                 app.pipeline_stack,
                 app.pipeline_stack.test_stage.api_stack,
                 app.pipeline_stack.test_stage.ui_stack,
+                app.pipeline_stack.test_stage.ingest_stack,
                 app.pipeline_stack.test_stage.persistent_stack,
                 app.pipeline_stack.prod_stage.api_stack,
                 app.pipeline_stack.prod_stage.ui_stack,
-                app.pipeline_stack.prod_stage.persistent_stack
+                app.pipeline_stack.prod_stage.persistent_stack,
+                app.pipeline_stack.prod_stage.ingest_stack
         ):
             self._check_no_annotations(stack)
 
@@ -55,14 +57,8 @@ class TestApp(TestCase):
         """
         with open('cdk.json', 'r') as f:
             context = json.load(f)['context']
-        with open('cdk.context.example.json', 'r') as f:
+        with open('cdk.context.sandbox-example.json', 'r') as f:
             context.update(json.load(f))
-        context['sandbox'] = True
-        context['environment_name'] = 'justin'
-        context['ssm_context']['environments']['justin'] = {
-            'account_id': '012345678901',
-            'region': 'us-east-1'
-        }
 
         # Suppresses lambda bundling for tests
         context['aws:cdk:bundling-stacks'] = []
@@ -73,6 +69,7 @@ class TestApp(TestCase):
         self._check_no_annotations(app.sandbox_stage.persistent_stack)
         self._check_no_annotations(app.sandbox_stage.ui_stack)
         self._check_no_annotations(app.sandbox_stage.api_stack)
+        self._check_no_annotations(app.sandbox_stage.ingest_stack)
 
         self._inspect_api_stack(app.sandbox_stage.api_stack)
 
@@ -80,8 +77,8 @@ class TestApp(TestCase):
         api_template = Template.from_stack(api_stack)
 
         with self.assertRaises(RuntimeError):
-            # This is an indicator of unintentional (and invalid) authorizer configuration in the API
-            # not matching is desired in this case and raises a RuntimeError
+            # This is an indicator of unintentional (and invalid) authorizer configuration in the API.
+            # Not matching is desired in this case and raises a RuntimeError.
             api_template.has_resource(
                 type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
                 props={

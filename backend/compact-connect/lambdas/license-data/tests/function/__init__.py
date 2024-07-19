@@ -1,6 +1,8 @@
+import json
 import logging
 import os
 from random import randint
+from uuid import uuid4
 
 import boto3
 from moto import mock_aws
@@ -10,7 +12,7 @@ from tests import TstLambdas
 
 logger = logging.getLogger(__name__)
 logging.basicConfig()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false') == 'true' else logging.INFO)
 
 
 @mock_aws
@@ -44,15 +46,23 @@ class TstFunction(TstLambdas):
                     'AttributeType': 'S'
                 },
                 {
-                    'AttributeName': 'compact_jur',
+                    'AttributeName': 'ssn',
                     'AttributeType': 'S'
                 },
                 {
-                    'AttributeName': 'fam_giv_mid_ssn',
+                    'AttributeName': 'dateOfUpdate',
                     'AttributeType': 'S'
                 },
                 {
-                    'AttributeName': 'upd_ssn',
+                    'AttributeName': 'licenseHomeProviderId',
+                    'AttributeType': 'S'
+                },
+                {
+                    'AttributeName': 'compactJur',
+                    'AttributeType': 'S'
+                },
+                {
+                    'AttributeName': 'famGivMid',
                     'AttributeType': 'S'
                 }
             ],
@@ -70,14 +80,30 @@ class TstFunction(TstLambdas):
             BillingMode='PAY_PER_REQUEST',
             GlobalSecondaryIndexes=[
                 {
-                    'IndexName': os.environ['CJNS_INDEX_NAME'],
+                    'IndexName': os.environ['SSN_INDEX_NAME'],
                     'KeySchema': [
                         {
-                            'AttributeName': 'compact_jur',
+                            'AttributeName': 'ssn',
                             'KeyType': 'HASH'
                         },
                         {
-                            'AttributeName': 'fam_giv_mid_ssn',
+                            'AttributeName': 'licenseHomeProviderId',
+                            'KeyType': 'RANGE'
+                        }
+                    ],
+                    'Projection': {
+                        'ProjectionType': 'KEYS_ONLY'
+                    },
+                },
+                {
+                    'IndexName': os.environ['CJ_NAME_INDEX_NAME'],
+                    'KeySchema': [
+                        {
+                            'AttributeName': 'compactJur',
+                            'KeyType': 'HASH'
+                        },
+                        {
+                            'AttributeName': 'famGivMid',
                             'KeyType': 'RANGE'
                         }
                     ],
@@ -86,14 +112,14 @@ class TstFunction(TstLambdas):
                     },
                 },
                 {
-                    'IndexName': os.environ['UPDATED_INDEX_NAME'],
+                    'IndexName': os.environ['CJ_UPDATED_INDEX_NAME'],
                     'KeySchema': [
                         {
-                            'AttributeName': 'compact_jur',
+                            'AttributeName': 'compactJur',
                             'KeyType': 'HASH'
                         },
                         {
-                            'AttributeName': 'upd_ssn',
+                            'AttributeName': 'dateOfUpdate',
                             'KeyType': 'RANGE'
                         }
                     ],
@@ -104,42 +130,63 @@ class TstFunction(TstLambdas):
             ]
         )
 
+        boto3.client('events').create_event_bus(
+            Name=os.environ['EVENT_BUS_NAME']
+        )
+
     def delete_resources(self):
         self._bucket.objects.delete()
         self._bucket.delete()
         self._table.delete()
+        boto3.client('events').delete_event_bus(
+            Name=os.environ['EVENT_BUS_NAME']
+        )
 
     def _generate_licensees(self, home: str, priv: str, start_serial: int):
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
         from data_model.schema.privilege import PrivilegePostSchema, PrivilegeRecordSchema
 
-        with open('tests/resources/api/license.json', 'r') as f:
-            license_data = LicensePostSchema().loads(f.read())
+        with open('tests/resources/api/license-post.json', 'r') as f:
+            license_data = LicensePostSchema().load({
+                'compact': 'aslp',
+                'jurisdiction': home,
+                **json.load(f)
+            })
 
         with open('tests/resources/api/privilege.json', 'r') as f:
             privilege_data = PrivilegePostSchema().loads(f.read())
 
         # Generate 100 licensees, each with a license and a privilege
         for i in range(start_serial, start_serial-100, -1):
+            provider_id = str(uuid4())
             ssn = f'{randint(100, 999)}-{randint(10, 99)}-{i}'
-            license_data['ssn'] = ssn
-            item = LicenseRecordSchema().dump({
+            license_data.update({
+                'providerId': provider_id,
+                'ssn': ssn
+            })
+
+            # We'll use the schema/serializer to populate index fields for us
+            license_data.update({
                 'compact': 'aslp',
                 'jurisdiction': home,
-                **license_data
             })
+            item = LicenseRecordSchema().dump(license_data)
+            logger.debug('Putting license: %s', json.dumps(item))
             self._table.put_item(
-                # We'll use the schema/serializer to populate index fields for us
                 Item=item
             )
 
-            privilege_data['ssn'] = ssn
-            privilege_data['home_jurisdiction'] = home
+            privilege_data.update({
+                'providerId': provider_id,
+                'ssn': ssn,
+                'home_jurisdiction': home
+            })
             item = PrivilegeRecordSchema().dump({
                 'compact': 'aslp',
                 'jurisdiction': priv,
                 **privilege_data
             })
+            logger.debug('Putting privilege: %s', json.dumps(item))
             self._table.put_item(
                 Item=item
             )
