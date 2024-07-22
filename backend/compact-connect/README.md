@@ -121,11 +121,12 @@ that is done, perform the following steps to deploy the CI/CD pipeline into the 
 - Have someone with suitable permissions in the GitHub organization that hosts this code navigate to the AWS Console
   for the Deploy account, go to the
   [AWS CodeStar Connections](https://us-east-1.console.aws.amazon.com/codesuite/settings/connections) page and create a connection that grants AWS permission to receive GitHub events.
-  Note the identifier of the resulting connection for the next step.
+  Note the full ARN of the resulting connection for the next step.
 - Copy the `cdk.context.production-example.json` file to `cdk.context.json` and update accounts and other identifiers,
   including the Code Star connection you just had created to match the identifiers for your actual accounts and
   resources.
-- With the [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html), set up your local machine to authenticate against the Deploy account as an administrator.
+- With the [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html), set up your local
+  machine to authenticate against the Deploy account as an administrator.
 - Run the `bin/put_ssm_context.sh` script to push relevant content from your `cdk.context.json` script into an SSM
   Parameter Store in your Deploy account.
 - Set cli-environment variables `CDK_DEFAULT_ACCOUNT` and `CDK_DEFAULT_REGION` to your deploy account id and
@@ -159,5 +160,5 @@ Console, then looking at the resources after its delete is complete, to look for
 ## More Info
 [Back to top](#compact-connect---backend-developer-documentation)
 
-- [cdk-workshop](https://cdkworkshop.com/): If you are new to CDK, I highly recommend you go through the CDK Workshop for a quick
-  introduction to the technology and its concepts before getting too deep into any particular project.
+- [cdk-workshop](https://cdkworkshop.com/): If you are new to CDK, I highly recommend you go through the CDK Workshop
+  for a quick introduction to the technology and its concepts before getting too deep into any particular project.
