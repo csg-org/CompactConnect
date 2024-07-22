@@ -39,7 +39,7 @@ class PipelineStack(Stack):
             with open('cdk.context.production-example.json', 'r') as f:
                 ssm_context = json.load(f)['ssm_context']
         pipeline_environment_context = ssm_context['environments']['pipeline']
-        connection_id = pipeline_environment_context['connection_id']
+        connection_arn = pipeline_environment_context['connection_arn']
         github_repo_string = ssm_context['github_repo_string']
         app_name = ssm_context['app_name']
 
@@ -60,7 +60,7 @@ class PipelineStack(Stack):
             self, 'PreProdPipeline',
             github_repo_string=github_repo_string,
             cdk_path=cdk_path,
-            connection_id=connection_id,
+            connection_arn=connection_arn,
             trigger_branch='development',
             encryption_key=self.shared_encryption_key,
             access_logs_bucket=access_logs_bucket,
@@ -83,7 +83,7 @@ class PipelineStack(Stack):
             self, 'ProdPipeline',
             github_repo_string=github_repo_string,
             cdk_path=cdk_path,
-            connection_id=connection_id,
+            connection_arn=connection_arn,
             trigger_branch='main',
             encryption_key=self.shared_encryption_key,
             access_logs_bucket=access_logs_bucket,
