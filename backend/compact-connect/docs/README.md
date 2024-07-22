@@ -48,6 +48,6 @@ We will maintain the latest api specification here, in [latest-oas30.json](api-s
 
 ### Change summary:
 - 2024-06-03: Early draft specification
-- 2024-06-01: i
+- 2024-06-01:
   - Added compacts to api paths
   - Added mock license data query endpoints
