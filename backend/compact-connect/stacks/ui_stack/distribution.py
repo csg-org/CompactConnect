@@ -1,11 +1,14 @@
 import os
 
 from aws_cdk import Stack
+from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_cloudfront import Distribution, BehaviorOptions, CachePolicy, OriginAccessIdentity, \
     ViewerProtocolPolicy, SecurityPolicyProtocol, SSLMethod, ErrorResponse, AllowedMethods, EdgeLambda, \
     LambdaEdgeEventType
 from aws_cdk.aws_cloudfront_origins import S3Origin
 from aws_cdk.aws_lambda import Function, Code, Runtime
+from aws_cdk.aws_route53 import ARecord, RecordTarget, IHostedZone
+from aws_cdk.aws_route53_targets import CloudFrontTarget
 from aws_cdk.aws_s3 import IBucket
 from cdk_nag import NagSuppressions
 from constructs import Construct
@@ -18,9 +21,25 @@ class UIDistribution(Distribution):
     def __init__(
         self, scope: Construct, construct_id: str, *,
         ui_bucket: IBucket,
-        persistent_stack: PersistentStack
+        persistent_stack: PersistentStack,
+        hosted_zone: IHostedZone = None
+
     ):
         stack = Stack.of(scope)
+
+        domain_name_kwargs = {}
+        if hosted_zone is not None:
+            ui_domain_name = f'app.{hosted_zone.zone_name}'
+            domain_name_kwargs = {
+                'domain_names': [
+                    ui_domain_name
+                ],
+                'certificate': Certificate(
+                    scope, 'UICert',
+                    domain_name=ui_domain_name,
+                    validation=CertificateValidation.from_dns(hosted_zone=hosted_zone)
+                )
+            }
 
         # Set up S3 access for CloudFront
         origin_access_identity = OriginAccessIdentity(
@@ -122,8 +141,20 @@ class UIDistribution(Distribution):
                     response_http_status=200,
                     response_page_path='/index.html'
                 )
-            ]
+            ],
+            **domain_name_kwargs
         )
+
+        if hosted_zone is not None:
+            self.record = ARecord(
+                self, 'UiARecord',
+                zone=hosted_zone,
+                record_name=ui_domain_name,
+                target=RecordTarget(
+                    alias_target=CloudFrontTarget(self)
+                )
+            )
+            self.base_url = f'https://{ui_domain_name}'
 
         NagSuppressions.add_resource_suppressions(
             self,
