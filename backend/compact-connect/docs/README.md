@@ -1,6 +1,8 @@
 # Compact Connect - technical user guide
 
-This documentation is intended for technical IT staff that plan to integrate with this data system. It will likely grow as the features of this system grow.
+This documentation is intended for technical IT staff that plan to integrate with this data system. It will likely grow
+as the features of this system grow. For technical documentation of the internal design of the CompactConnect backend,
+look [here](./design/README.md).
 
 ## Introduction
 
