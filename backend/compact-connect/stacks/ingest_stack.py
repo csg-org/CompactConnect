@@ -36,7 +36,7 @@ class IngestStack(Stack):
             encryption=QueueEncryption.KMS,
             encryption_master_key=persistent_stack.shared_encryption_key,
             enforce_ssl=True,
-            retention_period=Duration.hours(2),
+            retention_period=Duration.hours(12),
             visibility_timeout=Duration.minutes(5),
             dead_letter_queue=DeadLetterQueue(
                 max_receive_count=3,
@@ -61,6 +61,7 @@ class IngestStack(Stack):
             entry=os.path.join('lambdas', 'license-data'),
             index=os.path.join('handlers', 'ingest.py'),
             handler='process_license_message',
+            timeout=Duration.minutes(1),
             environment={
                 'LICENSE_TABLE_NAME': persistent_stack.license_table.table_name,
                 'SSN_INDEX_NAME': persistent_stack.license_table.ssn_index_name,
@@ -81,7 +82,7 @@ class IngestStack(Stack):
         ingest_handler.add_event_source(
             SqsEventSource(
                 self.ingest_queue,
-                batch_size=5,
+                batch_size=50,
                 max_batching_window=Duration.minutes(5),
                 report_batch_item_failures=True
             )

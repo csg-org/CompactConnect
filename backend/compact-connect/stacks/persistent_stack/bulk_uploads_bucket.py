@@ -1,5 +1,6 @@
 import os
 
+from aws_cdk import Duration
 from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_logs import QueryDefinition, QueryString
@@ -145,6 +146,8 @@ class BulkUploadsBucket(Bucket):
             entry=os.path.join('lambdas', 'license-data'),
             index=os.path.join('handlers', 'bulk_upload.py'),
             handler='process_s3_event',
+            timeout=Duration.minutes(15),
+            memory_size=1024,
             environment={
                 'EVENT_BUS_NAME': event_bus.event_bus_name,
                 **stack.common_env_vars

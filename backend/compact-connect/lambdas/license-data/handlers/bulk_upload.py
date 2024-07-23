@@ -41,7 +41,9 @@ def _bulk_upload_url_handler(event: dict, context: LambdaContext):  # pylint: di
     upload = config.s3_client.generate_presigned_post(
         Bucket=config.bulk_bucket_name,
         Key=f'{compact}/{jurisdiction}/{uuid4().hex}',
-        ExpiresIn=config.presigned_post_ttl_seconds
+        ExpiresIn=config.presigned_post_ttl_seconds,
+        # Limit content length to ~30MB, ~200k licenses
+        Conditions=[['content-length-range', 1, 30_000_000]]
     )
     logger.info('Created pre-signed POST', url=upload['url'])
     return {
@@ -112,7 +114,7 @@ def process_bulk_upload_file(body: StreamingBody, object_key: str):
     stream = TextIOWrapper(body, encoding='utf-8')
     with EventBatchWriter(config.events_client) as event_writer:
         for i, raw_license in enumerate(reader.licenses(stream)):
-            logger.debug('Processing line %s', i)
+            logger.debug('Processing line %s', i+1)
             try:
                 validated_license = schema.load({
                     'compact': compact,
@@ -128,7 +130,7 @@ def process_bulk_upload_file(body: StreamingBody, object_key: str):
                 except ValidationError as exc_second_try:
                     public_license_data = exc_second_try.valid_data
                 logger.info(
-                    'Invalid license in line %s uploaded: %s', i, str(e),
+                    'Invalid license in line %s uploaded: %s', i+1, str(e),
                     valid_data=public_license_data,
                     exc_info=e
                 )
@@ -137,7 +139,7 @@ def process_bulk_upload_file(body: StreamingBody, object_key: str):
                         'Source': f'org.compactconnect.bulk-ingest.{object_key}',
                         'DetailType': 'license-ingest-failure',
                         'Detail': json.dumps({
-                            'record_number': i,
+                            'record_number': i+1,
                             'valid_data': public_license_data,
                             'errors': e.messages
                         }, cls=ResponseEncoder),
