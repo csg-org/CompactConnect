@@ -78,7 +78,9 @@ class TestApp(TestCase):
 
     def test_synth_sandbox_no_domain(self):
         """
-        Test infrastructure as deployed in a developer's sandbox
+        Test infrastructure as deployed in a developer's sandbox:
+        In the case where they opt _not_ to set up a hosted zone and domain name for their sandbox,
+        we will skip setting up domain names and DNS records for the API and UI.
         """
         with open('cdk.json', 'r') as f:
             context = json.load(f)['context']
