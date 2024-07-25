@@ -185,3 +185,36 @@ class TestEventBatchWriter(TstLambdas):
         # 13 batches, one failure each
         self.assertEqual(13, writer.failed_entry_count)
         self.assertEqual(13, len(writer.failed_entries))
+
+    def test_write_custom_batch_size(self):
+        """
+        Override the default batch size of 10
+        """
+        from event_batch_writer import EventBatchWriter
+
+        put_count = []
+
+        def mock_put_items(Entries: List[dict]):  # pylint: disable=invalid-name
+            put_count.extend(Entries)
+            return {}
+
+        mock_client = MagicMock()
+        mock_client.put_events.side_effect = mock_put_items
+
+        with open('tests/resources/ingest/message.json', 'r') as f:
+            event = json.load(f)
+
+        with EventBatchWriter(client=mock_client, batch_size=5) as writer:
+            # Send a bunch of messages, make sure each is sent
+            for _ in range(42):
+                writer.put_event(
+                    Entry=event
+                )
+
+        # Make sure each message was eventually sent
+        self.assertEqual(42, len(put_count))
+        # Make sure these were sent in the expected number of batches:
+        # - 8 batches of 5
+        # - 1 batch of 2
+        # Total 9 batches
+        self.assertEqual(9, mock_client.put_events.call_count)

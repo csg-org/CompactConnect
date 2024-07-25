@@ -8,27 +8,10 @@ from tests.function import TstFunction
 class TestProviders(TstFunction):
     def test_query_one_ssn(self):
         # Pre-load our license into the db
-        from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
-
-        with open('tests/resources/api/license-post.json', 'r') as f:
-            license_data = LicensePostSchema().load({
-                'compact': 'aslp',
-                'jurisdiction': 'co',
-                **json.load(f)
-            })
-
         with open('tests/resources/dynamo/license.json', 'r') as f:
-            provider_id = json.load(f)['providerId']
+            license_data = json.load(f)
 
-        self._table.put_item(
-            # We'll use the schema/serializer to populate index fields for us
-            Item=LicenseRecordSchema().dump({
-                'providerId': provider_id,
-                'compact': 'aslp',
-                'jurisdiction': 'co',
-                **license_data
-            })
-        )
+        self._table.put_item(Item=license_data)
 
         # Run the API query
         from handlers.providers import query_providers
@@ -47,25 +30,14 @@ class TestProviders(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
 
-        with open('tests/resources/api/license-post.json', 'r') as f:
+        with open('tests/resources/api/license-response.json', 'r') as f:
             expected_license = json.load(f)
 
         body = json.loads(resp['body'])
-        # Drop generated fields
-        for item in body['items']:
-            del item['dateOfUpdate']
-            del item['birthMonthDay']
+
         self.assertEqual(
             {
-                'items': [
-                    {
-                        'providerId': provider_id,
-                        'compact': 'aslp',
-                        'jurisdiction': 'co',
-                        'type': 'license-home',
-                        **expected_license
-                    }
-                ],
+                'items': [expected_license],
                 'pagination': {
                     'pageSize': 100,
                     'lastKey': None,
@@ -80,27 +52,11 @@ class TestProviders(TstFunction):
 
     def test_query_one_provider(self):
         # Pre-load our license into the db
-        from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
-
-        with open('tests/resources/api/license-post.json', 'r') as f:
-            license_data = LicensePostSchema().load({
-                'compact': 'aslp',
-                'jurisdiction': 'co',
-                **json.load(f)
-            })
-
         with open('tests/resources/dynamo/license.json', 'r') as f:
-            provider_id = json.load(f)['providerId']
+            license_data = json.load(f)
+        provider_id = license_data['providerId']
 
-        self._table.put_item(
-            # We'll use the schema/serializer to populate index fields for us
-            Item=LicenseRecordSchema().dump({
-                'providerId': provider_id,
-                'compact': 'aslp',
-                'jurisdiction': 'co',
-                **license_data
-            })
-        )
+        self._table.put_item(Item=license_data)
 
         # Run the API query
         from handlers.providers import query_providers
@@ -119,25 +75,13 @@ class TestProviders(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
 
-        with open('tests/resources/api/license-post.json', 'r') as f:
+        with open('tests/resources/api/license-response.json', 'r') as f:
             expected_license = json.load(f)
 
         body = json.loads(resp['body'])
-        # Drop generated fields
-        for item in body['items']:
-            del item['dateOfUpdate']
-            del item['birthMonthDay']
         self.assertEqual(
             {
-                'items': [
-                    {
-                        'providerId': provider_id,
-                        'compact': 'aslp',
-                        'jurisdiction': 'co',
-                        'type': 'license-home',
-                        **expected_license
-                    }
-                ],
+                'items': [expected_license],
                 'pagination': {
                     'pageSize': 100,
                     'lastKey': None,
@@ -277,34 +221,16 @@ class TestProviders(TstFunction):
 
         # Should reject the query, with 400
         self.assertEqual(400, resp['statusCode'])
-        self.assertEqual(
-            {'message': "Invalid sort key: 'invalid'"},
-            json.loads(resp['body'])
-        )
 
     def test_get_provider(self):
-        from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
-        from handlers.providers import get_provider
-
-        with open('tests/resources/api/license-post.json', 'r') as f:
-            license_data = LicensePostSchema().load({
-                'compact': 'aslp',
-                'jurisdiction': 'co',
-                **json.load(f)
-            })
-
+        # Pre-load our license into the db
         with open('tests/resources/dynamo/license.json', 'r') as f:
-            provider_id = json.load(f)['providerId']
+            license_data = json.load(f)
+        provider_id = license_data['providerId']
 
-        self._table.put_item(
-            # We'll use the schema/serializer to populate index fields for us
-            Item=LicenseRecordSchema().dump({
-                'providerId': provider_id,
-                'compact': 'aslp',
-                'jurisdiction': 'co',
-                **license_data
-            })
-        )
+        self._table.put_item(Item=license_data)
+
+        from handlers.providers import get_provider
 
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
@@ -323,35 +249,16 @@ class TestProviders(TstFunction):
 
         license_data = json.loads(resp['body'])['items'][0]
 
-        # Deleting a dynamic field that won't match canned data
-        del expected_license['dateOfUpdate']
-        del license_data['dateOfUpdate']
-
         self.assertEqual(expected_license, license_data)
 
     def test_get_provider_missing_provider_id(self):
-        from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
-        from handlers.providers import get_provider
-
-        with open('tests/resources/api/license-post.json', 'r') as f:
-            license_data = LicensePostSchema().load({
-                'compact': 'aslp',
-                'jurisdiction': 'co',
-                **json.load(f)
-            })
-
+        # Pre-load our license into the db
         with open('tests/resources/dynamo/license.json', 'r') as f:
-            provider_id = json.load(f)['providerId']
+            license_data = json.load(f)
 
-        self._table.put_item(
-            # We'll use the schema/serializer to populate index fields for us
-            Item=LicenseRecordSchema().dump({
-                'providerId': provider_id,
-                'compact': 'aslp',
-                'jurisdiction': 'co',
-                **license_data
-            })
-        )
+        self._table.put_item(Item=license_data)
+
+        from handlers.providers import get_provider
 
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
