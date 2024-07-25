@@ -14,6 +14,8 @@ from config import config, logger
 def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
     """
     Query providers data
+    :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
+    :param LambdaContext context:
     """
     body = json.loads(event['body'])
     query = body.get('query', {})
@@ -87,6 +89,12 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
 
 @api_handler
 def get_provider(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+    """
+    Return one provider's data
+    :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
+    :param LambdaContext context:
+    :return:
+    """
     try:
         provider_id = event['pathParameters']['providerId']
     except (KeyError, TypeError) as e:

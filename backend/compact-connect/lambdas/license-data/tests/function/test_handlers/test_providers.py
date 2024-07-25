@@ -52,9 +52,9 @@ class TestProviders(TstFunction):
 
         body = json.loads(resp['body'])
         # Drop generated fields
-        for o in body['items']:
-            del o['dateOfUpdate']
-            del o['birthMonthDay']
+        for item in body['items']:
+            del item['dateOfUpdate']
+            del item['birthMonthDay']
         self.assertEqual(
             {
                 'items': [
@@ -124,9 +124,9 @@ class TestProviders(TstFunction):
 
         body = json.loads(resp['body'])
         # Drop generated fields
-        for o in body['items']:
-            del o['dateOfUpdate']
-            del o['birthMonthDay']
+        for item in body['items']:
+            del item['dateOfUpdate']
+            del item['birthMonthDay']
         self.assertEqual(
             {
                 'items': [
@@ -153,9 +153,9 @@ class TestProviders(TstFunction):
     def test_query_providers_updated(self):
         from handlers.providers import query_providers
 
-        # 100 licenses homed in co with privileges in fl
+        # 100 licenses homed in co with privileges in al
         self._generate_licensees('co', 'al', 9999)
-        # 100 licenses homed in fl with privileges in co
+        # 100 licenses homed in al with privileges in co
         self._generate_licensees('al', 'co', 9899)
 
         with open('tests/resources/api-event.json', 'r') as f:
@@ -180,13 +180,17 @@ class TestProviders(TstFunction):
         self.assertEqual(100, len(body['items']))
         self.assertEqual({'items', 'pagination', 'query', 'sorting'}, body.keys())
         self.assertIsInstance(body['pagination']['lastKey'], str)
+        # Check we're actually sorted
+        last_date_of_update = body['items'][0]['dateOfUpdate']
+        for item in body['items'][1:]:
+            self.assertGreaterEqual(item['dateOfUpdate'], last_date_of_update)
 
     def test_query_providers_family_name(self):
         from handlers.providers import query_providers
 
-        # 100 licenses homed in co with privileges in fl
+        # 100 licenses homed in co with privileges in al
         self._generate_licensees('co', 'al', 9999)
-        # 100 licenses homed in fl with privileges in co
+        # 100 licenses homed in al with privileges in co
         self._generate_licensees('al', 'co', 9899)
 
         with open('tests/resources/api-event.json', 'r') as f:
@@ -211,8 +215,17 @@ class TestProviders(TstFunction):
         self.assertEqual(100, len(body['items']))
         self.assertEqual({'items', 'pagination', 'query', 'sorting'}, body.keys())
         self.assertIsInstance(body['pagination']['lastKey'], str)
+        # Check we're actually sorted
+        last_family_name = body['items'][0]['familyName']
+        for item in body['items'][1:]:
+            self.assertGreaterEqual(item['familyName'], last_family_name)
 
-    def test_query_providers_missing_sorting(self):
+    def test_query_providers_default_sorting(self):
+        # 100 licenses homed in co with privileges in al
+        self._generate_licensees('co', 'al', 9999)
+        # 100 licenses homed in al with privileges in co
+        self._generate_licensees('al', 'co', 9899)
+
         from handlers.providers import query_providers
 
         with open('tests/resources/api-event.json', 'r') as f:
@@ -230,6 +243,7 @@ class TestProviders(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
         body = json.loads(resp['body'])
+        # Should default to familyName
         self.assertEqual(
             {
                 'key': 'familyName',
@@ -237,6 +251,10 @@ class TestProviders(TstFunction):
             },
             body['sorting']
         )
+        # Check we're actually sorted
+        last_family_name = body['items'][0]['familyName']
+        for item in body['items'][1:]:
+            self.assertGreaterEqual(item['familyName'], last_family_name)
 
     def test_query_providers_invalid_sorting(self):
         from handlers.providers import query_providers
@@ -257,6 +275,7 @@ class TestProviders(TstFunction):
 
         resp = query_providers(event, self.mock_context)
 
+        # Should reject the query, with 400
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual(
             {'message': "Invalid sort key: 'invalid'"},

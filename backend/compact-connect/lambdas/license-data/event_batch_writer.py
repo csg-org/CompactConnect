@@ -1,10 +1,15 @@
+from botocore.client import BaseClient
 
 
 class EventBatchWriter:
     """
-    Utility class to batch event bridge event puts for better efficiency with the API
+    Utility class to batch event bridge event puts for better efficiency with the AWS EventBridge API
     """
-    def __init__(self, client, batch_size: int = 10):
+    def __init__(self, client: BaseClient, batch_size: int = 10):
+        """
+        :param BaseClient client: A boto3 EventBridge client to use for API calls
+        :param int batch_size: Batch size to use for API calls, default: 10
+        """
         self._client = client
         self._batch_size = batch_size
         self._batch = None

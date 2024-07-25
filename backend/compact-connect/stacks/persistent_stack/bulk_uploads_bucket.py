@@ -145,7 +145,7 @@ class BulkUploadsBucket(Bucket):
             description='Parse s3 objects handler',
             entry=os.path.join('lambdas', 'license-data'),
             index=os.path.join('handlers', 'bulk_upload.py'),
-            handler='process_s3_event',
+            handler='parse_bulk_upload_file',
             timeout=Duration.minutes(15),
             memory_size=1024,
             environment={

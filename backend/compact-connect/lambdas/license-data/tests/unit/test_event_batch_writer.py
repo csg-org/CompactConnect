@@ -33,7 +33,10 @@ class TestEventBatchWriter(TstLambdas):
 
         # Make sure each message was eventually sent
         self.assertEqual(123, len(put_count))
-        # Make sure these were sent in three batches
+        # Make sure these were sent in the expected number of batches:
+        # - 12 batches of 10
+        # - 1 batch of 3
+        # Total 13 batches
         self.assertEqual(13, mock_client.put_events.call_count)
 
     def test_write_small_batch(self):
@@ -130,6 +133,10 @@ class TestEventBatchWriter(TstLambdas):
         self.assertEqual(1, mock_client.put_events.call_count)
 
     def test_bad_use(self):
+        """
+        EventBatchWriter requires that it be used as a context manager (in a `with EventBatchWriter(...):` block)
+        Trying to use it otherwise should raise an exception.
+        """
         from event_batch_writer import EventBatchWriter
 
         # If a developer uses this wrong

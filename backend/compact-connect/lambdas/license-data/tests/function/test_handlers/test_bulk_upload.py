@@ -49,7 +49,7 @@ class TestBulkUpload(TstFunction):
 class TestProcessObjects(TstFunction):
 
     def test_uploaded_csv(self):
-        from handlers.bulk_upload import process_s3_event
+        from handlers.bulk_upload import parse_bulk_upload_file
 
         # Upload a bulk license csv file
         object_key = f'aslp/co/{uuid4().hex}'
@@ -68,7 +68,7 @@ class TestProcessObjects(TstFunction):
         }
         event['Records'][0]['s3']['object']['key'] = object_key
 
-        process_s3_event(event, self.mock_context)
+        parse_bulk_upload_file(event, self.mock_context)
 
         # The object should be gone, once parsing is complete
         with self.assertRaises(ClientError):

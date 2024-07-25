@@ -60,7 +60,7 @@ class IngestStack(Stack):
             description='Ingest license data handler',
             entry=os.path.join('lambdas', 'license-data'),
             index=os.path.join('handlers', 'ingest.py'),
-            handler='process_license_message',
+            handler='ingest_license_message',
             timeout=Duration.minutes(1),
             environment={
                 'LICENSE_TABLE_NAME': persistent_stack.license_table.table_name,

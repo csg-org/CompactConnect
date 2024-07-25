@@ -20,6 +20,9 @@ from license_csv_reader import LicenseCSVReader
 def bulk_upload_url_handler(event: dict, context: LambdaContext):
     """
     Generate a pre-signed POST to the bulk-upload s3 bucket
+
+    :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
+    :param LambdaContext context:
     """
     return _bulk_upload_url_handler(event, context)
 
@@ -28,6 +31,9 @@ def bulk_upload_url_handler(event: dict, context: LambdaContext):
 def no_auth_bulk_upload_url_handler(event: dict, context: LambdaContext):
     """
     For the mock API
+
+    :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
+    :param LambdaContext context:
     """
     return _bulk_upload_url_handler(event, context)
 
@@ -52,9 +58,11 @@ def _bulk_upload_url_handler(event: dict, context: LambdaContext):  # pylint: di
 
 
 @logger.inject_lambda_context
-def process_s3_event(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+def parse_bulk_upload_file(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
     """
-    Receive an S3 put event, and process the new s3 file before deleting it
+    Receive an S3 put event, and parse/validate the new s3 file before deleting it
+    :param event: Standard S3 ObjectCreated event
+    :param LambdaContext context:
     """
     logger.info('Received event', event=event)
     try:
