@@ -13,6 +13,7 @@ const path = require('path');
 const fs = require('fs');
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 const StyleLintPlugin = require('stylelint-webpack-plugin');
+const VueI18nPlugin = require('@intlify/unplugin-vue-i18n/lib/webpack.cjs');
 
 const env = process.env.NODE_ENV;
 const ENV_PRODUCTION = 'production';
@@ -144,6 +145,15 @@ const faviconsPlugin = new FaviconsWebpackPlugin({
 const stylelintPlugin = new StyleLintPlugin({
     configFile: '.stylelintrc.json',
     files: 'src/**/*.less',
+});
+
+/**
+ * vue-i18n advanced configuration (https://vue-i18n.intlify.dev/guide/advanced/optimization#configure-plugin-for-webpack)
+ * @intlify/unplugin-vue-i18n configuration (https://github.com/intlify/bundle-tools/tree/main/packages/unplugin-vue-i18n#intlifyunplugin-vue-i18n)
+ * @type {VueI18nPlugin}
+ */
+const vueI18nPlugin = VueI18nPlugin({
+    include: path.resolve(__dirname, './src/locales/*.json'),
 });
 
 /**
@@ -296,6 +306,8 @@ module.exports = {
         plugins: [
             faviconsPlugin,
             stylelintPlugin,
+            // The runtime-only version of vue-i18n conflicts with non-built app versions, but is required for built server versions due to CSP
+            ... (env === ENV_PRODUCTION) ? [vueI18nPlugin] : [], // eslint-disable-line rest-spread-spacing
         ],
         resolve: {
             alias: {

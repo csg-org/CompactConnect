@@ -43,6 +43,7 @@
     "@babel/core": "^7.13.10",
     "@babel/polyfill": "^7.11.5",
     "@babel/preset-env": "^7.13.10",
+    "@intlify/unplugin-vue-i18n": "^0.6.2",
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
     "@types/chai": "^4.2.11",
     "@types/mocha": "^5.2.4",
