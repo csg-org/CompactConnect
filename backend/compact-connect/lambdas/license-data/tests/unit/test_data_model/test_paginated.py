@@ -29,11 +29,12 @@ class TestPaginated(TstLambdas):
                 },
             }
 
+        last_key = b64encode(json.dumps({'pk': '안녕하세요', 'sk': '2'}).encode('utf-8'))
         resp = get_something(
             'arg1',
             'arg2',
             pagination={
-                'lastKey': b64encode(json.dumps({'pk': '안녕하세요', 'sk': '2'}).encode('utf-8')),
+                'lastKey': last_key,
                 'pageSize': 5
             },
             kwarg1='baf'
@@ -54,9 +55,13 @@ class TestPaginated(TstLambdas):
                         }
                     }
                 }],
-                'lastKey': b64encode(
-                    json.dumps({'pk': 'gòrach', 'sk': 'aslp/co/license-home'}).encode('utf-8')
-                ).decode('ascii')
+                'pagination': {
+                    'pageSize': 5,
+                    'lastKey': b64encode(
+                        json.dumps({'pk': 'gòrach', 'sk': 'aslp/co/license-home'}).encode('utf-8')
+                    ).decode('ascii'),
+                    'prevLastKey': last_key
+                }
             },
             resp
         )
@@ -90,7 +95,12 @@ class TestPaginated(TstLambdas):
                             'Limit': 100
                         }
                     }
-                }]
+                }],
+                'pagination': {
+                    'pageSize': 100,
+                    'lastKey': None,
+                    'prevLastKey': None
+                }
             },
             resp
         )

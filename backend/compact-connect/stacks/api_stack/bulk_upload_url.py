@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import os
 
-from aws_cdk import Stack, Duration
+from aws_cdk import Duration
 from aws_cdk.aws_apigateway import Resource, MethodResponse, JsonSchema, \
     JsonSchemaType, MethodOptions, LambdaIntegration, Model, AuthorizationType
 from aws_cdk.aws_s3 import IBucket
 from cdk_nag import NagSuppressions
 
 from common_constructs.python_function import PythonFunction
+from common_constructs.stack import Stack
 # Importing module level to allow lazy loading for typing
 from . import license_api
 
@@ -26,32 +27,34 @@ class BulkUploadUrl:
 
         self.resource = resource.add_resource('bulk-upload')
         self.api: license_api.LicenseApi = resource.api
+        self.log_groups = []
         self._add_bulk_upload_url(
             mock_bucket=mock_bucket,
             method_options=method_options,
             bulk_uploads_bucket=bulk_uploads_bucket
         )
+        self.api.log_groups.extend(self.log_groups)
 
     def _get_bulk_upload_url_handler(
             self, *,
             mock_bucket: bool,
             bulk_uploads_bucket: IBucket
     ) -> PythonFunction:
-        stack = Stack.of(self.resource)
+        stack: Stack = Stack.of(self.resource)
         handler = PythonFunction(
-            self.resource, 'Handler',
+            self.api, 'BulkUrlHandler' if not mock_bucket else 'MockBulkUrlHandler',
+            description='Get upload url handler',
             entry=os.path.join('lambdas', 'license-data'),
-            index='handlers/bulk_upload.py',
+            index=os.path.join('handlers', 'bulk_upload.py'),
             handler='bulk_upload_url_handler' if not mock_bucket else 'no_auth_bulk_upload_url_handler',
             environment={
-                'DEBUG': 'true',
-                'BULK_BUCKET_NAME': bulk_uploads_bucket.bucket_name
+                'BULK_BUCKET_NAME': bulk_uploads_bucket.bucket_name,
+                **stack.common_env_vars
             }
         )
         # Grant the handler permissions to write to the bulk bucket
         bulk_uploads_bucket.grant_write(handler)
-
-        self.api.log_groups.append(handler.log_group)
+        self.log_groups.append(handler.log_group)
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
@@ -108,6 +111,7 @@ class BulkUploadUrl:
 
         api.bulk_upload_response_model = api.add_model(
             'BulkUploadResponseModel',
+            description='Bulk upload url response model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 required=[

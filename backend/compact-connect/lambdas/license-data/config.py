@@ -26,6 +26,14 @@ class _Config:
         return DataClient(self)
 
     @cached_property
+    def events_client(self):
+        return boto3.client('events', config=BotoConfig(retries={'mode': 'standard'}))
+
+    @cached_property
+    def event_bus_name(self):
+        return os.environ['EVENT_BUS_NAME']
+
+    @cached_property
     def license_table(self):
         return boto3.resource('dynamodb').Table(self.license_table_name)
 
@@ -38,16 +46,27 @@ class _Config:
         return json.loads(os.environ['JURISDICTIONS'])
 
     @property
+    def license_types(self):
+        return json.loads(os.environ['LICENSE_TYPES'])
+
+    def license_types_for_compact(self, compact):
+        return self.license_types[compact]
+
+    @property
     def license_table_name(self):
         return os.environ['LICENSE_TABLE_NAME']
 
     @property
-    def cjns_index_name(self):
-        return os.environ['CJNS_INDEX_NAME']
+    def ssn_index_name(self):
+        return os.environ['SSN_INDEX_NAME']
 
     @property
-    def updated_index_name(self):
-        return os.environ['UPDATED_INDEX_NAME']
+    def cj_name_index_name(self):
+        return os.environ['CJ_NAME_INDEX_NAME']
+
+    @property
+    def cj_updated_index_name(self):
+        return os.environ['CJ_UPDATED_INDEX_NAME']
 
     @property
     def bulk_bucket_name(self):
