@@ -73,6 +73,31 @@ class TestApp(TestCase):
 
         self._inspect_api_stack(app.sandbox_stage.api_stack)
 
+    def test_synth_sandbox_no_domain(self):
+        """
+        Test infrastructure as deployed in a developer's sandbox:
+        In the case where they opt _not_ to set up a hosted zone and domain name for their sandbox,
+        we will skip setting up domain names and DNS records for the API and UI.
+        """
+        with open('cdk.json', 'r') as f:
+            context = json.load(f)['context']
+        with open('cdk.context.sandbox-example.json', 'r') as f:
+            context.update(json.load(f))
+        # Drop domain name to ensure we still handle the optional DNS setup
+        del context['ssm_context']['environments'][context['environment_name']]['domain_name']
+
+        # Suppresses lambda bundling for tests
+        context['aws:cdk:bundling-stacks'] = []
+
+        app = CompactConnectApp(context=context)
+
+        # Identify any findings from our AwsSolutions or HIPAASecurity rule sets
+        self._check_no_annotations(app.sandbox_stage.persistent_stack)
+        self._check_no_annotations(app.sandbox_stage.ui_stack)
+        self._check_no_annotations(app.sandbox_stage.api_stack)
+
+        self._inspect_api_stack(app.sandbox_stage.api_stack)
+
     def _inspect_api_stack(self, api_stack: ApiStack):
         api_template = Template.from_stack(api_stack)
 

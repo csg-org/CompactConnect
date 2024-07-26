@@ -66,14 +66,14 @@ class WebACL(Resource):
                 raise RuntimeError('CLOUDFRONT scoped WebACLs must be in the "us-east-1" region to have'
                                    ' logging enabled')
 
-            log_group = LogGroup(
+            self.log_group = LogGroup(
                 self, 'LogGroup',
                     retention=RetentionDays.ONE_MONTH,
                     removal_policy=RemovalPolicy.DESTROY,
                     log_group_name=f'{waf_group_prefix}{self.node.path}'
             )
             NagSuppressions.add_resource_suppressions(
-                log_group,
+                self.log_group,
                 suppressions=[{
                     'id': 'HIPAA.Security-CloudWatchLogGroupEncrypted',
                     'reason': 'This group will contain no PII or PHI and should be accessible by anyone with access'
@@ -82,7 +82,7 @@ class WebACL(Resource):
                 }]
             )
 
-            log_group.add_to_resource_policy(
+            self.log_group.add_to_resource_policy(
                 PolicyStatement(
                     sid='AWSLogDeliveryAclCheck',
                     effect=Effect.ALLOW,
@@ -93,7 +93,7 @@ class WebACL(Resource):
                     ],
                     resources=[
                         # arn:aws:logs:us-east-1:0123456789:log-group:my-log-group:log-stream:*
-                        f'{log_group.log_group_arn}:log-stream:*'
+                        f'{self.log_group.log_group_arn}:log-stream:*'
                     ],
                     conditions={
                         'StringEquals': {
@@ -114,7 +114,7 @@ class WebACL(Resource):
             )
             CfnLoggingConfiguration(
                 self, 'Logging',
-                log_destination_configs=[log_group.log_group_arn],
+                log_destination_configs=[self.log_group.log_group_arn],
                 resource_arn=resource.attr_arn,
                 redacted_fields=[
                     {
