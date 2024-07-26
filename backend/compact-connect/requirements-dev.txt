@@ -14,7 +14,7 @@ cachecontrol[filecache]==0.14.0
     # via
     #   cachecontrol
     #   pip-audit
-certifi==2024.6.2
+certifi==2024.7.4
     # via requests
 charset-normalizer==3.3.2
     # via requests
@@ -24,7 +24,7 @@ coverage[toml]==7.5.4
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
-cyclonedx-python-lib==7.4.1
+cyclonedx-python-lib==7.5.1
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
@@ -50,7 +50,7 @@ mdurl==0.1.2
     # via markdown-it-py
 msgpack==1.0.8
     # via cachecontrol
-packageurl-python==0.15.1
+packageurl-python==0.15.3
     # via cyclonedx-python-lib
 packaging==24.1
     # via
@@ -70,11 +70,11 @@ platformdirs==4.2.2
     # via pylint
 pluggy==1.5.0
     # via pytest
-py-serializable==1.0.3
+py-serializable==1.1.0
     # via cyclonedx-python-lib
 pygments==2.18.0
     # via rich
-pylint==3.2.4
+pylint==3.2.5
     # via -r compact-connect/requirements-dev.in
 pyparsing==3.1.2
     # via pip-requirements-parser
