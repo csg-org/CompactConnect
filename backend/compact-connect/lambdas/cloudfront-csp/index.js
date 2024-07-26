@@ -312,6 +312,11 @@ const setSecurityHeaders = (requestDomain, headers = {}) => {
         key: 'Referrer-Policy',
         value: 'strict-origin-when-cross-origin',
     }];
+    // Server
+    headers.server = [{
+        key: 'Server',
+        value: 'CompactConnect',
+    }];
     // Content-Security-Policy
     setCspHeader(requestDomain, headers);
 };

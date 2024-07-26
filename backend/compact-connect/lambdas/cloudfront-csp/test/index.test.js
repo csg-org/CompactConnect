@@ -169,6 +169,8 @@ describe(testFilename(__filename), () => {
             expect(result.headers['referrer-policy'][0].value).to.equal('strict-origin-when-cross-origin');
             expect(result.headers['content-security-policy'][0].key).to.equal('Content-Security-Policy');
             expect(result.headers['content-security-policy'][0].value).to.equal(buildCspHeaders(environment));
+            expect(result.headers.server[0].key).to.equal('Server');
+            expect(result.headers.server[0].value).to.equal('CompactConnect');
         });
         it('should successfully return the security headers for csg test', async () => {
             const environment = environments.csg.test;
@@ -203,6 +205,8 @@ describe(testFilename(__filename), () => {
             expect(result.headers['referrer-policy'][0].value).to.equal('strict-origin-when-cross-origin');
             expect(result.headers['content-security-policy'][0].key).to.equal('Content-Security-Policy');
             expect(result.headers['content-security-policy'][0].value).to.equal(buildCspHeaders(environment));
+            expect(result.headers.server[0].key).to.equal('Server');
+            expect(result.headers.server[0].value).to.equal('CompactConnect');
         });
         it('should successfully return the security headers for ia prod', async () => {
             const environment = environments.ia.prod;
@@ -237,6 +241,8 @@ describe(testFilename(__filename), () => {
             expect(result.headers['referrer-policy'][0].value).to.equal('strict-origin-when-cross-origin');
             expect(result.headers['content-security-policy'][0].key).to.equal('Content-Security-Policy');
             expect(result.headers['content-security-policy'][0].value).to.equal(buildCspHeaders(environment));
+            expect(result.headers.server[0].key).to.equal('Server');
+            expect(result.headers.server[0].value).to.equal('CompactConnect');
         });
         it('should successfully return the security headers for ia test', async () => {
             const environment = environments.ia.test;
@@ -271,6 +277,8 @@ describe(testFilename(__filename), () => {
             expect(result.headers['referrer-policy'][0].value).to.equal('strict-origin-when-cross-origin');
             expect(result.headers['content-security-policy'][0].key).to.equal('Content-Security-Policy');
             expect(result.headers['content-security-policy'][0].value).to.equal(buildCspHeaders(environment));
+            expect(result.headers.server[0].key).to.equal('Server');
+            expect(result.headers.server[0].value).to.equal('CompactConnect');
         });
         it('should successfully return the security headers for ia justin', async () => {
             const environment = environments.ia.justin;
@@ -305,6 +313,8 @@ describe(testFilename(__filename), () => {
             expect(result.headers['referrer-policy'][0].value).to.equal('strict-origin-when-cross-origin');
             expect(result.headers['content-security-policy'][0].key).to.equal('Content-Security-Policy');
             expect(result.headers['content-security-policy'][0].value).to.equal(buildCspHeaders(environment));
+            expect(result.headers.server[0].key).to.equal('Server');
+            expect(result.headers.server[0].value).to.equal('CompactConnect');
         });
         it('should successfully return the security headers for csg prod when subdomain is missing', async () => {
             const environment = environments.csg.prod;
@@ -339,6 +349,8 @@ describe(testFilename(__filename), () => {
             expect(result.headers['referrer-policy'][0].value).to.equal('strict-origin-when-cross-origin');
             expect(result.headers['content-security-policy'][0].key).to.equal('Content-Security-Policy');
             expect(result.headers['content-security-policy'][0].value).to.equal(buildCspHeaders(environment));
+            expect(result.headers.server[0].key).to.equal('Server');
+            expect(result.headers.server[0].value).to.equal('CompactConnect');
         });
         it('should successfully return the security headers for csg prod when lambda event is missing the request domain', async () => {
             const environment = environments.csg.prod;
@@ -369,6 +381,8 @@ describe(testFilename(__filename), () => {
             expect(result.headers['referrer-policy'][0].value).to.equal('strict-origin-when-cross-origin');
             expect(result.headers['content-security-policy'][0].key).to.equal('Content-Security-Policy');
             expect(result.headers['content-security-policy'][0].value).to.equal(buildCspHeaders(environment));
+            expect(result.headers.server[0].key).to.equal('Server');
+            expect(result.headers.server[0].value).to.equal('CompactConnect');
         });
     });
 });
