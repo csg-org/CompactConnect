@@ -154,6 +154,9 @@ def sqs_handler(fn: Callable):
                 )
                 # No exception here means success
                 fn(message)
+            # When we receive a batch of messages from SQS, letting an exception escape all the way back to AWS is
+            # really undesirable. Instead, we're going to catch _almost_ any exception raised, note what message we
+            # were processing, and report those item failures back to AWS.
             except Exception as e:  # pylint: disable=broad-exception-caught
                 logger.error('Failed to process message', exc_info=e)
                 batch_failures.append({'itemIdentifier': record['messageId']})
