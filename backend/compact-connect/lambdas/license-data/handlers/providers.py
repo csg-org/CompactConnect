@@ -93,7 +93,6 @@ def get_provider(event: dict, context: LambdaContext):  # pylint: disable=unused
     Return one provider's data
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
-    :return:
     """
     try:
         provider_id = event['pathParameters']['providerId']
