@@ -32,8 +32,13 @@ const environments = {
             s3Upload: ``, // @TODO: Waiting for environment configuration.
         },
         test: {
-            webFrontend: `app.dev.jcc.iaapi.io`,
-            dataApi: `api.dev.jcc.iaapi.io`,
+            webFrontend: `app.test.jcc.iaapi.io`,
+            dataApi: `api.test.jcc.iaapi.io`,
+            s3Upload: `test-persistentstack-mockbulkuploadsbucket0e8f27eb-4h1anohxetmp.s3.amazonaws.com`,
+        },
+        justin: {
+            webFrontend: `app.justin.jcc.iaapi.io`,
+            dataApi: `9avvh7mvqg.execute-api.us-east-1.amazonaws.com`,
             s3Upload: `test-persistentstack-mockbulkuploadsbucket0e8f27eb-4h1anohxetmp.s3.amazonaws.com`,
         },
     },
@@ -42,12 +47,35 @@ const environments = {
 // ============================================================================
 //                                   HELPERS                                  =
 // ============================================================================
-//
+/**
+ * Get the request domain from the lambda event record.
+ * @param  {object} eventRecord The cloudfront record from the lambda event.
+ * @return {string}             The bare domain of the request domain.
+ */
+const getRequestDomain = (eventRecord) => {
+    let requestDomain = environments.csg.prod.webFrontend;
+
+    if (eventRecord) {
+        const requestHostHeaderValue = eventRecord.request?.headers?.host?.[0]?.value;
+
+        if (requestHostHeaderValue) {
+            requestDomain = requestHostHeaderValue;
+        }
+    }
+
+    return requestDomain;
+};
+
+/**
+ * Get a fully qualified domain URI with the protocol scheme.
+ * @param  {string} domain The bare domain string.
+ * @return {string}        The fully-qualified domain string.
+ */
 const getFullyQualified = (domain) => {
     const protocol = 'https://';
     let fullyQualified = '';
 
-    if (domain && typeof domain === 'string') {
+    if (domain && typeof domain === 'string' && !domain.startsWith(protocol)) {
         fullyQualified = `${protocol}${domain}`;
     }
 
@@ -77,6 +105,9 @@ const getEnvironmentUrls = (requestDomain) => {
         break;
     case environments.ia.test.webFrontend:
         environment = environments.ia.test;
+        break;
+    case environments.ia.justin.webFrontend:
+        environment = environments.ia.justin;
         break;
     default:
         environment = environments.csg.prod;
@@ -206,11 +237,11 @@ const setCspHeader = (requestDomain, headers = {}) => {
             ]),
             buildSrcString('style-src', [
                 'self',
-                'unsafe-inline', // @TODO: Some of our inline SVGs have inline style
                 'https://fonts.googleapis.com',
             ]),
             buildSrcString('style-src-elem', [
                 'self',
+                'https://fonts.googleapis.com',
             ]),
             buildSrcString('style-src-attr', [
                 'self',
@@ -290,11 +321,12 @@ const setSecurityHeaders = (requestDomain, headers = {}) => {
 // ============================================================================
 exports.handler = async (event) => {
     // https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-event-structure.html
-    const response = event?.Records[0]?.cf?.response || {};
-    const headers = response.headers || {};
-    const requestDomain = event?.Records[0]?.cf?.request?.origin?.custom?.domainName || '';
+    const eventRecord = event?.Records[0]?.cf || {};
+    const requestDomain = getRequestDomain(eventRecord);
+    const response = eventRecord.response || {};
+    const responseHeaders = response.headers || {};
 
-    setSecurityHeaders(requestDomain, headers);
+    setSecurityHeaders(requestDomain, responseHeaders);
 
     return response;
 };
