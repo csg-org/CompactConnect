@@ -22,13 +22,6 @@ __pycache__
 .venv
 *.egg-info
 
-# CDK asset staging directory
-.cdk.staging
-cdk.out
-
-# Save for local config
-cdk.context.json
-
 # Pytest/coverage
 .coverage
 coverage

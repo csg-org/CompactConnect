@@ -12,3 +12,7 @@ class CCInvalidRequestException(CCBaseException):
 
 class CCInternalException(CCBaseException):
     pass
+
+
+class CCNotFoundException(CCBaseException):
+    pass

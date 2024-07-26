@@ -3,6 +3,7 @@ from constructs import Construct
 
 from common_constructs.stack import StandardTags
 from stacks.api_stack import ApiStack
+from stacks.ingest_stack import IngestStack
 from stacks.persistent_stack import PersistentStack
 from stacks.ui_stack import UIStack
 
@@ -34,6 +35,13 @@ class BackendStage(Stage):
             standard_tags=standard_tags,
             app_name=app_name,
             environment_name=environment_name
+        )
+
+        self.ingest_stack = IngestStack(
+            self, 'IngestStack',
+            env=environment,
+            standard_tags=standard_tags,
+            persistent_stack=self.persistent_stack
         )
 
         self.ui_stack = UIStack(

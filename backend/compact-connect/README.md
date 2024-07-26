@@ -111,7 +111,11 @@ its environment:
 
 ### Subsequent sandbox deploys:
 For any future deploys, everything is set up so a simple `cdk deploy 'Sandbox/*'` should update all your infrastructure
-to reflect the changes in your code.
+to reflect the changes in your code. Full deployment steps are:
+1) Make sure your python environment is active.
+2) Run `bin/sync_deps.sh` from `backend/` to ensure you have the latest requirements installed.
+3) Configure your aws cli to authenticate against your own account.
+4) Run `cdk deploy 'Sandbox/*'` to deploy the app to your AWS account.
 
 ### First deploy to the production environment
 The production environment requires a few steps to fully set up before deploys can be automated. Refer to the
@@ -120,7 +124,7 @@ that is done, perform the following steps to deploy the CI/CD pipeline into the 
 - Have someone with suitable permissions in the GitHub organization that hosts this code navigate to the AWS Console
   for the Deploy account, go to the
   [AWS CodeStar Connections](https://us-east-1.console.aws.amazon.com/codesuite/settings/connections) page and create a
-  connection that grants AWS permission to receive GitHub events. Note the identifier of the resulting connection for
+  connection that grants AWS permission to receive GitHub events. Note the ARN of the resulting connection for
   the next step.
 - Create a new Route53 hosted zone for the domain name you plan to use for the app in each of the production AWS
   account and the test AWS account. See [About Route53 hosted zones](#about-route53-hosted-zones) below for more detail.
