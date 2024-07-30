@@ -306,8 +306,9 @@ module.exports = {
         plugins: [
             faviconsPlugin,
             stylelintPlugin,
-            // The runtime-only version of vue-i18n conflicts with non-built app versions, but is required for built server versions due to CSP
-            ... (env === ENV_PRODUCTION) ? [vueI18nPlugin] : [], // eslint-disable-line rest-spread-spacing
+            // The runtime-only version of vue-i18n conflicts with test-runner, but is required for built server versions due to CSP.
+            // Conditionally adding the runtime-ify plugin with a linter exception for the automated test context.
+            ... (env !== ENV_TEST) ? [vueI18nPlugin] : [], // eslint-disable-line rest-spread-spacing
         ],
         resolve: {
             alias: {
