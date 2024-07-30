@@ -15,7 +15,7 @@ import {
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { Licensee, LicenseeSerializer } from '@models/Licensee/Licensee.model';
 
-export interface RequestParamsInterface {
+export interface RequestParamsInterfaceLocal {
     compact?: string;
     jurisdiction?: string;
     licenseeId?: string;
@@ -24,6 +24,22 @@ export interface RequestParamsInterface {
     lastKey?: string;
     sortBy?: string;
     sortDirection?: string;
+}
+
+export interface RequestParamsInterfaceRemote {
+    pagination?: {
+        pageSize?: number,
+        lastKey?: string,
+    },
+    sorting?: {
+        key?: string,
+        direction?: string,
+    },
+    query: {
+        compact?: string,
+        jurisdiction?: string,
+        providerId?: string,
+    },
 }
 
 export interface DataApiInterface {
@@ -80,11 +96,11 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * Prep a URI query parameter object for POST requests.
-     * @param  {RequestParamsInterface} params The request query parameters config.
-     * @return {object}                        The URI query param object.
+     * @param  {RequestParamsInterfaceLocal} params The request query parameters config.
+     * @return {object}                             The URI query param object.
      */
-    public prepRequestPostParams(params: RequestParamsInterface = {}): string {
-        const requestParams: any = { query: {}};
+    public prepRequestPostParams(params: RequestParamsInterfaceLocal = {}): RequestParamsInterfaceRemote {
+        const requestParams: RequestParamsInterfaceRemote = { query: {}};
 
         if (params.compact) {
             requestParams.query.compact = params.compact;
@@ -125,11 +141,11 @@ export class LicenseDataApi implements DataApiInterface {
 
     /**
      * GET Licensees.
-     * @param  {RequestParamsInterface} [params={}] The request query parameters config.
-     * @return {Promise<object>}                    Response metadata + an array of licensees.
+     * @param  {RequestParamsInterfaceLocal} [params={}] The request query parameters config.
+     * @return {Promise<object>}                         Response metadata + an array of licensees.
      */
-    public async getLicensees(params: RequestParamsInterface = {}) {
-        const requestParams: any = this.prepRequestPostParams(params);
+    public async getLicensees(params: RequestParamsInterfaceLocal = {}) {
+        const requestParams: RequestParamsInterfaceRemote = this.prepRequestPostParams(params);
         const serverReponse: any = await this.api.post(`/mock/providers/query`, requestParams);
         const { lastKey, items } = serverReponse;
         const response = {

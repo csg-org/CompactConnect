@@ -54,25 +54,11 @@ export default class LicensingDetail extends Vue {
     }
 
     get licenseeNameDisplay(): string {
-        const { licensee } = this;
-        let nameDisplay = '';
-
-        if (licensee) {
-            nameDisplay = licensee.nameDisplay() || '';
-        }
-
-        return nameDisplay;
+        return this.licensee?.nameDisplay() || '';
     }
 
     get licenseeLicenses(): Array<License> {
-        const { licensee } = this;
-        let licenses: Array<License> = [];
-
-        if (licensee) {
-            licenses = licensee.licenses || [];
-        }
-
-        return licenses;
+        return this.licensee?.licenses || [];
     }
 
     //

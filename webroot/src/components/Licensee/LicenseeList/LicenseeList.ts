@@ -157,6 +157,7 @@ class LicenseeList extends Vue {
         if (page && page !== 1 && !this.licenseStore.error) {
             requestConfig.getNextPage = true;
         }
+        // Temp for limited server filtering support
         requestConfig.compact = 'aslp';
         requestConfig.jurisdiction = 'al';
 

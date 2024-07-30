@@ -256,7 +256,7 @@ describe('License Store Getters', async () => {
 
         expect(licensee).to.equal(undefined);
     });
-    it('should successfully get licensee by id (not found)', async () => {
+    it('should successfully get licensee by id (found)', async () => {
         const record = { id: '1' };
         const state = { model: [record]};
         const licensee = getters.licenseeById(state)('1');
