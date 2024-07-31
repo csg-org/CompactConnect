@@ -22,7 +22,7 @@ const environments = {
         test: {
             webFrontend: `app.test.compactconnect.org`,
             dataApi: `api.test.compactconnect.org`,
-            s3Upload: ``, // @TODO: Waiting for environment configuration.
+            s3Upload: `test-persistentstack-mockbulkuploadsbucket0e8f27eb-ivslg22f2yfz.s3.amazonaws.com`,
         },
     },
     ia: {
@@ -38,7 +38,7 @@ const environments = {
         },
         justin: {
             webFrontend: `app.justin.jcc.iaapi.io`,
-            dataApi: `9avvh7mvqg.execute-api.us-east-1.amazonaws.com`,
+            dataApi: `api.test.jcc.iaapi.io`,
             s3Upload: `test-persistentstack-mockbulkuploadsbucket0e8f27eb-4h1anohxetmp.s3.amazonaws.com`,
         },
     },
