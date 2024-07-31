@@ -10,7 +10,7 @@ by the end of the day on Friday. Each pull request will be titled for the comple
 include an illustrative screenshot (where applicable).
 
 The Council of State Governments will review each pull request per the [code review process](./CODE_REVIEW.md), to
-ensure that the work is compliance with the contract, and that the code adheres to best practices. CSG will make every
+ensure that the work is compliant with the contract, and that the code adheres to best practices. CSG will make every
 effort to complete that code review within two working days of receiving it from InspiringApps, making that work the
 highest priority of the technical lead. Any requested changes etc. from CSG will be made in the spirit of collaboration
 and open discussion between CSG and IA, understanding that we are all learning together. When all issues raised in the

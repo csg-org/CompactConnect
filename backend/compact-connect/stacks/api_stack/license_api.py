@@ -3,10 +3,14 @@ from __future__ import annotations
 import json
 from functools import cached_property
 
+from aws_cdk import CfnOutput
 from aws_cdk.aws_apigateway import RestApi, StageOptions, MethodLoggingLevel, LogGroupLogDestination, \
     AccessLogFormat, AuthorizationType, MethodOptions, JsonSchema, JsonSchemaType, ResponseType, CorsOptions, Cors, \
-    CognitoUserPoolsAuthorizer
+    CognitoUserPoolsAuthorizer, DomainNameOptions
+from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_logs import LogGroup, RetentionDays, QueryDefinition, QueryString
+from aws_cdk.aws_route53 import IHostedZone, ARecord, RecordTarget
+from aws_cdk.aws_route53_targets import ApiGateway
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
@@ -24,12 +28,32 @@ UUID4_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-
 
 
 class LicenseApi(RestApi):
-    def __init__(
+    def __init__(  # pylint: disable=too-many-locals
             self, scope: Construct, construct_id: str, *,
             environment_name: str,
+            hosted_zone: IHostedZone = None,
             persistent_stack: ps.PersistentStack,
             **kwargs
     ):
+
+        # For developer convenience, we will allow for the case where there is no
+        # domain name configured
+        domain_kwargs = {}
+        if hosted_zone is not None:
+            api_domain_name = f'api.{hosted_zone.zone_name}'
+            certificate = Certificate(
+                scope, 'ApiCert',
+                domain_name=api_domain_name,
+                validation=CertificateValidation.from_dns(hosted_zone=hosted_zone),
+                subject_alternative_names=[hosted_zone.zone_name]
+            )
+            domain_kwargs = {
+                'domain_name': DomainNameOptions(
+                    certificate=certificate,
+                    domain_name=api_domain_name
+                )
+            }
+
         access_log_group = LogGroup(
             scope, 'ApiAccessLogGroup',
             retention=RetentionDays.ONE_MONTH
@@ -79,8 +103,15 @@ class LicenseApi(RestApi):
                 allow_methods=Cors.ALL_METHODS,
                 allow_headers=Cors.DEFAULT_HEADERS + ['cache-control']
             ),
+            **domain_kwargs,
             **kwargs
         )
+
+        if hosted_zone is not None:
+            self._add_domain_name(
+                hosted_zone=hosted_zone,
+                api_domain_name=api_domain_name,
+            )
 
         self.log_groups = [access_log_group]
 
@@ -91,6 +122,7 @@ class LicenseApi(RestApi):
             acl_scope=WebACLScope.REGIONAL
         )
         self.web_acl.associate_stage(self.deployment_stage)
+        self.log_groups = [access_log_group, self.web_acl.log_group]
 
         self.add_gateway_response(
             'BadBodyResponse',
@@ -262,6 +294,24 @@ class LicenseApi(RestApi):
                 }
             )
         )
+
+    def _add_domain_name(
+            self,
+            api_domain_name: str,
+            hosted_zone: IHostedZone
+    ):
+        self.record = ARecord(
+            self, 'ApiARecord',
+            zone=hosted_zone,
+            record_name=api_domain_name,
+            target=RecordTarget(
+                alias_target=ApiGateway(self)
+            )
+        )
+        self.base_url = f'https://{api_domain_name}'
+
+        CfnOutput(self, 'APIBaseUrl', value=api_domain_name)
+        CfnOutput(self, 'APIId', value=self.rest_api_id)
 
     @property
     def common_license_properties(self) -> dict:

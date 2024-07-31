@@ -12,7 +12,7 @@ class TestProcessS3Event(TstLambdas):
     @patch('handlers.bulk_upload.process_bulk_upload_file', autospec=True)
     @patch('handlers.bulk_upload.config', autospec=True)
     def test_process_s3_event(self, mock_config, mock_process):
-        from handlers.bulk_upload import process_s3_event
+        from handlers.bulk_upload import parse_bulk_upload_file
 
         mock_config.s3_client.get_object.response = {
             'Body': StreamingBody(b'foo', '3')
@@ -26,7 +26,7 @@ class TestProcessS3Event(TstLambdas):
         bucket = event['Records'][0]['s3']['bucket']['name']
         key = event['Records'][0]['s3']['object']['key']
 
-        process_s3_event(event, self.mock_context)
+        parse_bulk_upload_file(event, self.mock_context)
 
         # Happy-path execution should always end with the object being deleted
         mock_config.s3_client.delete_object.assert_called_with(
@@ -40,7 +40,7 @@ class TestProcessS3Event(TstLambdas):
     @patch('handlers.bulk_upload.process_bulk_upload_file', autospec=True)
     @patch('handlers.bulk_upload.config', autospec=True)
     def test_internal_exception(self, mock_config, mock_process):
-        from handlers.bulk_upload import process_s3_event
+        from handlers.bulk_upload import parse_bulk_upload_file
 
         mock_config.s3_client.get_object.response = {
             'Body': StreamingBody(b'foo', '3')
@@ -60,7 +60,7 @@ class TestProcessS3Event(TstLambdas):
             event = json.load(f)
 
         with self.assertRaises(ClientError):
-            process_s3_event(event, self.mock_context)
+            parse_bulk_upload_file(event, self.mock_context)
 
         # We should not delete the object, as we failed to process it
         mock_config.s3_client.delete_object.assert_not_called()
@@ -72,7 +72,7 @@ class TestProcessS3Event(TstLambdas):
     @patch('handlers.bulk_upload.process_bulk_upload_file', autospec=True)
     @patch('handlers.bulk_upload.config', autospec=True)
     def test_bad_data(self, mock_config, mock_process):
-        from handlers.bulk_upload import process_s3_event
+        from handlers.bulk_upload import parse_bulk_upload_file
 
         mock_config.s3_client.get_object.response = {
             'Body': StreamingBody(b'foo', '3')
@@ -99,7 +99,7 @@ class TestProcessS3Event(TstLambdas):
         bucket = event['Records'][0]['s3']['bucket']['name']
         key = event['Records'][0]['s3']['object']['key']
 
-        process_s3_event(event, self.mock_context)
+        parse_bulk_upload_file(event, self.mock_context)
 
         # We should delete the object, as it contains invalid data
         mock_config.s3_client.delete_object.assert_called_with(
@@ -122,6 +122,8 @@ class TestProcessBulkUploadFile(TstLambdas):
         }
 
         with open('tests/resources/licenses.csv', 'rb') as f:
+            line_count = len(f.readlines())
+            f.seek(0)
             content_length = len(f.read())
             f.seek(0)
 
@@ -142,8 +144,8 @@ class TestProcessBulkUploadFile(TstLambdas):
             for call in mock_config.events_client.put_events.call_args_list
             for entry in call.kwargs['Entries']
         ]
-        # There should be exactly 5 events
-        self.assertEqual(5, len(entries))
+        # Make sure we published the right number of events
+        self.assertEqual(line_count-1, len(entries))
 
     @patch('handlers.bulk_upload.config', autospec=True)
     def test_bad_data(self, mock_config):

@@ -7,7 +7,7 @@ from tests.function import TstFunction
 @mock_aws
 class TestIngest(TstFunction):
     def test_new_ingest(self):
-        from handlers.ingest import process_license_message
+        from handlers.ingest import ingest_license_message
         from handlers.providers import query_providers
 
         with open('tests/resources/ingest/message.json', 'r') as f:
@@ -22,7 +22,7 @@ class TestIngest(TstFunction):
             ]
         }
 
-        resp = process_license_message(event, self.mock_context)  # pylint: disable=too-many-function-args
+        resp = ingest_license_message(event, self.mock_context)  # pylint: disable=too-many-function-args
 
         self.assertEqual(
             {'batchItemFailures': []},

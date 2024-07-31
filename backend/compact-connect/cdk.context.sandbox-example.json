@@ -7,7 +7,8 @@
     "environments": {
       "justin": {
         "account_id": "111122223333",
-        "region": "us-east-1"
+        "region": "us-east-1",
+        "domain_name": "justin.compactconnect.org"
       }
     }
   }

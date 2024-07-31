@@ -77,7 +77,7 @@ class LicenseRecordSchema(BaseRecordSchema, LicensePostSchema):
         return in_data
 
     @pre_dump
-    def populate_license_gen_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def populate_license_generated_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
         in_data['licenseHomeProviderId'] = in_data['providerId']
         in_data['birthMonthDay'] = in_data['dateOfBirth'].strftime('%m-%d')
         in_data['famGivMid'] = '/'.join((

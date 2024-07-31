@@ -32,7 +32,7 @@ class TestPostLicenses(TstLambdas):
         self.assertEqual({'message': 'OK'}, json.loads(resp['body']))
 
         # Collect events put for inspection
-        # There should be three successful ingest events and two failures
+        # There should be one successful ingest event
         entries = [
             entry
             for call in mock_config.events_client.put_events.call_args_list
@@ -63,6 +63,10 @@ class TestPostLicenses(TstLambdas):
 
     @patch('handlers.licenses.config', autospec=True)
     def test_event_error(self, mock_config):
+        """
+        If we have trouble publishing our events to AWS EventBridge, we should
+        return a 500 (raise a CCInternalException).
+        """
         from handlers.licenses import post_licenses
 
         mock_config.events_client.put_events.return_value = {

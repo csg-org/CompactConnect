@@ -1,6 +1,7 @@
 import json
 
 from aws_cdk import RemovalPolicy
+from aws_cdk.aws_iam import PolicyStatement, Effect
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_ssm import StringParameter
 from constructs import Construct
@@ -78,6 +79,21 @@ class PipelineStack(Stack):
         self.pre_prod_pipeline.add_stage(
             self.test_stage
         )
+        self.pre_prod_pipeline.build_pipeline()
+        self.pre_prod_pipeline.synth_project.add_to_role_policy(PolicyStatement(
+            effect=Effect.ALLOW,
+            actions=['sts:AssumeRole'],
+            resources=[
+                self.format_arn(
+                    partition=self.partition,
+                    service='iam',
+                    region='',
+                    account='*',
+                    resource='role',
+                    resource_name='cdk-hnb659fds-lookup-role-*'
+                )
+            ]
+        ))
 
         self.prod_pipeline = BackendPipeline(
             self, 'ProdPipeline',
@@ -101,6 +117,18 @@ class PipelineStack(Stack):
         self.prod_pipeline.add_stage(
             self.prod_stage
         )
-
-        self.pre_prod_pipeline.build_pipeline()
         self.prod_pipeline.build_pipeline()
+        self.prod_pipeline.synth_project.add_to_role_policy(PolicyStatement(
+            effect=Effect.ALLOW,
+            actions=['sts:AssumeRole'],
+            resources=[
+                self.format_arn(
+                    partition=self.partition,
+                    service='iam',
+                    region='',
+                    account='*',
+                    resource='role',
+                    resource_name='cdk-hnb659fds-lookup-role-*'
+                )
+            ]
+        ))

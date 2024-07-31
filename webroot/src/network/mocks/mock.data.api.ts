@@ -27,7 +27,7 @@ const initMockStore = (store) => {
 };
 
 export class DataApi {
-    // Helper to simulate wait time on endpoints where desired
+    // Helper to simulate wait time on endpoints where desired, to test things like the loading UI
     wait = (ms = 0) => new Promise((resolve) => setTimeout(() => resolve(true), ms));
 
     // Init interceptors

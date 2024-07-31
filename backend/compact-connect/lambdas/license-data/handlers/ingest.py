@@ -10,7 +10,10 @@ license_schema = LicensePostSchema()
 
 
 @sqs_handler
-def process_license_message(message: dict):
+def ingest_license_message(message: dict):
+    """
+    For each message, validate the license data and persist it in the database
+    """
     detail = message['detail']
     compact = detail.pop('compact')
     jurisdiction = detail.pop('jurisdiction')
