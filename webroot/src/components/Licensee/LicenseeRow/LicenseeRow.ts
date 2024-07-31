@@ -138,6 +138,10 @@ class LicenseeRow extends Vue {
         }
     }
 
+    navigateToDetail(licenseeId: string) {
+        this.$router.push({ name: 'LicensingDetail', params: { licenseeId }});
+    }
+
     //
     // Watchers
     //

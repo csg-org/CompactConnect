@@ -191,5 +191,5 @@ is done, your test hosted zone is ready for use by the app.
 ## More Info
 [Back to top](#compact-connect---backend-developer-documentation)
 
-- [cdk-workshop](https://cdkworkshop.com/): If you are new to CDK, I highly recommend you go through the CDK Workshop
-  for a quick introduction to the technology and its concepts before getting too deep into any particular project.
+- [cdk-workshop](https://cdkworkshop.com/): If you are new to CDK, I highly recommend you go through the CDK Workshop for a quick
+  introduction to the technology and its concepts before getting too deep into any particular project.

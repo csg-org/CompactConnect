@@ -4,3 +4,154 @@
 //
 //  Created by InspiringApps on 7/1/2024.
 //
+
+.licensee-detail-container {
+    @spacingMobile: 2.4rem;
+    @spacingDesktop: 12rem;
+
+    .licensee-header {
+        display: flex;
+        flex-direction: column;
+        padding: @spacingMobile;
+        background-color: #f2f2f2;
+
+        @media @desktopWidth {
+            padding: @spacingMobile @spacingDesktop;
+        }
+
+        .breadcrumbs {
+            display: flex;
+            margin-bottom: @spacingMobile;
+
+            .breadcrumb-link {
+                margin-right: 4px;
+                color: #6e6e6e;
+            }
+        }
+
+        .licensee-name {
+            margin-bottom: 1.2rem;
+            font-weight: @fontWeightBold;
+            font-size: 3.2rem;
+        }
+
+        .license-tags {
+            display: flex;
+            flex-wrap: wrap;
+
+            .license-tag {
+                padding: 0.4rem 0.8rem;
+                border-radius: 9999px; // pill shaped
+                font-size: 1.4rem;
+                background-color: @lightGrey;
+            }
+        }
+    }
+
+    .licensee-section {
+        display: flex;
+        flex-direction: column;
+        padding: @spacingMobile;
+        background-color: @white;
+
+        @media @desktopWidth {
+            padding: @spacingMobile @spacingDesktop;
+        }
+
+        .licensee-section-title {
+            padding-bottom: @spacingMobile;
+            font-weight: @fontWeightBold;
+            font-size: 1.8rem;
+        }
+
+        .license-row {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+
+            @media @tabletWidth {
+                flex-direction: row;
+            }
+        }
+
+        .license-row-cell {
+            width: 100%;
+
+            @media @tabletWidth {
+                &:not(:first-child) {
+                    margin-left: 7%;
+                }
+
+                &.header {
+                    padding-top: @spacingMobile;
+                    padding-bottom: 4px;
+                    border-top: 1px solid @lightGrey;
+                    color: @lightTextGrey;
+                }
+
+                &.residence-state {
+                    flex-basis: 15%;
+                }
+
+                &.license-state {
+                    flex-basis: 15%;
+                }
+
+                &.practicing-state {
+                    flex-basis: 55%;
+                }
+
+                &.issue-date {
+                    flex-basis: 15%;
+                }
+
+                &.expire-date {
+                    flex-basis: 15%;
+                }
+            }
+
+            .cell-title {
+                color: @lightTextGrey;
+            }
+        }
+    }
+
+    .adverse-action-container {
+        display: flex;
+        margin-bottom: 3.2rem;
+
+        .icon {
+            @size: 40px;
+
+            display: none;
+            flex-basis: @size;
+            width: @size;
+            height: @size;
+            border-radius: 4px;
+            background-color: @veryLightGrey;
+
+            @media @tabletWidth {
+                display: flex;
+            }
+        }
+
+        .adverse-action {
+            display: flex;
+            flex-basis: 100%;
+            flex-direction: column;
+
+            @media @tabletWidth {
+                flex-basis: ~"calc(60% - 50px)";
+                margin-left: 1.6rem;
+            }
+
+            .adverse-action-title {
+                font-weight: @fontWeightBold;
+            }
+
+            .adverse-action-description {
+                font-size: 1.4rem;
+            }
+        }
+    }
+}
