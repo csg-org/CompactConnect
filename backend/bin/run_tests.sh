@@ -9,6 +9,7 @@ REPORT="$1"
 for dir in \
   compact-connect/lambdas/license-data \
   compact-connect/lambdas/board-user-pre-token \
+  compact-connect/lambdas/staff-user-pre-token \
   compact-connect/lambdas/delete-objects \
   multi-account
   do

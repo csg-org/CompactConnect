@@ -16,11 +16,11 @@ aws-sam-translator==1.89.0
     # via cfn-lint
 aws-xray-sdk==2.14.0
     # via moto
-boto3==1.34.141
+boto3==1.34.151
     # via
     #   aws-sam-translator
     #   moto
-botocore==1.34.141
+botocore==1.34.151
     # via
     #   aws-xray-sdk
     #   boto3
@@ -30,11 +30,11 @@ certifi==2024.7.4
     # via requests
 cffi==1.16.0
     # via cryptography
-cfn-lint==1.5.2
+cfn-lint==1.9.2
     # via moto
 charset-normalizer==3.3.2
     # via requests
-cryptography==42.0.8
+cryptography==43.0.0
     # via
     #   joserfc
     #   moto
@@ -50,9 +50,9 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
-joserfc==0.12.0
+joserfc==1.0.0
     # via moto
-jsondiff==2.1.1
+jsondiff==2.2.0
     # via moto
 jsonpatch==1.33
     # via cfn-lint
@@ -119,7 +119,7 @@ referencing==0.35.1
     #   jsonschema
     #   jsonschema-path
     #   jsonschema-specifications
-regex==2024.5.15
+regex==2024.7.24
     # via cfn-lint
 requests==2.32.3
     # via
@@ -131,7 +131,7 @@ responses==0.25.3
     # via moto
 rfc3339-validator==0.1.4
     # via openapi-schema-validator
-rpds-py==0.19.0
+rpds-py==0.19.1
     # via
     #   jsonschema
     #   referencing
@@ -141,7 +141,7 @@ six==1.16.0
     # via
     #   python-dateutil
     #   rfc3339-validator
-sympy==1.13.0
+sympy==1.13.1
     # via cfn-lint
 typing-extensions==4.12.2
     # via

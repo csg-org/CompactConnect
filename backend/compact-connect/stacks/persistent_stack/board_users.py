@@ -10,6 +10,9 @@ from common_constructs.user_pool import UserPool
 
 
 class BoardUsers(UserPool):
+    """
+    DEPRECATED - see comment above constructor use
+    """
     def __init__(
             self, scope: Construct, construct_id: str, *,
             cognito_domain_prefix: str,

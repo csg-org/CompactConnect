@@ -171,21 +171,30 @@ class LicenseApi(RestApi):
         # Authenticated endpoints
         # /v0/licenses
         v0_resource = self.root.add_resource('v0')
-        scopes = [
-            f'{resource_server}/{scope}'
-            for resource_server in persistent_stack.board_users.resource_servers.keys()
-            for scope in persistent_stack.board_users.scopes.keys()
+        read_scopes = [
+            f'{resource_server}/read'
+            for resource_server in persistent_stack.staff_users.resource_servers.keys()
         ]
-        auth_method_options = MethodOptions(
+        write_scopes = [
+            f'{resource_server}/{scope}'
+            for resource_server in persistent_stack.staff_users.resource_servers.keys()
+            for scope in persistent_stack.staff_users.write_scopes.keys()
+        ]
+        read_auth_method_options = MethodOptions(
             authorization_type=AuthorizationType.COGNITO,
-            authorizer=self.board_users_authorizer,
-            authorization_scopes=scopes
+            authorizer=self.staff_users_authorizer,
+            authorization_scopes=read_scopes
+        )
+        write_auth_method_options = MethodOptions(
+            authorization_type=AuthorizationType.COGNITO,
+            authorizer=self.staff_users_authorizer,
+            authorization_scopes=write_scopes
         )
         # /v0/providers
         providers_resource = v0_resource.add_resource('providers')
         QueryProviders(
             providers_resource,
-            method_options=auth_method_options,
+            method_options=read_auth_method_options,
             data_encryption_key=persistent_stack.shared_encryption_key,
             license_data_table=persistent_stack.license_table
         )
@@ -197,12 +206,12 @@ class LicenseApi(RestApi):
         PostLicenses(
             mock_resource=False,
             resource=jurisdiction_resource,
-            method_options=auth_method_options,
+            method_options=write_auth_method_options,
             event_bus=persistent_stack.data_event_bus
         )
         BulkUploadUrl(
             resource=jurisdiction_resource,
-            method_options=auth_method_options,
+            method_options=write_auth_method_options,
             bulk_uploads_bucket=persistent_stack.bulk_uploads_bucket
         )
 
@@ -266,10 +275,10 @@ class LicenseApi(RestApi):
         )
 
     @cached_property
-    def board_users_authorizer(self):
+    def staff_users_authorizer(self):
         return CognitoUserPoolsAuthorizer(
-            self, 'BoardPoolsAuthorizer',
-            cognito_user_pools=[self._persistent_stack.board_users]
+            self, 'StaffPoolsAuthorizer',
+            cognito_user_pools=[self._persistent_stack.staff_users]
         )
 
     @cached_property
