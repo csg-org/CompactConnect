@@ -22,10 +22,10 @@ jobs:
 
     env:
       BASE_URL: /
-      VUE_APP_DOMAIN: https://d1sntjunv5lr23.cloudfront.net
+      VUE_APP_DOMAIN: https://app.test.jcc.iaapi.io
       VUE_APP_ROBOTS_META: noindex,nofollow
-      VUE_APP_API_STATE_ROOT: https://9avvh7mvqg.execute-api.us-east-1.amazonaws.com/test
-      VUE_APP_API_LICENSE_ROOT: https://9avvh7mvqg.execute-api.us-east-1.amazonaws.com/test
+      VUE_APP_API_STATE_ROOT: https://api.test.jcc.iaapi.io
+      VUE_APP_API_LICENSE_ROOT: https://api.test.jcc.iaapi.io
 
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
