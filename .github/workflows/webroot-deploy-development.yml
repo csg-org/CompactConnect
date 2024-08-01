@@ -7,7 +7,7 @@ on:
   # Triggers the workflow on pushes to trunk branches involving changes to web frontend files
   push:
     branches:
-      - ia-frontend-deploy
+      - ia-web-development
       - infra/csp-headers
     paths:
       - webroot/**
@@ -19,7 +19,7 @@ on:
 jobs:
   WebrootDeploy:
     # Only run this workflow in certian repos
-    if: github.repository == 'InspiringApps/JCC-licensure-compact-system'
+    if: github.repository == 'InspiringApps/JCC-CompactConnect'
 
     # Runner OS
     runs-on: ubuntu-latest
