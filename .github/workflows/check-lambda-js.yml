@@ -9,7 +9,7 @@ on:
     branches:
       - main
       - development
-      - infra/csp-headers
+      - ia-web-development
     paths:
       - backend/compact-connect/lambdas/cloudfront-csp/**
 

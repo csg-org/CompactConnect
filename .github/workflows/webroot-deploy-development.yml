@@ -8,7 +8,6 @@ on:
   push:
     branches:
       - ia-web-development
-      - infra/csp-headers
     paths:
       - webroot/**
 
