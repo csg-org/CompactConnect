@@ -176,9 +176,8 @@ class LicenseApi(RestApi):
             for resource_server in persistent_stack.staff_users.resource_servers.keys()
         ]
         write_scopes = [
-            f'{resource_server}/{scope}'
+            f'{resource_server}/write'
             for resource_server in persistent_stack.staff_users.resource_servers.keys()
-            for scope in persistent_stack.staff_users.write_scopes.keys()
         ]
         read_auth_method_options = MethodOptions(
             authorization_type=AuthorizationType.COGNITO,

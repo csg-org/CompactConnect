@@ -12,11 +12,11 @@ class TstLambdas(TestCase):
     @classmethod
     def setUpClass(cls):
         os.environ.update({
-            # Set to 'true' to enable debug logging
+            # Set to 'true' to enable debug logging in tests
             'DEBUG': 'true',
             'AWS_DEFAULT_REGION': 'us-east-1',
             'USERS_TABLE_NAME': 'users-table',
-            'COMPACTS': '["aslp", "ot", "counseling"]',
+            'COMPACTS': '["aslp", "octp", "coun"]',
             'JURISDICTIONS': '["al", "co"]'
         })
         # Monkey-patch config object to be sure we have it based

@@ -1,4 +1,4 @@
-from aws_cdk import RemovalPolicy
+from aws_cdk import RemovalPolicy, CfnOutput
 from aws_cdk.aws_kms import Key
 from constructs import Construct
 
@@ -91,6 +91,17 @@ class PersistentStack(Stack):
             encryption_key=self.shared_encryption_key,
             removal_policy=RemovalPolicy.DESTROY  # Force this for clean removal across environments
         )
+        # Because our API stack no longer has a reference to the BoardUsers arn in it, CDK will drop the output from
+        # this stack, but that creates a sort of cross-stack deadlock. Here's a really good explanation of how that
+        # works: https://www.endoflineblog.com/cdk-tips-03-how-to-unblock-cross-stack-references
+        # To get past that in a formalized hands-off pipeline way, we manually create the export to keep it around
+        # for a single deploy:
+        user_pool_arn_output = CfnOutput(
+            self, 'HostedZoneOutput',
+            export_name=f'{self.stack_name}:ExportsOutputFnGetAttBoardUsers358C5099Arn2934C264',
+            value=self.board_users.user_pool_arn
+        )
+        user_pool_arn_output.override_logical_id('ExportsOutputFnGetAttBoardUsers358C5099Arn2934C264')
 
         staff_prefix = f'{app_name}-staff'
         self.staff_users = StaffUsers(

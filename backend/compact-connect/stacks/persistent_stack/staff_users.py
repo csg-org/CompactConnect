@@ -1,3 +1,4 @@
+import json
 import os
 
 from aws_cdk.aws_cognito import ResourceServerScope, UserPoolOperation, LambdaVersion
@@ -47,42 +48,34 @@ class StaffUsers(UserPool):
         """
         Add scopes for all compact/jurisdictions
         """
-        # {jurisdiction}.write and {jurisdiction}.admin for every jurisdiction
-        self.write_scopes = {
-            f'{jurisdiction}.write': ResourceServerScope(
-                scope_name=f'{jurisdiction}.write',
-                scope_description=f'Write access for {jurisdiction}'
-            )
-            for jurisdiction in self.node.get_context('jurisdictions')
-        }
-        self.admin_scopes = {
-            f'{jurisdiction}.admin': ResourceServerScope(
-                scope_name=f'{jurisdiction}.admin',
-                scope_description=f'Admin access for {jurisdiction}'
-            )
-            for jurisdiction in self.node.get_context('jurisdictions')
-        }
-        self.compact_admin_scope = ResourceServerScope(
-            scope_name='admin',
-            scope_description='Admin access for the compact'
+        # {compact}.write, {compact}.admin, {compact}.read for every compact
+        # Note: the .write and .admin scopes will control access to API endpoints via the Cognito authorizer, however
+        # there will be a secondary level of authorization within the business logic that controls further granularity
+        # of authorization (i.e. 'aslp/write' will grant access to POST license data, but the business logic inside
+        # the endpoint also expects an 'aslp/co.write' if the POST includes data for Colorado.)
+        self.write_scope = ResourceServerScope(
+            scope_name='write',
+            scope_description='Write access for the compact, paired with a more specific scope'
         )
-        self.compact_read_scope = ResourceServerScope(
+        self.admin_scope = ResourceServerScope(
+            scope_name='admin',
+            scope_description='Admin access for the compact, paired with a more specific scope'
+        )
+        self.read_scope = ResourceServerScope(
             scope_name='read',
             scope_description='Read access for the compact'
         )
 
-        all_scopes = list((
-            *self.admin_scopes.values(),
-            *self.write_scopes.values(),
-            self.compact_admin_scope,
-            self.compact_read_scope
-        ))
         # One resource server for each compact
         self.resource_servers = {
             compact: self.add_resource_server(
                 f'LicenseData-{compact}',
                 identifier=compact,
-                scopes=all_scopes
+                scopes=[
+                    self.admin_scope,
+                    self.write_scope,
+                    self.read_scope
+                ]
             )
             for compact in self.node.get_context('compacts')
         }
@@ -91,6 +84,9 @@ class StaffUsers(UserPool):
         """
         Add scopes to access tokens based on the Users table
         """
+        compacts = self.node.get_context('compacts')
+        jurisdictions = self.node.get_context('jurisdictions')
+
         scope_customization_handler = PythonFunction(
             self, 'ScopeCustomizationHandler',
             description='Auth scope customization handler',
@@ -99,7 +95,9 @@ class StaffUsers(UserPool):
             handler='customize_scopes',
             environment={
                 'DEBUG': 'true',
-                'USERS_TABLE_NAME': self.user_table.table_name
+                'USERS_TABLE_NAME': self.user_table.table_name,
+                'COMPACTS': json.dumps(compacts),
+                'JURISDICTIONS': json.dumps(jurisdictions)
             }
         )
         self.user_table.grant_read_data(scope_customization_handler)

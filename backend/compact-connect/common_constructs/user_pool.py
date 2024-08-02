@@ -95,7 +95,7 @@ class UserPool(CdkUserPool):
             ),
             o_auth=OAuthSettings(
                 callback_urls=[
-                    'http://localhost:8000/auth'
+                    'http://localhost:3018/auth/callback'
                 ],
                 flows=OAuthFlows(
                     authorization_code_grant=True,
