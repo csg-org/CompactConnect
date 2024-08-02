@@ -3,6 +3,7 @@ from functools import cached_property
 from textwrap import dedent
 
 from aws_cdk import Stack as CdkStack, Aspects
+from aws_cdk.aws_route53 import HostedZone, IHostedZone
 from cdk_nag import AwsSolutionsChecks, HIPAASecurityChecks, NagSuppressions
 
 
@@ -86,3 +87,35 @@ class Stack(CdkStack):
             'JURISDICTIONS': json.dumps(self.node.get_context('jurisdictions')),
             'LICENSE_TYPES': json.dumps(self.node.get_context('license_types'))
         }
+
+
+class AppStack(Stack):
+    """
+    A stack that is part of the main app deployment
+    """
+    def __init__(self, *args, environment_context: dict, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.environment_context = environment_context
+
+    @cached_property
+    def hosted_zone(self) -> IHostedZone | None:
+        hosted_zone = None
+        domain_name = self.environment_context.get('domain_name')
+        if domain_name is not None:
+            hosted_zone = HostedZone.from_lookup(
+                self, 'HostedZone',
+                domain_name=domain_name
+            )
+        return hosted_zone
+
+    @property
+    def api_domain_name(self) -> str | None:
+        if self.hosted_zone is not None:
+            return f'api.{self.hosted_zone.zone_name}'
+        return None
+
+    @property
+    def ui_domain_name(self) -> str | None:
+        if self.hosted_zone is not None:
+            return f'app.{self.hosted_zone.zone_name}'
+        return None

@@ -7,6 +7,7 @@ from cdk_nag import NagSuppressions
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
+from common_constructs.stack import AppStack
 from common_constructs.user_pool import UserPool
 from stacks.persistent_stack.users_table import UsersTable
 
@@ -19,6 +20,7 @@ class StaffUsers(UserPool):
             self, scope: Construct, construct_id: str, *,
             cognito_domain_prefix: str,
             environment_name: str,
+            environment_context: dict,
             encryption_key: IKey,
             removal_policy,
             **kwargs
@@ -31,6 +33,7 @@ class StaffUsers(UserPool):
             removal_policy=removal_policy,
             **kwargs
         )
+        stack: AppStack = AppStack.of(self)
 
         self.user_table = UsersTable(
             self, 'UsersTable',
@@ -40,9 +43,22 @@ class StaffUsers(UserPool):
 
         self._add_resource_servers()
         self._add_scope_customization()
+
+        callback_urls = []
+        if stack.ui_domain_name is not None:
+            callback_urls.append(f'https://{stack.ui_domain_name}/auth/callback')
+        # This toggle will allow front-end devs to point their local UI at this environment's user pool to support
+        # authenticated actions.
+        if environment_context.get('allow_local_ui', False):
+            callback_urls.append('http://localhost:3018/auth/callback')
+        if not callback_urls:
+            raise ValueError(
+                "This app requires a callback url for its authentication path. Either provide 'domain_name' or set "
+                "allow_local_ui' to true in this environment's context.")
+
         # Do not allow resource server scopes via the client - they are assigned via token customization
         # to allow for user attribute-based access
-        self.ui_client = self.add_ui_client()
+        self.ui_client = self.add_ui_client(callback_urls=callback_urls)
 
     def _add_resource_servers(self):
         """

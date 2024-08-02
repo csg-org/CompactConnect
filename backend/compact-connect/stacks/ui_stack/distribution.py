@@ -1,18 +1,18 @@
 import os
 
-from aws_cdk import Stack
 from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_cloudfront import Distribution, BehaviorOptions, CachePolicy, OriginAccessIdentity, \
     ViewerProtocolPolicy, SecurityPolicyProtocol, SSLMethod, ErrorResponse, AllowedMethods, EdgeLambda, \
     LambdaEdgeEventType
 from aws_cdk.aws_cloudfront_origins import S3Origin
 from aws_cdk.aws_lambda import Function, Code, Runtime
-from aws_cdk.aws_route53 import ARecord, RecordTarget, IHostedZone
+from aws_cdk.aws_route53 import ARecord, RecordTarget
 from aws_cdk.aws_route53_targets import CloudFrontTarget
 from aws_cdk.aws_s3 import IBucket
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
+from common_constructs.stack import AppStack
 from common_constructs.webacl import WebACL, WebACLScope
 from stacks.persistent_stack import PersistentStack
 
@@ -21,15 +21,13 @@ class UIDistribution(Distribution):
     def __init__(
         self, scope: Construct, construct_id: str, *,
         ui_bucket: IBucket,
-        persistent_stack: PersistentStack,
-        hosted_zone: IHostedZone = None
-
+        persistent_stack: PersistentStack
     ):
-        stack = Stack.of(scope)
+        stack: AppStack = AppStack.of(scope)
 
         domain_name_kwargs = {}
-        if hosted_zone is not None:
-            ui_domain_name = f'app.{hosted_zone.zone_name}'
+        if stack.hosted_zone is not None:
+            ui_domain_name = f'app.{stack.hosted_zone.zone_name}'
             domain_name_kwargs = {
                 'domain_names': [
                     ui_domain_name
@@ -37,7 +35,7 @@ class UIDistribution(Distribution):
                 'certificate': Certificate(
                     scope, 'UICert',
                     domain_name=ui_domain_name,
-                    validation=CertificateValidation.from_dns(hosted_zone=hosted_zone)
+                    validation=CertificateValidation.from_dns(hosted_zone=stack.hosted_zone)
                 )
             }
 
@@ -145,10 +143,10 @@ class UIDistribution(Distribution):
             **domain_name_kwargs
         )
 
-        if hosted_zone is not None:
+        if stack.hosted_zone is not None:
             self.record = ARecord(
                 self, 'UiARecord',
-                zone=hosted_zone,
+                zone=stack.hosted_zone,
                 record_name=ui_domain_name,
                 target=RecordTarget(
                     alias_target=CloudFrontTarget(self)

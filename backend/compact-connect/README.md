@@ -99,7 +99,10 @@ To execute the tests, simply run `bin/run_tests.sh` from the `backend` directory
 The very first deploy to a new environment (like your personal sandbox account) requires a few steps to fully set up
 its environment:
 1) *Optional:* Create a new Route53 HostedZone in your AWS sandbox account for the DNS domain name you want to use for
-   your app. See [About Route53 Hosted Zones](#about-route53-hosted-zones) for more.
+   your app. See [About Route53 Hosted Zones](#about-route53-hosted-zones) for more. Note: Without this step, you will
+   not be able to log in to the UI hosted in CloudFront. The Oauth2 authentication process requires a predictable
+   callback url to be pre-configured, which the domain name provides. You can still run a local UI against this app,
+   so long as you leave the `allow_local_ui` context value set to `true` in your environment's context.
 2) Copy [cdk.context.sandbox-example.json](./cdk.context.sandbox-example.json) to `cdk.context.json`.
 3) At the top level of the JSON structure update the `"environment_name"` field to your own name.
 4) Update the environment entry under `ssm_context.environments` to your own name and your own AWS sandbox account id,

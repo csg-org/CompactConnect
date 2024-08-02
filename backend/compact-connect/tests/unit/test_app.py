@@ -95,8 +95,27 @@ class TestApp(TestCase):
         self._check_no_annotations(app.sandbox_stage.persistent_stack)
         self._check_no_annotations(app.sandbox_stage.ui_stack)
         self._check_no_annotations(app.sandbox_stage.api_stack)
+        self._check_no_annotations(app.sandbox_stage.ingest_stack)
 
         self._inspect_api_stack(app.sandbox_stage.api_stack)
+
+    def test_synth_no_ui_raises_value_error(self):
+        """
+        If a developer tries to deploy this app without either a domain name or allowing a local UI, the app
+        should fail to synthesize.
+        """
+        with open('cdk.json', 'r') as f:
+            context = json.load(f)['context']
+        with open('cdk.context.sandbox-example.json', 'r') as f:
+            context.update(json.load(f))
+        del context['ssm_context']['environments'][context['environment_name']]['domain_name']
+        del context['ssm_context']['environments'][context['environment_name']]['allow_local_ui']
+
+        # Suppresses lambda bundling for tests
+        context['aws:cdk:bundling-stacks'] = []
+
+        with self.assertRaises(ValueError):
+            CompactConnectApp(context=context)
 
     def _inspect_api_stack(self, api_stack: ApiStack):
         api_template = Template.from_stack(api_stack)

@@ -3,7 +3,7 @@ from aws_cdk.aws_kms import Key
 from constructs import Construct
 
 from common_constructs.access_logs_bucket import AccessLogsBucket
-from common_constructs.stack import Stack
+from common_constructs.stack import AppStack
 from stacks.persistent_stack.board_users import BoardUsers
 
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
@@ -12,7 +12,7 @@ from stacks.persistent_stack.event_bus import EventBus
 from stacks.persistent_stack.staff_users import StaffUsers
 
 
-class PersistentStack(Stack):
+class PersistentStack(AppStack):
     """
     The stack that holds long-lived resources such as license data and other things that should probably never
     be destroyed in production
@@ -22,9 +22,10 @@ class PersistentStack(Stack):
             self, scope: Construct, construct_id: str, *,
             app_name: str,
             environment_name: str,
+            environment_context: dict,
             **kwargs
     ) -> None:
-        super().__init__(scope, construct_id, **kwargs)
+        super().__init__(scope, construct_id, environment_context=environment_context, **kwargs)
         # If we delete this stack, retain the resource (orphan but prevent data loss) or destroy it (clean up)?
         removal_policy = RemovalPolicy.RETAIN if environment_name == 'prod' else RemovalPolicy.DESTROY
 
@@ -109,6 +110,7 @@ class PersistentStack(Stack):
             cognito_domain_prefix=staff_prefix if environment_name == 'prod'
             else f'{staff_prefix}-{environment_name}',
             environment_name=environment_name,
+            environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy
         )

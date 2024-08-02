@@ -84,7 +84,7 @@ class UserPool(CdkUserPool):
             ]
         )
 
-    def add_ui_client(self, ui_scopes: List[OAuthScope] = None):
+    def add_ui_client(self, callback_urls: List[str], ui_scopes: List[OAuthScope] = None):
         return self.add_client(
             'UIClient',
             auth_flows=AuthFlow(
@@ -94,9 +94,7 @@ class UserPool(CdkUserPool):
                 user_password=False
             ),
             o_auth=OAuthSettings(
-                callback_urls=[
-                    'http://localhost:3018/auth/callback'
-                ],
+                callback_urls=callback_urls,
                 flows=OAuthFlows(
                     authorization_code_grant=True,
                     implicit_code_grant=False

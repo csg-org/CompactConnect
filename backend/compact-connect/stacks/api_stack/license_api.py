@@ -14,7 +14,7 @@ from aws_cdk.aws_route53_targets import ApiGateway
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
-from common_constructs.stack import Stack
+from common_constructs.stack import Stack, AppStack
 from common_constructs.webacl import WebACL, WebACLScope
 from stacks.api_stack.bulk_upload_url import BulkUploadUrl
 from stacks.api_stack.post_license import PostLicenses
@@ -31,26 +31,24 @@ class LicenseApi(RestApi):
     def __init__(  # pylint: disable=too-many-locals
             self, scope: Construct, construct_id: str, *,
             environment_name: str,
-            hosted_zone: IHostedZone = None,
             persistent_stack: ps.PersistentStack,
             **kwargs
     ):
-
+        stack: AppStack = AppStack.of(scope)
         # For developer convenience, we will allow for the case where there is no
         # domain name configured
         domain_kwargs = {}
-        if hosted_zone is not None:
-            api_domain_name = f'api.{hosted_zone.zone_name}'
+        if stack.hosted_zone is not None:
             certificate = Certificate(
                 scope, 'ApiCert',
-                domain_name=api_domain_name,
-                validation=CertificateValidation.from_dns(hosted_zone=hosted_zone),
-                subject_alternative_names=[hosted_zone.zone_name]
+                domain_name=stack.api_domain_name,
+                validation=CertificateValidation.from_dns(hosted_zone=stack.hosted_zone),
+                subject_alternative_names=[stack.hosted_zone.zone_name]
             )
             domain_kwargs = {
                 'domain_name': DomainNameOptions(
                     certificate=certificate,
-                    domain_name=api_domain_name
+                    domain_name=stack.api_domain_name
                 )
             }
 
@@ -107,10 +105,10 @@ class LicenseApi(RestApi):
             **kwargs
         )
 
-        if hosted_zone is not None:
+        if stack.hosted_zone is not None:
             self._add_domain_name(
-                hosted_zone=hosted_zone,
-                api_domain_name=api_domain_name,
+                hosted_zone=stack.hosted_zone,
+                api_domain_name=stack.api_domain_name,
             )
 
         self.log_groups = [access_log_group]
