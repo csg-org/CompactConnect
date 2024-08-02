@@ -1,4 +1,4 @@
-# Cloudfront CSP Header Edge Lambda
+# Cloudfront Viewer Response Edge Lambda
 
 ## Table of Contents
 - **[Prerequisites](#prerequisites)**
@@ -42,5 +42,13 @@ _[back to top](#cloudfront-csp-header-edge-lambda)_
 
 #### Test output verbosity
 - `index.test.js`
-    - Test block `it()`
-        - `config.verboseLevel = 3` _(options are [0-3](https://github.com/ashiina/lambda-local#lambdalocalexecuteoptions))_
+    - In individual test blocks (e.g. `it()`) you can update the output verbosity in the options passed to `lambdaConfig()`
+    - Examples:
+        - `config.verboseLevel = 3`
+        - ```
+          const config = lambdaConfig({
+              ...
+              verboseLevel: 3,
+          });
+          ```
+        - _(options are [0-3](https://github.com/ashiina/lambda-local#lambdalocalexecuteoptions))_

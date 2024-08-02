@@ -148,7 +148,7 @@ const srcKeywordsEscape = (srcList, listName = '') => {
         { value: 'strict-dynamic', isAllowed: true },
         { value: 'report-sample', isAllowed: true },
         { value: 'inline-speculation-rules', isAllowed: true },
-        { value: 'unsafe-inline', isAllowed: true },
+        { value: 'unsafe-inline', isAllowed: false },
         { value: 'unsafe-eval', isAllowed: false },
         { value: 'unsafe-hashes', isAllowed: false },
         { value: 'wasm-unsafe-eval', isAllowed: false },
@@ -301,11 +301,6 @@ const setSecurityHeaders = (requestDomain, headers = {}) => {
     headers['x-frame-options'] = [{
         key: 'X-Frame-Options',
         value: 'DENY',
-    }];
-    // X-XSS-Protection
-    headers['x-xss-protection'] = [{
-        key: 'X-Xss-Protection',
-        value: '1; mode=block',
     }];
     // Referrer-Policy
     headers['referrer-policy'] = [{

@@ -1,7 +1,7 @@
 {
   "name": "cloudfront-csp",
   "version": "1.0.0",
-  "description": "CompactConnect CSP Header Response",
+  "description": "CompactConnect Cloudfront Viewer Response Edge Lambda",
   "main": "index.js",
   "repository": "https://github.com/csg-org/CompactConnect",
   "author": "InspiringApps",
