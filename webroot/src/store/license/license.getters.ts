@@ -7,4 +7,9 @@
 
 export default {
     lastKey: (state: any) => state.lastKey,
+    licenseeById: (state: any) => (licenseeId: string) => {
+        const licensees = state.model || [];
+
+        return licensees.find((licensee) => licensee.id === licenseeId);
+    },
 };

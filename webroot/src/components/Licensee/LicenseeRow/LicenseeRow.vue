@@ -6,7 +6,12 @@
 -->
 
 <template>
-    <li class="licensee-row" :class="{ 'is-header': isHeaderRow }">
+    <li
+        class="licensee-row"
+        :class="{ 'is-header': isHeaderRow }"
+        @click="!isHeaderRow && navigateToDetail(item.id)"
+        @keyup.enter="!isHeaderRow && navigateToDetail(item.id)"
+    >
         <div
             class="cell first-name"
             :class="{ 'is-sort-enabled': isSortOptionEnabled('firstName') }"

@@ -53,6 +53,13 @@ export class Licensee implements InterfaceLicensee {
     }
 
     // Helpers
+    public nameDisplay(): string {
+        const firstName = this.firstName || '';
+        const lastName = this.lastName || '';
+
+        return `${firstName} ${lastName}`.trim();
+    }
+
     public residenceLocation(): string {
         return this.address?.state?.name() || '';
     }
@@ -111,6 +118,13 @@ export class Licensee implements InterfaceLicensee {
         return stateList;
     }
 
+    public practicingLocationsAll(): string {
+        const states: Array<string> = this.licenses?.map((license: License) => license.issueState?.name() || '') || [];
+        const stateList = states.filter((state) => state).join(', ') || '';
+
+        return stateList;
+    }
+
     public practicingLocationsDisplay(): string {
         const states: Array<string> = this.licenses?.map((license: License) => license.issueState?.name() || '') || [];
         const maxNames = 2;
@@ -140,30 +154,30 @@ export class Licensee implements InterfaceLicensee {
 export class LicenseeSerializer {
     static fromServer(json: any): Licensee {
         const licenseeData: any = {
-            id: json.id,
-            firstName: json.given_name,
-            middleName: json.middle_name,
-            lastName: json.family_name,
-            dob: json.date_of_birth,
+            id: json.providerId,
+            firstName: json.givenName,
+            middleName: json.middleName,
+            lastName: json.familyName,
+            dob: json.dateOfBirth,
             ssn: json.ssn,
             address: AddressSerializer.fromServer({
-                street1: json.home_state_street_1,
-                street2: json.home_state_street_2,
-                city: json.home_state_city,
+                street1: json.homeStateStreet1,
+                street2: json.homeStateStreet2,
+                city: json.homeStateCity,
                 state: json.jurisdiction,
-                zip: json.home_state_postal_code,
+                zip: json.homeStatePostalCode,
             }),
             licenses: [
                 LicenseSerializer.fromServer({
                     issueState: json.jurisdiction,
-                    issueDate: json.date_of_issuance,
-                    renewalDate: json.date_of_renewal,
-                    expireDate: json.date_of_expiration,
-                    type: json.license_type,
+                    issueDate: json.dateOfIssuance,
+                    renewalDate: json.dateOfRenewal,
+                    expireDate: json.dateOfExpiration,
+                    type: json.licenseType,
                 }),
             ],
             status: json.status,
-            lastUpdated: json.date_of_update,
+            lastUpdated: json.dateOfUpdate,
         };
 
         return new Licensee(licenseeData);
