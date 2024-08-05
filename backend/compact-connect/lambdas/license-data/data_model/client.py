@@ -10,7 +10,8 @@ from marshmallow import ValidationError
 
 from config import _Config, logger, config
 from data_model.schema.base_record import BaseRecordSchema
-from exceptions import CCInvalidRequestException, CCInternalException
+from data_model.schema.license import SSNIndexRecordSchema
+from exceptions import CCInvalidRequestException, CCInternalException, CCNotFoundException
 
 
 def paginated(fn):
@@ -51,12 +52,18 @@ def paginated(fn):
             raise
 
         resp = {
-            'items': raw_resp.get('Items', [])
+            'items': raw_resp.get('Items', []),
+            'pagination': {
+                'pageSize': page_size,
+                'prevLastKey': pagination.get('lastKey')
+            }
         }
-        last_key = raw_resp.get('LastEvaluatedKey')
+
         # Last key, if present, will be a dict like {'pk': '123-12-1234', 'sk': 'aslp/co/license-home'}
+        last_key = raw_resp.get('LastEvaluatedKey')
         if last_key is not None:
-            resp['lastKey'] = b64encode(json.dumps(last_key).encode('utf-8')).decode('ascii')
+            last_key = b64encode(json.dumps(last_key).encode('utf-8')).decode('ascii')
+        resp['pagination']['lastKey'] = last_key
         return resp
     return process_pagination_parameters
 
@@ -67,16 +74,44 @@ class DataClient():
     """
     def __init__(self, config: _Config):  # pylint: disable=redefined-outer-name
         self.config = config
+        self.ssn_index_record_schema = SSNIndexRecordSchema()
 
-    @paginated
-    def get_ssn(self, *, ssn: str, dynamo_pagination: dict):
+    def get_provider_id(self, *, ssn: str) -> str:
         """
         Get all records associated with a given SSN.
         """
-        logger.info('Getting ssn')
+        logger.info('Getting provider id by ssn')
+        resp = self.config.license_table.query(
+            IndexName=config.ssn_index_name,
+            Select='ALL_PROJECTED_ATTRIBUTES',
+            KeyConditionExpression=Key('ssn').eq(quote(ssn)),
+        )
+        # Create a set of provider ids (which will ensure no duplicate values) from all license-home records
+        items = {
+            self.ssn_index_record_schema.load(item)['licenseHomeProviderId']
+            for item in resp['Items']
+        }
+        item_count = len(items)
+        # If there is more than one value in the set, we have multiple provider ids associated with
+        # the requested SSN, which is a problem.
+        if item_count > 1:
+            raise CCInternalException('Data consistency error!')
+
+        if item_count < 1:
+            raise CCNotFoundException('No licensee found by that identifier')
+
+        return str(list(items)[0])
+
+    @paginated
+    def get_provider(
+            self, *,
+            provider_id: str,
+            dynamo_pagination: dict
+    ):
+        logger.info('Getting provider', provider_id=provider_id)
         resp = self.config.license_table.query(
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(quote(ssn)),
+            KeyConditionExpression=Key('pk').eq(provider_id),
             **dynamo_pagination
         )
         resp['Items'] = self._load_records(resp.get('Items', []))
@@ -92,9 +127,9 @@ class DataClient():
     ):  # pylint: disable-redefined-outer-name
         logger.info('Getting licenses by family name')
         resp = self.config.license_table.query(
-            IndexName=config.cjns_index_name,
+            IndexName=config.cj_name_index_name,
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('compact_jur').eq(f'{quote(compact)}/{quote(jurisdiction)}'),
+            KeyConditionExpression=Key('compactJur').eq(f'{quote(compact)}/{quote(jurisdiction)}'),
             ScanIndexForward=scan_forward,
             **dynamo_pagination
         )
@@ -109,11 +144,14 @@ class DataClient():
             dynamo_pagination: dict,
             scan_forward: bool = True
     ):  # pylint: disable-redefined-outer-name
+        compact = quote(compact, safe='')
+        jurisdiction = quote(jurisdiction, safe='')
+
         logger.info('Getting licenses by date updated')
         resp = self.config.license_table.query(
-            IndexName=config.updated_index_name,
+            IndexName=config.cj_updated_index_name,
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('compact_jur').eq(f'{quote(compact)}/{quote(jurisdiction)}'),
+            KeyConditionExpression=Key('compactJur').eq(f'{compact}/{jurisdiction}'),
             ScanIndexForward=scan_forward,
             **dynamo_pagination
         )

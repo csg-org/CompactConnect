@@ -1,3 +1,5 @@
+import json
+from functools import cached_property
 from textwrap import dedent
 
 from aws_cdk import Stack as CdkStack, Aspects
@@ -64,3 +66,23 @@ class Stack(CdkStack):
                 }
             ]
         )
+
+    @cached_property
+    def license_types(self):
+        """
+        Flattened list of all license types across all compacts
+        """
+        return [
+            typ
+            for comp in self.node.get_context('license_types').values()
+            for typ in comp
+        ]
+
+    @cached_property
+    def common_env_vars(self):
+        return {
+            'DEBUG': 'true',
+            'COMPACTS': json.dumps(self.node.get_context('compacts')),
+            'JURISDICTIONS': json.dumps(self.node.get_context('jurisdictions')),
+            'LICENSE_TYPES': json.dumps(self.node.get_context('license_types'))
+        }

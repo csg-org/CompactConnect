@@ -16,7 +16,7 @@ class BackendPipeline(CdkCodePipeline):
             self, scope: Construct, construct_id: str, *,
             github_repo_string: str,
             cdk_path: str,
-            connection_id: str,
+            connection_arn: str,
             trigger_branch: str,
             access_logs_bucket: IBucket,
             encryption_key: IKey,
@@ -25,7 +25,6 @@ class BackendPipeline(CdkCodePipeline):
             removal_policy: RemovalPolicy,
             **kwargs
     ):
-        stack = Stack.of(scope)
         artifact_bucket = Bucket(
             scope, f'{construct_id}ArtifactsBucket',
             encryption_key=encryption_key,
@@ -55,15 +54,8 @@ class BackendPipeline(CdkCodePipeline):
                     branch=trigger_branch,
                     trigger_on_push=True,
                     # Arn format:
-                    # arn:aws:codestar-connections:us-east-1:111122223333:connection/<uuid>
-                    connection_arn=stack.format_arn(
-                        partition=stack.partition,
-                        service='codestar-connections',
-                        region=stack.region,
-                        account=stack.account,
-                        resource='connection',
-                        resource_name=connection_id
-                    )
+                    # arn:aws:codeconnections:us-east-1:111122223333:connection/<uuid>
+                    connection_arn=connection_arn
                 ),
                 env={
                     'CDK_DEFAULT_ACCOUNT': environment_context['account_id'],

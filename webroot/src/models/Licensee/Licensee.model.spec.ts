@@ -42,11 +42,13 @@ describe('Licensee model', () => {
         expect(licensee.status).to.equal(null);
 
         // Test methods
+        expect(licensee.nameDisplay()).to.equal('');
         expect(licensee.residenceLocation()).to.equal('');
         expect(licensee.dobDisplay()).to.equal('');
         expect(licensee.lastUpdatedDisplay()).to.equal('');
         expect(licensee.lastUpdatedDisplayRelative()).to.equal('');
         expect(licensee.licenseStatesDisplay()).to.equal('');
+        expect(licensee.practicingLocationsAll()).to.equal('');
         expect(licensee.practicingLocationsDisplay()).to.equal('');
         expect(licensee.ssnMaskedFull()).to.equal('');
         expect(licensee.ssnMaskedPartial()).to.equal('');
@@ -85,83 +87,87 @@ describe('Licensee model', () => {
         expect(licensee.status).to.equal(data.status);
 
         // Test methods
+        expect(licensee.nameDisplay()).to.equal(`${data.firstName} ${data.lastName}`);
         expect(licensee.residenceLocation()).to.equal('');
         expect(licensee.dobDisplay()).to.equal('Invalid date');
         expect(licensee.lastUpdatedDisplay()).to.equal('Invalid date');
         expect(licensee.lastUpdatedDisplayRelative()).to.equal('Invalid date');
         expect(licensee.licenseStatesDisplay()).to.equal('');
+        expect(licensee.practicingLocationsAll()).to.equal('');
         expect(licensee.practicingLocationsDisplay()).to.equal('');
         expect(licensee.ssnMaskedFull()).to.equal(data.ssn);
         expect(licensee.ssnMaskedPartial()).to.equal('test-ss-ssn');
     });
     it('should create a Licensee with specific values through serializer', () => {
         const data = {
-            id: 'test-id',
-            given_name: 'test-firstName',
-            middle_name: 'test-middleName',
-            family_name: 'test-lastName',
-            date_of_birth: moment().format(serverDateFormat),
+            providerId: 'test-id',
+            givenName: 'test-firstName',
+            middleName: 'test-middleName',
+            familyName: 'test-lastName',
+            dateOfBirth: moment().format(serverDateFormat),
             ssn: '000-00-0000',
             jurisdiction: 'co',
-            home_state_street_1: 'test-street1',
-            home_state_street_2: 'test-street2',
-            home_state_city: 'test-city',
-            home_state_postal_code: 'test-zip',
-            date_of_issuance: 'test-issueDate',
-            date_of_renewal: 'test-renewalDate',
-            date_of_expiration: 'test-expireDate',
-            license_type: LicenseType.AUDIOLOGIST,
-            date_of_update: moment().format(serverDateFormat),
+            homeStateStreet1: 'test-street1',
+            homeStateStreet2: 'test-street2',
+            homeStateCity: 'test-city',
+            homeStatePostalCode: 'test-zip',
+            dateOfIssuance: 'test-issueDate',
+            dateOfRenewal: 'test-renewalDate',
+            dateOfExpiration: 'test-expireDate',
+            licenseType: LicenseType.AUDIOLOGIST,
+            dateOfUpdate: moment().format(serverDateFormat),
             status: LicenseeStatus.ACTIVE,
         };
         const licensee = LicenseeSerializer.fromServer(data);
 
         // Test field values
         expect(licensee).to.be.an.instanceof(Licensee);
-        expect(licensee.id).to.equal(data.id);
-        expect(licensee.firstName).to.equal(data.given_name);
-        expect(licensee.middleName).to.equal(data.middle_name);
-        expect(licensee.lastName).to.equal(data.family_name);
+        expect(licensee.id).to.equal(data.providerId);
+        expect(licensee.firstName).to.equal(data.givenName);
+        expect(licensee.middleName).to.equal(data.middleName);
+        expect(licensee.lastName).to.equal(data.familyName);
         expect(licensee.address).to.be.an.instanceof(Address);
         expect(licensee.licenses).to.be.an('array').with.length(1);
         expect(licensee.licenses[0]).to.be.an.instanceof(License);
-        expect(licensee.dob).to.equal(data.date_of_birth);
+        expect(licensee.dob).to.equal(data.dateOfBirth);
         expect(licensee.ssn).to.equal(data.ssn);
-        expect(licensee.lastUpdated).to.equal(data.date_of_update);
+        expect(licensee.lastUpdated).to.equal(data.dateOfUpdate);
         expect(licensee.status).to.equal(data.status);
 
         // Test methods
+        expect(licensee.nameDisplay()).to.equal(`${data.givenName} ${data.familyName}`);
         expect(licensee.residenceLocation()).to.equal('Colorado');
         expect(licensee.dobDisplay()).to.equal(
-            moment(data.date_of_birth, serverDateFormat).format(displayDateFormat)
+            moment(data.dateOfBirth, serverDateFormat).format(displayDateFormat)
         );
         expect(licensee.lastUpdatedDisplay()).to.equal(
-            moment(data.date_of_update, serverDateFormat).format(displayDateFormat)
+            moment(data.dateOfUpdate, serverDateFormat).format(displayDateFormat)
         );
         expect(licensee.lastUpdatedDisplayRelative()).to.be.a('string').that.is.not.empty;
         expect(licensee.licenseStatesDisplay()).to.equal('Colorado');
+        expect(licensee.practicingLocationsAll()).to.equal('Colorado');
         expect(licensee.practicingLocationsDisplay()).to.equal('Colorado');
         expect(licensee.ssnMaskedFull()).to.equal(`###-##-####`);
         expect(licensee.ssnMaskedPartial()).to.equal(`###-##-0000`);
     });
     it('should serialize a Licensee for transmission to server', () => {
         const licensee = LicenseeSerializer.fromServer({
-            id: 'test-id',
-            given_name: 'test-firstName',
-            middle_name: 'test-middleName',
-            family_name: 'test-lastName',
-            date_of_birth: moment().format(serverDateFormat),
+            providerId: 'test-id',
+            givenName: 'test-firstName',
+            middleName: 'test-middleName',
+            familyName: 'test-lastName',
+            dateOfBirth: moment().format(serverDateFormat),
             ssn: '000-00-0000',
             jurisdiction: 'co',
-            home_state_street_1: 'test-street1',
-            home_state_street_2: 'test-street2',
-            home_state_city: 'test-city',
-            home_state_postal_code: 'test-zip',
-            date_of_issuance: 'test-issueDate',
-            date_of_renewal: 'test-renewalDate',
-            date_of_expiration: 'test-expireDate',
-            license_type: LicenseType.AUDIOLOGIST,
-            date_of_update: moment().format(serverDateFormat),
+            homeStateStreet1: 'test-street1',
+            homeStateStreet2: 'test-street2',
+            homeStateCity: 'test-city',
+            homeStatePostalCode: 'test-zip',
+            dateOfIssuance: 'test-issueDate',
+            dateOfRenewal: 'test-renewalDate',
+            dateOfExpiration: 'test-expireDate',
+            licenseType: LicenseType.AUDIOLOGIST,
+            dateOfUpdate: moment().format(serverDateFormat),
             status: LicenseeStatus.ACTIVE,
         });
         const transmit = LicenseeSerializer.toServer(licensee);

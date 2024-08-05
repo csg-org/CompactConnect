@@ -98,17 +98,24 @@ To execute the tests, simply run `bin/run_tests.sh` from the `backend` directory
 ### First deploy to a Sandbox environment
 The very first deploy to a new environment (like your personal sandbox account) requires a few steps to fully set up
 its environment:
-1) Copy [cdk.context.example.json](./cdk.context.example.json) to `cdk.context.json`.
-2) Add `"sandbox": true` and `"environment_name": "<your-name>"` fields to the file, to configure it for sandbox
-   deployments.
-3) Add a new environment entry under `ssm_context.environments`, using your name and your own AWS sandbox account id.
-4) Configure your aws cli to authenticate against your own account.
-5) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account.
-6) Run `cdk deploy 'Sandbox/*'` to get the initial stack resources deployed.
+1) *Optional:* Create a new Route53 HostedZone in your AWS sandbox account for the DNS domain name you want to use for
+   your app. See [About Route53 Hosted Zones](#about-route53-hosted-zones) for more.
+2) Copy [cdk.context.sandbox-example.json](./cdk.context.sandbox-example.json) to `cdk.context.json`.
+3) At the top level of the JSON structure update the `"environment_name"` field to your own name.
+4) Update the environment entry under `ssm_context.environments` to your own name and your own AWS sandbox account id,
+   and domain name, if you set one up. If you opted not to create a HostedZone, just remove the `domain_name` field.
+   The key under `environments` must match the value you put under `environment_name`.
+5) Configure your aws cli to authenticate against your own account.
+6) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account.
+7) Run `cdk deploy 'Sandbox/*'` to get the initial stack resources deployed.
 
 ### Subsequent sandbox deploys:
 For any future deploys, everything is set up so a simple `cdk deploy 'Sandbox/*'` should update all your infrastructure
-to reflect the changes in your code.
+to reflect the changes in your code. Full deployment steps are:
+1) Make sure your python environment is active.
+2) Run `bin/sync_deps.sh` from `backend/` to ensure you have the latest requirements installed.
+3) Configure your aws cli to authenticate against your own account.
+4) Run `cdk deploy 'Sandbox/*'` to deploy the app to your AWS account.
 
 ### First deploy to the production environment
 The production environment requires a few steps to fully set up before deploys can be automated. Refer to the
@@ -117,10 +124,13 @@ that is done, perform the following steps to deploy the CI/CD pipeline into the 
 - Have someone with suitable permissions in the GitHub organization that hosts this code navigate to the AWS Console
   for the Deploy account, go to the
   [AWS CodeStar Connections](https://us-east-1.console.aws.amazon.com/codesuite/settings/connections) page and create a
-  connection that grants AWS permission to receive GitHub events. Note the identifier of the resulting connection for
+  connection that grants AWS permission to receive GitHub events. Note the ARN of the resulting connection for
   the next step.
-- Copy the `cdk.context.example.json` file to `cdk.context.json` and update accounts and other identifiers, including
-  the Code Star connection you just had created to match the identifiers for your actual accounts and resources.
+- Create a new Route53 hosted zone for the domain name you plan to use for the app in each of the production AWS
+  account and the test AWS account. See [About Route53 hosted zones](#about-route53-hosted-zones) below for more detail.
+- Copy the `cdk.context.production-example.json` file to `cdk.context.json` and update accounts and other identifiers,
+  including the Code Star connection you just had created to match the identifiers for your actual accounts and
+  resources.
 - With the [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html), set up your local
   machine to authenticate against the Deploy account as an administrator.
 - Run the `bin/put_ssm_context.sh` script to push relevant content from your `cdk.context.json` script into an SSM
@@ -153,8 +163,33 @@ some resources may be left behind as CloudFormation is designed to err on the si
 loss. You can identify any resources that weren't destroyed by watching the stack deletion from the AWS CloudFormation
 Console, then looking at the resources after its delete is complete, to look for any with a `Delete Skipped` status.
 
+## About Route53 hosted zones
+
+A Hosted Zone in Route53 represents a collection of DNS records for a particular domain and its subdomains, managed
+together. See the [Route53 FAQs for more](https://aws.amazon.com/route53/faqs/). When creating a hosted zone, you have
+to also configure the domain name registrar (be it AWS or some other vendor) to point to the name servers associated
+with your hosted zone, before the records in the zone will have any effect. When deploying this app, creating a hosted
+zone in the AWS account for the UI and API domains is part of the environment setup. If you use the common approach
+of having your test environments be a subdomain of your production environments (i.e. `compcatconnect.org` for prod
+and `test.compcatconnect.org` for test), you need to delegate nameserver authority from your production hosted zone
+(`compactconnect.org` in this example) to your test account's hosted zone (`test.compactconnect.org`). To do this, you
+need to create your production hosted zone (`compactconnect.org`) in your production account first, then create your
+test hosted zone (`test.compactconnect.org`) in your test account second, then delegate name server authority to your
+test subdomain. To do this, find the NS record associated with your test hosted zone and copy its value, which should
+look something like:
+```text
+ns-1.awsdns-19.co.uk.
+ns-2.awsdns-18.com.
+ns-5.awsdns-15.net.
+ns-6.awsdns-16.org.
+```
+
+Copy those name server values and, back in your production hosted zone, create a new NS record that matches the test
+one, with the same value (i.e. Record Name: `test.compcatconnect.org`, Type: `NS`, Value: `<same as above>`). Once that
+is done, your test hosted zone is ready for use by the app.
+
 ## More Info
 [Back to top](#compact-connect---backend-developer-documentation)
 
-- [cdk-workshop](https://cdkworkshop.com/): If you are new to CDK, I highly recommend you go through the CDK Workshop
-  for a quick introduction to the technology and its concepts before getting too deep into any particular project.
+- [cdk-workshop](https://cdkworkshop.com/): If you are new to CDK, I highly recommend you go through the CDK Workshop for a quick
+  introduction to the technology and its concepts before getting too deep into any particular project.

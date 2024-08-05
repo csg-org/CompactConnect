@@ -8,3 +8,7 @@ __pycache__
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+
+# Save for local config
+cdk.context.json
+*-cdk.context.json

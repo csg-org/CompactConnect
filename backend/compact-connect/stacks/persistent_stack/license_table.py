@@ -26,19 +26,27 @@ class LicenseTable(Table):
             sort_key=Attribute(name='sk', type=AttributeType.STRING),
             **kwargs
         )
-        self.cjns_index_name = 'cjns'
+        self.cj_name_index_name = 'cj_name'
+        self.cj_updated_index_name = 'cj_updated'
+        self.ssn_index_name = 'ssn'
+
         self.add_global_secondary_index(
-            index_name=self.cjns_index_name,
-            partition_key=Attribute(name='compact_jur', type=AttributeType.STRING),
-            sort_key=Attribute(name='fam_giv_mid_ssn', type=AttributeType.STRING),
+            index_name=self.cj_name_index_name,
+            partition_key=Attribute(name='compactJur', type=AttributeType.STRING),
+            sort_key=Attribute(name='famGivMid', type=AttributeType.STRING),
             projection_type=ProjectionType.ALL
         )
-        self.updated_index_name = 'upd-ssn'
         self.add_global_secondary_index(
-            index_name=self.updated_index_name,
-            partition_key=Attribute(name='compact_jur', type=AttributeType.STRING),
-            sort_key=Attribute(name='upd_ssn', type=AttributeType.STRING),
+            index_name=self.cj_updated_index_name,
+            partition_key=Attribute(name='compactJur', type=AttributeType.STRING),
+            sort_key=Attribute(name='dateOfUpdate', type=AttributeType.STRING),
             projection_type=ProjectionType.ALL
+        )
+        self.add_global_secondary_index(
+            index_name=self.ssn_index_name,
+            partition_key=Attribute(name='ssn', type=AttributeType.STRING),
+            sort_key=Attribute(name='licenseHomeProviderId', type=AttributeType.STRING),
+            projection_type=ProjectionType.KEYS_ONLY
         )
         NagSuppressions.add_resource_suppressions(
             self,
