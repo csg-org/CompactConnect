@@ -8,7 +8,12 @@
       "justin": {
         "account_id": "111122223333",
         "region": "us-east-1",
-        "domain_name": "justin.compactconnect.org"
+        "domain_name": "justin.compactconnect.org",
+        "notifications": {
+          "email": [
+            "justin@example.com"
+          ]
+        }
       }
     }
   }

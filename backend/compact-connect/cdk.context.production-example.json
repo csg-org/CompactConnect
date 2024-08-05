@@ -11,12 +11,36 @@
       "prod": {
         "account_id": "000011112222",
         "region": "us-east-1",
-        "domain_name": "app.compactconnect.org"
+        "domain_name": "app.compactconnect.org",
+        "notifications": {
+          "email": [
+            "justin@example.com"
+          ],
+          "slack": [
+            {
+              "channel_name": "ops-monitoring",
+              "channel_id": "C0123456789",
+              "workspace_id": "T01234567"
+            }
+          ]
+        }
       },
       "test": {
         "account_id": "111122223333",
         "region": "us-east-1",
-        "domain_name": "test.app.compactconnect.org"
+        "domain_name": "test.app.compactconnect.org",
+        "notifications": {
+          "email": [
+            "justin@example.com"
+          ],
+          "slack": [
+            {
+              "channel_name": "preprod-ops-monitoring",
+              "channel_id": "C1234567890",
+              "workspace_id": "T01234567"
+            }
+          ]
+        }
       }
     }
   }

@@ -5,6 +5,7 @@ omit =
   */cdk.out/*
   */smoke-test/*
   */tests/*
+  */bin/*
 
 [report]
 skip_empty = true

@@ -5,6 +5,7 @@ from constructs import Construct
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.stack import Stack
 from stacks.persistent_stack.admin_users import AdminUsers
+from stacks.persistent_stack.alarm_topic import AlarmTopic
 from stacks.persistent_stack.board_users import BoardUsers
 
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
@@ -22,23 +23,32 @@ class PersistentStack(Stack):
             self, scope: Construct, construct_id: str, *,
             app_name: str,
             environment_name: str,
+            environment_context: dict,
             **kwargs
     ) -> None:
         super().__init__(scope, construct_id, **kwargs)
         # If we delete this stack, retain the resource (orphan but prevent data loss) or destroy it (clean up)?
         removal_policy = RemovalPolicy.RETAIN if environment_name == 'prod' else RemovalPolicy.DESTROY
 
-        self.access_logs_bucket = AccessLogsBucket(
-            self, 'AccessLogsBucket',
-            removal_policy=removal_policy,
-            auto_delete_objects=removal_policy == RemovalPolicy.DESTROY
-        )
-
         self.shared_encryption_key = Key(
             self, 'SharedEncryptionKey',
             enable_key_rotation=True,
             alias=f'{self.stack_name}-shared-encryption-key',
             removal_policy=removal_policy
+        )
+
+        notifications = environment_context.get('notifications', {})
+        self.alarm_topic = AlarmTopic(
+            self, 'AlarmTopic',
+            master_key=self.shared_encryption_key,
+            email_subscriptions=notifications.get('email', []),
+            slack_subscriptions=notifications.get('slack', [])
+        )
+
+        self.access_logs_bucket = AccessLogsBucket(
+            self, 'AccessLogsBucket',
+            removal_policy=removal_policy,
+            auto_delete_objects=removal_policy == RemovalPolicy.DESTROY
         )
 
         self.data_event_bus = EventBus(self, 'DataEventBus')

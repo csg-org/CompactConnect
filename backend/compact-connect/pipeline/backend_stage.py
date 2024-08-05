@@ -34,7 +34,8 @@ class BackendStage(Stage):
             env=environment,
             standard_tags=standard_tags,
             app_name=app_name,
-            environment_name=environment_name
+            environment_name=environment_name,
+            environment_context=environment_context
         )
 
         self.ingest_stack = IngestStack(
