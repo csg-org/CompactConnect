@@ -188,17 +188,11 @@ const srcKeywordsEscape = (srcList, listName = '') => {
  * @return {string}             The prepped src list string;
  */
 const buildSrcString = (name = '', list = []) => {
-    let src = [];
     let srcString = '';
 
     if (Array.isArray(list)) {
-        src = src.concat(list);
-    }
-
-    srcKeywordsEscape(src, name);
-
-    if (src.length) {
-        srcString = `${name} ${src.join(' ')};`;
+        srcKeywordsEscape(list, name);
+        srcString = `${name} ${list.join(' ')};`;
     }
 
     return srcString;
@@ -214,6 +208,7 @@ const buildSrcString = (name = '', list = []) => {
  */
 const setCspHeader = (requestDomain, headers = {}) => {
     const domains = getEnvironmentUrls(requestDomain);
+    const cognitoIdpUrl = 'https://cognito-idp.us-east-1.amazonaws.com';
 
     // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
     headers['content-security-policy'] = [{
@@ -275,7 +270,7 @@ const setCspHeader = (requestDomain, headers = {}) => {
                 'self',
                 domains.dataApi,
                 domains.s3Upload,
-                'https://cognito-idp.us-east-1.amazonaws.com',
+                cognitoIdpUrl,
             ]),
         ].join(' ')}`,
     }];
