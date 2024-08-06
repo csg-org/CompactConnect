@@ -7,6 +7,7 @@ from aws_cdk.aws_ssm import StringParameter
 from constructs import Construct
 
 from common_constructs.access_logs_bucket import AccessLogsBucket
+from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.stack import Stack
 from pipeline.backend_pipeline import BackendPipeline
 from pipeline.backend_stage import BackendStage
@@ -51,6 +52,14 @@ class PipelineStack(Stack):
             removal_policy=removal_policy
         )
 
+        notifications = pipeline_environment_context.get('notifications', {})
+        self.alarm_topic = AlarmTopic(
+            self, 'AlarmTopic',
+            master_key=self.shared_encryption_key,
+            email_subscriptions=notifications.get('email', []),
+            slack_subscriptions=notifications.get('slack', [])
+        )
+
         access_logs_bucket = AccessLogsBucket(
             self, 'AccessLogsBucket',
             removal_policy=removal_policy,
@@ -64,6 +73,7 @@ class PipelineStack(Stack):
             connection_arn=connection_arn,
             trigger_branch='development',
             encryption_key=self.shared_encryption_key,
+            alarm_topic=self.alarm_topic,
             access_logs_bucket=access_logs_bucket,
             ssm_parameter=parameter,
             environment_context=pipeline_environment_context,
@@ -102,6 +112,7 @@ class PipelineStack(Stack):
             connection_arn=connection_arn,
             trigger_branch='main',
             encryption_key=self.shared_encryption_key,
+            alarm_topic=self.alarm_topic,
             access_logs_bucket=access_logs_bucket,
             ssm_parameter=parameter,
             environment_context=pipeline_environment_context,

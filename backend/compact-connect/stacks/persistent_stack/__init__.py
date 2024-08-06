@@ -3,11 +3,10 @@ from aws_cdk.aws_kms import Key
 from constructs import Construct
 
 from common_constructs.access_logs_bucket import AccessLogsBucket
+from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.stack import Stack
 from stacks.persistent_stack.admin_users import AdminUsers
-from stacks.persistent_stack.alarm_topic import AlarmTopic
 from stacks.persistent_stack.board_users import BoardUsers
-
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.license_table import LicenseTable
 from stacks.persistent_stack.event_bus import EventBus
