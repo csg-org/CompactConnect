@@ -66,7 +66,8 @@ class IngestStack(Stack):
                 'LICENSE_TABLE_NAME': persistent_stack.license_table.table_name,
                 'SSN_INDEX_NAME': persistent_stack.license_table.ssn_index_name,
                 **self.common_env_vars
-            }
+            },
+            alarm_topic=persistent_stack.alarm_topic
         )
         persistent_stack.license_table.grant_read_write_data(ingest_handler)
         NagSuppressions.add_resource_suppressions_by_path(

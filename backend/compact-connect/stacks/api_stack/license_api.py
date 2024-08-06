@@ -3,11 +3,13 @@ from __future__ import annotations
 import json
 from functools import cached_property
 
-from aws_cdk import CfnOutput
+from aws_cdk import CfnOutput, Duration
 from aws_cdk.aws_apigateway import RestApi, StageOptions, MethodLoggingLevel, LogGroupLogDestination, \
     AccessLogFormat, AuthorizationType, MethodOptions, JsonSchema, JsonSchemaType, ResponseType, CorsOptions, Cors, \
     CognitoUserPoolsAuthorizer, DomainNameOptions
 from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
+from aws_cdk.aws_cloudwatch import Alarm, Stats, ComparisonOperator, TreatMissingData
+from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_logs import LogGroup, RetentionDays, QueryDefinition, QueryString
 from aws_cdk.aws_route53 import IHostedZone, ARecord, RecordTarget
 from aws_cdk.aws_route53_targets import ApiGateway
@@ -115,6 +117,8 @@ class LicenseApi(RestApi):
 
         self.log_groups = [access_log_group]
 
+        self.alarm_topic = persistent_stack.alarm_topic
+
         self._persistent_stack = persistent_stack
 
         self.web_acl = WebACL(
@@ -123,6 +127,7 @@ class LicenseApi(RestApi):
         )
         self.web_acl.associate_stage(self.deployment_stage)
         self.log_groups = [access_log_group, self.web_acl.log_group]
+        self._configure_alarms()
 
         self.add_gateway_response(
             'BadBodyResponse',
@@ -416,3 +421,50 @@ class LicenseApi(RestApi):
                 **self.common_license_properties
             }
         )
+
+    def _configure_alarms(self):
+        # Any time the API returns a 5XX
+        server_error_alarm = Alarm(
+            self, 'ServerErrorAlarm',
+            metric=self.deployment_stage.metric_server_error(statistic=Stats.SUM),
+            evaluation_periods=1,
+            threshold=1,
+            actions_enabled=True,
+            alarm_description=f'{self.node.path} server error detected',
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING
+        )
+        server_error_alarm.add_alarm_action(SnsAction(self.alarm_topic))
+
+        # If the API returns a 4XX for more than half of its requests
+        client_error_alarm = Alarm(
+            self, 'ClientErrorAlarm',
+            metric=self.deployment_stage.metric_client_error(
+                statistic=Stats.AVERAGE,
+                period=Duration.minutes(5)
+            ),
+            evaluation_periods=6,
+            threshold=0.5,
+            actions_enabled=True,
+            alarm_description=f'{self.node.path} excessive client errors',
+            comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING
+        )
+        client_error_alarm.add_alarm_action(SnsAction(self.alarm_topic))
+
+        # If the API latency p(95) is approaching its max timeout
+        latency_alarm = Alarm(
+            self, 'LatencyAlarm',
+            metric=self.deployment_stage.metric_latency(
+                statistic=Stats.percentile(95),
+                period=Duration.minutes(5)
+            ),
+            evaluation_periods=3,
+            threshold=25_000,  # 25 seconds
+            actions_enabled=True,
+            alarm_description=f'{self.node.path}',
+            comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            evaluate_low_sample_count_percentile='evaluate'
+        )
+        latency_alarm.add_alarm_action(SnsAction(self.alarm_topic))
