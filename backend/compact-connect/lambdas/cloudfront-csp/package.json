@@ -1,0 +1,31 @@
+{
+  "name": "cloudfront-csp",
+  "version": "1.0.0",
+  "description": "CompactConnect Cloudfront Viewer Response Edge Lambda",
+  "main": "index.js",
+  "repository": "https://github.com/csg-org/CompactConnect",
+  "author": "InspiringApps",
+  "license": "UNLICENSED",
+  "private": false,
+  "scripts": {
+    "grunt": "grunt",
+    "lint": "grunt check",
+    "test": "mocha test",
+    "audit:dependencies": "yarn audit --groups dependencies --level moderate"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "chai-match-pattern": "^1.1.0",
+    "chalk": "^4.1.2",
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.3",
+    "grunt": "^1.5.3",
+    "grunt-contrib-watch": "^1.1.0",
+    "grunt-eslint": "^24.0.0",
+    "jit-grunt": "^0.10.0",
+    "lambda-local": "^2.2.0",
+    "mocha": "^10.0.0"
+  }
+}

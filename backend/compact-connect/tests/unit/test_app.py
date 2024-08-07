@@ -95,6 +95,7 @@ class TestApp(TestCase):
         self._check_no_annotations(app.sandbox_stage.persistent_stack)
         self._check_no_annotations(app.sandbox_stage.ui_stack)
         self._check_no_annotations(app.sandbox_stage.api_stack)
+        self._check_no_annotations(app.sandbox_stage.ingest_stack)
 
         self._inspect_api_stack(app.sandbox_stage.api_stack)
 

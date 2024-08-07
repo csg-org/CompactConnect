@@ -1,0 +1,48 @@
+{
+    "env": {
+        "node": true,
+        "mocha": true
+    },
+    "parserOptions": {
+        "ecmaVersion": 2022
+    },
+    "extends": [
+        "airbnb-base"
+    ],
+    "settings": {
+        "import/resolver": {
+            "node": {
+                "moduleDirectory": [
+                    "node_modules",
+                ]
+            }
+        }
+    },
+    "rules": {
+        "arrow-parens": ["error", "always"],
+        "indent": ["error", 4],
+        "comma-dangle": ["error", {
+            "functions": "never",
+            "imports": "never",
+            "exports": "never",
+            "arrays": "ignore",
+            "objects": "ignore"
+        }],
+        "no-console": 0,
+        "max-len": ["error", {
+            "code": 128,
+            "ignoreComments": true,
+            "ignoreUrls": true,
+            "ignoreTemplateLiterals": true,
+            "ignoreRegExpLiterals": true,
+            "ignoreStrings": true
+        }],
+        "no-unused-vars": ["error", { "argsIgnorePattern": "next" }],
+        "no-param-reassign": ["error", { "props": false }],
+        "no-prototype-builtins": 0,
+        "prefer-destructuring": 0,
+        "prefer-promise-reject-errors": 0,
+        "class-methods-use-this": 0,
+        "quotes": ["error", "single", { "avoidEscape": true, "allowTemplateLiterals": true }]
+    },
+}

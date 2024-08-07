@@ -1,32 +1,25 @@
-# Compact Connect - Web Frontend Checks
+# Compact Connect - Lambda JavaScript Checks
 
-name: Check-Webroot
+name: Check-Lambda-JS
 
 # Controls when the action will run.
 on:
-  # Triggers the workflow on pull requests to trunk branches involving changes to web frontend files
+  # Triggers the workflow on pull requests to trunk branches involving changes to lambda javascript
   pull_request:
     branches:
       - main
       - development
       - ia-web-development
     paths:
-      - webroot/**
+      - backend/compact-connect/lambdas/cloudfront-csp/**
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  CheckWebroot:
+  CheckLambdaJS:
     runs-on: ubuntu-latest
-
-    env:
-      BASE_URL: /
-      VUE_APP_DOMAIN: https://app.test.jcc.iaapi.io
-      VUE_APP_ROBOTS_META: noindex,nofollow
-      VUE_APP_API_STATE_ROOT: https://api.test.jcc.iaapi.io
-      VUE_APP_API_LICENSE_ROOT: https://api.test.jcc.iaapi.io
 
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
@@ -43,7 +36,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
-          node-version: '22.1.0'
+          node-version: '20.15.1'
 
       # Use any cached yarn dependencies (saves build time)
       - uses: actions/cache@v2
@@ -51,29 +44,20 @@ jobs:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
+      # =======================================================================
+      # =                      Cloudfront CSP Lambda                          =
+      # =======================================================================
       # Install Yarn Dependencies
-      - name: Install JS dependencies
-        run: yarn install --ignore-engines
-        working-directory: ./webroot
+      - name: Install JS dependencies (Cloudfront CSP Lambda)
+        run: yarn install
+        working-directory: ./backend/compact-connect/lambdas/cloudfront-csp
 
       # Run Linter Checks
-      - name: Run linter
-        run: yarn lint --no-fix
-        working-directory: ./webroot
+      - name: Run linter (Cloudfront CSP Lambda)
+        run: yarn run lint
+        working-directory: ./backend/compact-connect/lambdas/cloudfront-csp
 
       # Run Unit Tests
-      - name: Run unit tests
-        run: yarn test:unit:all
-        working-directory: ./webroot
-
-      # Build app
-      - name: Build Vue app
-        env:
-          NODE_ENV: production
-          BASE_URL: ${{ env.BASE_URL }}
-          VUE_APP_DOMAIN: ${{ env.VUE_APP_DOMAIN }}
-          VUE_APP_ROBOTS_META: ${{ env.VUE_APP_ROBOTS_META }}
-          VUE_APP_API_STATE_ROOT: ${{ env.VUE_APP_API_STATE_ROOT }}
-          VUE_APP_API_LICENSE_ROOT: ${{ env.VUE_APP_API_LICENSE_ROOT }}
-        run: yarn build
-        working-directory: ./webroot
+      - name: Run unit tests (Cloudfront CSP Lambda)
+        run: yarn test
+        working-directory: ./backend/compact-connect/lambdas/cloudfront-csp
