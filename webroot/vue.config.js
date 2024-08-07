@@ -112,7 +112,7 @@ const forkTsCheckerWebpackPlugin = (args) => args;
  * @type {FaviconsWebpackPlugin}
  */
 const faviconsPlugin = new FaviconsWebpackPlugin({
-    logo: './src/assets/icons/ico-ia.png', // Your source logo (required). Plugin automatically creates all app icon assets from this image.
+    logo: './src/assets/logos/compact-connect-logo.png', // Your source logo (required). Plugin automatically creates all app icon assets from this image.
     cache: true, // Note: disabling caching may increase build times considerably
     inject: false, // (`true` requires html-webpack-plugin).
     prefix: 'img/icons/',
