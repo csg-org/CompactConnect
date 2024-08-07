@@ -7,7 +7,7 @@
 
 <template>
     <svg version="1.1" class="icon icon-check-circle" x="0px" y="0px"
-        viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
+        viewBox="0 0 512 512" xml:space="preserve">
         <path fill="#000" d="M256,0C114.7,0,0,114.7,0,256s114.7,256,256,256s256-114.7,256-256S397.3,0,256,0z M256,
             481C131.7, 481,31,380.3,31,256 S131.7,31,256,31s225,100.7,225,225S380.3,481,256,481z"
         />

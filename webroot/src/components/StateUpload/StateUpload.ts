@@ -54,7 +54,18 @@ class StateUpload extends mixins(MixinForm) {
     // Computed
     //
     get compacts(): any {
-        return this.$tm('compacts');
+        let compactsList = this.$tm('compacts');
+
+        if (typeof compactsList[0]?.name === 'function') {
+            const normalize = ([value]) => value;
+
+            compactsList = (compactsList as any).map((item) => ({
+                key: item.key({ normalize }),
+                name: item.name({ normalize }),
+            }));
+        }
+
+        return compactsList;
     }
 
     get compactOptions(): any {
@@ -72,7 +83,18 @@ class StateUpload extends mixins(MixinForm) {
     }
 
     get states(): any {
-        return this.$tm('common.states');
+        let statesList = this.$tm('common.states');
+
+        if (typeof statesList[0]?.abbrev === 'function') {
+            const normalize = ([value]) => value;
+
+            statesList = (statesList as any).map((state) => ({
+                abbrev: state.abbrev({ normalize }),
+                full: state.full({ normalize }),
+            }));
+        }
+
+        return statesList;
     }
 
     get stateOptions(): Array<any> {
