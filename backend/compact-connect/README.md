@@ -132,12 +132,12 @@ that is done, perform the following steps to deploy the CI/CD pipeline into the 
   including the Code Star connection you just had created to match the identifiers for your actual accounts and
   resources.
 - Optional: If a Slack integration is desired for operational support, have someone with permission to install Slack
-  apps in your workspace and Admin access to each of the Test and Prod accounts log into the Test AWS account and go to
-  the Chatbot service. Select 'Slack' under the **Configure a chat client** box and click **Configure client**, then
-  follow the Slack authorization prompts. This will authorize AWS to integrate with the channels you identify in your
-  `cdk.context.json` file. Repeat this process for the Prod account as well. Update the `notifications.slack` section
-  of the `cdk.context.json` file with the details for your Slack workspace and channels. If you opt not to integrate
-  with Slack, remove the `slack` field from the file.
+  apps in your workspace and Admin access to each of the Test, Prod, and Deploy accounts log into the Test AWS account
+  and go to the Chatbot service. Select 'Slack' under the **Configure a chat client** box and click **Configure
+  client**, then follow the Slack authorization prompts. This will authorize AWS to integrate with the channels you
+  identify in your `cdk.context.json` file. Repeat this process for the Prod and Deploy accounts as well. Update the
+  `notifications.slack` sections of the `cdk.context.json` file with the details for your Slack workspace and channels.
+  If you opt not to integrate with Slack, remove the `slack` fields from the file.
 - With the [aws-cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html), set up your local
   machine to authenticate against the Deploy account as an administrator.
 - Run the `bin/put_ssm_context.sh` script to push relevant content from your `cdk.context.json` script into an SSM
