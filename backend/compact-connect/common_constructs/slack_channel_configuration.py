@@ -1,6 +1,6 @@
 from typing import List
 
-from aws_cdk import Stack
+from aws_cdk import Stack, ArnFormat
 from aws_cdk.aws_chatbot import SlackChannelConfiguration as CdkSlackChannelConfiguration
 from aws_cdk.aws_iam import ManagedPolicy, PolicyStatement, Effect
 from aws_cdk.aws_sns import ITopic
@@ -63,7 +63,8 @@ class SlackChannelConfiguration(CdkSlackChannelConfiguration):
                         region=stack.region,
                         account=stack.account,
                         resource='log-group',
-                        resource_name='*'
+                        resource_name='*',
+                        arn_format=ArnFormat.COLON_RESOURCE_NAME
                     )
                 ]
             )
