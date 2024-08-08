@@ -46,8 +46,8 @@
     },
     "compacts": [
       "aslp",
-      "ot",
-      "counseling"
+      "octp",
+      "coun"
     ],
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,

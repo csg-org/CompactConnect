@@ -16,7 +16,8 @@
       "test": {
         "account_id": "111122223333",
         "region": "us-east-1",
-        "domain_name": "test.app.compactconnect.org"
+        "domain_name": "test.app.compactconnect.org",
+        "allow_local_ui": true
       }
     }
   }

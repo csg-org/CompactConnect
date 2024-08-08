@@ -91,19 +91,33 @@ def api_handler(fn: Callable):
 
 
 class scope_by_path:  # pylint: disable=invalid-name
-    """
-    Decorator to wrap scope-based authorization
-    """
-    def __init__(self, *, scope_parameter: str, resource_parameter: str):
-        self.scope_parameter = scope_parameter
+    def __init__(self, *, resource_parameter: str, scope_parameter: str, action: str):
+        """
+        Decorator to wrap scope-based authorization, for a scope like '{resource_server}/{scope}.{action}'.
+
+        For a URL path like:
+        ```
+        /foo/{resource_parameter}/bar/{scope_parameter}
+        ```
+
+        decorating an api handler with `@scope_by_path('resource_parameter', 'scope_parameter', 'write')` will create
+        an authorization that expects a request like `/foo/zig/bar/zag` to have a scope called `zig/zag.write`.
+
+        :param str resource_parameter: The path parameter to use for the resource server portion of a resource/scope
+        requirement.
+        :param str scope_parameter: The path parameter to use for the scope portion of a resource/scope requirement
+        :param str action: The additional 'action' portion of the resource/scope requirement.
+        """
         self.resource_parameter = resource_parameter
+        self.scope_parameter = scope_parameter
+        self.action = action
 
     def __call__(self, fn: Callable):
         @wraps(fn)
         @logger.inject_lambda_context
         def authorized(event: dict, context: LambdaContext):
             try:
-                path_value = event['pathParameters'][self.scope_parameter]
+                scope_value = event['pathParameters'][self.scope_parameter]
                 resource_value = event['pathParameters'][self.resource_parameter]
             except KeyError:
                 # If we raise this exact exception, API Gateway returns a 401 instead of 403 for a DENY statement
@@ -121,7 +135,7 @@ class scope_by_path:  # pylint: disable=invalid-name
                 logger.error('Unauthorized access attempt!')
                 return {'statusCode': 401}
 
-            required_scope = f'{resource_value}/{path_value}'
+            required_scope = f'{resource_value}/{scope_value}.{self.action}'
             if required_scope not in scopes:
                 logger.warning('Forbidden access attempt!')
                 return {'statusCode': 403}

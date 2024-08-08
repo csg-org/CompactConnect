@@ -19,7 +19,7 @@ class TstLambdas(TestCase):
             'SSN_INDEX_NAME': 'ssn',
             'CJ_NAME_INDEX_NAME': 'cj_name',
             'CJ_UPDATED_INDEX_NAME': 'cj_updated',
-            'COMPACTS': '["aslp", "ot", "counseling"]',
+            'COMPACTS': '["aslp", "octp", "coun"]',
             'JURISDICTIONS': '["al", "co"]',
             'LICENSE_TYPES': json.dumps({
                 'aslp': [

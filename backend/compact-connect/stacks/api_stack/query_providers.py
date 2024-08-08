@@ -83,7 +83,8 @@ class QueryProviders:
                 'method.request.header.Authorization': True
             } if method_options.authorization_type != AuthorizationType.NONE else {},
             authorization_type=method_options.authorization_type,
-            authorizer=method_options.authorizer
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes
         )
 
     def _add_query_providers(
@@ -124,7 +125,8 @@ class QueryProviders:
                 'method.request.header.Authorization': True
             } if method_options.authorization_type != AuthorizationType.NONE else {},
             authorization_type=method_options.authorization_type,
-            authorizer=method_options.authorizer
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes
         )
 
     @property

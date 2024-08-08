@@ -99,7 +99,7 @@
             "claims": {
                 "sub": "4kq74be0isgt7shnhhfgi5dk9k",
                 "token_use": "access",
-                "scope": "openid email aslp/al",
+                "scope": "openid email aslp/al.write",
                 "auth_time": "1717782706",
                 "iss": "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_xS47lbscb",
                 "exp": "Fri Jun 07 18:51:46 UTC 2024",

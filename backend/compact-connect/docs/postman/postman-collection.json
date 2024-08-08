@@ -7,7 +7,7 @@
 	},
 	"item": [
 		{
-			"name": "Board-Auth",
+			"name": "Staff-Auth",
 			"item": [
 				{
 					"name": "client-credentials-grant",
@@ -226,160 +226,6 @@
 			]
 		},
 		{
-			"name": "Admin-Auth",
-			"item": [
-				{
-					"name": "authorization-code-grant-token",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Access token returned', () => {",
-									"    var access_token = pm.response.json().access_token;",
-									"    pm.expect(access_token).not.to.be.empty;",
-									"    pm.environment.set(\"accessToken\", access_token);",
-									"    console.log('Access token: ' + access_token);",
-									"});",
-									"",
-									"pm.test('Identity token returned', () => {",
-									"    var id_token = pm.response.json().id_token;",
-									"    pm.expect(id_token).not.to.be.empty;",
-									"    pm.environment.set(\"idToken\", id_token);",
-									"    console.log('id token: ' + id_token);",
-									"});",
-									"",
-									"pm.test('Refresh token returned', () => {",
-									"    var refresh_token = pm.response.json().refresh_token;",
-									"    pm.expect(refresh_token).not.to.be.empty;",
-									"    pm.environment.set(\"refreshToken\", refresh_token);",
-									"    console.log('refresh token: ' + refresh_token);",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/x-www-form-urlencoded"
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{adminUserPoolUrl}}/oauth2/token?grant_type=authorization_code&code=d3222758-3d1f-4392-8359-0f9f4fc0f29e&client_id={{clientId}}&scope=openid email admin/*&redirect_uri=http://localhost:8000/auth",
-							"host": [
-								"{{adminUserPoolUrl}}"
-							],
-							"path": [
-								"oauth2",
-								"token"
-							],
-							"query": [
-								{
-									"key": "grant_type",
-									"value": "authorization_code"
-								},
-								{
-									"key": "code",
-									"value": "d3222758-3d1f-4392-8359-0f9f4fc0f29e"
-								},
-								{
-									"key": "client_id",
-									"value": "{{clientId}}"
-								},
-								{
-									"key": "scope",
-									"value": "openid email admin/*"
-								},
-								{
-									"key": "redirect_uri",
-									"value": "http://localhost:8000/auth"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "refresh-token",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test('Access token returned', () => {",
-									"    var access_token = pm.response.json().access_token;",
-									"    pm.environment.set(\"accessToken\", access_token);",
-									"    console.log('Access token: ' + access_token);",
-									"});",
-									"",
-									"pm.test('Identity token returned', () => {",
-									"    var id_token = pm.response.json().id_token;",
-									"    pm.environment.set(\"idToken\", id_token);",
-									"    console.log('id token: ' + id_token);",
-									"});"
-								],
-								"type": "text/javascript",
-								"packages": {}
-							}
-						}
-					],
-					"request": {
-						"auth": {
-							"type": "noauth"
-						},
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/x-www-form-urlencoded"
-							},
-							{
-								"key": "Accept",
-								"value": "application/json"
-							}
-						],
-						"url": {
-							"raw": "{{adminUserPoolUrl}}/oauth2/token?grant_type=refresh_token&client_id={{clientId}}&refresh_token={{refreshToken}}",
-							"host": [
-								"{{adminUserPoolUrl}}"
-							],
-							"path": [
-								"oauth2",
-								"token"
-							],
-							"query": [
-								{
-									"key": "grant_type",
-									"value": "refresh_token"
-								},
-								{
-									"key": "client_id",
-									"value": "{{clientId}}"
-								},
-								{
-									"key": "refresh_token",
-									"value": "{{refreshToken}}"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
 			"name": "mock",
 			"item": [
 				{
@@ -454,12 +300,12 @@
 															"variable": [
 																{
 																	"key": "compact",
-																	"value": "<string>",
+																	"value": "aslp",
 																	"description": "(Required) "
 																},
 																{
 																	"key": "jurisdiction",
-																	"value": "<string>",
+																	"value": "CO",
 																	"description": "(Required) "
 																}
 															]
@@ -1499,12 +1345,12 @@
 															"variable": [
 																{
 																	"key": "compact",
-																	"value": "<string>",
+																	"value": "aslp",
 																	"description": "(Required) "
 																},
 																{
 																	"key": "jurisdiction",
-																	"value": "<string>",
+																	"value": "co",
 																	"description": "(Required) "
 																}
 															]
@@ -1673,7 +1519,7 @@
 												],
 												"body": {
 													"mode": "raw",
-													"raw": "[\n  {\n    \"dateOfBirth\": \"1963-07-30\",\n    \"dateOfExpiration\": \"2025-08-11\",\n    \"dateOfIssuance\": \"2020-12-30\",\n    \"dateOfRenewal\": \"2022-12-31\",\n    \"familyName\": \"Guðmundsdóttir\",\n    \"givenName\": \"Björk\",\n    \"homeStateCity\": \"Birmingham\",\n    \"homeStatePostalCode\": \"35004\",\n    \"homeStateStreet1\": \"123 A St.\",\n    \"status\": \"inactive\",\n    \"licenseType\": \"audiologist\",\n    \"ssn\": \"337-66-6786\",\n    \"npi\": \"5045836020\",\n    \"middleName\": \"Gunnar\"\n  },\n  {\n    \"dateOfBirth\": \"2950-07-15\",\n    \"dateOfExpiration\": \"2198-06-13\",\n    \"dateOfIssuance\": \"1625-17-11\",\n    \"dateOfRenewal\": \"1912-02-28\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeStateCity\": \"<string>\",\n    \"homeStatePostalCode\": \"<string>\",\n    \"homeStateStreet1\": \"<string>\",\n    \"licenseType\": \"speech and language pathologist\",\n    \"ssn\": \"023-09-1574\",\n    \"status\": \"active\",\n    \"homeStateStreet2\": \"<string>\",\n    \"npi\": \"9588895602\",\n    \"middleName\": \"<string>\"\n  }\n]",
+													"raw": "[\n  {\n    \"dateOfBirth\": \"1963-07-30\",\n    \"dateOfExpiration\": \"2025-08-11\",\n    \"dateOfIssuance\": \"2020-12-30\",\n    \"dateOfRenewal\": \"2022-12-31\",\n    \"familyName\": \"Guðmundsdóttir\",\n    \"givenName\": \"Björk\",\n    \"homeStateCity\": \"Birmingham\",\n    \"homeStatePostalCode\": \"35004\",\n    \"homeStateStreet1\": \"123 A St.\",\n    \"status\": \"inactive\",\n    \"licenseType\": \"audiologist\",\n    \"ssn\": \"337-66-6786\",\n    \"npi\": \"5045836020\",\n    \"middleName\": \"Gunnar\"\n  }\n]",
 													"options": {
 														"raw": {
 															"headerFamily": "json",
@@ -1700,7 +1546,7 @@
 														},
 														{
 															"key": "jurisdiction",
-															"value": "al",
+															"value": "co",
 															"description": "(Required) "
 														}
 													]

@@ -5,7 +5,7 @@
 # python -m tests.bin.generate_mock_data
 # Required environment variables:
 # export LICENSE_TABLE_NAME='Sandbox-PersistentStack-MockLicenseTable12345-ETC'
-# export COMPACTS='["aslp", "ot", "counseling"]'
+# export COMPACTS='["aslp", "octp", "coun"]'
 # export JURISDICTIONS='["al", "co"]'
 # export LICENSE_TYPES='{"aslp": ["audiologist", "speech-language pathologist", "speech and language pathologist"]}'
 

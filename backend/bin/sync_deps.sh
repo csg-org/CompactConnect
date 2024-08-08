@@ -7,5 +7,7 @@ pip-sync \
   compact-connect/lambdas/license-data/requirements-dev.txt \
   compact-connect/lambdas/board-user-pre-token/requirements.txt \
   compact-connect/lambdas/board-user-pre-token/requirements-dev.txt \
+  compact-connect/lambdas/staff-user-pre-token/requirements.txt \
+  compact-connect/lambdas/staff-user-pre-token/requirements-dev.txt \
   compact-connect/lambdas/delete-objects/requirements.txt \
   compact-connect/lambdas/delete-objects/requirements-dev.txt

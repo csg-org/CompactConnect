@@ -32,6 +32,7 @@ class BackendStage(Stage):
         self.persistent_stack = PersistentStack(
             self, 'PersistentStack',
             env=environment,
+            environment_context=environment_context,
             standard_tags=standard_tags,
             app_name=app_name,
             environment_name=environment_name
@@ -40,6 +41,7 @@ class BackendStage(Stage):
         self.ingest_stack = IngestStack(
             self, 'IngestStack',
             env=environment,
+            environment_context=environment_context,
             standard_tags=standard_tags,
             persistent_stack=self.persistent_stack
         )
@@ -47,8 +49,8 @@ class BackendStage(Stage):
         self.ui_stack = UIStack(
             self, 'UIStack',
             env=environment,
-            standard_tags=standard_tags,
             environment_context=environment_context,
+            standard_tags=standard_tags,
             github_repo_string=github_repo_string,
             persistent_stack=self.persistent_stack
         )
@@ -56,8 +58,8 @@ class BackendStage(Stage):
         self.api_stack = ApiStack(
             self, 'APIStack',
             env=environment,
+            environment_context=environment_context,
             standard_tags=standard_tags,
             environment_name=environment_name,
-            environment_context=environment_context,
             persistent_stack=self.persistent_stack
         )

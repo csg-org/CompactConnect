@@ -1,32 +1,22 @@
 from aws_cdk import RemovalPolicy
-from aws_cdk.aws_route53 import HostedZone
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
 from common_constructs.bucket import Bucket
 from common_constructs.github_actions_access import GitHubActionsAccess
-from common_constructs.stack import Stack
+from common_constructs.stack import AppStack
 from stacks.persistent_stack import PersistentStack
 from stacks.ui_stack.distribution import UIDistribution
 
 
-class UIStack(Stack):
+class UIStack(AppStack):
     def __init__(
             self, scope: Construct, construct_id: str, *,
             github_repo_string: str,
-            environment_context: dict,
             persistent_stack: PersistentStack,
             **kwargs
     ):
         super().__init__(scope, construct_id, **kwargs)
-
-        hosted_zone = None
-        domain_name = environment_context.get('domain_name')
-        if domain_name is not None:
-            hosted_zone = HostedZone.from_lookup(
-                self, 'HostedZone',
-                domain_name=domain_name
-            )
 
         ui_bucket = Bucket(
             self, 'UIBucket',
@@ -58,7 +48,6 @@ class UIStack(Stack):
         self.distribution = UIDistribution(
             self, 'UIDistribution',
             ui_bucket=ui_bucket,
-            hosted_zone=hosted_zone,
             persistent_stack=persistent_stack
         )
 
