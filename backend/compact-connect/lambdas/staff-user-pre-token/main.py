@@ -3,6 +3,7 @@ import logging
 import os
 
 from aws_lambda_powertools import Logger
+from aws_lambda_powertools.utilities.typing import LambdaContext
 
 from user_scopes import UserScopes
 
@@ -11,7 +12,7 @@ logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false').lower() == 'tr
 
 
 @logger.inject_lambda_context()
-def customize_scopes(event, context):  # pylint: disable=unused-argument
+def customize_scopes(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
     """
     Customize the scopes in the access token before AWS generates and issues it
     """

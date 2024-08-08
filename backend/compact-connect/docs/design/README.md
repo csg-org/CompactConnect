@@ -20,7 +20,9 @@ represented there with an abbreviation, which determines how the compact will be
 in its corresponding Oauth2 access scopes. Because of the way that the scopes are represented, the compact abbreviation
 must not overlap with any jurisdiction abbreviations (which correspond to the jurisdictions' USPS postal abbreviations).
 **Since postal abbreviations are all two letters, make a point to choose a compact abbreviation that is at least four
-letters for clarity and to avoid naming conflicts.**
+letters for clarity and to avoid naming conflicts.** Note that the compact abbreviations in this system do no
+necessarily need to match the ones used publicly by those compacts. It only affects how the compact is represented
+in the REST API and its access token scopes.
 
 Once the supported compacts have been updated and the configuration change deployed, a CompactConnect admin can create
 a user for the compact's executive director, who then will be allowed to start creating users for the boards of each

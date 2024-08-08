@@ -173,7 +173,7 @@ class TestGetUserScopesFromDB(TstLambdas):
         """
         from user_scopes import UserScopes
 
-        # Create a DB record with permissions for an unsupported compact
+        # Create a DB record with permissions for an unsupported compact action
         self._table.put_item(
             Item={
                 'pk': self._user_sub,
@@ -200,7 +200,7 @@ class TestGetUserScopesFromDB(TstLambdas):
         """
         from user_scopes import UserScopes
 
-        # Create a DB record with permissions for an unsupported compact
+        # Create a DB record with permissions for an unsupported jurisdiction
         self._table.put_item(
             Item={
                 'pk': self._user_sub,
@@ -226,7 +226,7 @@ class TestGetUserScopesFromDB(TstLambdas):
         """
         from user_scopes import UserScopes
 
-        # Create a DB record with permissions for an unsupported compact
+        # Create a DB record with permissions for an unsupported jurisdiction action
         self._table.put_item(
             Item={
                 'pk': self._user_sub,

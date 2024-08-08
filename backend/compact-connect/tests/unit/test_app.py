@@ -13,6 +13,17 @@ from stacks.api_stack import ApiStack
 
 class TestApp(TestCase):
 
+    def test_no_compact_jurisdiction_name_clash(self):
+        """
+        Because compact and jurisdiction abbreviations share space in access token scopes, we need to ensure that
+        there are no naming clashes between the two.
+        """
+        with open('cdk.json', 'r') as f:
+            context = json.load(f)['context']
+        jurisdictions = set(context['jurisdictions'])
+        compacts = set(context['compacts'])
+        self.assertFalse(jurisdictions.intersection(compacts), 'Compact vs jurisdiction name clash!')
+
     @patch.dict(os.environ, {
         'CDK_DEFAULT_ACCOUNT': '000000000000',
         'CDK_DEFAULT_REGION': 'us-east-1'
