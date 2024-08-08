@@ -66,12 +66,14 @@ class PipelineStack(Stack):
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY
         )
 
+        # Allows us to override the default branching scheme for the test environment, via context variable
+        pre_prod_trigger_branch = pipeline_environment_context.get('pre_prod_trigger_branch', 'development')
         self.pre_prod_pipeline = BackendPipeline(
             self, 'PreProdPipeline',
             github_repo_string=github_repo_string,
             cdk_path=cdk_path,
             connection_arn=connection_arn,
-            trigger_branch='development',
+            trigger_branch=pre_prod_trigger_branch,
             encryption_key=self.shared_encryption_key,
             alarm_topic=self.alarm_topic,
             access_logs_bucket=access_logs_bucket,
