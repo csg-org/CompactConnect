@@ -6,9 +6,11 @@ from unittest.mock import patch
 from aws_cdk import Stack
 from aws_cdk.assertions import Annotations, Match, Template
 from aws_cdk.aws_apigateway import CfnMethod
+from aws_cdk.aws_cognito import CfnUserPoolClient
 
 from app import CompactConnectApp
 from stacks.api_stack import ApiStack
+from stacks.persistent_stack import PersistentStack
 
 
 class TestApp(TestCase):
@@ -62,6 +64,16 @@ class TestApp(TestCase):
         ):
             self._inspect_api_stack(api_stack)
 
+        self._inspect_persistent_stack(
+            app.pipeline_stack.test_stage.persistent_stack,
+            domain_name='app.test.compactconnect.org',
+            allow_local_ui=True
+        )
+        self._inspect_persistent_stack(
+            app.pipeline_stack.prod_stage.persistent_stack,
+            domain_name='app.compactconnect.org'
+        )
+
     def test_synth_sandbox(self):
         """
         Test infrastructure as deployed in a developer's sandbox
@@ -83,6 +95,11 @@ class TestApp(TestCase):
         self._check_no_annotations(app.sandbox_stage.ingest_stack)
 
         self._inspect_api_stack(app.sandbox_stage.api_stack)
+        self._inspect_persistent_stack(
+            app.sandbox_stage.persistent_stack,
+            domain_name='app.justin.compactconnect.org',
+            allow_local_ui=True
+        )
 
     def test_synth_sandbox_no_domain(self):
         """
@@ -102,13 +119,17 @@ class TestApp(TestCase):
 
         app = CompactConnectApp(context=context)
 
-        # Identify any findings from our AwsSolutions or HIPAASecurity rule sets
+        # Identify any findings from our AwsSolutions rule sets
         self._check_no_annotations(app.sandbox_stage.persistent_stack)
         self._check_no_annotations(app.sandbox_stage.ui_stack)
         self._check_no_annotations(app.sandbox_stage.api_stack)
         self._check_no_annotations(app.sandbox_stage.ingest_stack)
 
         self._inspect_api_stack(app.sandbox_stage.api_stack)
+        self._inspect_persistent_stack(
+            app.sandbox_stage.persistent_stack,
+            allow_local_ui=True
+        )
 
     def test_synth_no_ui_raises_value_error(self):
         """
@@ -127,6 +148,64 @@ class TestApp(TestCase):
 
         with self.assertRaises(ValueError):
             CompactConnectApp(context=context)
+
+    def test_synth_local_ui_port_override(self):
+        """
+        Test infrastructure as deployed in a developer's sandbox
+        """
+        with open('cdk.json', 'r') as f:
+            context = json.load(f)['context']
+        with open('cdk.context.sandbox-example.json', 'r') as f:
+            context.update(json.load(f))
+
+        del context['ssm_context']['environments'][context['environment_name']]['domain_name']
+        context['ssm_context']['environments'][context['environment_name']]['local_ui_port'] = '5432'
+
+        # Suppresses lambda bundling for tests
+        context['aws:cdk:bundling-stacks'] = []
+
+        app = CompactConnectApp(context=context)
+
+        # Identify any findings from our AwsSolutions rule sets
+        self._check_no_annotations(app.sandbox_stage.persistent_stack)
+        self._check_no_annotations(app.sandbox_stage.ui_stack)
+        self._check_no_annotations(app.sandbox_stage.api_stack)
+        self._check_no_annotations(app.sandbox_stage.ingest_stack)
+
+        self._inspect_persistent_stack(
+            app.sandbox_stage.persistent_stack,
+            allow_local_ui=True,
+            local_ui_port='5432'
+        )
+        self._inspect_api_stack(app.sandbox_stage.api_stack)
+
+    def _inspect_persistent_stack(
+            self,
+            persistent_stack: PersistentStack, *,
+            domain_name: str = None,
+            allow_local_ui: bool = False,
+            local_ui_port: str = None
+    ):
+        # Make sure our local port ui setting overrides the default
+        persistent_stack_template = Template.from_stack(persistent_stack)
+
+        callbacks = []
+        if domain_name is not None:
+            callbacks.append(f'https://{domain_name}/auth/callback')
+        if allow_local_ui:
+            # 3018 is default
+            local_ui_port = '3018' if not local_ui_port else local_ui_port
+            callbacks.append(f'http://localhost:{local_ui_port}/auth/callback')
+
+        # Ensure our Staff user pool is configured with the expected callbacks
+        persistent_stack_template.has_resource(
+            type=CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'CallbackURLs': callbacks
+                }
+            }
+        )
 
     def _inspect_api_stack(self, api_stack: ApiStack):
         api_template = Template.from_stack(api_stack)

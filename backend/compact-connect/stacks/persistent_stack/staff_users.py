@@ -50,11 +50,12 @@ class StaffUsers(UserPool):
         # This toggle will allow front-end devs to point their local UI at this environment's user pool to support
         # authenticated actions.
         if environment_context.get('allow_local_ui', False):
-            callback_urls.append('http://localhost:3018/auth/callback')
+            local_ui_port = environment_context.get('local_ui_port', '3018')
+            callback_urls.append(f'http://localhost:{local_ui_port}/auth/callback')
         if not callback_urls:
             raise ValueError(
                 "This app requires a callback url for its authentication path. Either provide 'domain_name' or set "
-                "allow_local_ui' to true in this environment's context.")
+                "'allow_local_ui' to true in this environment's context.")
 
         # Do not allow resource server scopes via the client - they are assigned via token customization
         # to allow for user attribute-based access

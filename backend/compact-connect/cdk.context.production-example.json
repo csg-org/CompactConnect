@@ -11,12 +11,12 @@
       "prod": {
         "account_id": "000011112222",
         "region": "us-east-1",
-        "domain_name": "app.compactconnect.org"
+        "domain_name": "compactconnect.org"
       },
       "test": {
         "account_id": "111122223333",
         "region": "us-east-1",
-        "domain_name": "test.app.compactconnect.org",
+        "domain_name": "test.compactconnect.org",
         "allow_local_ui": true
       }
     }
