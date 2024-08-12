@@ -1,34 +1,22 @@
 {
 	"id": "65234e00-5ac9-4819-8620-d1b9076dcbce",
-	"name": "License Data - sandbox",
+	"name": "JCC License Data - sandbox",
 	"values": [
 		{
 			"key": "boardUserPoolUrl",
-			"value": "https://licensure-compact.auth.us-east-1.amazoncognito.com",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "adminUserPoolUrl",
-			"value": "https://jcc-admin.auth.us-east-1.amazoncognito.com",
+			"value": "https://ia-cc-staff-justin.auth.us-east-1.amazoncognito.com",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "baseUrl",
-			"value": "https://z8esfh6iu2.execute-api.us-east-1.amazonaws.com/sandbox",
+			"value": "https://api.justin.jcc.iaapi.io",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "uiUrl",
-			"value": "",
-			"type": "default",
-			"enabled": true
-		},
-		{
-			"key": "jurisdiction",
-			"value": "al",
+			"value": "https://app.justin.jcc.iaapi.io",
 			"type": "default",
 			"enabled": true
 		},
@@ -37,15 +25,9 @@
 			"value": "",
 			"type": "default",
 			"enabled": true
-		},
-		{
-			"key": "clientSecret",
-			"value": "",
-			"type": "default",
-			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
-	"_postman_exported_at": "2024-06-10T22:31:46.225Z",
-	"_postman_exported_using": "Postman/11.1.28-240604-0452"
+	"_postman_exported_at": "2024-08-02T19:23:16.240Z",
+	"_postman_exported_using": "Postman/11.6.2-240731-0006"
 }

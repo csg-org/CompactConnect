@@ -7,7 +7,7 @@
 
 <template>
     <svg version="1.1" class="icon icon-document" x="0px" y="0px"
-        viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
+        viewBox="0 0 512 512" xml:space="preserve">
         <path d="M385,511.6H127c-39.5,0-71.7-32.2-71.7-71.7V71.3c0-39.5,32.2-71.7,71.7-71.7h113.8c14.2,
             0,27.6,5.5,37.6,15.6l162.7,162.7
             c10.1,10.1,15.6,23.4,15.6,37.6v224.4C456.7,479.4,424.5,511.6,385,511.6z M127,32.4c-21.5,0-38.9,

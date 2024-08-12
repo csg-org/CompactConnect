@@ -10,6 +10,9 @@ from common_constructs.user_pool import UserPool
 
 
 class BoardUsers(UserPool):
+    """
+    DEPRECATED - see comment above constructor use
+    """
     def __init__(
             self, scope: Construct, construct_id: str, *,
             cognito_domain_prefix: str,
@@ -42,7 +45,9 @@ class BoardUsers(UserPool):
         self._add_scope_customization()
         # Do not allow resource server scopes via the client - they are assigned via token customization
         # to allow for user attribute-based access
-        self.ui_client = self.add_ui_client()
+        self.ui_client = self.add_ui_client(callback_urls=[
+            'http://localhost:3018/auth/callback'
+        ])
 
     def _add_resource_servers(self):
         """

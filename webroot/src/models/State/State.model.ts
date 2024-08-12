@@ -38,7 +38,17 @@ export class State implements InterfaceStateCreate {
     // Helper methods
     public name(): string {
         const abbrev = (this.abbrev || '').toUpperCase() || '';
-        const states = this.$tm('common.states') || [];
+        let states = this.$tm('common.states') || [];
+
+        if (typeof states[0]?.abbrev === 'function') {
+            const normalize = ([value]) => value;
+
+            states = states.map((st) => ({
+                abbrev: st.abbrev({ normalize }),
+                full: st.full({ normalize }),
+            }));
+        }
+
         const state = states.find((st) => st.abbrev === abbrev);
         const stateName = state?.full || '';
 

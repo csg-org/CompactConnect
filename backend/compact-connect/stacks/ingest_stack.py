@@ -14,11 +14,11 @@ from cdk_nag import NagSuppressions
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
-from common_constructs.stack import Stack
+from common_constructs.stack import AppStack
 from stacks import persistent_stack as ps
 
 
-class IngestStack(Stack):
+class IngestStack(AppStack):
     def __init__(
             self, scope: Construct, construct_id: str, *,
             persistent_stack: ps.PersistentStack,

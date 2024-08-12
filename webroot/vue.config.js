@@ -13,6 +13,7 @@ const path = require('path');
 const fs = require('fs');
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 const StyleLintPlugin = require('stylelint-webpack-plugin');
+const VueI18nPlugin = require('@intlify/unplugin-vue-i18n/lib/webpack.cjs');
 
 const env = process.env.NODE_ENV;
 const ENV_PRODUCTION = 'production';
@@ -112,7 +113,7 @@ const forkTsCheckerWebpackPlugin = (args) => args;
  * @type {FaviconsWebpackPlugin}
  */
 const faviconsPlugin = new FaviconsWebpackPlugin({
-    logo: './src/assets/icons/ico-ia.png', // Your source logo (required). Plugin automatically creates all app icon assets from this image.
+    logo: './src/assets/logos/compact-connect-logo.png', // Your source logo (required). Plugin automatically creates all app icon assets from this image.
     cache: true, // Note: disabling caching may increase build times considerably
     inject: false, // (`true` requires html-webpack-plugin).
     prefix: 'img/icons/',
@@ -144,6 +145,15 @@ const faviconsPlugin = new FaviconsWebpackPlugin({
 const stylelintPlugin = new StyleLintPlugin({
     configFile: '.stylelintrc.json',
     files: 'src/**/*.less',
+});
+
+/**
+ * vue-i18n advanced configuration (https://vue-i18n.intlify.dev/guide/advanced/optimization#configure-plugin-for-webpack)
+ * @intlify/unplugin-vue-i18n configuration (https://github.com/intlify/bundle-tools/tree/main/packages/unplugin-vue-i18n#intlifyunplugin-vue-i18n)
+ * @type {VueI18nPlugin}
+ */
+const vueI18nPlugin = VueI18nPlugin({
+    include: path.resolve(__dirname, './src/locales/*.json'),
 });
 
 /**
@@ -296,6 +306,9 @@ module.exports = {
         plugins: [
             faviconsPlugin,
             stylelintPlugin,
+            // The runtime-only version of vue-i18n conflicts with test-runner, but is required for built server versions due to CSP.
+            // Conditionally adding the runtime-ify plugin with a linter exception for the automated test context.
+            ... (env !== ENV_TEST) ? [vueI18nPlugin] : [], // eslint-disable-line rest-spread-spacing
         ],
         resolve: {
             alias: {

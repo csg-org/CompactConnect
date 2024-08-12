@@ -15,7 +15,7 @@ from handlers.utils import scope_by_path, api_handler, ResponseEncoder
 from license_csv_reader import LicenseCSVReader
 
 
-@scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact')
+@scope_by_path(resource_parameter='compact', scope_parameter='jurisdiction', action='write')
 @api_handler
 def bulk_upload_url_handler(event: dict, context: LambdaContext):
     """

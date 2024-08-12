@@ -32,7 +32,7 @@ class TestTransformations(TstFunction):
             'jurisdiction': 'co'
         }
         # Authorize ourselves to write an aslp/co license
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/co'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/co.write'
 
         from handlers.licenses import post_licenses
 
