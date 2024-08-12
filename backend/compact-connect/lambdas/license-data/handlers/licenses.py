@@ -13,7 +13,7 @@ from config import config, logger
 schema = LicensePostSchema()
 
 
-@scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact')
+@scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact', action='write')
 @api_handler
 def post_licenses(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
     """

@@ -9,7 +9,7 @@ class TestScopeByPath(TstLambdas):
     def test_scope_by_path(self):
         from handlers.utils import scope_by_path
 
-        @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact')
+        @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact', action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
             return {
                 'body': 'Hurray!'
@@ -23,7 +23,7 @@ class TestScopeByPath(TstLambdas):
     def test_no_path_param(self):
         from handlers.utils import scope_by_path
 
-        @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact')
+        @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact', action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
             return {
                 'body': 'Hurray!'
@@ -39,7 +39,7 @@ class TestScopeByPath(TstLambdas):
     def test_no_authorizer(self):
         from handlers.utils import scope_by_path
 
-        @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact')
+        @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact', action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
             return {
                 'body': 'Hurray!'
@@ -55,7 +55,7 @@ class TestScopeByPath(TstLambdas):
     def test_missing_scope(self):
         from handlers.utils import scope_by_path
 
-        @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact')
+        @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact', action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
             return {
                 'body': 'Hurray!'
