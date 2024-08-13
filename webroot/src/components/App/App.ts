@@ -30,16 +30,12 @@ class App extends Vue {
     //
     // Data
     //
-    userStore: any = {};
-    globalStore: any = {};
     body = document.body;
 
     //
     // Lifecycle
     //
     async created() {
-        this.globalStore = this.$store.state;
-        this.userStore = this.$store.state.user;
         // this.$store.dispatch('user/getAccountRequest');
 
         this.setRelativeTimeFormats();
@@ -48,6 +44,14 @@ class App extends Vue {
     //
     // Computed
     //
+    get globalStore() {
+        return this.$store.state;
+    }
+
+    get userStore() {
+        return this.$store.state.user;
+    }
+
     get messages() {
         return this.globalStore.messages;
     }
@@ -81,8 +85,15 @@ class App extends Vue {
     //
     // Watchers
     //
+    //
     @Watch('isModalOpen') onIsModalOpenChange() {
         this.body.style.overflow = (this.globalStore.isModalOpen) ? 'hidden' : 'visible';
+    }
+
+    @Watch('userStore.isLoggedIn') onLogout() {
+        if (!this.userStore.isLoggedIn) {
+            this.$router.push({ name: 'Logout' });
+        }
     }
 }
 

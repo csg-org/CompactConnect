@@ -7,7 +7,7 @@
 
 import { dataApi } from '@network/data.api';
 import { config } from '@plugins/EnvConfig/envConfig.plugin';
-import localStorage, { AUTH_TOKEN } from '@store/local.storage';
+import localStorage, { tokens } from '@store/local.storage';
 import { MutationTypes } from './user.mutations';
 
 export default {
@@ -21,9 +21,9 @@ export default {
     loginRequest: ({ commit }) => {
         commit(MutationTypes.LOGIN_REQUEST);
     },
-    loginSuccess: async ({ commit, dispatch }) => {
+    loginSuccess: async ({ commit }) => {
         commit(MutationTypes.LOGIN_SUCCESS);
-        await dispatch('getAccountRequest');
+        // await dispatch('getAccountRequest');
     },
     loginFailure: async ({ commit }, error: Error) => {
         commit(MutationTypes.LOGIN_FAILURE, error);
@@ -76,12 +76,17 @@ export default {
     },
     clearSessionStores: ({ dispatch }) => {
         dispatch('resetStoreUser');
+        dispatch('license/resetStoreLicense', null, { root: true });
         dispatch('pagination/resetStorePagination', null, { root: true });
         dispatch('sorting/resetStoreSorting', null, { root: true });
         dispatch('reset', null, { root: true });
     },
     clearAuthTokens: () => {
         /* istanbul ignore next */
-        localStorage.removeItem(AUTH_TOKEN); // Used by the mock or custom auth API
+        localStorage.removeItem(tokens.staff.AUTH_TOKEN);
+        localStorage.removeItem(tokens.staff.AUTH_TOKEN_TYPE);
+        localStorage.removeItem(tokens.staff.AUTH_TOKEN_EXPIRY);
+        localStorage.removeItem(tokens.staff.ID_TOKEN);
+        localStorage.removeItem(tokens.staff.REFRESH_TOKEN);
     },
 };

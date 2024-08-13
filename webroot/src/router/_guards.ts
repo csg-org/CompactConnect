@@ -10,22 +10,16 @@ import {
     RouteLocationRaw as RouteConfig
 } from 'vue-router';
 import { config } from '@plugins/EnvConfig/envConfig.plugin';
-import localStorage, { AUTH_TOKEN } from '@store/local.storage';
+import store from '@/store';
 
 /**
  * Guard against entering auth-required route if not authenticated.
  */
 const authGuard = (/* to: Route, from: Route */): void | boolean | RouteConfig => {
+    const { isLoggedIn } = store.getters['user/state'];
     let action: any = false;
 
-    //
-    // @TODO: Create app-specific auth rules
-    //
-    if (config.isUsingMockApi) {
-        if (localStorage.getItem(AUTH_TOKEN) || config.isTest) {
-            action = true;
-        }
-    } else {
+    if (isLoggedIn || config.isTest) {
         action = true;
     }
 
@@ -36,13 +30,11 @@ const authGuard = (/* to: Route, from: Route */): void | boolean | RouteConfig =
  * Guard against entering no-auth-required route if already authenticated.
  */
 const noAuthGuard = async (/* to: Route, from: Route */): Promise<void | boolean | RouteConfig> => {
-    //
-    // @TODO: Create app-specific no-auth rules
-    //
+    const { isLoggedIn } = store.getters['user/state'];
     const routeToIfAuthenticated: RouteConfig = { name: 'Home' };
     let action: any = true;
 
-    if (config.isUsingMockApi && (localStorage.getItem(AUTH_TOKEN))) {
+    if (isLoggedIn) {
         action = routeToIfAuthenticated;
     }
 

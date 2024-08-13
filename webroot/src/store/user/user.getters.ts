@@ -6,5 +6,5 @@
 //
 
 export default {
-    // model: (state: any) => state.model,
+    state: (state: any) => state,
 };

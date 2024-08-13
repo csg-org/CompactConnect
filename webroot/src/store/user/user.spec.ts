@@ -159,7 +159,7 @@ describe('User Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.LOGIN_SUCCESS]);
-        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.calledOnce).to.equal(false);
     });
     it('should successfully start login failure', () => {
         const commit = sinon.spy();
@@ -249,6 +249,6 @@ describe('User Store Actions', async () => {
 
         actions.clearSessionStores({ dispatch });
 
-        expect(dispatch.callCount).to.equal(4);
+        expect(dispatch.callCount).to.equal(5);
     });
 });

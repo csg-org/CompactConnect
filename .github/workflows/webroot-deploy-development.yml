@@ -7,6 +7,7 @@ on:
   # Triggers the workflow on pushes to trunk branches involving changes to web frontend files
   push:
     branches:
+      - ia-development
       - ia-web-development
     paths:
       - webroot/**

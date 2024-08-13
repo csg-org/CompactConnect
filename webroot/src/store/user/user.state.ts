@@ -6,7 +6,7 @@
 //
 
 import { User } from '@models/User/User.model';
-import localStorage, { AUTH_TOKEN } from '@store/local.storage';
+import localStorage, { tokens } from '@store/local.storage';
 
 export interface State {
     model: User | null;
@@ -17,7 +17,7 @@ export interface State {
 
 export const state: State = {
     model: null,
-    isLoggedIn: (localStorage.getItem(AUTH_TOKEN) !== null),
+    isLoggedIn: (localStorage.getItem(tokens.staff.AUTH_TOKEN) !== null),
     isLoading: false,
     error: null,
 };

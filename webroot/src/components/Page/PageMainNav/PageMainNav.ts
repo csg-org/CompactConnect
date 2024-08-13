@@ -48,6 +48,13 @@ class PageMainNav extends Vue {
                 isExternal: false,
                 isExactActive: false,
             },
+            {
+                to: 'Logout',
+                label: computed(() => this.$t('navigation.logout')),
+                isEnabled: true,
+                isExternal: false,
+                isExactActive: true,
+            },
         ].filter((link) => link.isEnabled));
     }
 

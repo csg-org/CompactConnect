@@ -18,6 +18,7 @@ import i18n from '@/i18n';
 import moment from 'moment';
 import momentTz from 'moment-timezone';
 import sinon from 'sinon';
+import { VirtualConsole } from 'jsdom';
 
 // Create stub instance of mock API
 const mockApi = sinon.createStubInstance(DataApi);
@@ -33,6 +34,26 @@ window.matchMedia = sinon.stub().callsFake((query) => ({
     removeEventListener: sinon.spy(),
     dispatchEvent: sinon.spy(),
 }));
+
+// Silence JSDOM bug of not implementing navigation but also not supporting config or suppression
+declare global {
+    interface Window {
+        _virtualConsole: VirtualConsole;
+    }
+}
+const listeners = window._virtualConsole.listeners('jsdomError'); // eslint-disable-line no-underscore-dangle
+const originalListener = listeners && listeners[0];
+
+window._virtualConsole.removeAllListeners('jsdomError'); // eslint-disable-line no-underscore-dangle
+window._virtualConsole.addListener('jsdomError', (error) => { // eslint-disable-line no-underscore-dangle
+    if (
+        error.type !== 'not implemented'
+        && error.message !== 'Not implemented: navigation (except hash changes)'
+        && originalListener
+    ) {
+        originalListener(error);
+    }
+});
 
 // Update moment relative-time formats to match app
 const setMomentRelativeFormats = () => {
