@@ -14,7 +14,7 @@ from aws_cdk.aws_route53_targets import ApiGateway
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
-from common_constructs.stack import Stack
+from common_constructs.stack import Stack, AppStack
 from common_constructs.webacl import WebACL, WebACLScope
 from stacks.api_stack.bulk_upload_url import BulkUploadUrl
 from stacks.api_stack.post_license import PostLicenses
@@ -31,26 +31,24 @@ class LicenseApi(RestApi):
     def __init__(  # pylint: disable=too-many-locals
             self, scope: Construct, construct_id: str, *,
             environment_name: str,
-            hosted_zone: IHostedZone = None,
             persistent_stack: ps.PersistentStack,
             **kwargs
     ):
-
+        stack: AppStack = AppStack.of(scope)
         # For developer convenience, we will allow for the case where there is no
         # domain name configured
         domain_kwargs = {}
-        if hosted_zone is not None:
-            api_domain_name = f'api.{hosted_zone.zone_name}'
+        if stack.hosted_zone is not None:
             certificate = Certificate(
                 scope, 'ApiCert',
-                domain_name=api_domain_name,
-                validation=CertificateValidation.from_dns(hosted_zone=hosted_zone),
-                subject_alternative_names=[hosted_zone.zone_name]
+                domain_name=stack.api_domain_name,
+                validation=CertificateValidation.from_dns(hosted_zone=stack.hosted_zone),
+                subject_alternative_names=[stack.hosted_zone.zone_name]
             )
             domain_kwargs = {
                 'domain_name': DomainNameOptions(
                     certificate=certificate,
-                    domain_name=api_domain_name
+                    domain_name=stack.api_domain_name
                 )
             }
 
@@ -107,10 +105,10 @@ class LicenseApi(RestApi):
             **kwargs
         )
 
-        if hosted_zone is not None:
+        if stack.hosted_zone is not None:
             self._add_domain_name(
-                hosted_zone=hosted_zone,
-                api_domain_name=api_domain_name,
+                hosted_zone=stack.hosted_zone,
+                api_domain_name=stack.api_domain_name,
             )
 
         self.log_groups = [access_log_group]
@@ -171,21 +169,29 @@ class LicenseApi(RestApi):
         # Authenticated endpoints
         # /v0/licenses
         v0_resource = self.root.add_resource('v0')
-        scopes = [
-            f'{resource_server}/{scope}'
-            for resource_server in persistent_stack.board_users.resource_servers.keys()
-            for scope in persistent_stack.board_users.scopes.keys()
+        read_scopes = [
+            f'{resource_server}/read'
+            for resource_server in persistent_stack.staff_users.resource_servers.keys()
         ]
-        auth_method_options = MethodOptions(
+        write_scopes = [
+            f'{resource_server}/write'
+            for resource_server in persistent_stack.staff_users.resource_servers.keys()
+        ]
+        read_auth_method_options = MethodOptions(
             authorization_type=AuthorizationType.COGNITO,
-            authorizer=self.board_users_authorizer,
-            authorization_scopes=scopes
+            authorizer=self.staff_users_authorizer,
+            authorization_scopes=read_scopes
+        )
+        write_auth_method_options = MethodOptions(
+            authorization_type=AuthorizationType.COGNITO,
+            authorizer=self.staff_users_authorizer,
+            authorization_scopes=write_scopes
         )
         # /v0/providers
         providers_resource = v0_resource.add_resource('providers')
         QueryProviders(
             providers_resource,
-            method_options=auth_method_options,
+            method_options=read_auth_method_options,
             data_encryption_key=persistent_stack.shared_encryption_key,
             license_data_table=persistent_stack.license_table
         )
@@ -197,12 +203,12 @@ class LicenseApi(RestApi):
         PostLicenses(
             mock_resource=False,
             resource=jurisdiction_resource,
-            method_options=auth_method_options,
+            method_options=write_auth_method_options,
             event_bus=persistent_stack.data_event_bus
         )
         BulkUploadUrl(
             resource=jurisdiction_resource,
-            method_options=auth_method_options,
+            method_options=write_auth_method_options,
             bulk_uploads_bucket=persistent_stack.bulk_uploads_bucket
         )
 
@@ -266,10 +272,10 @@ class LicenseApi(RestApi):
         )
 
     @cached_property
-    def board_users_authorizer(self):
+    def staff_users_authorizer(self):
         return CognitoUserPoolsAuthorizer(
-            self, 'BoardPoolsAuthorizer',
-            cognito_user_pools=[self._persistent_stack.board_users]
+            self, 'StaffPoolsAuthorizer',
+            cognito_user_pools=[self._persistent_stack.staff_users]
         )
 
     @cached_property
