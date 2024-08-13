@@ -42,7 +42,7 @@ class SlackChannelConfiguration(CdkSlackChannelConfiguration):
                 },
                 {
                     'id': 'AwsSolutions-IAM5',
-                    'reason': 'This role is intended to be able to query logs across teh account to facilitate '
+                    'reason': 'This role is intended to be able to query logs across the account to facilitate '
                               'operational support, which requires log group wildcard resources.'
                 }
             ]
