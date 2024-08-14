@@ -1,3 +1,4 @@
+from __future__ import annotations
 import json
 import os
 
@@ -7,9 +8,9 @@ from cdk_nag import NagSuppressions
 from constructs import Construct
 
 from common_constructs.python_function import PythonFunction
-from common_constructs.stack import AppStack
 from common_constructs.user_pool import UserPool
 from stacks.persistent_stack.users_table import UsersTable
+from stacks import persistent_stack as ps
 
 
 class StaffUsers(UserPool):
@@ -33,7 +34,7 @@ class StaffUsers(UserPool):
             removal_policy=removal_policy,
             **kwargs
         )
-        stack: AppStack = AppStack.of(self)
+        stack: ps.PersistentStack = ps.PersistentStack.of(self)
 
         self.user_table = UsersTable(
             self, 'UsersTable',
@@ -42,7 +43,7 @@ class StaffUsers(UserPool):
         )
 
         self._add_resource_servers()
-        self._add_scope_customization()
+        self._add_scope_customization(persistent_stack=stack)
 
         callback_urls = []
         if stack.ui_domain_name is not None:
@@ -97,7 +98,7 @@ class StaffUsers(UserPool):
             for compact in self.node.get_context('compacts')
         }
 
-    def _add_scope_customization(self):
+    def _add_scope_customization(self, persistent_stack: ps.PersistentStack):
         """
         Add scopes to access tokens based on the Users table
         """
@@ -110,6 +111,7 @@ class StaffUsers(UserPool):
             entry=os.path.join('lambdas', 'staff-user-pre-token'),
             index='main.py',
             handler='customize_scopes',
+            alarm_topic=persistent_stack.alarm_topic,
             environment={
                 'DEBUG': 'true',
                 'USERS_TABLE_NAME': self.user_table.table_name,

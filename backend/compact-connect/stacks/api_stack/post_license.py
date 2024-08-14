@@ -155,7 +155,8 @@ class PostLicenses:
             environment={
                 'EVENT_BUS_NAME': event_bus.event_bus_name,
                 **stack.common_env_vars
-            }
+            },
+            alarm_topic=self.api.alarm_topic
         )
         event_bus.grant_put_events_to(handler)
         self.log_groups.append(handler.log_group)
