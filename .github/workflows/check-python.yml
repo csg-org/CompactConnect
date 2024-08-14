@@ -2,9 +2,6 @@ name: Check-Python
 
 on:
   pull_request:
-    branches:
-      - main
-      - development
     paths:
       - backend/**
 
