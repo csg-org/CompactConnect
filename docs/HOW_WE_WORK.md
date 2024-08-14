@@ -2,7 +2,7 @@
 
 ## Vendor pull requests
 
-Just a test...
+Just a test...take2
 
 InspiringApps (IA) will work on their own fork of the repository. They will file a pull request against the Council of State Government (CSG) `development` branch upon completion of each feature within a sprint. All pull requests should be filed within one working day of the end of the sprint, e.g. if the sprint ends on a Thursday, any PRs for work completed within that sprint should be filed by the end of the day on Friday. Each pull request will be titled for the completed feature (e.g., `View disciplinary information`), and the description will link back to the story in the backlog, and should include an illustrative screenshot (where applicable).
 
