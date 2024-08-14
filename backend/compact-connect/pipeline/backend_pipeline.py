@@ -68,6 +68,7 @@ class BackendPipeline(CdkCodePipeline):
                 primary_output_directory=os.path.join(cdk_path, 'cdk.out'),
                 commands=[
                     f'cd {cdk_path}',
+                    'python --version',
                     'npm install -g aws-cdk',
                     'python -m pip install -r requirements.txt',
                     'cdk synth'
