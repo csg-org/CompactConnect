@@ -262,7 +262,8 @@ class QueryProviders:
             entry=os.path.join('lambdas', 'license-data'),
             index=os.path.join('handlers', 'providers.py'),
             handler='get_provider',
-            environment=lambda_environment
+            environment=lambda_environment,
+            alarm_topic=self.api.alarm_topic
         )
         data_encryption_key.grant_decrypt(handler)
         license_data_table.grant_read_data(handler)
@@ -293,7 +294,8 @@ class QueryProviders:
             entry=os.path.join('lambdas', 'license-data'),
             index=os.path.join('handlers', 'providers.py'),
             handler='query_providers',
-            environment=lambda_environment
+            environment=lambda_environment,
+            alarm_topic=self.api.alarm_topic
         )
         data_encryption_key.grant_decrypt(handler)
         license_data_table.grant_read_data(handler)

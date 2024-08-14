@@ -50,7 +50,8 @@ class BulkUploadUrl:
             environment={
                 'BULK_BUCKET_NAME': bulk_uploads_bucket.bucket_name,
                 **stack.common_env_vars
-            }
+            },
+            alarm_topic=self.api.alarm_topic
         )
         # Grant the handler permissions to write to the bulk bucket
         bulk_uploads_bucket.grant_write(handler)
