@@ -372,6 +372,9 @@
     },
     "serverErrors": {
         "networkError": "Network error",
+        "loginError": "There was an error logging you in.",
+        "loginErrorActionPart1": "You can",
+        "loginErrorActionPart2": "try logging in again",
         "noRecords": "No records to display",
         "dobFormat": "Date of Birth must be in the format MM/DD/YYYY.",
         "dobMaxDate": "Date of Birth must be earlier than than or equal to today.",

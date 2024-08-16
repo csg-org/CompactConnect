@@ -43,6 +43,9 @@ jobs:
       VUE_APP_ROBOTS_META: noindex,nofollow
       VUE_APP_API_STATE_ROOT: https://api.test.jcc.iaapi.io
       VUE_APP_API_LICENSE_ROOT: https://api.test.jcc.iaapi.io
+      VUE_APP_COGNITO_REGION: us-east-1
+      VUE_APP_COGNITO_AUTH_DOMAIN_STAFF: https://ia-cc-staff-test.auth.us-east-1.amazoncognito.com
+      VUE_APP_COGNITO_CLIENT_ID_STAFF: 4s5iil9aut9lo0du76p37o8m7h
 
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
@@ -94,6 +97,9 @@ jobs:
           VUE_APP_ROBOTS_META: ${{ env.VUE_APP_ROBOTS_META }}
           VUE_APP_API_STATE_ROOT: ${{ env.VUE_APP_API_STATE_ROOT }}
           VUE_APP_API_LICENSE_ROOT: ${{ env.VUE_APP_API_LICENSE_ROOT }}
+          VUE_APP_COGNITO_REGION: ${{ env.VUE_APP_COGNITO_REGION }}
+          VUE_APP_COGNITO_AUTH_DOMAIN_STAFF: ${{ env.VUE_APP_COGNITO_AUTH_DOMAIN_STAFF }}
+          VUE_APP_COGNITO_CLIENT_ID_STAFF: ${{ env.VUE_APP_COGNITO_CLIENT_ID_STAFF }}
         run: yarn build
         working-directory: ./webroot
 

@@ -32,26 +32,34 @@ class PageMainNav extends Vue {
         return this.isDesktop || this.isMainNavToggled;
     }
 
+    get userStore() {
+        return this.$store.state.user;
+    }
+
+    get isLoggedIn(): boolean {
+        return this.userStore.isLoggedIn;
+    }
+
     get mainLinks() {
         return reactive([
             {
                 to: 'Home',
                 label: computed(() => this.$t('navigation.upload')),
-                isEnabled: true,
+                isEnabled: this.isLoggedIn,
                 isExternal: false,
                 isExactActive: true,
             },
             {
                 to: 'Licensing',
                 label: computed(() => this.$t('navigation.licensing')),
-                isEnabled: true,
+                isEnabled: this.isLoggedIn,
                 isExternal: false,
                 isExactActive: false,
             },
             {
                 to: 'Logout',
                 label: computed(() => this.$t('navigation.logout')),
-                isEnabled: true,
+                isEnabled: this.isLoggedIn,
                 isExternal: false,
                 isExactActive: true,
             },

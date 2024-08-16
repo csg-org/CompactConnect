@@ -25,6 +25,7 @@ const routes: Array<RouteConfig> = [
         path: '/auth/callback',
         name: 'AuthCallback',
         component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/AuthCallback.vue'),
+        meta: { skipTransition: true },
     },
     {
         path: '/Logout',

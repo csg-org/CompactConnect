@@ -6,13 +6,15 @@
 -->
 
 <template>
-    <div v-if="isError" class="auth-error-container">
-        <p>There was an error logging you in.</p>
-        <p>You can <router-link :to="{ name: 'Login' }">try logging in again</router-link>.</p>
-    </div>
-    <div v-else class="auth-loading-container">
-        <p>Logging in...</p>
-    </div>
+    <Section class="auth-callback-container">
+        <Card v-if="isError" class="auth-error-container">
+            <div class="auth-error-message">{{ $t('serverErrors.loginError') }}</div>
+            <div class="auth-error-message">
+                {{ $t('serverErrors.loginErrorActionPart1') }}
+                <router-link :to="{ name: 'Login' }">{{ $t('serverErrors.loginErrorActionPart2') }}</router-link>.
+            </div>
+        </Card>
+    </Section>
 </template>
 
 <script lang="ts" src="./AuthCallback.ts"></script>

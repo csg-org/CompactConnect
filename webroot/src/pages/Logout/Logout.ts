@@ -6,7 +6,7 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
-import localStorage, { AUTH_LOGIN_GOTO_PATH } from '@store/local.storage';
+import { authStorage, AUTH_LOGIN_GOTO_PATH } from '@/app.config';
 
 @Component({
     name: 'Logout',
@@ -23,6 +23,10 @@ export default class Logout extends Vue {
     //
     // Computed
     //
+    get userStore() {
+        return this.$store.state.user;
+    }
+
     get workingUri(): string {
         return this.$route.query?.goto?.toString() || '';
     }
@@ -36,6 +40,7 @@ export default class Logout extends Vue {
     }
 
     async logoutChecklist(): Promise<void> {
+        this.$store.dispatch('user/clearRefreshTokenTimeout');
         this.stashWorkingUri();
         await this.$store.dispatch('user/logoutRequest');
     }
@@ -44,11 +49,11 @@ export default class Logout extends Vue {
         const { workingUri } = this;
 
         if (workingUri) {
-            localStorage.setItem(AUTH_LOGIN_GOTO_PATH, workingUri);
+            authStorage.setItem(AUTH_LOGIN_GOTO_PATH, workingUri);
         }
     }
 
     logoutRedirect(): void {
-        this.$router.push({ name: 'Login' });
+        this.$router.push({ name: 'Login', query: { logout: 'true' }});
     }
 }

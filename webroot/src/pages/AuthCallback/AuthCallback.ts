@@ -7,13 +7,17 @@
 
 import { nextTick } from 'vue';
 import { Component, Vue } from 'vue-facing-decorator';
-import localStorage, { tokens, AUTH_LOGIN_GOTO_PATH } from '@store/local.storage';
+import Section from '@components/Section/Section.vue';
+import Card from '@components/Card/Card.vue';
+import { authStorage, AUTH_LOGIN_GOTO_PATH } from '@/app.config';
 import axios from 'axios';
-import moment from 'moment';
 
 @Component({
     name: 'AuthCallback',
-    components: {}
+    components: {
+        Section,
+        Card,
+    }
 })
 export default class AuthCallback extends Vue {
     //
@@ -25,8 +29,7 @@ export default class AuthCallback extends Vue {
     // Lifecycle
     //
     async created() {
-        await this.getTokensStaff();
-        await this.redirectUser();
+        await this.getTokens();
     }
 
     //
@@ -39,6 +42,20 @@ export default class AuthCallback extends Vue {
     //
     // Methods
     //
+    async getTokens(): Promise<void> {
+        this.$store.dispatch('startLoading');
+
+        await this.getTokensStaff().catch(() => {
+            this.isError = true;
+        });
+
+        this.$store.dispatch('endLoading');
+
+        if (!this.isError) {
+            await this.redirectUser();
+        }
+    }
+
     async getTokensStaff(): Promise<void> {
         const { domain, cognitoAuthDomainStaff, cognitoClientIdStaff } = this.$envConfig;
         const params = new URLSearchParams();
@@ -48,54 +65,17 @@ export default class AuthCallback extends Vue {
         params.append('redirect_uri', `${domain}${this.$route.path}`);
         params.append('code', this.authorizationCode);
 
-        try {
-            const { data } = await axios.post(`${cognitoAuthDomainStaff}/oauth2/token`, params);
+        const { data } = await axios.post(`${cognitoAuthDomainStaff}/oauth2/token`, params);
 
-            this.storeTokensStaff(data);
-        } catch (err) {
-            this.isError = true;
-        }
-    }
-
-    storeTokensStaff(tokenResponse: any): void {
-        const {
-            access_token: accessToken,
-            token_type: tokenType,
-            expires_in: expiresIn,
-            id_token: idToken,
-            refresh_token: refreshToken,
-        } = tokenResponse || {};
-
-        if (accessToken) {
-            localStorage.setItem(tokens.staff.AUTH_TOKEN, accessToken);
-        }
-
-        if (tokenType) {
-            localStorage.setItem(tokens.staff.AUTH_TOKEN_TYPE, tokenType);
-        }
-
-        if (expiresIn) {
-            const expiry = moment().add(expiresIn, 'seconds').format('YYYY-MM-DD:HH:mm:ss');
-
-            localStorage.setItem(tokens.staff.AUTH_TOKEN_EXPIRY, expiry);
-        }
-
-        if (idToken) {
-            localStorage.setItem(tokens.staff.ID_TOKEN, idToken);
-        }
-
-        if (refreshToken) {
-            localStorage.setItem(tokens.staff.AUTH_TOKEN, refreshToken);
-        }
-
-        this.$store.dispatch('user/loginSuccess');
+        await this.$store.dispatch('user/storeAuthTokensStaff', data);
+        await this.$store.dispatch('user/loginSuccess');
     }
 
     async redirectUser(): Promise<void> {
-        const goto = localStorage.getItem(AUTH_LOGIN_GOTO_PATH);
+        const goto = authStorage.getItem(AUTH_LOGIN_GOTO_PATH);
 
         if (goto) {
-            localStorage.removeItem(AUTH_LOGIN_GOTO_PATH);
+            authStorage.removeItem(AUTH_LOGIN_GOTO_PATH);
             this.$router.push({ path: goto });
         } else {
             await nextTick();

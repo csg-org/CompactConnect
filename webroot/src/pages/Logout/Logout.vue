@@ -6,7 +6,7 @@
 -->
 
 <template>
-    <h3>Logout</h3>
+    <div class="logout-container"></div>
 </template>
 
 <script lang="ts" src="./Logout.ts"></script>

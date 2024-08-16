@@ -22,6 +22,12 @@ export default class Login extends Vue {
     //
     // Computed
     //
+    get shouldRemoteLogout(): boolean {
+        const logoutQuery: string = (this.$route.query?.logout as string) || '';
+
+        return logoutQuery.toLowerCase() === 'true';
+    }
+
     get hostedLoginUriStaff(): string {
         const { domain, cognitoAuthDomainStaff, cognitoClientIdStaff } = this.$envConfig;
         const loginScopes = 'email openid phone profile';
@@ -33,7 +39,8 @@ export default class Login extends Vue {
             `&scope=${encodeURIComponent(loginScopes)}`,
             `&redirect_uri=${encodeURIComponent(`${domain}${loginRedirectPath}`)}`,
         ].join('');
-        const loginUri = `${cognitoAuthDomainStaff}/logout${loginUriQuery}`;
+        const idpPath = (this.shouldRemoteLogout) ? '/logout' : '/login';
+        const loginUri = `${cognitoAuthDomainStaff}${idpPath}${loginUriQuery}`;
 
         return loginUri;
     }

@@ -36,7 +36,10 @@ class App extends Vue {
     // Lifecycle
     //
     async created() {
-        // this.$store.dispatch('user/getAccountRequest');
+        if (this.userStore.isLoggedIn) {
+            this.$store.dispatch('user/startRefreshTokenTimer');
+            // this.$store.dispatch('user/getAccountRequest');
+        }
 
         this.setRelativeTimeFormats();
     }

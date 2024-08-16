@@ -29,7 +29,7 @@ const authGuard = (/* to: Route, from: Route */): void | boolean | RouteConfig =
 /**
  * Guard against entering no-auth-required route if already authenticated.
  */
-const noAuthGuard = async (/* to: Route, from: Route */): Promise<void | boolean | RouteConfig> => {
+const noAuthGuard = (/* to: Route, from: Route */): Promise<void | boolean | RouteConfig> => {
     const { isLoggedIn } = store.getters['user/state'];
     const routeToIfAuthenticated: RouteConfig = { name: 'Home' };
     let action: any = true;

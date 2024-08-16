@@ -5,20 +5,6 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
-//
-// Constants
-//
-export const tokens = {
-    staff: {
-        AUTH_TOKEN: 'auth_token_staff',
-        AUTH_TOKEN_TYPE: 'auth_token_type_staff',
-        AUTH_TOKEN_EXPIRY: 'auth_token_expiry_staff',
-        ID_TOKEN: 'id_token_staff',
-        REFRESH_TOKEN: 'refresh_token_staff',
-    },
-};
-export const AUTH_LOGIN_GOTO_PATH = 'login_goto';
-
 /**
  * Check if localStorage is available in the browser.
  * @return  TRUE if localStorage implementation is available.

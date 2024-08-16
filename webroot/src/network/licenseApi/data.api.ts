@@ -146,7 +146,7 @@ export class LicenseDataApi implements DataApiInterface {
      */
     public async getLicensees(params: RequestParamsInterfaceLocal = {}) {
         const requestParams: RequestParamsInterfaceRemote = this.prepRequestPostParams(params);
-        const serverReponse: any = await this.api.post(`/mock/providers/query`, requestParams);
+        const serverReponse: any = await this.api.post(`/v0/providers/query`, requestParams);
         const { lastKey, items } = serverReponse;
         const response = {
             lastKey,
@@ -162,7 +162,7 @@ export class LicenseDataApi implements DataApiInterface {
      * @return {Promise<object>}            A licensee server response.
      */
     public async getLicensee(licenseeId: string) {
-        const serverResponse: any = await this.api.get(`/mock/providers/${licenseeId}`);
+        const serverResponse: any = await this.api.get(`/v0/providers/${licenseeId}`);
         let licensee: Licensee | null = null;
 
         if (serverResponse?.items?.length) {
