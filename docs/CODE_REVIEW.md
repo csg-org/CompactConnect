@@ -85,12 +85,27 @@ We wouldn’t want anyone being mean to us because of an oversight, mistake, or 
 
 ## Checklist
 
-We use this list when performing a code review to ensure that all tasks have been completed.
+Per [HOW_WE_WORK.md](https://github.com/csg-org/CompactConnect/edit/development/docs/HOW_WE_WORK.md), CSG may not review some items until the end of each sprint. For simplicity sake, we split the checklist into two, one for PRs and one for sprints. Some items on the sprint checklist may appear in particular PRs where it feels most relevant. We use these lists as starting points when performing code reviews to ensure that all tasks have been completed.
+
+### Per PR Checklist
 
 - [ ] review the pull request to get oriented
 	- [ ] read the description of the pull request, which should summarize the changes made
 	- [ ] read through every task on the Scrum board that's encompassed by this pull request
 	- [ ] read the description of the commits that comprise the pull request
+- [ ] skim all new code, in the context of existing code, looking for problems (knowing that the vast majority of new code will be covered by tests)
+- [ ] review all tests
+	- [ ] methodically review all new tests for correctness, quality of naming
+	- [ ] look at code coverage of tests
+	- [ ] determine what code isn’t tested, review that rigorously
+- [ ] review documentation to ensure that it matches changes
+- [ ] provide comments on the pull request on GitHub, as necessary
+	- [ ] for comments that are specific to a particular line of code, comment on those specific lines
+	- [ ] for comments that are more general, attach the comment to a random line in `README.md` (as opposed to commenting on the pull request itself), to be able to use GitHub's ability to thread discussions on those comments
+- [ ] run a security audit of dependencies (e.g. `npm audit` and `pip audit`) to ensure that there are no vulnerabilities that will be deployed to production (as opposed to vulnerabilities that only have an impact on the development environment)
+
+### Per Sprint Checklist
+
 - [ ] stand up the site locally
 	- [ ] test all functionality in all major browsers, emphasizing the functionality that this pull request addresses
 		- [ ] for public-facing functionality, test in browsers consistent with [public browser use data](https://analytics.usa.gov/)
@@ -102,16 +117,8 @@ We use this list when performing a code review to ensure that all tasks have bee
 		- [ ] navigate site only with the keyboard
 		- [ ] use VoiceOver or Narrator to navigate the site with audio only, with the display turned off
 		- [ ] manually test anything that pa11y cannot test automatically (e.g., contrast of text over images)
-- [ ] review static code analysis results
-- [ ] run a security audit of dependencies (e.g. `npm audit`) to ensure that there are no vulnerabilities that will be deployed to production (as opposed to vulnerabilities that only have an impact on the development environment)
+- [ ] review static code analysis results, if available
+- [ ] run a security audit of dependencies (e.g. `npm audit` and `pip audit`) to ensure that there are no vulnerabilities that will be deployed to production (as opposed to vulnerabilities that only have an impact on the development environment)
 - [ ] examine OWASP ZAP output to ensure that any errors are known to be false positives or have been previously declared to be acceptable
-- [ ] skim all new code, in the context of existing code, looking for problems (knowing that the vast majority of new code will be covered by tests)
-- [ ] review all tests
-	- [ ] methodically review all new tests for correctness, quality of naming
-	- [ ] look at code coverage of tests
-	- [ ] determine what code isn’t tested, review that rigorously
-- [ ] review documentation to ensure that it matches changes
-- [ ] provide comments on the pull request on GitHub, as necessary
-	- [ ] for comments that are specific to a particular line of code, comment on those specific lines
-	- [ ] for comments that are more general, attach the comment to a random line in `README.md` (as opposed to commenting on the pull request itself), to be able to use GitHub's ability to thread discussions on those comments
 - [ ] for each feature-level bug (i.e., it’s working as designed, but designed wrong), open a new issue and put it in the backlog
+

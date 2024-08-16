@@ -1,8 +1,11 @@
 import os
 
 from aws_cdk import Stack, RemovalPolicy
+from aws_cdk.aws_codestarnotifications import NotificationRule
+from aws_cdk.aws_iam import ServicePrincipal
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_s3 import IBucket, BucketEncryption
+from aws_cdk.aws_sns import ITopic
 from aws_cdk.aws_ssm import IParameter
 from aws_cdk.pipelines import CodePipeline as CdkCodePipeline, ShellStep, CodePipelineSource
 from cdk_nag import NagSuppressions
@@ -20,6 +23,7 @@ class BackendPipeline(CdkCodePipeline):
             trigger_branch: str,
             access_logs_bucket: IBucket,
             encryption_key: IKey,
+            alarm_topic: ITopic,
             ssm_parameter: IParameter,
             environment_context: dict,
             removal_policy: RemovalPolicy,
@@ -76,6 +80,9 @@ class BackendPipeline(CdkCodePipeline):
         )
         self._ssm_parameter = ssm_parameter
 
+        self._encryption_key = encryption_key
+        self._alarm_topic = alarm_topic
+
     def build_pipeline(self) -> None:
         super().build_pipeline()
 
@@ -98,3 +105,22 @@ class BackendPipeline(CdkCodePipeline):
             ],
             apply_to_children=True
         )
+
+        self._add_alarms()
+
+    def _add_alarms(self):
+        NotificationRule(
+            self, 'NotificationRule',
+            source=self.pipeline,
+            events=[
+                'codepipeline-pipeline-pipeline-execution-started',
+                'codepipeline-pipeline-pipeline-execution-failed',
+                'codepipeline-pipeline-pipeline-execution-succeeded',
+                'codepipeline-pipeline-manual-approval-needed'
+            ],
+            targets=[self._alarm_topic]
+        )
+
+        # Grant CodeStar permission to use the key that encrypts the alarm topic
+        code_star_principal = ServicePrincipal('codestar-notifications.amazonaws.com')
+        self._encryption_key.grant_encrypt_decrypt(code_star_principal)

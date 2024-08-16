@@ -83,12 +83,15 @@ class BulkUploadsBucket(Bucket):
         """
         Delete any objects that get uploaded - for mock api purposes
         """
+        stack: Stack = Stack.of(self)
+
         delete_objects_handler = PythonFunction(
             self, 'DeleteObjectsHandler',
             description='Delete S3 objects handler',
             entry=os.path.join('lambdas', 'delete-objects'),
             index='main.py',
-            handler='delete_objects'
+            handler='delete_objects',
+            alarm_topic=stack.alarm_topic
         )
         self.grant_delete(delete_objects_handler)
         self.add_event_notification(
@@ -97,7 +100,6 @@ class BulkUploadsBucket(Bucket):
         )
         self.log_groups.append(delete_objects_handler.log_group)
 
-        stack: Stack = Stack.of(self)
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
             path=f'{delete_objects_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
@@ -151,7 +153,8 @@ class BulkUploadsBucket(Bucket):
             environment={
                 'EVENT_BUS_NAME': event_bus.event_bus_name,
                 **stack.common_env_vars
-            }
+            },
+            alarm_topic=stack.alarm_topic
         )
         self.grant_delete(parse_objects_handler)
         self.grant_read(parse_objects_handler)

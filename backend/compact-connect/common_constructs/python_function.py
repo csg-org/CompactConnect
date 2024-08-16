@@ -2,9 +2,12 @@ from typing import List
 
 import jsii
 from aws_cdk import Stack, Duration
+from aws_cdk.aws_cloudwatch import Alarm, Stats, ComparisonOperator, TreatMissingData
+from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_lambda_python_alpha import PythonFunction as CdkPythonFunction, ICommandHooks, BundlingOptions
 from aws_cdk.aws_logs import RetentionDays
+from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
@@ -19,6 +22,7 @@ class PythonFunction(CdkPythonFunction):
     def __init__(
             self, scope: Construct, construct_id: str, *,
             log_retention: RetentionDays = RetentionDays.ONE_MONTH,
+            alarm_topic: ITopic = None,
             **kwargs
     ):
         defaults = {
@@ -33,6 +37,8 @@ class PythonFunction(CdkPythonFunction):
             log_retention=log_retention,
             **defaults
         )
+        if alarm_topic is not None:
+            self._add_alarms(alarm_topic)
 
         stack = Stack.of(self)
         NagSuppressions.add_resource_suppressions(
@@ -85,6 +91,19 @@ class PythonFunction(CdkPythonFunction):
                 }
             ]
         )
+
+    def _add_alarms(self, alarm_topic: ITopic):
+        throttle_alarm = Alarm(
+            self, 'ThrottleAlarm',
+            metric=self.metric_throttles(statistic=Stats.SUM),
+            evaluation_periods=1,
+            threshold=1,
+            actions_enabled=True,
+            alarm_description=f'{self.node.path} lambda throttles detected',
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING
+        )
+        throttle_alarm.add_alarm_action(SnsAction(alarm_topic))
 
 
 @jsii.implements(ICommandHooks)
