@@ -38,8 +38,8 @@ class _Config:
         return os.environ['EVENT_BUS_NAME']
 
     @cached_property
-    def license_table(self):
-        return boto3.resource('dynamodb').Table(self.license_table_name)
+    def provider_table(self):
+        return boto3.resource('dynamodb').Table(self.provider_table_name)
 
     @property
     def compacts(self):
@@ -57,8 +57,8 @@ class _Config:
         return self.license_types[compact]
 
     @property
-    def license_table_name(self):
-        return os.environ['LICENSE_TABLE_NAME']
+    def provider_table_name(self):
+        return os.environ['PROVIDER_TABLE_NAME']
 
     @property
     def fam_giv_mid_index_name(self):

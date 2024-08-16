@@ -11,7 +11,7 @@ from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 # Importing module level to allow lazy loading for typing
-from . import license_api
+from . import cc_api
 
 
 class PostLicenses:
@@ -25,7 +25,7 @@ class PostLicenses:
         super().__init__()
 
         self.resource = resource
-        self.api: license_api.LicenseApi = resource.api
+        self.api: cc_api.CCApi = resource.api
         self.log_groups = []
 
         if mock_resource:
@@ -136,7 +136,7 @@ class PostLicenses:
                         'status'
                     ],
                     additional_properties=False,
-                    properties=self.api.common_license_properties
+                    properties=self.api.v0_common_license_properties
                 )
             )
         )

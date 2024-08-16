@@ -3,7 +3,7 @@ from __future__ import annotations
 from constructs import Construct
 
 from common_constructs.stack import AppStack
-from stacks.api_stack.license_api import LicenseApi
+from stacks.api_stack.cc_api import CCApi
 from stacks import persistent_stack as ps
 
 
@@ -17,7 +17,7 @@ class ApiStack(AppStack):
     ):
         super().__init__(scope, construct_id, environment_context=environment_context, **kwargs)
 
-        self.license_api = LicenseApi(
+        self.api = CCApi(
             self, 'LicenseApi',
             environment_name=environment_name,
             persistent_stack=persistent_stack

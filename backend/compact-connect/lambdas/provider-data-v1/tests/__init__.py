@@ -15,7 +15,7 @@ class TstLambdas(TestCase):
             'AWS_DEFAULT_REGION': 'us-east-1',
             'BULK_BUCKET_NAME': 'cc-license-data-bulk-bucket',
             'EVENT_BUS_NAME': 'license-data-events',
-            'LICENSE_TABLE_NAME': 'license-table',
+            'PROVIDER_TABLE_NAME': 'provider-table',
             'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
             'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
             'SSN_INDEX_NAME': 'ssn',

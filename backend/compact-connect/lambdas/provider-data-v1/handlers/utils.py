@@ -10,7 +10,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 
 from config import logger
-from exceptions import CCInvalidRequestException
+from exceptions import CCInvalidRequestException, CCUnauthorizedException, CCAccessDeniedException
 
 
 class ResponseEncoder(JSONEncoder):
@@ -62,6 +62,24 @@ def api_handler(fn: Callable):
                 },
                 'statusCode': 200,
                 'body': json.dumps(fn(event, context), cls=ResponseEncoder)
+            }
+        except CCUnauthorizedException as e:
+            logger.info('Unauthorized request', exc_info=e)
+            return {
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'statusCode': 401,
+                'body': json.dumps({'message': 'Unauthorized'})
+            }
+        except CCAccessDeniedException as e:
+            logger.info('Forbidden request', exc_info=e)
+            return {
+                'headers': {
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'statusCode': 403,
+                'body': json.dumps({'message': 'Access denied'})
             }
         except CCInvalidRequestException as e:
             logger.info('Invalid request', exc_info=e)
@@ -120,10 +138,8 @@ class scope_by_path:  # pylint: disable=invalid-name
                 scope_value = event['pathParameters'][self.scope_parameter]
                 resource_value = event['pathParameters'][self.resource_parameter]
             except KeyError:
-                # If we raise this exact exception, API Gateway returns a 401 instead of 403 for a DENY statement
-                # Any other exception/message will result in a 500
                 logger.error('Access attempt with missing path parameters!')
-                return {'statusCode': 401}
+                raise CCInvalidRequestException('Missing path parameter!')
 
             logger.debug(
                 'Checking authorizer context',
@@ -131,14 +147,14 @@ class scope_by_path:  # pylint: disable=invalid-name
             )
             try:
                 scopes = event['requestContext']['authorizer']['claims']['scope'].split(' ')
-            except KeyError:
-                logger.error('Unauthorized access attempt!')
-                return {'statusCode': 401}
+            except KeyError as e:
+                logger.error('Unauthorized access attempt!', exc_info=e)
+                raise CCUnauthorizedException('Unauthorized access attempt!')
 
             required_scope = f'{resource_value}/{scope_value}.{self.action}'
             if required_scope not in scopes:
                 logger.warning('Forbidden access attempt!')
-                return {'statusCode': 403}
+                raise CCAccessDeniedException('Forbidden access attempt!')
             return fn(event, context)
         return authorized
 

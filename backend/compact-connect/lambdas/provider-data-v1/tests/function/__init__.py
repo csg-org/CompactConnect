@@ -56,7 +56,7 @@ class TstFunction(TstLambdas):
                     'AttributeType': 'S'
                 },
             ],
-            TableName=os.environ['LICENSE_TABLE_NAME'],
+            TableName=os.environ['PROVIDER_TABLE_NAME'],
             KeySchema=[
                 {
                     'AttributeName': 'pk',

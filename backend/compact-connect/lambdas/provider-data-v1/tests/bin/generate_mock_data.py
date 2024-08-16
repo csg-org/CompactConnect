@@ -46,7 +46,7 @@ def put_licenses(jurisdiction: str, count: int = 100):
             'jurisdiction': jurisdiction
         })
         logger.info('Put license', license_data=license_data)
-        config.license_table.put_item(Item=schema.dump(license_data))
+        config.provider_table.put_item(Item=schema.dump(license_data))
 
 
 if __name__ == '__main__':

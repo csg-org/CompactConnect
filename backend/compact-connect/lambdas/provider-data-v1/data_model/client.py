@@ -26,7 +26,7 @@ class DataClient():
         """
         logger.info('Getting provider id by ssn')
         try:
-            resp = self.config.license_table.get_item(
+            resp = self.config.provider_table.get_item(
                 Key={
                     'pk': f'{compact}/SSN/{ssn}',
                     'sk': f'{compact}/SSN/{ssn}'
@@ -44,7 +44,7 @@ class DataClient():
         # This is an 'ask forgiveness' approach to provider id assignment:
         # Try to create a new provider, conditional on it not already existing
         try:
-            self.config.license_table.put_item(
+            self.config.provider_table.put_item(
                 Item={
                     'pk': f'{compact}/SSN/{ssn}',
                     'sk': f'{compact}/SSN/{ssn}',
@@ -78,7 +78,7 @@ class DataClient():
         else:
             sk_condition = Key('sk').eq(f'{compact}#PROVIDER')
 
-        resp = self.config.license_table.query(
+        resp = self.config.provider_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
             & sk_condition,
@@ -99,7 +99,7 @@ class DataClient():
             scan_forward: bool = True
     ):  # pylint: disable-redefined-outer-name
         logger.info('Getting licenses by family name')
-        return config.license_table.query(
+        return config.provider_table.query(
             IndexName=config.fam_giv_mid_index_name,
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('sk').eq(f'{compact}#PROVIDER'),
@@ -118,7 +118,7 @@ class DataClient():
             scan_forward: bool = True
     ):  # pylint: disable-redefined-outer-name
         logger.info('Getting licenses by family name')
-        return config.license_table.query(
+        return config.provider_table.query(
             IndexName=config.date_of_update_index_name,
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('sk').eq(f'{compact}#PROVIDER'),
@@ -146,7 +146,7 @@ class DataClient():
                 # Add the new jurisdiction to the provider's privilege jurisdictions set
                 {
                     'Update': {
-                        'TableName': config.license_table_name,
+                        'TableName': config.provider_table_name,
                         'Key': dynamodb_serializer.serialize({
                             'pk': f'{compact}#PROVIDER#{provider_id}',
                             'sk': f'{compact}#PROVIDER'
@@ -163,7 +163,7 @@ class DataClient():
                 # Add a new privilege record
                 {
                     'Put': {
-                        'TableName': config.license_table_name,
+                        'TableName': config.provider_table_name,
                         'Item': dynamodb_serializer.serialize((PrivilegeRecordSchema().dump({
                             'providerId': provider_id,
                             'compact': compact,

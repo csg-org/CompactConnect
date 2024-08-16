@@ -3,10 +3,11 @@ from __future__ import annotations
 import json
 from functools import cached_property
 
-from aws_cdk import CfnOutput, Duration
+import jsii
+from aws_cdk import CfnOutput, IAspect, Aspects, Duration
 from aws_cdk.aws_apigateway import RestApi, StageOptions, MethodLoggingLevel, LogGroupLogDestination, \
-    AccessLogFormat, AuthorizationType, MethodOptions, JsonSchema, JsonSchemaType, ResponseType, CorsOptions, Cors, \
-    CognitoUserPoolsAuthorizer, DomainNameOptions
+    AccessLogFormat, JsonSchema, JsonSchemaType, ResponseType, CorsOptions, Cors, \
+    CognitoUserPoolsAuthorizer, DomainNameOptions, Method
 from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_cloudwatch import Alarm, Stats, ComparisonOperator, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
@@ -16,20 +17,45 @@ from aws_cdk.aws_route53_targets import ApiGateway
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
-from common_constructs.stack import Stack, AppStack
+from common_constructs.stack import AppStack
 from common_constructs.webacl import WebACL, WebACLScope
-from stacks.api_stack.bulk_upload_url import BulkUploadUrl
-from stacks.api_stack.post_license import PostLicenses
+from stacks.api_stack.mock_api import MockApi
 from stacks import persistent_stack as ps
-from stacks.api_stack.query_providers import QueryProviders
-
+from stacks.api_stack.v0_api import V0Api
 
 YMD_FORMAT = '^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
 SSN_FORMAT = '^[0-9]{3}-[0-9]{2}-[0-9]{4}$'
 UUID4_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}'
 
 
-class LicenseApi(RestApi):
+@jsii.implements(IAspect)
+class NagSuppressOptionsNotAuthorized:
+    """
+    This Aspect will be called over every node in the construct tree from where it is added, through all children:
+    https://docs.aws.amazon.com/cdk/v2/guide/aspects.html
+
+    Because OPTIONS methods do not include authorization for CORS preflight, we'll suppress the authorization
+    findings for just these, handling other methods on a case-by-case basis.
+    """
+    def visit(self, node: Method):
+        if isinstance(node, Method):
+            if node.http_method == 'OPTIONS':
+                NagSuppressions.add_resource_suppressions(
+                    node,
+                    suppressions=[
+                        {
+                            'id': 'AwsSolutions-APIG4',
+                            'reason': 'OPTIONS methods will not be authorized in this API'
+                        },
+                        {
+                            'id': 'AwsSolutions-COG4',
+                            'reason': 'OPTIONS methods will not be authorized in this API'
+                        }
+                    ]
+                )
+
+
+class CCApi(RestApi):
     def __init__(  # pylint: disable=too-many-locals
             self, scope: Construct, construct_id: str, *,
             environment_name: str,
@@ -37,8 +63,7 @@ class LicenseApi(RestApi):
             **kwargs
     ):
         stack: AppStack = AppStack.of(scope)
-        # For developer convenience, we will allow for the case where there is no
-        # domain name configured
+        # For developer convenience, we will allow for the case where there is no domain name configured
         domain_kwargs = {}
         if stack.hosted_zone is not None:
             certificate = Certificate(
@@ -106,6 +131,8 @@ class LicenseApi(RestApi):
             **domain_kwargs,
             **kwargs
         )
+        # Suppresses Nag findings about OPTIONS methods not being configured with an authorizer
+        Aspects.of(self).add(NagSuppressOptionsNotAuthorized())
 
         if stack.hosted_zone is not None:
             self._add_domain_name(
@@ -138,84 +165,8 @@ class LicenseApi(RestApi):
             }
         )
 
-        mock_resource = self.root.add_resource('mock')
-        noauth_method_options = MethodOptions(
-            authorization_type=AuthorizationType.NONE
-        )
-
-        # No auth mock endpoints
-        # /mock/providers/query
-        mock_providers_resource = mock_resource.add_resource('providers')
-        QueryProviders(
-            mock_providers_resource,
-            method_options=noauth_method_options,
-            data_encryption_key=persistent_stack.shared_encryption_key,
-            license_data_table=persistent_stack.mock_license_table
-        )
-
-        # /mock/licenses/{compact}/{jurisdiction}
-        mock_jurisdiction_resource = mock_resource \
-            .add_resource('licenses') \
-            .add_resource('{compact}') \
-            .add_resource('{jurisdiction}')
-        PostLicenses(
-            mock_resource=True,
-            resource=mock_jurisdiction_resource,
-            method_options=noauth_method_options,
-            event_bus=persistent_stack.data_event_bus
-        )
-        BulkUploadUrl(
-            mock_bucket=True,
-            resource=mock_jurisdiction_resource,
-            method_options=noauth_method_options,
-            bulk_uploads_bucket=persistent_stack.mock_bulk_uploads_bucket
-        )
-
-        # Authenticated endpoints
-        # /v0/licenses
-        v0_resource = self.root.add_resource('v0')
-        read_scopes = [
-            f'{resource_server}/read'
-            for resource_server in persistent_stack.staff_users.resource_servers.keys()
-        ]
-        write_scopes = [
-            f'{resource_server}/write'
-            for resource_server in persistent_stack.staff_users.resource_servers.keys()
-        ]
-        read_auth_method_options = MethodOptions(
-            authorization_type=AuthorizationType.COGNITO,
-            authorizer=self.staff_users_authorizer,
-            authorization_scopes=read_scopes
-        )
-        write_auth_method_options = MethodOptions(
-            authorization_type=AuthorizationType.COGNITO,
-            authorizer=self.staff_users_authorizer,
-            authorization_scopes=write_scopes
-        )
-        # /v0/providers
-        providers_resource = v0_resource.add_resource('providers')
-        QueryProviders(
-            providers_resource,
-            method_options=read_auth_method_options,
-            data_encryption_key=persistent_stack.shared_encryption_key,
-            license_data_table=persistent_stack.license_table
-        )
-        # /v0/licenses/{compact}/{jurisdiction}
-        jurisdiction_resource = v0_resource \
-            .add_resource('licenses') \
-            .add_resource('{compact}') \
-            .add_resource('{jurisdiction}')
-        PostLicenses(
-            mock_resource=False,
-            resource=jurisdiction_resource,
-            method_options=write_auth_method_options,
-            event_bus=persistent_stack.data_event_bus
-        )
-        BulkUploadUrl(
-            resource=jurisdiction_resource,
-            method_options=write_auth_method_options,
-            bulk_uploads_bucket=persistent_stack.bulk_uploads_bucket
-        )
+        MockApi(self.root, persistent_stack=persistent_stack)
+        V0Api(self.root, persistent_stack=persistent_stack)
 
         QueryDefinition(
             self, 'RuntimeQuery',
@@ -237,7 +188,7 @@ class LicenseApi(RestApi):
             log_groups=self.log_groups
         )
 
-        stack = Stack.of(self)
+        stack = AppStack.of(self)
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
             f'{self.node.path}/CloudWatchRole/Resource',
@@ -254,24 +205,12 @@ class LicenseApi(RestApi):
             suppressions=[
                 {
                     'id': 'HIPAA.Security-APIGWCacheEnabledAndEncrypted',
-                    'reason': 'We will assess this after the API is more built out'
+                    'reason': 'We will assess need for API caching after the API is built out'
                 },
                 {
                     'id': 'HIPAA.Security-APIGWSSLEnabled',
-                    'reason': 'We will add a TLS certificate after we have a domain name'
-                }
-            ]
-        )
-        NagSuppressions.add_stack_suppressions(
-            stack,
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-APIG4',
-                    'reason': 'We will implement authorization soon'
-                },
-                {
-                    'id': 'AwsSolutions-COG4',
-                    'reason': 'We will implement authorization soon'
+                    'reason': 'Client TLS certificates are not appropriate for this API, since it is not proxying '
+                              'HTTP requests to backend systems.'
                 }
             ]
         )
@@ -325,8 +264,8 @@ class LicenseApi(RestApi):
         CfnOutput(self, 'APIId', value=self.rest_api_id)
 
     @property
-    def common_license_properties(self) -> dict:
-        stack = Stack.of(self)
+    def v0_common_license_properties(self) -> dict:
+        stack: AppStack = AppStack.of(self)
 
         return {
             'ssn': JsonSchema(
@@ -345,11 +284,10 @@ class LicenseApi(RestApi):
                 format='date',
                 pattern=YMD_FORMAT
             ),
-            'homeAddressStreet1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
-            'homeAddressStreet2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-            'homeAddressCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
-            'homeAddressState': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
-            'homeAddressPostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
+            'homeStateStreet1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
+            'homeStateStreet2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'homeStateCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
+            'homeStatePostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
             'licenseType': JsonSchema(
                 type=JsonSchemaType.STRING,
                 enum=stack.license_types
@@ -379,8 +317,8 @@ class LicenseApi(RestApi):
         }
 
     @property
-    def license_response_schema(self):
-        stack = Stack.of(self)
+    def v0_license_response_schema(self):
+        stack: AppStack = AppStack.of(self)
         return JsonSchema(
             type=JsonSchemaType.OBJECT,
             required=[
@@ -392,10 +330,9 @@ class LicenseApi(RestApi):
                 'givenName',
                 'familyName',
                 'dateOfBirth',
-                'homeAddressStreet1',
-                'homeAddressCity',
-                'homeAddressState',
-                'homeAddressPostalCode',
+                'homeStateStreet1',
+                'homeStateCity',
+                'homeStatePostalCode',
                 'licenseType',
                 'dateOfIssuance',
                 'dateOfRenewal',
@@ -426,7 +363,7 @@ class LicenseApi(RestApi):
                     format='date',
                     pattern=YMD_FORMAT
                 ),
-                **self.common_license_properties
+                **self.v0_common_license_properties
             }
         )
 

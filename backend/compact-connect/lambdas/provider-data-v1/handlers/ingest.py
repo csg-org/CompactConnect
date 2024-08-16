@@ -40,7 +40,7 @@ def ingest_license_message(message: dict):
         privilege_jurisdictions = {
             record['jurisdiction']
             for record in provider_data['items']
-            if record['type'] == 'privilege'
+            if record['type'] == 'privilege' and record['status'] == 'active'
         }
     except CCNotFoundException:
         privilege_jurisdictions = set()
@@ -68,7 +68,7 @@ def ingest_license_message(message: dict):
         TransactItems=[
             {
                 'Put': {
-                    'TableName': config.license_table_name,
+                    'TableName': config.provider_table_name,
                     # We'll use the schema/serializer to populate index fields for us
                     'Item': dynamodb_serializer.serialize(LicenseRecordSchema().dump({
                         'providerId': provider_id,
@@ -80,7 +80,7 @@ def ingest_license_message(message: dict):
             },
             {
                 'Put': {
-                    'TableName': config.license_table_name,
+                    'TableName': config.provider_table_name,
                     'Item': provider_record
                 }
             }

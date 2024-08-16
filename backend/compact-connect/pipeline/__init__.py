@@ -79,6 +79,7 @@ class PipelineStack(Stack):
             access_logs_bucket=access_logs_bucket,
             ssm_parameter=parameter,
             environment_context=pipeline_environment_context,
+            self_mutation=True,
             removal_policy=removal_policy
         )
         self.test_stage = BackendStage(
@@ -86,8 +87,7 @@ class PipelineStack(Stack):
             app_name=app_name,
             environment_name='test',
             environment_context=ssm_context['environments']['test'],
-            github_repo_string=github_repo_string,
-            self_mutation=True,
+            github_repo_string=github_repo_string
         )
         self.pre_prod_pipeline.add_stage(
             self.test_stage
