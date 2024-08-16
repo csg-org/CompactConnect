@@ -4,11 +4,11 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/lambdas/staff-user-pre-token/requirements.in
 #
-aws-lambda-powertools==2.42.0
+aws-lambda-powertools==2.43.0
     # via -r compact-connect/lambdas/staff-user-pre-token/requirements.in
-boto3==1.34.151
+boto3==1.34.159
     # via -r compact-connect/lambdas/staff-user-pre-token/requirements.in
-botocore==1.34.151
+botocore==1.34.159
     # via
     #   boto3
     #   s3transfer

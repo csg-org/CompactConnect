@@ -24,6 +24,10 @@ class TestApp(TestCase):
             context = json.load(f)['context']
         jurisdictions = set(context['jurisdictions'])
         compacts = set(context['compacts'])
+        for jurisdiction in jurisdictions:
+            self.assertNotIn('#', jurisdiction, "'#' not allowed in jurisdiction abbreviations!")
+        for compact in compacts:
+            self.assertNotIn('#', compact, "'#' not allowed in compact abbreviations!")
         self.assertFalse(jurisdictions.intersection(compacts), 'Compact vs jurisdiction name clash!')
 
     @patch.dict(os.environ, {
@@ -44,7 +48,7 @@ class TestApp(TestCase):
 
         app = CompactConnectApp(context=context)
 
-        # Identify any findings from our AwsSolutions or HIPAASecurity rule sets
+        # Identify any findings from our AwsSolutions rule sets
         for stack in (
                 app.pipeline_stack,
                 app.pipeline_stack.test_stage.api_stack,
@@ -88,7 +92,7 @@ class TestApp(TestCase):
 
         app = CompactConnectApp(context=context)
 
-        # Identify any findings from our AwsSolutions or HIPAASecurity rule sets
+        # Identify any findings from our AwsSolutions rule sets
         self._check_no_annotations(app.sandbox_stage.persistent_stack)
         self._check_no_annotations(app.sandbox_stage.ui_stack)
         self._check_no_annotations(app.sandbox_stage.api_stack)

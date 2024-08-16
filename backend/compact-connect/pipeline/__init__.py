@@ -86,7 +86,8 @@ class PipelineStack(Stack):
             app_name=app_name,
             environment_name='test',
             environment_context=ssm_context['environments']['test'],
-            github_repo_string=github_repo_string
+            github_repo_string=github_repo_string,
+            self_mutation=True,
         )
         self.pre_prod_pipeline.add_stage(
             self.test_stage
@@ -118,6 +119,9 @@ class PipelineStack(Stack):
             access_logs_bucket=access_logs_bucket,
             ssm_parameter=parameter,
             environment_context=pipeline_environment_context,
+            # We only want to deploy pipelines from a single branch, so we'll deploy pipeline configuration from the
+            # preprod pipeline
+            self_mutation=False,
             removal_policy=removal_policy
         )
         self.prod_stage = BackendStage(
