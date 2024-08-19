@@ -93,6 +93,7 @@ const getFullyQualified = (domain) => {
  * @return {object}               A map of fully-qualified domains for the request environment.
  *   @return {string} dataApi       The data API fully-qualified domain.
  *   @return {string} s3Upload      The S3 fully-qualified domain for uploading state files.
+ *   @return {string} cognitoStaff  The Cognito fully-qualified domain for authenticating staff users.
  */
 const getEnvironmentUrls = (requestDomain) => {
     const environmentUrls = {};
@@ -121,6 +122,7 @@ const getEnvironmentUrls = (requestDomain) => {
 
     environmentUrls.dataApi = getFullyQualified(environment.dataApi);
     environmentUrls.s3Upload = getFullyQualified(environment.s3Upload);
+    environmentUrls.cognitoStaff = getFullyQualified(environment.cognitoStaff);
 
     return environmentUrls;
 };
@@ -275,6 +277,7 @@ const setCspHeader = (requestDomain, headers = {}) => {
                 'self',
                 domains.dataApi,
                 domains.s3Upload,
+                domains.cognitoStaff,
                 cognitoIdpUrl,
             ]),
         ].join(' ')}`,

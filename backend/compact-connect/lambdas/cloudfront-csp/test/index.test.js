@@ -54,6 +54,7 @@ const environments = {
 const buildCspHeaders = (environment) => {
     const dataApiUrl = (environment?.dataApi) ? `https://${environment.dataApi}` : '';
     const s3Url = (environment?.s3Upload) ? `https://${environment.s3Upload}` : '';
+    const cognitoStaffUrl = (environment?.cognitoStaff) ? `https://${environment.cognitoStaff}` : '';
     const cognitoIdpUrl = 'https://cognito-idp.us-east-1.amazonaws.com';
     // src configs are maintained here as arrays for ease of maintenance;
     // defining them as static strings could lead to long lines of code.
@@ -115,6 +116,7 @@ const buildCspHeaders = (environment) => {
         '\'self\'',
         dataApiUrl,
         s3Url,
+        cognitoStaffUrl,
         cognitoIdpUrl,
     ].join(' ');
 
