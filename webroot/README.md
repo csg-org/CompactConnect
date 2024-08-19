@@ -44,25 +44,46 @@
             - `noindex,nofollow`
     - **`VUE_APP_DOMAIN`**
         - _Server_ :arrow_heading_up:
-            - Dev: `TODO`
-            - Test: `TODO`
-            - Prod: `TODO`
+            - Dev: `https://app.test.jcc.iaapi.io`
+            - Test: `https://app.test.compactconnect.org`
+            - Prod: `https://app.compactconnect.org`
         - _Local_ :arrow_heading_down:
             - `http://localhost:3018`
     - **`VUE_APP_API_STATE_ROOT`**
         - _Server_ :arrow_heading_up:
-            - Dev: `https://m848119752.execute-api.us-east-1.amazonaws.com/test`
-            - Test: `TODO`
-            - Prod: `TODO`
+            - Dev: `https://api.test.jcc.iaapi.io`
+            - Test: `https://api.test.compactconnect.org`
+            - Prod: `https://api.compactconnect.org`
         - _Local_ :arrow_heading_down:
-            - `https://m848119752.execute-api.us-east-1.amazonaws.com/test`
+            - `https://api.test.jcc.iaapi.io`
     - **`VUE_APP_API_LICENSE_ROOT`**
         - _Server_ :arrow_heading_up:
-            - Dev: `https://m848119752.execute-api.us-east-1.amazonaws.com/test`
-            - Test: `TODO`
-            - Prod: `TODO`
+            - Dev: `https://api.test.jcc.iaapi.io`
+            - Test: `https://api.test.compactconnect.org`
+            - Prod: `https://api.compactconnect.org`
         - _Local_ :arrow_heading_down:
-            - `https://m848119752.execute-api.us-east-1.amazonaws.com/test`
+            - `https://api.test.jcc.iaapi.io`
+    - **`VUE_APP_COGNITO_REGION`**
+        - _Server_ :arrow_heading_up:
+            - Dev: `us-east-1`
+            - Test: `us-east-1`
+            - Prod: `us-east-1`
+        - _Local_ :arrow_heading_down:
+            - `us-east-1`
+    - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF`**
+        - _Server_ :arrow_heading_up:
+            - Dev: `https://ia-cc-staff-test.auth.us-east-1.amazoncognito.com`
+            - Test: `https://compact-connect-staff-test.auth.us-east-1.amazoncognito.com`
+            - Prod: `https://compact-connect-staff.auth.us-east-1.amazoncognito.com`
+        - _Local_ :arrow_heading_down:
+            - `https://ia-cc-staff-test.auth.us-east-1.amazoncognito.com`
+    - **`VUE_APP_COGNITO_CLIENT_ID_STAFF`**
+        - _Server_ :arrow_heading_up:
+            - Dev: `4s5iil9aut9lo0du76p37o8m7h`
+            - Test: `5iauq7le7npofot0l7vav5qh0t`
+            - Prod: `1qlqoaivpmosrdjbsi0u0nfkg4`
+        - _Local_ :arrow_heading_down:
+            - `4s5iil9aut9lo0du76p37o8m7h`
     - **`VUE_APP_MOCK_API`** :arrow_heading_down:
         - Only used for local development
         - `true` if mock API should be used

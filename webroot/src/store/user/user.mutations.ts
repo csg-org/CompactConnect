@@ -23,6 +23,7 @@ export enum MutationTypes {
     UPDATE_ACCOUNT_REQUEST = '[User] Update Account Request',
     UPDATE_ACCOUNT_FAILURE = '[User] Update Account Failure',
     UPDATE_ACCOUNT_SUCCESS = '[User] Update Account Success',
+    SET_REFRESH_TIMEOUT_ID = '[User] Set Refresh Timeout ID',
 }
 
 export default {
@@ -86,5 +87,8 @@ export default {
     [MutationTypes.UPDATE_ACCOUNT_SUCCESS]: (state: any) => {
         state.isLoading = false;
         state.error = null;
+    },
+    [MutationTypes.SET_REFRESH_TIMEOUT_ID]: (state: any, timeoutId: number|null) => {
+        state.refreshTokenTimeoutId = timeoutId;
     },
 };

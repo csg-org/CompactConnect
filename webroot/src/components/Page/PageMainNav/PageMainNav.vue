@@ -6,7 +6,7 @@
 -->
 
 <template>
-    <div class="main-nav-container" v-click-outside="collapseMainNav">
+    <div v-if="mainLinks.length" class="main-nav-container" v-click-outside="collapseMainNav">
         <div v-if="isMobile" class="nav-toggle" @click="toggleMainNav" @keyup.enter="toggleMainNav">
             <div></div>
             <div></div>

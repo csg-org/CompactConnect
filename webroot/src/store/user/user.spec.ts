@@ -5,6 +5,7 @@
 //  Created by InspiringApps on 6/12/24.
 //
 
+import { authStorage, tokens } from '@/app.config';
 import mutations, { MutationTypes } from './user.mutations';
 import actions from './user.actions';
 
@@ -141,6 +142,14 @@ describe('Use Store Mutations', () => {
         expect(state.isLoading).to.equal(false);
         expect(state.error).to.equal(null);
     });
+    it('should successfully set refresh token timeout id', () => {
+        const state = {};
+        const timeoutId = 1;
+
+        mutations[MutationTypes.SET_REFRESH_TIMEOUT_ID](state, timeoutId);
+
+        expect(state.refreshTokenTimeoutId).to.equal(timeoutId);
+    });
 });
 describe('User Store Actions', async () => {
     it('should successfully start login request', () => {
@@ -159,7 +168,7 @@ describe('User Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.LOGIN_SUCCESS]);
-        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.calledOnce).to.equal(false);
     });
     it('should successfully start login failure', () => {
         const commit = sinon.spy();
@@ -244,11 +253,71 @@ describe('User Store Actions', async () => {
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_RESET_USER]);
     });
+    it('should successfully store staff auth tokens with a tokenResponse', () => {
+        const dispatch = sinon.spy();
+        const tokenResponse = {
+            access_token: 'test_access_token',
+            token_type: 'test_token_type',
+            expires_in: 1,
+            id_token: 'test_id_token',
+            refresh_token: 'test_refresh_token',
+        };
+
+        actions.storeAuthTokensStaff({ dispatch }, tokenResponse);
+
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args).to.matchPattern(['startRefreshTokenTimer']);
+    });
+    it('should successfully store staff auth tokens without a tokenResponse', () => {
+        const dispatch = sinon.spy();
+
+        actions.storeAuthTokensStaff({ dispatch });
+
+        expect(dispatch.calledOnce).to.equal(true);
+        expect(dispatch.firstCall.args).to.matchPattern(['startRefreshTokenTimer']);
+    });
+    it('should successfully start refresh token timer with data', () => {
+        const dispatch = sinon.spy();
+
+        actions.startRefreshTokenTimer({ dispatch });
+
+        expect(dispatch.calledOnce).to.equal(true);
+    });
+    it('should successfully not start refresh token timer without data', () => {
+        const dispatch = sinon.spy();
+
+        authStorage.removeItem(tokens.staff.AUTH_TOKEN_EXPIRY);
+        authStorage.removeItem(tokens.staff.REFRESH_TOKEN);
+
+        actions.startRefreshTokenTimer({ dispatch });
+
+        expect(dispatch.calledOnce).to.equal(false);
+    });
+    it('should successfully set refresh token timeout', () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const refreshToken = 'test_refresh_token';
+        const expiresIn = 7200;
+
+        actions.setRefreshTokenTimeout({ commit, dispatch }, { refreshToken, expiresIn });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(dispatch.calledOnce).to.equal(false);
+    });
+    it('should successfully clear refresh token timeout', () => {
+        const commit = sinon.spy();
+        const state = { refreshTokenTimeoutId: 1 };
+
+        actions.clearRefreshTokenTimeout({ commit, state });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_REFRESH_TIMEOUT_ID, null]);
+    });
     it('should successfully clear session stores', () => {
         const dispatch = sinon.spy();
 
         actions.clearSessionStores({ dispatch });
 
-        expect(dispatch.callCount).to.equal(4);
+        expect(dispatch.callCount).to.equal(5);
     });
 });

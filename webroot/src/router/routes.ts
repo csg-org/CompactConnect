@@ -6,27 +6,49 @@
 //
 
 import { RouteRecordRaw as RouteConfig } from 'vue-router';
+import guards from '@router/_guards';
 
 // The route array
 const routes: Array<RouteConfig> = [
-    // {
-    //     path: '/',
-    //     redirect: '/'
-    // },
     {
         path: '/',
+        redirect: '/Login',
+        beforeEnter: guards.noAuthGuard,
+    },
+    {
+        path: '/Login',
+        name: 'Login',
+        component: () => import(/* webpackChunkName: "home" */ '@pages/Login/Login.vue'),
+        beforeEnter: guards.noAuthGuard,
+    },
+    {
+        path: '/auth/callback',
+        name: 'AuthCallback',
+        component: () => import(/* webpackChunkName: "home" */ '@pages/AuthCallback/AuthCallback.vue'),
+        meta: { skipTransition: true },
+    },
+    {
+        path: '/Logout',
+        name: 'Logout',
+        component: () => import(/* webpackChunkName: "home" */ '@pages/Logout/Logout.vue'),
+    },
+    {
+        path: '/Home',
         name: 'Home',
         component: () => import(/* webpackChunkName: "home" */ '@pages/Home/Home.vue'),
+        meta: { requiresAuth: true },
     },
     {
         path: '/Licensing',
         name: 'Licensing',
         component: () => import(/* webpackChunkName: "licensing" */ '@pages/LicensingList/LicensingList.vue'),
+        meta: { requiresAuth: true },
     },
     {
         path: '/Licensing/:licenseeId',
         name: 'LicensingDetail',
         component: () => import(/* webpackChunkName: "licensing" */ '@pages/LicensingDetail/LicensingDetail.vue'),
+        meta: { requiresAuth: true },
     },
     {
         path: '/styleguide',
