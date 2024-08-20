@@ -26,7 +26,6 @@ export default {
     },
     loginSuccess: async ({ commit }) => {
         commit(MutationTypes.LOGIN_SUCCESS);
-        // await dispatch('getAccountRequest');
     },
     loginFailure: async ({ commit }, error: Error) => {
         commit(MutationTypes.LOGIN_FAILURE, error);
