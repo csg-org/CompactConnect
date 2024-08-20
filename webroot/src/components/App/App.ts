@@ -38,7 +38,6 @@ class App extends Vue {
     async created() {
         if (this.userStore.isLoggedIn) {
             this.$store.dispatch('user/startRefreshTokenTimer');
-            // this.$store.dispatch('user/getAccountRequest');
         }
 
         this.setRelativeTimeFormats();

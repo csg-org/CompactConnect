@@ -49,5 +49,6 @@ describe('Session Storage store', () => {
         const result = store.removeItem(key);
 
         expect(result).to.equal(true);
+        expect(store.getItem(key)).to.equal(null);
     });
 });
