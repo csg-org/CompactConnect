@@ -39,16 +39,21 @@ const routes: Array<RouteConfig> = [
         meta: { requiresAuth: true },
     },
     {
-        path: '/Licensing',
+        path: '/:compact/Licensing',
         name: 'Licensing',
         component: () => import(/* webpackChunkName: "licensing" */ '@pages/LicensingList/LicensingList.vue'),
         meta: { requiresAuth: true },
     },
     {
-        path: '/Licensing/:licenseeId',
+        path: '/:compact/Licensing/:licenseeId',
         name: 'LicensingDetail',
         component: () => import(/* webpackChunkName: "licensing" */ '@pages/LicensingDetail/LicensingDetail.vue'),
         meta: { requiresAuth: true },
+    },
+    {
+        path: '/:compact/StateUpload',
+        name: 'StateUpload',
+        component: () => import(/* webpackChunkName: "upload" */ '@pages/StateUpload/StateUpload.vue'),
     },
     {
         path: '/styleguide',

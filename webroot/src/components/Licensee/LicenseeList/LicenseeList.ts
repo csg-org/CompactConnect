@@ -52,6 +52,10 @@ class LicenseeList extends Vue {
         return this.$store.state.pagination;
     }
 
+    get userStore(): any {
+        return this.$store.state.user;
+    }
+
     get licenseStore(): any {
         return this.$store.state.license;
     }
@@ -157,8 +161,10 @@ class LicenseeList extends Vue {
         if (page && page !== 1 && !this.licenseStore.error) {
             requestConfig.getNextPage = true;
         }
+
+        requestConfig.compact = this.userStore.currentCompact;
+
         // Temp for limited server filtering support
-        requestConfig.compact = 'aslp';
         requestConfig.jurisdiction = 'al';
 
         await this.$store.dispatch('license/getLicenseesRequest', {

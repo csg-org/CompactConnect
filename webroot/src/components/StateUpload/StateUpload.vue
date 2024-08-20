@@ -17,7 +17,6 @@
             <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
             <div class="state-upload-form-container">
                 <form @submit.prevent="handleSubmit">
-                    <InputSelect :formInput="formData.compact" class="compact-select" />
                     <InputSelect :formInput="formData.state" class="state-select" />
                     <InputFile :formInput="formData.files" class="file-select" />
                     <InputSubmit
