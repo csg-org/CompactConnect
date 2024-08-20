@@ -36,6 +36,7 @@ window.matchMedia = sinon.stub().callsFake((query) => ({
 }));
 
 // Silence JSDOM bug of not implementing navigation but also not supporting config or suppression
+// https://github.com/jsdom/jsdom/issues/2112#issuecomment-673540137
 declare global {
     interface Window {
         _virtualConsole: VirtualConsole;
