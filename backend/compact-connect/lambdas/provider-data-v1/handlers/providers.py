@@ -6,11 +6,12 @@ import json
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
 from exceptions import CCInvalidRequestException, CCInternalException
-from handlers.utils import api_handler
+from handlers.utils import api_handler, authorize_compact
 from config import config, logger
 
 
 @api_handler
+@authorize_compact(action='read')
 def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
     """
     Query providers data
@@ -35,59 +36,54 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
         resp = config.data_client.get_provider(
             compact=compact,
             provider_id=provider_id,
-            pagination=body.get('pagination')
+            pagination=body.get('pagination'),
+            detail=False
         )
         resp['query'] = query
-        return resp
 
-    try:
+    else:
         sorting = body.get('sorting', {})
-        compact = query['compact']
-        jurisdiction = query['jurisdiction']
-        query = {
-            'compact': compact,
-            'jurisdiction': jurisdiction
-        }
-        logger.info('Querying by compact and jurisdiction')
-    except KeyError as e:
-        raise CCInvalidRequestException(f"{e} must be specified if 'ssn' or 'providerId' is not.") from e
+        jurisdiction = query.get('jurisdiction')
 
-    key = sorting.get('key')
-    sort_direction = sorting.get('direction', 'ascending')
-    scan_forward = sort_direction == 'ascending'
+        key = sorting.get('key')
+        sort_direction = sorting.get('direction', 'ascending')
+        scan_forward = sort_direction == 'ascending'
 
-    match key:
-        case None | 'familyName':
-            return {
-                'query': query,
-                'sorting': {
-                    'key': 'familyName',
-                    'direction': sort_direction
-                },
-                **config.data_client.get_licenses_sorted_by_family_name(
-                    compact=compact,
-                    jurisdiction=jurisdiction,
-                    scan_forward=scan_forward,
-                    pagination=body.get('pagination')
-                )
-            }
-        case 'dateOfUpdate':
-            return {
-                'query': query,
-                'sorting': {
-                    'key': 'dateOfUpdate',
-                    'direction': sort_direction
-                },
-                **config.data_client.get_licenses_sorted_by_date_updated(
-                    compact=compact,
-                    jurisdiction=jurisdiction,
-                    scan_forward=scan_forward,
-                    pagination=body.get('pagination')
-                )
-            }
-        case _:
-            # This shouldn't happen unless our api validation gets misconfigured
-            raise CCInvalidRequestException(f"Invalid sort key: '{key}'")
+        match key:
+            case None | 'familyName':
+                resp = {
+                    'query': query,
+                    'sorting': {
+                        'key': 'familyName',
+                        'direction': sort_direction
+                    },
+                    **config.data_client.get_licenses_sorted_by_family_name(
+                        compact=compact,
+                        jurisdiction=jurisdiction,
+                        scan_forward=scan_forward,
+                        pagination=body.get('pagination')
+                    )
+                }
+            case 'dateOfUpdate':
+                resp = {
+                    'query': query,
+                    'sorting': {
+                        'key': 'dateOfUpdate',
+                        'direction': sort_direction
+                    },
+                    **config.data_client.get_licenses_sorted_by_date_updated(
+                        compact=compact,
+                        jurisdiction=jurisdiction,
+                        scan_forward=scan_forward,
+                        pagination=body.get('pagination')
+                    )
+                }
+            case _:
+                # This shouldn't happen unless our api validation gets misconfigured
+                raise CCInvalidRequestException(f"Invalid sort key: '{key}'")
+    # Convert generic field to more specific one for this API
+    resp['providers'] = resp.pop('items', [])
+    return resp
 
 
 @api_handler

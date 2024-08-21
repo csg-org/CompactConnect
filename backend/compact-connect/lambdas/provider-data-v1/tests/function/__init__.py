@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from datetime import datetime, UTC, timedelta
+from glob import glob
 from random import randint, choice
 from string import ascii_letters
 from unittest.mock import patch
@@ -116,7 +117,29 @@ class TstFunction(TstLambdas):
             Name=os.environ['EVENT_BUS_NAME']
         )
 
-    def _generate_licensees(self, *, home: str, privilege: str, start_serial: int):
+    def _load_provider_data(self):
+        """
+        Use the canned test resources to load a basic provider to the DB
+        :return:
+        """
+
+        test_resources = glob('tests/resources/dynamo/*.json')
+
+        def provider_jurisdictions_to_set(obj: dict):
+            if obj['type'] == 'provider' and 'providerJurisdictions' in obj.keys():
+                obj['providerJurisdictions'] = set(obj['providerJurisdictions'])
+            return obj
+
+        for resource in test_resources:
+            with open(resource, 'r') as f:
+                record = json.load(f, object_hook=provider_jurisdictions_to_set)
+
+            logger.debug("Loading resource, %s: %s", resource, str(record))
+            self._table.put_item(
+                Item=record
+            )
+
+    def _generate_providers(self, *, home: str, privilege: str, start_serial: int):
         """
         Generate 10 providers with one license and one privilege
         :param home: The jurisdiction for the license

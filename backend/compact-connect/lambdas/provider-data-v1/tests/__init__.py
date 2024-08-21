@@ -18,7 +18,6 @@ class TstLambdas(TestCase):
             'PROVIDER_TABLE_NAME': 'provider-table',
             'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
             'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
-            'SSN_INDEX_NAME': 'ssn',
             'COMPACTS': '["aslp", "octp", "coun"]',
             'JURISDICTIONS': '["ne", "oh"]',
             'LICENSE_TYPES': json.dumps({

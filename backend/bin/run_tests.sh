@@ -8,7 +8,7 @@ REPORT="$1"
 )
 for dir in \
   compact-connect/lambdas/license-data \
-  compact-connect/lambdas/license-data-v1 \
+  compact-connect/lambdas/provider-data-v1 \
   compact-connect/lambdas/board-user-pre-token \
   compact-connect/lambdas/staff-user-pre-token \
   compact-connect/lambdas/delete-objects \

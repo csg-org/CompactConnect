@@ -14,7 +14,7 @@ class TestCSVParser(TstLambdas):
             for license_row in reader.licenses(f):
                 validated = schema.load({
                     'compact': 'aslp',
-                    'jurisdiction': 'al',
+                    'jurisdiction': 'oh',
                     **license_row
                 })
                 logger.debug('Read validated license', license_data=reader.schema.dump(validated))

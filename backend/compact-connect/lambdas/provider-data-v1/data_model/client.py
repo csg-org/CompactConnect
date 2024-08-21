@@ -118,12 +118,16 @@ class DataClient():
             scan_forward: bool = True
     ):  # pylint: disable-redefined-outer-name
         logger.info('Getting licenses by family name')
+        if jurisdiction is not None:
+            filter_expression = Attr('licenseJurisdiction').eq(jurisdiction) \
+                | Attr('privilegeJurisdictions').contains(jurisdiction)
+        else:
+            filter_expression = None
         return config.provider_table.query(
             IndexName=config.date_of_update_index_name,
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('sk').eq(f'{compact}#PROVIDER'),
-            FilterExpression=Attr('licenseJurisdiction').eq(jurisdiction)
-            | Attr('privilegeJurisdictions').contains(jurisdiction),
+            FilterExpression=filter_expression,
             ScanIndexForward=scan_forward,
             **dynamo_pagination
         )

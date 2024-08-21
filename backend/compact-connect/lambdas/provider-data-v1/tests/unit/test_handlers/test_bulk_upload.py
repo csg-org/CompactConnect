@@ -129,7 +129,7 @@ class TestProcessBulkUploadFile(TstLambdas):
 
             stream = StreamingBody(f, content_length)
 
-            process_bulk_upload_file(stream, 'aslp/co/1234')
+            process_bulk_upload_file(stream, 'aslp/oh/1234')
 
         # Collect events put for inspection
         detail_types = {
@@ -173,7 +173,7 @@ class TestProcessBulkUploadFile(TstLambdas):
 
         stream = StreamingBody(BytesIO(mangled_data), content_length)
 
-        process_bulk_upload_file(stream, 'aslp/co/1234')
+        process_bulk_upload_file(stream, 'aslp/oh/1234')
 
         # Collect events put for inspection
         # There should be three successful ingest events and two failures

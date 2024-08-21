@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration
-from aws_cdk.aws_apigateway import Resource, MethodResponse, MockIntegration, IntegrationResponse, JsonSchema, \
+from aws_cdk.aws_apigateway import Resource, MethodResponse, JsonSchema, \
     JsonSchemaType, MethodOptions, AuthorizationType, Model, LambdaIntegration
 from aws_cdk.aws_events import EventBus
 from cdk_nag import NagSuppressions
@@ -11,7 +11,7 @@ from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 # Importing module level to allow lazy loading for typing
-from . import cc_api
+from .. import cc_api
 
 
 class PostLicenses:
@@ -20,7 +20,6 @@ class PostLicenses:
             resource: Resource,
             method_options: MethodOptions,
             event_bus: EventBus,
-            mock_resource: bool = True
     ):
         super().__init__()
 
@@ -28,13 +27,10 @@ class PostLicenses:
         self.api: cc_api.CCApi = resource.api
         self.log_groups = []
 
-        if mock_resource:
-            self._add_mock_post_license(method_options=method_options)
-        else:
-            self._add_post_license(
-                method_options=method_options,
-                event_bus=event_bus
-            )
+        self._add_post_license(
+            method_options=method_options,
+            event_bus=event_bus
+        )
         self.api.log_groups.extend(self.log_groups)
 
     def _add_post_license(
@@ -68,42 +64,6 @@ class PostLicenses:
             authorization_scopes=method_options.authorization_scopes
         )
 
-    def _add_mock_post_license(self, method_options: MethodOptions):
-        self.resource.add_method(
-            'POST',
-            request_validator=self.api.parameter_body_validator,
-            request_models={
-                'application/json': self.post_license_model
-            },
-            method_responses=[
-                MethodResponse(
-                    status_code='200',
-                    response_models={
-                        'application/json': self.api.message_response_model
-                    }
-                )
-            ],
-            integration=MockIntegration(
-                request_templates={
-                    'application/json': '{"statusCode": 200}'
-                },
-                integration_responses=[
-                    IntegrationResponse(
-                        status_code='200',
-                        response_templates={
-                            'application/json': '{"message": "OK"}'
-                        }
-                    )
-                ]
-            ),
-            request_parameters={
-                'method.request.header.Authorization': True
-            } if method_options.authorization_type != AuthorizationType.NONE else {},
-            authorization_type=method_options.authorization_type,
-            authorizer=method_options.authorizer,
-            authorization_scopes=method_options.authorization_scopes
-        )
-
     @property
     def post_license_model(self) -> Model:
         """
@@ -125,9 +85,10 @@ class PostLicenses:
                         'givenName',
                         'familyName',
                         'dateOfBirth',
-                        'homeStateStreet1',
-                        'homeStateCity',
-                        'homeStatePostalCode',
+                        'homeAddressStreet1',
+                        'homeAddressCity',
+                        'homeAddressState',
+                        'homeAddressPostalCode',
                         'licenseType',
                         'dateOfIssuance',
                         'dateOfRenewal',
@@ -135,7 +96,7 @@ class PostLicenses:
                         'status'
                     ],
                     additional_properties=False,
-                    properties=self.api.v0_common_license_properties
+                    properties=self.api.v1_common_license_properties
                 )
             )
         )
@@ -147,9 +108,9 @@ class PostLicenses:
     ) -> PythonFunction:
         stack: Stack = Stack.of(self.resource)
         handler = PythonFunction(
-            self.api, 'PostLicensesHandler',
+            self.api, 'V1PostLicensesHandler',
             description='Post licenses handler',
-            entry=os.path.join('lambdas', 'license-data'),
+            entry=os.path.join('lambdas', 'provider-data-v1'),
             index=os.path.join('handlers', 'licenses.py'),
             handler='post_licenses',
             environment={

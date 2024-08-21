@@ -30,6 +30,9 @@ class ResponseEncoder(JSONEncoder):
         if isinstance(o, date):
             return o.isoformat()
 
+        if isinstance(o, set):
+            return list(o)
+
         # This is just a catch-all that shouldn't realistically ever be reached.
         return super().default(o)
 
@@ -108,8 +111,11 @@ def api_handler(fn: Callable):
     return caught_handler
 
 
-class scope_by_path:  # pylint: disable=invalid-name
-    def __init__(self, *, resource_parameter: str, scope_parameter: str, action: str):
+class authorize_compact_jurisdiction:  # pylint: disable=invalid-name
+    """
+    Authorize endpoint by matching path parameters compact and jurisdiction to the expected scope. (i.e. aslp/oh.write)
+    """
+    def __init__(self, action: str):
         """
         Decorator to wrap scope-based authorization, for a scope like '{resource_server}/{scope}.{action}'.
 
@@ -126,8 +132,9 @@ class scope_by_path:  # pylint: disable=invalid-name
         :param str scope_parameter: The path parameter to use for the scope portion of a resource/scope requirement
         :param str action: The additional 'action' portion of the resource/scope requirement.
         """
-        self.resource_parameter = resource_parameter
-        self.scope_parameter = scope_parameter
+        super().__init__()
+        self.resource_parameter = 'compact'
+        self.scope_parameter = 'jurisdiction'
         self.action = action
 
     def __call__(self, fn: Callable):
@@ -137,9 +144,9 @@ class scope_by_path:  # pylint: disable=invalid-name
             try:
                 scope_value = event['pathParameters'][self.scope_parameter]
                 resource_value = event['pathParameters'][self.resource_parameter]
-            except KeyError:
+            except KeyError as e:
                 logger.error('Access attempt with missing path parameters!')
-                raise CCInvalidRequestException('Missing path parameter!')
+                raise CCInvalidRequestException('Missing path parameter!') from e
 
             logger.debug(
                 'Checking authorizer context',
@@ -149,9 +156,45 @@ class scope_by_path:  # pylint: disable=invalid-name
                 scopes = event['requestContext']['authorizer']['claims']['scope'].split(' ')
             except KeyError as e:
                 logger.error('Unauthorized access attempt!', exc_info=e)
-                raise CCUnauthorizedException('Unauthorized access attempt!')
+                raise CCUnauthorizedException('Unauthorized access attempt!') from e
 
             required_scope = f'{resource_value}/{scope_value}.{self.action}'
+            if required_scope not in scopes:
+                logger.warning('Forbidden access attempt!')
+                raise CCAccessDeniedException('Forbidden access attempt!')
+            return fn(event, context)
+        return authorized
+
+
+class authorize_compact:  # pylint: disable=invalid-name
+    """
+    Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/read)
+    """
+    def __init__(self, action: str):
+        super().__init__()
+        self.action = action
+
+    def __call__(self, fn: Callable):
+        @wraps(fn)
+        @logger.inject_lambda_context
+        def authorized(event: dict, context: LambdaContext):
+            try:
+                resource_value = event['pathParameters']['compact']
+            except KeyError as e:
+                logger.error('Access attempt with missing path parameter!')
+                raise CCInvalidRequestException('Missing path parameter!') from e
+
+            logger.debug(
+                'Checking authorizer context',
+                request_context=event['requestContext']
+            )
+            try:
+                scopes = event['requestContext']['authorizer']['claims']['scope'].split(' ')
+            except KeyError as e:
+                logger.error('Unauthorized access attempt!', exc_info=e)
+                raise CCUnauthorizedException('Unauthorized access attempt!') from e
+
+            required_scope = f'{resource_value}/{self.action}'
             if required_scope not in scopes:
                 logger.warning('Forbidden access attempt!')
                 raise CCAccessDeniedException('Forbidden access attempt!')

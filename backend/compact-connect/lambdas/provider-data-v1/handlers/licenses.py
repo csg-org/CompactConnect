@@ -6,15 +6,15 @@ from marshmallow import ValidationError
 from data_model.schema.license import LicensePostSchema
 from event_batch_writer import EventBatchWriter
 from exceptions import CCInvalidRequestException, CCInternalException
-from handlers.utils import api_handler, scope_by_path
+from handlers.utils import api_handler, authorize_compact_jurisdiction
 from config import config, logger
 
 
 schema = LicensePostSchema()
 
 
-@scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact', action='write')
 @api_handler
+@authorize_compact_jurisdiction(action='write')
 def post_licenses(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
     """
     Synchronously validate and submit an array of licenses
@@ -42,7 +42,7 @@ def post_licenses(event: dict, context: LambdaContext):  # pylint: disable=unuse
             event_writer.put_event(
                 Entry={
                     'Source': 'org.compactconnect.licenses',
-                    'DetailType': 'license-ingest',
+                    'DetailType': 'license-ingest-v1',
                     'Detail': json.dumps({
                         'compact': compact,
                         'jurisdiction': jurisdiction,

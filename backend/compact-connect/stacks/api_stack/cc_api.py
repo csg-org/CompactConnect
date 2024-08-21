@@ -22,7 +22,9 @@ from common_constructs.webacl import WebACL, WebACLScope
 from stacks.api_stack.mock_api import MockApi
 from stacks import persistent_stack as ps
 from stacks.api_stack.v0_api import V0Api
+from stacks.api_stack.v1_api import V1Api
 
+MD_FORMAT = '^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
 YMD_FORMAT = '^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
 SSN_FORMAT = '^[0-9]{3}-[0-9]{2}-[0-9]{4}$'
 UUID4_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}'
@@ -56,7 +58,7 @@ class NagSuppressOptionsNotAuthorized:
 
 
 class CCApi(RestApi):
-    def __init__(  # pylint: disable=too-many-locals
+    def __init__(
             self, scope: Construct, construct_id: str, *,
             environment_name: str,
             persistent_stack: ps.PersistentStack,
@@ -167,6 +169,7 @@ class CCApi(RestApi):
 
         MockApi(self.root, persistent_stack=persistent_stack)
         V0Api(self.root, persistent_stack=persistent_stack)
+        V1Api(self.root, persistent_stack=persistent_stack)
 
         QueryDefinition(
             self, 'RuntimeQuery',
@@ -364,6 +367,282 @@ class CCApi(RestApi):
                     pattern=YMD_FORMAT
                 ),
                 **self.v0_common_license_properties
+            }
+        )
+
+    @property
+    def v1_common_license_properties(self) -> dict:
+        stack: AppStack = AppStack.of(self)
+
+        return {
+            'ssn': JsonSchema(
+                type=JsonSchemaType.STRING,
+                pattern=SSN_FORMAT
+            ),
+            'npi': JsonSchema(
+                type=JsonSchemaType.STRING,
+                pattern='^[0-9]{10}$'
+            ),
+            'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'middleName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'dateOfBirth': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='date',
+                pattern=YMD_FORMAT
+            ),
+            'homeAddressStreet1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
+            'homeAddressStreet2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'homeAddressCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
+            'homeAddressState': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
+            'homeAddressPostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
+            'licenseType': JsonSchema(
+                type=JsonSchemaType.STRING,
+                enum=stack.license_types
+            ),
+            'dateOfIssuance': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='date',
+                pattern=YMD_FORMAT
+            ),
+            'dateOfRenewal': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='date',
+                pattern=YMD_FORMAT
+            ),
+            'dateOfExpiration': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='date',
+                pattern=YMD_FORMAT
+            ),
+            'status': JsonSchema(
+                type=JsonSchemaType.STRING,
+                enum=[
+                    'active',
+                    'inactive'
+                ]
+            ),
+            'militaryWaiver': JsonSchema(
+                type=JsonSchemaType.BOOLEAN,
+            )
+        }
+
+    @property
+    def v1_common_privilege_properties(self) -> dict:
+        stack: AppStack = AppStack.of(self)
+
+        return {
+            'type': JsonSchema(
+                type=JsonSchemaType.STRING,
+                enum=['privilege']
+            ),
+            'providerId': JsonSchema(
+                type=JsonSchemaType.STRING,
+                pattern=UUID4_FORMAT
+            ),
+            'compact': JsonSchema(
+                type=JsonSchemaType.STRING,
+                enum=stack.node.get_context('compacts')
+            ),
+            'licenseJurisdiction': JsonSchema(
+                type=JsonSchemaType.STRING,
+                enum=stack.node.get_context('jurisdictions')
+            ),
+            'status': JsonSchema(
+                type=JsonSchemaType.STRING,
+                enum=[
+                    'active',
+                    'inactive'
+                ]
+            ),
+            'dateOfIssuance': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='date',
+                pattern=YMD_FORMAT
+            ),
+            'dateOfUpdate': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='date',
+                pattern=YMD_FORMAT
+            ),
+            'dateOfExpiration': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='date',
+                pattern=YMD_FORMAT
+            )
+        }
+
+    @property
+    def v1_common_provider_properties(self) -> dict:
+        stack: AppStack = AppStack.of(self)
+
+        return {
+            'type': JsonSchema(
+                type=JsonSchemaType.STRING,
+                enum=['provider']
+            ),
+            'providerId': JsonSchema(
+                type=JsonSchemaType.STRING,
+                pattern=UUID4_FORMAT
+            ),
+            'ssn': JsonSchema(
+                type=JsonSchemaType.STRING,
+                pattern=SSN_FORMAT
+            ),
+            'npi': JsonSchema(
+                type=JsonSchemaType.STRING,
+                pattern='^[0-9]{10}$'
+            ),
+            'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'middleName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'licenseType': JsonSchema(
+                type=JsonSchemaType.STRING,
+                enum=stack.license_types
+            ),
+            'status': JsonSchema(
+                type=JsonSchemaType.STRING,
+                enum=[
+                    'active',
+                    'inactive'
+                ]
+            ),
+            'compact': JsonSchema(
+                type=JsonSchemaType.STRING,
+                enum=stack.node.get_context('compacts')
+            ),
+            'licenseJurisdiction': JsonSchema(
+                type=JsonSchemaType.STRING,
+                enum=stack.node.get_context('jurisdictions')
+            ),
+            'privilegeJurisdictions': JsonSchema(
+                type=JsonSchemaType.ARRAY,
+                items=JsonSchema(
+                    type=JsonSchemaType.STRING,
+                    enum=stack.node.get_context('jurisdictions')
+                )
+            ),
+            'homeAddressStreet1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
+            'homeAddressStreet2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'homeAddressCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
+            'homeAddressState': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
+            'homeAddressPostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
+            'militaryWaiver': JsonSchema(
+                type=JsonSchemaType.BOOLEAN,
+            ),
+            'birthMonthDay': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='date',
+                pattern=MD_FORMAT
+            ),
+            'dateOfBirth': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='date',
+                pattern=YMD_FORMAT
+            ),
+            'dateOfUpdate': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='date',
+                pattern=YMD_FORMAT
+            ),
+            'dateOfExpiration': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='date',
+                pattern=YMD_FORMAT
+            )
+        }
+
+    @property
+    def v1_providers_response_schema(self):
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            required=[
+                'type',
+                'providerId',
+                'ssn',
+                'givenName',
+                'familyName',
+                'licenseType',
+                'status',
+                'compact',
+                'licenseJurisdiction',
+                'privilegeJurisdictions',
+                'homeAddressStreet1',
+                'homeAddressCity',
+                'homeAddressPostalCode',
+                'dateOfBirth',
+                'dateOfUpdate',
+                'dateOfExpiration',
+                'birthMonthDay'
+            ],
+            properties=self.v1_common_provider_properties
+        )
+
+    @property
+    def v1_provider_detail_response_schema(self):
+        stack: AppStack = AppStack.of(self)
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            required=[
+                'type',
+                'providerId',
+                'ssn',
+                'givenName',
+                'familyName',
+                'licenseType',
+                'status',
+                'compact',
+                'licenseJurisdiction',
+                'privilegeJurisdictions',
+                'homeAddressStreet1',
+                'homeAddressCity',
+                'homeAddressPostalCode',
+                'dateOfBirth',
+                'dateOfUpdate',
+                'dateOfExpiration',
+                'birthMonthDay',
+                'licenses',
+                'privileges'
+            ],
+            properties={
+                'licenses': JsonSchema(
+                    type=JsonSchemaType.ARRAY,
+                    items=JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        properties={
+                            'type': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                enum=['license-home']
+                            ),
+                            'providerId': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                pattern=UUID4_FORMAT
+                            ),
+                            'compact': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                enum=stack.node.get_context('compacts')
+                            ),
+                            'jurisdiction': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                enum=stack.node.get_context('jurisdictions')
+                            ),
+                            'dateOfUpdate': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                format='date',
+                                pattern=YMD_FORMAT
+                            ),
+                            **self.v1_common_license_properties
+                        }
+                    )
+                ),
+                'privileges': JsonSchema(
+                    type=JsonSchemaType.ARRAY,
+                    items=JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        properties=self.v1_common_privilege_properties
+                    )
+                ),
+                **self.v1_common_provider_properties
             }
         )
 

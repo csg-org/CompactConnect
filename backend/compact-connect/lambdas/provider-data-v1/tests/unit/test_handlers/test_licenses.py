@@ -18,9 +18,12 @@ class TestPostLicenses(TstLambdas):
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
 
+        # The user has scopes for oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write aslp/oh.write'
+
         event['pathParameters'] = {
             'compact': 'aslp',
-            'jurisdiction': 'al'
+            'jurisdiction': 'oh'
         }
 
         with open('tests/resources/api/license-post.json', 'r') as f:
@@ -39,19 +42,43 @@ class TestPostLicenses(TstLambdas):
             for entry in call.kwargs['Entries']
         ]
         self.assertEqual(1, len(entries))
-        self.assertEqual('license-ingest', entries[0]['DetailType'])
+        self.assertEqual('license-ingest-v1', entries[0]['DetailType'])
 
     @patch('handlers.licenses.config', autospec=True)
-    def test_not_authorized(self, mock_config):  # pylint: disable=unused-argument
+    def test_cross_compact(self, mock_config):  # pylint: disable=unused-argument
         from handlers.licenses import post_licenses
 
-        # The sample event has scopes for aslp/al not aslp/co
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
 
+        # The user has scopes for aslp, not octp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write aslp/oh.write'
+
+        event['pathParameters'] = {
+            'compact': 'octp',
+            'jurisdiction': 'oh'
+        }
+
+        with open('tests/resources/api/license-post.json', 'r') as f:
+            event['body'] = json.dumps([json.load(f)])
+
+        resp = post_licenses(event, self.mock_context)
+
+        self.assertEqual(403, resp['statusCode'])
+
+    @patch('handlers.licenses.config', autospec=True)
+    def test_wrong_jurisdiction(self, mock_config):  # pylint: disable=unused-argument
+        from handlers.licenses import post_licenses
+
+        with open('tests/resources/api-event.json', 'r') as f:
+            event = json.load(f)
+
+        # The user has scopes for oh, not ne
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write aslp/oh.write'
+
         event['pathParameters'] = {
             'compact': 'aslp',
-            'jurisdiction': 'co'
+            'jurisdiction': 'ne'
         }
 
         with open('tests/resources/api/license-post.json', 'r') as f:
@@ -84,9 +111,12 @@ class TestPostLicenses(TstLambdas):
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
 
+        # The user has scopes for oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write aslp/oh.write'
+
         event['pathParameters'] = {
             'compact': 'aslp',
-            'jurisdiction': 'al'
+            'jurisdiction': 'oh'
         }
 
         with open('tests/resources/api/license-post.json', 'r') as f:

@@ -11,12 +11,12 @@ from config import logger, config
 from data_model.schema.license import LicensePostSchema, LicensePublicSchema
 from event_batch_writer import EventBatchWriter
 from exceptions import CCInternalException
-from handlers.utils import scope_by_path, api_handler, ResponseEncoder
+from handlers.utils import api_handler, ResponseEncoder, authorize_compact_jurisdiction
 from license_csv_reader import LicenseCSVReader
 
 
-@scope_by_path(resource_parameter='compact', scope_parameter='jurisdiction', action='write')
 @api_handler
+@authorize_compact_jurisdiction(action='write')
 def bulk_upload_url_handler(event: dict, context: LambdaContext):
     """
     Generate a pre-signed POST to the bulk-upload s3 bucket
