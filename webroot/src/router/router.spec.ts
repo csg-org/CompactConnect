@@ -15,6 +15,7 @@ const { expect } = chai;
 
 describe('Router Guards', () => {
     it('should successfully return authentication guard', () => {
+        // authGuard() has special handling for test-runner - expect `true` result here.
         const result = guards.authGuard();
 
         expect(result).to.equal(true);
