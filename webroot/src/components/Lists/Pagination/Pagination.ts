@@ -34,12 +34,16 @@ const createPaginationItem = (pageNum, currentPage) => ({
         InputSelect,
         LeftCaretIcon,
         RightCaretIcon
-    }
+    },
 })
 export default class Pagination extends mixins(MixinForm) {
-    @Prop({ required: true }) private pageChange!: (firstIndex: number, lastIndexExclusive: number) => any;
+    @Prop({ required: true }) private pageChange!:
+        (firstIndex: number, lastIndexExclusive: number, prevNext: number) => any;
+
     @Prop({ required: true }) private listSize!: number;
     @Prop({ required: true }) private paginationId!: string;
+    @Prop({ required: true }) pagingPrevKey!: string | null;
+    @Prop({ required: true }) pagingNextKey!: string | null;
     @Prop() private pageSizeConfig?: Array<{ value: number; name: string; isDefault?: boolean }>;
     @Prop() private ariaLabel?: string;
 
@@ -93,7 +97,7 @@ export default class Pagination extends mixins(MixinForm) {
         const firstIndex = (currentPage - 1) * pageSize;
         const lastIndex = currentPage * pageSize;
 
-        pageChange(firstIndex, lastIndex);
+        pageChange(firstIndex, lastIndex, 0);
     }
 
     //
@@ -116,76 +120,25 @@ export default class Pagination extends mixins(MixinForm) {
         return (pagination) ? pagination.page : DEFAULT_PAGE;
     }
 
-    get pageSize() {
+    get pageSize(): number {
         const pagination = this.paginationStore.paginationMap[this.paginationId];
 
         return (pagination) ? pagination.size : this.defaultPageSize;
     }
 
-    get pageCount() {
+    get pageCount(): number {
         return Math.ceil(this.listSize / this.pageSize);
     }
 
-    get isFirstPage() {
+    get isFirstPage(): boolean {
         return this.currentPage === 1;
     }
 
-    get isLastPage() {
+    get isLastPage(): boolean {
         return this.currentPage === this.pageCount;
     }
 
-    // Temp for limited server paging support
-    // get pages() {
-    //     const { currentPage, pageCount, ellipsis } = this;
-    //
-    //     const visiblePagesCount = Math.min(MAX_PAGES_VISIBLE, pageCount) || 1;
-    //     const visiblePagesThreshold = (visiblePagesCount - 1) / 2;
-    //     const tempArray = Array(visiblePagesCount - 1);
-    //     const paginationDisplaysArray = [...tempArray.keys()].map((i) => i + 1);
-    //     const firstPage = () => createPaginationItem(1, currentPage);
-    //     const lastPage = () => createPaginationItem(pageCount, currentPage);
-    //     let pageItems;
-    //
-    //     if (pageCount <= MAX_PAGES_VISIBLE) {
-    //         pageItems = paginationDisplaysArray.map((index) => {
-    //             const item = createPaginationItem(index, currentPage);
-    //
-    //             return item;
-    //         });
-    //         pageItems.push(lastPage());
-    //     } else if (currentPage <= visiblePagesThreshold) {
-    //         pageItems = paginationDisplaysArray.map((index) => {
-    //             const item = createPaginationItem(index, currentPage);
-    //
-    //             return item;
-    //         });
-    //         pageItems[pageItems.length - 1] = ellipsis(0);
-    //         pageItems.push(lastPage());
-    //     } else if (currentPage > pageCount - visiblePagesThreshold) {
-    //         pageItems = paginationDisplaysArray.map((paginationDisplay, index) => {
-    //             const item = createPaginationItem(pageCount - index, currentPage);
-    //
-    //             return item;
-    //         });
-    //         pageItems.reverse();
-    //         pageItems[0] = ellipsis(0);
-    //         pageItems.unshift(firstPage());
-    //     } else {
-    //         pageItems = [];
-    //         pageItems.push(firstPage());
-    //         pageItems.push(ellipsis(0));
-    //         pageItems.push(createPaginationItem(currentPage - 1, currentPage));
-    //         pageItems.push(createPaginationItem(currentPage, currentPage));
-    //         pageItems.push(createPaginationItem(currentPage + 1, currentPage));
-    //         pageItems.push(ellipsis(-1));
-    //         pageItems.push(lastPage());
-    //     }
-    //
-    //     return pageItems;
-    // }
-
-    // Temp for limited server paging support
-    get pages() {
+    get pages(): Array<object> {
         const { currentPage, ellipsis } = this;
         const pageItems: Array<any> = [];
 
@@ -214,7 +167,7 @@ export default class Pagination extends mixins(MixinForm) {
             const newFirstIndex = 1 - 1;
 
             $store.dispatch('pagination/updatePaginationPage', { paginationId, newPage: 1 });
-            pageChange(newFirstIndex, newFirstIndex + pageSize);
+            pageChange(newFirstIndex, newFirstIndex + pageSize, 0);
         });
     }
 
@@ -236,13 +189,13 @@ export default class Pagination extends mixins(MixinForm) {
         });
     }
 
-    setPage(newPage) {
+    setPage(newPage: number, increment = 0) {
         const { pageSize } = this;
         const zeroBasedIndex = (newPage - 1) * pageSize;
 
         if (this.currentPage !== newPage) {
             this.$store.dispatch('pagination/updatePaginationPage', { paginationId: this.paginationId, newPage });
-            this.pageChange(zeroBasedIndex, zeroBasedIndex + pageSize);
+            this.pageChange(zeroBasedIndex, zeroBasedIndex + pageSize, increment);
         }
     }
 
@@ -265,6 +218,6 @@ export default class Pagination extends mixins(MixinForm) {
         }
 
         $store.dispatch('pagination/updatePaginationSize', { paginationId, newSize });
-        pageChange(newFirstIndex, newFirstIndex + newSize);
+        pageChange(newFirstIndex, newFirstIndex + newSize, 0);
     }
 }

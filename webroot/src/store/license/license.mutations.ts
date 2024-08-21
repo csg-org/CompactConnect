@@ -9,6 +9,7 @@ export enum MutationTypes {
     GET_LICENSEES_REQUEST = '[License] Get Licensees Request',
     GET_LICENSEES_FAILURE = '[License] Get Licensees Failure',
     GET_LICENSEES_SUCCESS = '[License] Get Licensees Success',
+    STORE_UPDATE_PREVLASTKEY = '[License] Updated previous last paging key in store',
     STORE_UPDATE_LASTKEY = '[License] Updated last paging key in store',
     STORE_UPDATE_COUNT = '[License] Updated total count in store',
     STORE_SET_LICENSEES = '[License] Set Licensees in store',
@@ -32,6 +33,9 @@ export default {
     [MutationTypes.GET_LICENSEES_SUCCESS]: (state: any) => {
         state.isLoading = false;
         state.error = null;
+    },
+    [MutationTypes.STORE_UPDATE_PREVLASTKEY]: (state: any, prevLastKey: string | null) => {
+        state.prevLastKey = prevLastKey;
     },
     [MutationTypes.STORE_UPDATE_LASTKEY]: (state: any, lastKey: string | null) => {
         state.lastKey = lastKey;

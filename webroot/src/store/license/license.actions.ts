@@ -13,18 +13,19 @@ export default {
     getLicenseesRequest: async ({ commit, getters, dispatch }, { params }: any) => {
         commit(MutationTypes.GET_LICENSEES_REQUEST);
 
-        // Temp for limited server paging support
         if (params?.getNextPage) {
             params.lastKey = getters.lastKey;
+        } else if (params?.getPrevPage) {
+            params.prevLastKey = getters.prevLastKey;
         }
 
-        await dataApi.getLicensees(params).then(async ({ lastKey, licensees }) => {
-            // Temp for limited server paging support
+        await dataApi.getLicensees(params).then(async ({ prevLastKey, lastKey, licensees }) => {
+            // Support for limited server paging support
             if (!licensees.length && params?.getNextPage) {
                 throw new Error('end of list');
             } else {
+                await dispatch('setStoreLicenseePrevLastKey', prevLastKey);
                 await dispatch('setStoreLicenseeLastKey', lastKey);
-                // await dispatch('setStoreLicenseeCount', totalCount);
                 await dispatch('setStoreLicensees', licensees);
             }
             dispatch('getLicenseesSuccess', licensees);
@@ -58,6 +59,9 @@ export default {
         commit(MutationTypes.GET_LICENSEE_FAILURE, error);
     },
     // SET THE STORE STATE
+    setStoreLicenseePrevLastKey: ({ commit }, prevLastKey) => {
+        commit(MutationTypes.STORE_UPDATE_PREVLASTKEY, prevLastKey);
+    },
     setStoreLicenseeLastKey: ({ commit }, lastKey) => {
         commit(MutationTypes.STORE_UPDATE_LASTKEY, lastKey);
     },

@@ -22,7 +22,7 @@ import CompactToggle from '@components/Lists/CompactToggle/CompactToggle.vue';
         Pagination,
         Sorting,
         CompactToggle,
-    }
+    },
 })
 class ListContainer extends mixins(MixinListManipulation) {
     @Prop({ required: true }) protected listData!: Array<any>; // Extending class should more specifically type

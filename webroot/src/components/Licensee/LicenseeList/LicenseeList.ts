@@ -30,6 +30,8 @@ class LicenseeList extends Vue {
     // Data
     //
     isInitialFetchCompleted = false;
+    prevKey = '';
+    nextKey = '';
 
     //
     // Lifecycle
@@ -157,14 +159,20 @@ class LicenseeList extends Vue {
             requestConfig.sortDirection = serverSortDirectionMap[direction];
         }
 
-        // Temp for limited server paging support
-        if (page && page !== 1 && !this.licenseStore.error) {
-            requestConfig.getNextPage = true;
+        // Handle prev / next pages for server paging keys
+        if (page && !this.licenseStore.error) {
+            if (this.nextKey && page !== 1) {
+                requestConfig.getNextPage = true;
+            } else if (this.prevKey) {
+                requestConfig.getPrevPage = true;
+            }
         }
 
         requestConfig.compact = this.userStore.currentCompact;
 
+        //
         // Temp for limited server filtering support
+        //
         requestConfig.jurisdiction = 'al';
 
         await this.$store.dispatch('license/getLicenseesRequest', {
@@ -175,8 +183,10 @@ class LicenseeList extends Vue {
             }
         });
 
-        // Temp for limited server paging support
-        if (this.licenseStore.error?.message === 'end of list' && page > 1) {
+        // Support for limited server paging support
+        if (this.licenseStore.error?.message === 'end of list') {
+            this.prevKey = '';
+            this.nextKey = '';
             await this.setDefaultPaging(true);
             await this.fetchListData();
         }
@@ -188,7 +198,18 @@ class LicenseeList extends Vue {
         }
     }
 
-    async paginationChange() {
+    async paginationChange(firstIdx, lastIdx, prevNext) {
+        if (prevNext === -1) {
+            this.prevKey = this.licenseStore.prevLastKey;
+            this.nextKey = '';
+        } else if (prevNext === 1) {
+            this.prevKey = '';
+            this.nextKey = this.licenseStore.lastKey;
+        } else {
+            this.prevKey = '';
+            this.nextKey = '';
+        }
+
         if (this.isInitialFetchCompleted) {
             await this.fetchListData();
         }
