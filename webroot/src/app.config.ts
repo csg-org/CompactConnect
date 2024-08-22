@@ -4,6 +4,23 @@
 //
 //  Created by InspiringApps on 4/27/21.
 //
+import sessionStorage from '@store/session.storage';
+
+// ====================
+// =   Auth storage   =
+// ====================
+export const authStorage = sessionStorage;
+export const tokens = {
+    staff: {
+        AUTH_TYPE: 'auth_type',
+        AUTH_TOKEN: 'auth_token_staff',
+        AUTH_TOKEN_TYPE: 'auth_token_type_staff',
+        AUTH_TOKEN_EXPIRY: 'auth_token_expiry_staff',
+        ID_TOKEN: 'id_token_staff',
+        REFRESH_TOKEN: 'refresh_token_staff',
+    },
+};
+export const AUTH_LOGIN_GOTO_PATH = 'login_goto';
 
 // ====================
 // =  User Languages  =
@@ -214,6 +231,9 @@ export const compacts = {
 };
 
 export default {
+    authStorage,
+    tokens,
+    AUTH_LOGIN_GOTO_PATH,
     languagesEnabled,
     defaultLanguage,
     serverDateFormat,

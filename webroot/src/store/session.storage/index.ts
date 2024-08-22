@@ -5,11 +5,6 @@
 //  Created by InspiringApps on 5/10/22.
 //
 
-//
-// Constants
-//
-// @TODO Define constants items here
-
 /**
  * Check if sessionStorage is available in the browser.
  * @return  TRUE if sessionStorage implementation is available.

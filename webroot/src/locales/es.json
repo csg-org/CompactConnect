@@ -372,6 +372,9 @@
     },
     "serverErrors": {
         "networkError": "Error de red",
+        "loginError": "Se produjo un error al iniciar sesión.",
+        "loginErrorActionPart1": "Intente",
+        "loginErrorActionPart2": "iniciar sesión nuevamente",
         "noRecords": "No hay registros que mostrar",
         "dobFormat": "La fecha de nacimiento debe estar en el formato MM/DD/AAAA y debe ser una fecha real que existió.",
         "dobMaxDate": "La fecha de nacimiento debe ser anterior o igual al día de hoy.",

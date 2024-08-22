@@ -7,7 +7,10 @@
 
 import { dataApi } from '@network/data.api';
 import { config } from '@plugins/EnvConfig/envConfig.plugin';
-import localStorage, { AUTH_TOKEN } from '@store/local.storage';
+import { authStorage, tokens } from '@/app.config';
+import localStorage from '@store/local.storage';
+import moment from 'moment';
+import axios from 'axios';
 import { MutationTypes } from './user.mutations';
 
 export default {
@@ -21,9 +24,8 @@ export default {
     loginRequest: ({ commit }) => {
         commit(MutationTypes.LOGIN_REQUEST);
     },
-    loginSuccess: async ({ commit, dispatch }) => {
+    loginSuccess: async ({ commit }) => {
         commit(MutationTypes.LOGIN_SUCCESS);
-        await dispatch('getAccountRequest');
     },
     loginFailure: async ({ commit }, error: Error) => {
         commit(MutationTypes.LOGIN_FAILURE, error);
@@ -74,14 +76,94 @@ export default {
     resetStoreUser: ({ commit }) => {
         commit(MutationTypes.STORE_RESET_USER);
     },
+    storeAuthTokensStaff: ({ dispatch }, tokenResponse) => {
+        const {
+            access_token: accessToken,
+            token_type: tokenType,
+            expires_in: expiresIn,
+            id_token: idToken,
+            refresh_token: refreshToken,
+        } = tokenResponse || {};
+
+        authStorage.setItem(tokens.staff.AUTH_TYPE, 'staff');
+
+        if (accessToken) {
+            authStorage.setItem(tokens.staff.AUTH_TOKEN, accessToken);
+        }
+
+        if (tokenType) {
+            authStorage.setItem(tokens.staff.AUTH_TOKEN_TYPE, tokenType);
+        }
+
+        if (refreshToken) {
+            authStorage.setItem(tokens.staff.REFRESH_TOKEN, refreshToken);
+        }
+
+        if (expiresIn) {
+            const expiry = moment().add(expiresIn, 'seconds').format('YYYY-MM-DD:HH:mm:ss');
+
+            authStorage.setItem(tokens.staff.AUTH_TOKEN_EXPIRY, expiry);
+        }
+
+        if (idToken) {
+            authStorage.setItem(tokens.staff.ID_TOKEN, idToken);
+        }
+
+        dispatch('startRefreshTokenTimer');
+    },
+    startRefreshTokenTimer: ({ dispatch }) => {
+        const expiry = authStorage.getItem(tokens.staff.AUTH_TOKEN_EXPIRY);
+        const refreshToken = authStorage.getItem(tokens.staff.REFRESH_TOKEN);
+
+        if (expiry && refreshToken) {
+            const expiresIn = moment(expiry, 'YYYY-MM-DD:HH:mm:ss').diff(moment(), 'seconds');
+
+            dispatch('setRefreshTokenTimeout', { refreshToken, expiresIn });
+        }
+    },
+    setRefreshTokenTimeout: async ({ commit, dispatch }, { refreshToken, expiresIn }) => {
+        const { cognitoAuthDomainStaff, cognitoClientIdStaff } = config;
+        const params = new URLSearchParams();
+        const refreshInMs = moment().add(expiresIn, 'seconds').subtract(5, 'minutes').diff(moment(), 'milliseconds');
+        const refreshTokens = async () => {
+            let isError = false;
+
+            params.append('grant_type', 'refresh_token');
+            params.append('client_id', cognitoClientIdStaff || '');
+            params.append('refresh_token', refreshToken);
+
+            const { data } = await axios.post(`${cognitoAuthDomainStaff}/oauth2/token`, params).catch(() => {
+                isError = true;
+
+                return { data: {}};
+            });
+
+            if (!isError) {
+                dispatch('storeAuthTokensStaff', data);
+            }
+        };
+        const timeoutId = setTimeout(refreshTokens, refreshInMs);
+
+        commit(MutationTypes.SET_REFRESH_TIMEOUT_ID, timeoutId);
+    },
+    clearRefreshTokenTimeout: ({ commit, state }) => {
+        const { refreshTokenTimeoutId } = state;
+
+        clearTimeout(refreshTokenTimeoutId);
+        commit(MutationTypes.SET_REFRESH_TIMEOUT_ID, null);
+    },
     clearSessionStores: ({ dispatch }) => {
         dispatch('resetStoreUser');
+        dispatch('license/resetStoreLicense', null, { root: true });
         dispatch('pagination/resetStorePagination', null, { root: true });
         dispatch('sorting/resetStoreSorting', null, { root: true });
         dispatch('reset', null, { root: true });
     },
     clearAuthTokens: () => {
         /* istanbul ignore next */
-        localStorage.removeItem(AUTH_TOKEN); // Used by the mock or custom auth API
+        Object.keys(tokens.staff).forEach((key) => {
+            authStorage.removeItem(tokens.staff[key]);
+            localStorage.removeItem(tokens.staff[key]); // Always remove localStorage to reduce edge cache states; e.g. from switching auth storage
+        });
     },
 };
