@@ -24,7 +24,7 @@ coverage[toml]==7.6.1
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
-cyclonedx-python-lib==7.5.1
+cyclonedx-python-lib==7.6.0
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
@@ -40,7 +40,7 @@ iniconfig==2.0.0
     # via pytest
 isort==5.13.2
     # via pylint
-license-expression==30.3.0
+license-expression==30.3.1
     # via cyclonedx-python-lib
 markdown-it-py==3.0.0
     # via rich
@@ -100,7 +100,7 @@ sortedcontainers==2.4.0
     # via cyclonedx-python-lib
 toml==0.10.2
     # via pip-audit
-tomlkit==0.13.0
+tomlkit==0.13.2
     # via pylint
 urllib3==2.2.2
     # via requests
