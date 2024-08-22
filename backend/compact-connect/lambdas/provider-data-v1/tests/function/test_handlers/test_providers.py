@@ -269,6 +269,29 @@ class TestGetProvider(TstFunction):
         provider_data = json.loads(resp['body'])
         self.assertEqual(expected_provider, provider_data)
 
+    def test_get_provider_wrong_compact(self):
+        """
+        Provider detail response
+        """
+        self._load_provider_data()
+
+        from handlers.providers import get_provider
+
+        with open('tests/resources/api-event.json', 'r') as f:
+            event = json.load(f)
+
+        # The user has read permission for aslp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['pathParameters'] = {
+            'compact': 'octp',
+            'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'
+        }
+        event['queryStringParameters'] = None
+
+        resp = get_provider(event, self.mock_context)
+
+        self.assertEqual(403, resp['statusCode'])
+
     def test_get_provider_missing_provider_id(self):
         # Pre-load our license into the db
         with open('tests/resources/dynamo/license.json', 'r') as f:

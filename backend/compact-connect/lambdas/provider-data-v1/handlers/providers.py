@@ -87,6 +87,7 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
 
 
 @api_handler
+@authorize_compact(action='read')
 def get_provider(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
     """
     Return one provider's data

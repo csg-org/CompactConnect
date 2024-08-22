@@ -145,6 +145,7 @@ class TestTransformations(TstFunction):
             'compact': 'aslp',
             'providerId': provider_id
         }
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
 
         resp = get_provider(event, self.mock_context)
 
