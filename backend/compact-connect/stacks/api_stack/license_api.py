@@ -137,6 +137,28 @@ class LicenseApi(RestApi):
                 'application/json': '{"message": "$context.error.validationErrorString"}'
             }
         )
+        self.add_gateway_response(
+            'UnauthorizedResponse',
+            type=ResponseType.UNAUTHORIZED,
+            status_code='401',
+            response_headers={
+                'Access-Control-Allow-Origin': "'*'"
+            },
+            templates={
+                'application/json': '{"message": "Unauthorized"}'
+            }
+        )
+        self.add_gateway_response(
+            'AccessDeniedResponse',
+            type=ResponseType.ACCESS_DENIED,
+            status_code='403',
+            response_headers={
+                'Access-Control-Allow-Origin': "'*'"
+            },
+            templates={
+                'application/json': '{"message": "Access denied"}'
+            }
+        )
 
         mock_resource = self.root.add_resource('mock')
         noauth_method_options = MethodOptions(

@@ -54,6 +54,7 @@ const routes: Array<RouteConfig> = [
         path: '/:compact/StateUpload',
         name: 'StateUpload',
         component: () => import(/* webpackChunkName: "upload" */ '@pages/StateUpload/StateUpload.vue'),
+        meta: { requiresAuth: true },
     },
     {
         path: '/styleguide',
