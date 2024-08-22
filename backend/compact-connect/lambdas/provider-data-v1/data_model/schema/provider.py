@@ -56,7 +56,7 @@ class ProviderRecordSchema(BaseRecordSchema, ProviderPublicSchema):
     _record_type = 'provider'
 
     # Generated fields
-    privilegeJurisdictions = Set(String, required=False, allow_none=False)
+    privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = Date(required=True, allow_none=False)
 

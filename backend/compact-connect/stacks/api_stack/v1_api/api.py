@@ -41,7 +41,6 @@ class V1Api:
         # /v1/compacts/{compact}
         compact_resource = self.resource.add_resource('compacts').add_resource('{compact}')
 
-        # POST /v1/compacts/{compact}/providers
         # POST /v1/compacts/{compact}/providers/query
         # GET  /v1/compacts/{compact}/providers/{providerId}
         providers_resource = compact_resource.add_resource('providers')

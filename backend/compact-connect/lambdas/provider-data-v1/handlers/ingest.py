@@ -15,18 +15,12 @@ def ingest_license_message(message: dict):
     """
     For each message, validate the license data and persist it in the database
     """
-    detail = message['detail']
-    compact = detail.pop('compact')
-    jurisdiction = detail.pop('jurisdiction')
-
     # This should already have been validated at this point, before the data was ever sent for ingest,
     # but validation is cheap. We can do it again, just to protect ourselves from something unexpected
     # happening on the way here.
-    license_post = license_schema.load({
-        'compact': compact,
-        'jurisdiction': jurisdiction,
-        **detail
-    })
+    license_post = license_schema.load(message['detail'])
+    compact = license_post['compact']
+    jurisdiction = license_post['jurisdiction']
 
     provider_id = config.data_client.get_or_create_provider_id(compact=compact, ssn=license_post['ssn'])
     # Get all privilege jurisdictions, directly from privilege records
@@ -57,8 +51,10 @@ def ingest_license_message(message: dict):
     })))['M']
     # the dynamodb serializer will assume an empty set is type 'NS', so we have to specifically fix that case here
     try:
-        ns = provider_record['privilegeJurisdictions'].pop('NS')
-        provider_record['privilegeJurisdictions']['SS'] = ns
+        # If this doesn't raise a KeyError, it was added and is an empty set
+        provider_record['privilegeJurisdictions'].pop('NS')
+        # String Sets ('SS') aren't allowed to be empty in dynamo, so we'll have to drop the whole field
+        del provider_record['privilegeJurisdictions']
     except KeyError:
         # The record was already serialized as 'SS', so we don't need to fix it
         pass

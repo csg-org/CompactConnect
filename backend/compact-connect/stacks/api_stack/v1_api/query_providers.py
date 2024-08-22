@@ -4,7 +4,7 @@ import os
 
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import Resource, MethodResponse, JsonSchema, \
-    JsonSchemaType, MethodOptions, AuthorizationType, Model, LambdaIntegration
+    JsonSchemaType, MethodOptions, Model, LambdaIntegration
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 
@@ -39,13 +39,13 @@ class QueryProviders:
         self._add_query_providers(
             method_options=method_options,
             data_encryption_key=data_encryption_key,
-            license_data_table=provider_data_table,
+            provider_data_table=provider_data_table,
             lambda_environment=lambda_environment
         )
         self._add_get_provider(
             method_options=method_options,
             data_encryption_key=data_encryption_key,
-            license_data_table=provider_data_table,
+            provider_data_table=provider_data_table,
             lambda_environment=lambda_environment
         )
 
@@ -53,12 +53,12 @@ class QueryProviders:
             self,
             method_options: MethodOptions,
             data_encryption_key: IKey,
-            license_data_table: ProviderTable,
+            provider_data_table: ProviderTable,
             lambda_environment: dict
     ):
         handler = self._get_provider_handler(
             data_encryption_key=data_encryption_key,
-            license_data_table=license_data_table,
+            provider_data_table=provider_data_table,
             lambda_environment=lambda_environment
         )
         self.api.log_groups.append(handler.log_group)
@@ -70,7 +70,7 @@ class QueryProviders:
                 MethodResponse(
                     status_code='200',
                     response_models={
-                        'application/json': self._query_providers_response_model()
+                        'application/json': self._get_provider_response_model()
                     }
                 )
             ],
@@ -80,7 +80,7 @@ class QueryProviders:
             ),
             request_parameters={
                 'method.request.header.Authorization': True
-            } if method_options.authorization_type != AuthorizationType.NONE else {},
+            },
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,
             authorization_scopes=method_options.authorization_scopes
@@ -90,14 +90,14 @@ class QueryProviders:
             self,
             method_options: MethodOptions,
             data_encryption_key: IKey,
-            license_data_table: ProviderTable,
+            provider_data_table: ProviderTable,
             lambda_environment: dict
     ):
         query_resource = self.resource.add_resource('query')
 
         handler = self._query_providers_handler(
             data_encryption_key=data_encryption_key,
-            license_data_table=license_data_table,
+            provider_data_table=provider_data_table,
             lambda_environment=lambda_environment
         )
         self.api.log_groups.append(handler.log_group)
@@ -122,7 +122,7 @@ class QueryProviders:
             ),
             request_parameters={
                 'method.request.header.Authorization': True
-            } if method_options.authorization_type != AuthorizationType.NONE else {},
+            },
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,
             authorization_scopes=method_options.authorization_scopes
@@ -132,15 +132,17 @@ class QueryProviders:
     def _sorting_schema(self):
         return JsonSchema(
             type=JsonSchemaType.OBJECT,
-            description='Required if ssn is not provided',
+            description='How to sort results',
             required=['key'],
             properties={
                 'key': JsonSchema(
                     type=JsonSchemaType.STRING,
+                    description='The key to sort results by',
                     enum=['dateOfUpdate', 'familyName']
                 ),
                 'direction': JsonSchema(
                     type=JsonSchemaType.STRING,
+                    description='Direction to sort results by',
                     enum=['ascending', 'descending']
                 )
             }
@@ -180,9 +182,9 @@ class QueryProviders:
         """
         Return the query licenses request model, which should only be created once per API
         """
-        if not hasattr(self.api, 'query_providers_request_model'):
-            self.api.query_providers_request_model = self.api.add_model(
-                'QueryProvidersRequestModel',
+        if not hasattr(self.api, 'v1_query_providers_request_model'):
+            self.api.v1_query_providers_request_model = self.api.add_model(
+                'V1QueryProvidersRequestModel',
                 description='Query providers request model',
                 schema=JsonSchema(
                     type=JsonSchemaType.OBJECT,
@@ -207,7 +209,7 @@ class QueryProviders:
                                 ),
                                 'jurisdiction': JsonSchema(
                                     type=JsonSchemaType.STRING,
-                                    description="Required if 'ssn' not provided",
+                                    description="Filter for providers with privilege/license in a jurisdiction",
                                     enum=self.api.node.get_context('jurisdictions')
                                 )
                             }
@@ -217,15 +219,27 @@ class QueryProviders:
                     }
                 )
             )
-        return self.api.query_providers_request_model
+        return self.api.v1_query_providers_request_model
+
+    def _get_provider_response_model(self) -> Model:
+        """
+        Return the query license response model, which should only be created once per API
+        """
+        if not hasattr(self.api, 'v1_get_provider_response_model'):
+            self.api.v1_get_provider_response_model = self.api.add_model(
+                'V1GetProviderResponseModel',
+                description='Get provider response model',
+                schema=self.api.v1_provider_detail_response_schema
+            )
+        return self.api.v1_get_provider_response_model
 
     def _query_providers_response_model(self) -> Model:
         """
         Return the query license response model, which should only be created once per API
         """
-        if not hasattr(self.api, 'query_providers_response_model'):
-            self.api.query_providers_response_model = self.api.add_model(
-                'QueryProvidersResponseModel',
+        if not hasattr(self.api, 'v1_query_providers_response_model'):
+            self.api.v1_query_providers_response_model = self.api.add_model(
+                'V1QueryProvidersResponseModel',
                 description='Query providers response model',
                 schema=JsonSchema(
                     type=JsonSchemaType.OBJECT,
@@ -241,12 +255,12 @@ class QueryProviders:
                     }
                 )
             )
-        return self.api.query_providers_response_model
+        return self.api.v1_query_providers_response_model
 
     def _get_provider_handler(
             self,
             data_encryption_key: IKey,
-            license_data_table: ProviderTable,
+            provider_data_table: ProviderTable,
             lambda_environment: dict
     ) -> PythonFunction:
         stack = Stack.of(self.resource)
@@ -260,7 +274,7 @@ class QueryProviders:
             alarm_topic=self.api.alarm_topic
         )
         data_encryption_key.grant_decrypt(handler)
-        license_data_table.grant_read_data(handler)
+        provider_data_table.grant_read_data(handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
@@ -278,7 +292,7 @@ class QueryProviders:
     def _query_providers_handler(
             self,
             data_encryption_key: IKey,
-            license_data_table: ProviderTable,
+            provider_data_table: ProviderTable,
             lambda_environment: dict
     ) -> PythonFunction:
         stack = Stack.of(self.api)
@@ -292,7 +306,7 @@ class QueryProviders:
             alarm_topic=self.api.alarm_topic
         )
         data_encryption_key.grant_decrypt(handler)
-        license_data_table.grant_read_data(handler)
+        provider_data_table.grant_read_data(handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack,

@@ -64,23 +64,22 @@ class TestIngest(TstFunction):
 
     def test_existing_provider_ingest(self):
         from handlers.ingest import ingest_license_message
-        from handlers.providers import query_providers
+        from handlers.providers import get_provider
 
-        # Pre-load the SSN-providerId association
+        self._load_provider_data()
         with open('tests/resources/dynamo/provider-ssn.json', 'r') as f:
-            provider_ssn_record = json.load(f)
-        provider_id = provider_ssn_record['providerId']
-
-        self._table.put_item(Item=provider_ssn_record)
+            provider_id = json.load(f)['providerId']
 
         with open('tests/resources/ingest/message.json', 'r') as f:
-            message = f.read()
+            message = json.load(f)
+        # What happens if their license goes inactive?
+        message['detail']['status'] = 'inactive'
 
         event = {
             'Records': [
                 {
                     'messageId': '123',
-                    'body': message
+                    'body': json.dumps(message)
                 }
             ]
         }
@@ -97,28 +96,28 @@ class TestIngest(TstFunction):
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
 
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/read'
-        event['body'] = json.dumps({
-            'query': {
-                'providerId': provider_id
-            }
-        })
-        resp = query_providers(event, self.mock_context)
+        resp = get_provider(event, self.mock_context)
         self.assertEqual(resp['statusCode'], 200)
 
-        with open('tests/resources/api/provider-response.json', 'r') as f:
+        with open('tests/resources/api/provider-detail-response.json', 'r') as f:
             expected_provider = json.load(f)
-        # The canned response resource assumes that the provider will be given a privilege in NE. We didn't do that,
-        # so we'll reset the privilege array.
-        expected_provider['privilegeJurisdictions'] = []
+        # The license and provider should immediately be inactive
+        expected_provider['status'] = 'inactive'
+        expected_provider['licenses'][0]['status'] = 'inactive'
+        # NOTE: when we are supporting privilege applications officially, they should also be set inactive. That will
+        # be captured in the relevant feature work - this is just to help us remember, since it's pretty important.
+        # expected_provider['privileges'][0]['status'] = 'inactive'
 
-        provider_data = json.loads(resp['body'])['providers'][0]
+        provider_data = json.loads(resp['body'])
         # Removing dynamic fields from comparison
         del expected_provider['providerId']
         del provider_data['providerId']
         del expected_provider['dateOfUpdate']
         del provider_data['dateOfUpdate']
+        del expected_provider['licenses'][0]['dateOfUpdate']
+        del provider_data['licenses'][0]['dateOfUpdate']
 
         self.assertEqual(
             expected_provider,

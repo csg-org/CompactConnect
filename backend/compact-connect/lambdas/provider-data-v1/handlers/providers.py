@@ -128,6 +128,4 @@ def get_provider(event: dict, context: LambdaContext):  # pylint: disable=unused
 
     provider['licenses'] = licenses
     provider['privileges'] = privileges
-    # Convert to a JSON-compatible type
-    provider['privilegeJurisdictions'] = list(provider['privilegeJurisdictions'])
     return provider

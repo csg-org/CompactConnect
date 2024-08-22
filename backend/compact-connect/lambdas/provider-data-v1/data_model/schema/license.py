@@ -40,7 +40,7 @@ class LicensePostSchema(LicensePublicSchema):
     homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
     homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
-    homeAddressState = String(required=False, allow_none=False, validate=Length(2, 100))
+    homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
     militaryWaiver = Boolean(required=False, allow_none=False)
     emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))

@@ -4,7 +4,7 @@ import os
 
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import Resource, MethodResponse, JsonSchema, \
-    JsonSchemaType, MethodOptions, AuthorizationType, Model, LambdaIntegration
+    JsonSchemaType, MethodOptions, Model, LambdaIntegration
 from aws_cdk.aws_events import EventBus
 from cdk_nag import NagSuppressions
 
@@ -58,7 +58,7 @@ class PostLicenses:
             ),
             request_parameters={
                 'method.request.header.Authorization': True
-            } if method_options.authorization_type != AuthorizationType.NONE else {},
+            },
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,
             authorization_scopes=method_options.authorization_scopes
@@ -69,11 +69,11 @@ class PostLicenses:
         """
         Return the Post License Model, which should only be created once per API
         """
-        if hasattr(self.api, '_post_license_model'):
-            return self.api._post_license_model  # pylint: disable=protected-access
+        if hasattr(self.api, 'v1_post_license_model'):
+            return self.api.v1_post_license_model  # pylint: disable=protected-access
 
-        self.api._post_license_model = self.api.add_model(  # pylint: disable=protected-access
-            'PostLicenseModel',
+        self.api.v1_post_license_model = self.api.add_model(  # pylint: disable=protected-access
+            'V1PostLicenseModel',
             description='POST licenses request model',
             schema=JsonSchema(
                 type=JsonSchemaType.ARRAY,
@@ -100,7 +100,7 @@ class PostLicenses:
                 )
             )
         )
-        return self.api._post_license_model  # pylint: disable=protected-access
+        return self.api.v1_post_license_model
 
     def _post_licenses_handler(
             self,

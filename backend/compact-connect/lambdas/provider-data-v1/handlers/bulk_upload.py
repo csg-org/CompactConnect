@@ -159,7 +159,7 @@ def process_bulk_upload_file(body: StreamingBody, object_key: str):
             event_writer.put_event(
                 Entry={
                     'Source': f'org.compactconnect.bulk-ingest.{object_key}',
-                    'DetailType': 'license-ingest',
+                    'DetailType': 'license-ingest-v1',
                     'Detail': json.dumps({
                         'compact': compact,
                         'jurisdiction': jurisdiction,

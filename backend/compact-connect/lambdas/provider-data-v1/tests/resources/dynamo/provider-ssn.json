@@ -1,6 +1,6 @@
 {
-  "pk": "aslp/SSN/123-12-1234",
-  "sk": "aslp/SSN/123-12-1234",
+  "pk": "aslp#SSN#123-12-1234",
+  "sk": "aslp#SSN#123-12-1234",
   "type": "provider-ssn",
   "compact": "aslp",
   "ssn": "123-12-1234",

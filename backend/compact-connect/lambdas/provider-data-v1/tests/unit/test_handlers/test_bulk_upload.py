@@ -138,7 +138,7 @@ class TestProcessBulkUploadFile(TstLambdas):
             for entry in call.kwargs['Entries']
         }
         # There should only be successful ingest events
-        self.assertEqual({'license-ingest'}, detail_types)
+        self.assertEqual({'license-ingest-v1'}, detail_types)
         entries = [
             entry
             for call in mock_config.events_client.put_events.call_args_list
@@ -184,4 +184,4 @@ class TestProcessBulkUploadFile(TstLambdas):
         ]
         self.assertEqual(5, len(entries))
         self.assertEqual(2, len([entry for entry in entries if entry['DetailType'] == 'license-ingest-failure']))
-        self.assertEqual(3, len([entry for entry in entries if entry['DetailType'] == 'license-ingest']))
+        self.assertEqual(3, len([entry for entry in entries if entry['DetailType'] == 'license-ingest-v1']))

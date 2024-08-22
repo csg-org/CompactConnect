@@ -2,7 +2,6 @@ import json
 
 from botocore.exceptions import ClientError
 
-from exceptions import CCInvalidRequestException
 from tests import TstLambdas
 
 
@@ -22,8 +21,23 @@ class TestApiHandler(TstLambdas):
         self.assertEqual(200, resp['statusCode'])
         self.assertEqual('{"message": "OK"}', resp['body'])
 
+    def test_unauthorized(self):
+        from handlers.utils import api_handler
+        from exceptions import CCUnauthorizedException
+
+        @api_handler
+        def lambda_handler(event, context):
+            raise CCUnauthorizedException("You can't do that")
+
+        with open('tests/resources/api-event.json', 'r') as f:
+            event = json.load(f)
+
+        resp = lambda_handler(event, self.mock_context)
+        self.assertEqual(401, resp['statusCode'])
+
     def test_invalid_request(self):
         from handlers.utils import api_handler
+        from exceptions import CCInvalidRequestException
 
         @api_handler
         def lambda_handler(event, context):

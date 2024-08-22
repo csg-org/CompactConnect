@@ -28,8 +28,8 @@ class DataClient():
         try:
             resp = self.config.provider_table.get_item(
                 Key={
-                    'pk': f'{compact}/SSN/{ssn}',
-                    'sk': f'{compact}/SSN/{ssn}'
+                    'pk': f'{compact}#SSN#{ssn}',
+                    'sk': f'{compact}#SSN#{ssn}'
                 },
                 ConsistentRead=True
             )['Item']
@@ -46,8 +46,8 @@ class DataClient():
         try:
             self.config.provider_table.put_item(
                 Item={
-                    'pk': f'{compact}/SSN/{ssn}',
-                    'sk': f'{compact}/SSN/{ssn}',
+                    'pk': f'{compact}#SSN#{ssn}',
+                    'sk': f'{compact}#SSN#{ssn}',
                     'compact': compact,
                     'ssn': ssn,
                     'providerId': provider_id
