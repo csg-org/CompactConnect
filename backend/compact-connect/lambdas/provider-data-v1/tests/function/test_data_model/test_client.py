@@ -21,7 +21,7 @@ class TestClient(TstFunction):
 
         client = DataClient(self.config)
 
-        resp = client.get_provider_id(compact='aslp', ssn=provider_ssn)
+        resp = client.get_provider_id(compact='aslp', ssn=provider_ssn)  # pylint: disable=unexpected-keyword-arg
         # Verify that we're getting the expected provider ID
         self.assertEqual(expected_provider_id, resp)
 
@@ -36,7 +36,7 @@ class TestClient(TstFunction):
 
         # This SSN isn't in the DB, so it should raise an exception
         with self.assertRaises(CCNotFoundException):
-            client.get_provider_id(compact='aslp', ssn='321-21-4321')
+            client.get_provider_id(compact='aslp', ssn='321-21-4321')  # pylint: disable=unexpected-keyword-arg
 
     def test_get_provider(self):
         from data_model.client import DataClient
@@ -45,7 +45,10 @@ class TestClient(TstFunction):
 
         client = DataClient(self.config)
 
-        resp = client.get_provider(compact='aslp', provider_id=provider_id)  # pylint: disable=missing-kwoa
+        resp = client.get_provider(  # pylint: disable=missing-kwoa,unexpected-keyword-arg
+            compact='aslp',
+            provider_id=provider_id
+        )
         self.assertEqual(3, len(resp['items']))
         # Should be one each of provider, license, privilege
         self.assertEqual({'provider', 'license', 'privilege'}, {record['type'] for record in resp['items']})
@@ -76,7 +79,10 @@ class TestClient(TstFunction):
 
         # This record should not be allowed out via API
         with self.assertRaises(CCInternalException):
-            client.get_provider(compact='aslp', provider_id=provider_id)  # pylint: disable=missing-kwoa
+            client.get_provider(  # pylint: disable=missing-kwoa,unexpected-keyword-arg
+                compact='aslp',
+                provider_id=provider_id
+            )
 
     def test_get_licenses_sorted_by_family_name(self):
         from data_model.client import DataClient

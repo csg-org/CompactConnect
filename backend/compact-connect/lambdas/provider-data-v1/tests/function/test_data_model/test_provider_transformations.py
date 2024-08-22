@@ -85,7 +85,10 @@ class TestTransformations(TstFunction):
 
         # We'll use the data client to get the resulting provider id
         client = DataClient(self.config)
-        provider_id = client.get_provider_id(compact='aslp', ssn=license_ssn)
+        provider_id = client.get_provider_id(  # pylint: disable=missing-kwoa,unexpected-keyword-arg
+            compact='aslp',
+            ssn=license_ssn
+        )
         self.assertEqual(expected_provider_id, provider_id)
 
         # Add a privilege to practice in Nebraska

@@ -70,9 +70,9 @@ class PostLicenses:
         Return the Post License Model, which should only be created once per API
         """
         if hasattr(self.api, 'v1_post_license_model'):
-            return self.api.v1_post_license_model  # pylint: disable=protected-access
+            return self.api.v1_post_license_model
 
-        self.api.v1_post_license_model = self.api.add_model(  # pylint: disable=protected-access
+        self.api.v1_post_license_model = self.api.add_model(
             'V1PostLicenseModel',
             description='POST licenses request model',
             schema=JsonSchema(

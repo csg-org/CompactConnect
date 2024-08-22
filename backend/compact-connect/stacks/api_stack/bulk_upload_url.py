@@ -103,7 +103,7 @@ class BulkUploadUrl:
         )
 
     @staticmethod
-    def get_bulk_upload_response_model(api: license_api.CCApi) -> Model:
+    def get_bulk_upload_response_model(api: cc_api.CCApi) -> Model:
         """
         Return the Post License Model, which should only be created once per API
         """

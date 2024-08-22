@@ -74,7 +74,7 @@ class TestTransformations(TstFunction):
 
         # We'll use the data client to get the resulting provider id
         client = DataClient(self.config)
-        provider_id = client.get_provider_id(ssn=license_ssn)
+        provider_id = client.get_provider_id(ssn=license_ssn)  # pylint: disable=missing-kwoa
 
         # Get the license straight from the table, to inspect it
         resp = self._table.query(

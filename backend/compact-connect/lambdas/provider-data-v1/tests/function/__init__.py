@@ -189,5 +189,5 @@ class TstFunction(TstLambdas):
                     self.mock_context
                 )
             # Add a privilege
-            provider_id = data_client.get_provider_id(compact='aslp', ssn=ssn)
+            provider_id = data_client.get_provider_id(compact='aslp', ssn=ssn)  # pylint: disable=unexpected-keyword-arg
             data_client.create_privilege(compact='aslp', jurisdiction=privilege, provider_id=provider_id)

@@ -25,7 +25,7 @@ def ingest_license_message(message: dict):
     provider_id = config.data_client.get_or_create_provider_id(compact=compact, ssn=license_post['ssn'])
     # Get all privilege jurisdictions, directly from privilege records
     try:
-        provider_data = config.data_client.get_provider(  # pylint: disable=missing-kwoa
+        provider_data = config.data_client.get_provider(  # pylint: disable=missing-kwoa,unexpected-keyword-arg
             compact=compact,
             provider_id=provider_id,
             detail=True,
