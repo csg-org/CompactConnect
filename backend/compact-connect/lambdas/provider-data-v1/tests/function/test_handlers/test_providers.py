@@ -5,7 +5,7 @@ from tests.function import TstFunction
 
 
 @mock_aws
-class TestProviders(TstFunction):
+class TestQueryProviders(TstFunction):
     def test_query_one_ssn(self):
         self._load_provider_data()
 
@@ -192,9 +192,7 @@ class TestProviders(TstFunction):
             'compact': 'aslp'
         }
         event['body'] = json.dumps({
-            'query': {
-                'jurisdiction': 'oh'
-            }
+            'query': {}
         })
 
         resp = query_providers(event, self.mock_context)
@@ -238,6 +236,10 @@ class TestProviders(TstFunction):
 
         # Should reject the query, with 400
         self.assertEqual(400, resp['statusCode'])
+
+
+@mock_aws
+class TestGetProvider(TstFunction):
 
     def test_get_provider(self):
         """
