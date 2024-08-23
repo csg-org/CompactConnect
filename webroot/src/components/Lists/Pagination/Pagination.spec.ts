@@ -52,7 +52,7 @@ describe('Pagination component', async () => {
             props: {
                 paginationId: 'test',
                 pageChange: spy,
-                pagingPrevKey: 'test-prev',
+                pagingPrevKey: '',
                 pagingNextKey: 'test-next',
             },
         });

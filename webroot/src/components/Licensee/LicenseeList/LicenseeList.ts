@@ -15,7 +15,6 @@ import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
 import LicenseeRow from '@components/Licensee/LicenseeRow/LicenseeRow.vue';
 import { SortDirection } from '@store/sorting/sorting.state';
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@store/pagination/pagination.state';
-import { PageExhaustError } from '@store/pagination';
 
 @Component({
     name: 'LicenseeList',
@@ -183,12 +182,6 @@ class LicenseeList extends Vue {
                 pageSize: size,
             }
         });
-
-        // Support for limited server paging support
-        if (this.licenseStore.error?.message instanceof PageExhaustError) {
-            this.prevKey = '';
-            this.nextKey = '';
-        }
     }
 
     async sortingChange() {
