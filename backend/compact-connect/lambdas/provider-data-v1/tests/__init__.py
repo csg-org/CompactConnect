@@ -19,7 +19,7 @@ class TstLambdas(TestCase):
             'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
             'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
             'COMPACTS': '["aslp", "octp", "coun"]',
-            'JURISDICTIONS': '["ne", "oh"]',
+            'JURISDICTIONS': '["ne", "oh", "ky"]',
             'LICENSE_TYPES': json.dumps({
                 'aslp': [
                     "audiologist",

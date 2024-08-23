@@ -123,3 +123,130 @@ class TestIngest(TstFunction):
             expected_provider,
             provider_data
         )
+
+    def test_old_inactive_license(self):
+        from handlers.ingest import ingest_license_message
+        from handlers.providers import get_provider
+
+        # The test resource provider has a license in oh
+        self._load_provider_data()
+        with open('tests/resources/dynamo/provider-ssn.json', 'r') as f:
+            provider_id = json.load(f)['providerId']
+
+        with open('tests/resources/ingest/message.json', 'r') as f:
+            message = json.load(f)
+        # Imagine that this provider used to be licensed in ky.
+        # What happens if ky uploads that inactive license?
+        message['detail']['dateOfIssuance'] = '2023-01-01'
+        message['detail']['familyName'] = 'Oldname'
+        message['detail']['jurisdiction'] = 'ky'
+        message['detail']['status'] = 'inactive'
+
+        event = {
+            'Records': [
+                {
+                    'messageId': '123',
+                    'body': json.dumps(message)
+                }
+            ]
+        }
+
+        resp = ingest_license_message(event, self.mock_context)  # pylint: disable=too-many-function-args
+
+        self.assertEqual(
+            {'batchItemFailures': []},
+            resp
+        )
+
+        # To test full internal consistency, we'll also pull this new license record out
+        # via the API to make sure it shows up as expected.
+        with open('tests/resources/api-event.json', 'r') as f:
+            event = json.load(f)
+
+        event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/read'
+        resp = get_provider(event, self.mock_context)
+        self.assertEqual(resp['statusCode'], 200)
+
+        with open('tests/resources/api/provider-detail-response.json', 'r') as f:
+            expected_provider = json.load(f)
+
+        provider_data = json.loads(resp['body'])
+
+        # Removing dynamic fields from comparison
+        del expected_provider['providerId']
+        del provider_data['providerId']
+        del expected_provider['dateOfUpdate']
+        del provider_data['dateOfUpdate']
+
+        # We will look at the licenses separately
+        del expected_provider['licenses']
+        licenses = provider_data.pop('licenses')
+
+        # The original provider data is preferred over the posted license data in our test case
+        self.assertEqual(
+            expected_provider,
+            provider_data
+        )
+
+        # But the second license should now be listed
+        self.assertEqual(2, len(licenses))
+
+    def test_newer_active_license(self):
+        from handlers.ingest import ingest_license_message
+        from handlers.providers import get_provider
+
+        # The test resource provider has a license in oh
+        self._load_provider_data()
+        with open('tests/resources/dynamo/provider-ssn.json', 'r') as f:
+            provider_id = json.load(f)['providerId']
+
+        with open('tests/resources/ingest/message.json', 'r') as f:
+            message = json.load(f)
+        # Imagine that this provider was just licensed in ky.
+        # What happens if ky uploads that new license?
+        message['detail']['dateOfIssuance'] = '2024-08-01'
+        message['detail']['familyName'] = 'Newname'
+        message['detail']['jurisdiction'] = 'ky'
+        message['detail']['status'] = 'active'
+
+        event = {
+            'Records': [
+                {
+                    'messageId': '123',
+                    'body': json.dumps(message)
+                }
+            ]
+        }
+
+        resp = ingest_license_message(event, self.mock_context)  # pylint: disable=too-many-function-args
+
+        self.assertEqual(
+            {'batchItemFailures': []},
+            resp
+        )
+
+        # To test full internal consistency, we'll also pull this new license record out
+        # via the API to make sure it shows up as expected.
+        with open('tests/resources/api-event.json', 'r') as f:
+            event = json.load(f)
+
+        event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/read'
+        resp = get_provider(event, self.mock_context)
+        self.assertEqual(resp['statusCode'], 200)
+
+        provider_data = json.loads(resp['body'])
+
+        # The new name and jurisdiction should be reflected in the provider data
+        self.assertEqual(
+            'Newname',
+            provider_data['familyName']
+        )
+        self.assertEqual(
+            'ky',
+            provider_data['licenseJurisdiction']
+        )
+
+        # But the second license should now be listed
+        self.assertEqual(2, len(provider_data['licenses']))
