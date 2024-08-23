@@ -188,8 +188,6 @@ class LicenseeList extends Vue {
         if (this.licenseStore.error?.message instanceof PageExhaustError) {
             this.prevKey = '';
             this.nextKey = '';
-            await this.setDefaultPaging(true);
-            await this.fetchListData();
         }
     }
 
