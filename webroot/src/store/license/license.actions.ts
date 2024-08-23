@@ -6,6 +6,7 @@
 //
 
 import { dataApi } from '@network/data.api';
+import { PageExhaustError } from '@store/pagination';
 import { MutationTypes } from './license.mutations';
 
 export default {
@@ -22,7 +23,7 @@ export default {
         await dataApi.getLicensees(params).then(async ({ prevLastKey, lastKey, licensees }) => {
             // Support for limited server paging support
             if (!licensees.length && params?.getNextPage) {
-                throw new Error('end of list');
+                throw new PageExhaustError('end of list');
             } else {
                 await dispatch('setStoreLicenseePrevLastKey', prevLastKey);
                 await dispatch('setStoreLicenseeLastKey', lastKey);

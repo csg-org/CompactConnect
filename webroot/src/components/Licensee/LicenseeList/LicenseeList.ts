@@ -15,6 +15,7 @@ import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
 import LicenseeRow from '@components/Licensee/LicenseeRow/LicenseeRow.vue';
 import { SortDirection } from '@store/sorting/sorting.state';
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@store/pagination/pagination.state';
+import { PageExhaustError } from '@store/pagination';
 
 @Component({
     name: 'LicenseeList',
@@ -184,7 +185,7 @@ class LicenseeList extends Vue {
         });
 
         // Support for limited server paging support
-        if (this.licenseStore.error?.message === 'end of list') {
+        if (this.licenseStore.error?.message instanceof PageExhaustError) {
             this.prevKey = '';
             this.nextKey = '';
             await this.setDefaultPaging(true);
@@ -198,6 +199,7 @@ class LicenseeList extends Vue {
         }
     }
 
+    // Match pageChange() @Prop signature from /components/Lists/Pagination/Pagination.ts
     async paginationChange(firstIdx, lastIdx, prevNext) {
         if (prevNext === -1) {
             this.prevKey = this.licenseStore.prevLastKey;

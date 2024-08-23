@@ -37,15 +37,14 @@ const createPaginationItem = (pageNum, currentPage) => ({
     },
 })
 export default class Pagination extends mixins(MixinForm) {
+    @Prop({ required: true }) private paginationId!: string; // The pagination store id of the list instance
+    @Prop({ required: true }) private listSize!: number; // The total number of list items (not all server APIs provide this)
+    @Prop({ required: true }) pagingPrevKey!: string | null; // The server API paging key for the previous page results
+    @Prop({ required: true }) pagingNextKey!: string | null; // The server API paging key for the next page results
+    @Prop() private pageSizeConfig?: Array<{ value: number; name: string; isDefault?: boolean }>; // Optional custom config of the page size selector (options for how many items are shown per page)
+    @Prop() private ariaLabel?: string; // Optional aria label for the pagination container element
     @Prop({ required: true }) private pageChange!:
-        (firstIndex: number, lastIndexExclusive: number, prevNext: number) => any;
-
-    @Prop({ required: true }) private listSize!: number;
-    @Prop({ required: true }) private paginationId!: string;
-    @Prop({ required: true }) pagingPrevKey!: string | null;
-    @Prop({ required: true }) pagingNextKey!: string | null;
-    @Prop() private pageSizeConfig?: Array<{ value: number; name: string; isDefault?: boolean }>;
-    @Prop() private ariaLabel?: string;
+        (firstIndex: number, lastIndexExclusive: number, prevNext: number) => any; // A callback method that will be called on page-change
 
     //
     // Data
