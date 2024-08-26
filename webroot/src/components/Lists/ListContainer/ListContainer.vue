@@ -26,6 +26,8 @@
                 v-if="hasRecords && !excludeTopPagination"
                 :paginationId="listId"
                 :listSize="listTotalSize"
+                :pagingPrevKey="pagingPrevKey"
+                :pagingNextKey="pagingNextKey"
                 :pageChange="pageChange"
                 :pageSizeConfig="pageSizeConfig"
             ></Pagination>
@@ -54,9 +56,11 @@
                 v-if="hasRecords && !excludeBottomPagination"
                 :paginationId="listId"
                 :listSize="listTotalSize"
+                :pagingPrevKey="pagingPrevKey"
+                :pagingNextKey="pagingNextKey"
                 :pageChange="pageChange"
-                :pageSizeConfig="pageSizeConfig">
-            /></Pagination>
+                :pageSizeConfig="pageSizeConfig"
+            ></Pagination>
         </div>
     </div>
 </template>

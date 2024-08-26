@@ -19,6 +19,8 @@
             :excludeTopPagination="true"
             :excludeBottomPagination="false"
             :isServerPaging="true"
+            :pagingPrevKey="$store.state.license.prevLastKey"
+            :pagingNextKey="$store.state.license.lastKey"
             :isLoading="$store.state.license.isLoading"
             :loadingError="$store.state.license.error"
         >

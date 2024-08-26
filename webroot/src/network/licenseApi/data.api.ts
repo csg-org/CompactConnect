@@ -22,6 +22,7 @@ export interface RequestParamsInterfaceLocal {
     pageSize?: number;
     pageNumber?: number;
     lastKey?: string;
+    prevLastKey?: string;
     sortBy?: string;
     sortDirection?: string;
 }
@@ -30,6 +31,7 @@ export interface RequestParamsInterfaceRemote {
     pagination?: {
         pageSize?: number,
         lastKey?: string,
+        prevLastKey?: string,
     },
     sorting?: {
         key?: string,
@@ -113,7 +115,7 @@ export class LicenseDataApi implements DataApiInterface {
         if (params.licenseeId) {
             requestParams.query.providerId = params.licenseeId;
         } else {
-            if (params.pageSize || params.lastKey) {
+            if (params.pageSize || params.lastKey || params.prevLastKey) {
                 requestParams.pagination = {};
 
                 if (params.pageSize) {
@@ -121,6 +123,8 @@ export class LicenseDataApi implements DataApiInterface {
                 }
                 if (params.lastKey) {
                     requestParams.pagination.lastKey = params.lastKey;
+                } else if (params.prevLastKey) {
+                    requestParams.pagination.prevLastKey = params.prevLastKey;
                 }
             }
 
@@ -147,8 +151,9 @@ export class LicenseDataApi implements DataApiInterface {
     public async getLicensees(params: RequestParamsInterfaceLocal = {}) {
         const requestParams: RequestParamsInterfaceRemote = this.prepRequestPostParams(params);
         const serverReponse: any = await this.api.post(`/v0/providers/query`, requestParams);
-        const { lastKey, items } = serverReponse;
+        const { prevLastKey, lastKey, items } = serverReponse;
         const response = {
+            prevLastKey,
             lastKey,
             licensees: items.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
         };

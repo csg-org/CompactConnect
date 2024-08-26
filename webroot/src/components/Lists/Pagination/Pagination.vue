@@ -8,15 +8,15 @@
 <template>
     <div class="pagination-container" role="navigation" :aria-label="ariaLabel">
         <ul class="pagination-list" v-if="pages && pages.length">
-            <!-- <li
-                v-if="!isFirstPage"
-                @click="setPage(currentPage - 1)"
-                @keyup.enter="setPage(currentPage - 1)"
+            <li
+                v-if="!isFirstPage && pagingPrevKey"
+                @click="setPage(currentPage - 1, -1)"
+                @keyup.enter="setPage(currentPage - 1, -1)"
                 class="pagination-item caret clickable previous"
                 :aria-label="$t('paging.previousPage')"
             >
                 <span><LeftCaretIcon /> {{ $t('paging.previousPage') }}</span>
-            </li> -->
+            </li>
             <li
                 v-for="{id, clickable, selected, displayValue} in pages"
                 :key="id"
@@ -31,8 +31,9 @@
                 {{ displayValue }}
             </li>
             <li
-                @click="setPage(currentPage + 1)"
-                @keyup.enter="setPage(currentPage + 1)"
+                v-if="pagingNextKey"
+                @click="setPage(currentPage + 1, 1)"
+                @keyup.enter="setPage(currentPage + 1, 1)"
                 class="pagination-item caret clickable next"
                 :aria-label="$t('paging.nextPage')"
             >

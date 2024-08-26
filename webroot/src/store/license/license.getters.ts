@@ -7,6 +7,7 @@
 
 export default {
     lastKey: (state: any) => state.lastKey,
+    prevLastKey: (state: any) => state.prevLastKey,
     licenseeById: (state: any) => (licenseeId: string) => {
         const licensees = state.model || [];
 

@@ -21,6 +21,7 @@ import InputFile from '@components/Forms/InputFile/InputFile.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import CheckCircle from '@components/Icons/CheckCircle/CheckCircle.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
+import { Compact } from '@models/User/User.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import { dataApi } from '@network/data.api';
 import Joi from 'joi';
@@ -53,6 +54,10 @@ class StateUpload extends mixins(MixinForm) {
     //
     // Computed
     //
+    get userStore() {
+        return this.$store.state.user;
+    }
+
     get compacts(): any {
         let compactsList = this.$tm('compacts');
 
@@ -68,18 +73,8 @@ class StateUpload extends mixins(MixinForm) {
         return compactsList;
     }
 
-    get compactOptions(): any {
-        const valueOptions = [
-            { value: '', name: computed(() => this.$t('common.selectOption')) }
-        ].concat(this.compacts.map((compact) => ({
-            value: compact.key, name: compact.name
-        })));
-
-        return valueOptions;
-    }
-
     get compactId(): string {
-        return this.formData.compact?.value || '';
+        return this.userStore.currentCompact || Compact.ASLP;
     }
 
     get states(): any {
@@ -139,14 +134,6 @@ class StateUpload extends mixins(MixinForm) {
     //
     initFormInputs(): void {
         this.formData = reactive({
-            compact: new FormInput({
-                id: 'compact',
-                name: 'compact',
-                label: computed(() => this.$t('common.compact')),
-                placeholder: computed(() => this.$t('common.compact')),
-                validation: Joi.string().required().messages(this.joiMessages.string),
-                valueOptions: this.compactOptions,
-            }),
             state: new FormInput({
                 id: 'state',
                 name: 'state',
@@ -192,7 +179,8 @@ class StateUpload extends mixins(MixinForm) {
         if (this.isFormValid) {
             this.startFormLoading();
 
-            const { compact, state, files } = this.formValues;
+            const compact = this.compactId;
+            const { state, files } = this.formValues;
             const uploadConfig = await this.fetchUploadConfig(compact, state);
 
             if (!this.isFormError) {
@@ -224,7 +212,6 @@ class StateUpload extends mixins(MixinForm) {
     }
 
     async mockPopulate(): Promise<void> {
-        this.populateFormInput(this.formData.compact, this.compactOptions[1].value);
         this.populateFormInput(this.formData.state, this.stateOptions[1].value);
         this.populateFormInput(this.formData.files, new File([`a,b,c`], `test-file.csv`, { type: `text/csv` }));
     }

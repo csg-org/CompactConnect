@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
-import { User } from '@models/User/User.model';
+import { User, Compact } from '@models/User/User.model';
 import { authStorage, tokens } from '@/app.config';
 
 export interface State {
@@ -13,6 +13,7 @@ export interface State {
     isLoggedIn: boolean;
     isLoading: boolean;
     refreshTokenTimeoutId: number | null;
+    currentCompact: Compact | null;
     error: any | null;
 }
 
@@ -21,5 +22,6 @@ export const state: State = {
     isLoggedIn: (authStorage.getItem(tokens.staff.AUTH_TOKEN) !== null),
     isLoading: false,
     refreshTokenTimeoutId: null,
+    currentCompact: null,
     error: null,
 };

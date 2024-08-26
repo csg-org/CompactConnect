@@ -6,15 +6,50 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
-import Section from '@components/Section/Section.vue';
-import StateUpload from '@components/StateUpload/StateUpload.vue';
+import { Compact } from '@models/User/User.model';
 
 @Component({
     name: 'HomePage',
-    components: {
-        Section,
-        StateUpload,
-    }
+    components: {}
 })
 export default class Home extends Vue {
+    //
+    // Data
+    //
+    defaultCompact = Compact.ASLP;
+
+    //
+    // Lifecycle
+    //
+    created() {
+        this.goToCompact();
+    }
+
+    //
+    // Computed
+    //
+    get storeCurrentCompact(): Compact | null {
+        return this.$store.state.user.currentCompact;
+    }
+
+    //
+    // Methods
+    //
+    goToCompact(compactId?: Compact) {
+        let compact = compactId || this.storeCurrentCompact;
+
+        if (!compact) {
+            compact = this.setCurrentCompact();
+        }
+
+        this.$router.push({ name: 'Licensing', params: { compact }});
+    }
+
+    setCurrentCompact() {
+        const compact = this.defaultCompact;
+
+        this.$store.dispatch('user/setCurrentCompact', compact);
+
+        return compact;
+    }
 }

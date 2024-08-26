@@ -9,6 +9,7 @@ import { dataApi } from '@network/data.api';
 import { config } from '@plugins/EnvConfig/envConfig.plugin';
 import { authStorage, tokens } from '@/app.config';
 import localStorage from '@store/local.storage';
+import { Compact } from '@models/User/User.model';
 import moment from 'moment';
 import axios from 'axios';
 import { MutationTypes } from './user.mutations';
@@ -70,6 +71,9 @@ export default {
         commit(MutationTypes.GET_ACCOUNT_FAILURE, error);
     },
     // SET THE STORE STATE
+    setCurrentCompact: ({ commit }, compact: Compact | null) => {
+        commit(MutationTypes.STORE_UPDATE_CURRENT_COMPACT, compact);
+    },
     setStoreUser: ({ commit }, user) => {
         commit(MutationTypes.STORE_UPDATE_USER, user);
     },

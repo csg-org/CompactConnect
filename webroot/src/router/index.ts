@@ -29,6 +29,16 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
     const isAuthGuardedRoute = to.matched.some((route) => route.meta.requiresAuth);
 
+    // If the store does not have the current compact, set it from the route (e.g. page refreshes)
+    if (to.params?.compact) {
+        const { currentCompact } = store.getters['user/state'];
+
+        if (!currentCompact) {
+            store.dispatch('user/setCurrentCompact', to.params.compact);
+        }
+    }
+
+    // If the route requires auth, check first
     if (isAuthGuardedRoute) {
         const { isLoggedIn } = store.getters['user/state'];
 

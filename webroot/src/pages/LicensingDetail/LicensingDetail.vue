@@ -9,7 +9,7 @@
     <div class="licensee-detail-container">
         <div class="licensee-header">
             <div class="breadcrumbs">
-                <router-link class="breadcrumb-link" :to="{ name: 'Licensing' }">
+                <router-link class="breadcrumb-link" :to="{ name: 'Licensing', params: { compact } }">
                     {{ $t('licensing.licensingListTitle') }}
                 </router-link>
                 <span class="breadcrumb-current">/ {{ licenseeNameDisplay }}</span>
