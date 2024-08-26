@@ -7,6 +7,12 @@
 
 import deleteUndefinedProperties from '@models/_helpers';
 
+export enum Compact {
+    ASLP = 'aslp',
+    OT = 'ot',
+    COUNSILING = 'counseling',
+}
+
 // ========================================================
 // =                       Interface                      =
 // ========================================================

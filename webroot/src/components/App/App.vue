@@ -9,9 +9,15 @@
     <div id="app">
         <PageContainer>
             <router-view v-slot="{ Component }">
-                <transition name="fade" mode="out-in" @after-leave="$root.$emit('trigger-scroll-behavior')">
+                <transition
+                    v-if="!$route.meta.skipTransition"
+                    name="fade"
+                    mode="out-in"
+                    @after-leave="$root.$emit('trigger-scroll-behavior')"
+                >
                     <component :is="Component" />
                 </transition>
+                <component v-else :is="Component" />
             </router-view>
         </PageContainer>
         <Modal

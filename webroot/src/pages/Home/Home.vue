@@ -6,9 +6,7 @@
 -->
 
 <template>
-    <Section class="home-container">
-        <StateUpload class="state-upload-container" />
-    </Section>
+    <div class="home-container"></div>
 </template>
 
 <script lang="ts" src="./Home.ts"></script>

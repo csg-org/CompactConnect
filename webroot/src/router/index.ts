@@ -5,10 +5,7 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
-import { getCurrentInstance } from 'vue';
 import { createRouter, createWebHistory, RouteLocationNormalized as Route } from 'vue-router';
-import { config } from '@plugins/EnvConfig/envConfig.plugin';
-import localStorage, { AUTH_TOKEN, AUTH_LOGIN_GOTO_PATH } from '@store/local.storage';
 import routes from '@router/routes';
 import store from '@/store';
 
@@ -31,21 +28,22 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
     const isAuthGuardedRoute = to.matched.some((route) => route.meta.requiresAuth);
-    const logout = () => {
-        localStorage.setItem(AUTH_LOGIN_GOTO_PATH, to.fullPath); // Store the intended path; will be used to re-route the user after login.
-        store.dispatch('user/logoutRequest');
-        next({ path: '/Login' });
-    };
 
+    // If the store does not have the current compact, set it from the route (e.g. page refreshes)
+    if (to.params?.compact) {
+        const { currentCompact } = store.getters['user/state'];
+
+        if (!currentCompact) {
+            store.dispatch('user/setCurrentCompact', to.params.compact);
+        }
+    }
+
+    // If the route requires auth, check first
     if (isAuthGuardedRoute) {
-        if (config.isUsingMockApi) {
-            if (!localStorage.getItem(AUTH_TOKEN)) {
-                logout();
-            } else {
-                next();
-            }
-        } else if (!(await getCurrentInstance()?.appContext.app.config.globalProperties.$auth.isAuthenticated())) {
-            logout();
+        const { isLoggedIn } = store.getters['user/state'];
+
+        if (!isLoggedIn) {
+            next({ name: 'Logout' });
         } else {
             next();
         }

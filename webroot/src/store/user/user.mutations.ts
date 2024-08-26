@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
-import { User } from '@models/User/User.model';
+import { User, Compact } from '@models/User/User.model';
 
 export enum MutationTypes {
     LOGIN_REQUEST = '[User] Login Request',
@@ -18,11 +18,13 @@ export enum MutationTypes {
     GET_ACCOUNT_REQUEST = '[User] Get Account Request',
     GET_ACCOUNT_FAILURE = '[User] Get Account Failure',
     GET_ACCOUNT_SUCCESS = '[User] Get Account Success',
+    STORE_UPDATE_CURRENT_COMPACT = '[User] Updated current compact',
     STORE_UPDATE_USER = '[User] Updated user in store',
     STORE_RESET_USER = '[User] Reset user in store',
     UPDATE_ACCOUNT_REQUEST = '[User] Update Account Request',
     UPDATE_ACCOUNT_FAILURE = '[User] Update Account Failure',
     UPDATE_ACCOUNT_SUCCESS = '[User] Update Account Success',
+    SET_REFRESH_TIMEOUT_ID = '[User] Set Refresh Timeout ID',
 }
 
 export default {
@@ -67,6 +69,9 @@ export default {
         state.isLoading = false;
         state.error = null;
     },
+    [MutationTypes.STORE_UPDATE_CURRENT_COMPACT]: (state: any, compact: Compact | null) => {
+        state.currentCompact = compact;
+    },
     [MutationTypes.STORE_UPDATE_USER]: (state: any, user: User|null) => {
         state.model = user;
     },
@@ -86,5 +91,8 @@ export default {
     [MutationTypes.UPDATE_ACCOUNT_SUCCESS]: (state: any) => {
         state.isLoading = false;
         state.error = null;
+    },
+    [MutationTypes.SET_REFRESH_TIMEOUT_ID]: (state: any, timeoutId: number|null) => {
+        state.refreshTokenTimeoutId = timeoutId;
     },
 };

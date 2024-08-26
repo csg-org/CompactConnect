@@ -32,14 +32,18 @@ export default class LicensingDetail extends Vue {
     //
     // Computed
     //
-    get licenseStore(): any {
-        return this.$store.state.license;
+    get compact(): string {
+        const defaultCompact = this.$store.state.user.currentCompact;
+
+        return this.$route.params.compact as string || defaultCompact;
     }
 
     get licenseeId(): string {
-        const routeId: string = this.$route.params.licenseeId as string || '';
+        return this.$route.params.licenseeId as string || '';
+    }
 
-        return routeId;
+    get licenseStore(): any {
+        return this.$store.state.license;
     }
 
     get licensee(): Licensee | null {

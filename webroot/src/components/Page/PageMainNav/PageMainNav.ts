@@ -7,6 +7,7 @@
 
 import { reactive, computed } from 'vue';
 import { Component, Vue, toNative } from 'vue-facing-decorator';
+import { Compact } from '@models/User/User.model';
 
 @Component({
     name: 'PageMainNav',
@@ -32,21 +33,42 @@ class PageMainNav extends Vue {
         return this.isDesktop || this.isMainNavToggled;
     }
 
+    get userStore() {
+        return this.$store.state.user;
+    }
+
+    get isLoggedIn(): boolean {
+        return this.userStore.isLoggedIn;
+    }
+
+    get currentCompact(): Compact | null {
+        return this.userStore.currentCompact;
+    }
+
     get mainLinks() {
         return reactive([
             {
-                to: 'Home',
+                to: 'Licensing',
+                params: { compact: this.currentCompact },
+                label: computed(() => this.$t('navigation.licensing')),
+                isEnabled: this.isLoggedIn && Boolean(this.currentCompact),
+                isExternal: false,
+                isExactActive: false,
+            },
+            {
+                to: 'StateUpload',
+                params: { compact: this.currentCompact },
                 label: computed(() => this.$t('navigation.upload')),
-                isEnabled: true,
+                isEnabled: this.isLoggedIn && Boolean(this.currentCompact),
                 isExternal: false,
                 isExactActive: true,
             },
             {
-                to: 'Licensing',
-                label: computed(() => this.$t('navigation.licensing')),
-                isEnabled: true,
+                to: 'Logout',
+                label: computed(() => this.$t('navigation.logout')),
+                isEnabled: this.isLoggedIn,
                 isExternal: false,
-                isExactActive: false,
+                isExactActive: true,
             },
         ].filter((link) => link.isEnabled));
     }
