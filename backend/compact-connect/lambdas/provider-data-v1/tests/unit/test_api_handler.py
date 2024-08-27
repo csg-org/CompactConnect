@@ -1,16 +1,21 @@
 import json
 
+from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 
 from tests import TstLambdas
 
 
 class TestApiHandler(TstLambdas):
+    """
+    Testing that the api_handler decorator is working as expected.
+    """
+
     def test_happy_path(self):
         from handlers.utils import api_handler
 
         @api_handler
-        def lambda_handler(event, context):  # pylint: disable=unused-argument
+        def lambda_handler(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
             return {'message': 'OK'}
 
         with open('tests/resources/api-event.json', 'r') as f:
@@ -26,7 +31,7 @@ class TestApiHandler(TstLambdas):
         from exceptions import CCUnauthorizedException
 
         @api_handler
-        def lambda_handler(event, context):
+        def lambda_handler(event: dict, context: LambdaContext):
             raise CCUnauthorizedException("You can't do that")
 
         with open('tests/resources/api-event.json', 'r') as f:
@@ -40,7 +45,7 @@ class TestApiHandler(TstLambdas):
         from exceptions import CCInvalidRequestException
 
         @api_handler
-        def lambda_handler(event, context):
+        def lambda_handler(event: dict, context: LambdaContext):
             raise CCInvalidRequestException("You can't do that")
 
         with open('tests/resources/api-event.json', 'r') as f:
@@ -57,7 +62,7 @@ class TestApiHandler(TstLambdas):
         from handlers.utils import api_handler
 
         @api_handler
-        def lambda_handler(event, context):
+        def lambda_handler(event: dict, context: LambdaContext):
             raise ClientError(
                 error_response={
                     'Error': {
@@ -77,7 +82,7 @@ class TestApiHandler(TstLambdas):
         from handlers.utils import api_handler
 
         @api_handler
-        def lambda_handler(event, context):
+        def lambda_handler(event: dict, context: LambdaContext):
             raise RuntimeError('Egads!')
 
         with open('tests/resources/api-event.json', 'r') as f:
@@ -90,7 +95,7 @@ class TestApiHandler(TstLambdas):
         from handlers.utils import api_handler
 
         @api_handler
-        def lambda_handler(event, context):  # pylint: disable=unused-argument
+        def lambda_handler(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
             return {'message': 'OK'}
 
         with open('tests/resources/api-event.json', 'r') as f:

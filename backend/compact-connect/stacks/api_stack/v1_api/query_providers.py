@@ -182,79 +182,82 @@ class QueryProviders:
         """
         Return the query licenses request model, which should only be created once per API
         """
-        if not hasattr(self.api, 'v1_query_providers_request_model'):
-            self.api.v1_query_providers_request_model = self.api.add_model(
-                'V1QueryProvidersRequestModel',
-                description='Query providers request model',
-                schema=JsonSchema(
-                    type=JsonSchemaType.OBJECT,
-                    additional_properties=False,
-                    required=[
-                        'query'
-                    ],
-                    properties={
-                        'query': JsonSchema(
-                            type=JsonSchemaType.OBJECT,
-                            description='The query parameters',
-                            properties={
-                                'ssn': JsonSchema(
-                                    type=JsonSchemaType.STRING,
-                                    description='Social security number to look up',
-                                    pattern=cc_api.SSN_FORMAT
-                                ),
-                                'providerId': JsonSchema(
-                                    type=JsonSchemaType.STRING,
-                                    description='Internal UUID for the provider',
-                                    pattern=cc_api.UUID4_FORMAT
-                                ),
-                                'jurisdiction': JsonSchema(
-                                    type=JsonSchemaType.STRING,
-                                    description="Filter for providers with privilege/license in a jurisdiction",
-                                    enum=self.api.node.get_context('jurisdictions')
-                                )
-                            }
-                        ),
-                        'pagination': self._pagination_request_schema,
-                        'sorting': self._sorting_schema
-                    }
-                )
+        if hasattr(self.api, 'v1_query_providers_request_model'):
+            return self.api.v1_query_providers_request_model
+        self.api.v1_query_providers_request_model = self.api.add_model(
+            'V1QueryProvidersRequestModel',
+            description='Query providers request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=[
+                    'query'
+                ],
+                properties={
+                    'query': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        description='The query parameters',
+                        properties={
+                            'ssn': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description='Social security number to look up',
+                                pattern=cc_api.SSN_FORMAT
+                            ),
+                            'providerId': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description='Internal UUID for the provider',
+                                pattern=cc_api.UUID4_FORMAT
+                            ),
+                            'jurisdiction': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description="Filter for providers with privilege/license in a jurisdiction",
+                                enum=self.api.node.get_context('jurisdictions')
+                            )
+                        }
+                    ),
+                    'pagination': self._pagination_request_schema,
+                    'sorting': self._sorting_schema
+                }
             )
+        )
         return self.api.v1_query_providers_request_model
 
     def _get_provider_response_model(self) -> Model:
         """
         Return the query license response model, which should only be created once per API
         """
-        if not hasattr(self.api, 'v1_get_provider_response_model'):
-            self.api.v1_get_provider_response_model = self.api.add_model(
-                'V1GetProviderResponseModel',
-                description='Get provider response model',
-                schema=self.api.v1_provider_detail_response_schema
-            )
+        if hasattr(self.api, 'v1_get_provider_response_model'):
+            return self.api.v1_get_provider_response_model
+        self.api.v1_get_provider_response_model = self.api.add_model(
+            'V1GetProviderResponseModel',
+            description='Get provider response model',
+            schema=self.api.v1_provider_detail_response_schema
+        )
         return self.api.v1_get_provider_response_model
 
     def _query_providers_response_model(self) -> Model:
         """
         Return the query license response model, which should only be created once per API
         """
-        if not hasattr(self.api, 'v1_query_providers_response_model'):
-            self.api.v1_query_providers_response_model = self.api.add_model(
-                'V1QueryProvidersResponseModel',
-                description='Query providers response model',
-                schema=JsonSchema(
-                    type=JsonSchemaType.OBJECT,
-                    required=['items', 'pagination'],
-                    properties={
-                        'providers': JsonSchema(
-                            type=JsonSchemaType.ARRAY,
-                            max_length=100,
-                            items=self.api.v1_providers_response_schema
-                        ),
-                        'pagination': self._pagination_response_schema,
-                        'sorting': self._sorting_schema
-                    }
-                )
+        if hasattr(self.api, 'v1_query_providers_response_model'):
+            return self.api.v1_query_providers_response_model
+        self.api.v1_query_providers_response_model = self.api.add_model(
+            'V1QueryProvidersResponseModel',
+            description='Query providers response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=['items', 'pagination'],
+                properties={
+                    'providers': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        max_length=100,
+                        items=self.api.v1_providers_response_schema
+                    ),
+                    'pagination': self._pagination_response_schema,
+                    'sorting': self._sorting_schema
+                }
             )
+        )
         return self.api.v1_query_providers_response_model
 
     def _get_provider_handler(

@@ -6,7 +6,7 @@ from tests.function import TstFunction
 
 @mock_aws
 class TestQueryProviders(TstFunction):
-    def test_query_one_ssn(self):
+    def test_query_by_ssn(self):
         self._load_provider_data()
 
         # Run the API query
@@ -50,7 +50,7 @@ class TestQueryProviders(TstFunction):
             body
         )
 
-    def test_query_one_provider(self):
+    def test_query_by_provider_id(self):
         self._load_provider_data()
 
         # Run the API query
@@ -129,9 +129,8 @@ class TestQueryProviders(TstFunction):
         self.assertEqual({'providers', 'pagination', 'query', 'sorting'}, body.keys())
         self.assertIsInstance(body['pagination']['lastKey'], str)
         # Check we're actually sorted
-        last_date_of_update = body['providers'][0]['dateOfUpdate']
-        for item in body['providers'][1:]:
-            self.assertGreaterEqual(item['dateOfUpdate'], last_date_of_update)
+        dates_of_update = [provider['dateOfUpdate'] for provider in body['providers']]
+        self.assertListEqual(sorted(dates_of_update), dates_of_update)
 
     def test_query_providers_family_name(self):
         from handlers.providers import query_providers
@@ -169,9 +168,8 @@ class TestQueryProviders(TstFunction):
         self.assertEqual({'providers', 'pagination', 'query', 'sorting'}, body.keys())
         self.assertIsInstance(body['pagination']['lastKey'], str)
         # Check we're actually sorted
-        last_family_name = body['providers'][0]['familyName']
-        for item in body['providers'][1:]:
-            self.assertGreaterEqual(item['familyName'], last_family_name)
+        family_names = [provider['familyName'] for provider in body['providers']]
+        self.assertListEqual(sorted(family_names), family_names)
 
     def test_query_providers_default_sorting(self):
         """
@@ -204,9 +202,8 @@ class TestQueryProviders(TstFunction):
         self.assertEqual({'providers', 'pagination', 'query', 'sorting'}, body.keys())
         self.assertIsNone(body['pagination']['lastKey'])
         # Check we're actually sorted
-        last_family_name = body['providers'][0]['familyName']
-        for item in body['providers'][1:]:
-            self.assertGreaterEqual(item['familyName'], last_family_name)
+        family_names = [provider['familyName'] for provider in body['providers']]
+        self.assertListEqual(sorted(family_names), family_names)
 
     def test_query_providers_invalid_sorting(self):
         from handlers.providers import query_providers
@@ -306,6 +303,7 @@ class TestGetProvider(TstFunction):
 
         # The user has read permission for aslp
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        # providerId _should_ be included in these pathParameters. We're leaving it out for this test.
         event['pathParameters'] = {
             'compact': 'aslp'
         }

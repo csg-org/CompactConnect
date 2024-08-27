@@ -34,7 +34,6 @@ class TestLicenseSchema(TstLambdas):
     def test_serde_record(self):
         """
         Test round-trip serialization/deserialization of license records
-        :return:
         """
         from data_model.schema.license import LicenseRecordSchema
 

@@ -39,7 +39,11 @@ class ResponseEncoder(JSONEncoder):
 
 def api_handler(fn: Callable):
     """
-    Decorator to wrap an api gateway event handler in standard logging, HTTPError handling
+    Decorator to wrap an api gateway event handler in standard logging, HTTPError handling.
+
+    - Logs each access
+    - JSON-encodes returned responses
+    - Translates CCBaseException subclasses to their respective HTTP response codes
     """
 
     @wraps(fn)

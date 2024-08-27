@@ -248,5 +248,5 @@ class TestIngest(TstFunction):
             provider_data['licenseJurisdiction']
         )
 
-        # But the second license should now be listed
+        # And the second license should now be listed
         self.assertEqual(2, len(provider_data['licenses']))

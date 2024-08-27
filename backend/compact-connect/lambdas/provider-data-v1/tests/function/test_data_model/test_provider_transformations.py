@@ -2,7 +2,6 @@ import json
 from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
-from botocore.exceptions import ClientError
 from moto import mock_aws
 from tests.function import TstFunction
 
@@ -92,10 +91,7 @@ class TestTransformations(TstFunction):
         self.assertEqual(expected_provider_id, provider_id)
 
         # Add a privilege to practice in Nebraska
-        try:
-            client.create_privilege(compact='aslp', jurisdiction='ne', provider_id=provider_id)
-        except ClientError as e:
-            print(e)
+        client.create_privilege(compact='aslp', jurisdiction='ne', provider_id=provider_id)
 
         # Get the provider straight from the table, to inspect them
         resp = self._table.query(

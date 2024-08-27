@@ -107,7 +107,6 @@ class TestPostLicenses(TstLambdas):
             ]
         }
 
-        # The sample event has scopes for aslp/al not aslp/co
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
 

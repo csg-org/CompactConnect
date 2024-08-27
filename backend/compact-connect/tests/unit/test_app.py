@@ -24,6 +24,10 @@ class TestApp(TestCase):
             context = json.load(f)['context']
         jurisdictions = set(context['jurisdictions'])
         compacts = set(context['compacts'])
+        # The '#' character is used in the composite identifiers in the database. In order to prevent confusion in
+        # parsing the identifiers, we either have to carefully escape all '#' characters that might show up in compact
+        # or jurisdiction abbreviations or simply not allow them. Since the abbreviations seem unlikely to include a #
+        # character, the latter seems reasonable.
         for jurisdiction in jurisdictions:
             self.assertNotIn('#', jurisdiction, "'#' not allowed in jurisdiction abbreviations!")
         for compact in compacts:

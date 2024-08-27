@@ -57,7 +57,7 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
                         'key': 'familyName',
                         'direction': sort_direction
                     },
-                    **config.data_client.get_licenses_sorted_by_family_name(
+                    **config.data_client.get_providers_sorted_by_family_name(
                         compact=compact,
                         jurisdiction=jurisdiction,
                         scan_forward=scan_forward,
@@ -71,7 +71,7 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
                         'key': 'dateOfUpdate',
                         'direction': sort_direction
                     },
-                    **config.data_client.get_licenses_sorted_by_date_updated(
+                    **config.data_client.get_providers_sorted_by_updated(
                         compact=compact,
                         jurisdiction=jurisdiction,
                         scan_forward=scan_forward,

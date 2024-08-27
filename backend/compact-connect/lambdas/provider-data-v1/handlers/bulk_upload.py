@@ -27,17 +27,6 @@ def bulk_upload_url_handler(event: dict, context: LambdaContext):
     return _bulk_upload_url_handler(event, context)
 
 
-@api_handler
-def no_auth_bulk_upload_url_handler(event: dict, context: LambdaContext):
-    """
-    For the mock API
-
-    :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
-    :param LambdaContext context:
-    """
-    return _bulk_upload_url_handler(event, context)
-
-
 def _bulk_upload_url_handler(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
     compact = event['pathParameters']['compact'].lower()
     jurisdiction = event['pathParameters']['jurisdiction'].lower()

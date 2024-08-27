@@ -90,7 +90,7 @@ class TestProcessS3Event(TstLambdas):
         except UnicodeDecodeError as e:
             error = e
 
-        # What if we've misconfigured something, so we can't access an AWS resource?
+        # What if the uploaded file is not properly utf-8 encoded?
         mock_process.side_effect = error
 
         with open('tests/resources/put-event.json', 'r') as f:
@@ -158,6 +158,8 @@ class TestProcessBulkUploadFile(TstLambdas):
 
         # We'll do a little processing to mangle our CSV data a bit
         with open('tests/resources/licenses.csv', 'r') as f:
+            line_count = len(f.readlines())
+            f.seek(0)
             csv_data = [
                 line.split(',')
                 for line in f
@@ -182,6 +184,6 @@ class TestProcessBulkUploadFile(TstLambdas):
             for call in mock_config.events_client.put_events.call_args_list
             for entry in call.kwargs['Entries']
         ]
-        self.assertEqual(5, len(entries))
+        self.assertEqual(line_count-1, len(entries))
         self.assertEqual(2, len([entry for entry in entries if entry['DetailType'] == 'license-ingest-failure']))
-        self.assertEqual(3, len([entry for entry in entries if entry['DetailType'] == 'license-ingest-v1']))
+        self.assertEqual(line_count-3, len([entry for entry in entries if entry['DetailType'] == 'license-ingest-v1']))

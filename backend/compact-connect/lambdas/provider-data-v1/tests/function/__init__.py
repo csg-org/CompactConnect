@@ -33,7 +33,6 @@ class TstFunction(TstLambdas):
         config.config = config._Config()  # pylint: disable=protected-access
         self.config = config.config
 
-        # Order of cleanup hooks matters, here
         self.addCleanup(self.delete_resources)
 
     def build_resources(self):
@@ -120,7 +119,6 @@ class TstFunction(TstLambdas):
     def _load_provider_data(self):
         """
         Use the canned test resources to load a basic provider to the DB
-        :return:
         """
 
         test_resources = glob('tests/resources/dynamo/*.json')

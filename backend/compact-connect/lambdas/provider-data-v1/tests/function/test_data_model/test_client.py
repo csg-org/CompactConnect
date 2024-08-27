@@ -93,7 +93,7 @@ class TestClient(TstFunction):
         client = DataClient(self.config)
 
         # We expect to see 20 providers: 10 have privileges in oh, 10 have licenses in oh
-        resp = client.get_licenses_sorted_by_family_name(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
+        resp = client.get_providers_sorted_by_family_name(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
             compact='aslp',
             jurisdiction='oh',
             pagination={
@@ -101,12 +101,12 @@ class TestClient(TstFunction):
             }
         )
         first_provider_ids = {item['providerId'] for item in resp['items']}
-        first_provider_items = resp['items']
+        first_items = resp['items']
         self.assertEqual(10, len(resp['items']))
         self.assertIsInstance(resp['pagination']['lastKey'], str)
 
         last_key = resp['pagination']['lastKey']
-        resp = client.get_licenses_sorted_by_family_name(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
+        resp = client.get_providers_sorted_by_family_name(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
             compact='aslp',
             jurisdiction='oh',
             pagination={'lastKey': last_key, 'pageSize': 100}
@@ -118,11 +118,10 @@ class TestClient(TstFunction):
         # Verify that there are no repeat items between the two calls
         self.assertFalse(first_provider_ids & second_provider_ids)
 
-        all_items = [*first_provider_items, *resp['items']]
-        first_item = all_items[0]
-        # Verify sorting by family name
-        for item in all_items:
-            self.assertLessEqual(first_item['familyName'], item['familyName'])
+        # Verify sorting by family name (without getting into how duplicate family names are sorted)
+        all_items = [*first_items, *resp['items']]
+        family_names = [item['familyName'] for item in all_items]
+        self.assertListEqual(sorted(family_names), family_names)
 
     def test_get_licenses_sorted_by_family_name_descending(self):
         from data_model.client import DataClient
@@ -130,28 +129,27 @@ class TestClient(TstFunction):
         self._generate_providers(home='oh', privilege='ne', start_serial=9999)
         client = DataClient(self.config)
 
-        resp = client.get_licenses_sorted_by_family_name(  # pylint: disable=missing-kwoa
+        resp = client.get_providers_sorted_by_family_name(  # pylint: disable=missing-kwoa
             compact='aslp',
             jurisdiction='oh',
             scan_forward=False
         )
         self.assertEqual(10, len(resp['items']))
 
-        first_item = resp['items'][0]
-        # Verify sorting by family name
-        for item in resp['items']:
-            self.assertGreaterEqual(first_item['familyName'], item['familyName'])
+        # Verify sorting by family name (without getting into how duplicate family names are sorted)
+        family_names = [item['familyName'] for item in resp['items']]
+        self.assertListEqual(sorted(family_names, reverse=True), family_names)
 
     def test_get_licenses_sorted_by_date_updated(self):
         from data_model.client import DataClient
 
         self._generate_providers(home='oh', privilege='ne', start_serial=9999)
         self._generate_providers(home='ne', privilege='oh', start_serial=9989)
-        self._generate_providers(home='ne', privilege='co', start_serial=9979)
+        self._generate_providers(home='ne', privilege='ky', start_serial=9979)
         client = DataClient(self.config)
 
         # We expect to see 20 providers: 10 have privileges in oh, 10 have licenses in oh
-        resp = client.get_licenses_sorted_by_date_updated(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
+        resp = client.get_providers_sorted_by_updated(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
             compact='aslp',
             jurisdiction='oh',
             pagination={
@@ -164,7 +162,7 @@ class TestClient(TstFunction):
         self.assertIsInstance(resp['pagination']['lastKey'], str)
 
         last_key = resp['pagination']['lastKey']
-        resp = client.get_licenses_sorted_by_date_updated(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
+        resp = client.get_providers_sorted_by_updated(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
             compact='aslp',
             jurisdiction='oh',
             pagination={'lastKey': last_key, 'pageSize': 10}
@@ -177,10 +175,9 @@ class TestClient(TstFunction):
         self.assertFalse(first_provider_ids & second_provider_ids)
 
         all_items = [*first_provider_items, *resp['items']]
-        first_item = all_items[0]
-        # Verify sorting by family name
-        for item in all_items:
-            self.assertLessEqual(first_item['dateOfUpdate'], item['dateOfUpdate'])
+        # Verify sorting by dateOfUpdate
+        dates_of_update = [item['dateOfUpdate'] for item in all_items]
+        self.assertListEqual(sorted(dates_of_update), dates_of_update)
 
     def test_get_licenses_sorted_by_date_of_update_descending(self):
         from data_model.client import DataClient
@@ -188,17 +185,16 @@ class TestClient(TstFunction):
         self._generate_providers(home='oh', privilege='ne', start_serial=9999)
         client = DataClient(self.config)
 
-        resp = client.get_licenses_sorted_by_date_updated(  # pylint: disable=missing-kwoa
+        resp = client.get_providers_sorted_by_updated(  # pylint: disable=missing-kwoa
             compact='aslp',
             jurisdiction='oh',
             scan_forward=False
         )
         self.assertEqual(10, len(resp['items']))
 
-        first_item = resp['items'][0]
-        # Verify sorting by family name
-        for item in resp['items']:
-            self.assertGreaterEqual(first_item['dateOfUpdate'], item['dateOfUpdate'])
+        # Verify sorting by dateOfUpdate
+        dates_of_update = [item['dateOfUpdate'] for item in resp['items']]
+        self.assertListEqual(sorted(dates_of_update, reverse=True), dates_of_update)
 
     def _load_provider_data(self) -> str:
         with open('tests/resources/dynamo/provider.json', 'r') as f:

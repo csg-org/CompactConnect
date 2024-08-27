@@ -91,14 +91,14 @@ class DataClient():
         return resp
 
     @paginated_query
-    def get_licenses_sorted_by_family_name(
+    def get_providers_sorted_by_family_name(
             self, *,
             compact: str,
             dynamo_pagination: dict,
             jurisdiction: str = None,
             scan_forward: bool = True
     ):  # pylint: disable-redefined-outer-name
-        logger.info('Getting licenses by family name')
+        logger.info('Getting providers by family name')
         if jurisdiction is not None:
             filter_expression = Attr('licenseJurisdiction').eq(jurisdiction) \
                                 | Attr('privilegeJurisdictions').contains(jurisdiction)
@@ -114,7 +114,7 @@ class DataClient():
         )
 
     @paginated_query
-    def get_licenses_sorted_by_date_updated(
+    def get_providers_sorted_by_updated(
             self, *,
             compact: str,
             dynamo_pagination: dict,
@@ -137,7 +137,9 @@ class DataClient():
         )
 
     def create_privilege(self, *, compact: str, jurisdiction: str, provider_id: str):
-        provider_data = tuple(
+        # The returned items should consist of exactly one record, of type: provider. Just to be extra cautious, we'll
+        # extract the (only) provider type record out of the array with a quick comprehension that filters by `type`.
+        provider_data = [
             record
             for record in self.get_provider(  # pylint: disable=missing-kwoa
                 compact=compact,
@@ -145,7 +147,7 @@ class DataClient():
                 detail=False
             )['items']
             if record['type'] == 'provider'
-        )[0]
+        ][0]
         now = datetime.now(tz=UTC)
 
         dynamodb_serializer = TypeSerializer()

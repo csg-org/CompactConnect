@@ -88,7 +88,7 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
 
 
 class TestAuthorizeCompact(TstLambdas):
-    def test_authorie_compact(self):
+    def test_authorize_compact(self):
         from handlers.utils import authorize_compact
 
         @authorize_compact(action='read')
