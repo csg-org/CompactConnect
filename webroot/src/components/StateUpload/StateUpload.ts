@@ -12,7 +12,7 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import { reactive, computed } from 'vue';
-import { compacts, uploadTypes } from '@/app.config';
+import { uploadTypes } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Card from '@components/Card/Card.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
@@ -21,7 +21,7 @@ import InputFile from '@components/Forms/InputFile/InputFile.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import CheckCircle from '@components/Icons/CheckCircle/CheckCircle.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
-import { Compact } from '@models/User/User.model';
+import { CompactType } from '@models/Compact/Compact.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import { dataApi } from '@network/data.api';
 import Joi from 'joi';
@@ -58,61 +58,30 @@ class StateUpload extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
-    get compacts(): any {
-        let compactsList = this.$tm('compacts');
-
-        if (typeof compactsList[0]?.name === 'function') {
-            const normalize = ([value]) => value;
-
-            compactsList = (compactsList as any).map((item) => ({
-                key: item.key({ normalize }),
-                name: item.name({ normalize }),
-            }));
-        }
-
-        return compactsList;
-    }
-
-    get compactId(): string {
-        return this.userStore.currentCompact || Compact.ASLP;
-    }
-
-    get states(): any {
-        let statesList = this.$tm('common.states');
-
-        if (typeof statesList[0]?.abbrev === 'function') {
-            const normalize = ([value]) => value;
-
-            statesList = (statesList as any).map((state) => ({
-                abbrev: state.abbrev({ normalize }),
-                full: state.full({ normalize }),
-            }));
-        }
-
-        return statesList;
+    get compactType(): CompactType | null {
+        return this.userStore.currentCompact?.type;
     }
 
     get stateOptions(): Array<any> {
-        const { states, compactId } = this;
-        const compactMemberStateIds = compacts[compactId]?.memberStates || [];
-        const memberStates = states
-            .filter((state) => compactMemberStateIds.includes(state.abbrev))
-            .map((state) => ({ value: state.abbrev, name: state.full }));
-        const defaultValue: any = { value: '' };
+        const { currentCompact } = this.userStore;
+        const compactMemberStates = (currentCompact?.memberStates || []).map((state) => ({
+            value: state.abbrev, name: state.name()
+        }));
+        const defaultSelectOption: any = { value: '' };
 
-        if (!memberStates.length) {
-            defaultValue.name = '';
+        if (!compactMemberStates.length) {
+            defaultSelectOption.name = '';
         } else {
-            defaultValue.name = computed(() => this.$t('common.selectOption'));
+            defaultSelectOption.name = computed(() => this.$t('common.selectOption'));
         }
 
-        memberStates.unshift(defaultValue);
+        compactMemberStates.unshift(defaultSelectOption);
 
-        return memberStates;
+        return compactMemberStates;
     }
 
     get isStateSelectEnabled(): boolean {
-        return Boolean(this.compactId);
+        return Boolean(this.stateOptions.length);
     }
 
     get submitLabel(): string {
@@ -179,7 +148,7 @@ class StateUpload extends mixins(MixinForm) {
         if (this.isFormValid) {
             this.startFormLoading();
 
-            const compact = this.compactId;
+            const compact = this.compactType || '';
             const { state, files } = this.formValues;
             const uploadConfig = await this.fetchUploadConfig(compact, state);
 
@@ -219,7 +188,7 @@ class StateUpload extends mixins(MixinForm) {
     //
     // Watchers
     //
-    @Watch('compactId') updateCompactStates(): void {
+    @Watch('compactType') updateCompactStates(): void {
         this.updateStateInput();
     }
 }

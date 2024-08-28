@@ -78,11 +78,6 @@ app.use(VueLazyload, {
 });
 
 //
-// MOUNT
-//
-app.mount('#app');
-
-//
 // ALLOW ACCESS TO VUE INSTANCE SERVICES
 //
 // Attach any services that aren't automatically attached to the Vue instance
@@ -99,6 +94,11 @@ if (!globalProperties.$tm) {
 
 // Make Vue available globally
 (window as any).Vue = app || {};
+
+//
+// MOUNT
+//
+app.mount('#app');
 
 //
 // E2E TESTS INJECTION

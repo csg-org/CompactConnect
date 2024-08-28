@@ -168,7 +168,7 @@ class LicenseeList extends Vue {
             }
         }
 
-        requestConfig.compact = this.userStore.currentCompact;
+        requestConfig.compact = this.userStore.currentCompact?.type;
 
         //
         // Temp for limited server filtering support
