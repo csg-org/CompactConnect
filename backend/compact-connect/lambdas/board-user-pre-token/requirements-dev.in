@@ -1,3 +1,0 @@
-# aws-lambda-powertools implicitly depends on the lambda-provided libraries
-# we can provide those here for tests without bloating the runtime package
-boto3>=1.34, <2

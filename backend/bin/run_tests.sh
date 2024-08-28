@@ -4,11 +4,11 @@ REPORT="$1"
 # Run CDK tests, tracking code coverage in a new data file
 (
   cd compact-connect
-  pytest --cov=. --cov-config=.coveragerc tests || exit "$?"
-)
+  pytest --cov=. --cov-config=.coveragerc tests
+) || exit "$?"
 for dir in \
   compact-connect/lambdas/license-data \
-  compact-connect/lambdas/board-user-pre-token \
+  compact-connect/lambdas/provider-data-v1 \
   compact-connect/lambdas/staff-user-pre-token \
   compact-connect/lambdas/delete-objects \
   multi-account

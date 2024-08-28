@@ -11,7 +11,7 @@ from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 # Importing module level to allow lazy loading for typing
-from . import license_api
+from . import cc_api
 
 
 class BulkUploadUrl:
@@ -26,7 +26,7 @@ class BulkUploadUrl:
         super().__init__()
 
         self.resource = resource.add_resource('bulk-upload')
-        self.api: license_api.LicenseApi = resource.api
+        self.api: cc_api.CCApi = resource.api
         self.log_groups = []
         self._add_bulk_upload_url(
             mock_bucket=mock_bucket,
@@ -103,7 +103,7 @@ class BulkUploadUrl:
         )
 
     @staticmethod
-    def get_bulk_upload_response_model(api: license_api.LicenseApi) -> Model:
+    def get_bulk_upload_response_model(api: cc_api.CCApi) -> Model:
         """
         Return the Post License Model, which should only be created once per API
         """

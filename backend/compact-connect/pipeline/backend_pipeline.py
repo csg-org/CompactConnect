@@ -51,7 +51,6 @@ class BackendPipeline(CdkCodePipeline):
         super().__init__(
             scope, construct_id,
             artifact_bucket=artifact_bucket,
-            self_mutation=True,
             synth=ShellStep(
                 'Synth',
                 input=CodePipelineSource.connection(
