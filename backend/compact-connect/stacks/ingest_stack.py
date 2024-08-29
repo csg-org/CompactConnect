@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration
-from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, TreatMissingData
+from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, TreatMissingData, Stats
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import Rule, EventPattern
 from aws_cdk.aws_events_targets import SqsQueue
@@ -94,6 +94,17 @@ class IngestStack(AppStack):
                 report_batch_item_failures=True
             )
         )
+        # We should specifically set an alarm for any failures of this handler, since it could otherwise go unnoticed.
+        Alarm(
+            self, 'V1ParserFailureAlarm',
+            metric=ingest_handler.metric_errors(statistic=Stats.SUM),
+            evaluation_periods=1,
+            threshold=1,
+            actions_enabled=True,
+            alarm_description=f'{ingest_handler.node.path} failed to process a message batch',
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING
+        ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
         self._add_queue_alarms(
             queue_retention_period,
             ingest_queue,
