@@ -44,7 +44,7 @@ class BulkUploadsBucket(Bucket):
         if mock_bucket:
             self._add_delete_object_events()
         else:
-            self._add_ingest_object_events(event_bus)
+            self._add_v1_ingest_object_events(event_bus)
 
         QueryDefinition(
             self, 'RuntimeQuery',
@@ -137,15 +137,15 @@ class BulkUploadsBucket(Bucket):
             }]
         )
 
-    def _add_ingest_object_events(self, event_bus: EventBus):
+    def _add_v1_ingest_object_events(self, event_bus: EventBus):
         """
         Read any objects that get uploaded and trigger ingest events
         """
         stack: Stack = Stack.of(self)
         parse_objects_handler = PythonFunction(
-            self, 'ParseObjectsHandler',
+            self, 'V1ParseObjectsHandler',
             description='Parse s3 objects handler',
-            entry=os.path.join('lambdas', 'license-data'),
+            entry=os.path.join('lambdas', 'provider-data-v1'),
             index=os.path.join('handlers', 'bulk_upload.py'),
             handler='parse_bulk_upload_file',
             timeout=Duration.minutes(15),

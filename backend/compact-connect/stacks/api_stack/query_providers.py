@@ -11,7 +11,7 @@ from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 # Importing module level to allow lazy loading for typing
-from . import license_api
+from . import cc_api
 from ..persistent_stack import LicenseTable
 
 
@@ -26,7 +26,7 @@ class QueryProviders:
         super().__init__()
 
         self.resource = resource
-        self.api: license_api.LicenseApi = resource.api
+        self.api: cc_api.CCApi = resource.api
 
         stack: Stack = Stack.of(resource)
         lambda_environment = {
@@ -199,12 +199,12 @@ class QueryProviders:
                                 'ssn': JsonSchema(
                                     type=JsonSchemaType.STRING,
                                     description='Social security number to look up',
-                                    pattern=license_api.SSN_FORMAT
+                                    pattern=cc_api.SSN_FORMAT
                                 ),
                                 'providerId': JsonSchema(
                                     type=JsonSchemaType.STRING,
                                     description='Internal UUID for the provider',
-                                    pattern=license_api.UUID4_FORMAT
+                                    pattern=cc_api.UUID4_FORMAT
                                 ),
                                 'compact': JsonSchema(
                                     type=JsonSchemaType.STRING,
@@ -240,7 +240,7 @@ class QueryProviders:
                         'items': JsonSchema(
                             type=JsonSchemaType.ARRAY,
                             max_length=100,
-                            items=self.api.license_response_schema
+                            items=self.api.v0_license_response_schema
                         ),
                         'pagination': self._pagination_response_schema,
                         'sorting': self._sorting_schema
