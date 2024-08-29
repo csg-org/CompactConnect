@@ -424,7 +424,45 @@
         "status": {
             "active": "Active",
             "inactive": "Inactive"
-        }
+        },
+        "occupations": [
+            {
+                "name": "Audiologist",
+                "key": "audiologist"
+            },
+            {
+                "name": "Speech-Language Pathologist",
+                "key": "speech-language pathologist"
+            },
+            {
+                "name": "Speech and Language Pathologist",
+                "key": "speech and language pathologist"
+            },
+            {
+                "name": "Occupational Therapist",
+                "key": "occupational therapist"
+            },
+            {
+                "name": "Occupational Therapy Assistant",
+                "key": "occupational therapy assistant"
+            },
+            {
+                "name": "Licensed Professional Counselor",
+                "key": "licensed professional counselor"
+            },
+            {
+                "name": "Licensed Mental Health Counselor",
+                "key": "licensed mental health counselor"
+            },
+            {
+                "name": "Licensed Clinical Mental Health Counselor",
+                "key": "licensed clinical mental health counselor"
+            },
+            {
+                "name": "Licensed Professional Clinical Counselor",
+                "key": "licensed professional clinical counselor"
+            }
+        ]
     },
     "styleGuide": {
         "headerPlaceholder": "Header Content",

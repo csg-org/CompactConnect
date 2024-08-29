@@ -71,6 +71,6 @@ export default class LicensingDetail extends Vue {
     async fetchLicenseeData(): Promise<void> {
         const { licenseeId } = this;
 
-        await this.$store.dispatch('license/getLicenseeRequest', { licenseeId });
+        await this.$store.dispatch('license/getLicenseeRequest', { compact: this.compact, licenseeId });
     }
 }
