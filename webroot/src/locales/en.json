@@ -415,13 +415,16 @@
     },
     "licensing": {
         "licensingListTitle": "Licensing Data",
-        "residenceLocation": "Resident location",
-        "stateOfLicense": "State of licensure",
-        "practicingLocations": "Practicing location(s)",
+        "homeState": "Home State",
+        "residenceLocation": "Residence location",
+        "privileges": "Privileges",
+        "ssn": "SSN",
+        "adverseActions": "Adverse actions",
+        "status": "Status",
         "issueDate": "Issue Date",
         "expireDate": "Expire Date",
         "lastUpdate": "Latest upload",
-        "status": {
+        "statusOptions": {
             "active": "Active",
             "inactive": "Inactive"
         },

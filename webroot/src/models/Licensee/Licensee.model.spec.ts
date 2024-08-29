@@ -53,13 +53,14 @@ describe('Licensee model', () => {
         expect(licensee.nameDisplay()).to.equal('');
         expect(licensee.residenceLocation()).to.equal('');
         expect(licensee.dobDisplay()).to.equal('');
-        expect(licensee.lastUpdatedDisplay()).to.equal('');
-        expect(licensee.lastUpdatedDisplayRelative()).to.equal('');
-        expect(licensee.licenseStatesDisplay()).to.equal('');
-        expect(licensee.practicingLocationsAll()).to.equal('');
-        expect(licensee.practicingLocationsDisplay()).to.equal('');
         expect(licensee.ssnMaskedFull()).to.equal('');
         expect(licensee.ssnMaskedPartial()).to.equal('');
+        expect(licensee.lastUpdatedDisplay()).to.equal('');
+        expect(licensee.lastUpdatedDisplayRelative()).to.equal('');
+        expect(licensee.getStateListDisplay([])).to.equal('');
+        expect(licensee.licenseStatesDisplay()).to.equal('');
+        expect(licensee.privilegeStatesAllDisplay()).to.equal('');
+        expect(licensee.privilegeStatesDisplay()).to.equal('');
         expect(licensee.occupationName()).to.equal('');
     });
     it('should create a Licensee with specific values', () => {
@@ -70,7 +71,7 @@ describe('Licensee model', () => {
             middleName: 'test-middleName',
             lastName: 'test-lastName',
             address: new Address(),
-            dob: 'test-dob',
+            dob: '2020-01-01',
             ssn: 'test-ssn',
             isMilitary: true,
             occupation: LicenseOccupation.AUDIOLOGIST,
@@ -84,7 +85,7 @@ describe('Licensee model', () => {
             privileges: [
                 new License(),
             ],
-            lastUpdated: 'test-lastUpdated',
+            lastUpdated: '2020-01-01',
             status: LicenseeStatus.ACTIVE,
         };
         const licensee = new Licensee(data);
@@ -115,14 +116,15 @@ describe('Licensee model', () => {
         // Test methods
         expect(licensee.nameDisplay()).to.equal(`${data.firstName} ${data.lastName}`);
         expect(licensee.residenceLocation()).to.equal('');
-        expect(licensee.dobDisplay()).to.equal('Invalid date');
-        expect(licensee.lastUpdatedDisplay()).to.equal('Invalid date');
-        expect(licensee.lastUpdatedDisplayRelative()).to.equal('Invalid date');
-        expect(licensee.licenseStatesDisplay()).to.equal('');
-        expect(licensee.practicingLocationsAll()).to.equal('');
-        expect(licensee.practicingLocationsDisplay()).to.equal('');
+        expect(licensee.dobDisplay()).to.equal('1/1/2020');
         expect(licensee.ssnMaskedFull()).to.equal(data.ssn);
         expect(licensee.ssnMaskedPartial()).to.equal('test-ss-ssn');
+        expect(licensee.lastUpdatedDisplay()).to.equal('1/1/2020');
+        expect(licensee.lastUpdatedDisplayRelative()).to.be.a('string').that.is.not.empty;
+        expect(licensee.getStateListDisplay([])).to.equal('');
+        expect(licensee.licenseStatesDisplay()).to.equal('');
+        expect(licensee.privilegeStatesAllDisplay()).to.equal('');
+        expect(licensee.privilegeStatesDisplay()).to.equal('');
         expect(licensee.occupationName()).to.equal('Audiologist');
     });
     it('should create a Licensee with specific values through serializer', () => {
@@ -203,15 +205,15 @@ describe('Licensee model', () => {
         expect(licensee.dobDisplay()).to.equal(
             moment(data.dateOfBirth, serverDateFormat).format(displayDateFormat)
         );
+        expect(licensee.ssnMaskedFull()).to.equal(`###-##-####`);
+        expect(licensee.ssnMaskedPartial()).to.equal(`###-##-0000`);
         expect(licensee.lastUpdatedDisplay()).to.equal(
             moment(data.dateOfUpdate, serverDateFormat).format(displayDateFormat)
         );
         expect(licensee.lastUpdatedDisplayRelative()).to.be.a('string').that.is.not.empty;
         expect(licensee.licenseStatesDisplay()).to.equal('Colorado');
-        expect(licensee.practicingLocationsAll()).to.equal('Colorado');
-        expect(licensee.practicingLocationsDisplay()).to.equal('Colorado');
-        expect(licensee.ssnMaskedFull()).to.equal(`###-##-####`);
-        expect(licensee.ssnMaskedPartial()).to.equal(`###-##-0000`);
+        expect(licensee.privilegeStatesAllDisplay()).to.equal('Colorado');
+        expect(licensee.privilegeStatesDisplay()).to.equal('Colorado');
         expect(licensee.occupationName()).to.equal('Audiologist');
     });
     it('should serialize a Licensee for transmission to server', () => {

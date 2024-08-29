@@ -80,10 +80,10 @@ class LicenseeList extends Vue {
         const record = {
             firstName: this.$t('common.firstName'),
             lastName: this.$t('common.lastName'),
-            residenceLocation: () => this.$t('licensing.residenceLocation'),
-            licenseStatesDisplay: () => this.$t('licensing.stateOfLicense'),
-            practicingLocationsDisplay: () => this.$t('licensing.practicingLocations'),
-            lastUpdatedDisplay: () => this.$t('licensing.lastUpdate'),
+            ssnMaskedPartial: () => this.$t('licensing.ssn'),
+            licenseStatesDisplay: () => this.$t('licensing.homeState'),
+            privilegeStatesDisplay: () => this.$t('licensing.privileges'),
+            statusDisplay: () => this.$t('licensing.status'),
         };
 
         return record;

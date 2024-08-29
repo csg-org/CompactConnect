@@ -98,9 +98,9 @@ describe('License model', () => {
             compact: CompactType.ASLP,
             type: 'privilege',
             jurisdiction: 'al',
-            issueDate: moment().format(serverDateFormat),
-            renewalDate: moment().format(serverDateFormat),
-            expireDate: moment().subtract(1, 'day').format(serverDateFormat),
+            dateOfIssuance: moment().format(serverDateFormat),
+            dateOfRenewal: moment().format(serverDateFormat),
+            dateOfExpiration: moment().subtract(1, 'day').format(serverDateFormat),
             licenseType: LicenseOccupation.AUDIOLOGIST,
             status: LicenseStatus.ACTIVE,
         };
@@ -114,22 +114,22 @@ describe('License model', () => {
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.isHomeState).to.equal(false);
         expect(license.issueState.abbrev).to.equal(data.jurisdiction);
-        expect(license.issueDate).to.equal(data.issueDate);
-        expect(license.renewalDate).to.equal(data.renewalDate);
-        expect(license.expireDate).to.equal(data.expireDate);
+        expect(license.issueDate).to.equal(data.dateOfIssuance);
+        expect(license.renewalDate).to.equal(data.dateOfRenewal);
+        expect(license.expireDate).to.equal(data.dateOfExpiration);
         expect(license.occupation).to.equal(data.licenseType);
         expect(license.statusState).to.equal(data.status);
         expect(license.statusCompact).to.equal(data.status);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal(
-            moment(data.issueDate, serverDateFormat).format(displayDateFormat)
+            moment(data.dateOfIssuance, serverDateFormat).format(displayDateFormat)
         );
         expect(license.renewalDateDisplay()).to.equal(
-            moment(data.renewalDate, serverDateFormat).format(displayDateFormat)
+            moment(data.dateOfRenewal, serverDateFormat).format(displayDateFormat)
         );
         expect(license.expireDateDisplay()).to.equal(
-            moment(data.expireDate, serverDateFormat).format(displayDateFormat)
+            moment(data.dateOfExpiration, serverDateFormat).format(displayDateFormat)
         );
         expect(license.isExpired()).to.equal(true);
         expect(license.occupationName()).to.equal('Audiologist');
@@ -140,9 +140,9 @@ describe('License model', () => {
             compact: CompactType.ASLP,
             type: 'privilege',
             jurisdiction: 'al',
-            issueDate: moment().format(serverDateFormat),
-            renewalDate: moment().format(serverDateFormat),
-            expireDate: moment().subtract(1, 'day').format(serverDateFormat),
+            dateOfIssuance: moment().format(serverDateFormat),
+            dateOfRenewal: moment().format(serverDateFormat),
+            dateOfExpiration: moment().subtract(1, 'day').format(serverDateFormat),
             licenseType: LicenseOccupation.AUDIOLOGIST,
             status: LicenseStatus.ACTIVE,
         });

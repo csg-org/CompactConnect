@@ -146,7 +146,7 @@ class LicenseeRow extends Vue {
         this.$router.push(
             {
                 name: 'LicensingDetail',
-                params: { compact: this.userStore.currentCompact, licenseeId },
+                params: { compact: this.userStore.currentCompact?.type, licenseeId },
             }
         );
     }

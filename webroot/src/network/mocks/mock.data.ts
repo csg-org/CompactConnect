@@ -38,6 +38,26 @@ export const licensees = {
                     dateOfIssuance: '2024-08-29',
                     dateOfUpdate: '2024-08-29',
                     status: 'active'
+                },
+                {
+                    licenseJurisdiction: 'ak',
+                    dateOfExpiration: '2024-08-29',
+                    compact: 'aslp',
+                    providerId: '1',
+                    type: 'privilege',
+                    dateOfIssuance: '2024-08-29',
+                    dateOfUpdate: '2024-08-29',
+                    status: 'active'
+                },
+                {
+                    licenseJurisdiction: 'ar',
+                    dateOfExpiration: '2024-08-29',
+                    compact: 'aslp',
+                    providerId: '1',
+                    type: 'privilege',
+                    dateOfIssuance: '2024-08-29',
+                    dateOfUpdate: '2024-08-29',
+                    status: 'active'
                 }
             ],
             licenseJurisdiction: 'co',

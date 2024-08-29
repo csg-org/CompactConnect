@@ -41,17 +41,17 @@
             }"></span>
         </div>
         <div
-            class="cell residence-location"
-            :class="{ 'is-sort-enabled': isSortOptionEnabled('residenceLocation') }"
-            @click="isSortOptionEnabled('residenceLocation') && handleSortSelect('residenceLocation')"
-            @keyup.enter="isSortOptionEnabled('residenceLocation') && handleSortSelect('residenceLocation')"
+            class="cell ssn"
+            :class="{ 'is-sort-enabled': isSortOptionEnabled('ssn') }"
+            @click="isSortOptionEnabled('ssn') && handleSortSelect('ssn')"
+            @keyup.enter="isSortOptionEnabled('ssn') && handleSortSelect('ssn')"
         >
-            <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.residenceLocation') }}:</span>
-            {{ item.residenceLocation() }}
-            <span v-if="isSortOptionEnabled('residenceLocation')" class="sort-icon" :class="{
-                'is-selected': isSortOptionSelected('residenceLocation'),
-                'asc': isSortOptionAscending('residenceLocation'),
-                'desc': isSortOptionDescending('residenceLocation'),
+            <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.ssn') }}:</span>
+            {{ item.ssnMaskedPartial() }}
+            <span v-if="isSortOptionEnabled('ssn')" class="sort-icon" :class="{
+                'is-selected': isSortOptionSelected('ssn'),
+                'asc': isSortOptionAscending('ssn'),
+                'desc': isSortOptionDescending('ssn'),
             }"></span>
         </div>
         <div
@@ -75,7 +75,7 @@
             @keyup.enter="isSortOptionEnabled('practicingLocations') && handleSortSelect('practicingLocations')"
         >
             <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.practicingLocations') }}:</span>
-            {{ item.practicingLocationsDisplay() }}
+            {{ item.privilegeStatesDisplay() }}
             <span v-if="isSortOptionEnabled('practicingLocations')" class="sort-icon" :class="{
                 'is-selected': isSortOptionSelected('practicingLocations'),
                 'asc': isSortOptionAscending('practicingLocations'),
@@ -83,17 +83,17 @@
             }"></span>
         </div>
         <div
-            class="cell last-updated"
-            :class="{ 'is-sort-enabled': isSortOptionEnabled('lastUpdate') }"
-            @click="isSortOptionEnabled('lastUpdate') && handleSortSelect('lastUpdate')"
-            @keyup.enter="isSortOptionEnabled('lastUpdate') && handleSortSelect('lastUpdate')"
+            class="cell status"
+            :class="{ 'is-sort-enabled': isSortOptionEnabled('status') }"
+            @click="isSortOptionEnabled('status') && handleSortSelect('status')"
+            @keyup.enter="isSortOptionEnabled('status') && handleSortSelect('status')"
         >
-            <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.lastUpdate') }}:</span>
-            {{ item.lastUpdatedDisplay() }}
-            <span v-if="isSortOptionEnabled('lastUpdate')" class="sort-icon" :class="{
-                'is-selected': isSortOptionSelected('lastUpdate'),
-                'asc': isSortOptionAscending('lastUpdate'),
-                'desc': isSortOptionDescending('lastUpdate'),
+            <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.status') }}:</span>
+            {{ item.statusDisplay() }}
+            <span v-if="isSortOptionEnabled('status')" class="sort-icon" :class="{
+                'is-selected': isSortOptionSelected('status'),
+                'asc': isSortOptionAscending('status'),
+                'desc': isSortOptionDescending('status'),
             }"></span>
         </div>
     </li>

@@ -61,6 +61,14 @@ export default class LicensingDetail extends Vue {
         return this.licensee?.nameDisplay() || '';
     }
 
+    get licenseeHomeStateDisplay(): string {
+        return this.licensee?.licenseStatesDisplay() || '';
+    }
+
+    get licenseePrivilegeStatesDisplay(): string {
+        return this.licensee?.privilegeStatesAllDisplay() || '';
+    }
+
     get licenseeLicenses(): Array<License> {
         return this.licensee?.licenses || [];
     }

@@ -43,6 +43,7 @@ export interface InterfaceLicensee {
 // ========================================================
 export class Licensee implements InterfaceLicensee {
     public $tm?: any = () => [];
+    public $t?: any = () => '';
     public id? = null;
     public npi? = null;
     public firstName? = null;
@@ -63,10 +64,11 @@ export class Licensee implements InterfaceLicensee {
     constructor(data?: InterfaceLicensee) {
         const cleanDataObject = deleteUndefinedProperties(data);
         const global = window as any;
-        const $tm = global.Vue?.config?.globalProperties?.$tm;
+        const { $tm, $t } = global.Vue?.config?.globalProperties || {};
 
         if ($tm) {
             this.$tm = $tm;
+            this.$t = $t;
         }
 
         Object.assign(this, cleanDataObject);
@@ -148,33 +150,28 @@ export class Licensee implements InterfaceLicensee {
         return this.getStateListDisplay(stateNames);
     }
 
-    public practicingLocationsAll(): string {
-        const states: Array<string> = this.licenses?.map((license: License) => license.issueState?.name() || '') || [];
-        const stateList = states.filter((state) => state).join(', ') || '';
+    public privilegeStatesAllDisplay(): string {
+        let stateNames: Array<string> = [];
 
-        return stateList;
-    }
-
-    public practicingLocationsDisplay(): string {
-        const states: Array<string> = this.licenses?.map((license: License) => license.issueState?.name() || '') || [];
-        const maxNames = 2;
-        let stateList = '';
-
-        if (states.length > maxNames) {
-            states.forEach((state, idx) => {
-                if (idx === 0) {
-                    stateList += state;
-                } else if (idx + 1 <= maxNames) {
-                    stateList += (state) ? `, ${state}` : '';
-                }
-            });
-
-            stateList += (stateList) ? ` +` : '';
+        if (this.privileges?.length) {
+            stateNames = this.privileges.map((privilege: License) => privilege.issueState?.name() || '');
         } else {
-            stateList = states.join(', ');
+            stateNames = this.privilegeStates?.map((state: State) => state.name()) || [];
         }
 
-        return stateList;
+        return this.getStateListDisplay(stateNames, 99);
+    }
+
+    public privilegeStatesDisplay(): string {
+        let stateNames: Array<string> = [];
+
+        if (this.privileges?.length) {
+            stateNames = this.privileges.map((privilege: License) => privilege.issueState?.name() || '');
+        } else {
+            stateNames = this.privilegeStates?.map((state: State) => state.name()) || [];
+        }
+
+        return this.getStateListDisplay(stateNames);
     }
 
     public occupationName(): string {
@@ -194,6 +191,10 @@ export class Licensee implements InterfaceLicensee {
         const occupationName = occupation?.name || '';
 
         return occupationName;
+    }
+
+    public statusDisplay(): string {
+        return this.$t(`licensing.statusOptions.${this.status}`) || '';
     }
 }
 

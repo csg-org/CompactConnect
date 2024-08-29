@@ -127,9 +127,9 @@ export class LicenseSerializer {
             isPrivilege: Boolean(json.type === 'privilege'),
             issueState: new State({ abbrev: json.jurisdiction || json.licenseJurisdiction }),
             isHomeState: Boolean(json.type === 'license-home'),
-            issueDate: json.issueDate,
-            renewalDate: json.renewalDate,
-            expireDate: json.expireDate,
+            issueDate: json.dateOfIssuance,
+            renewalDate: json.dateOfRenewal,
+            expireDate: json.dateOfExpiration,
             occupation: json.licenseType,
             statusState: json.status,
             statusCompact: json.status, // In the near future, the server will send a separate field for this
