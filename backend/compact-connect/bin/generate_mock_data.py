@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # Quick script to generate some mock data for test environments
 #
-# Run from 'backend/compact-connect/lambdas/license-data' with:
+# Run from 'backend/compact-connect' like:
+# bin/generate_mock_data.py --count 100 --compact octp --jurisdiction ne
 import os
 import sys
 
