@@ -152,7 +152,7 @@ def _set_dates(license_data: dict) -> dict:
         )
         # Their license expired a year after renewal, but no later than yesterday.
         date_of_expiry = min(
-            date_of_renewal+timedelta(days=365),
+            date_of_renewal + timedelta(days=365),
             now - timedelta(days=1)
         )
     license_data.update({

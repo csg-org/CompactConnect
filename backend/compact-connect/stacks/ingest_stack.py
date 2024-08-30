@@ -96,7 +96,7 @@ class IngestStack(AppStack):
         )
         # We should specifically set an alarm for any failures of this handler, since it could otherwise go unnoticed.
         Alarm(
-            self, 'V1ParserFailureAlarm',
+            self, 'V1IngestFailureAlarm',
             metric=ingest_handler.metric_errors(statistic=Stats.SUM),
             evaluation_periods=1,
             threshold=1,
