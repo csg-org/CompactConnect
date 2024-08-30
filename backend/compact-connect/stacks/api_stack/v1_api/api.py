@@ -8,6 +8,7 @@ from stacks.api_stack.v1_api.bulk_upload_url import BulkUploadUrl
 from stacks.api_stack.v1_api.query_providers import QueryProviders
 
 from .post_licenses import PostLicenses
+from .staff_users import StaffUsers
 
 
 class V1Api:
@@ -25,6 +26,10 @@ class V1Api:
         ]
         write_scopes = [
             f'{resource_server}/write'
+            for resource_server in persistent_stack.staff_users.resource_servers.keys()
+        ]
+        admin_scopes = [
+            f'{resource_server}/admin'
             for resource_server in persistent_stack.staff_users.resource_servers.keys()
         ]
         read_auth_method_options = MethodOptions(
@@ -67,3 +72,17 @@ class V1Api:
             method_options=write_auth_method_options,
             bulk_uploads_bucket=persistent_stack.bulk_uploads_bucket
         )
+
+        # /v1/staff-users
+        staff_users_resource = compact_resource.add_resource('staff-users')
+        # GET    /v1/staff-users
+        # POST   /v1/staff-users
+        # GET    /v1/staff-users/me
+        # PATCH  /v1/staff-users/me
+        # GET    /v1/staff-users/{userId}
+        # PATCH  /v1/staff-users/{userId}
+        StaffUsers(
+            resource=staff_users_resource,
+            admin_scopes=admin_scopes
+        )
+
