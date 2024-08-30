@@ -8,7 +8,7 @@
 <template>
     <div class="pagination-container" role="navigation" :aria-label="ariaLabel">
         <ul class="pagination-list" v-if="pages && pages.length">
-            <li
+            <!-- <li
                 v-if="!isFirstPage && pagingPrevKey"
                 @click="setPage(currentPage - 1, -1)"
                 @keyup.enter="setPage(currentPage - 1, -1)"
@@ -16,7 +16,7 @@
                 :aria-label="$t('paging.previousPage')"
             >
                 <span><LeftCaretIcon /> {{ $t('paging.previousPage') }}</span>
-            </li>
+            </li> -->
             <li
                 v-for="{id, clickable, selected, displayValue} in pages"
                 :key="id"

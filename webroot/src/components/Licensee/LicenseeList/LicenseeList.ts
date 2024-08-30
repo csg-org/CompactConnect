@@ -15,6 +15,7 @@ import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
 import LicenseeRow from '@components/Licensee/LicenseeRow/LicenseeRow.vue';
 import { SortDirection } from '@store/sorting/sorting.state';
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@store/pagination/pagination.state';
+import { PageExhaustError } from '@store/pagination';
 
 @Component({
     name: 'LicenseeList',
@@ -36,7 +37,7 @@ class LicenseeList extends Vue {
     //
     // Lifecycle
     //
-    async created() {
+    async mounted() {
         await this.setDefaultSort();
         await this.setDefaultPaging();
         await this.fetchListData();
@@ -115,6 +116,7 @@ class LicenseeList extends Vue {
     async setDefaultPaging(shouldForce = false) {
         const { listId } = this;
         const { page, size } = this.paginationStore.paginationMap[this.listId] || {};
+        const { prevLastKey } = this.licenseStore;
 
         if (!page || shouldForce) {
             await this.$store.dispatch('pagination/updatePaginationPage', {
@@ -128,6 +130,10 @@ class LicenseeList extends Vue {
                 paginationId: listId,
                 newSize: DEFAULT_PAGE_SIZE,
             });
+        }
+
+        if (prevLastKey) {
+            this.prevKey = prevLastKey;
         }
     }
 
@@ -182,6 +188,33 @@ class LicenseeList extends Vue {
                 pageSize: size,
             }
         });
+
+        // If we've reached the end of paging
+        if (this.licenseStore.error instanceof PageExhaustError && page > 1) {
+            // Support for limited server paging support:
+            // The server does not respond with how many total records there are, only keys to fetch
+            // the current or next page. So the frontend can't know it's the end of paging until we get back 0 records.
+            // At that point, we no longer have usable prevLastKey & lastKey values from the server, and need to re-fetch
+            // the last page to get stable.
+
+            // Update pagination store page
+            this.$store.dispatch('pagination/updatePaginationPage', {
+                paginationId: this.listId,
+                newPage: page - 1,
+            });
+            // Re-fetch with prevLastKey
+            await this.$store.dispatch('license/getLicenseesRequest', {
+                params: {
+                    ...requestConfig,
+                    getPrevPage: true,
+                    getNextPage: false,
+                    pageNum: page,
+                    pageSize: size,
+                }
+            });
+            // After fetch, delete lastKey from the store (to disable "next" button)
+            this.$store.dispatch('license/setStoreLicenseeLastKey', null);
+        }
     }
 
     async sortingChange() {

@@ -31,7 +31,6 @@ export interface RequestParamsInterfaceRemote {
     pagination?: {
         pageSize?: number,
         lastKey?: string,
-        prevLastKey?: string,
     },
     sorting?: {
         key?: string,
@@ -115,7 +114,7 @@ export class LicenseDataApi implements DataApiInterface {
         if (params.licenseeId) {
             requestParams.query.providerId = params.licenseeId;
         } else {
-            if (params.pageSize || params.lastKey || params.prevLastKey) {
+            if (params.pageSize || params.lastKey) {
                 requestParams.pagination = {};
 
                 if (params.pageSize) {
@@ -123,8 +122,6 @@ export class LicenseDataApi implements DataApiInterface {
                 }
                 if (params.lastKey) {
                     requestParams.pagination.lastKey = params.lastKey;
-                } else if (params.prevLastKey) {
-                    requestParams.pagination.prevLastKey = params.prevLastKey;
                 }
             }
 
@@ -151,7 +148,8 @@ export class LicenseDataApi implements DataApiInterface {
     public async getLicensees(params: RequestParamsInterfaceLocal = {}) {
         const requestParams: RequestParamsInterfaceRemote = this.prepRequestPostParams(params);
         const serverReponse: any = await this.api.post(`/v1/compacts/${params.compact}/providers/query`, requestParams);
-        const { prevLastKey, lastKey, providers } = serverReponse;
+        const { pagination = {}, providers } = serverReponse;
+        const { prevLastKey, lastKey } = pagination;
         const response = {
             prevLastKey,
             lastKey,

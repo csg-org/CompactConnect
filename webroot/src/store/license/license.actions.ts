@@ -17,7 +17,7 @@ export default {
         if (params?.getNextPage) {
             params.lastKey = getters.lastKey;
         } else if (params?.getPrevPage) {
-            params.prevLastKey = getters.prevLastKey;
+            params.lastKey = getters.prevLastKey;
         }
 
         await dataApi.getLicensees(params).then(async ({ prevLastKey, lastKey, licensees }) => {

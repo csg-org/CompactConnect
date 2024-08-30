@@ -158,16 +158,16 @@ export default class Pagination extends mixins(MixinForm) {
     //
     // Watchers
     //
-    @Watch('$props', { deep: true }) calculateNewIndices() {
-        nextTick(() => {
-            const {
-                pageSize, pageChange, $store, paginationId
-            } = this;
-            const newFirstIndex = 1 - 1;
+    @Watch('$props.paginationId') handleUpdatePagingId() {
+        this.resetPaging();
+    }
 
-            $store.dispatch('pagination/updatePaginationPage', { paginationId, newPage: 1 });
-            pageChange(newFirstIndex, newFirstIndex + pageSize, 0);
-        });
+    @Watch('$props.listSize') handleUpdateListSize() {
+        this.resetPaging();
+    }
+
+    @Watch('$props.pageSizeConfig', { deep: true }) handleUpdatePageSizeConfig() {
+        this.resetPaging();
     }
 
     //
@@ -218,5 +218,14 @@ export default class Pagination extends mixins(MixinForm) {
 
         $store.dispatch('pagination/updatePaginationSize', { paginationId, newSize });
         pageChange(newFirstIndex, newFirstIndex + newSize, 0);
+    }
+
+    resetPaging(): void {
+        nextTick(() => {
+            const { pageSize, pageChange, paginationId } = this;
+
+            this.$store.dispatch('pagination/updatePaginationPage', { paginationId, newPage: 1 });
+            pageChange(0, pageSize, 0);
+        });
     }
 }
