@@ -85,4 +85,3 @@ class V1Api:
             resource=staff_users_resource,
             admin_scopes=admin_scopes
         )
-
