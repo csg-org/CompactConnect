@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2024-09-03T17:38:28Z"
+    "version": "2024-09-03T21:17:58Z"
   },
   "servers": [
     {
@@ -577,6 +577,13 @@
       "get": {
         "parameters": [
           {
+            "name": "lastKey",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "Authorization",
             "in": "header",
             "required": true,
@@ -600,6 +607,57 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SandboLicen0yKZq2FqKrsu"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+              "aslp/admin",
+              "octp/admin",
+              "coun/admin"
+            ]
+          }
+        ]
+      },
+      "post": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicenNqJDuxNf65Ga"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenWrgrzjFHJY5d"
                 }
               }
             }
@@ -804,65 +862,6 @@
             }
           }
         ],
-        "responses": {
-          "200": {
-            "description": "200 response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SandboLicenWrgrzjFHJY5d"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
-              "aslp/admin",
-              "octp/admin",
-              "coun/admin"
-            ]
-          }
-        ]
-      },
-      "post": {
-        "parameters": [
-          {
-            "name": "Authorization",
-            "in": "header",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SandboLicenNqJDuxNf65Ga"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "200": {
             "description": "200 response",

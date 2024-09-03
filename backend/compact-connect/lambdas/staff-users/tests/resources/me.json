@@ -2,8 +2,8 @@
   "userId": "a4182428-d061-701c-82e5-a3d1d547d797",
   "attributes": {
     "email": "justin@example.org",
-    "given_name": "Justin",
-    "family_name": "Williams"
+    "givenName": "Justin",
+    "familyName": "Williams"
   },
   "permissions": {
     "aslp": {

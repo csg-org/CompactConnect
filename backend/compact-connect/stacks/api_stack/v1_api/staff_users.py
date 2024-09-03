@@ -151,7 +151,8 @@ class StaffUsers:
                 }
             ),
             request_parameters={
-                'method.request.header.Authorization': True
+                'method.request.header.Authorization': True,
+                'method.request.querystring.lastKey': False
             },
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
