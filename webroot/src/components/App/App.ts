@@ -79,7 +79,7 @@ class App extends Vue {
     // Methods
     //
     async setCurrentCompact() {
-        const compact = CompactSerializer.fromServer({ type: CompactType.ASLP }); // Temp until server endpoints define this
+        const compact = CompactSerializer.fromServer({ type: CompactType.ASLP }); // Temp until server endpoints define the user's compact
 
         await this.$store.dispatch('user/setCurrentCompact', compact);
 

@@ -98,7 +98,7 @@ if (!globalProperties.$tm) {
 //
 // MOUNT
 //
-app.mount('#app');
+app.mount('#jcc-app');
 
 //
 // E2E TESTS INJECTION

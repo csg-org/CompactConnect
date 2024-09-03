@@ -14,7 +14,7 @@ import {
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
 import LicenseeRow from '@components/Licensee/LicenseeRow/LicenseeRow.vue';
 import { SortDirection } from '@store/sorting/sorting.state';
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@store/pagination/pagination.state';
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, PageChangeConfig } from '@store/pagination/pagination.state';
 import { PageExhaustError } from '@store/pagination';
 
 @Component({
@@ -224,7 +224,7 @@ class LicenseeList extends Vue {
     }
 
     // Match pageChange() @Prop signature from /components/Lists/Pagination/Pagination.ts
-    async paginationChange(firstIdx, lastIdx, prevNext) {
+    async paginationChange({ prevNext }: PageChangeConfig) {
         if (prevNext === -1) {
             this.prevKey = this.licenseStore.prevLastKey;
             this.nextKey = '';

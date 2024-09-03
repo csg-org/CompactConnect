@@ -10,7 +10,7 @@ import {
     Vue,
     Prop
 } from 'vue-facing-decorator';
-import { paginationTemplate } from '@store/pagination/pagination.state';
+import { paginationTemplate, PageChangeConfig } from '@store/pagination/pagination.state';
 
 @Component({
     name: 'MixinPagination',
@@ -59,7 +59,7 @@ class MixinPagination extends Vue {
                     : pageSizeConfig[0].value;
             }
 
-            paginationChange(0, pageSize);
+            paginationChange({ firstIndex: 0, lastIndexExclusive: pageSize, prevNext: 0 });
         }
     }
 
@@ -96,9 +96,10 @@ class MixinPagination extends Vue {
     //
     // Methods
     //
-    paginationChange(firstIndex, lastIndex) {
+    // Match pageChange() @Prop signature from /components/Lists/Pagination/Pagination.ts
+    async paginationChange({ firstIndex, lastIndexExclusive }: PageChangeConfig) {
         this.firstIndex = firstIndex;
-        this.lastIndex = lastIndex;
+        this.lastIndex = lastIndexExclusive;
     }
 }
 

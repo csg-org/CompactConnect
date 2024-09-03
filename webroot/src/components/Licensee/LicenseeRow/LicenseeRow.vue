@@ -11,12 +11,14 @@
         :class="{ 'is-header': isHeaderRow }"
         @click="!isHeaderRow && navigateToDetail(item.id)"
         @keyup.enter="!isHeaderRow && navigateToDetail(item.id)"
+        :tabindex="(isHeaderRow) ? -1 : 0"
     >
         <div
             class="cell first-name"
             :class="{ 'is-sort-enabled': isSortOptionEnabled('firstName') }"
             @click="isSortOptionEnabled('firstName') && handleSortSelect('firstName')"
             @keyup.enter="isSortOptionEnabled('firstName') && handleSortSelect('firstName')"
+            :tabindex="(isHeaderRow && isSortOptionEnabled('firstName')) ? 0 : -1"
         >
             <span v-if="$matches.phone.only" class="cell-title">{{ $t('common.firstName') }}:</span>
             {{ item.firstName }}
@@ -31,6 +33,7 @@
             :class="{ 'is-sort-enabled': isSortOptionEnabled('lastName') }"
             @click="isSortOptionEnabled('lastName') && handleSortSelect('lastName')"
             @keyup.enter="isSortOptionEnabled('lastName') && handleSortSelect('lastName')"
+            :tabindex="(isHeaderRow && isSortOptionEnabled('lastName')) ? 0 : -1"
         >
             <span v-if="$matches.phone.only" class="cell-title">{{ $t('common.lastName') }}:</span>
             {{ item.lastName }}
@@ -45,6 +48,7 @@
             :class="{ 'is-sort-enabled': isSortOptionEnabled('ssn') }"
             @click="isSortOptionEnabled('ssn') && handleSortSelect('ssn')"
             @keyup.enter="isSortOptionEnabled('ssn') && handleSortSelect('ssn')"
+            :tabindex="(isHeaderRow && isSortOptionEnabled('ssn')) ? 0 : -1"
         >
             <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.ssn') }}:</span>
             {{ item.ssnMaskedPartial() }}
@@ -59,6 +63,7 @@
             :class="{ 'is-sort-enabled': isSortOptionEnabled('stateOfLicense') }"
             @click="isSortOptionEnabled('stateOfLicense') && handleSortSelect('stateOfLicense')"
             @keyup.enter="isSortOptionEnabled('stateOfLicense') && handleSortSelect('stateOfLicense')"
+            :tabindex="(isHeaderRow && isSortOptionEnabled('stateOfLicense')) ? 0 : -1"
         >
             <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.stateOfLicense') }}:</span>
             {{ item.licenseStatesDisplay() }}
@@ -73,6 +78,7 @@
             :class="{ 'is-sort-enabled': isSortOptionEnabled('practicingLocations') }"
             @click="isSortOptionEnabled('practicingLocations') && handleSortSelect('practicingLocations')"
             @keyup.enter="isSortOptionEnabled('practicingLocations') && handleSortSelect('practicingLocations')"
+            :tabindex="(isHeaderRow && isSortOptionEnabled('practicingLocations')) ? 0 : -1"
         >
             <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.practicingLocations') }}:</span>
             {{ item.privilegeStatesDisplay() }}
@@ -87,6 +93,7 @@
             :class="{ 'is-sort-enabled': isSortOptionEnabled('status') }"
             @click="isSortOptionEnabled('status') && handleSortSelect('status')"
             @keyup.enter="isSortOptionEnabled('status') && handleSortSelect('status')"
+            :tabindex="(isHeaderRow && isSortOptionEnabled('status')) ? 0 : -1"
         >
             <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.status') }}:</span>
             {{ item.statusDisplay() }}

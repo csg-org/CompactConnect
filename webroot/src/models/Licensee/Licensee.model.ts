@@ -151,6 +151,7 @@ export class Licensee implements InterfaceLicensee {
     }
 
     public privilegeStatesAllDisplay(): string {
+        const maxStateNamesToShow = 99;
         let stateNames: Array<string> = [];
 
         if (this.privileges?.length) {
@@ -159,7 +160,7 @@ export class Licensee implements InterfaceLicensee {
             stateNames = this.privilegeStates?.map((state: State) => state.name()) || [];
         }
 
-        return this.getStateListDisplay(stateNames, 99);
+        return this.getStateListDisplay(stateNames, maxStateNamesToShow);
     }
 
     public privilegeStatesDisplay(): string {

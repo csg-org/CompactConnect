@@ -134,20 +134,4 @@ describe('License model', () => {
         expect(license.isExpired()).to.equal(true);
         expect(license.occupationName()).to.equal('Audiologist');
     });
-    it('should serialize a License for transmission to server', () => {
-        const license = LicenseSerializer.fromServer({
-            id: 'test-id',
-            compact: CompactType.ASLP,
-            type: 'privilege',
-            jurisdiction: 'al',
-            dateOfIssuance: moment().format(serverDateFormat),
-            dateOfRenewal: moment().format(serverDateFormat),
-            dateOfExpiration: moment().subtract(1, 'day').format(serverDateFormat),
-            licenseType: LicenseOccupation.AUDIOLOGIST,
-            status: LicenseStatus.ACTIVE,
-        });
-        const transmit = LicenseSerializer.toServer(license);
-
-        expect(transmit.id).to.equal(license.id);
-    });
 });

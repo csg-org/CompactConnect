@@ -13,7 +13,7 @@ import {
 } from 'vue-facing-decorator';
 import { reactive, computed, nextTick } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@store/pagination/pagination.state';
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, PageChangeConfig } from '@store/pagination/pagination.state';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import LeftCaretIcon from '@components/Icons/LeftCaretIcon/LeftCaretIcon.vue';
 import RightCaretIcon from '@components/Icons/RightCaretIcon/RightCaretIcon.vue';
@@ -23,7 +23,7 @@ import { FormInput } from '@/models/FormInput/FormInput.model';
 
 const createPaginationItem = (pageNum, currentPage) => ({
     id: pageNum,
-    clickable: pageNum > 0,
+    clickable: pageNum > 0 && pageNum !== currentPage,
     displayValue: (pageNum > 0) ? pageNum : '...',
     selected: pageNum > 0 && pageNum === currentPage
 });
@@ -43,8 +43,7 @@ export default class Pagination extends mixins(MixinForm) {
     @Prop({ required: true }) pagingNextKey!: string | null; // The server API paging key for the next page results
     @Prop() private pageSizeConfig?: Array<{ value: number; name: string; isDefault?: boolean }>; // Optional custom config of the page size selector (options for how many items are shown per page)
     @Prop() private ariaLabel?: string; // Optional aria label for the pagination container element
-    @Prop({ required: true }) private pageChange!:
-        (firstIndex: number, lastIndexExclusive: number, prevNext: number) => any; // A callback method that will be called on page-change
+    @Prop({ required: true }) private pageChange!: (config: PageChangeConfig) => any; // A callback method that will be called on page-change
 
     //
     // Data
@@ -96,7 +95,7 @@ export default class Pagination extends mixins(MixinForm) {
         const firstIndex = (currentPage - 1) * pageSize;
         const lastIndex = currentPage * pageSize;
 
-        pageChange(firstIndex, lastIndex, 0);
+        pageChange({ firstIndex, lastIndexExclusive: lastIndex, prevNext: 0 });
     }
 
     //
@@ -194,7 +193,11 @@ export default class Pagination extends mixins(MixinForm) {
 
         if (this.currentPage !== newPage) {
             this.$store.dispatch('pagination/updatePaginationPage', { paginationId: this.paginationId, newPage });
-            this.pageChange(zeroBasedIndex, zeroBasedIndex + pageSize, increment);
+            this.pageChange({
+                firstIndex: zeroBasedIndex,
+                lastIndexExclusive: zeroBasedIndex + pageSize,
+                prevNext: increment,
+            });
         }
     }
 
@@ -217,15 +220,24 @@ export default class Pagination extends mixins(MixinForm) {
         }
 
         $store.dispatch('pagination/updatePaginationSize', { paginationId, newSize });
-        pageChange(newFirstIndex, newFirstIndex + newSize, 0);
+        pageChange({
+            firstIndex: newFirstIndex,
+            lastIndexExclusive: newFirstIndex + newSize,
+            prevNext: 0,
+        });
     }
 
     resetPaging(): void {
+        // If any variables that affect paging have changed (page size, etc.) then we need to reset to the first page with the new variables.
         nextTick(() => {
             const { pageSize, pageChange, paginationId } = this;
 
             this.$store.dispatch('pagination/updatePaginationPage', { paginationId, newPage: 1 });
-            pageChange(0, pageSize, 0);
+            pageChange({
+                firstIndex: 0,
+                lastIndexExclusive: pageSize,
+                prevNext: 0,
+            });
         });
     }
 }

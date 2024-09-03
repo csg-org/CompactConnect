@@ -20,6 +20,12 @@ export const paginationTemplate = {
     size: DEFAULT_PAGE_SIZE,
 };
 
+export interface PageChangeConfig {
+    firstIndex: number;
+    lastIndexExclusive: number;
+    prevNext: number;
+}
+
 export const state: State = {
     paginationMap: {}
 };

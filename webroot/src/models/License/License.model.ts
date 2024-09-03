@@ -137,10 +137,4 @@ export class LicenseSerializer {
 
         return new License(licenseData);
     }
-
-    static toServer(licenseModel: License): any {
-        return {
-            id: licenseModel.id,
-        };
-    }
 }
