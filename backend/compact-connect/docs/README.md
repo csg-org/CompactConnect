@@ -50,3 +50,4 @@ We will maintain the latest api specification here, in [latest-oas30.json](api-s
 
 ### Change summary:
 - 2024-08-21: First API version release
+- 2024-09-03: Proposed addition of staff-user API

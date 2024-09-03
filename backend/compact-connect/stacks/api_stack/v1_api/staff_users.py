@@ -31,6 +31,7 @@ class StaffUsers:
         # GET .../{userId}
         self._add_get_user(user_id_resource, admin_scopes)
         self._add_patch_user(user_id_resource, admin_scopes)
+        self._add_post_user(user_id_resource, admin_scopes)
 
         me_resource = self.resource.add_resource('me')
         # GET .../me
@@ -127,7 +128,7 @@ class StaffUsers:
                 MethodResponse(
                     status_code='200',
                     response_models={
-                        'application/json': self.get_me_model
+                        'application/json': self.get_staff_users_response_model
                     }
                 )
             ],
@@ -218,6 +219,42 @@ class StaffUsers:
             authorization_scopes=admin_scopes
         )
 
+    def _add_post_user(self, me_resource: Resource, admin_scopes: List[str]):
+        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'me.json')) as f:
+            response_template = f.read()
+
+        me_resource.add_method(
+            'POST',
+            request_validator=self.api.parameter_body_validator,
+            request_models={
+                'application/json': self.post_user_model
+            },
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={
+                        'application/json': self.get_me_model
+                    }
+                )
+            ],
+            integration=MockIntegration(
+                integration_responses=[
+                    IntegrationResponse(
+                        status_code='200',
+                        response_templates={
+                            'application/json': response_template
+                        }
+                    )
+                ]
+            ),
+            request_parameters={
+                'method.request.header.Authorization': True
+            },
+            authorization_type=AuthorizationType.COGNITO,
+            authorizer=self.api.staff_users_authorizer,
+            authorization_scopes=admin_scopes
+        )
+
     @cached_property
     def get_me_model(self):
         """
@@ -229,7 +266,7 @@ class StaffUsers:
         self.api.v1_get_me_model = self.api.add_model(
             'V1GetMeModel',
             description='Get me response model',
-            schema=self._user_schema
+            schema=self._user_response_schema
         )
         return self.api.v1_get_me_model
 
@@ -250,7 +287,7 @@ class StaffUsers:
                 properties={
                     'users': JsonSchema(
                         type=JsonSchemaType.ARRAY,
-                        items=self._user_schema
+                        items=self._user_response_schema
                     ),
                     'pagination': self._pagination_response_schema
                 }
@@ -273,15 +310,7 @@ class StaffUsers:
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
                 properties={
-                    'attributes': JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        additional_properties=False,
-                        properties={
-                            'email': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=100),
-                            'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-                            'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100)
-                        }
-                    )
+                    'attributes': self._attributes_schema,
                 }
             )
         )
@@ -290,7 +319,7 @@ class StaffUsers:
     @cached_property
     def patch_user_model(self):
         """
-        Return the Patch Me Model, which should only be created once per API
+        Return the Patch User Model, which should only be created once per API
         """
         if hasattr(self.api, 'v1_patch_user_request_model'):
             return self.api.v1_patch_user_request_model
@@ -302,34 +331,74 @@ class StaffUsers:
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
                 properties={
-                    'permissions': JsonSchema(
+                    'permissions': self._permissions_schema
+                }
+            )
+        )
+        return self.api.v1_patch_user_request_model
+
+    @property
+    def post_user_model(self):
+        """
+        Return the Post User Model, which should only be created once per API
+        """
+        if hasattr(self.api, 'v1_post_user_request_model'):
+            return self.api.v1_post_user_request_model
+
+        self.api.v1_post_user_request_model = self.api.add_model(
+            'V1PostUserRequestModel',
+            description='Post user request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=[
+                    'attributes',
+                    'permissions'
+                ],
+                additional_properties=False,
+                properties=self._common_user_properties
+            )
+        )
+        return self.api.v1_post_user_request_model
+
+    @property
+    def _attributes_schema(self):
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            additional_properties=False,
+            properties={
+                'email': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=100),
+                'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100)
+            }
+        )
+
+    @property
+    def _permissions_schema(self):
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            additional_properties=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                properties={
+                    'actions': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        properties={
+                            'read': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                            'admin': JsonSchema(type=JsonSchemaType.BOOLEAN)
+                        }
+                    ),
+                    'jurisdictions': JsonSchema(
                         type=JsonSchemaType.OBJECT,
                         additional_properties=JsonSchema(
                             type=JsonSchemaType.OBJECT,
-                            additional_properties=False,
                             properties={
                                 'actions': JsonSchema(
                                     type=JsonSchemaType.OBJECT,
+                                    additional_properties=False,
                                     properties={
-                                        'read': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                                        'write': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                         'admin': JsonSchema(type=JsonSchemaType.BOOLEAN)
                                     }
-                                ),
-                                'jurisdictions': JsonSchema(
-                                    type=JsonSchemaType.OBJECT,
-                                    additional_properties=JsonSchema(
-                                        type=JsonSchemaType.OBJECT,
-                                        properties={
-                                            'actions': JsonSchema(
-                                                type=JsonSchemaType.OBJECT,
-                                                additional_properties=False,
-                                                properties={
-                                                    'write': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                                                    'admin': JsonSchema(type=JsonSchemaType.BOOLEAN)
-                                                }
-                                            )
-                                        }
-                                    )
                                 )
                             }
                         )
@@ -337,10 +406,16 @@ class StaffUsers:
                 }
             )
         )
-        return self.api.v1_patch_user_request_model
 
     @property
-    def _user_schema(self):
+    def _common_user_properties(self):
+        return {
+            'attributes': self._attributes_schema,
+            'permissions': self._permissions_schema
+        }
+
+    @property
+    def _user_response_schema(self):
         return JsonSchema(
             type=JsonSchemaType.OBJECT,
             required=[
@@ -351,48 +426,7 @@ class StaffUsers:
             additional_properties=False,
             properties={
                 'userId': JsonSchema(type=JsonSchemaType.STRING),
-                'attributes': JsonSchema(
-                    type=JsonSchemaType.OBJECT,
-                    additional_properties=True,
-                    required=['email', 'givenName', 'familyName'],
-                    properties={
-                        'email': JsonSchema(type=JsonSchemaType.STRING),
-                        'givenName': JsonSchema(type=JsonSchemaType.STRING),
-                        'familyName': JsonSchema(type=JsonSchemaType.STRING)
-                    }
-                ),
-                'permissions': JsonSchema(
-                    type=JsonSchemaType.OBJECT,
-                    additional_properties=JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        additional_properties=False,
-                        properties={
-                            'actions': JsonSchema(
-                                type=JsonSchemaType.OBJECT,
-                                properties={
-                                    'read': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                                    'admin': JsonSchema(type=JsonSchemaType.BOOLEAN)
-                                }
-                            ),
-                            'jurisdictions': JsonSchema(
-                                type=JsonSchemaType.OBJECT,
-                                additional_properties=JsonSchema(
-                                    type=JsonSchemaType.OBJECT,
-                                    properties={
-                                        'actions': JsonSchema(
-                                            type=JsonSchemaType.OBJECT,
-                                            additional_properties=False,
-                                            properties={
-                                                'write': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                                                'admin': JsonSchema(type=JsonSchemaType.BOOLEAN)
-                                            }
-                                        )
-                                    }
-                                )
-                            )
-                        }
-                    )
-                )
+                **self._common_user_properties
             }
         )
 
@@ -414,4 +448,3 @@ class StaffUsers:
                 'pageSize': JsonSchema(type=JsonSchemaType.INTEGER, minimum=5, maximum=100)
             }
         )
-
