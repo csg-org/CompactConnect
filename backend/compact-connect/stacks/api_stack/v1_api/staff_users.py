@@ -24,19 +24,18 @@ class StaffUsers:
         self.api: cc_api.CCApi = resource.api
         self.log_groups = []
 
-        # GET .../
+        # .../
         self._add_get_users(self.resource, admin_scopes)
+        self._add_post_user(self.resource, admin_scopes)
 
         user_id_resource = self.resource.add_resource('{userId}')
-        # GET .../{userId}
+        # .../{userId}
         self._add_get_user(user_id_resource, admin_scopes)
         self._add_patch_user(user_id_resource, admin_scopes)
-        self._add_post_user(user_id_resource, admin_scopes)
 
         me_resource = self.resource.add_resource('me')
-        # GET .../me
+        # .../me
         self._add_get_me(me_resource)
-        # PATCH .../me
         self._add_patch_me(me_resource)
 
         self.api.log_groups.extend(self.log_groups)
@@ -64,7 +63,10 @@ class StaffUsers:
                             'application/json': response_template
                         }
                     )
-                ]
+                ],
+                request_templates={
+                    'application/json': json.dumps({'statusCode': 200})
+                }
             ),
             request_parameters={
                 'method.request.header.Authorization': True
@@ -100,7 +102,10 @@ class StaffUsers:
                             'application/json': response_template
                         }
                     )
-                ]
+                ],
+                request_templates={
+                    'application/json': json.dumps({'statusCode': 200})
+                }
             ),
             request_parameters={
                 'method.request.header.Authorization': True
@@ -140,7 +145,10 @@ class StaffUsers:
                             'application/json': json.dumps(response)
                         }
                     )
-                ]
+                ],
+                request_templates={
+                    'application/json': json.dumps({'statusCode': 200})
+                }
             ),
             request_parameters={
                 'method.request.header.Authorization': True
@@ -173,7 +181,10 @@ class StaffUsers:
                             'application/json': response_template
                         }
                     )
-                ]
+                ],
+                request_templates={
+                    'application/json': json.dumps({'statusCode': 200})
+                }
             ),
             request_parameters={
                 'method.request.header.Authorization': True
@@ -209,7 +220,10 @@ class StaffUsers:
                             'application/json': response_template
                         }
                     )
-                ]
+                ],
+                request_templates={
+                    'application/json': json.dumps({'statusCode': 200})
+                }
             ),
             request_parameters={
                 'method.request.header.Authorization': True
@@ -245,7 +259,10 @@ class StaffUsers:
                             'application/json': response_template
                         }
                     )
-                ]
+                ],
+                request_templates={
+                    'application/json': json.dumps({'statusCode': 200})
+                }
             ),
             request_parameters={
                 'method.request.header.Authorization': True
