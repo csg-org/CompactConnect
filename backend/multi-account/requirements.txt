@@ -4,7 +4,7 @@
 #
 #    pip-compile --no-emit-index-url multi-account/requirements.in
 #
-attrs==23.2.0
+attrs==24.2.0
     # via
     #   cattrs
     #   jsii
@@ -14,9 +14,9 @@ aws-cdk-asset-kubectl-v20==2.1.2
     # via aws-cdk-lib
 aws-cdk-asset-node-proxy-agent-v6==2.0.3
     # via aws-cdk-lib
-aws-cdk-cloud-assembly-schema==36.0.14
+aws-cdk-cloud-assembly-schema==36.0.20
     # via aws-cdk-lib
-aws-cdk-lib==2.154.0
+aws-cdk-lib==2.154.1
     # via -r multi-account/requirements.in
 cattrs==23.2.3
     # via jsii
@@ -26,7 +26,7 @@ constructs==10.3.0
     #   aws-cdk-lib
 importlib-resources==6.4.4
     # via jsii
-jsii==1.102.0
+jsii==1.103.0
     # via
     #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-kubectl-v20
