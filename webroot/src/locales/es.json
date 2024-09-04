@@ -326,6 +326,7 @@
         "home": "Hogar",
         "upload": "Subir",
         "licensing": "Licencia",
+        "users": "Usuarios",
         "styleGuide": "Guía de estilo",
         "account": "Cuenta",
         "logout": "Cerrar sesión"
@@ -466,6 +467,13 @@
                 "key": "licensed professional clinical counselor"
             }
         ]
+    },
+    "account": {
+        "usersListTitle": "Usuarios",
+        "permissions": "Permisos",
+        "affiliation": "Afiliación",
+        "states": "Estado/Jurisdicción",
+        "accountStatus": "Estado de la cuenta"
     },
     "styleGuide": {
         "headerPlaceholder": "Contenido del encabezado",

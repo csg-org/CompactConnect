@@ -25,6 +25,7 @@ export interface EnvConfig {
     domain?: string;
     apiUrlState?: string;
     apiUrlLicense?: string;
+    apiUrlUser?: string;
     apiUrlExample?: string;
     apiKeyExample?: string;
     cognitoRegion?: string;
@@ -43,6 +44,7 @@ export const config: EnvConfig = {
     domain: context.VUE_APP_DOMAIN,
     apiUrlState: context.VUE_APP_API_STATE_ROOT,
     apiUrlLicense: context.VUE_APP_API_LICENSE_ROOT,
+    apiUrlUser: context.VUE_APP_API_USER_ROOT,
     apiUrlExample: '/api',
     apiKeyExample: 'example',
     cognitoRegion: context.VUE_APP_COGNITO_REGION,

@@ -64,6 +64,14 @@ class PageMainNav extends Vue {
                 isExactActive: true,
             },
             {
+                to: 'Users',
+                params: { compact: this.currentCompact?.type },
+                label: computed(() => this.$t('navigation.users')),
+                isEnabled: this.isLoggedIn && Boolean(this.currentCompact),
+                isExternal: false,
+                isExactActive: false,
+            },
+            {
                 to: 'Logout',
                 label: computed(() => this.$t('navigation.logout')),
                 isEnabled: this.isLoggedIn,

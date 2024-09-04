@@ -7,6 +7,7 @@
 
 import { stateDataApi } from '@network/stateApi/data.api';
 import { licenseDataApi } from '@network/licenseApi/data.api';
+import { userDataApi } from '@network/userApi/data.api';
 import { exampleDataApi } from '@network/exampleApi/data.api';
 
 export class DataApi {
@@ -17,6 +18,7 @@ export class DataApi {
     public initInterceptors(store) {
         stateDataApi.initInterceptors(store);
         licenseDataApi.initInterceptors(store);
+        userDataApi.initInterceptors(store);
         exampleDataApi.initInterceptors(store);
     }
 
@@ -63,6 +65,28 @@ export class DataApi {
      */
     public getLicensee(compact, licenseeId) {
         return licenseDataApi.getLicensee(compact, licenseeId);
+    }
+
+    // ========================================================================
+    //                              USER API
+    // ========================================================================
+    /**
+     * GET Users.
+     * @param  {object}         [params] The request query parameters config.
+     * @return {Promise<Array>}          An array of users.
+     */
+    public getUsers(params) {
+        return userDataApi.getUsers(params);
+    }
+
+    /**
+     * GET User by ID.
+     * @param  {string}          compact A compact type.
+     * @param  {string}          userId  A user ID.
+     * @return {Promise<User>}           A User model instance.
+     */
+    public getUser(compact, userId) {
+        return userDataApi.getUser(compact, userId);
     }
 
     // ========================================================================
