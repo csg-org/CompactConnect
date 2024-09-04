@@ -8,6 +8,7 @@
 import { createRouter, createWebHistory, RouteLocationNormalized as Route } from 'vue-router';
 import routes from '@router/routes';
 import store from '@/store';
+import { CompactSerializer } from '@models/Compact/Compact.model';
 
 const router = createRouter({
     history: createWebHistory(process.env.BASE_URL || '/'),
@@ -34,7 +35,7 @@ router.beforeEach(async (to, from, next) => {
         const { currentCompact } = store.getters['user/state'];
 
         if (!currentCompact) {
-            store.dispatch('user/setCurrentCompact', to.params.compact);
+            store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: to.params.compact }));
         }
     }
 

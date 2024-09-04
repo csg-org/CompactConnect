@@ -5,7 +5,8 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
-import { User, Compact } from '@models/User/User.model';
+import { User } from '@models/User/User.model';
+import { Compact } from '@models/Compact/Compact.model';
 import { authStorage, tokens } from '@/app.config';
 
 export interface State {

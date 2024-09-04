@@ -40,6 +40,7 @@ export class State implements InterfaceStateCreate {
         const abbrev = (this.abbrev || '').toUpperCase() || '';
         let states = this.$tm('common.states') || [];
 
+        /* istanbul ignore next */ // i18n translations are not functions in the test runner environment, so this block won't be traversed
         if (typeof states[0]?.abbrev === 'function') {
             const normalize = ([value]) => value;
 

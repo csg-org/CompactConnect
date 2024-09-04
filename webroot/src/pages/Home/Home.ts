@@ -6,18 +6,13 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
-import { Compact } from '@models/User/User.model';
+import { CompactType, Compact, CompactSerializer } from '@models/Compact/Compact.model';
 
 @Component({
     name: 'HomePage',
     components: {}
 })
 export default class Home extends Vue {
-    //
-    // Data
-    //
-    defaultCompact = Compact.ASLP;
-
     //
     // Lifecycle
     //
@@ -35,18 +30,19 @@ export default class Home extends Vue {
     //
     // Methods
     //
-    goToCompact(compactId?: Compact) {
-        let compact = compactId || this.storeCurrentCompact;
+    goToCompact(type?: CompactType) {
+        let compactType = type || this.storeCurrentCompact?.type;
 
-        if (!compact) {
-            compact = this.setCurrentCompact();
+        if (!compactType) {
+            this.setCurrentCompact();
+            compactType = this.storeCurrentCompact?.type;
         }
 
-        this.$router.push({ name: 'Licensing', params: { compact }});
+        this.$router.push({ name: 'Licensing', params: { compact: compactType }});
     }
 
     setCurrentCompact() {
-        const compact = this.defaultCompact;
+        const compact = CompactSerializer.fromServer({ type: CompactType.ASLP }); // Temp until server endpoints define this
 
         this.$store.dispatch('user/setCurrentCompact', compact);
 

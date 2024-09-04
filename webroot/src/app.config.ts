@@ -154,7 +154,7 @@ export const compacts = {
             'WY',
         ],
     },
-    ot: {
+    octp: {
         memberStates: [
             'AL',
             'AZ',
@@ -188,7 +188,7 @@ export const compacts = {
             'WY',
         ],
     },
-    counseling: {
+    coun: {
         memberStates: [
             'AL',
             'AZ',

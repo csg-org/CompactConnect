@@ -25,9 +25,9 @@ export class DataApi {
     // ========================================================================
     /**
      * GET State upload request configuration.
-     * @param  {string}           compact The compact string ID (aslp, ot, counseling).
+     * @param  {string}           compact The compact type.
      * @param  {string}           state   The 2-character state abbreviation.
-     * @return {Promise<object>}         An upload request configuration object
+     * @return {Promise<object>}          An upload request configuration object
      */
     public getStateUploadRequestConfig(compact: string, state: string) {
         return stateDataApi.getUploadRequestConfig(compact, state);
@@ -57,11 +57,12 @@ export class DataApi {
 
     /**
      * GET Licensee by ID.
+     * @param  {string}          compact    A compact type.
      * @param  {string}          licenseeId A licensee ID.
      * @return {Promise<object>}            A licensee server response.
      */
-    public getLicensee(licenseeId) {
-        return licenseDataApi.getLicensee(licenseeId);
+    public getLicensee(compact, licenseeId) {
+        return licenseDataApi.getLicensee(compact, licenseeId);
     }
 
     // ========================================================================
