@@ -14,7 +14,7 @@ cachecontrol[filecache]==0.14.0
     # via
     #   cachecontrol
     #   pip-audit
-certifi==2024.7.4
+certifi==2024.8.30
     # via requests
 charset-normalizer==3.3.2
     # via requests
@@ -30,11 +30,13 @@ defusedxml==0.7.1
     # via py-serializable
 dill==0.3.8
     # via pylint
+faker==28.4.1
+    # via -r compact-connect/requirements-dev.in
 filelock==3.15.4
     # via cachecontrol
 html5lib==1.1
     # via pip-audit
-idna==3.7
+idna==3.8
     # via requests
 iniconfig==2.0.0
     # via pytest
@@ -74,9 +76,9 @@ py-serializable==1.1.0
     # via cyclonedx-python-lib
 pygments==2.18.0
     # via rich
-pylint==3.2.6
+pylint==3.2.7
     # via -r compact-connect/requirements-dev.in
-pyparsing==3.1.2
+pyparsing==3.1.4
     # via pip-requirements-parser
 pyproject-hooks==1.1.0
     # via
@@ -88,14 +90,18 @@ pytest==8.3.2
     #   pytest-cov
 pytest-cov==5.0.0
     # via -r compact-connect/requirements-dev.in
+python-dateutil==2.9.0.post0
+    # via faker
 requests==2.32.3
     # via
     #   cachecontrol
     #   pip-audit
-rich==13.7.1
+rich==13.8.0
     # via pip-audit
 six==1.16.0
-    # via html5lib
+    # via
+    #   html5lib
+    #   python-dateutil
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib
 toml==0.10.2
