@@ -52,6 +52,9 @@ class StaffUsers:
                     status_code='200',
                     response_models={
                         'application/json': self.get_me_model
+                    },
+                    response_parameters={
+                        'method.response.header.Access-Control-Allow-Origin': True
                     }
                 )
             ],
@@ -61,6 +64,9 @@ class StaffUsers:
                         status_code='200',
                         response_templates={
                             'application/json': response_template
+                        },
+                        response_parameters={
+                            'method.response.header.Access-Control-Allow-Origin': "'*'"
                         }
                     )
                 ],
@@ -91,6 +97,9 @@ class StaffUsers:
                     status_code='200',
                     response_models={
                         'application/json': self.get_me_model
+                    },
+                    response_parameters={
+                        'method.response.header.Access-Control-Allow-Origin': True
                     }
                 )
             ],
@@ -100,6 +109,9 @@ class StaffUsers:
                         status_code='200',
                         response_templates={
                             'application/json': response_template
+                        },
+                        response_parameters={
+                            'method.response.header.Access-Control-Allow-Origin': "'*'"
                         }
                     )
                 ],
@@ -134,6 +146,9 @@ class StaffUsers:
                     status_code='200',
                     response_models={
                         'application/json': self.get_staff_users_response_model
+                    },
+                    response_parameters={
+                        'method.response.header.Access-Control-Allow-Origin': True
                     }
                 )
             ],
@@ -143,6 +158,9 @@ class StaffUsers:
                         status_code='200',
                         response_templates={
                             'application/json': json.dumps(response)
+                        },
+                        response_parameters={
+                            'method.response.header.Access-Control-Allow-Origin': "'*'"
                         }
                     )
                 ],
@@ -171,6 +189,9 @@ class StaffUsers:
                     status_code='200',
                     response_models={
                         'application/json': self.get_me_model
+                    },
+                    response_parameters={
+                        'method.response.header.Access-Control-Allow-Origin': True
                     }
                 )
             ],
@@ -180,6 +201,9 @@ class StaffUsers:
                         status_code='200',
                         response_templates={
                             'application/json': response_template
+                        },
+                        response_parameters={
+                            'method.response.header.Access-Control-Allow-Origin': "'*'"
                         }
                     )
                 ],
@@ -210,6 +234,9 @@ class StaffUsers:
                     status_code='200',
                     response_models={
                         'application/json': self.get_me_model
+                    },
+                    response_parameters={
+                        'method.response.header.Access-Control-Allow-Origin': True
                     }
                 )
             ],
@@ -219,6 +246,9 @@ class StaffUsers:
                         status_code='200',
                         response_templates={
                             'application/json': response_template
+                        },
+                        response_parameters={
+                            'method.response.header.Access-Control-Allow-Origin': "'*'"
                         }
                     )
                 ],
@@ -249,6 +279,9 @@ class StaffUsers:
                     status_code='200',
                     response_models={
                         'application/json': self.get_me_model
+                    },
+                    response_parameters={
+                        'method.response.header.Access-Control-Allow-Origin': True
                     }
                 )
             ],
@@ -258,6 +291,9 @@ class StaffUsers:
                         status_code='200',
                         response_templates={
                             'application/json': response_template
+                        },
+                        response_parameters={
+                            'method.response.header.Access-Control-Allow-Origin': "'*'"
                         }
                     )
                 ],
