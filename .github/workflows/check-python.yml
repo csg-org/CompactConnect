@@ -46,8 +46,8 @@ jobs:
       - name: Install all dependencies
         run: "cd backend; bin/sync_deps.sh"
 
-      - name: Check Dependencies
-        run: "pip-audit"
-
       - name: Test backend
         run: "cd backend; bin/run_tests.sh no-report"
+
+      - name: Check Dependencies
+        run: "pip-audit"
