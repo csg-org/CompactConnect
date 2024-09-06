@@ -7,7 +7,7 @@
 
 import { reactive, computed } from 'vue';
 import { Component, Vue, toNative } from 'vue-facing-decorator';
-import { Compact } from '@models/User/User.model';
+import { Compact } from '@models/Compact/Compact.model';
 
 @Component({
     name: 'PageMainNav',
@@ -49,7 +49,7 @@ class PageMainNav extends Vue {
         return reactive([
             {
                 to: 'Licensing',
-                params: { compact: this.currentCompact },
+                params: { compact: this.currentCompact?.type },
                 label: computed(() => this.$t('navigation.licensing')),
                 isEnabled: this.isLoggedIn && Boolean(this.currentCompact),
                 isExternal: false,
@@ -57,7 +57,7 @@ class PageMainNav extends Vue {
             },
             {
                 to: 'StateUpload',
-                params: { compact: this.currentCompact },
+                params: { compact: this.currentCompact?.type },
                 label: computed(() => this.$t('navigation.upload')),
                 isEnabled: this.isLoggedIn && Boolean(this.currentCompact),
                 isExternal: false,

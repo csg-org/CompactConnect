@@ -62,7 +62,7 @@ describe('ListManipulation mixin', async () => {
         });
         const component = wrapper.vm;
 
-        component.paginationChange(1, 1);
+        component.paginationChange({ firstIndex: 1, lastIndexExclusive: 1, prevNext: 0 });
 
         expect(component.currentRecords).to.matchPattern([]);
     });
@@ -94,7 +94,7 @@ describe('Pagination mixin', async () => {
         });
         const component = wrapper.vm;
 
-        component.paginationChange(1, 1);
+        component.paginationChange({ firstIndex: 1, lastIndexExclusive: 1, prevNext: 0 });
 
         expect(component.currentRecords).to.matchPattern([]);
     });

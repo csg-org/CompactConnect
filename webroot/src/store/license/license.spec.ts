@@ -198,10 +198,10 @@ describe('License Store Actions', async () => {
     it('should successfully start licensee request', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
+        const compact = 'aslp';
         const licenseeId = '1';
-        const params = {};
 
-        await actions.getLicenseeRequest({ commit, dispatch }, { licenseeId, params });
+        await actions.getLicenseeRequest({ commit, dispatch }, { compact, licenseeId });
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_LICENSEE_REQUEST]);

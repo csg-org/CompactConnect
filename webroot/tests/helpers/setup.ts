@@ -94,13 +94,14 @@ const failTestOn = (errorWatchList: Array<string>) => {
     };
 };
 
-before(() => {
-    const { tm: $tm } = i18n.global;
+beforeEach(() => {
+    const { tm: $tm, t: $t } = i18n.global;
 
     (window as any).Vue = {
         config: {
             globalProperties: {
                 $tm,
+                $t,
             }
         }
     };

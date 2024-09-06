@@ -73,7 +73,7 @@ export class StateDataApi implements DataApiInterface {
      * @return {Promise<object>}          An upload request configuration object.
      */
     public getUploadRequestConfig(compact: string, state: string) {
-        return this.api.get(`v0/licenses/${compact}/${state.toLowerCase()}/bulk-upload`);
+        return this.api.get(`v1/compacts/${compact}/jurisdictions/${state.toLowerCase()}/licenses/bulk-upload`);
     }
 
     /**

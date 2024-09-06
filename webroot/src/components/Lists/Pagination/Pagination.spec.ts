@@ -43,10 +43,10 @@ describe('Pagination component', async () => {
 
         expect(instance.currentPage).to.equal(1);
         expect(spy.calledOnce).to.be.true;
-        expect(spy.withArgs(0, 25).calledOnce).to.be.true;
+        expect(spy.withArgs({ firstIndex: 0, lastIndexExclusive: 25, prevNext: 0 }).calledOnce).to.be.true;
         expect(instance.pageCount).to.equal(0);
     });
-    it('should load with previous next paging', async () => {
+    it('should load with next paging', async () => {
         const spy = sinon.spy();
         const wrapper = await mountFull(Pagination, {
             props: {
@@ -85,7 +85,6 @@ describe('Pagination component', async () => {
         expect(pages).to.have.length(2);
         expect(pages[0]).to.equal(1);
         expect(pages[1]).to.equal(2);
-        expect(wrapper.findComponent(LeftCaretIcon).exists(), 'previous arrow').to.equal(true);
         expect(wrapper.findComponent(RightCaretIcon).exists(), 'next arrow').to.equal(true);
     });
     it('should advance with next page (3)', async () => {
@@ -109,52 +108,6 @@ describe('Pagination component', async () => {
         expect(pages[0]).to.equal(1);
         expect(pages[1]).to.equal('...');
         expect(pages[2]).to.equal(3);
-        expect(wrapper.findComponent(LeftCaretIcon).exists(), 'previous arrow').to.equal(true);
-        expect(wrapper.findComponent(RightCaretIcon).exists(), 'next arrow').to.equal(true);
-    });
-    it('should revert with previous page (2)', async () => {
-        const spy = sinon.spy();
-        const wrapper = await mountFull(Pagination, {
-            props: {
-                paginationId: 'test',
-                pageChange: spy,
-                pagingPrevKey: 'test-prev',
-                pagingNextKey: 'test-next',
-            },
-        });
-        const instance = wrapper.vm;
-
-        await wrapper.get('.pagination-item.previous').trigger('click');
-
-        const pages = instance.pages.map((page) => page.displayValue);
-
-        expect(pages).to.be.an('array');
-        expect(pages).to.have.length(2);
-        expect(pages[0]).to.equal(1);
-        expect(pages[1]).to.equal(2);
-        expect(wrapper.findComponent(LeftCaretIcon).exists(), 'previous arrow').to.equal(true);
-        expect(wrapper.findComponent(RightCaretIcon).exists(), 'next arrow').to.equal(true);
-    });
-    it('should revert with previous page (1)', async () => {
-        const spy = sinon.spy();
-        const wrapper = await mountFull(Pagination, {
-            props: {
-                paginationId: 'test',
-                pageChange: spy,
-                pagingPrevKey: 'test-prev',
-                pagingNextKey: 'test-next',
-            },
-        });
-        const instance = wrapper.vm;
-
-        await wrapper.get('.pagination-item.previous').trigger('click');
-
-        const pages = instance.pages.map((page) => page.displayValue);
-
-        expect(pages).to.be.an('array');
-        expect(pages).to.have.length(1);
-        expect(pages[0]).to.equal(1);
-        expect(wrapper.findComponent(LeftCaretIcon).exists(), 'previous arrow').to.equal(false);
         expect(wrapper.findComponent(RightCaretIcon).exists(), 'next arrow').to.equal(true);
     });
 });

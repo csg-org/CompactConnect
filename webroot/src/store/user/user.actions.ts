@@ -9,7 +9,7 @@ import { dataApi } from '@network/data.api';
 import { config } from '@plugins/EnvConfig/envConfig.plugin';
 import { authStorage, tokens } from '@/app.config';
 import localStorage from '@store/local.storage';
-import { Compact } from '@models/User/User.model';
+import { Compact } from '@models/Compact/Compact.model';
 import moment from 'moment';
 import axios from 'axios';
 import { MutationTypes } from './user.mutations';
