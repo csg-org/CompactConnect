@@ -90,6 +90,10 @@ class UserList extends Vue {
         return record;
     }
 
+    get emptyMessage(): string {
+        return this.$t('account.usersListEmpty');
+    }
+
     //
     // Methods
     //

@@ -13,9 +13,15 @@ export enum MutationTypes {
     STORE_UPDATE_LASTKEY = '[Users] Updated last paging key in store',
     STORE_UPDATE_COUNT = '[Users] Updated total count in store',
     STORE_SET_USERS = '[Users] Set Users in store',
+    CREATE_USER_REQUEST = '[Users] Create User Request',
+    CREATE_USER_FAILURE = '[Users] Create User Failure',
+    CREATE_USER_SUCCESS = '[Users] Create User Success',
     GET_USER_REQUEST = '[Users] Get User Request',
     GET_USER_FAILURE = '[Users] Get User Failure',
     GET_USER_SUCCESS = '[Users] Get User Success',
+    UPDATE_USER_REQUEST = '[Users] Update User Request',
+    UPDATE_USER_FAILURE = '[Users] Update User Failure',
+    UPDATE_USER_SUCCESS = '[Users] Update User Success',
     STORE_UPDATE_USER = '[Users] Updated User in store',
     STORE_REMOVE_USER = '[Users] Remove User from store',
     STORE_RESET_USERS = '[Users] Reset users store',
@@ -46,6 +52,18 @@ export default {
     [MutationTypes.STORE_SET_USERS]: (state: any, users: Array<any>) => {
         state.model = users;
     },
+    [MutationTypes.CREATE_USER_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.CREATE_USER_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
+    },
+    [MutationTypes.CREATE_USER_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
     [MutationTypes.GET_USER_REQUEST]: (state: any) => {
         state.isLoading = true;
         state.error = null;
@@ -55,6 +73,18 @@ export default {
         state.error = error;
     },
     [MutationTypes.GET_USER_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
+    [MutationTypes.UPDATE_USER_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.UPDATE_USER_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
+    },
+    [MutationTypes.UPDATE_USER_SUCCESS]: (state: any) => {
         state.isLoading = false;
         state.error = null;
     },

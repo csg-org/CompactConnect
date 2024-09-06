@@ -396,15 +396,18 @@
     "compacts": [
         {
             "name": "Audio and Speech Language Pathology",
+            "abbrev": "ASLP",
             "key": "aslp"
         },
         {
             "name": "Occupational Therapy",
-            "key": "ot"
+            "abbrev": "OT",
+            "key": "octp"
         },
         {
             "name": "Counseling",
-            "key": "counseling"
+            "abbrev": "Counseling",
+            "key": "coun"
         }
     ],
     "stateUpload": {
@@ -470,10 +473,21 @@
     },
     "account": {
         "usersListTitle": "Users",
+        "usersListEmpty": "Invite users with the button above",
         "permissions": "Permissions",
         "affiliation": "Affiliation",
         "states": "State/Jurisdiction(s)",
-        "accountStatus": "Account Status"
+        "accountStatus": "Account Status",
+        "accessLevel": {
+            "read": "Read",
+            "write": "Write",
+            "admin": "Admin",
+        },
+        "status": {
+            "active": "Active",
+            "inactive": "Inactive",
+            "pending": "Pending"
+        }
     },
     "styleGuide": {
         "headerPlaceholder": "Header Content",

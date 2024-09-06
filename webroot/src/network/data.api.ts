@@ -80,6 +80,16 @@ export class DataApi {
     }
 
     /**
+     * CREATE User.
+     * @param  {string}        compact A compact type.
+     * @param  {object}        data    The user request data.
+     * @return {Promise<User>}         A User model instance.
+     */
+    public createUser(compact, data) {
+        return userDataApi.createUser(compact, data);
+    }
+
+    /**
      * GET User by ID.
      * @param  {string}          compact A compact type.
      * @param  {string}          userId  A user ID.
@@ -87,6 +97,17 @@ export class DataApi {
      */
     public getUser(compact, userId) {
         return userDataApi.getUser(compact, userId);
+    }
+
+    /**
+     * UPDATE User by ID.
+     * @param  {string}        compact A compact type.
+     * @param  {string}        userId  A user ID.
+     * @param  {object}        data    The user request data.
+     * @return {Promise<User>}         A User model instance.
+     */
+    public updateUser(compact, userId, data) {
+        return userDataApi.updateUser(compact, userId, data);
     }
 
     // ========================================================================

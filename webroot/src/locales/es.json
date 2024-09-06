@@ -396,15 +396,18 @@
     "compacts": [
         {
             "name": "Patología del audio y del habla y el lenguaje",
+            "abbrev": "ASLP",
             "key": "aslp"
         },
         {
             "name": "Terapia ocupacional",
-            "key": "ot"
+            "abbrev": "OT",
+            "key": "octp"
         },
         {
             "name": "Asesoramiento",
-            "key": "counseling"
+            "abbrev": "Counseling",
+            "key": "coun"
         }
     ],
     "stateUpload": {
@@ -470,10 +473,21 @@
     },
     "account": {
         "usersListTitle": "Usuarios",
+        "usersListEmpty": "Invita a los usuarios con el botón de arriba",
         "permissions": "Permisos",
         "affiliation": "Afiliación",
         "states": "Estado/Jurisdicción",
-        "accountStatus": "Estado de la cuenta"
+        "accountStatus": "Estado de la cuenta",
+        "accessLevel": {
+            "read": "Lectura",
+            "write": "Escritura",
+            "admin": "Administración",
+        },
+        "status": {
+            "active": "Activo",
+            "inactive": "Inactivo",
+            "pending": "Pendiente"
+        }
     },
     "styleGuide": {
         "headerPlaceholder": "Contenido del encabezado",

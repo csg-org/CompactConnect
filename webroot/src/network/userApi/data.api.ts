@@ -118,12 +118,12 @@ export class UserDataApi implements DataApiInterface {
     /**
      * GET Users.
      * @param  {RequestParamsInterfaceLocal} [params={}] The request query parameters config.
-     * @return {Promise<Array<User>>}                         Response metadata + an array of users.
+     * @return {Promise<Array<User>>}                    Response metadata + an array of users.
      */
     public async getUsers(params: RequestParamsInterfaceLocal = {}) {
         const requestParams = this.prepRequestGetParams(params);
-        const serverReponse: any = await this.api.get(`/v1/compacts/${params.compact}/staff-users${requestParams}`);
-        const { pagination = {}, users } = serverReponse;
+        const serverResponse: any = await this.api.get(`/v1/compacts/${params.compact}/staff-users${requestParams}`);
+        const { pagination = {}, users } = serverResponse;
         const { prevLastKey, lastKey } = pagination;
         const response = {
             prevLastKey,
@@ -135,13 +135,40 @@ export class UserDataApi implements DataApiInterface {
     }
 
     /**
+     * CREATE User.
+     * @param  {string}        compact A compact type.
+     * @param  {object}        data    The user request data.
+     * @return {Promise<User>}         A User model instance.
+     */
+    public async createUser(compact: string, data: any) {
+        const serverResponse = await this.api.post(`/v1/compacts/${compact}/staff-users`, data);
+        const response = UserSerializer.fromServer(serverResponse);
+
+        return response;
+    }
+
+    /**
      * GET User by ID.
-     * @param  {string}          compact A compact type.
-     * @param  {string}          userId  A user ID.
-     * @return {Promise<User>}           A User model instance.
+     * @param  {string}        compact A compact type.
+     * @param  {string}        userId  A user ID.
+     * @return {Promise<User>}         A User model instance.
      */
     public async getUser(compact: string, userId: string) {
         const serverResponse: any = await this.api.get(`/v1/compacts/${compact}/staff-users/${userId}`);
+        const response = UserSerializer.fromServer(serverResponse);
+
+        return response;
+    }
+
+    /**
+     * UPDATE User by ID.
+     * @param  {string}        compact A compact type.
+     * @param  {string}        userId  A user ID.
+     * @param  {object}        data    The user request data.
+     * @return {Promise<User>}         A User model instance.
+     */
+    public async updateUser(compact: string, userId: string, data: any) {
+        const serverResponse = await this.api.patch(`/v1/compacts/${compact}/staff-users/${userId}`, data);
         const response = UserSerializer.fromServer(serverResponse);
 
         return response;

@@ -242,6 +242,101 @@ export const licensees = {
     ],
 };
 
+export const users = {
+    prevLastKey: 'xyz',
+    lastKey: 'abc',
+    items: [
+        {
+            permissions: {
+                aslp: {
+                    actions: {
+                        read: true,
+                        admin: true,
+                    },
+                    jurisdictions: {
+                        al: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                        co: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                        ky: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                    },
+                },
+                octp: {
+                    actions: {
+                        read: true,
+                        admin: true,
+                    },
+                    jurisdictions: {
+                        ak: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                        ar: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                        co: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                    },
+                },
+                coun: {
+                    actions: {
+                        read: true,
+                        admin: true,
+                    },
+                    jurisdictions: {
+                        al: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                        co: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                        ky: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                    },
+                },
+            },
+            attributes: {
+                givenName: 'Miles',
+                familyName: 'Bennet-Dyson',
+                email: 'test@example.com',
+            },
+            userId: '10',
+        },
+    ],
+};
+
 export const pets = [
     {
         id: 1,

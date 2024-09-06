@@ -40,6 +40,22 @@ export default {
     getUsersFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_USERS_FAILURE, error);
     },
+    // CREATE USER
+    createUserRequest: async ({ commit, dispatch }, { compact, data }: any) => {
+        commit(MutationTypes.CREATE_USER_REQUEST);
+        await dataApi.createUser(compact, data).then(async (user) => {
+            await dispatch('setStoreUser', user);
+            dispatch('createUserSuccess', user);
+        }).catch((error) => {
+            dispatch('createUserFailure', error);
+        });
+    },
+    createUserSuccess: ({ commit }) => {
+        commit(MutationTypes.CREATE_USER_SUCCESS);
+    },
+    createUserFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.CREATE_USER_FAILURE, error);
+    },
     // GET USER
     getUserRequest: async ({ commit, dispatch }, { compact, userId }: any) => {
         commit(MutationTypes.GET_USER_REQUEST);
@@ -55,6 +71,22 @@ export default {
     },
     getUserFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_USER_FAILURE, error);
+    },
+    // UPDATE USER
+    updateUserRequest: async ({ commit, dispatch }, { compact, userId, data }: any) => {
+        commit(MutationTypes.UPDATE_USER_REQUEST);
+        await dataApi.updateUser(compact, userId, data).then(async (user) => {
+            await dispatch('setStoreUser', user);
+            dispatch('updateUserSuccess', user);
+        }).catch((error) => {
+            dispatch('updateUserFailure', error);
+        });
+    },
+    updateUserSuccess: ({ commit }) => {
+        commit(MutationTypes.UPDATE_USER_SUCCESS);
+    },
+    updateUserFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.UPDATE_USER_FAILURE, error);
     },
     // SET THE STORE STATE
     setStoreUsersPrevLastKey: ({ commit }, prevLastKey) => {

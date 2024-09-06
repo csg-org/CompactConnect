@@ -64,6 +64,25 @@ export class Compact implements InterfaceCompactCreate {
 
         return compactName;
     }
+
+    public abbrev(): string {
+        let compacts = this.$tm('compacts') || [];
+
+        /* istanbul ignore next */ // i18n translations are not functions in the test runner environment, so this block won't be traversed
+        if (typeof compacts[0]?.key === 'function') {
+            const normalize = ([value]) => value;
+
+            compacts = compacts.map((translate) => ({
+                key: translate.key({ normalize }),
+                abbrev: translate.abbrev({ normalize }),
+            }));
+        }
+
+        const compact = compacts.find((translate) => translate.key === this.type);
+        const compactAbbrev = compact?.abbrev || '';
+
+        return compactAbbrev;
+    }
 }
 
 // ========================================================

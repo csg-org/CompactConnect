@@ -23,6 +23,7 @@
             :pagingNextKey="$store.state.users.lastKey"
             :isLoading="$store.state.users.isLoading"
             :loadingError="$store.state.users.error"
+            :emptyListMessage="emptyMessage"
         >
             <template v-slot:headers>
                 <UserRow
