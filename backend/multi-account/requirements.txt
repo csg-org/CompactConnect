@@ -12,11 +12,11 @@ aws-cdk-asset-awscli-v1==2.2.202
     # via aws-cdk-lib
 aws-cdk-asset-kubectl-v20==2.1.2
     # via aws-cdk-lib
-aws-cdk-asset-node-proxy-agent-v6==2.0.3
+aws-cdk-asset-node-proxy-agent-v6==2.1.0
     # via aws-cdk-lib
-aws-cdk-cloud-assembly-schema==36.0.20
+aws-cdk-cloud-assembly-schema==36.0.24
     # via aws-cdk-lib
-aws-cdk-lib==2.154.1
+aws-cdk-lib==2.155.0
     # via -r multi-account/requirements.in
 cattrs==23.2.3
     # via jsii
@@ -26,7 +26,7 @@ constructs==10.3.0
     #   aws-cdk-lib
 importlib-resources==6.4.4
     # via jsii
-jsii==1.103.0
+jsii==1.103.1
     # via
     #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-kubectl-v20
