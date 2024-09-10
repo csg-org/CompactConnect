@@ -12,10 +12,14 @@ import {
     Watch,
     toNative
 } from 'vue-facing-decorator';
+import RightCaretIcon from '@components/Icons/RightCaretIcon/RightCaretIcon.vue';
 import { SortDirection } from '@store/sorting/sorting.state';
 
 @Component({
     name: 'UserRow',
+    components: {
+        RightCaretIcon,
+    },
 })
 class UserRow extends Vue {
     @Prop({ required: true }) protected listId!: string;
@@ -29,6 +33,7 @@ class UserRow extends Vue {
     //
     lastSortSelectOption = '';
     lastSortSelectDirection = '';
+    isRowExpanded = false;
 
     //
     // Computed
@@ -63,6 +68,18 @@ class UserRow extends Vue {
         });
 
         return names;
+    }
+
+    get isAccountStatusPending(): boolean {
+        return this.item?.accountStatus === 'inactive'; // @TODO
+    }
+
+    get isAccountStatusEmphasis(): boolean {
+        return this.isAccountStatusPending;
+    }
+
+    get shouldAllowResendInvite(): boolean {
+        return this.isAccountStatusPending;
     }
 
     //
@@ -144,6 +161,10 @@ class UserRow extends Vue {
 
             await this.$store.dispatch('sorting/updateSortDirection', { sortingId, newDirection });
         }
+    }
+
+    expandRowToggle(): void {
+        this.isRowExpanded = !this.isRowExpanded;
     }
 
     navigateToDetail(userId: string) {

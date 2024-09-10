@@ -487,7 +487,8 @@
             "active": "Activo",
             "inactive": "Inactivo",
             "pending": "Pendiente"
-        }
+        },
+        "resendInvite": "Reenviar invitación"
     },
     "styleGuide": {
         "headerPlaceholder": "Contenido del encabezado",

@@ -7,12 +7,28 @@
 
 <template>
     <li
-        class="user-row"
+        class="user-row is-wrap"
         :class="{ 'is-header': isHeaderRow }"
-        @click="!isHeaderRow && navigateToDetail(item.id)"
-        @keyup.enter="!isHeaderRow && navigateToDetail(item.id)"
-        :tabindex="(isHeaderRow) ? -1 : 0"
     >
+        <div class="cell-content main-content">
+        <div
+            v-if="$matches.desktop.min"
+            class="cell expand-collapse"
+        >
+            <RightCaretIcon
+                v-if="!isHeaderRow"
+                class="action-arrow"
+                :class="{ 'active': isRowExpanded }"
+                @click="expandRowToggle()"
+                @keyup.enter="expandRowToggle()"
+                :tabindex="(isHeaderRow) ? -1 : 0"
+            />
+            <!-- <span
+                v-if="!isHeaderRow"
+                class="border-mask"
+                :class="{ 'active': isRowExpanded }"
+            ></span> -->
+        </div>
         <div
             class="cell first-name"
             :class="{ 'is-sort-enabled': isSortOptionEnabled('firstName') }"
@@ -90,18 +106,47 @@
         </div>
         <div
             class="cell account-status"
-            :class="{ 'is-sort-enabled': isSortOptionEnabled('accountStatus') }"
+            :class="{
+                'is-sort-enabled': isSortOptionEnabled('accountStatus'),
+                'is-emphasis': isAccountStatusEmphasis
+            }"
             @click="isSortOptionEnabled('accountStatus') && handleSortSelect('accountStatus')"
             @keyup.enter="isSortOptionEnabled('accountStatus') && handleSortSelect('accountStatus')"
             :tabindex="(isHeaderRow && isSortOptionEnabled('accountStatus')) ? 0 : -1"
         >
             <span v-if="$matches.phone.only" class="cell-title">{{ $t('account.accountStatus') }}:</span>
-            {{ item.accountStatusDisplay() }}
+            <span class="account-status">{{ item.accountStatusDisplay() }}</span>
+            <span
+                v-if="shouldAllowResendInvite"
+                class="resend-invite"
+                tabindex="0"
+            >{{ $t('account.resendInvite') }}</span>
             <span v-if="isSortOptionEnabled('accountStatus')" class="sort-icon" :class="{
                 'is-selected': isSortOptionSelected('accountStatus'),
                 'asc': isSortOptionAscending('accountStatus'),
                 'desc': isSortOptionDescending('accountStatus'),
             }"></span>
+        </div>
+        </div>
+        <div
+            v-if="!isHeaderRow && $matches.desktop.min"
+            class="cell-content expanded-content"
+            :class="{ 'active': isRowExpanded }"
+        >
+            <div v-if="$matches.desktop.min" class="cell expand-collapse"></div>
+            <div class="cell first-name"></div>
+            <div class="cell last-name"></div>
+            <div class="cell permissions">
+                Some expanded content Some expanded content Some expanded content Some expanded content
+                Some expanded content Some expanded content Some expanded content Some expanded content
+                Some expanded content Some expanded content Some expanded content Some expanded content
+                Some expanded content Some expanded content Some expanded content Some expanded content
+                Some expanded content Some expanded content Some expanded content Some expanded content
+                Some expanded content Some expanded content Some expanded content Some expanded content
+            </div>
+            <div class="cell affiliation"></div>
+            <div class="cell states"></div>
+            <div class="cell account-status"></div>
         </div>
     </li>
 </template>
