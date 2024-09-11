@@ -137,15 +137,65 @@ export class User implements InterfaceUserCreate {
         return display;
     }
 
+    public permissionsFullDisplay(currentCompactType?: CompactType): Array<string> {
+        let { permissions } = this;
+        const display: Array<string> = [];
+
+        if (currentCompactType) {
+            permissions = permissions?.filter((compactPermission: any) =>
+                compactPermission.compact?.type === currentCompactType);
+        }
+
+        permissions?.forEach((compactPermission: CompactPermission) => {
+            const {
+                compact,
+                isRead,
+                isAdmin,
+                states
+            } = compactPermission;
+
+            if (isRead || isAdmin) {
+                let accessLevels = '';
+
+                if (isRead) {
+                    accessLevels += this.$t('account.accessLevel.read');
+                }
+                if (isAdmin) {
+                    const adminAccess = this.$t('account.accessLevel.admin');
+
+                    accessLevels += (accessLevels) ? `, ${adminAccess}` : adminAccess;
+                }
+
+                display.push(`${compact.abbrev()}: ${accessLevels}`);
+            }
+
+            states?.forEach((statePermission) => {
+                const { state, isWrite, isAdmin: isStateAdmin } = statePermission;
+                let stateAccessLevels = '';
+
+                if (isWrite) {
+                    stateAccessLevels += this.$t('account.accessLevel.write');
+                }
+                if (isStateAdmin) {
+                    const stateAdminAccess = this.$t('account.accessLevel.admin');
+
+                    stateAccessLevels += (stateAccessLevels) ? `, ${stateAdminAccess}` : stateAdminAccess;
+                }
+
+                display.push(`${state.name()}: ${stateAccessLevels}`);
+            });
+        });
+
+        return display;
+    }
+
     public getStateListDisplay(stateNames: Array<string>, maxNames = 2): string {
         let stateList = '';
 
         if (stateNames.length > maxNames) {
-            stateNames.forEach((state, idx) => {
-                if (idx === 0) {
-                    stateList += state;
-                } else if (idx + 1 <= maxNames) {
-                    stateList += (state) ? `, ${state}` : '';
+            stateNames.forEach((stateName, idx) => {
+                if (stateName && idx + 1 <= maxNames) {
+                    stateList += (stateList) ? `, ${stateName}` : stateName;
                 }
             });
 
@@ -279,9 +329,5 @@ export class UserSerializer {
         });
 
         return new User(userData);
-    }
-
-    static toServer(): any {
-        // @TODO
     }
 }

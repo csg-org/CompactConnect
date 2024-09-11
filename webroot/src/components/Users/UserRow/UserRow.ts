@@ -71,7 +71,7 @@ class UserRow extends Vue {
     }
 
     get isAccountStatusPending(): boolean {
-        return this.item?.accountStatus === 'inactive'; // @TODO
+        return this.item?.accountStatus === 'pending';
     }
 
     get isAccountStatusEmphasis(): boolean {
@@ -165,10 +165,6 @@ class UserRow extends Vue {
 
     expandRowToggle(): void {
         this.isRowExpanded = !this.isRowExpanded;
-    }
-
-    navigateToDetail(userId: string) {
-        console.log(`@TODO: Open modal for user ${userId}`);
     }
 
     //

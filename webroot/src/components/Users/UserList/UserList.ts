@@ -7,12 +7,16 @@
 
 import {
     Component,
-    Vue,
+    mixins,
     Prop,
     toNative
 } from 'vue-facing-decorator';
+import { reactive, computed } from 'vue';
+import MixinForm from '@components/Forms/_mixins/form.mixin';
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
+import InputSearch from '@components/Forms/InputSearch/InputSearch.vue';
 import UserRow from '@components/Users/UserRow/UserRow.vue';
+import { FormInput } from '@models/FormInput/FormInput.model';
 import { SortDirection } from '@store/sorting/sorting.state';
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, PageChangeConfig } from '@store/pagination/pagination.state';
 import { PageExhaustError } from '@store/pagination';
@@ -21,10 +25,11 @@ import { PageExhaustError } from '@store/pagination';
     name: 'UserList',
     components: {
         ListContainer,
+        InputSearch,
         UserRow,
     }
 })
-class UserList extends Vue {
+class UserList extends mixins(MixinForm) {
     @Prop({ required: true }) protected listId!: string;
 
     //
@@ -37,6 +42,10 @@ class UserList extends Vue {
     //
     // Lifecycle
     //
+    created() {
+        this.initFormInputs();
+    }
+
     async mounted() {
         await this.setDefaultSort();
         await this.setDefaultPaging();
@@ -97,7 +106,31 @@ class UserList extends Vue {
     //
     // Methods
     //
-    async setDefaultSort() {
+    initFormInputs(): void {
+        this.formData = reactive({
+            userSearch: new FormInput({
+                id: 'user-search',
+                name: 'user-search',
+                // label: computed(() => this.$t('account.userSearchLabel')),
+                placeholder: computed(() => this.$t('account.userSearchLabel')),
+                // validation: Joi.string().min(2).messages(this.joiMessages.string),
+            }),
+        });
+    }
+
+    async handleSearch(): Promise<void> {
+        this.isFormLoading = true;
+
+        const { value: searchValue } = this.formData.userSearch;
+
+        if (searchValue) {
+            await this.fetchListData(searchValue);
+        }
+
+        this.isFormLoading = false;
+    }
+
+    async setDefaultSort(): Promise<void> {
         const { listId } = this;
         const defaultSortOption = this.sortOptions.find((option) => option.isDefault) || this.sortOptions[0];
         const { option, direction } = this.sortingStore.sortingMap[listId] || {};
@@ -117,7 +150,7 @@ class UserList extends Vue {
         }
     }
 
-    async setDefaultPaging(shouldForce = false) {
+    async setDefaultPaging(shouldForce = false): Promise<void> {
         const { listId } = this;
         const { page, size } = this.paginationStore.paginationMap[this.listId] || {};
         const { prevLastKey } = this.usersStore;
@@ -141,7 +174,7 @@ class UserList extends Vue {
         }
     }
 
-    async fetchListData() {
+    async fetchListData(search = ''): Promise<void> {
         const sorting = this.sortingStore.sortingMap[this.listId];
         const { option, direction } = sorting || {};
         const pagination = this.paginationStore.paginationMap[this.listId];
@@ -181,6 +214,10 @@ class UserList extends Vue {
 
         requestConfig.compact = this.userStore.currentCompact?.type;
 
+        if (search) {
+            requestConfig.search = search;
+        }
+
         await this.$store.dispatch('users/getUsersRequest', {
             params: {
                 ...requestConfig,
@@ -217,14 +254,14 @@ class UserList extends Vue {
         }
     }
 
-    async sortingChange() {
+    async sortingChange(): Promise<void> {
         if (this.isInitialFetchCompleted) {
             await this.fetchListData();
         }
     }
 
     // Match pageChange() @Prop signature from /components/Lists/Pagination/Pagination.ts
-    async paginationChange({ prevNext }: PageChangeConfig) {
+    async paginationChange({ prevNext }: PageChangeConfig): Promise<void> {
         if (prevNext === -1) {
             this.prevKey = this.usersStore.prevLastKey;
             this.nextKey = '';

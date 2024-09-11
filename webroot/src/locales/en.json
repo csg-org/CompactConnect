@@ -298,6 +298,7 @@
                 "abbrev": "VI"
             }
         ],
+        "stateUnknown": "Unknown",
         "communicationPreference": "Communication Preference",
         "communicationPreferenceOptions": {
             "email": "Email",
@@ -481,14 +482,15 @@
         "accessLevel": {
             "read": "Read",
             "write": "Write",
-            "admin": "Admin",
+            "admin": "Admin"
         },
         "status": {
             "active": "Active",
             "inactive": "Inactive",
             "pending": "Pending"
         },
-        "resendInvite": "Resend invite"
+        "resendInvite": "Resend invite",
+        "userSearchLabel": "Enter a name"
     },
     "styleGuide": {
         "headerPlaceholder": "Header Content",

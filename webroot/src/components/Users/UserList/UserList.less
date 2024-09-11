@@ -7,4 +7,19 @@
 
 .user-list-container {
     background-color: @white;
+
+    .list-actions-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+
+        .search-container {
+            width: 100%;
+            max-width: 80rem;
+
+            @media @desktopWidth {
+                width: 50%;
+            }
+        }
+    }
 }

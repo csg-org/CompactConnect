@@ -73,6 +73,81 @@ describe('Users Store Mutations', () => {
 
         expect(state.model).to.equal(users);
     });
+    it('should successfully create user request', () => {
+        const state = {};
+
+        mutations[MutationTypes.CREATE_USER_REQUEST](state);
+
+        expect(state.isLoading).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully create user failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.CREATE_USER_FAILURE](state, error);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully create user success', () => {
+        const state = {};
+
+        mutations[MutationTypes.CREATE_USER_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully get user request', () => {
+        const state = {};
+
+        mutations[MutationTypes.GET_USER_REQUEST](state);
+
+        expect(state.isLoading).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully get user failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.GET_USER_FAILURE](state, error);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully get user success', () => {
+        const state = {};
+
+        mutations[MutationTypes.GET_USER_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully update user request', () => {
+        const state = {};
+
+        mutations[MutationTypes.UPDATE_USER_REQUEST](state);
+
+        expect(state.isLoading).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully update user failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.UPDATE_USER_FAILURE](state, error);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully update user success', () => {
+        const state = {};
+
+        mutations[MutationTypes.UPDATE_USER_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
     it('should successfully update user (missing id)', () => {
         const state = {};
         const user = {};
@@ -156,7 +231,7 @@ describe('Users Store Mutations', () => {
     });
 });
 describe('Users Store Actions', async () => {
-    it('should successfully start users request with next page', async () => {
+    it('should successfully start get-users request with next page', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
         const params = { getNextPage: true };
@@ -167,7 +242,7 @@ describe('Users Store Actions', async () => {
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_USERS_REQUEST]);
         expect(dispatch.callCount).to.equal(4);
     });
-    it('should successfully start users request with previous page', async () => {
+    it('should successfully start get-users request with previous page', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
         const params = { getPrevPage: true };
@@ -178,7 +253,7 @@ describe('Users Store Actions', async () => {
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_USERS_REQUEST]);
         expect(dispatch.callCount).to.equal(4);
     });
-    it('should successfully start users failure', () => {
+    it('should successfully start get-users failure', () => {
         const commit = sinon.spy();
         const error = new Error();
 
@@ -187,42 +262,13 @@ describe('Users Store Actions', async () => {
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_USERS_FAILURE, error]);
     });
-    it('should successfully start users success', () => {
+    it('should successfully start get-users success', () => {
         const commit = sinon.spy();
 
         actions.getUsersSuccess({ commit });
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_USERS_SUCCESS]);
-    });
-    it('should successfully start user request', async () => {
-        const commit = sinon.spy();
-        const dispatch = sinon.spy();
-        const compact = 'aslp';
-        const userId = '1';
-
-        await actions.getUserRequest({ commit, dispatch }, { compact, userId });
-
-        expect(commit.calledOnce).to.equal(true);
-        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_USER_REQUEST]);
-        expect(dispatch.calledTwice).to.equal(true);
-    });
-    it('should successfully start user failure', () => {
-        const commit = sinon.spy();
-        const error = new Error();
-
-        actions.getUserFailure({ commit }, error);
-
-        expect(commit.calledOnce).to.equal(true);
-        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_USER_FAILURE, error]);
-    });
-    it('should successfully start user success', () => {
-        const commit = sinon.spy();
-
-        actions.getUserSuccess({ commit });
-
-        expect(commit.calledOnce).to.equal(true);
-        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_USER_SUCCESS]);
     });
     it('should successfully set paging previous last key', () => {
         const commit = sinon.spy();
@@ -259,6 +305,93 @@ describe('Users Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_SET_USERS, users]);
+    });
+    it('should successfully start create-user request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = 'aslp';
+        const data = {};
+
+        await actions.createUserRequest({ commit, dispatch }, { compact, data });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_USER_REQUEST]);
+        expect(dispatch.calledTwice).to.equal(true);
+    });
+    it('should successfully start create-user failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.createUserFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_USER_FAILURE, error]);
+    });
+    it('should successfully start create-user success', () => {
+        const commit = sinon.spy();
+
+        actions.createUserSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_USER_SUCCESS]);
+    });
+    it('should successfully start get-user request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = 'aslp';
+        const userId = '1';
+
+        await actions.getUserRequest({ commit, dispatch }, { compact, userId });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_USER_REQUEST]);
+        expect(dispatch.calledTwice).to.equal(true);
+    });
+    it('should successfully start get-user failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.getUserFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_USER_FAILURE, error]);
+    });
+    it('should successfully start get-user success', () => {
+        const commit = sinon.spy();
+
+        actions.getUserSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_USER_SUCCESS]);
+    });
+    it('should successfully start update-user request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = 'aslp';
+        const data = {};
+
+        await actions.updateUserRequest({ commit, dispatch }, { compact, data });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPDATE_USER_REQUEST]);
+        expect(dispatch.calledTwice).to.equal(true);
+    });
+    it('should successfully start update-user failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.updateUserFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPDATE_USER_FAILURE, error]);
+    });
+    it('should successfully start update-user success', () => {
+        const commit = sinon.spy();
+
+        actions.updateUserSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPDATE_USER_SUCCESS]);
     });
     it('should successfully set user', () => {
         const commit = sinon.spy();

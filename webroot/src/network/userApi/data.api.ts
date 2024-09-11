@@ -92,8 +92,7 @@ export class UserDataApi implements DataApiInterface {
                 operator = '&';
             }
 
-            // requestParams += `${operator}${key}=${encodeURIComponent(value)}`;
-            requestParams += (operator && key && value) ? `` : ``; // @TODO
+            requestParams += `${operator}${key}=${encodeURIComponent(value)}`;
         };
 
         if (params.search) {

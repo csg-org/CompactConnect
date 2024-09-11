@@ -8,6 +8,13 @@
 <template>
     <div class="user-list-container">
         <h1 class="list-title">{{ $t('account.usersListTitle') }}</h1>
+        <div class="list-actions-container">
+            <div class="search-container">
+                <form @submit.prevent="handleSearch">
+                    <InputSearch :formInput="formData.userSearch" class="user-search" />
+                </form>
+            </div>
+        </div>
         <ListContainer
             :listId="listId"
             :listData="this.usersStore.model"

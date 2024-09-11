@@ -23,11 +23,6 @@
                 @keyup.enter="expandRowToggle()"
                 :tabindex="(isHeaderRow) ? -1 : 0"
             />
-            <!-- <span
-                v-if="!isHeaderRow"
-                class="border-mask"
-                :class="{ 'active': isRowExpanded }"
-            ></span> -->
         </div>
         <div
             class="cell first-name"
@@ -137,12 +132,16 @@
             <div class="cell first-name"></div>
             <div class="cell last-name"></div>
             <div class="cell permissions">
-                Some expanded content Some expanded content Some expanded content Some expanded content
-                Some expanded content Some expanded content Some expanded content Some expanded content
-                Some expanded content Some expanded content Some expanded content Some expanded content
-                Some expanded content Some expanded content Some expanded content Some expanded content
-                Some expanded content Some expanded content Some expanded content Some expanded content
-                Some expanded content Some expanded content Some expanded content Some expanded content
+                <div class="permissions-label">Permission details</div>
+                <ul class="permissions-full good-wrap">
+                    <li
+                        v-for="(permission, index) in item.permissionsFullDisplay(currentCompactType)"
+                        :key="index"
+                        class="permission-full"
+                    >
+                        {{ permission }}
+                    </li>
+                </ul>
             </div>
             <div class="cell affiliation"></div>
             <div class="cell states"></div>
