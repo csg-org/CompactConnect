@@ -415,6 +415,8 @@
     },
     "licensing": {
         "licensingListTitle": "Datos de licencia",
+        "searchTitle": "Iniciar una búsqueda",
+        "searchLabel": "Buscar",
         "homeState": "Estado de origen",
         "residenceLocation": "Ubicación de la residencia",
         "privileges": "Privilegios",

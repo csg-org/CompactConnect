@@ -8,6 +8,19 @@
 <template>
     <div class="licensee-list-container">
         <h1 class="list-title">{{ $t('licensing.licensingListTitle') }}</h1>
+        <div class="search-container">
+            <div
+                class="search-toggle"
+                @click="toggleSearch()"
+                @keyup.enter="toggleSearch()"
+                tabindex="0"
+            >
+                {{ $t('licensing.searchLabel') }}
+            </div>
+            <transition name="fade-slow">
+                <LicenseeSearch v-show="shouldShowSearch" @searchParams="handleSearch" />
+            </transition>
+        </div>
         <ListContainer
             :listId="listId"
             :listData="this.licenseStore.model"

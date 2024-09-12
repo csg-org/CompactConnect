@@ -415,6 +415,8 @@
     },
     "licensing": {
         "licensingListTitle": "Licensing Data",
+        "searchTitle": "Begin a search",
+        "searchLabel": "Search",
         "homeState": "Home State",
         "residenceLocation": "Residence location",
         "privileges": "Privileges",

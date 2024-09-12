@@ -35,8 +35,8 @@ class ListContainer extends mixins(MixinListManipulation) {
     //
     // Computed
     //
-    get listTotalSize() {
-        let size = this.listSize;
+    get listTotalSize(): number {
+        let size = this.listSize || 0;
 
         if (!size && this.listData) {
             size = this.listData.length;
@@ -45,8 +45,18 @@ class ListContainer extends mixins(MixinListManipulation) {
         return size;
     }
 
-    get hasRecords() {
-        return (this.listData && this.listData.length);
+    get hasRecords(): boolean {
+        return Boolean(this.listData && this.listData.length);
+    }
+
+    get loadingErrorDisplay(): string {
+        let errorDisplay = this.$t('serverErrors.networkError');
+
+        if (this.loadingError?.message) {
+            errorDisplay = this.loadingError.message;
+        }
+
+        return errorDisplay;
     }
 }
 

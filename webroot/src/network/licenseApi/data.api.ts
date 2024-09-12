@@ -19,6 +19,7 @@ export interface RequestParamsInterfaceLocal {
     compact?: string;
     jurisdiction?: string;
     licenseeId?: string;
+    licenseeSsn?: string;
     pageSize?: number;
     pageNumber?: number;
     lastKey?: string;
@@ -40,6 +41,7 @@ export interface RequestParamsInterfaceRemote {
         compact?: string,
         jurisdiction?: string,
         providerId?: string,
+        ssn?: string,
     },
 }
 
@@ -111,8 +113,13 @@ export class LicenseDataApi implements DataApiInterface {
             requestParams.query.jurisdiction = params.jurisdiction;
         }
 
-        if (params.licenseeId) {
-            requestParams.query.providerId = params.licenseeId;
+        if (params.licenseeId || params.licenseeSsn) {
+            if (params.licenseeId) {
+                requestParams.query.providerId = params.licenseeId;
+            }
+            if (params.licenseeSsn) {
+                requestParams.query.ssn = params.licenseeSsn;
+            }
         } else {
             if (params.pageSize || params.lastKey) {
                 requestParams.pagination = {};

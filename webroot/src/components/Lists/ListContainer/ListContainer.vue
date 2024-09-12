@@ -44,7 +44,7 @@
                 <div class="ellipsis"></div>
             </div>
         </div>
-        <div v-else-if="loadingError" class="loading-error">{{ $t('serverErrors.networkError') }}</div>
+        <div v-else-if="loadingError" class="loading-error">{{ loadingErrorDisplay }}</div>
         <ul v-else-if="hasRecords" class="list">
             <slot name="list"></slot>
         </ul>

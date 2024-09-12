@@ -12,15 +12,22 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
+import LicenseeSearch from '@components/Licensee/LicenseeSearch/LicenseeSearch.vue';
 import LicenseeRow from '@components/Licensee/LicenseeRow/LicenseeRow.vue';
 import { SortDirection } from '@store/sorting/sorting.state';
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, PageChangeConfig } from '@store/pagination/pagination.state';
 import { PageExhaustError } from '@store/pagination';
 
+export interface LicenseSearch {
+    ssn?: string,
+    state?: string,
+}
+
 @Component({
     name: 'LicenseeList',
     components: {
         ListContainer,
+        LicenseeSearch,
         LicenseeRow,
     },
 })
@@ -30,6 +37,7 @@ class LicenseeList extends Vue {
     //
     // Data
     //
+    shouldShowSearch = true;
     isInitialFetchCompleted = false;
     prevKey = '';
     nextKey = '';
@@ -40,7 +48,7 @@ class LicenseeList extends Vue {
     async mounted() {
         await this.setDefaultSort();
         await this.setDefaultPaging();
-        await this.fetchListData();
+        // await this.fetchListData();
         this.isInitialFetchCompleted = true;
     }
 
@@ -93,6 +101,15 @@ class LicenseeList extends Vue {
     //
     // Methods
     //
+    toggleSearch(): void {
+        this.shouldShowSearch = !this.shouldShowSearch;
+    }
+
+    handleSearch(params: LicenseSearch): void {
+        this.toggleSearch();
+        this.fetchListData(params);
+    }
+
     async setDefaultSort() {
         const { listId } = this;
         const defaultSortOption = this.sortOptions.find((option) => option.isDefault) || this.sortOptions[0];
@@ -137,13 +154,14 @@ class LicenseeList extends Vue {
         }
     }
 
-    async fetchListData() {
+    async fetchListData(searchParams?: LicenseSearch) {
         const sorting = this.sortingStore.sortingMap[this.listId];
         const { option, direction } = sorting || {};
         const pagination = this.paginationStore.paginationMap[this.listId];
         const { page, size } = pagination || {};
         const requestConfig: any = {};
 
+        // Sorting params
         if (option) {
             const serverSortByMap = {
                 firstName: 'givenName',
@@ -165,7 +183,7 @@ class LicenseeList extends Vue {
             requestConfig.sortDirection = serverSortDirectionMap[direction];
         }
 
-        // Handle prev / next pages for server paging keys
+        // Paging params
         if (page && !this.licenseStore.error) {
             if (this.nextKey && page !== 1) {
                 requestConfig.getNextPage = true;
@@ -174,13 +192,17 @@ class LicenseeList extends Vue {
             }
         }
 
+        // Search params
         requestConfig.compact = this.userStore.currentCompact?.type;
 
-        //
-        // Temp for limited server filtering support
-        //
-        requestConfig.jurisdiction = 'al';
+        if (searchParams?.ssn) {
+            requestConfig.licenseeSsn = searchParams.ssn;
+        }
+        if (searchParams?.state) {
+            requestConfig.jurisdiction = searchParams.state.toLowerCase();
+        }
 
+        // Make fetch request
         await this.$store.dispatch('license/getLicenseesRequest', {
             params: {
                 ...requestConfig,
