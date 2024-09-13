@@ -103,14 +103,19 @@ its environment:
    not be able to log in to the UI hosted in CloudFront. The Oauth2 authentication process requires a predictable
    callback url to be pre-configured, which the domain name provides. You can still run a local UI against this app,
    so long as you leave the `allow_local_ui` context value set to `true` in your environment's context.
-2) Copy [cdk.context.sandbox-example.json](./cdk.context.sandbox-example.json) to `cdk.context.json`.
-3) At the top level of the JSON structure update the `"environment_name"` field to your own name.
-4) Update the environment entry under `ssm_context.environments` to your own name and your own AWS sandbox account id,
+2) *Optional if testing SES email notifications:* By default, AWS does not allow sending emails to unverified email 
+   addresses. See [SES Sandbox](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html). If you need
+   to test SES email notifications and do not want to request AWS to remove your account from the SES sandbox, you will 
+   need to set up a verified SES email identity for each address you want to send emails to. 
+   See [Creating an email address identity](https://docs.aws.amazon.com/ses/latest/dg/creating-identities.html#verify-email-addresses-procedure)
+3) Copy [cdk.context.sandbox-example.json](./cdk.context.sandbox-example.json) to `cdk.context.json`.
+4) At the top level of the JSON structure update the `"environment_name"` field to your own name.
+5) Update the environment entry under `ssm_context.environments` to your own name and your own AWS sandbox account id,
    and domain name, if you set one up. If you opted not to create a HostedZone, just remove the `domain_name` field.
    The key under `environments` must match the value you put under `environment_name`.
-5) Configure your aws cli to authenticate against your own account.
-6) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account.
-7) Run `cdk deploy 'Sandbox/*'` to get the initial stack resources deployed.
+6) Configure your aws cli to authenticate against your own account.
+7) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account.
+8) Run `cdk deploy 'Sandbox/*'` to get the initial stack resources deployed.
 
 ### Subsequent sandbox deploys:
 For any future deploys, everything is set up so a simple `cdk deploy 'Sandbox/*'` should update all your infrastructure
@@ -131,6 +136,8 @@ that is done, perform the following steps to deploy the CI/CD pipeline into the 
   the next step.
 - Create a new Route53 hosted zone for the domain name you plan to use for the app in each of the production AWS
   account and the test AWS account. See [About Route53 hosted zones](#about-route53-hosted-zones) below for more detail.
+- Request AWS to remove your account from the SES sandbox and wait for them to complete this request.
+  See [SES Sandbox](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html).
 - Copy the `cdk.context.production-example.json` file to `cdk.context.json` and update accounts and other identifiers,
   including the Code Star connection you just had created to match the identifiers for your actual accounts and
   resources.
