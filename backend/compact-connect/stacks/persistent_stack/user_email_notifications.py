@@ -24,8 +24,7 @@ class UserEmailNotifications(Construct):
         super().__init__(scope, construct_id, **kwargs)
 
         domain_name = hosted_zone.zone_name
-        # TODO - this should be a new context variable
-        operation_email = environment_context['notifications']['email'][0]
+        operation_email = environment_context['notifications']['ses_feedback_forwarding_email']
 
 
         self.email_feedback_topic = Topic(self, "FeedbackTopic",
