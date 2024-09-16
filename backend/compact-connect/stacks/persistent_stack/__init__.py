@@ -62,12 +62,21 @@ class PersistentStack(AppStack):
         # The new data resources
         self._add_data_resources(removal_policy=removal_policy)
 
-        self.user_email_notifications = UserEmailNotifications(
-            self, 'UserEmailNotifications',
-            environment_context=environment_context,
-            hosted_zone=self.hosted_zone,
-            master_key=self.shared_encryption_key,
-        )
+        if self.hosted_zone:
+            self.user_email_notifications = UserEmailNotifications(
+                self, 'UserEmailNotifications',
+                environment_context=environment_context,
+                hosted_zone=self.hosted_zone,
+                master_key=self.shared_encryption_key,
+            )
+            user_pool_email_settings = UserPoolEmail.with_ses(
+                from_email=f"no-reply@{self.hosted_zone.zone_name}",
+                ses_verified_domain=self.hosted_zone.zone_name,
+                configuration_set_name=self.user_email_notifications.config_set.configuration_set_name
+            )
+        else:
+            # if domain name is not provided, use the default cognito email settings
+            user_pool_email_settings = UserPoolEmail.with_cognito()
 
         staff_prefix = f'{app_name}-staff'
         self.staff_users = StaffUsers(
@@ -77,17 +86,14 @@ class PersistentStack(AppStack):
             environment_name=environment_name,
             environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
-            user_pool_email=UserPoolEmail.with_ses(
-                from_email=f"no-reply@{self.hosted_zone.zone_name}",
-                ses_verified_domain=self.hosted_zone.zone_name,
-                configuration_set_name=self.user_email_notifications.config_set.configuration_set_name
-            ),
+            user_pool_email=user_pool_email_settings,
             removal_policy=removal_policy
         )
-        # The SES email identity needs to be created before the user pool
-        # so that the domain address will be verified before being referenced
-        # by the user pool email settings
-        self.staff_users.node.add_dependency(self.user_email_notifications)
+        if self.hosted_zone:
+            # The SES email identity needs to be created before the user pool
+            # so that the domain address will be verified before being referenced
+            # by the user pool email settings
+            self.staff_users.node.add_dependency(self.user_email_notifications)
 
     def _add_mock_data_resources(self):
         self.mock_bulk_uploads_bucket = BulkUploadsBucket(
