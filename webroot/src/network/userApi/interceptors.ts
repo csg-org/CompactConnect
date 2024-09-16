@@ -51,7 +51,7 @@ export const responseSuccess = () => (response) => {
  */
 export const responseError = (store) => (error) => {
     const axiosResponse = error.response;
-    let serverResponse = (axiosResponse) ? axiosResponse.data : null;
+    let serverResponse;
 
     if (axiosResponse) {
         // Get API response
@@ -74,6 +74,7 @@ export const responseError = (store) => (error) => {
 
 export default {
     requestSuccess,
+    requestError,
     responseSuccess,
     responseError,
 };

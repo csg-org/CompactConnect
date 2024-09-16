@@ -25,7 +25,6 @@ export class StateDataApi implements DataApiInterface {
         // Initial Axios config
         this.api = axios.create({
             baseURL: envConfig.apiUrlState,
-            // withCredentials: true,
             timeout: 30000,
             headers: {
                 'Cache-Control': 'no-cache',

@@ -25,7 +25,7 @@ class UserRow extends Vue {
     @Prop({ required: true }) protected listId!: string;
     @Prop({ required: true }) item!: any;
     @Prop({ default: false }) isHeaderRow?: boolean;
-    @Prop({ default: []}) sortOptions?: Array<any>;
+    @Prop({ default: [] }) sortOptions?: Array<any>;
     @Prop({ default: () => null }) sortChange?: (selectedSortOption?: string, ascending?: boolean) => any;
 
     //
@@ -50,7 +50,7 @@ class UserRow extends Vue {
         return this.$store.state.sorting;
     }
 
-    get sortingStoreOption(): any {
+    get sortingStoreOption(): string {
         return this.sortingStore.sortingMap[this.listId]?.option;
     }
 
@@ -128,8 +128,6 @@ class UserRow extends Vue {
             if (isExternal) {
                 if (this.lastSortSelectOption !== this.sortingStoreOption) {
                     this.lastSortSelectOption = this.sortingStoreOption;
-                } else {
-                    // Continue
                 }
             } else {
                 const newOption = optionName;

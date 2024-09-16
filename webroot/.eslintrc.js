@@ -57,7 +57,6 @@ module.exports = {
         'array-bracket-spacing': OFF,
         'object-curly-spacing': [ ERROR, 'always', {
             objectsInObjects: false,
-            arraysInObjects: false,
         }],
         'no-param-reassign': [ ERROR, { props: false }],
         'max-classes-per-file': [ WARNING, 2 ],

@@ -33,13 +33,13 @@ class InputDate extends mixins(MixinInput) {
     @Prop({ default: true }) isTodayHighlighted?: boolean;
     @Prop({ default: false }) multiCalendar?: boolean | number;
     @Prop({ default: false }) enableRangePicker?: boolean;
-    @Prop({ default: []}) markers?: Array<DatePickerMarker>;
+    @Prop({ default: [] }) markers?: Array<DatePickerMarker>;
     @Prop({ default: null }) minDate?: Date | string | null;
     @Prop({ default: null }) maxDate?: Date | string | null;
     @Prop({ default: true }) preventMinMaxNavigation?: boolean;
     @Prop({ default: null }) allowedDates?: Array<Date | string> | null;
-    @Prop({ default: []}) disabledDates?: Array<Date | string | ((date: Date) => boolean)>;
-    @Prop({ default: [1900, 2100]}) yearRange?: [number, number];
+    @Prop({ default: [] }) disabledDates?: Array<Date | string | ((date: Date) => boolean)>;
+    @Prop({ default: [1900, 2100] }) yearRange?: [number, number];
     @Prop({ default: false }) enableTimePicker?: boolean;
     @Prop({ default: false }) enableSeconds?: boolean;
     @Prop({ default: null }) minTime?: null | {

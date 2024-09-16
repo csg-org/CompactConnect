@@ -23,7 +23,7 @@ class MixinPagination extends Vue {
     @Prop({ default: false }) protected isServerPaging?: boolean;
     @Prop({ default: null }) protected pagingPrevKey?: string | null;
     @Prop({ default: null }) protected pagingNextKey?: string | null;
-    @Prop({ default: []}) protected pageSizeConfig?: Array<any>;
+    @Prop({ default: [] }) protected pageSizeConfig?: Array<any>;
 
     //
     // Data

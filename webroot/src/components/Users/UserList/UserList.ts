@@ -111,9 +111,7 @@ class UserList extends mixins(MixinForm) {
             userSearch: new FormInput({
                 id: 'user-search',
                 name: 'user-search',
-                // label: computed(() => this.$t('account.userSearchLabel')),
                 placeholder: computed(() => this.$t('account.userSearchLabel')),
-                // validation: Joi.string().min(2).messages(this.joiMessages.string),
             }),
         });
     }
@@ -226,7 +224,7 @@ class UserList extends mixins(MixinForm) {
             }
         });
 
-        // If we've reached the end of paging
+        // If we've reached the end of user-initiated paging
         if (this.usersStore.error instanceof PageExhaustError && page > 1) {
             // Support for limited server paging support:
             // The server does not respond with how many total records there are, only keys to fetch

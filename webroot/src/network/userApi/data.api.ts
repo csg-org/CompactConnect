@@ -37,7 +37,6 @@ export class UserDataApi implements DataApiInterface {
         // Initial Axios config
         this.api = axios.create({
             baseURL: envConfig.apiUrlUser,
-            // withCredentials: true,
             timeout: 30000,
             headers: {
                 'Cache-Control': 'no-cache',

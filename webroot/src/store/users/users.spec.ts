@@ -165,7 +165,7 @@ describe('Users Store Mutations', () => {
         expect(state.model).to.matchPattern([user]);
     });
     it('should successfully update user (not already in store - non-empty store)', () => {
-        const state = { model: [{ id: 2 }]};
+        const state = { model: [{ id: 2 }] };
         const user = { id: 1 };
 
         mutations[MutationTypes.STORE_UPDATE_USER](state, user);
@@ -173,7 +173,7 @@ describe('Users Store Mutations', () => {
         expect(state.model).to.matchPattern([ { id: 2 }, user]);
     });
     it('should successfully update user (already in store)', () => {
-        const state = { model: [{ id: 1, name: 'test1' }]};
+        const state = { model: [{ id: 1, name: 'test1' }] };
         const user = { id: 1, name: 'test2' };
 
         mutations[MutationTypes.STORE_UPDATE_USER](state, user);
@@ -197,7 +197,7 @@ describe('Users Store Mutations', () => {
         expect(state).to.equal(state);
     });
     it('should successfully remove user (already in store)', () => {
-        const state = { model: [{ id: 1 }, { id: 2 }]};
+        const state = { model: [{ id: 1 }, { id: 2 }] };
         const userId = 1;
 
         mutations[MutationTypes.STORE_REMOVE_USER](state, userId);
@@ -205,7 +205,7 @@ describe('Users Store Mutations', () => {
         expect(state.model).to.matchPattern([{ id: 2 }]);
     });
     it('should successfully remove user (already in store - only record)', () => {
-        const state = { model: [{ id: 1 }]};
+        const state = { model: [{ id: 1 }] };
         const userId = 1;
 
         mutations[MutationTypes.STORE_REMOVE_USER](state, userId);
@@ -432,7 +432,7 @@ describe('Users Store Getters', async () => {
     });
     it('should successfully get user by id (found)', async () => {
         const record = { id: '1' };
-        const state = { model: [record]};
+        const state = { model: [record] };
         const user = getters.userById(state)('1');
 
         expect(user).to.matchPattern(record);

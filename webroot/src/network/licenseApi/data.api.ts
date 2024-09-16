@@ -54,7 +54,6 @@ export class LicenseDataApi implements DataApiInterface {
         // Initial Axios config
         this.api = axios.create({
             baseURL: envConfig.apiUrlLicense,
-            // withCredentials: true,
             timeout: 30000,
             headers: {
                 'Cache-Control': 'no-cache',
