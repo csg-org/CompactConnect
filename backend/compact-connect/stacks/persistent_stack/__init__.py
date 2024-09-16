@@ -14,7 +14,8 @@ from stacks.persistent_stack.provider_table import ProviderTable
 from stacks.persistent_stack.staff_users import StaffUsers
 from stacks.persistent_stack.user_email_notifications import UserEmailNotifications
 
-
+# cdk leverages instance attributes to make resource exports accessible to other stacks
+# pylint: disable=too-many-instance-attributes
 class PersistentStack(AppStack):
     """
     The stack that holds long-lived resources such as license data and other things that should probably never

@@ -72,5 +72,3 @@ class UserEmailNotifications(Construct):
                   record_name=f"_dmarc.{domain_name}",
                   values=[f"v=DMARC1;p=reject;rua=mailto:{operation_email}"]
                   )
-
-
