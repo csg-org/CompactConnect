@@ -11,7 +11,7 @@
         "domain_name": "justin.compactconnect.org",
         "allow_local_ui": true,
         "notifications": {
-          "ses_feedback_forwarding_email": "justin@example.com",
+          "ses_operations_support_email": "justin@example.com",
           "email": [
             "justin@example.com"
           ]

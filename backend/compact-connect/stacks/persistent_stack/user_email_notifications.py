@@ -24,7 +24,7 @@ class UserEmailNotifications(Construct):
         super().__init__(scope, construct_id, **kwargs)
 
         domain_name = hosted_zone.zone_name
-        operation_email = environment_context['notifications']['ses_feedback_forwarding_email']
+        operation_email = environment_context['notifications']['ses_operations_support_email']
 
 
         self.email_feedback_topic = Topic(self, "FeedbackTopic",
@@ -41,7 +41,6 @@ class UserEmailNotifications(Construct):
 
         self.config_set.add_event_destination(id="EmailFeedbackEventDestination",
                                          destination=EventDestination.sns_topic(self.email_feedback_topic),
-                                         configuration_set_event_destination_name="EmailFeedbackDestination",
                                          enabled=True,
                                          events=[EmailSendingEvent.BOUNCE,
                                                  EmailSendingEvent.COMPLAINT]
