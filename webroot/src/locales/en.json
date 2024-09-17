@@ -370,7 +370,9 @@
         "oneOrMoreFilesTooLarge": "One or more files are too large",
         "fileMaxSize": "File max size is",
         "tooManyFiles": "Too many files, only 1 allowed",
-        "fileWrongType": "Wrong file type"
+        "fileWrongType": "Wrong file type",
+        "lastNameRequired": "Required when first name is provided",
+        "ssnFormat": "Must be in format ###-##-####"
     },
     "serverErrors": {
         "networkError": "Network error",
@@ -421,7 +423,9 @@
     "licensing": {
         "licensingListTitle": "Licensing Data",
         "searchTitle": "Begin a search",
+        "searchSubtext": "Enter at least one field to search for licensing data.",
         "searchLabel": "Search",
+        "searchPlaceholderName": "Enter name",
         "homeState": "Home State",
         "residenceLocation": "Residence location",
         "privileges": "Privileges",

@@ -12,16 +12,12 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
-import LicenseeSearch from '@components/Licensee/LicenseeSearch/LicenseeSearch.vue';
+import LicenseeSearch, { LicenseSearch } from '@components/Licensee/LicenseeSearch/LicenseeSearch.vue';
 import LicenseeRow from '@components/Licensee/LicenseeRow/LicenseeRow.vue';
 import { SortDirection } from '@store/sorting/sorting.state';
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, PageChangeConfig } from '@store/pagination/pagination.state';
 import { PageExhaustError } from '@store/pagination';
-
-export interface LicenseSearch {
-    ssn?: string,
-    state?: string,
-}
+import { RequestParamsInterfaceLocal } from '@network/licenseApi/data.api';
 
 @Component({
     name: 'LicenseeList',
@@ -37,7 +33,7 @@ class LicenseeList extends Vue {
     //
     // Data
     //
-    shouldShowSearch = true;
+    shouldShowSearch = false;
     isInitialFetchCompleted = false;
     prevKey = '';
     nextKey = '';
@@ -48,8 +44,7 @@ class LicenseeList extends Vue {
     async mounted() {
         await this.setDefaultSort();
         await this.setDefaultPaging();
-        // await this.fetchListData();
-        this.isInitialFetchCompleted = true;
+        await this.initListDisplay();
     }
 
     //
@@ -73,13 +68,13 @@ class LicenseeList extends Vue {
 
     get sortOptions(): Array<any> {
         const options = [
-            // Temp for limited server paging support
+            // Temp for limited server sorting support
             // { value: 'firstName', name: this.$t('common.firstName') },
             { value: 'lastName', name: this.$t('common.lastName'), isDefault: true },
-            // { value: 'residenceLocation', name: this.$t('licensing.residenceLocation') },
-            // { value: 'stateOfLicense', name: this.$t('licensing.stateOfLicense') },
-            // { value: 'practicingLocations', name: this.$t('licensing.practicingLocations') },
-            { value: 'lastUpdate', name: this.$t('licensing.lastUpdate') },
+            // { value: 'ssn', name: this.$t('licensing.ssn') },
+            // { value: 'licenseStates', name: this.$t('licensing.homeState') },
+            // { value: 'privilegeStates', name: this.$t('licensing.privileges') },
+            // { value: 'status', name: this.$t('licensing.status') },
         ];
 
         return options;
@@ -101,6 +96,12 @@ class LicenseeList extends Vue {
     //
     // Methods
     //
+    initListDisplay(): void {
+        if (!this.licenseStore.model?.length) {
+            this.shouldShowSearch = true;
+        }
+    }
+
     toggleSearch(): void {
         this.shouldShowSearch = !this.shouldShowSearch;
     }
@@ -159,15 +160,13 @@ class LicenseeList extends Vue {
         const { option, direction } = sorting || {};
         const pagination = this.paginationStore.paginationMap[this.listId];
         const { page, size } = pagination || {};
-        const requestConfig: any = {};
+        const requestConfig: RequestParamsInterfaceLocal = {};
 
         // Sorting params
         if (option) {
             const serverSortByMap = {
                 firstName: 'givenName',
                 lastName: 'familyName',
-                residenceLocation: 'jurisdiction',
-                stateOfLicense: 'jurisdiction',
                 lastUpdate: 'dateOfUpdate',
             };
 
@@ -195,6 +194,12 @@ class LicenseeList extends Vue {
         // Search params
         requestConfig.compact = this.userStore.currentCompact?.type;
 
+        if (searchParams?.firstName) {
+            requestConfig.licenseeFirstName = searchParams.firstName;
+        }
+        if (searchParams?.lastName) {
+            requestConfig.licenseeLastName = searchParams.lastName;
+        }
         if (searchParams?.ssn) {
             requestConfig.licenseeSsn = searchParams.ssn;
         }
@@ -210,6 +215,8 @@ class LicenseeList extends Vue {
                 pageSize: size,
             }
         });
+
+        this.isInitialFetchCompleted = true;
 
         // If we've reached the end of paging
         if (this.licenseStore.error instanceof PageExhaustError && page > 1) {
@@ -246,7 +253,7 @@ class LicenseeList extends Vue {
     }
 
     // Match pageChange() @Prop signature from /components/Lists/Pagination/Pagination.ts
-    async paginationChange({ prevNext }: PageChangeConfig) {
+    async paginationChange({ firstIndex, prevNext }: PageChangeConfig) {
         if (prevNext === -1) {
             this.prevKey = this.licenseStore.prevLastKey;
             this.nextKey = '';
@@ -258,7 +265,7 @@ class LicenseeList extends Vue {
             this.nextKey = '';
         }
 
-        if (this.isInitialFetchCompleted) {
+        if (this.isInitialFetchCompleted && firstIndex !== 0) {
             await this.fetchListData();
         }
     }
