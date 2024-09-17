@@ -48,7 +48,7 @@
         <ul v-else-if="hasRecords" class="list">
             <slot name="list"></slot>
         </ul>
-        <div v-else class="no-records">{{ $t('serverErrors.noRecords') }}</div>
+        <div v-else class="no-records">{{ emptyMessage }}</div>
         <div class="filter-bar">
             <Pagination
                 ariaLabel="Bottom Pagination"

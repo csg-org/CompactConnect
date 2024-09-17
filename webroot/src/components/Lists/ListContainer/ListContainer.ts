@@ -31,6 +31,7 @@ class ListContainer extends mixins(MixinListManipulation) {
     @Prop({ default: 0 }) private listSize?: number;
     @Prop({ default: false }) private isLoading?: boolean;
     @Prop({ default: null }) private loadingError?: any;
+    @Prop({ default: '' }) private emptyListMessage?: string;
 
     //
     // Computed
@@ -57,6 +58,10 @@ class ListContainer extends mixins(MixinListManipulation) {
         }
 
         return errorDisplay;
+    }
+
+    get emptyMessage(): string {
+        return this.emptyListMessage || this.$t('serverErrors.noRecords');
     }
 }
 

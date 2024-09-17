@@ -13,6 +13,7 @@ import paginationStore from './pagination';
 import sortingStore from './sorting';
 import compactStore from './compact';
 import licenseStore from './license';
+import usersStore from './users';
 
 export default createStore({
     strict: process.env.NODE_ENV !== 'production', // throw if state is mutated outside of mutation handler (dev mode only since it's somewhat expensive; https://vuex.vuejs.org/guide/strict.html)
@@ -27,5 +28,6 @@ export default createStore({
         sorting: sortingStore,
         compact: compactStore,
         license: licenseStore,
+        users: usersStore,
     },
 });

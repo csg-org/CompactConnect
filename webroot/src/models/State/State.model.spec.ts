@@ -11,12 +11,13 @@ import i18n from '@/i18n';
 
 describe('State model', () => {
     before(() => {
-        const { tm: $tm } = i18n.global;
+        const { tm: $tm, t: $t } = i18n.global;
 
         (window as any).Vue = {
             config: {
                 globalProperties: {
                     $tm,
+                    $t,
                 }
             }
         };
@@ -30,7 +31,7 @@ describe('State model', () => {
         expect(state.abbrev).to.equal(null);
 
         // Test methods
-        expect(state.name()).to.equal('');
+        expect(state.name()).to.equal('Unknown');
     });
     it('should create a State with specific values', () => {
         const data = {
@@ -45,7 +46,7 @@ describe('State model', () => {
         expect(state.abbrev).to.equal(data.abbrev);
 
         // Test methods
-        expect(state.name()).to.equal('');
+        expect(state.name()).to.equal('Unknown');
     });
     it('should create a State with specific values through serializer', () => {
         const data = {
