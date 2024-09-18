@@ -254,6 +254,8 @@ class LicenseeList extends Vue {
 
     // Match pageChange() @Prop signature from /components/Lists/Pagination/Pagination.ts
     async paginationChange({ firstIndex, prevNext }: PageChangeConfig) {
+        const isInitialInProgress = Boolean(firstIndex === 0 && prevNext === 0);
+
         if (prevNext === -1) {
             this.prevKey = this.licenseStore.prevLastKey;
             this.nextKey = '';
@@ -265,7 +267,7 @@ class LicenseeList extends Vue {
             this.nextKey = '';
         }
 
-        if (this.isInitialFetchCompleted && firstIndex !== 0) {
+        if (!isInitialInProgress && this.isInitialFetchCompleted) {
             await this.fetchListData();
         }
     }
