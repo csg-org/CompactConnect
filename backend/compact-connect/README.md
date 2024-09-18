@@ -104,10 +104,10 @@ its environment:
    callback url to be pre-configured, which the domain name provides. You can still run a local UI against this app,
    so long as you leave the `allow_local_ui` context value set to `true` in your environment's context.
 2) *Optional if testing SES email notifications with custom domain:* By default, AWS does not allow sending emails to unverified email 
-   addresses. See [SES Sandbox](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html). If you need
-   to test SES email notifications and do not want to request AWS to remove your account from the SES sandbox, you will 
-   need to set up a verified SES email identity for each address you want to send emails to. 
-   See [Creating an email address identity](https://docs.aws.amazon.com/ses/latest/dg/creating-identities.html#verify-email-addresses-procedure)
+   addresses. If you need to test SES email notifications and do not want to request AWS to remove your account from 
+   the SES sandbox, you will need to set up a verified SES email identity for each address you want to send emails to. 
+   See [Creating an email address identity](https://docs.aws.amazon.com/ses/latest/dg/creating-identities.html#verify-email-addresses-procedure). Alternatively, you can request AWS to remove your account 
+   from the SES sandbox, which will allow you to send emails to addresses that are not verified. See [SES Sandbox](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html).
 3) Copy [cdk.context.sandbox-example.json](./cdk.context.sandbox-example.json) to `cdk.context.json`.
 4) At the top level of the JSON structure update the `"environment_name"` field to your own name.
 5) Update the environment entry under `ssm_context.environments` to your own name and your own AWS sandbox account id,
