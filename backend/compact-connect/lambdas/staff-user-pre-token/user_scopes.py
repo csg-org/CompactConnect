@@ -1,3 +1,5 @@
+from boto3.dynamodb.conditions import Key
+
 from config import config, logger
 
 
@@ -17,23 +19,30 @@ class UserScopes(set):
         :param sub: The `sub` field value from the Cognito Authorizer (which gets it from the JWT)
         """
         user_data = self._get_user_data(sub)
-        permissions = user_data.get('permissions', {})
+        permissions = {
+            compact_record['compact']: {
+                'actions': set(compact_record['permissions']['actions']),
+                'jurisdictions': compact_record['permissions']['jurisdictions']
+            }
+            for compact_record in user_data
+        }
 
         # Ensure included compacts are limited to supported values
-        disallowed_compcats = permissions.keys() - config.compacts
-        if disallowed_compcats:
-            raise ValueError(f'User permissions include disallowed compacts: {disallowed_compcats}')
+        disallowed_compacts = permissions.keys() - config.compacts
+        if disallowed_compacts:
+            raise ValueError(f'User permissions include disallowed compacts: {disallowed_compacts}')
 
         for compact_name, compact_permissions in permissions.items():
             self._process_compact_permissions(compact_name, compact_permissions)
 
     @staticmethod
     def _get_user_data(sub: str):
-        try:
-            user_data = config.users_table.get_item(Key={'pk': sub})['Item']
-        except KeyError as e:
-            logger.error('Authenticated user not found!', exc_info=e, sub=sub)
-            raise RuntimeError('Authenticated user not found!') from e
+        user_data = config.users_table.query(
+            KeyConditionExpression=Key('pk').eq(f'USER#{sub}')
+        ).get('Items', [])
+        if not user_data:
+            logger.error('Authenticated user not found!', sub=sub)
+            raise RuntimeError('Authenticated user not found!')
         return user_data
 
     def _process_compact_permissions(self, compact_name, compact_permissions):
@@ -65,10 +74,7 @@ class UserScopes(set):
         for jurisdiction_name, jurisdiction_permissions in compact_permissions['jurisdictions'].items():
             self._process_jurisdiction_permissions(compact_name, jurisdiction_name, jurisdiction_permissions)
 
-    def _process_jurisdiction_permissions(self, compact_name, jurisdiction_name, jurisdiction_permissions):
-        # Jurisdiction-level permissions
-        jurisdiction_actions = jurisdiction_permissions.get('actions', set())
-
+    def _process_jurisdiction_permissions(self, compact_name, jurisdiction_name, jurisdiction_actions):
         # Ensure included actions are limited to supported values
         disallowed_actions = jurisdiction_actions - {'write', 'admin'}
         if disallowed_actions:

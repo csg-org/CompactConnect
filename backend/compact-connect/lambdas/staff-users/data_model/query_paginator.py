@@ -7,8 +7,11 @@ from botocore.exceptions import ClientError
 from marshmallow import ValidationError
 
 from config import config, logger
-from data_model.schema.base_record import BaseRecordSchema
+from data_model.schema.user import UserRecordSchema
 from exceptions import CCInvalidRequestException, CCInternalException
+
+
+_user_record_schema = UserRecordSchema()
 
 
 # It's conventional to name a decorator in snake_case, even if it is implemented as a class
@@ -36,7 +39,7 @@ class paginated_query:  # pylint: disable=invalid-name
         ret = MethodType(self, instance)
         return ret
 
-    def __call__(self, *args, pagination: dict = None, **kwargs):
+    def __call__(self, *args, pagination: dict = None, client_filter: Callable[[dict], bool] = None, **kwargs):
         if pagination is None:
             pagination = {}
         # We b64 encode/decode the lastKey just for convenience passing to/from the client over HTTP
@@ -50,7 +53,7 @@ class paginated_query:  # pylint: disable=invalid-name
 
         items = []
         raw_resp = {}
-        for raw_resp in self._generate_pages(last_key, page_size, args, kwargs):
+        for raw_resp in self._generate_pages(last_key, page_size, client_filter, args, kwargs):
             items.extend(raw_resp.get('Items', []))
 
         # items can be longer than page_size, so trim it:
@@ -81,7 +84,14 @@ class paginated_query:  # pylint: disable=invalid-name
         resp['pagination']['lastKey'] = last_key
         return resp
 
-    def _generate_pages(self, last_key: str | None, page_size: int, args, kwargs):
+    def _generate_pages(
+            self,
+            last_key: str | None,
+            page_size: int,
+            client_filter: Callable[[dict], bool] | None,
+            args,
+            kwargs
+    ):
         """
         Repeat the wrapped query until we get everything or the full page_size of items
         """
@@ -90,9 +100,10 @@ class paginated_query:  # pylint: disable=invalid-name
             **({'ExclusiveStartKey': last_key} if last_key is not None else {})
         }
 
-        raw_resp = self._caught_query(*args, dynamo_pagination=dynamo_pagination, **kwargs)
+        raw_resp = self._caught_query(client_filter, *args, dynamo_pagination=dynamo_pagination, **kwargs)
         count = raw_resp['Count']
         last_key = raw_resp.get('LastEvaluatedKey')
+
         yield raw_resp
         while last_key is not None and count < page_size:
             dynamo_pagination = {
@@ -100,17 +111,17 @@ class paginated_query:  # pylint: disable=invalid-name
                 **({'ExclusiveStartKey': last_key} if last_key is not None else {})
             }
 
-            raw_resp = self._caught_query(*args, dynamo_pagination=dynamo_pagination, **kwargs)
+            raw_resp = self._caught_query(client_filter, *args, dynamo_pagination=dynamo_pagination, **kwargs)
             count += raw_resp['Count']
             last_key = raw_resp.get('LastEvaluatedKey')
             yield raw_resp
 
-    def _caught_query(self, *args, **kwargs):
+    def _caught_query(self, client_filter: Callable[[dict], bool] | None, *args, **kwargs):
         """
         Uniformly convert our DynamoDB query validation errors to invalid request exceptions
         """
         try:
-            return self.fn(*args, **kwargs)
+            raw_resp = self.fn(*args, **kwargs)
         except ClientError as e:
             # If the client sends in an invalid lastKey that is good enough to get sent to DynamoDB,
             # DynamoDB will return us a ValidationException, so we'll handle that here
@@ -119,14 +130,27 @@ class paginated_query:  # pylint: disable=invalid-name
                 raise CCInvalidRequestException('Invalid request') from e
             raise
 
+        # Apply client filter if provided
+        if client_filter is not None:
+            raw_resp['Items'] = [
+                item
+                for item in raw_resp['Items']
+                if client_filter(item)
+            ]
+            count = len(raw_resp['Items'])
+            raw_resp['Count'] = count
+
+        return raw_resp
+
     @staticmethod
     def _load_records(records: List[dict]):
         """
         Every record coming through this paginator should be de-serializable through our *RecordSchema
         """
+        print(records)
         try:
             return [
-                BaseRecordSchema.get_schema_by_type(item['type']).load(item)
+                _user_record_schema.load(item)
                 for item in records
             ]
         except (KeyError, ValidationError) as e:
