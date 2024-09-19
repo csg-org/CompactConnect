@@ -108,6 +108,8 @@ its environment:
    the SES sandbox, you will need to set up a verified SES email identity for each address you want to send emails to. 
    See [Creating an email address identity](https://docs.aws.amazon.com/ses/latest/dg/creating-identities.html#verify-email-addresses-procedure). Alternatively, you can request AWS to remove your account 
    from the SES sandbox, which will allow you to send emails to addresses that are not verified. See [SES Sandbox](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html).
+   If you do not specify the `domain_name` field in your environment context, cognito will use its default email configuration. 
+   See [Default User Pool Email Settings](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-email.html#user-pool-email-default)
 3) Copy [cdk.context.sandbox-example.json](./cdk.context.sandbox-example.json) to `cdk.context.json`.
 4) At the top level of the JSON structure update the `"environment_name"` field to your own name.
 5) Update the environment entry under `ssm_context.environments` to your own name and your own AWS sandbox account id,
@@ -124,6 +126,18 @@ to reflect the changes in your code. Full deployment steps are:
 2) Run `bin/sync_deps.sh` from `backend/` to ensure you have the latest requirements installed.
 3) Configure your aws cli to authenticate against your own account.
 4) Run `cdk deploy 'Sandbox/*'` to deploy the app to your AWS account.
+
+### Verifying SES configuration for Cognito User Notifications
+If your account is in the SES sandbox, The simplest way to verify that SES is integrated with your cognito user pool is
+to first go the AWS SES console and create an SES verified email identity for the email address you want to send a test
+message to, See [Creating an email address identity](https://docs.aws.amazon.com/ses/latest/dg/creating-identities.html#verify-email-addresses-procedure).
+
+Once you have verified your email address, go to the AWS Cognito console and find your user pool. From there, you have 
+the option to create a new user using your verified email address, and select the option to send an email invite. Once 
+you create the user, you should receive an email notification from Cognito, and you can verify that 
+the FROM address is using your custom domain. The DMARC authentication will reject any emails from your domain that are 
+not properly configured using SPF and DKIM, so if you get the email notification from Cognito, you've verified that the 
+authentication is working as expected.
 
 ### First deploy to the production environment
 The production environment requires a few steps to fully set up before deploys can be automated. Refer to the
