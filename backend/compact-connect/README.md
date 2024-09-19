@@ -128,7 +128,7 @@ to reflect the changes in your code. Full deployment steps are:
 4) Run `cdk deploy 'Sandbox/*'` to deploy the app to your AWS account.
 
 ### Verifying SES configuration for Cognito User Notifications
-If your account is in the SES sandbox, The simplest way to verify that SES is integrated with your cognito user pool is
+If your account is in the SES sandbox, the simplest way to verify that SES is integrated with your cognito user pool is
 to first go the AWS SES console and create an SES verified email identity for the email address you want to send a test
 message to, See [Creating an email address identity](https://docs.aws.amazon.com/ses/latest/dg/creating-identities.html#verify-email-addresses-procedure).
 
