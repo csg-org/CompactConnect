@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from aws_cdk.aws_cognito import UserPoolEmail, StandardAttributes, StandardAttribute
+from aws_cdk.aws_cognito import UserPoolEmail, StandardAttributes, StandardAttribute, ClientAttributes
 from aws_cdk.aws_kms import IKey
 from constructs import Construct
 
@@ -49,12 +49,22 @@ class ProviderUsers(UserPool):
                 "'allow_local_ui' to true in this environment's context.")
 
         # Create an app client to allow the front-end to authenticate.
-        self.ui_client = self.add_ui_client(callback_urls=callback_urls)
+        self.ui_client = self.add_ui_client(
+            callback_urls=callback_urls,
+            # For now, we are allowing the user to read and update their email, given name, and family name.
+            # If we ever want other attributes to be read or written, they must be added here.
+            read_attributes=ClientAttributes().with_standard_attributes(email=True, given_name=True, family_name=True),
+            write_attributes=ClientAttributes().with_standard_attributes(email=True, given_name=True, family_name=True)
+        )
 
 
 def _configure_user_pool_standard_attributes() -> StandardAttributes:
     """
         The provider user pool standard attributes.
+
+        Note that these values can never change! If you need to make other attributes
+        required in the future, you must create an entirely new user pool and migrate
+        existing users to the new pool. see https://repost.aws/knowledge-center/cognito-change-user-pool-attributes
 
         These attributes are used to display on a provider's profile page. We do not
         intend to use them for authentication purposes or for back-end processing.
@@ -77,7 +87,6 @@ def _configure_user_pool_standard_attributes() -> StandardAttributes:
         # the following attributes are not required, but we are including them because
         # Cognito does not allow you to add them after the user pool is created, and we
         # may want to use them in the future.
-        # see https://repost.aws/knowledge-center/cognito-change-user-pool-attributes
         address=StandardAttribute(
             mutable=True,
             required=False

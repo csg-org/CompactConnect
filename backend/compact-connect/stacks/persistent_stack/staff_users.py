@@ -3,7 +3,7 @@ import json
 import os
 
 from aws_cdk.aws_cognito import ResourceServerScope, UserPoolOperation, LambdaVersion, UserPoolEmail, \
-    StandardAttributes, StandardAttribute
+    StandardAttributes, StandardAttribute, ClientAttributes
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from constructs import Construct
@@ -70,7 +70,12 @@ class StaffUsers(UserPool):
 
         # Do not allow resource server scopes via the client - they are assigned via token customization
         # to allow for user attribute-based access
-        self.ui_client = self.add_ui_client(callback_urls=callback_urls)
+        self.ui_client = self.add_ui_client(
+            callback_urls=callback_urls,
+            # We want to limit the attributes that this app can read and write so only email is visible.
+            read_attributes=ClientAttributes().with_standard_attributes(email=True),
+            write_attributes=ClientAttributes().with_standard_attributes(email=True)
+        )
 
     def _add_resource_servers(self):
         """

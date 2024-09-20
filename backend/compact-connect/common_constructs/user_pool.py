@@ -81,7 +81,19 @@ class UserPool(CdkUserPool):
             ]
         )
 
-    def add_ui_client(self, callback_urls: List[str], ui_scopes: List[OAuthScope] = None):
+    def add_ui_client(self,
+                      callback_urls: List[str],
+                      read_attributes: ClientAttributes,
+                      write_attributes: ClientAttributes,
+                      ui_scopes: List[OAuthScope] = None):
+        """
+        Creates an app client for the UI to authenticate with the user pool.
+
+        :param callback_urls: The URLs that Cognito will redirect to after authentication.
+        :param read_attributes: The attributes that the UI can read.
+        :param write_attributes: The attributes that the UI can write.
+        :param ui_scopes: OAuth scopes that are allowed with this client
+        """
         return self.add_client(
             'UIClient',
             auth_flows=AuthFlow(
@@ -103,11 +115,8 @@ class UserPool(CdkUserPool):
             enable_token_revocation=True,
             generate_secret=False,
             refresh_token_validity=Duration.days(30),
-            # If you provide no attributes at all here, it will default
-            # to making _all_ attributes writeable, so if we want to limit writes,
-            # we have to provide at least _one_ that the client _can_ write.
-            write_attributes=ClientAttributes().with_standard_attributes(email=True),
-            read_attributes=ClientAttributes().with_standard_attributes(email=True)
+            read_attributes=read_attributes,
+            write_attributes=write_attributes,
         )
 
     def _add_risk_configuration(self):
