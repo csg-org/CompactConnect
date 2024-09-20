@@ -98,7 +98,7 @@ class InputFile extends mixins(MixinInput) {
     updateSelectedFiles(): void {
         // $refs are not reactive, so we have to manually update the selected files to a reactive array
         const input = this.$refs.inputFiles || {};
-        const { files: fileList = []} = (input as any);
+        const { files: fileList = [] } = (input as any);
         const files: Array<File> = Array.from(fileList);
 
         this.selectedFiles = files;

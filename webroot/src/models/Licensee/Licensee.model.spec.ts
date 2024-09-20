@@ -17,12 +17,13 @@ import moment from 'moment';
 
 describe('Licensee model', () => {
     before(() => {
-        const { tm: $tm } = i18n.global;
+        const { tm: $tm, t: $t } = i18n.global;
 
         (window as any).Vue = {
             config: {
                 globalProperties: {
                     $tm,
+                    $t,
                 }
             }
         };
@@ -51,7 +52,7 @@ describe('Licensee model', () => {
 
         // Test methods
         expect(licensee.nameDisplay()).to.equal('');
-        expect(licensee.residenceLocation()).to.equal('');
+        expect(licensee.residenceLocation()).to.equal('Unknown');
         expect(licensee.dobDisplay()).to.equal('');
         expect(licensee.ssnMaskedFull()).to.equal('');
         expect(licensee.ssnMaskedPartial()).to.equal('');
@@ -115,16 +116,16 @@ describe('Licensee model', () => {
 
         // Test methods
         expect(licensee.nameDisplay()).to.equal(`${data.firstName} ${data.lastName}`);
-        expect(licensee.residenceLocation()).to.equal('');
+        expect(licensee.residenceLocation()).to.equal('Unknown');
         expect(licensee.dobDisplay()).to.equal('1/1/2020');
         expect(licensee.ssnMaskedFull()).to.equal(data.ssn);
         expect(licensee.ssnMaskedPartial()).to.equal('test-ss-ssn');
         expect(licensee.lastUpdatedDisplay()).to.equal('1/1/2020');
         expect(licensee.lastUpdatedDisplayRelative()).to.be.a('string').that.is.not.empty;
         expect(licensee.getStateListDisplay([])).to.equal('');
-        expect(licensee.licenseStatesDisplay()).to.equal('');
-        expect(licensee.privilegeStatesAllDisplay()).to.equal('');
-        expect(licensee.privilegeStatesDisplay()).to.equal('');
+        expect(licensee.licenseStatesDisplay()).to.equal('Unknown, Unknown +');
+        expect(licensee.privilegeStatesAllDisplay()).to.equal('Unknown');
+        expect(licensee.privilegeStatesDisplay()).to.equal('Unknown');
         expect(licensee.occupationName()).to.equal('Audiologist');
     });
     it('should create a Licensee with specific values through serializer', () => {

@@ -10,6 +10,7 @@ import {
     userData,
     stateUploadRequestData,
     licensees,
+    users,
     pets
 } from '@network/mocks/mock.data';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
@@ -88,6 +89,33 @@ export class DataApi {
         }
 
         return response;
+    }
+
+    // ========================================================================
+    //                              USER API
+    // ========================================================================
+    // Get Users
+    public getUsers() {
+        return this.wait(500).then(() => ({
+            prevLastKey: users.prevLastKey,
+            lastKey: users.lastKey,
+            users: users.items.map((serverItem) => UserSerializer.fromServer(serverItem)),
+        }));
+    }
+
+    // Create User
+    public createUser() {
+        return this.wait(500).then(() => users[0]);
+    }
+
+    // Get User by ID
+    public getUser() {
+        return this.wait(500).then(() => users[0]);
+    }
+
+    // Update User by ID
+    public updateUser() {
+        return this.wait(500).then(() => users[0]);
     }
 
     // ========================================================================

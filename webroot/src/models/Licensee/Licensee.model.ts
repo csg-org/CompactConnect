@@ -95,7 +95,7 @@ export class Licensee implements InterfaceLicensee {
         let masked = '';
 
         if (ssn) {
-            masked = (ssn as string).replace(/[0-9]/g, '#') || '';
+            masked = (ssn as string).replace(/[0-9]/g, '#');
         }
 
         return masked;
@@ -195,7 +195,7 @@ export class Licensee implements InterfaceLicensee {
     }
 
     public statusDisplay(): string {
-        return this.$t(`licensing.statusOptions.${this.status}`) || '';
+        return this.$t(`licensing.statusOptions.${this.status}`);
     }
 }
 

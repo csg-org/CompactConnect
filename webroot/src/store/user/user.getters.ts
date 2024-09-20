@@ -7,4 +7,5 @@
 
 export default {
     state: (state: any) => state,
+    currentCompact: (state: any) => state.currentCompact,
 };

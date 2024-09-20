@@ -26,7 +26,7 @@ class Modal extends Vue {
     @Prop({ default: false }) private hasCloseIcon?: boolean;
     @Prop({ default: false }) private isErrorModal?: boolean;
     @Prop({ default: true }) private showActions?: boolean;
-    @Prop({ default: []}) private customActions?: Array<{ label: string; emitEventName: string; closeAfter: boolean }>
+    @Prop({ default: [] }) private customActions?: Array<{ label: string; emitEventName: string; closeAfter: boolean }>
 
     globalStore: any = {};
 
