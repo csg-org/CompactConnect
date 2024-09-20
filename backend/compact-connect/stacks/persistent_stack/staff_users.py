@@ -2,8 +2,8 @@ from __future__ import annotations
 import json
 import os
 
-from aws_cdk.aws_cognito import (ResourceServerScope, UserPoolOperation, LambdaVersion, UserPoolEmail,
-                                 StandardAttributes, StandardAttribute)
+from aws_cdk.aws_cognito import ResourceServerScope, UserPoolOperation, LambdaVersion, UserPoolEmail, \
+    StandardAttributes, StandardAttribute
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from constructs import Construct
@@ -18,6 +18,7 @@ class StaffUsers(UserPool):
     """
     User pool for Compact, Board, and CSG staff
     """
+
     def __init__(
             self, scope: Construct, construct_id: str, *,
             cognito_domain_prefix: str,
@@ -136,7 +137,7 @@ class StaffUsers(UserPool):
             suppressions=[{
                 'id': 'AwsSolutions-IAM5',
                 'reason': 'This lambda role policy contains wildcards in its statements, but all of its actions are '
-                'limited specifically to the actions and the Table it needs read access to.'
+                          'limited specifically to the actions and the Table it needs read access to.'
             }]
         )
         self.add_trigger(

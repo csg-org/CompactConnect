@@ -3,7 +3,7 @@ from typing import List
 from aws_cdk import CfnOutput, Duration, RemovalPolicy
 from aws_cdk.aws_cognito import UserPool as CdkUserPool, UserPoolEmail, AccountRecovery, AutoVerifiedAttrs, \
     AdvancedSecurityMode, DeviceTracking, Mfa, MfaSecondFactor, PasswordPolicy, StandardAttributes, \
-    StandardAttribute, CognitoDomainOptions, AuthFlow, OAuthSettings, OAuthFlows, ClientAttributes, \
+    CognitoDomainOptions, AuthFlow, OAuthSettings, OAuthFlows, ClientAttributes, \
     CfnUserPoolRiskConfigurationAttachment, OAuthScope
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions

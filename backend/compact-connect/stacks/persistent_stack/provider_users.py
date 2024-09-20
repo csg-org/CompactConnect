@@ -12,6 +12,7 @@ class ProviderUsers(UserPool):
     """
     User pool for medical providers (aka Licensees)
     """
+
     def __init__(
             self, scope: Construct, construct_id: str, *,
             cognito_domain_prefix: str,
