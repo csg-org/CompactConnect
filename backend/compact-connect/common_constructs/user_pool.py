@@ -17,6 +17,7 @@ class UserPool(CdkUserPool):
             environment_name: str,
             encryption_key: IKey,
             email: UserPoolEmail,
+            standard_attributes: StandardAttributes,
             removal_policy,
             **kwargs
     ):
@@ -42,12 +43,7 @@ class UserPool(CdkUserPool):
             self_sign_up_enabled=False,
             sign_in_aliases=None,
             sign_in_case_sensitive=False,
-            standard_attributes=StandardAttributes(
-                email=StandardAttribute(
-                    mutable=False,
-                    required=True
-                )
-            ),
+            standard_attributes=standard_attributes,
             **kwargs
         )
 
