@@ -10,10 +10,10 @@ import {
     Vue,
     Prop
 } from 'vue-facing-decorator';
-import { paginationTemplate } from '@store/pagination/pagination.state';
+import { paginationTemplate, PageChangeConfig } from '@store/pagination/pagination.state';
 
 @Component({
-    name: 'MixinPagination'
+    name: 'MixinPagination',
 })
 class MixinPagination extends Vue {
     @Prop({ required: true }) protected listData!: Array<any>; // Extending class should more specifically type
@@ -21,6 +21,8 @@ class MixinPagination extends Vue {
     @Prop({ default: false }) protected excludeBottomPagination?: boolean;
     @Prop({ default: false }) protected excludeTopPagination?: boolean;
     @Prop({ default: false }) protected isServerPaging?: boolean;
+    @Prop({ default: null }) protected pagingPrevKey?: string | null;
+    @Prop({ default: null }) protected pagingNextKey?: string | null;
     @Prop({ default: []}) protected pageSizeConfig?: Array<any>;
 
     //
@@ -57,7 +59,7 @@ class MixinPagination extends Vue {
                     : pageSizeConfig[0].value;
             }
 
-            paginationChange(0, pageSize);
+            paginationChange({ firstIndex: 0, lastIndexExclusive: pageSize, prevNext: 0 });
         }
     }
 
@@ -94,9 +96,10 @@ class MixinPagination extends Vue {
     //
     // Methods
     //
-    paginationChange(firstIndex, lastIndex) {
+    // Match pageChange() @Prop signature from /components/Lists/Pagination/Pagination.ts
+    async paginationChange({ firstIndex, lastIndexExclusive }: PageChangeConfig) {
         this.firstIndex = firstIndex;
-        this.lastIndex = lastIndex;
+        this.lastIndex = lastIndexExclusive;
     }
 }
 

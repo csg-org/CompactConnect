@@ -1,6 +1,8 @@
+from __future__ import annotations
 import os
-
 from aws_cdk import Duration
+from aws_cdk.aws_cloudwatch import Alarm, Stats, ComparisonOperator, TreatMissingData
+from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_logs import QueryDefinition, QueryString
@@ -12,7 +14,8 @@ from constructs import Construct
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.bucket import Bucket
 from common_constructs.python_function import PythonFunction
-from common_constructs.stack import Stack
+
+import stacks.persistent_stack as ps
 
 
 class BulkUploadsBucket(Bucket):
@@ -44,7 +47,7 @@ class BulkUploadsBucket(Bucket):
         if mock_bucket:
             self._add_delete_object_events()
         else:
-            self._add_ingest_object_events(event_bus)
+            self._add_v1_ingest_object_events(event_bus)
 
         QueryDefinition(
             self, 'RuntimeQuery',
@@ -83,7 +86,7 @@ class BulkUploadsBucket(Bucket):
         """
         Delete any objects that get uploaded - for mock api purposes
         """
-        stack: Stack = Stack.of(self)
+        stack: ps.PersistentStack = ps.PersistentStack.of(self)
 
         delete_objects_handler = PythonFunction(
             self, 'DeleteObjectsHandler',
@@ -137,35 +140,47 @@ class BulkUploadsBucket(Bucket):
             }]
         )
 
-    def _add_ingest_object_events(self, event_bus: EventBus):
+    def _add_v1_ingest_object_events(self, event_bus: EventBus):
         """
         Read any objects that get uploaded and trigger ingest events
         """
-        stack: Stack = Stack.of(self)
+        stack: ps.PersistentStack = ps.PersistentStack.of(self)
         parse_objects_handler = PythonFunction(
-            self, 'ParseObjectsHandler',
+            self, 'V1ParseObjectsHandler',
             description='Parse s3 objects handler',
-            entry=os.path.join('lambdas', 'license-data'),
+            entry=os.path.join('lambdas', 'provider-data-v1'),
             index=os.path.join('handlers', 'bulk_upload.py'),
             handler='parse_bulk_upload_file',
             timeout=Duration.minutes(15),
+            alarm_topic=stack.alarm_topic,
             memory_size=1024,
             environment={
                 'EVENT_BUS_NAME': event_bus.event_bus_name,
                 **stack.common_env_vars
-            },
-            alarm_topic=stack.alarm_topic
+            }
         )
         self.grant_delete(parse_objects_handler)
         self.grant_read(parse_objects_handler)
         event_bus.grant_put_events_to(parse_objects_handler)
         self.log_groups.append(parse_objects_handler.log_group)
 
+        # We should specifically set an alarm for any failures of this handler, since it could otherwise go unnoticed.
+        Alarm(
+            self, 'V1ParserFailureAlarm',
+            metric=parse_objects_handler.metric_errors(statistic=Stats.SUM),
+            evaluation_periods=1,
+            threshold=1,
+            actions_enabled=True,
+            alarm_description=f'{parse_objects_handler.node.path} failed to process a bulk upload',
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING
+        ).add_alarm_action(SnsAction(stack.alarm_topic))
+
         self.add_event_notification(
             event=EventType.OBJECT_CREATED,
             dest=LambdaDestination(parse_objects_handler)
         )
-        stack = Stack.of(self)
+        stack = ps.PersistentStack.of(self)
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
             path=f'{parse_objects_handler.node.path}/ServiceRole/DefaultPolicy/Resource',

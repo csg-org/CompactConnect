@@ -33,6 +33,10 @@ class LicenseeRow extends Vue {
     //
     // Computed
     //
+    get userStore() {
+        return this.$store.state.user;
+    }
+
     get sortingStore() {
         return this.$store.state.sorting;
     }
@@ -139,7 +143,12 @@ class LicenseeRow extends Vue {
     }
 
     navigateToDetail(licenseeId: string) {
-        this.$router.push({ name: 'LicensingDetail', params: { licenseeId }});
+        this.$router.push(
+            {
+                name: 'LicensingDetail',
+                params: { compact: this.userStore.currentCompact?.type, licenseeId },
+            }
+        );
     }
 
     //

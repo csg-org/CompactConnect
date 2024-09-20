@@ -1,0 +1,12 @@
+{
+  "pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "sk": "aslp#PROVIDER#privilege/ne",
+  "type": "privilege",
+  "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "compact": "aslp",
+  "jurisdiction": "ne",
+  "status": "active",
+  "dateOfIssuance": "2024-06-06",
+  "dateOfUpdate": "2024-07-01",
+  "dateOfExpiration": "2024-06-06"
+}

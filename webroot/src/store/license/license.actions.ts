@@ -6,6 +6,7 @@
 //
 
 import { dataApi } from '@network/data.api';
+import { PageExhaustError } from '@store/pagination';
 import { MutationTypes } from './license.mutations';
 
 export default {
@@ -13,18 +14,19 @@ export default {
     getLicenseesRequest: async ({ commit, getters, dispatch }, { params }: any) => {
         commit(MutationTypes.GET_LICENSEES_REQUEST);
 
-        // Temp for limited server paging support
         if (params?.getNextPage) {
             params.lastKey = getters.lastKey;
+        } else if (params?.getPrevPage) {
+            params.lastKey = getters.prevLastKey;
         }
 
-        await dataApi.getLicensees(params).then(async ({ lastKey, licensees }) => {
-            // Temp for limited server paging support
+        await dataApi.getLicensees(params).then(async ({ prevLastKey, lastKey, licensees }) => {
+            // Support for limited server paging support
             if (!licensees.length && params?.getNextPage) {
-                throw new Error('end of list');
+                throw new PageExhaustError('end of list');
             } else {
+                await dispatch('setStoreLicenseePrevLastKey', prevLastKey);
                 await dispatch('setStoreLicenseeLastKey', lastKey);
-                // await dispatch('setStoreLicenseeCount', totalCount);
                 await dispatch('setStoreLicensees', licensees);
             }
             dispatch('getLicenseesSuccess', licensees);
@@ -39,9 +41,9 @@ export default {
         commit(MutationTypes.GET_LICENSEES_FAILURE, error);
     },
     // GET LICENSEE
-    getLicenseeRequest: async ({ commit, dispatch }, { licenseeId }: any) => {
+    getLicenseeRequest: async ({ commit, dispatch }, { compact, licenseeId }: any) => {
         commit(MutationTypes.GET_LICENSEE_REQUEST);
-        await dataApi.getLicensee(licenseeId).then(async ({ licensee }) => {
+        await dataApi.getLicensee(compact, licenseeId).then(async ({ licensee }) => {
             if (licensee) {
                 // Only update the store if we received a response
                 await dispatch('setStoreLicensee', licensee);
@@ -58,6 +60,9 @@ export default {
         commit(MutationTypes.GET_LICENSEE_FAILURE, error);
     },
     // SET THE STORE STATE
+    setStoreLicenseePrevLastKey: ({ commit }, prevLastKey) => {
+        commit(MutationTypes.STORE_UPDATE_PREVLASTKEY, prevLastKey);
+    },
     setStoreLicenseeLastKey: ({ commit }, lastKey) => {
         commit(MutationTypes.STORE_UPDATE_LASTKEY, lastKey);
     },

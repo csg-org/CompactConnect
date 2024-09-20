@@ -372,6 +372,9 @@
     },
     "serverErrors": {
         "networkError": "Error de red",
+        "loginError": "Se produjo un error al iniciar sesión.",
+        "loginErrorActionPart1": "Intente",
+        "loginErrorActionPart2": "iniciar sesión nuevamente",
         "noRecords": "No hay registros que mostrar",
         "dobFormat": "La fecha de nacimiento debe estar en el formato MM/DD/AAAA y debe ser una fecha real que existió.",
         "dobMaxDate": "La fecha de nacimiento debe ser anterior o igual al día de hoy.",
@@ -412,16 +415,57 @@
     },
     "licensing": {
         "licensingListTitle": "Datos de licencia",
-        "residenceLocation": "Ubicación residente",
-        "stateOfLicense": "estado de licencia",
-        "practicingLocations": "Lugar(es) de práctica",
+        "homeState": "Estado de origen",
+        "residenceLocation": "Ubicación de la residencia",
+        "privileges": "Privilegios",
+        "ssn": "SSN",
+        "adverseActions": "Acciones adversas",
+        "status": "Estado",
         "issueDate": "Fecha de asunto",
         "expireDate": "Fecha de caducidad",
         "lastUpdate": "Última carga",
         "status": {
             "active": "Activo",
             "inactive": "Inactivo"
-        }
+        },
+        "occupations": [
+            {
+                "name": "Audiólogo",
+                "key": "audiologist"
+            },
+            {
+                "name": "Patólogo del habla y lenguaje",
+                "key": "speech-language pathologist"
+            },
+            {
+                "name": "Patólogo del habla y el lenguaje",
+                "key": "speech and language pathologist"
+            },
+            {
+                "name": "Terapeuta ocupacional",
+                "key": "occupational therapist"
+            },
+            {
+                "name": "Occupational Therapy Assistant",
+                "key": "occupational therapy assistant"
+            },
+            {
+                "name": "Asistente de terapia ocupacional",
+                "key": "licensed professional counselor"
+            },
+            {
+                "name": "Consejero de salud mental autorizado",
+                "key": "licensed mental health counselor"
+            },
+            {
+                "name": "Consejero de salud mental clínico autorizado",
+                "key": "licensed clinical mental health counselor"
+            },
+            {
+                "name": "Consejero clínico profesional autorizado",
+                "key": "licensed professional clinical counselor"
+            }
+        ]
     },
     "styleGuide": {
         "headerPlaceholder": "Contenido del encabezado",

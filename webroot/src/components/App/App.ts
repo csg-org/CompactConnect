@@ -12,6 +12,7 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import { relativeTimeFormats } from '@/app.config';
+import { CompactType, CompactSerializer } from '@models/Compact/Compact.model';
 import PageContainer from '@components/Page/PageContainer/PageContainer.vue';
 import Modal from '@components/Modal/Modal.vue';
 import moment from 'moment';
@@ -30,17 +31,19 @@ class App extends Vue {
     //
     // Data
     //
-    userStore: any = {};
-    globalStore: any = {};
     body = document.body;
 
     //
     // Lifecycle
     //
     async created() {
-        this.globalStore = this.$store.state;
-        this.userStore = this.$store.state.user;
-        // this.$store.dispatch('user/getAccountRequest');
+        if (this.userStore.isLoggedIn) {
+            this.$store.dispatch('user/startRefreshTokenTimer');
+
+            if (!this.userStore.currentCompact) {
+                this.setCurrentCompact();
+            }
+        }
 
         this.setRelativeTimeFormats();
     }
@@ -48,6 +51,14 @@ class App extends Vue {
     //
     // Computed
     //
+    get globalStore() {
+        return this.$store.state;
+    }
+
+    get userStore() {
+        return this.$store.state.user;
+    }
+
     get messages() {
         return this.globalStore.messages;
     }
@@ -67,6 +78,14 @@ class App extends Vue {
     //
     // Methods
     //
+    async setCurrentCompact() {
+        const compact = CompactSerializer.fromServer({ type: CompactType.ASLP }); // Temp until server endpoints define the user's compact
+
+        await this.$store.dispatch('user/setCurrentCompact', compact);
+
+        return compact;
+    }
+
     setRelativeTimeFormats() {
         // https://momentjs.com/docs/#/customization/relative-time/
         moment.updateLocale('en', {
@@ -83,6 +102,12 @@ class App extends Vue {
     //
     @Watch('isModalOpen') onIsModalOpenChange() {
         this.body.style.overflow = (this.globalStore.isModalOpen) ? 'hidden' : 'visible';
+    }
+
+    @Watch('userStore.isLoggedIn') onLogout() {
+        if (!this.userStore.isLoggedIn) {
+            this.$router.push({ name: 'Logout' });
+        }
     }
 }
 

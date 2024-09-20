@@ -41,6 +41,22 @@ describe('License Store Mutations', () => {
         expect(state.isLoading).to.equal(false);
         expect(state.error).to.equal(null);
     });
+    it('should successfully update previous last key', () => {
+        const state = {};
+        const prevLastKey = 'abc';
+
+        mutations[MutationTypes.STORE_UPDATE_PREVLASTKEY](state, prevLastKey);
+
+        expect(state.prevLastKey).to.equal(prevLastKey);
+    });
+    it('should successfully update last key', () => {
+        const state = {};
+        const lastKey = 'abc';
+
+        mutations[MutationTypes.STORE_UPDATE_LASTKEY](state, lastKey);
+
+        expect(state.lastKey).to.equal(lastKey);
+    });
     it('should successfully update count', () => {
         const state = {};
         const count = 1;
@@ -140,9 +156,8 @@ describe('License Store Mutations', () => {
     });
 });
 describe('License Store Actions', async () => {
-    it('should successfully start licensees request', async () => {
+    it('should successfully start licensees request with next page', async () => {
         const commit = sinon.spy();
-        // const getters = sinon.spy();
         const dispatch = sinon.spy();
         const params = { getNextPage: true };
 
@@ -150,7 +165,18 @@ describe('License Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_LICENSEES_REQUEST]);
-        expect(dispatch.calledThrice).to.equal(true);
+        expect(dispatch.callCount).to.equal(4);
+    });
+    it('should successfully start licensees request with previous page', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const params = { getPrevPage: true };
+
+        await actions.getLicenseesRequest({ commit, getters, dispatch }, { params });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_LICENSEES_REQUEST]);
+        expect(dispatch.callCount).to.equal(4);
     });
     it('should successfully start licensees failure', () => {
         const commit = sinon.spy();
@@ -172,10 +198,10 @@ describe('License Store Actions', async () => {
     it('should successfully start licensee request', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
+        const compact = 'aslp';
         const licenseeId = '1';
-        const params = {};
 
-        await actions.getLicenseeRequest({ commit, dispatch }, { licenseeId, params });
+        await actions.getLicenseeRequest({ commit, dispatch }, { compact, licenseeId });
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_LICENSEE_REQUEST]);
@@ -197,6 +223,15 @@ describe('License Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_LICENSEE_SUCCESS]);
+    });
+    it('should successfully set paging previous last key', () => {
+        const commit = sinon.spy();
+        const prevLastKey = 'abc';
+
+        actions.setStoreLicenseePrevLastKey({ commit }, prevLastKey);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_UPDATE_PREVLASTKEY, prevLastKey]);
     });
     it('should successfully set paging last key', () => {
         const commit = sinon.spy();
@@ -244,6 +279,12 @@ describe('License Store Actions', async () => {
     });
 });
 describe('License Store Getters', async () => {
+    it('should successfully get paging previous last key', async () => {
+        const state = { lastKey: 'abc' };
+        const prevLastKey = getters.prevLastKey(state);
+
+        expect(prevLastKey).to.equal(state.prevLastKey);
+    });
     it('should successfully get paging last key', async () => {
         const state = { lastKey: 'abc' };
         const lastKey = getters.lastKey(state);

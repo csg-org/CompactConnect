@@ -28,7 +28,7 @@ def ingest_license_message(message: dict):
     })
 
     try:
-        provider_id = config.data_client.get_provider_id(ssn=license_post['ssn'])
+        provider_id = config.data_client.get_provider_id(ssn=license_post['ssn'])  # pylint: disable=missing-kwoa
         logger.info('Updating existing provider', provider_id=provider_id)
     except CCNotFoundException:
         provider_id = uuid4()

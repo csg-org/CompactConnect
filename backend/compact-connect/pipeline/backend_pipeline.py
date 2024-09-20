@@ -1,13 +1,14 @@
 import os
 
 from aws_cdk import Stack, RemovalPolicy
+from aws_cdk.aws_codebuild import BuildSpec
 from aws_cdk.aws_codestarnotifications import NotificationRule
 from aws_cdk.aws_iam import ServicePrincipal
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_s3 import IBucket, BucketEncryption
 from aws_cdk.aws_sns import ITopic
 from aws_cdk.aws_ssm import IParameter
-from aws_cdk.pipelines import CodePipeline as CdkCodePipeline, ShellStep, CodePipelineSource
+from aws_cdk.pipelines import CodePipeline as CdkCodePipeline, ShellStep, CodePipelineSource, CodeBuildOptions
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
@@ -50,7 +51,6 @@ class BackendPipeline(CdkCodePipeline):
         super().__init__(
             scope, construct_id,
             artifact_bucket=artifact_bucket,
-            self_mutation=True,
             synth=ShellStep(
                 'Synth',
                 input=CodePipelineSource.connection(
@@ -72,6 +72,17 @@ class BackendPipeline(CdkCodePipeline):
                     'python -m pip install -r requirements.txt',
                     'cdk synth'
                 ]
+            ),
+            synth_code_build_defaults=CodeBuildOptions(
+                partial_build_spec=BuildSpec.from_object({
+                    'phases': {
+                        'install': {
+                            'runtime-versions': {
+                                'python': '3.12'
+                            }
+                        }
+                    }
+                })
             ),
             cross_account_keys=True,
             enable_key_rotation=True,

@@ -123,7 +123,12 @@ class scope_by_path:  # pylint: disable=invalid-name
                 # If we raise this exact exception, API Gateway returns a 401 instead of 403 for a DENY statement
                 # Any other exception/message will result in a 500
                 logger.error('Access attempt with missing path parameters!')
-                return {'statusCode': 401}
+                return {
+                    'statusCode': 401,
+                    'headers': {
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                }
 
             logger.debug(
                 'Checking authorizer context',
@@ -133,12 +138,22 @@ class scope_by_path:  # pylint: disable=invalid-name
                 scopes = event['requestContext']['authorizer']['claims']['scope'].split(' ')
             except KeyError:
                 logger.error('Unauthorized access attempt!')
-                return {'statusCode': 401}
+                return {
+                    'statusCode': 401,
+                    'headers': {
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                }
 
             required_scope = f'{resource_value}/{scope_value}.{self.action}'
             if required_scope not in scopes:
                 logger.warning('Forbidden access attempt!')
-                return {'statusCode': 403}
+                return {
+                    'statusCode': 403,
+                    'headers': {
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                }
             return fn(event, context)
         return authorized
 

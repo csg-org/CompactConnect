@@ -6,7 +6,7 @@
 -->
 
 <template>
-    <div class="main-nav-container" v-click-outside="collapseMainNav">
+    <div v-if="mainLinks.length" class="main-nav-container" v-click-outside="collapseMainNav">
         <div v-if="isMobile" class="nav-toggle" @click="toggleMainNav" @keyup.enter="toggleMainNav">
             <div></div>
             <div></div>
@@ -17,14 +17,14 @@
                 <li v-for="link in mainLinks" :key="link.label" class="page-nav main-links">
                     <!-- Internal links that should only have active style if the route path matches exactly -->
                     <router-link v-if="!link.isExternal && link.isExactActive"
-                        :to="{ name: link.to }"
+                        :to="{ name: link.to, params: link.params || {}}"
                         exact
                     >
                         {{ link.label }}
                     </router-link>
                     <!-- All other internal links -->
                     <router-link v-else-if="!link.isExternal"
-                        :to="{ name: link.to }"
+                        :to="{ name: link.to, params: link.params || {}}"
                     >
                         {{ link.label }}
                     </router-link>

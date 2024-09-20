@@ -63,7 +63,7 @@ export class DataApi {
     // Get Licensees
     public getLicensees(params: any = {}) {
         return this.wait(500).then(() => ({
-            // count: licensees?.count,
+            prevLastKey: licensees.prevLastKey,
             lastKey: licensees.lastKey,
             licensees: licensees.items.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
             params,
@@ -71,15 +71,15 @@ export class DataApi {
     }
 
     // Get Licensee by ID
-    public getLicensee(licenseeId, params: any = {}) {
+    public getLicensee(compact, licenseeId) {
         const serverResponse = licensees.items.find((item) => item.providerId === licenseeId);
         let response;
 
         if (serverResponse) {
             response = this.wait(500).then(() => ({
                 licensee: LicenseeSerializer.fromServer(licensees.items[0]),
+                compact,
                 licenseeId,
-                params,
             }));
         } else {
             response = this.wait(500).then(() => {

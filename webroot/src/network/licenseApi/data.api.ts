@@ -22,6 +22,7 @@ export interface RequestParamsInterfaceLocal {
     pageSize?: number;
     pageNumber?: number;
     lastKey?: string;
+    prevLastKey?: string;
     sortBy?: string;
     sortDirection?: string;
 }
@@ -146,11 +147,13 @@ export class LicenseDataApi implements DataApiInterface {
      */
     public async getLicensees(params: RequestParamsInterfaceLocal = {}) {
         const requestParams: RequestParamsInterfaceRemote = this.prepRequestPostParams(params);
-        const serverReponse: any = await this.api.post(`/mock/providers/query`, requestParams);
-        const { lastKey, items } = serverReponse;
+        const serverReponse: any = await this.api.post(`/v1/compacts/${params.compact}/providers/query`, requestParams);
+        const { pagination = {}, providers } = serverReponse;
+        const { prevLastKey, lastKey } = pagination;
         const response = {
+            prevLastKey,
             lastKey,
-            licensees: items.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
+            licensees: providers.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
         };
 
         return response;
@@ -161,8 +164,8 @@ export class LicenseDataApi implements DataApiInterface {
      * @param  {string}          licenseeId A licensee ID.
      * @return {Promise<object>}            A licensee server response.
      */
-    public async getLicensee(licenseeId: string) {
-        const serverResponse: any = await this.api.get(`/mock/providers/${licenseeId}`);
+    public async getLicensee(compact: string, licenseeId: string) {
+        const serverResponse: any = await this.api.get(`/v1/compacts/${compact}/providers/${licenseeId}`);
         let licensee: Licensee | null = null;
 
         if (serverResponse?.items?.length) {

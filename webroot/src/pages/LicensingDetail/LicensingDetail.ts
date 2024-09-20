@@ -32,14 +32,18 @@ export default class LicensingDetail extends Vue {
     //
     // Computed
     //
-    get licenseStore(): any {
-        return this.$store.state.license;
+    get compact(): string {
+        const defaultCompact = this.$store.state.user.currentCompact;
+
+        return this.$route.params.compact as string || defaultCompact;
     }
 
     get licenseeId(): string {
-        const routeId: string = this.$route.params.licenseeId as string || '';
+        return this.$route.params.licenseeId as string || '';
+    }
 
-        return routeId;
+    get licenseStore(): any {
+        return this.$store.state.license;
     }
 
     get licensee(): Licensee | null {
@@ -57,6 +61,14 @@ export default class LicensingDetail extends Vue {
         return this.licensee?.nameDisplay() || '';
     }
 
+    get licenseeHomeStateDisplay(): string {
+        return this.licensee?.licenseStatesDisplay() || '';
+    }
+
+    get licenseePrivilegeStatesDisplay(): string {
+        return this.licensee?.privilegeStatesAllDisplay() || '';
+    }
+
     get licenseeLicenses(): Array<License> {
         return this.licensee?.licenses || [];
     }
@@ -67,6 +79,6 @@ export default class LicensingDetail extends Vue {
     async fetchLicenseeData(): Promise<void> {
         const { licenseeId } = this;
 
-        await this.$store.dispatch('license/getLicenseeRequest', { licenseeId });
+        await this.$store.dispatch('license/getLicenseeRequest', { compact: this.compact, licenseeId });
     }
 }

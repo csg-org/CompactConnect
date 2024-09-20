@@ -5,12 +5,6 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
-//
-// Constants
-//
-export const AUTH_TOKEN = 'auth_token';
-export const AUTH_LOGIN_GOTO_PATH = 'goto';
-
 /**
  * Check if localStorage is available in the browser.
  * @return  TRUE if localStorage implementation is available.

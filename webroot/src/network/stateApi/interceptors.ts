@@ -4,6 +4,7 @@
 //
 //  Created by InspiringApps on 6/18/24.
 //
+import { authStorage, tokens } from '@/app.config';
 
 // ============================================================================
 // =                           REQUEST INTERCEPTORS                           =
@@ -13,10 +14,12 @@
  * @return {AxiosInterceptor} Function that amends the outgoing client API request.
  */
 export const requestSuccess = () => async (requestConfig) => {
+    const authToken = authStorage.getItem(tokens.staff.AUTH_TOKEN);
+    const authTokenType = authStorage.getItem(tokens.staff.AUTH_TOKEN_TYPE);
     const { headers } = requestConfig;
 
     // Add auth token
-    headers.Authorization = `Bearer authToken`;
+    headers.Authorization = `${authTokenType} ${authToken}`;
 
     return requestConfig;
 };

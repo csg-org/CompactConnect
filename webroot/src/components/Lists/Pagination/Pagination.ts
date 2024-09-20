@@ -13,7 +13,7 @@ import {
 } from 'vue-facing-decorator';
 import { reactive, computed, nextTick } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
-import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE } from '@store/pagination/pagination.state';
+import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, PageChangeConfig } from '@store/pagination/pagination.state';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import LeftCaretIcon from '@components/Icons/LeftCaretIcon/LeftCaretIcon.vue';
 import RightCaretIcon from '@components/Icons/RightCaretIcon/RightCaretIcon.vue';
@@ -23,7 +23,7 @@ import { FormInput } from '@/models/FormInput/FormInput.model';
 
 const createPaginationItem = (pageNum, currentPage) => ({
     id: pageNum,
-    clickable: pageNum > 0,
+    clickable: pageNum > 0 && pageNum !== currentPage,
     displayValue: (pageNum > 0) ? pageNum : '...',
     selected: pageNum > 0 && pageNum === currentPage
 });
@@ -34,14 +34,16 @@ const createPaginationItem = (pageNum, currentPage) => ({
         InputSelect,
         LeftCaretIcon,
         RightCaretIcon
-    }
+    },
 })
 export default class Pagination extends mixins(MixinForm) {
-    @Prop({ required: true }) private pageChange!: (firstIndex: number, lastIndexExclusive: number) => any;
-    @Prop({ required: true }) private listSize!: number;
-    @Prop({ required: true }) private paginationId!: string;
-    @Prop() private pageSizeConfig?: Array<{ value: number; name: string; isDefault?: boolean }>;
-    @Prop() private ariaLabel?: string;
+    @Prop({ required: true }) private paginationId!: string; // The pagination store id of the list instance
+    @Prop({ required: true }) private listSize!: number; // The total number of list items (not all server APIs provide this)
+    @Prop({ required: true }) pagingPrevKey!: string | null; // The server API paging key for the previous page results
+    @Prop({ required: true }) pagingNextKey!: string | null; // The server API paging key for the next page results
+    @Prop() private pageSizeConfig?: Array<{ value: number; name: string; isDefault?: boolean }>; // Optional custom config of the page size selector (options for how many items are shown per page)
+    @Prop() private ariaLabel?: string; // Optional aria label for the pagination container element
+    @Prop({ required: true }) private pageChange!: (config: PageChangeConfig) => any; // A callback method that will be called on page-change
 
     //
     // Data
@@ -93,7 +95,7 @@ export default class Pagination extends mixins(MixinForm) {
         const firstIndex = (currentPage - 1) * pageSize;
         const lastIndex = currentPage * pageSize;
 
-        pageChange(firstIndex, lastIndex);
+        pageChange({ firstIndex, lastIndexExclusive: lastIndex, prevNext: 0 });
     }
 
     //
@@ -116,76 +118,25 @@ export default class Pagination extends mixins(MixinForm) {
         return (pagination) ? pagination.page : DEFAULT_PAGE;
     }
 
-    get pageSize() {
+    get pageSize(): number {
         const pagination = this.paginationStore.paginationMap[this.paginationId];
 
         return (pagination) ? pagination.size : this.defaultPageSize;
     }
 
-    get pageCount() {
+    get pageCount(): number {
         return Math.ceil(this.listSize / this.pageSize);
     }
 
-    get isFirstPage() {
+    get isFirstPage(): boolean {
         return this.currentPage === 1;
     }
 
-    get isLastPage() {
+    get isLastPage(): boolean {
         return this.currentPage === this.pageCount;
     }
 
-    // Temp for limited server paging support
-    // get pages() {
-    //     const { currentPage, pageCount, ellipsis } = this;
-    //
-    //     const visiblePagesCount = Math.min(MAX_PAGES_VISIBLE, pageCount) || 1;
-    //     const visiblePagesThreshold = (visiblePagesCount - 1) / 2;
-    //     const tempArray = Array(visiblePagesCount - 1);
-    //     const paginationDisplaysArray = [...tempArray.keys()].map((i) => i + 1);
-    //     const firstPage = () => createPaginationItem(1, currentPage);
-    //     const lastPage = () => createPaginationItem(pageCount, currentPage);
-    //     let pageItems;
-    //
-    //     if (pageCount <= MAX_PAGES_VISIBLE) {
-    //         pageItems = paginationDisplaysArray.map((index) => {
-    //             const item = createPaginationItem(index, currentPage);
-    //
-    //             return item;
-    //         });
-    //         pageItems.push(lastPage());
-    //     } else if (currentPage <= visiblePagesThreshold) {
-    //         pageItems = paginationDisplaysArray.map((index) => {
-    //             const item = createPaginationItem(index, currentPage);
-    //
-    //             return item;
-    //         });
-    //         pageItems[pageItems.length - 1] = ellipsis(0);
-    //         pageItems.push(lastPage());
-    //     } else if (currentPage > pageCount - visiblePagesThreshold) {
-    //         pageItems = paginationDisplaysArray.map((paginationDisplay, index) => {
-    //             const item = createPaginationItem(pageCount - index, currentPage);
-    //
-    //             return item;
-    //         });
-    //         pageItems.reverse();
-    //         pageItems[0] = ellipsis(0);
-    //         pageItems.unshift(firstPage());
-    //     } else {
-    //         pageItems = [];
-    //         pageItems.push(firstPage());
-    //         pageItems.push(ellipsis(0));
-    //         pageItems.push(createPaginationItem(currentPage - 1, currentPage));
-    //         pageItems.push(createPaginationItem(currentPage, currentPage));
-    //         pageItems.push(createPaginationItem(currentPage + 1, currentPage));
-    //         pageItems.push(ellipsis(-1));
-    //         pageItems.push(lastPage());
-    //     }
-    //
-    //     return pageItems;
-    // }
-
-    // Temp for limited server paging support
-    get pages() {
+    get pages(): Array<object> {
         const { currentPage, ellipsis } = this;
         const pageItems: Array<any> = [];
 
@@ -206,16 +157,16 @@ export default class Pagination extends mixins(MixinForm) {
     //
     // Watchers
     //
-    @Watch('$props', { deep: true }) calculateNewIndices() {
-        nextTick(() => {
-            const {
-                pageSize, pageChange, $store, paginationId
-            } = this;
-            const newFirstIndex = 1 - 1;
+    @Watch('$props.paginationId') handleUpdatePagingId() {
+        this.resetPaging();
+    }
 
-            $store.dispatch('pagination/updatePaginationPage', { paginationId, newPage: 1 });
-            pageChange(newFirstIndex, newFirstIndex + pageSize);
-        });
+    @Watch('$props.listSize') handleUpdateListSize() {
+        this.resetPaging();
+    }
+
+    @Watch('$props.pageSizeConfig', { deep: true }) handleUpdatePageSizeConfig() {
+        this.resetPaging();
     }
 
     //
@@ -236,13 +187,17 @@ export default class Pagination extends mixins(MixinForm) {
         });
     }
 
-    setPage(newPage) {
+    setPage(newPage: number, increment = 0) {
         const { pageSize } = this;
         const zeroBasedIndex = (newPage - 1) * pageSize;
 
         if (this.currentPage !== newPage) {
             this.$store.dispatch('pagination/updatePaginationPage', { paginationId: this.paginationId, newPage });
-            this.pageChange(zeroBasedIndex, zeroBasedIndex + pageSize);
+            this.pageChange({
+                firstIndex: zeroBasedIndex,
+                lastIndexExclusive: zeroBasedIndex + pageSize,
+                prevNext: increment,
+            });
         }
     }
 
@@ -265,6 +220,24 @@ export default class Pagination extends mixins(MixinForm) {
         }
 
         $store.dispatch('pagination/updatePaginationSize', { paginationId, newSize });
-        pageChange(newFirstIndex, newFirstIndex + newSize);
+        pageChange({
+            firstIndex: newFirstIndex,
+            lastIndexExclusive: newFirstIndex + newSize,
+            prevNext: 0,
+        });
+    }
+
+    resetPaging(): void {
+        // If any variables that affect paging have changed (page size, etc.) then we need to reset to the first page with the new variables.
+        nextTick(() => {
+            const { pageSize, pageChange, paginationId } = this;
+
+            this.$store.dispatch('pagination/updatePaginationPage', { paginationId, newPage: 1 });
+            pageChange({
+                firstIndex: 0,
+                lastIndexExclusive: pageSize,
+                prevNext: 0,
+            });
+        });
     }
 }

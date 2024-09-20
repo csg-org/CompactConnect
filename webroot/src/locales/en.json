@@ -372,6 +372,9 @@
     },
     "serverErrors": {
         "networkError": "Network error",
+        "loginError": "There was an error logging you in.",
+        "loginErrorActionPart1": "You can",
+        "loginErrorActionPart2": "try logging in again",
         "noRecords": "No records to display",
         "dobFormat": "Date of Birth must be in the format MM/DD/YYYY.",
         "dobMaxDate": "Date of Birth must be earlier than than or equal to today.",
@@ -412,16 +415,57 @@
     },
     "licensing": {
         "licensingListTitle": "Licensing Data",
-        "residenceLocation": "Resident location",
-        "stateOfLicense": "State of licensure",
-        "practicingLocations": "Practicing location(s)",
+        "homeState": "Home State",
+        "residenceLocation": "Residence location",
+        "privileges": "Privileges",
+        "ssn": "SSN",
+        "adverseActions": "Adverse actions",
+        "status": "Status",
         "issueDate": "Issue Date",
         "expireDate": "Expire Date",
         "lastUpdate": "Latest upload",
-        "status": {
+        "statusOptions": {
             "active": "Active",
             "inactive": "Inactive"
-        }
+        },
+        "occupations": [
+            {
+                "name": "Audiologist",
+                "key": "audiologist"
+            },
+            {
+                "name": "Speech-Language Pathologist",
+                "key": "speech-language pathologist"
+            },
+            {
+                "name": "Speech and Language Pathologist",
+                "key": "speech and language pathologist"
+            },
+            {
+                "name": "Occupational Therapist",
+                "key": "occupational therapist"
+            },
+            {
+                "name": "Occupational Therapy Assistant",
+                "key": "occupational therapy assistant"
+            },
+            {
+                "name": "Licensed Professional Counselor",
+                "key": "licensed professional counselor"
+            },
+            {
+                "name": "Licensed Mental Health Counselor",
+                "key": "licensed mental health counselor"
+            },
+            {
+                "name": "Licensed Clinical Mental Health Counselor",
+                "key": "licensed clinical mental health counselor"
+            },
+            {
+                "name": "Licensed Professional Clinical Counselor",
+                "key": "licensed professional clinical counselor"
+            }
+        ]
     },
     "styleGuide": {
         "headerPlaceholder": "Header Content",

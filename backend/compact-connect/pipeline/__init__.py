@@ -79,6 +79,7 @@ class PipelineStack(Stack):
             access_logs_bucket=access_logs_bucket,
             ssm_parameter=parameter,
             environment_context=pipeline_environment_context,
+            self_mutation=True,
             removal_policy=removal_policy
         )
         self.test_stage = BackendStage(
@@ -118,6 +119,9 @@ class PipelineStack(Stack):
             access_logs_bucket=access_logs_bucket,
             ssm_parameter=parameter,
             environment_context=pipeline_environment_context,
+            # We only want to deploy pipelines from a single branch, so we'll deploy pipeline configuration from the
+            # preprod pipeline
+            self_mutation=False,
             removal_policy=removal_policy
         )
         self.prod_stage = BackendStage(
