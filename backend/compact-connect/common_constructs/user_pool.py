@@ -89,7 +89,7 @@ class UserPool(CdkUserPool):
         """
         Creates an app client for the UI to authenticate with the user pool.
 
-        :param callback_urls: The URLs that Cognito will redirect to after authentication.
+        :param callback_urls: The URLs that Cognito allows the UI to redirect to after authentication.
         :param read_attributes: The attributes that the UI can read.
         :param write_attributes: The attributes that the UI can write.
         :param ui_scopes: OAuth scopes that are allowed with this client

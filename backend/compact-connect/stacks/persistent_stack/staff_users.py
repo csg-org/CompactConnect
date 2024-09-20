@@ -142,7 +142,7 @@ class StaffUsers(UserPool):
             suppressions=[{
                 'id': 'AwsSolutions-IAM5',
                 'reason': 'This lambda role policy contains wildcards in its statements, but all of its actions are '
-                          'limited specifically to the actions and the Table it needs read access to.'
+                'limited specifically to the actions and the Table it needs read access to.'
             }]
         )
         self.add_trigger(

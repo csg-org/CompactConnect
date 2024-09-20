@@ -64,14 +64,14 @@ def _configure_user_pool_standard_attributes() -> StandardAttributes:
 
         Note that these values can never change! If you need to make other attributes
         required in the future, you must create an entirely new user pool and migrate
-        existing users to the new pool. see https://repost.aws/knowledge-center/cognito-change-user-pool-attributes
+        existing users to the new pool. See https://repost.aws/knowledge-center/cognito-change-user-pool-attributes
 
         These attributes are used to display on a provider's profile page. We do not
         intend to use them for authentication purposes or for back-end processing.
     """
     return StandardAttributes(
         # We are requiring the following attributes for all users
-        # that are registered in the provider user pool
+        # that are registered in the provider user pool.
         email=StandardAttribute(
             mutable=True,
             required=True
@@ -84,7 +84,7 @@ def _configure_user_pool_standard_attributes() -> StandardAttributes:
             mutable=True,
             required=True
         ),
-        # the following attributes are not required, but we are including them because
+        # The following attributes are not required, but we are including them because
         # Cognito does not allow you to add them after the user pool is created, and we
         # may want to use them in the future.
         address=StandardAttribute(
