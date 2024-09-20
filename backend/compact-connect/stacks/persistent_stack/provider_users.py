@@ -29,12 +29,7 @@ class ProviderUsers(UserPool):
             encryption_key=encryption_key,
             removal_policy=removal_policy,
             email=user_pool_email,
-            standard_attributes=StandardAttributes(
-                email=StandardAttribute(
-                    mutable=False,
-                    required=True
-                )
-            ),
+            standard_attributes=_configure_user_pool_standard_attributes(),
             **kwargs
         )
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
@@ -54,3 +49,88 @@ class ProviderUsers(UserPool):
 
         # Create an app client to allow the front-end to authenticate.
         self.ui_client = self.add_ui_client(callback_urls=callback_urls)
+
+
+def _configure_user_pool_standard_attributes() -> StandardAttributes:
+    """
+        The provider user pool standard attributes.
+
+        These attributes are used to display on a provider's profile page. We do not
+        intend to use them for authentication purposes or for back-end processing.
+    """
+    return StandardAttributes(
+        # We are requiring the following attributes for all users
+        # that are registered in the provider user pool
+        email=StandardAttribute(
+            mutable=True,
+            required=True
+        ),
+        given_name=StandardAttribute(
+            mutable=True,
+            required=True
+        ),
+        family_name=StandardAttribute(
+            mutable=True,
+            required=True
+        ),
+        # the following attributes are not required, but we are including them because
+        # Cognito does not allow you to add them after the user pool is created, and we
+        # may want to use them in the future.
+        # see https://repost.aws/knowledge-center/cognito-change-user-pool-attributes
+        address=StandardAttribute(
+            mutable=True,
+            required=False
+        ),
+        birthdate=StandardAttribute(
+            mutable=True,
+            required=False
+        ),
+        fullname=StandardAttribute(
+            mutable=True,
+            required=False
+        ),
+        gender=StandardAttribute(
+            mutable=True,
+            required=False
+        ),
+        last_update_time=StandardAttribute(
+            mutable=True,
+            required=False
+        ),
+        locale=StandardAttribute(
+            mutable=True,
+            required=False
+        ),
+        middle_name=StandardAttribute(
+            mutable=True,
+            required=False
+        ),
+        nickname=StandardAttribute(
+            mutable=True,
+            required=False
+        ),
+        phone_number=StandardAttribute(
+            mutable=True,
+            required=False
+        ),
+        preferred_username=StandardAttribute(
+            mutable=True,
+            required=False
+        ),
+        profile_page=StandardAttribute(
+            mutable=True,
+            required=False
+        ),
+        profile_picture=StandardAttribute(
+            mutable=True,
+            required=False
+        ),
+        timezone=StandardAttribute(
+            mutable=True,
+            required=False
+        ),
+        website=StandardAttribute(
+            mutable=True,
+            required=False
+        )
+    )
