@@ -63,6 +63,10 @@ class ListContainer extends mixins(MixinListManipulation) {
     get emptyMessage(): string {
         return this.emptyListMessage || this.$t('serverErrors.noRecords');
     }
+
+    get emptyMessage(): string {
+        return this.emptyListMessage || this.$t('serverErrors.noRecords');
+    }
 }
 
 export default toNative(ListContainer);
