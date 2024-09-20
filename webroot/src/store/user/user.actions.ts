@@ -80,7 +80,42 @@ export default {
     resetStoreUser: ({ commit }) => {
         commit(MutationTypes.STORE_RESET_USER);
     },
-    storeAuthTokensStaff: ({ dispatch }, tokenResponse) => {
+    // storeAuthTokensStaff: ({ dispatch }, tokenResponse) => {
+    //     const {
+    //         access_token: accessToken,
+    //         token_type: tokenType,
+    //         expires_in: expiresIn,
+    //         id_token: idToken,
+    //         refresh_token: refreshToken,
+    //     } = tokenResponse || {};
+
+    //     authStorage.setItem(tokens.staff.AUTH_TYPE, 'staff');
+
+    //     if (accessToken) {
+    //         authStorage.setItem(tokens.staff.AUTH_TOKEN, accessToken);
+    //     }
+
+    //     if (tokenType) {
+    //         authStorage.setItem(tokens.staff.AUTH_TOKEN_TYPE, tokenType);
+    //     }
+
+    //     if (refreshToken) {
+    //         authStorage.setItem(tokens.staff.REFRESH_TOKEN, refreshToken);
+    //     }
+
+    //     if (expiresIn) {
+    //         const expiry = moment().add(expiresIn, 'seconds').format('YYYY-MM-DD:HH:mm:ss');
+
+    //         authStorage.setItem(tokens.staff.AUTH_TOKEN_EXPIRY, expiry);
+    //     }
+
+    //     if (idToken) {
+    //         authStorage.setItem(tokens.staff.ID_TOKEN, idToken);
+    //     }
+
+    //     dispatch('startRefreshTokenTimer');
+    // },
+    storeAuthTokens: ({ dispatch }, { tokenResponse, authType }) => {
         const {
             access_token: accessToken,
             token_type: tokenType,
@@ -89,28 +124,28 @@ export default {
             refresh_token: refreshToken,
         } = tokenResponse || {};
 
-        authStorage.setItem(tokens.staff.AUTH_TYPE, 'staff');
+        authStorage.setItem(tokens[authType].AUTH_TYPE, authType);
 
         if (accessToken) {
-            authStorage.setItem(tokens.staff.AUTH_TOKEN, accessToken);
+            authStorage.setItem(tokens[authType].AUTH_TOKEN, accessToken);
         }
 
         if (tokenType) {
-            authStorage.setItem(tokens.staff.AUTH_TOKEN_TYPE, tokenType);
+            authStorage.setItem(tokens[authType].AUTH_TOKEN_TYPE, tokenType);
         }
 
         if (refreshToken) {
-            authStorage.setItem(tokens.staff.REFRESH_TOKEN, refreshToken);
+            authStorage.setItem(tokens[authType].REFRESH_TOKEN, refreshToken);
         }
 
         if (expiresIn) {
             const expiry = moment().add(expiresIn, 'seconds').format('YYYY-MM-DD:HH:mm:ss');
 
-            authStorage.setItem(tokens.staff.AUTH_TOKEN_EXPIRY, expiry);
+            authStorage.setItem(tokens[authType].AUTH_TOKEN_EXPIRY, expiry);
         }
 
         if (idToken) {
-            authStorage.setItem(tokens.staff.ID_TOKEN, idToken);
+            authStorage.setItem(tokens[authType].ID_TOKEN, idToken);
         }
 
         dispatch('startRefreshTokenTimer');

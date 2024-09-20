@@ -44,6 +44,8 @@ router.beforeEach(async (to, from, next) => {
         const { isLoggedIn } = store.getters['user/state'];
 
         if (!isLoggedIn) {
+            console.log('inHere');
+
             next({ name: 'Logout' });
         } else {
             next();

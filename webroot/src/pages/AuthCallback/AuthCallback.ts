@@ -39,15 +39,25 @@ export default class AuthCallback extends Vue {
         return this.$route.query?.code?.toString() || '';
     }
 
+    get userType(): string {
+        return this.$route.query?.state?.toString() || '';
+    }
+
     //
     // Methods
     //
     async getTokens(): Promise<void> {
         this.$store.dispatch('startLoading');
 
-        await this.getTokensStaff().catch(() => {
-            this.isError = true;
-        });
+        if (this.userType === 'staff') {
+            await this.getTokensStaff().catch(() => {
+                this.isError = true;
+            });
+        } else if (this.userType === 'licensee') {
+            await this.getTokensLicensee().catch(() => {
+                this.isError = true;
+            });
+        }
 
         this.$store.dispatch('endLoading');
 
@@ -67,7 +77,22 @@ export default class AuthCallback extends Vue {
 
         const { data } = await axios.post(`${cognitoAuthDomainStaff}/oauth2/token`, params);
 
-        await this.$store.dispatch('user/storeAuthTokensStaff', data);
+        await this.$store.dispatch('user/storeAuthTokens', { tokenResponse: data, authType: 'staff' });
+        await this.$store.dispatch('user/loginSuccess');
+    }
+
+    async getTokensLicensee(): Promise<void> {
+        const { domain, cognitoAuthDomainLicensee, cognitoClientIdLicensee } = this.$envConfig;
+        const params = new URLSearchParams();
+
+        params.append('grant_type', 'authorization_code');
+        params.append('client_id', cognitoClientIdLicensee || '');
+        params.append('redirect_uri', `${domain}${this.$route.path}`);
+        params.append('code', this.authorizationCode);
+
+        const { data } = await axios.post(`${cognitoAuthDomainLicensee}/oauth2/token`, params);
+
+        await this.$store.dispatch('user/storeAuthTokens', { tokenResponse: data, authType: 'licensee' });
         await this.$store.dispatch('user/loginSuccess');
     }
 
