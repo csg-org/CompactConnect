@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from aws_cdk.aws_cognito import UserPoolEmail, StandardAttributes, StandardAttribute, ClientAttributes
+from aws_cdk.aws_cognito import UserPoolEmail, StandardAttributes, StandardAttribute, ClientAttributes, StringAttribute
 from aws_cdk.aws_kms import IKey
 from constructs import Construct
 
@@ -31,6 +31,10 @@ class ProviderUsers(UserPool):
             removal_policy=removal_policy,
             email=user_pool_email,
             standard_attributes=_configure_user_pool_standard_attributes(),
+            custom_attributes={
+                # once the providerId is set, it cannot be changed
+                "providerId": StringAttribute(mutable=False)
+            },
             **kwargs
         )
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
@@ -52,8 +56,10 @@ class ProviderUsers(UserPool):
         self.ui_client = self.add_ui_client(
             callback_urls=callback_urls,
             # For now, we are allowing the user to read and update their email, given name, and family name.
+            # we only allow the user to be able to see their providerId, which is a custom attribute.
             # If we ever want other attributes to be read or written, they must be added here.
-            read_attributes=ClientAttributes().with_standard_attributes(email=True, given_name=True, family_name=True),
+            read_attributes=ClientAttributes().with_standard_attributes(email=True, given_name=True, family_name=True)
+                                              .with_custom_attributes("providerId"),
             write_attributes=ClientAttributes().with_standard_attributes(email=True, given_name=True, family_name=True)
         )
 

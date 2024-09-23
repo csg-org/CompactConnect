@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Optional, Mapping
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy
 from aws_cdk.aws_cognito import UserPool as CdkUserPool, UserPoolEmail, AccountRecovery, AutoVerifiedAttrs, \
     AdvancedSecurityMode, DeviceTracking, Mfa, MfaSecondFactor, PasswordPolicy, StandardAttributes, \
     CognitoDomainOptions, AuthFlow, OAuthSettings, OAuthFlows, ClientAttributes, \
-    CfnUserPoolRiskConfigurationAttachment, OAuthScope
+    CfnUserPoolRiskConfigurationAttachment, OAuthScope, ICustomAttribute
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from constructs import Construct
@@ -19,6 +19,7 @@ class UserPool(CdkUserPool):
             email: UserPoolEmail,
             standard_attributes: StandardAttributes,
             removal_policy,
+            custom_attributes: Optional[Mapping[str, ICustomAttribute]] = None,
             **kwargs
     ):
         super().__init__(
@@ -44,6 +45,7 @@ class UserPool(CdkUserPool):
             sign_in_aliases=None,
             sign_in_case_sensitive=False,
             standard_attributes=standard_attributes,
+            custom_attributes=custom_attributes,
             **kwargs
         )
 
