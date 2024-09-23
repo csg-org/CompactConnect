@@ -43,8 +43,8 @@
             :aria-label="formInput.label"
             :accept="formInput.fileConfig.accepts"
             :multiple="formInput.fileConfig.allowMultiple"
-            @blur="blur(formInput)"
             @change="input(formInput)"
+            @cancel="cancel(formInput)"
             class="input-file"
             :class="{ 'has-error': !!formInput.errorMessage }"
         />
