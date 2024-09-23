@@ -9,7 +9,7 @@ import { nextTick } from 'vue';
 import { Component, Vue } from 'vue-facing-decorator';
 import Section from '@components/Section/Section.vue';
 import Card from '@components/Card/Card.vue';
-import { authStorage, AUTH_LOGIN_GOTO_PATH } from '@/app.config';
+import { authStorage, AuthTypes, AUTH_LOGIN_GOTO_PATH } from '@/app.config';
 import axios from 'axios';
 
 @Component({
@@ -49,11 +49,11 @@ export default class AuthCallback extends Vue {
     async getTokens(): Promise<void> {
         this.$store.dispatch('startLoading');
 
-        if (this.userType === 'staff') {
+        if (this.userType === AuthTypes.STAFF) {
             await this.getTokensStaff().catch(() => {
                 this.isError = true;
             });
-        } else if (this.userType === 'licensee') {
+        } else if (this.userType === AuthTypes.LICENSEE) {
             await this.getTokensLicensee().catch(() => {
                 this.isError = true;
             });
@@ -77,7 +77,7 @@ export default class AuthCallback extends Vue {
 
         const { data } = await axios.post(`${cognitoAuthDomainStaff}/oauth2/token`, params);
 
-        await this.$store.dispatch('user/storeAuthTokens', { tokenResponse: data, authType: 'staff' });
+        await this.$store.dispatch('user/storeAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
         await this.$store.dispatch('user/loginSuccess');
     }
 
@@ -92,7 +92,7 @@ export default class AuthCallback extends Vue {
 
         const { data } = await axios.post(`${cognitoAuthDomainLicensee}/oauth2/token`, params);
 
-        await this.$store.dispatch('user/storeAuthTokens', { tokenResponse: data, authType: 'licensee' });
+        await this.$store.dispatch('user/storeAuthTokens', { tokenResponse: data, authType: AuthTypes.LICENSEE });
         await this.$store.dispatch('user/loginSuccess');
     }
 

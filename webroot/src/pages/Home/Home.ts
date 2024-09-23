@@ -7,6 +7,7 @@
 
 import { Component, Vue } from 'vue-facing-decorator';
 import { CompactType, Compact, CompactSerializer } from '@models/Compact/Compact.model';
+import { authStorage, tokens } from '@/app.config';
 
 @Component({
     name: 'HomePage',
@@ -38,7 +39,11 @@ export default class Home extends Vue {
             compactType = this.storeCurrentCompact?.type;
         }
 
-        this.$router.push({ name: 'Licensing', params: { compact: compactType }});
+        if (authStorage.getItem(tokens?.staff?.AUTH_TOKEN)) {
+            this.$router.push({ name: 'Licensing', params: { compact: compactType }});
+        } else if (authStorage.getItem(tokens?.licensee?.AUTH_TOKEN)) {
+            this.$router.push({ name: 'LicenseeDashboard', params: { compact: compactType }});
+        }
     }
 
     setCurrentCompact() {
