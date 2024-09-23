@@ -244,6 +244,8 @@ class LicenseeList extends Vue {
             // After fetch, delete lastKey from the store (to disable "next" button)
             this.$store.dispatch('license/setStoreLicenseeLastKey', null);
         }
+
+        return requestConfig;
     }
 
     async sortingChange() {
@@ -254,7 +256,7 @@ class LicenseeList extends Vue {
 
     // Match pageChange() @Prop signature from /components/Lists/Pagination/Pagination.ts
     async paginationChange({ firstIndex, prevNext }: PageChangeConfig) {
-        const isInitialInProgress = Boolean(firstIndex === 0 && prevNext === 0);
+        const isInitialInProgress = firstIndex === 0 && prevNext === 0;
 
         if (prevNext === -1) {
             this.prevKey = this.licenseStore.prevLastKey;

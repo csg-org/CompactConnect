@@ -11,8 +11,8 @@
             <li
                 v-for="{id, clickable, selected, displayValue} in pages"
                 :key="id"
-                @click="clickable ? setPage(id, NaN) : null"
-                @keyup.enter="clickable ? setPage(id, NaN) : null"
+                @click="clickable ? setPage(id) : null"
+                @keyup.enter="clickable ? setPage(id) : null"
                 :tabindex="(clickable) ? 0 : -1"
                 class="pagination-item page"
                 :class="{ selected, clickable }"

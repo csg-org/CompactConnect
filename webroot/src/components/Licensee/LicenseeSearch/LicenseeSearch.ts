@@ -159,6 +159,7 @@ class LicenseeSearch extends mixins(MixinForm) {
         }
     }
 
+    // Last name is currently optional overall, but required if first name is included; therefore needs this non-trivial validation logic
     customValidateLastName(asTouched = true): void {
         const { firstName, lastName } = this.formData;
         const shouldSkip = (asTouched) ? false : !lastName.isTouched;
@@ -166,7 +167,7 @@ class LicenseeSearch extends mixins(MixinForm) {
         if (!shouldSkip && firstName.value && !lastName.value) {
             lastName.isValid = false;
             lastName.errorMessage = this.$t('inputErrors.lastNameRequired');
-        } else if (lastName.isValid === false) {
+        } else if (!lastName.isValid) {
             lastName.isValid = true;
             lastName.errorMessage = '';
         }

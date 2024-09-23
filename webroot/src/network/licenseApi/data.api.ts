@@ -144,7 +144,9 @@ export class LicenseDataApi implements DataApiInterface {
             if (licenseeSsn) {
                 requestParams.query.ssn = licenseeSsn;
             }
-        } else {
+        }
+
+        if (!licenseeId && !licenseeSsn) {
             if (pageSize || lastKey) {
                 requestParams.pagination = {};
 
