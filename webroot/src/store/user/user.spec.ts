@@ -8,6 +8,7 @@
 import { authStorage, tokens } from '@/app.config';
 import mutations, { MutationTypes } from './user.mutations';
 import actions from './user.actions';
+import getters from './user.getters';
 
 const chaiMatchPattern = require('chai-match-pattern');
 const chai = require('chai').use(chaiMatchPattern);
@@ -340,5 +341,47 @@ describe('User Store Actions', async () => {
         actions.clearSessionStores({ dispatch });
 
         expect(dispatch.callCount).to.equal(5);
+    });
+    it('should successfully use the authType getter for licensee auth', () => {
+        const dispatch = sinon.spy();
+
+        authStorage.removeItem(tokens.staff.AUTH_TOKEN);
+
+        const authType = 'licensee';
+
+        const tokenResponse = {
+            access_token: 'test_access_token',
+            token_type: 'test_token_type',
+            expires_in: 1,
+            id_token: 'test_id_token',
+            refresh_token: 'test_refresh_token',
+        };
+
+        actions.storeAuthTokens({ dispatch }, { tokenResponse, authType });
+
+        const authTypeReturned = getters.authType()();
+
+        expect(authTypeReturned).to.equal('licensee');
+    });
+    it('should successfully use the authType getter for staff auth', () => {
+        const dispatch = sinon.spy();
+
+        const authType = 'staff';
+
+        authStorage.removeItem(tokens.licensee.AUTH_TOKEN);
+
+        const tokenResponse = {
+            access_token: 'test_access_token',
+            token_type: 'test_token_type',
+            expires_in: 1,
+            id_token: 'test_id_token',
+            refresh_token: 'test_refresh_token',
+        };
+
+        actions.storeAuthTokens({ dispatch }, { tokenResponse, authType });
+
+        const authTypeReturned = getters.authType()();
+
+        expect(authTypeReturned).to.equal('staff');
     });
 });
