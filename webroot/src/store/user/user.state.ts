@@ -20,7 +20,7 @@ export interface State {
 
 export const state: State = {
     model: null,
-    isLoggedIn: (authStorage.getItem(tokens.staff.AUTH_TOKEN) !== null),
+    isLoggedIn: (!!authStorage.getItem(tokens.staff.AUTH_TOKEN) || !!authStorage.getItem(tokens.licensee.AUTH_TOKEN)),
     isLoading: false,
     refreshTokenTimeoutId: null,
     currentCompact: null,

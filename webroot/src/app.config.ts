@@ -107,6 +107,9 @@ export enum UploadFileType {
     DOCUMENT = 'document',
 }
 
+// =============================
+// =  Authorization Types        =
+// =============================
 export enum AuthTypes {
     STAFF = 'staff',
     LICENSEE = 'licensee'
