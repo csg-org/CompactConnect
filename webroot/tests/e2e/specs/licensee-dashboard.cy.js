@@ -9,7 +9,7 @@ import { axeConfig } from '../support/axe-config';
 // https://docs.cypress.io/api/introduction/api.html
 describe('Licensee Dashboard page', () => {
     before(() => {
-        cy.visit('/LicenseeDashboard');
+        cy.visit('/compact1/LicenseeDashboard');
     });
 
     it('should pass accessibility tests', () => {
