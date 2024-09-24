@@ -6,6 +6,7 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
+import { AuthTypes } from '@/app.config';
 
 @Component({
     name: 'Login',
@@ -30,7 +31,7 @@ export default class Login extends Vue {
             `?client_id=${cognitoClientIdStaff}`,
             `&response_type=${loginResponseType}`,
             `&scope=${encodeURIComponent(loginScopes)}`,
-            `&state=staff`,
+            `&state=${AuthTypes.STAFF}`,
             `&redirect_uri=${encodeURIComponent(`${domain}${loginRedirectPath}`)}`,
         ].join('');
         const idpPath = (this.shouldRemoteLogout) ? '/logout' : '/login';
@@ -48,7 +49,7 @@ export default class Login extends Vue {
             `?client_id=${cognitoClientIdLicensee}`,
             `&response_type=${loginResponseType}`,
             `&scope=${encodeURIComponent(loginScopes)}`,
-            `&state=licensee`,
+            `&state=${AuthTypes.LICENSEE}`,
             `&redirect_uri=${encodeURIComponent(`${domain}${loginRedirectPath}`)}`,
         ].join('');
         const idpPath = (this.shouldRemoteLogout) ? '/logout' : '/login';

@@ -57,6 +57,22 @@ export default class AuthCallback extends Vue {
             await this.getTokensLicensee().catch(() => {
                 this.isError = true;
             });
+        } else {
+            let errorCount = 0;
+
+            await this.getTokensStaff().catch(() => {
+                errorCount += 1;
+            });
+
+            if (errorCount > 0) {
+                await this.getTokensLicensee().catch(() => {
+                    errorCount += 1;
+                });
+            }
+
+            if (errorCount > 1) {
+                this.isError = true;
+            }
         }
 
         this.$store.dispatch('endLoading');
