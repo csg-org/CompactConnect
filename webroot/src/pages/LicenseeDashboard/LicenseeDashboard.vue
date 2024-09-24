@@ -6,7 +6,9 @@
 -->
 
 <template>
-    <h3>LicenseeDashboard</h3>
+    <div class="licensee-dashboard-container">
+        <h3>LicenseeDashboard</h3>
+    </div>
 </template>
 
 <script lang="ts" src="./LicenseeDashboard.ts"></script>
