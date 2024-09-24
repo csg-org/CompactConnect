@@ -13,13 +13,6 @@ import { Component, Vue } from 'vue-facing-decorator';
 })
 export default class Login extends Vue {
     //
-    // Lifecycle
-    //
-    // created() {
-    //     this.redirectToHostedLogin();
-    // }
-
-    //
     // Computed
     //
     get shouldRemoteLogout(): boolean {
