@@ -1,13 +1,10 @@
-# pylint: disable=unused-argument,unexpected-keyword-arg,missing-kwoa
-# Pylint really butchers these function signatures because they are modified via decorator
-# to cut down on noise level, we're disabling those rules for the whole module
-
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
 from exceptions import CCInvalidRequestException, CCNotFoundException, CCInternalException
-from handlers.utils import api_handler, authorize_compact
+from handlers.utils import api_handler
 from config import logger
 from . import get_provider_information
+
 
 @api_handler
 def get_provider_user_me(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
@@ -34,4 +31,3 @@ def get_provider_user_me(event: dict, context: LambdaContext):  # pylint: disabl
         message = 'Failed to find provider using provided claims'
         logger.error(message, compact=compact, provider_id=provider_id)
         raise CCInternalException(message) from e
-

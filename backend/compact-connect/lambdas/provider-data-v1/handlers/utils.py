@@ -10,9 +10,8 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 
 from config import logger
-from exceptions import CCInvalidRequestException, CCUnauthorizedException, CCAccessDeniedException, CCNotFoundException, \
-    CCInternalException
-
+from exceptions import CCInvalidRequestException, CCUnauthorizedException, CCAccessDeniedException, \
+    CCNotFoundException
 
 class ResponseEncoder(JSONEncoder):
     """

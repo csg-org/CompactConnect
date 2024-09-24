@@ -30,7 +30,6 @@ class TestApi(TestCase):
 
         return api_stack_template
 
-
     def test_synth_generates_provider_users_resource(self):
         api_stack_template = self._when_testing_sandbox_stack_synth()
 
@@ -65,4 +64,3 @@ class TestApi(TestCase):
             props={
                 "Handler": "handlers.provider_users.get_provider_user_me"
             })
-
