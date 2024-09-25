@@ -8,7 +8,7 @@ from tests.function import TstFunction
 @mock_aws
 class TestHandlers(TstFunction):
     def test_get_users_empty(self):
-        from handlers import get_users
+        from handlers.users import get_users
 
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
@@ -32,7 +32,7 @@ class TestHandlers(TstFunction):
         # One board user in each test jurisdiction (oh, ne, ky) with permissions in aslp and octp.
         self._create_board_staff_users(compacts=['aslp', 'octp'])
 
-        from handlers import get_users
+        from handlers.users import get_users
 
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
@@ -58,7 +58,7 @@ class TestHandlers(TstFunction):
         # One board user in each test jurisdiction (oh, ne, ky) with permissions in aslp.
         self._create_board_staff_users(compacts=['aslp'])
 
-        from handlers import get_users
+        from handlers.users import get_users
 
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)

@@ -6,8 +6,10 @@ from functools import cached_property
 from typing import List
 
 from aws_cdk.aws_apigateway import Resource, MethodResponse, JsonSchema, \
-    JsonSchemaType, MockIntegration, IntegrationResponse, AuthorizationType
+    JsonSchemaType, MockIntegration, IntegrationResponse, AuthorizationType, LambdaIntegration
 
+from common_constructs.python_function import PythonFunction
+from common_constructs.stack import Stack
 # Importing module level to allow lazy loading for typing
 from .. import cc_api
 
@@ -20,6 +22,7 @@ class StaffUsers:
     ):
         super().__init__()
 
+        self.stack = Stack.of(resource)
         self.resource = resource
         self.api: cc_api.CCApi = resource.api
         self.log_groups = []
@@ -79,7 +82,7 @@ class StaffUsers:
             },
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
-            authorization_scopes=["profile"]
+            authorization_scopes=['profile']
         )
 
     def _add_patch_me(self, me_resource: Resource):
@@ -125,21 +128,29 @@ class StaffUsers:
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
             # This is the same scope that Cognito requires for editing its own user attributes, so we will follow suit.
-            authorization_scopes=["aws.cognito.signin.user.admin"]
+            authorization_scopes=['aws.cognito.signin.user.admin']
         )
 
     def _add_get_users(self, users_resource: Resource, admin_scopes: List[str]):
-        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'api', 'user-response.json')) as f:
-            user_data = json.load(f)
-        response = {
-            'users': [user_data],
-            'pagination': {
-                'pageSize': 10
+        # Create a PythonFunction for the get_users handler
+        get_users_handler = PythonFunction(
+            users_resource,
+            'GetUsersHandler',
+            entry='lambdas/staff-users',
+            index='handlers/users.py',
+            handler='get_users',
+            environment={
+                **self.stack.common_env_vars
             }
-        }
+        )
 
+        # Create a LambdaIntegration
+        lambda_integration = LambdaIntegration(get_users_handler)
+
+        # Add the GET method to the users resource
         users_resource.add_method(
             'GET',
+            integration=lambda_integration,
             request_validator=self.api.parameter_body_validator,
             method_responses=[
                 MethodResponse(
@@ -152,37 +163,31 @@ class StaffUsers:
                     }
                 )
             ],
-            integration=MockIntegration(
-                integration_responses=[
-                    IntegrationResponse(
-                        status_code='200',
-                        response_templates={
-                            'application/json': json.dumps(response)
-                        },
-                        response_parameters={
-                            'method.response.header.Access-Control-Allow-Origin': "'*'"
-                        }
-                    )
-                ],
-                request_templates={
-                    'application/json': json.dumps({'statusCode': 200})
-                }
-            ),
-            request_parameters={
-                'method.request.header.Authorization': True,
-                'method.request.querystring.lastKey': False
-            },
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
             authorization_scopes=admin_scopes
         )
 
     def _add_get_user(self, user_id_resource: Resource, admin_scopes: List[str]):
-        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'api', 'user-response.json')) as f:
-            response_template = f.read()
+        # Create a PythonFunction for the get_user handler
+        get_user_handler = PythonFunction(
+            user_id_resource,
+            'GetUserHandler',
+            entry='lambdas/staff-users',
+            index='handlers/users.py',
+            handler='get_user',
+            environment={
+                **self.stack.common_env_vars
+            }
+        )
 
+        # Create a LambdaIntegration
+        lambda_integration = LambdaIntegration(get_user_handler)
+
+        # Add the GET method to the user_id resource
         user_id_resource.add_method(
             'GET',
+            integration=lambda_integration,
             request_validator=self.api.parameter_body_validator,
             method_responses=[
                 MethodResponse(
@@ -195,36 +200,29 @@ class StaffUsers:
                     }
                 )
             ],
-            integration=MockIntegration(
-                integration_responses=[
-                    IntegrationResponse(
-                        status_code='200',
-                        response_templates={
-                            'application/json': response_template
-                        },
-                        response_parameters={
-                            'method.response.header.Access-Control-Allow-Origin': "'*'"
-                        }
-                    )
-                ],
-                request_templates={
-                    'application/json': json.dumps({'statusCode': 200})
-                }
-            ),
-            request_parameters={
-                'method.request.header.Authorization': True
-            },
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
             authorization_scopes=admin_scopes
         )
 
-    def _add_patch_user(self, me_resource: Resource, admin_scopes: List[str]):
-        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'api', 'user-response.json')) as f:
-            response_template = f.read()
+    def _add_patch_user(self, user_resource: Resource, admin_scopes: List[str]):
+        patch_user_handler = PythonFunction(
+            user_resource, 'PatchUserHandler',
+            entry='lambdas/staff-users',
+            index='handlers/users.py',
+            handler='patch_user',
+            environment={
+                **self.stack.common_env_vars
+            }
+        )
 
-        me_resource.add_method(
+        # Create a LambdaIntegration
+        lambda_integration = LambdaIntegration(patch_user_handler)
+
+        # Add the PATCH method to the me_resource
+        user_resource.add_method(
             'PATCH',
+            integration=lambda_integration,
             request_validator=self.api.parameter_body_validator,
             request_models={
                 'application/json': self.patch_user_model
@@ -240,36 +238,30 @@ class StaffUsers:
                     }
                 )
             ],
-            integration=MockIntegration(
-                integration_responses=[
-                    IntegrationResponse(
-                        status_code='200',
-                        response_templates={
-                            'application/json': response_template
-                        },
-                        response_parameters={
-                            'method.response.header.Access-Control-Allow-Origin': "'*'"
-                        }
-                    )
-                ],
-                request_templates={
-                    'application/json': json.dumps({'statusCode': 200})
-                }
-            ),
-            request_parameters={
-                'method.request.header.Authorization': True
-            },
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
             authorization_scopes=admin_scopes
         )
 
-    def _add_post_user(self, me_resource: Resource, admin_scopes: List[str]):
-        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'api', 'user-response.json')) as f:
-            response_template = f.read()
+    def _add_post_user(self, users_resource: Resource, admin_scopes: List[str]):
+        post_user_handler = PythonFunction(
+            users_resource,
+            'PostUserHandler',
+            entry='lambdas/staff-users',
+            index='handlers/users.py',
+            handler='post_user',
+            environment={
+                **self.stack.common_env_vars
+            }
+        )
 
-        me_resource.add_method(
+        # Create a LambdaIntegration
+        lambda_integration = LambdaIntegration(post_user_handler)
+
+        # Add the POST method to the me_resource
+        users_resource.add_method(
             'POST',
+            integration=lambda_integration,
             request_validator=self.api.parameter_body_validator,
             request_models={
                 'application/json': self.post_user_model
@@ -285,25 +277,6 @@ class StaffUsers:
                     }
                 )
             ],
-            integration=MockIntegration(
-                integration_responses=[
-                    IntegrationResponse(
-                        status_code='200',
-                        response_templates={
-                            'application/json': response_template
-                        },
-                        response_parameters={
-                            'method.response.header.Access-Control-Allow-Origin': "'*'"
-                        }
-                    )
-                ],
-                request_templates={
-                    'application/json': json.dumps({'statusCode': 200})
-                }
-            ),
-            request_parameters={
-                'method.request.header.Authorization': True
-            },
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
             authorization_scopes=admin_scopes
@@ -364,7 +337,7 @@ class StaffUsers:
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
                 properties={
-                    'attributes': self._attributes_schema,
+                    'attributes': self._patch_attributes_schema,
                 }
             )
         )
@@ -421,6 +394,20 @@ class StaffUsers:
             additional_properties=False,
             properties={
                 'email': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=100),
+                'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100)
+            }
+        )
+
+    @property
+    def _patch_attributes_schema(self):
+        """
+        No support for changing a user's email address.
+        """
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            additional_properties=False,
+            properties={
                 'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
                 'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100)
             }

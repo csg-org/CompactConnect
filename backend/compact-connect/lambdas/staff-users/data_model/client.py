@@ -210,7 +210,7 @@ class UserClient():
             ExpressionAttributeValues=expression_attribute_values,
             ReturnValues='ALL_NEW'
         )
-        return resp['Attributes']
+        return self.schema.load(resp['Attributes'])
 
     def create_user(self, compact: str, attributes: dict, permissions: dict):
         """

@@ -10,7 +10,7 @@ class TestHandlers(TstFunction):
     def test_post_user(self):
         self._load_user_data()
 
-        from handlers import post_user
+        from handlers.users import post_user
 
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)

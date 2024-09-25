@@ -8,7 +8,7 @@ from tests.function import TstFunction
 @mock_aws
 class TestHandlers(TstFunction):
     def test_get_user_not_found(self):
-        from handlers import get_one_user
+        from handlers.users import get_one_user
 
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
@@ -29,7 +29,7 @@ class TestHandlers(TstFunction):
     def test_get_user_compact_admin(self):
         self._load_user_data()
 
-        from handlers import get_one_user
+        from handlers.users import get_one_user
 
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
@@ -59,7 +59,7 @@ class TestHandlers(TstFunction):
     def test_get_user_jurisdiction_admin(self):
         self._load_user_data()
 
-        from handlers import get_one_user
+        from handlers.users import get_one_user
 
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
@@ -89,7 +89,7 @@ class TestHandlers(TstFunction):
     def test_get_user_outside_jurisdiction(self):
         self._load_user_data()
 
-        from handlers import get_one_user
+        from handlers.users import get_one_user
 
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)

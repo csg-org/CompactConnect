@@ -1,17 +1,10 @@
 import json
 
-from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-from config import config
-from data_model.client import UserClient
-from data_model.schema.user import UserAPISchema
 from exceptions import CCNotFoundException
-from utils import api_handler, authorize_compact, get_event_scopes, collect_changes, get_allowed_jurisdictions
-
-logger = Logger()
-user_client = UserClient(config=config)
-user_api_schema = UserAPISchema()
+from handlers import user_client, user_api_schema
+from utils import api_handler, authorize_compact, get_event_scopes, get_allowed_jurisdictions, collect_changes
 
 
 @api_handler
@@ -57,7 +50,7 @@ def get_users(event: dict, context: LambdaContext):  # pylint: disable=unused-ar
     scopes = get_event_scopes(event)
     allowed_jurisdictions = get_allowed_jurisdictions(compact=compact, scopes=scopes)
 
-    resp = user_client.get_users_sorted_by_family_name(
+    resp = user_client.get_users_sorted_by_family_name(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
         compact=compact,
         jurisdictions=allowed_jurisdictions,
         pagination=pagination

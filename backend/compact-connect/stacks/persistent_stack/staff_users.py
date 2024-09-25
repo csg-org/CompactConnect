@@ -2,7 +2,7 @@ from __future__ import annotations
 import json
 import os
 
-from aws_cdk.aws_cognito import ResourceServerScope, UserPoolOperation, LambdaVersion
+from aws_cdk.aws_cognito import ResourceServerScope, UserPoolOperation, LambdaVersion, ClientAttributes
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from constructs import Construct
@@ -60,7 +60,19 @@ class StaffUsers(UserPool):
 
         # Do not allow resource server scopes via the client - they are assigned via token customization
         # to allow for user attribute-based access
-        self.ui_client = self.add_ui_client(callback_urls=callback_urls)
+        self.ui_client = self.add_ui_client(
+            callback_urls=callback_urls,
+            write_attributes=ClientAttributes().with_standard_attributes(
+                given_name=True,
+                family_name=True,
+                email=False
+            ),
+            read_attributes=ClientAttributes().with_standard_attributes(
+                given_name=True,
+                family_name=True,
+                email=True
+            )
+        )
 
     def _add_resource_servers(self):
         """

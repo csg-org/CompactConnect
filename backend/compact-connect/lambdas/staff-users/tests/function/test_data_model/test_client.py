@@ -250,7 +250,7 @@ class TestClient(TstFunction):
 
     def test_update_user_attributes(self):
         # The sample user looks like board staff in aslp/oh
-        user_id = self._load_user_data()
+        user_id = UUID(self._load_user_data())
 
         from data_model.client import UserClient
 
