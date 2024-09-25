@@ -17,7 +17,7 @@ jobs:
           git fetch origin development
 
           # Check if the current branch contains commits from the development branch
-          if git merge-base --is-ancestor origin/development HEAD; then
+          if git merge-base --is-ancestor HEAD origin/development; then
             exit 0
           else
             echo "ERROR: The branch is not based on the 'development' branch."
