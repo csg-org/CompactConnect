@@ -189,7 +189,7 @@ class TestApp(TestCase):
         app = CompactConnectApp(context=context)
         persistent_stack_template = Template.from_stack(app.sandbox_stage.persistent_stack)
 
-        # Ensure our Staff user pool is created
+        # Ensure our provider user pool is created
         persistent_stack_template.has_resource_properties(
             type=CfnUserPool.CFN_RESOURCE_TYPE_NAME,
             props={
