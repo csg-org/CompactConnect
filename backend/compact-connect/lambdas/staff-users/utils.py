@@ -2,7 +2,8 @@ import json
 from decimal import Decimal
 from functools import wraps
 from json import JSONEncoder
-from typing import Callable
+from re import match
+from typing import Callable, List, Set
 from datetime import date
 from uuid import UUID
 
@@ -72,7 +73,7 @@ def api_handler(fn: Callable):
                 'body': json.dumps(fn(event, context), cls=ResponseEncoder)
             }
         except CCUnauthorizedException as e:
-            logger.info('Unauthorized request', exc_info=e)
+            logger.info('Unauthorized request', exc_msg=str(e), exc_info=e)
             return {
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
@@ -81,7 +82,7 @@ def api_handler(fn: Callable):
                 'body': json.dumps({'message': 'Unauthorized'})
             }
         except CCAccessDeniedException as e:
-            logger.info('Forbidden request', exc_info=e)
+            logger.info('Forbidden request', exc_msg=str(e), exc_info=e)
             return {
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
@@ -90,7 +91,7 @@ def api_handler(fn: Callable):
                 'body': json.dumps({'message': 'Access denied'})
             }
         except CCNotFoundException as e:
-            logger.info('Resource not found', exc_info=e)
+            logger.info('Resource not found', exc_msg=str(e), exc_info=e)
             return {
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
@@ -99,7 +100,7 @@ def api_handler(fn: Callable):
                 'body': json.dumps({'message': e.message})
             }
         except CCConflictException as e:
-            logger.info('Resource not found', exc_info=e)
+            logger.info('Resource not found', exc_msg=str(e), exc_info=e)
             return {
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
@@ -108,7 +109,7 @@ def api_handler(fn: Callable):
                 'body': json.dumps({'message': e.message})
             }
         except CCInvalidRequestException as e:
-            logger.info('Invalid request', exc_info=e)
+            logger.info('Invalid request', exc_msg=str(e), exc_info=e)
             return {
                 'headers': {
                     'Access-Control-Allow-Origin': '*'
@@ -118,7 +119,7 @@ def api_handler(fn: Callable):
             }
         except ClientError as e:
             # Any boto3 ClientErrors we haven't already caught and transformed are probably on us
-            logger.error('boto3 ClientError', response=e.response, exc_info=e)
+            logger.error('boto3 ClientError', response=e.response, exc_msg=str(e), exc_info=e)
             raise
         except Exception as e:
             logger.warning(
@@ -170,59 +171,55 @@ class authorize_compact:  # pylint: disable=invalid-name
         return authorized
 
 
+def get_allowed_jurisdictions(*, compact: str, scopes: Set[str]) -> List[str] | None:
+    """
+    Return a list of jurisdictions the user is allowed to access based on their scopes. If the scopes indicate
+    the user is a compact admin, the function will return None, as they will do no jurisdiction-based filtering.
+    :param str compact: The compact the user is trying to access.
+    :param set scopes: The user's scopes from the request.
+    :return: A list of jurisdictions the user is allowed to access, or None, if no filtering is needed.
+    :rtype: list
+    """
+    if f'{compact}/{compact}.admin' in scopes:
+        # The user has compact-level admin, so no jurisdiction filtering
+        return None
+
+    compact_jurisdictions = []
+    scope_pattern = f'{compact}/(.*).admin'
+    for scope in scopes:
+        if match_obj := match(scope_pattern, scope):
+            compact_jurisdictions.append(match_obj.group(1))
+    return compact_jurisdictions
+
+
 def get_event_scopes(event: dict):
     return set(event['requestContext']['authorizer']['claims']['scope'].split(' '))
 
-
-def transform_user_permissions(*, compact: str, compact_permissions: dict) -> dict:
+def collect_changes(*, path_compact: str, scopes: set, compact_changes: dict) -> dict:
     """
-    Transform compact permissions from database format into API format
-    :param dict compact_permissions: User compact permissions from the database
-    :return: Permissions formatted for returning via the API
-    :rtype: dict
-    """
-    user_permissions = {compact: {}}
-
-    compact_actions = compact_permissions.get('actions')
-    if compact_actions is not None:
-        # Set to dict of '{action}: True' items
-        user_permissions[compact]['actions'] = {
-            action: True
-            for action in compact_permissions['actions']
-        }
-    jurisdictions = compact_permissions['jurisdictions']
-    if jurisdictions is not None:
-        # Transform jurisdiction permissions
-        user_permissions[compact]['jurisdictions'] = {}
-        for jurisdiction, jurisdiction_permissions in jurisdictions.items():
-            # Set to dict of '{action}: True' items
-            user_permissions[compact]['jurisdictions'][jurisdiction] = {
+    Transform PATCH user API changes to permissions into db operation changes. Operation changes are checked
+    against the provided scopes to ensure the user is allowed to make the requested changes.
+    :param str path_compact: The compact declared in the url path
+    :param set scopes: The scopes associated with the user making the request
+    :param dict compact_changes: Permissions changes in the request body
+    Example:
+    {
+        'actions': {
+            'admin': True,
+            'read': False
+        },
+        'jurisdictions': {
+            'oh': {
                 'actions': {
-                    action: True
-                    for action in jurisdiction_permissions
+                    'admin': True,
+                    'write': False
                 }
             }
-    return user_permissions
-
-
-def collect_changes(*, path_compact: str, scopes: set, permission_changes: dict) -> dict:
-    """
-    Transform PATCH user API changes to permissions into db operation changes.
-    :param dict permission_changes: Permissions changes in the request body
+        }
+    }
     :return: Changes to the User's underlying record
     :rtype: dict
     """
-    # The admin can only touch permissions related to the compact they are currently representing
-    # (as declared by the url path). We've already verified their permission to affect the compact
-    # in the url path by virtue of the `authorize_compact` decorator, so no need to do that here.
-    body_compacts = permission_changes.keys()
-    disallowed_compacts = set(path_compact) - body_compacts
-    if disallowed_compacts:
-        # There are compacts in the body besides the one declared in the url path
-        raise CCAccessDeniedException(f'Forbidden compact changes: {disallowed_compacts}')
-
-    # At this point, we've effectively limited permission_changes to including zero or one compacts
-    compact_changes = permission_changes.get(path_compact, {})
     compact_action_additions = set()
     compact_action_removals = set()
     jurisdiction_action_additions = {}
@@ -239,40 +236,25 @@ def collect_changes(*, path_compact: str, scopes: set, permission_changes: dict)
             compact_action_removals.add(action)
 
     # Collect jurisdiction-specific changes
-    for jurisdiction, jurisdiction_changes in compact_changes.get('jurisdictions', {}):
+    for jurisdiction, jurisdiction_changes in compact_changes.get('jurisdictions', {}).items():
         if not {f'{path_compact}/{path_compact}.admin', f'{path_compact}/{jurisdiction}.admin'}.intersection(scopes):
             raise CCAccessDeniedException(
                 f'Only {path_compact} or {path_compact}/{jurisdiction} admins can affect {path_compact}/{jurisdiction} '
                 'permissions'
             )
 
-        jurisdiction_action_additions[jurisdiction] = {
-            action
-            for action, value in jurisdiction_changes.get('actions', {}).items()
-            if value
-        }
-        jurisdiction_action_removals[jurisdiction] = {
-            action
-            for action, value in jurisdiction_changes.get('actions', {}).items()
-            if not value
-        }
+        for action, value in jurisdiction_changes.get('actions', {}).items():
+            if value:
+                jurisdiction_action_additions.setdefault(jurisdiction, set()).add(action)
+            else:
+                jurisdiction_action_removals.setdefault(jurisdiction, set()).add(action)
+
     return {
         'compact_action_additions': compact_action_additions,
         'compact_action_removals': compact_action_removals,
         'jurisdiction_action_additions': jurisdiction_action_additions,
         'jurisdiction_action_removals': jurisdiction_action_removals
     }
-
-def filter_for_jurisdiction(*, jurisdiction: str) -> Callable[[dict], bool]:
-    """
-    Create a Callable client filter that returns True if the provided user has permissions in the provided compact and
-    jurisdiction
-    """
-    def client_filter(user: dict) -> bool:
-        return jurisdiction in user['permissions'].get('jurisdictions', {})
-
-    return client_filter
-
 
 def get_sub_from_user_attributes(attributes: list):
     for attribute in attributes:

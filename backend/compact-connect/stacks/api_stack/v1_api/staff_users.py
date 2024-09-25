@@ -41,7 +41,7 @@ class StaffUsers:
         self.api.log_groups.extend(self.log_groups)
 
     def _add_get_me(self, me_resource: Resource):
-        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'api', 'user.json')) as f:
+        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'api', 'user-response.json')) as f:
             response_template = f.read()
 
         me_resource.add_method(
@@ -83,7 +83,7 @@ class StaffUsers:
         )
 
     def _add_patch_me(self, me_resource: Resource):
-        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'api', 'user.json')) as f:
+        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'api', 'user-response.json')) as f:
             response_template = f.read()
 
         me_resource.add_method(
@@ -129,7 +129,7 @@ class StaffUsers:
         )
 
     def _add_get_users(self, users_resource: Resource, admin_scopes: List[str]):
-        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'api', 'user.json')) as f:
+        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'api', 'user-response.json')) as f:
             user_data = json.load(f)
         response = {
             'users': [user_data],
@@ -178,7 +178,7 @@ class StaffUsers:
         )
 
     def _add_get_user(self, user_id_resource: Resource, admin_scopes: List[str]):
-        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'api', 'user.json')) as f:
+        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'api', 'user-response.json')) as f:
             response_template = f.read()
 
         user_id_resource.add_method(
@@ -220,7 +220,7 @@ class StaffUsers:
         )
 
     def _add_patch_user(self, me_resource: Resource, admin_scopes: List[str]):
-        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'api', 'user.json')) as f:
+        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'api', 'user-response.json')) as f:
             response_template = f.read()
 
         me_resource.add_method(
@@ -265,7 +265,7 @@ class StaffUsers:
         )
 
     def _add_post_user(self, me_resource: Resource, admin_scopes: List[str]):
-        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'api', 'user.json')) as f:
+        with open(os.path.join('lambdas', 'staff-users', 'tests', 'resources', 'api', 'user-response.json')) as f:
             response_template = f.read()
 
         me_resource.add_method(

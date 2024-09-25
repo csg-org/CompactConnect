@@ -5,10 +5,13 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 
 from config import config
 from data_model.client import UserClient
-from utils import api_handler, authorize_compact, get_event_scopes, transform_user_permissions, collect_changes
+from data_model.schema.user import UserAPISchema
+from exceptions import CCNotFoundException
+from utils import api_handler, authorize_compact, get_event_scopes, collect_changes, get_allowed_jurisdictions
 
 logger = Logger()
 user_client = UserClient(config=config)
+user_api_schema = UserAPISchema()
 
 
 @api_handler
@@ -17,16 +20,24 @@ def get_one_user(event: dict, context: LambdaContext):  # pylint: disable=unused
     """
     Return a user by userId
     """
+    compact = event['pathParameters']['compact']
     user_id = event['pathParameters']['userId']
-    user = user_client.get_user(compact='aslp', user_id=user_id)
+    scopes = get_event_scopes(event)
+    allowed_jurisdictions = get_allowed_jurisdictions(compact=compact, scopes=scopes)
+
+    user = user_client.get_user(compact=compact, user_id=user_id)
+
+    # For jurisdiction-admins, don't return users if they have no permissions in the admin's jurisdiction
+    if allowed_jurisdictions is not None:
+        allowed_jurisdictions = set(allowed_jurisdictions)
+        if not allowed_jurisdictions.intersection(user['permissions']['jurisdictions'].keys()):
+            # The user has no permissions in the jurisdictions the admin is allowed to see, so we'll return a 404
+            raise CCNotFoundException('User not found')
+
     # Transform record schema to API schema
-    return {
-        'type': user['type'],
-        'dateOfUpdate': user['dateOfUpdate'],
-        'userId': user['userId'],
-        'attributes': user['attributes'],
-        'permissions': transform_user_permissions(compact='aslp', compact_permissions=user['permissions'])
-    }
+    # If the user has permissions that intersect the admin's jurisdiction, we will return the full user's permissions
+    # for the requested compact
+    return user_api_schema.load(user)
 
 
 @api_handler
@@ -35,15 +46,28 @@ def get_users(event: dict, context: LambdaContext):  # pylint: disable=unused-ar
     """
     Return users
     """
+    compact = event['pathParameters']['compact']
     # If no query string parameters are provided, APIGW will set the value to None, which we need to handle here
     query_string_params = event.get('queryStringParameters') if event.get('queryStringParameters') is not None else {}
-    pagination = {
-        'lastKey': query_string_params.get('lastKey'),
-        'pageSize': query_string_params.get('pageSize')
-    }
-    resp = user_client.get_users(pagination=pagination)
-    # Convert to API-specific field
-    resp['users'] = resp.pop('users')
+    pagination = {}
+    for pagination_key in ('lastKey', 'pageSize'):
+        if pagination_key in query_string_params:
+            pagination[pagination_key]: query_string_params[pagination_key]
+
+    scopes = get_event_scopes(event)
+    allowed_jurisdictions = get_allowed_jurisdictions(compact=compact, scopes=scopes)
+
+    resp = user_client.get_users_sorted_by_family_name(
+        compact=compact,
+        jurisdictions=allowed_jurisdictions,
+        pagination=pagination
+    )
+    # Convert to API-specific format
+    users = resp.pop('items', [])
+    resp['users'] = [
+        user_api_schema.load(user)
+        for user in users
+    ]
     return resp
 
 
@@ -79,9 +103,32 @@ def patch_user(event: dict, context: LambdaContext):  # pylint: disable=unused-a
     scopes = get_event_scopes(event)
     path_compact = event['pathParameters']['compact']
     permission_changes = json.loads(event['body']).get('permissions', {})
-    changes = collect_changes(path_compact=path_compact, scopes=scopes, permission_changes=permission_changes)
-    user_client.update_user_permissions(
+    changes = collect_changes(path_compact=path_compact, scopes=scopes, compact_changes=permission_changes)
+    user = user_client.update_user_permissions(
         compact=compact,
         user_id=user_id,
         **changes
     )
+    return user_api_schema.load(user)
+
+
+@api_handler
+@authorize_compact(action='admin')
+def post_user(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+    scopes = get_event_scopes(event)
+    compact = event['pathParameters']['compact']
+    body = json.loads(event['body'])
+
+    # Verify that the client has permission to create a user with the requested permissions
+    permissions = body['permissions']
+    # This method will raise an exception if they request an inappropriate permission for the new user
+    collect_changes(path_compact=compact, scopes=scopes, compact_changes=permissions)
+    del permissions
+
+    # Use the UserClient to create a new user
+    user = user_api_schema.dump(body)
+    return user_api_schema.load(user_client.create_user(
+        compact=compact,
+        attributes=user['attributes'],
+        permissions=user['permissions']
+    ))

@@ -1,5 +1,4 @@
 import json
-import unittest
 from uuid import UUID
 
 from moto import mock_aws
@@ -141,7 +140,7 @@ class TestClient(TstFunction):
         self.assertEqual(sorted_family_names, family_names)
 
     def test_update_user_permissions_jurisdiction_actions(self):
-        user_id = self._load_user_data()
+        user_id = UUID(self._load_user_data())
 
         from data_model.client import UserClient
 
@@ -175,16 +174,9 @@ class TestClient(TstFunction):
             {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - resp.keys()
         )
 
-    @unittest.expectedFailure
     def test_update_user_permissions_board_to_compact_admin(self):
-        """
-        This test currently fails due to a bug in the moto library. This will be fixed in 5.0.15.
-        In the meantime, this test was independently verified against a real AWS account, bypassing the mocking library.
-
-        https://github.com/getmoto/moto/issues/8128
-        """
         # The sample user looks like board staff in aslp/oh
-        user_id = self._load_user_data()
+        user_id = UUID(self._load_user_data())
 
         from data_model.client import UserClient
 
@@ -218,7 +210,7 @@ class TestClient(TstFunction):
         with open('tests/resources/dynamo/user.json', 'r') as f:
             user_data = TypeDeserializer().deserialize({'M': json.load(f)})
 
-        user_id = user_data['userId']
+        user_id = UUID(user_data['userId'])
         # Convert our canned user into a compact admin
         user_data['permissions'] = {
             'actions': {'read', 'admin'},

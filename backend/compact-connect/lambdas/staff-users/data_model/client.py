@@ -5,7 +5,7 @@ from botocore.exceptions import ClientError
 
 from config import _Config, logger
 from data_model.query_paginator import paginated_query
-from data_model.schema.user import UserRecordSchema, UserAttributesSchema, CompactPermissionsSchema
+from data_model.schema.user import UserRecordSchema, UserAttributesSchema, CompactPermissionsRecordSchema
 from exceptions import CCNotFoundException, CCInvalidRequestException
 from utils import get_sub_from_user_attributes
 
@@ -18,7 +18,7 @@ class UserClient():
         self.config = config
         self.schema = UserRecordSchema()
         self.user_attributes_schema = UserAttributesSchema()
-        self.compact_permissions_schema = CompactPermissionsSchema()
+        self.compact_permissions_schema = CompactPermissionsRecordSchema()
 
     def get_user(self, *, compact: str, user_id: str):
         user = self.config.users_table.get_item(
@@ -163,7 +163,7 @@ class UserClient():
             ExpressionAttributeValues=expression_attribute_values,
             ReturnValues='ALL_NEW'
         )
-        return resp['Attributes']
+        return self.schema.load(resp['Attributes'])
 
     def update_user_attributes(
             self, *,
@@ -260,6 +260,7 @@ class UserClient():
                 Item=user,
                 ConditionExpression=Attr('pk').not_exists() & Attr('sk').not_exists()
             )
+            user = self.schema.load(user)
         except ClientError as e:
             if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
                 # The user record already exists - we'll update the existing record permissions and ignore attributes
@@ -273,4 +274,4 @@ class UserClient():
                 )
             else:
                 raise
-        return self.schema.load(user)
+        return user

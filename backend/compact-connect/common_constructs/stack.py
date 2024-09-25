@@ -64,6 +64,14 @@ class Stack(CdkStack):
                 {
                     'id': 'HIPAA.Security-LambdaConcurrency',
                     'reason': 'The lambdas in this app will share account-wide concurrency limits'
+                },
+                {
+                    'id': 'AwsSolutions-APIG4',
+                    'reason': 'Temporarily turning off auth for OWASP Zap'
+                },
+                {
+                    'id': 'AwsSolutions-COG4',
+                    'reason': 'Temporarily turning off auth for OWASP Zap'
                 }
             ]
         )

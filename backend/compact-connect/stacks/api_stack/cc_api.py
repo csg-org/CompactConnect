@@ -6,8 +6,7 @@ from functools import cached_property
 import jsii
 from aws_cdk import CfnOutput, IAspect, Aspects, Duration
 from aws_cdk.aws_apigateway import RestApi, StageOptions, MethodLoggingLevel, LogGroupLogDestination, \
-    AccessLogFormat, JsonSchema, JsonSchemaType, ResponseType, CorsOptions, Cors, \
-    CognitoUserPoolsAuthorizer, DomainNameOptions, Method
+    AccessLogFormat, JsonSchema, JsonSchemaType, ResponseType, CorsOptions, Cors, DomainNameOptions, Method
 from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_cloudwatch import Alarm, Stats, ComparisonOperator, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
@@ -242,10 +241,11 @@ class CCApi(RestApi):
 
     @cached_property
     def staff_users_authorizer(self):
-        return CognitoUserPoolsAuthorizer(
-            self, 'StaffPoolsAuthorizer',
-            cognito_user_pools=[self._persistent_stack.staff_users]
-        )
+        return None
+        # return CognitoUserPoolsAuthorizer(
+        #     self, 'StaffPoolsAuthorizer',
+        #     cognito_user_pools=[self._persistent_stack.staff_users]
+        # )
 
     @cached_property
     def parameter_body_validator(self):

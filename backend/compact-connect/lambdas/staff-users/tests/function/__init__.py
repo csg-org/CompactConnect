@@ -120,7 +120,7 @@ class TstFunction(TstLambdas):
 
     def _create_compact_staff_user(self, compacts: List[str]):
         """
-        Create a board-staff style user for each jurisdiction in the provided compact.
+        Create a compact-staff style user for each jurisdiction in the provided compact.
         """
         from data_model.schema.user import UserRecordSchema
         schema = UserRecordSchema()

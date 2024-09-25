@@ -9,7 +9,6 @@ class TestQueryProviders(TstFunction):
     def test_query_by_ssn(self):
         self._load_provider_data()
 
-        # Run the API query
         from handlers.providers import query_providers
 
         with open('tests/resources/api-event.json', 'r') as f:
@@ -53,7 +52,6 @@ class TestQueryProviders(TstFunction):
     def test_query_by_provider_id(self):
         self._load_provider_data()
 
-        # Run the API query
         from handlers.providers import query_providers
 
         with open('tests/resources/api-event.json', 'r') as f:
