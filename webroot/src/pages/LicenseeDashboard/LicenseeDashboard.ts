@@ -12,19 +12,4 @@ import { Component, Vue } from 'vue-facing-decorator';
     components: {}
 })
 export default class LicenseeDashboard extends Vue {
-    //
-    // Data
-    //
-
-    //
-    // Lifecycle
-    //
-
-    //
-    // Computed
-    //
-
-    //
-    // Methods
-    //
 }

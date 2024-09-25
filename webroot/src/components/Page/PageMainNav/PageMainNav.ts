@@ -47,7 +47,7 @@ class PageMainNav extends Vue {
     }
 
     get isLoggedInAsStaff(): boolean {
-        return this.$store.getters['user/authType']() === AuthTypes.STAFF;
+        return this.isLoggedIn && this.$store.getters['user/highestPermissionAuthType']() === AuthTypes.STAFF;
     }
 
     get mainLinks() {
@@ -56,7 +56,7 @@ class PageMainNav extends Vue {
                 to: 'Licensing',
                 params: { compact: this.currentCompact?.type },
                 label: computed(() => this.$t('navigation.licensing')),
-                isEnabled: this.isLoggedIn && Boolean(this.currentCompact) && this.isLoggedInAsStaff,
+                isEnabled: Boolean(this.currentCompact) && this.isLoggedInAsStaff,
                 isExternal: false,
                 isExactActive: false,
             },
@@ -64,7 +64,7 @@ class PageMainNav extends Vue {
                 to: 'StateUpload',
                 params: { compact: this.currentCompact?.type },
                 label: computed(() => this.$t('navigation.upload')),
-                isEnabled: this.isLoggedIn && Boolean(this.currentCompact) && this.isLoggedInAsStaff,
+                isEnabled: Boolean(this.currentCompact) && this.isLoggedInAsStaff,
                 isExternal: false,
                 isExactActive: true,
             },

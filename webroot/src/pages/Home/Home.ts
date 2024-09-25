@@ -39,7 +39,7 @@ export default class Home extends Vue {
             compactType = this.storeCurrentCompact?.type;
         }
 
-        const authType = this.$store.getters['user/authType']();
+        const authType = this.$store.getters['user/highestPermissionAuthType']();
 
         if (authType === AuthTypes.STAFF) {
             this.$router.push({ name: 'Licensing', params: { compact: compactType }});

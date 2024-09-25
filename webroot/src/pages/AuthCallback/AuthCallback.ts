@@ -58,6 +58,11 @@ export default class AuthCallback extends Vue {
                 this.isError = true;
             });
         } else {
+            // If the state query param is absent or not matching we will
+            // still try to get tokens, if the user just logged in one of the two
+            // user pools will successfully return tokens. If neither do we enter
+            // the error state
+
             let errorCount = 0;
 
             await this.getTokensStaff().catch(() => {

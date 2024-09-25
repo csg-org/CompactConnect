@@ -32,15 +32,20 @@ export default {
         commit(MutationTypes.LOGIN_FAILURE, error);
     },
     // LOGOUT
-    logoutRequest: ({ commit, dispatch }) => {
+    logoutRequest: ({ commit, dispatch }, authType) => {
         dispatch('clearSessionStores');
-        dispatch('startLoading', null, { root: true });
-        dispatch('clearAuthTokens');
+        // dispatch('startLoading', null, { root: true });
+        let tokenType = AuthTypes.STAFF;
+
+        if (authType === AuthTypes.LICENSEE) {
+            tokenType = authType;
+        }
+        dispatch('clearAuthToken', tokenType);
         commit(MutationTypes.LOGOUT_REQUEST);
 
         /* istanbul ignore next */
         if (config.isUsingMockApi) {
-            setTimeout(() => dispatch('endLoading', null, { root: true }), 1000);
+            // setTimeout(() => dispatch('endLoading', null, { root: true }), 1000);
             dispatch('logoutSuccess');
         } else {
             dispatch('logoutSuccess');
@@ -173,14 +178,11 @@ export default {
         dispatch('sorting/resetStoreSorting', null, { root: true });
         dispatch('reset', null, { root: true });
     },
-    clearAuthTokens: () => {
+    clearAuthToken: (authType) => {
         /* istanbul ignore next */
-        Object.keys(tokens).forEach((tokenType) => {
-            /* istanbul ignore next */
-            Object.keys(tokens[tokenType]).forEach((key) => {
-                authStorage.removeItem(tokens[tokenType][key]);
-                localStorage.removeItem(tokens[tokenType][key]); // Always remove localStorage to reduce edge cache states; e.g. from switching auth storage
-            });
+        Object.keys(tokens[authType]).forEach((key) => {
+            authStorage.removeItem(tokens[authType][key]);
+            localStorage.removeItem(tokens[authType][key]); // Always remove localStorage to reduce edge cache states; e.g. from switching auth storage
         });
     },
 };

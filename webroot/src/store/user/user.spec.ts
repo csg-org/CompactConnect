@@ -184,7 +184,7 @@ describe('User Store Actions', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
 
-        actions.logoutRequest({ commit, dispatch });
+        actions.logoutRequest({ commit, dispatch }, 'staff');
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.LOGOUT_REQUEST]);
@@ -359,7 +359,7 @@ describe('User Store Actions', async () => {
 
         actions.storeAuthTokens({ dispatch }, { tokenResponse, authType });
 
-        const authTypeReturned = getters.authType()();
+        const authTypeReturned = getters.highestPermissionAuthType()();
 
         expect(authTypeReturned).to.equal('licensee');
     });
@@ -380,7 +380,7 @@ describe('User Store Actions', async () => {
 
         actions.storeAuthTokens({ dispatch }, { tokenResponse, authType });
 
-        const authTypeReturned = getters.authType()();
+        const authTypeReturned = getters.highestPermissionAuthType()();
 
         expect(authTypeReturned).to.equal('staff');
     });

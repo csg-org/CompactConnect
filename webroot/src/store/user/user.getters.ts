@@ -9,7 +9,7 @@ import { authStorage, AuthTypes, tokens } from '@/app.config';
 export default {
     state: (state: any) => state,
     currentCompact: (state: any) => state.currentCompact,
-    authType: () => () => {
+    highestPermissionAuthType: () => () => {
         let loggedInAsType = '';
 
         if (authStorage.getItem(tokens[AuthTypes.STAFF]?.AUTH_TOKEN)) {
