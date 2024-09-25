@@ -32,8 +32,10 @@ class ProviderUsers(UserPool):
             email=user_pool_email,
             standard_attributes=_configure_user_pool_standard_attributes(),
             custom_attributes={
-                # once the providerId is set, it cannot be changed
-                "providerId": StringAttribute(mutable=False)
+                # these fields are required in order for the provider to be able to query
+                # for their personal profile information. Once these fields are set, they cannot be changed.
+                "providerId": StringAttribute(mutable=False),
+                "compact": StringAttribute(mutable=False)
             },
             **kwargs
         )
@@ -56,10 +58,10 @@ class ProviderUsers(UserPool):
         self.ui_client = self.add_ui_client(
             callback_urls=callback_urls,
             # For now, we are allowing the user to read and update their email, given name, and family name.
-            # we only allow the user to be able to see their providerId, which is a custom attribute.
+            # we only allow the user to be able to see their providerId and compact, which are custom attributes.
             # If we ever want other attributes to be read or written, they must be added here.
             read_attributes=ClientAttributes().with_standard_attributes(email=True, given_name=True, family_name=True)
-                                              .with_custom_attributes("providerId"),
+                                              .with_custom_attributes("providerId", "compact"),
             write_attributes=ClientAttributes().with_standard_attributes(email=True, given_name=True, family_name=True)
         )
 
