@@ -15,8 +15,12 @@ class TestApi(TestCase):
     When adding or modifying API resources, a test should be added to ensure that the
     resource is created as expected.
     """
+    @classmethod
+    def setUpClass(cls):
+        cls.app = cls._when_testing_sandbox_stack_synth()
 
-    def _when_testing_sandbox_stack_synth(self):
+    @classmethod
+    def _when_testing_sandbox_stack_synth(cls):
         with open('cdk.json', 'r') as f:
             context = json.load(f)['context']
         with open('cdk.context.sandbox-example.json', 'r') as f:
@@ -28,35 +32,35 @@ class TestApi(TestCase):
         app = CompactConnectApp(context=context)
         api_stack_template = Template.from_stack(app.sandbox_stage.api_stack)
 
-        return api_stack_template
+        return app
 
     def test_synth_generates_provider_users_resource(self):
-        api_stack_template = self._when_testing_sandbox_stack_synth()
+        api_stack = self.app.sandbox_stage.api_stack
+        api_stack_template = Template.from_stack(api_stack)
 
-        parent_id_capture = Capture()
         # Ensure the resource is created with expected path
         api_stack_template.has_resource_properties(
             type=CfnResource.CFN_RESOURCE_TYPE_NAME,
             props={
-                "ParentId": parent_id_capture,
+                "ParentId": {
+                    'Ref': api_stack.get_logical_id(api_stack.api.v1_api.resource.node.default_child)
+                },
                 "PathPart": "provider-users"
             })
 
-        self.assertIn("LicenseApiv1", parent_id_capture.as_object()["Ref"])
-
     def test_synth_generates_get_provider_users_me_endpoint_resource(self):
-        api_stack_template = self._when_testing_sandbox_stack_synth()
+        api_stack = self.app.sandbox_stage.api_stack
+        api_stack_template = Template.from_stack(api_stack)
 
-        parent_id_capture = Capture()
         # Ensure the resource is created with expected path
         api_stack_template.has_resource_properties(
             type=CfnResource.CFN_RESOURCE_TYPE_NAME,
             props={
-                "ParentId": parent_id_capture,
+                "ParentId":{
+                    'Ref':  api_stack.get_logical_id(api_stack.api.v1_api.provider_users_resource.node.default_child)
+                },
                 "PathPart": "me"
             })
-
-        self.assertIn("LicenseApiv1providerusers", parent_id_capture.as_object()["Ref"])
 
         # ensure the handler is created
         api_stack_template.has_resource_properties(

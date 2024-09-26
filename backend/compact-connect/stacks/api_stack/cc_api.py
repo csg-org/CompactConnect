@@ -191,7 +191,7 @@ class CCApi(RestApi):
 
         MockApi(self.root, persistent_stack=persistent_stack)
         V0Api(self.root, persistent_stack=persistent_stack)
-        V1Api(self.root, persistent_stack=persistent_stack)
+        self.v1_api = V1Api(self.root, persistent_stack=persistent_stack)
 
         QueryDefinition(
             self, 'RuntimeQuery',
