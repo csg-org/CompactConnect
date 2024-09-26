@@ -1,7 +1,7 @@
 import json
 from unittest import TestCase
 
-from aws_cdk.assertions import Template, Capture
+from aws_cdk.assertions import Template
 from aws_cdk.aws_apigateway import CfnResource
 from aws_cdk.aws_lambda import CfnFunction
 
@@ -30,7 +30,6 @@ class TestApi(TestCase):
         context['aws:cdk:bundling-stacks'] = []
 
         app = CompactConnectApp(context=context)
-        api_stack_template = Template.from_stack(app.sandbox_stage.api_stack)
 
         return app
 
