@@ -14,7 +14,7 @@ class TestClient(TstFunction):
 
         client = UserClient(self.config)
 
-        user = client.get_user(compact='aslp', user_id=user_id)
+        user = client.get_user_in_compact(compact='aslp', user_id=user_id)
 
         # Verify that we're getting the expected fields
         self.assertEqual(
@@ -34,7 +34,7 @@ class TestClient(TstFunction):
 
         # This user isn't in the DB, so it should raise an exception
         with self.assertRaises(CCNotFoundException):
-            client.get_user(compact='aslp', user_id='123')
+            client.get_user_in_compact(compact='aslp', user_id='123')
 
     def test_get_compact_users_by_family_name(self):
         # One user with compact-staff-like permissions in aslp

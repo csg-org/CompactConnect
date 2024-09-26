@@ -20,7 +20,18 @@ class UserClient():
         self.user_attributes_schema = UserAttributesSchema()
         self.compact_permissions_schema = CompactPermissionsRecordSchema()
 
-    def get_user(self, *, compact: str, user_id: str):
+    @paginated_query
+    def get_user(self, *, user_id: str, dynamo_pagination: dict, scan_forward: bool = True) -> list[dict]:
+        resp = self.config.users_table.query(
+            KeyConditionExpression=Key('pk').eq(f'USER#{user_id}'),
+            ScanIndexForward=scan_forward,
+            **dynamo_pagination
+        )
+        if not resp.get('Items', []):
+            raise CCNotFoundException('User not found')
+        return resp
+
+    def get_user_in_compact(self, *, compact: str, user_id: str):
         user = self.config.users_table.get_item(
             Key={
                 'pk':  f'USER#{user_id}',

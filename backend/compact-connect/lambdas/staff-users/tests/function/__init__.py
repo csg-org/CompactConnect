@@ -146,6 +146,7 @@ class TstFunction(TstLambdas):
                     }
                 })
             )
+        return sub
 
     def _create_board_staff_users(self, compacts: List[str]):
         """

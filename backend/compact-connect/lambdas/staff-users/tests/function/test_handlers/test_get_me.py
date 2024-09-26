@@ -15,18 +15,17 @@ class TestHandlers(TstFunction):
 
         # The user has admin permission for all of aslp
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/aslp.admin'
-        event['pathParameters'] = {
-            'compact': 'octp'
-        }
+        event['pathParameters'] = {}
         event['body'] = None
 
         # We haven't loaded any users, so this won't find a user
         resp = get_me(event, self.mock_context)
 
-        self.assertEqual(403, resp['statusCode'])
+        self.assertEqual(404, resp['statusCode'])
 
     def test_get_me(self):
-        user_id = self._load_user_data()
+        # Using a compact staff user method because it creates a single user that spans multiple compacts
+        user_id = self._create_compact_staff_user(compacts=['aslp', 'octp'])
 
         from handlers.me import get_me
 
@@ -36,19 +35,31 @@ class TestHandlers(TstFunction):
         # The user has admin permission for all of aslp
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/aslp.admin'
         event['requestContext']['authorizer']['claims']['sub'] = user_id
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {}
         event['body'] = None
 
         resp = get_me(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
 
-        with open('tests/resources/api/user-response.json', 'r') as f:
-            expected_user = json.load(f)
-
         body = json.loads(resp['body'])
 
+        self.assertEqual({'type', 'dateOfUpdate', 'userId', 'attributes', 'permissions'}, body.keys())
+        # Verify we've successfully merged permissions from two compacts
         self.assertEqual(
-            expected_user,
-            body
+            {
+                'aslp': {
+                    'actions': {
+                        'read': True
+                    },
+                    'jurisdictions': {}
+                },
+                'octp': {
+                    'actions': {
+                        'read': True
+                    },
+                    'jurisdictions': {}
+                }
+            },
+            body['permissions']
         )

@@ -18,7 +18,7 @@ def get_one_user(event: dict, context: LambdaContext):  # pylint: disable=unused
     scopes = get_event_scopes(event)
     allowed_jurisdictions = get_allowed_jurisdictions(compact=compact, scopes=scopes)
 
-    user = user_client.get_user(compact=compact, user_id=user_id)
+    user = user_client.get_user_in_compact(compact=compact, user_id=user_id)
 
     # For jurisdiction-admins, don't return users if they have no permissions in the admin's jurisdiction
     if allowed_jurisdictions is not None:
