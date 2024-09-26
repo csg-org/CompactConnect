@@ -178,7 +178,6 @@ class UserClient():
 
     def update_user_attributes(
             self, *,
-            compact: str,
             user_id: str,
             attributes: dict
     ):  # pylint: disable-redefined-outer-name
@@ -211,17 +210,25 @@ class UserClient():
 
         update_expression = ' '.join(update_expression_parts)
 
-        resp = self.config.users_table.update_item(
-            Key={
-                'pk': f'USER#{user_id}',
-                'sk': f'COMPACT#{compact}'
-            },
-            UpdateExpression=update_expression,
-            ExpressionAttributeNames=expression_attribute_names,
-            ExpressionAttributeValues=expression_attribute_values,
-            ReturnValues='ALL_NEW'
-        )
-        return self.schema.load(resp['Attributes'])
+        records = self.get_user(user_id=user_id)['items']  # pylint: disable=missing-kwoa
+        compacts =  {record['compact'] for record in records}
+
+        # We'll just serially update each of the user's records, since we realistically only
+        # expect users to have two or three. If latency gets excessive, we can refactor.
+        records = []
+        for compact in compacts:
+            resp = self.config.users_table.update_item(
+                Key={
+                    'pk': f'USER#{user_id}',
+                    'sk': f'COMPACT#{compact}'
+                },
+                UpdateExpression=update_expression,
+                ExpressionAttributeNames=expression_attribute_names,
+                ExpressionAttributeValues=expression_attribute_values,
+                ReturnValues='ALL_NEW'
+            )
+            records.append(resp['Attributes'])
+        return self.schema.load(records, many=True)
 
     def create_user(self, compact: str, attributes: dict, permissions: dict):
         """

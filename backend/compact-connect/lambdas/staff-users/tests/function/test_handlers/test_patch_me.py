@@ -15,9 +15,7 @@ class TestHandlers(TstFunction):
 
         # The user has admin permission for all of aslp
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/aslp.admin'
-        event['pathParameters'] = {
-            'compact': 'octp'
-        }
+        event['pathParameters'] = {}
         event['body'] = json.dumps({
             'attributes': {
                 'givenName': 'George'
@@ -40,7 +38,7 @@ class TestHandlers(TstFunction):
         # The user has admin permission for all of aslp
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/aslp.admin'
         event['requestContext']['authorizer']['claims']['sub'] = user_id
-        event['pathParameters'] = {'compact': 'aslp'}
+        event['pathParameters'] = {}
         event['body'] = json.dumps({
             'attributes': {
                 'givenName': 'George'

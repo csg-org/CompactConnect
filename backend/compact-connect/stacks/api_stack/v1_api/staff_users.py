@@ -15,29 +15,31 @@ from .. import cc_api
 class StaffUsers:
     def __init__(
             self, *,
-            resource: Resource,
+            admin_resource: Resource,
+            self_resource: Resource,
             admin_scopes: List[str]
     ):
         super().__init__()
 
-        self.stack = Stack.of(resource)
-        self.resource = resource
-        self.api: cc_api.CCApi = resource.api
+        self.stack = Stack.of(admin_resource)
+        self.admin_resource = admin_resource
+        self.api: cc_api.CCApi = admin_resource.api
+
         self.log_groups = []
 
         # .../
-        self._add_get_users(self.resource, admin_scopes)
-        self._add_post_user(self.resource, admin_scopes)
+        self._add_get_users(self.admin_resource, admin_scopes)
+        self._add_post_user(self.admin_resource, admin_scopes)
 
-        user_id_resource = self.resource.add_resource('{userId}')
+        user_id_resource = self.admin_resource.add_resource('{userId}')
         # .../{userId}
         self._add_get_user(user_id_resource, admin_scopes)
         self._add_patch_user(user_id_resource, admin_scopes)
 
-        me_resource = self.resource.add_resource('me')
+        self.me_resource = self_resource.add_resource('me')
         # .../me
-        self._add_get_me(me_resource)
-        self._add_patch_me(me_resource)
+        self._add_get_me(self.me_resource)
+        self._add_patch_me(self.me_resource)
 
         self.api.log_groups.extend(self.log_groups)
 

@@ -5,7 +5,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from config import logger
 from exceptions import CCInternalException
 from handlers import user_client, user_api_schema
-from utils import api_handler, get_event_scopes, validate_compact_in_scopes
+from utils import api_handler
 
 
 @api_handler
@@ -21,7 +21,26 @@ def get_me(event: dict, context: LambdaContext):  # pylint: disable=unused-argum
     if last_key is not None:
         logger.error('A provider had so many records, they paginated!')
         raise CCInternalException('Unexpected provider data')
-    users_iter = iter(resp['items'])
+
+    return _merge_user_records(user_id, resp['items'])
+
+
+@api_handler
+def patch_me(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+    """
+    Edit a user's own attributes
+    """
+    user_id = event['requestContext']['authorizer']['claims']['sub']
+
+    body = json.loads(event['body'])
+    user_records = user_client.update_user_attributes(
+        user_id=user_id,
+        attributes=body['attributes']
+    )
+    return _merge_user_records(user_id, user_records)
+
+def _merge_user_records(user_id: str, records: list) -> dict:
+    users_iter = iter(records)
     merged_user = user_api_schema.load(next(users_iter))
     for record in users_iter:
         compact = record['compact']
@@ -33,22 +52,3 @@ def get_me(event: dict, context: LambdaContext):  # pylint: disable=unused-argum
         # Merge compact fields in permissions
         merged_user['permissions'].update(next_user['permissions'])
     return merged_user
-
-
-@api_handler
-def patch_me(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    """
-    Edit a user's own attributes
-    """
-    compact = event['pathParameters']['compact']
-    user_id = event['requestContext']['authorizer']['claims']['sub']
-    scopes = get_event_scopes(event)
-
-    validate_compact_in_scopes(scopes, compact)
-
-    body = json.loads(event['body'])
-    return user_api_schema.load(user_client.update_user_attributes(
-        compact=compact,
-        user_id=user_id,
-        attributes=body['attributes']
-    ))

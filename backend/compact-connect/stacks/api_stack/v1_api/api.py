@@ -74,14 +74,16 @@ class V1Api:
         )
 
         # /v1/staff-users
-        staff_users_resource = compact_resource.add_resource('staff-users')
-        # GET    /v1/staff-users
-        # POST   /v1/staff-users
+        staff_users_admin_resource = compact_resource.add_resource('staff-users')
+        staff_users_self_resource = self.resource.add_resource('staff-users')
         # GET    /v1/staff-users/me
         # PATCH  /v1/staff-users/me
-        # GET    /v1/staff-users/{userId}
-        # PATCH  /v1/staff-users/{userId}
+        # GET    /v1/compacts/{compact}/staff-users
+        # POST   /v1/compacts/{compact}/staff-users
+        # GET    /v1/compacts/{compact}/staff-users/{userId}
+        # PATCH  /v1/compacts/{compact}/staff-users/{userId}
         StaffUsers(
-            resource=staff_users_resource,
+            admin_resource=staff_users_admin_resource,
+            self_resource=staff_users_self_resource,
             admin_scopes=admin_scopes
         )

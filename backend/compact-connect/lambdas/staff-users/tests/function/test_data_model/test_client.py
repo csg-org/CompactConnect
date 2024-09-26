@@ -257,26 +257,27 @@ class TestClient(TstFunction):
         client = UserClient(self.config)
 
         resp = client.update_user_attributes(
-            compact='aslp',
             user_id=user_id,
             attributes={
                 'givenName': 'Bob',
                 'familyName': 'Smith'
             }
         )
+        self.assertEqual(1, len(resp))
+        user = resp[0]
 
-        self.assertEqual(user_id, resp['userId'])
+        self.assertEqual(user_id, user['userId'])
         self.assertEqual(
             {
                 'givenName': 'Bob',
                 'familyName': 'Smith',
                 'email': 'justin@example.org'
             },
-            resp['attributes']
+            user['attributes']
         )
         # Checking that we're getting the whole object, not just changes
         self.assertFalse(
-            {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - resp.keys()
+            {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - user.keys()
         )
 
     def test_create_new_user(self):
