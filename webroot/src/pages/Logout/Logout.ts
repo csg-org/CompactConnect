@@ -31,29 +31,6 @@ export default class Logout extends Vue {
         return this.$route.query?.goto?.toString() || '';
     }
 
-    get isLoggedIn(): boolean {
-        return this.userStore.isLoggedIn;
-    }
-
-    get isLoggedInAsStaff(): boolean {
-        return this.isLoggedIn && this.$store.getters['user/highestPermissionAuthType']() === AuthTypes.STAFF;
-    }
-
-    get isLoggedInAsLicenseeOnly(): boolean {
-        return this.isLoggedIn && this.$store.getters['user/highestPermissionAuthType']() === AuthTypes.LICENSEE;
-    }
-
-    // get highestPermissionLoggedIn(): string {
-    //     let highestPermission = '';
-
-    //     if (this.isLoggedInAsLicensee) {
-    //         highestPermission = AuthTypes.LICENSEE
-    //     }
-
-    //     if ()
-
-    // }
-
     get hostedLogoutUriStaff(): string {
         const { domain, cognitoAuthDomainStaff, cognitoClientIdStaff } = this.$envConfig;
         const loginScopes = 'email openid phone profile';
@@ -94,8 +71,10 @@ export default class Logout extends Vue {
     // Methods
     //
     async logout(): Promise<void> {
+        const isLoggedInAsLicenseeOnly = this.$store.getters['user/highestPermissionAuthType']() === AuthTypes.LICENSEE;
+
         await this.logoutChecklist();
-        this.redirectToHighestPermissionHostedLogout();
+        this.redirectToHighestPermissionHostedLogout(isLoggedInAsLicenseeOnly);
     }
 
     async logoutChecklist(): Promise<void> {
@@ -112,10 +91,10 @@ export default class Logout extends Vue {
         }
     }
 
-    redirectToHighestPermissionHostedLogout(): void {
+    redirectToHighestPermissionHostedLogout(isLoggedInAsLicenseeOnly): void {
         let logOutUrl = this.hostedLogoutUriStaff;
 
-        if (this.isLoggedInAsLicenseeOnly) {
+        if (isLoggedInAsLicenseeOnly) {
             logOutUrl = this.hostedLogoutUriLicensee;
         }
 

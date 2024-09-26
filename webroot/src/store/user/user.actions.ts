@@ -34,7 +34,7 @@ export default {
     // LOGOUT
     logoutRequest: ({ commit, dispatch }, authType) => {
         dispatch('clearSessionStores');
-        // dispatch('startLoading', null, { root: true });
+        dispatch('startLoading', null, { root: true });
         let tokenType = AuthTypes.STAFF;
 
         if (authType === AuthTypes.LICENSEE) {
@@ -45,7 +45,7 @@ export default {
 
         /* istanbul ignore next */
         if (config.isUsingMockApi) {
-            // setTimeout(() => dispatch('endLoading', null, { root: true }), 1000);
+            setTimeout(() => dispatch('endLoading', null, { root: true }), 1000);
             dispatch('logoutSuccess');
         } else {
             dispatch('logoutSuccess');
@@ -178,7 +178,7 @@ export default {
         dispatch('sorting/resetStoreSorting', null, { root: true });
         dispatch('reset', null, { root: true });
     },
-    clearAuthToken: (authType) => {
+    clearAuthToken: (def, authType) => {
         /* istanbul ignore next */
         Object.keys(tokens[authType]).forEach((key) => {
             authStorage.removeItem(tokens[authType][key]);
