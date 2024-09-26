@@ -39,11 +39,10 @@ class V1Api:
             authorization_scopes=write_scopes
         )
 
-        # /v1/provider-users/me
+        # /v1/provider-users
         self.provider_users_resource = self.resource.add_resource('provider-users')
-        provider_users_me_resource = self.provider_users_resource.add_resource('me')
         ProviderUsers(
-            provider_users_me_resource,
+            self.provider_users_resource,
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table
         )

@@ -22,9 +22,11 @@ class ProviderUsers:
             provider_data_table: ProviderTable
     ):
         super().__init__()
-
-        self.resource = resource
+        # /v1/provider-users
+        self.provider_users_resource = resource
         self.api: cc_api.CCApi = resource.api
+
+        self.provider_users_me_resource = self.provider_users_resource.add_resource('me')
 
         stack: Stack = Stack.of(resource)
         lambda_environment = {
@@ -53,7 +55,7 @@ class ProviderUsers:
         )
         self.api.log_groups.append(handler.log_group)
 
-        self.resource.add_method(
+        self.provider_users_me_resource.add_method(
             'GET',
             request_validator=self.api.parameter_body_validator,
             method_responses=[
@@ -95,9 +97,9 @@ class ProviderUsers:
             provider_data_table: ProviderTable,
             lambda_environment: dict
     ) -> PythonFunction:
-        stack = Stack.of(self.resource)
+        stack = Stack.of(self.provider_users_resource)
         handler = PythonFunction(
-            self.resource, 'GetProviderUserMeHandler',
+            self.provider_users_resource, 'GetProviderUserMeHandler',
             description='Get provider personal profile information handler',
             entry=os.path.join('lambdas', 'provider-data-v1'),
             index=os.path.join('handlers', 'provider_users.py'),
