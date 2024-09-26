@@ -48,12 +48,12 @@ class ProviderUsers:
             provider_data_table: ProviderTable,
             lambda_environment: dict
     ):
-        handler = self._get_provider_user_me_handler(
+        self.get_provider_users_me_handler = self._get_provider_user_me_handler(
             data_encryption_key=data_encryption_key,
             provider_data_table=provider_data_table,
             lambda_environment=lambda_environment
         )
-        self.api.log_groups.append(handler.log_group)
+        self.api.log_groups.append(self.get_provider_users_me_handler.log_group)
 
         self.provider_users_me_resource.add_method(
             'GET',
@@ -67,7 +67,7 @@ class ProviderUsers:
                 )
             ],
             integration=LambdaIntegration(
-                handler,
+                self.get_provider_users_me_handler,
                 timeout=Duration.seconds(29)
             ),
             request_parameters={
