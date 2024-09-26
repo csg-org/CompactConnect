@@ -21,7 +21,7 @@ This system includes a mock license data API that has two functions: A synchrono
 ## How to use the API bulk-upload feature
 [Back to top](#compact-connect---technical-user-guide)
 
-## Generating a CSV export of your license data
+### Generating a CSV export of your license data
 
 Export your license data to a CSV file, formatted as follows:
    1) The file must be a utf-8 encoded text format
@@ -30,7 +30,7 @@ Export your license data to a CSV file, formatted as follows:
    4) All subsequent lines must be individual licenses.
    5) If optional fields are included, their values may be omitted in some rows by leaving the position empty.
 
-### Example CSV
+#### Example CSV
 ```csv
 dateOfIssuance,npi,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,status,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
 2024-06-30,0608337260,2024-06-30,speech-language pathologist,Guðmundsdóttir,Birmingham,Gunnar,active,529-31-5408,123 A St.,Apt 321,2024-06-30,oh,35004,Björk,2024-06-30
@@ -40,27 +40,28 @@ dateOfIssuance,npi,dateOfBirth,licenseType,familyName,homeAddressCity,middleName
 2024-06-30,0608337260,2024-06-30,speech-language pathologist,Carreño Quiñones,Montgomery,José,active,529-31-5412,10 Main St.,,2024-06-30,oh,35008,María,2024-06-30
 ```
 
-## Manual Uploads
+### Manual Uploads
 
 1) Request a staff user with permissions you need.
 2) Log into CompactConnect with your new user.
 3) Navigate to the bulk-upload page to upload your exported CSV. It may take about five minutes for uploaded licenses to be fully ingested and appear in the system.
 
-## Machine-to-machine automated uploads
+### Machine-to-machine automated uploads
 
 The data system API supports uploading of a large CSV file for asynchronous data ingest. The feature involves using two endpoints, which are described in the [Open API Specification](#open-api-specification) above. To upload a file for asynchronous data ingest perform the following steps:
 1) Request a dedicated client for your automated integration. Note that there may be some lead time for that request.
 2) Authenticate your client using the **OAuth2.0 client-credentials-grant** to obtain an access token for the API.
-3) Log into CompactConnect with your new user and navigate to the bulk-upload page to upload your exported CSV. It may take about five minutes for uploaded licenses to be fully ingested and appear in the system.
-4) Call the `GET /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload` endpoint to receive an upload URL and upload fields to use when uploading your file.
-5) `POST` to the provided url, with `Content-Type: multipart/form-data`, providing all the fields returned from the `GET` endpoint as form-data fields in addition to your file.
+3) Call the `GET /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload` endpoint to receive an upload URL and upload fields to use when uploading your file.
+4) `POST` to the provided url, with `Content-Type: multipart/form-data`, providing all the fields returned from the `GET` endpoint as form-data fields in addition to your file.
 
 For your convenience, use of this feature is included in the [Postman Collection](./postman/postman-collection.json).
 
 ## Open API Specification
 [Back to top](#compact-connect---technical-user-guide)
 
-We will maintain the latest api specification here, in [latest-oas30.json](api-specification/latest-oas30.json). You can open a Swagger UI view of it by opening up the accompanying [swagger.html](api-specification/swagger.html) in your browser.
+We will maintain the latest api specification here, in [latest-oas30.json](api-specification/latest-oas30.json). You can
+use [Swagger.io](https://editor.swagger.io/) to render the json directly or, if you happen to use an IDE that supports
+the feature, you can open a Swagger UI view of it by opening up the accompanying [swagger.html](api-specification/swagger.html) in your browser.
 
 ### Change summary:
 - 2024-08-21: First API version release
