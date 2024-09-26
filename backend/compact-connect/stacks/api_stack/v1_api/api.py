@@ -6,6 +6,7 @@ from stacks import persistent_stack as ps
 from stacks.api_stack import cc_api
 from stacks.api_stack.v1_api.bulk_upload_url import BulkUploadUrl
 from stacks.api_stack.v1_api.query_providers import QueryProviders
+from stacks.api_stack.v1_api.provider_users import ProviderUsers
 
 from .post_licenses import PostLicenses
 
@@ -36,6 +37,15 @@ class V1Api:
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
             authorization_scopes=write_scopes
+        )
+
+        # /v1/provider-users/me
+        self.provider_users_resource = self.resource.add_resource('provider-users')
+        provider_users_me_resource = self.provider_users_resource.add_resource('me')
+        ProviderUsers(
+            provider_users_me_resource,
+            data_encryption_key=persistent_stack.shared_encryption_key,
+            provider_data_table=persistent_stack.provider_table
         )
 
         # /v1/compacts/{compact}
