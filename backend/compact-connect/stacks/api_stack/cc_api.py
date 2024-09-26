@@ -248,6 +248,13 @@ class CCApi(RestApi):
         )
 
     @cached_property
+    def provider_users_authorizer(self):
+        return CognitoUserPoolsAuthorizer(
+            self, 'ProviderUsersPoolAuthorizer',
+            cognito_user_pools=[self._persistent_stack.provider_users]
+        )
+
+    @cached_property
     def parameter_body_validator(self):
         return self.add_request_validator(
             'BodyValidator',
