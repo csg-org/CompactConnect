@@ -4,7 +4,7 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/requirements-dev.in
 #
-astroid==3.3.3
+astroid==3.3.4
     # via pylint
 boolean-py==4.0
     # via license-expression
@@ -76,7 +76,7 @@ py-serializable==1.1.1
     # via cyclonedx-python-lib
 pygments==2.18.0
     # via rich
-pylint==3.3.0
+pylint==3.3.1
     # via -r compact-connect/requirements-dev.in
 pyparsing==3.1.4
     # via pip-requirements-parser

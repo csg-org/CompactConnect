@@ -2,7 +2,8 @@ from __future__ import annotations
 import json
 import os
 
-from aws_cdk.aws_cognito import ResourceServerScope, UserPoolOperation, LambdaVersion, ClientAttributes
+from aws_cdk.aws_cognito import ResourceServerScope, UserPoolOperation, LambdaVersion, ClientAttributes, \
+    StandardAttributes, SignInAliases
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from constructs import Construct
@@ -19,10 +20,12 @@ class StaffUsers(UserPool):
     """
     def __init__(
             self, scope: Construct, construct_id: str, *,
-            cognito_domain_prefix: str,
+            cognito_domain_prefix: str | None,
             environment_name: str,
             environment_context: dict,
             encryption_key: IKey,
+            sign_in_aliases: SignInAliases,
+            standard_attributes: StandardAttributes,
             removal_policy,
             **kwargs
     ):
@@ -31,6 +34,8 @@ class StaffUsers(UserPool):
             cognito_domain_prefix=cognito_domain_prefix,
             environment_name=environment_name,
             encryption_key=encryption_key,
+            sign_in_aliases=sign_in_aliases,
+            standard_attributes=standard_attributes,
             removal_policy=removal_policy,
             **kwargs
         )
@@ -63,13 +68,9 @@ class StaffUsers(UserPool):
         self.ui_client = self.add_ui_client(
             callback_urls=callback_urls,
             write_attributes=ClientAttributes().with_standard_attributes(
-                given_name=True,
-                family_name=True,
                 email=False
             ),
             read_attributes=ClientAttributes().with_standard_attributes(
-                given_name=True,
-                family_name=True,
                 email=True
             )
         )

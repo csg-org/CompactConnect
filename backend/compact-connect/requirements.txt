@@ -8,17 +8,17 @@ attrs==24.2.0
     # via
     #   cattrs
     #   jsii
-aws-cdk-asset-awscli-v1==2.2.203
+aws-cdk-asset-awscli-v1==2.2.204
     # via aws-cdk-lib
 aws-cdk-asset-kubectl-v20==2.1.2
     # via aws-cdk-lib
 aws-cdk-asset-node-proxy-agent-v6==2.1.0
     # via aws-cdk-lib
-aws-cdk-aws-lambda-python-alpha==2.159.1a0
+aws-cdk-aws-lambda-python-alpha==2.160.0a0
     # via -r compact-connect/requirements.in
-aws-cdk-cloud-assembly-schema==36.3.0
+aws-cdk-cloud-assembly-schema==38.0.1
     # via aws-cdk-lib
-aws-cdk-lib==2.159.1
+aws-cdk-lib==2.160.0
     # via
     #   -r compact-connect/requirements.in
     #   aws-cdk-aws-lambda-python-alpha

@@ -3,7 +3,7 @@ from typing import List
 from aws_cdk import CfnOutput, Duration, RemovalPolicy
 from aws_cdk.aws_cognito import UserPool as CdkUserPool, UserPoolEmail, AccountRecovery, AutoVerifiedAttrs, \
     AdvancedSecurityMode, DeviceTracking, Mfa, MfaSecondFactor, PasswordPolicy, StandardAttributes, \
-    StandardAttribute, CognitoDomainOptions, AuthFlow, OAuthSettings, OAuthFlows, ClientAttributes, \
+    CognitoDomainOptions, AuthFlow, OAuthSettings, OAuthFlows, ClientAttributes, \
     CfnUserPoolRiskConfigurationAttachment, OAuthScope, SignInAliases
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
@@ -16,6 +16,8 @@ class UserPool(CdkUserPool):
             cognito_domain_prefix: str,
             environment_name: str,
             encryption_key: IKey,
+            sign_in_aliases: SignInAliases,
+            standard_attributes: StandardAttributes,
             removal_policy,
             **kwargs
     ):
@@ -39,14 +41,9 @@ class UserPool(CdkUserPool):
                 min_length=12
             ),
             self_sign_up_enabled=False,
-            sign_in_aliases=SignInAliases(email=True, username=False),
+            sign_in_aliases=sign_in_aliases,
             sign_in_case_sensitive=False,
-            standard_attributes=StandardAttributes(
-                email=StandardAttribute(
-                    mutable=True,
-                    required=True
-                )
-            ),
+            standard_attributes=standard_attributes,
             **kwargs
         )
 

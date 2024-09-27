@@ -1,4 +1,5 @@
 from aws_cdk import RemovalPolicy
+from aws_cdk.aws_cognito import StandardAttributes, StandardAttribute, SignInAliases
 from aws_cdk.aws_kms import Key
 from constructs import Construct
 
@@ -61,13 +62,22 @@ class PersistentStack(AppStack):
         self._add_data_resources(removal_policy=removal_policy)
 
         staff_prefix = f'{app_name}-staff'
+
         self.staff_users = StaffUsers(
-            self, 'StaffUsers',
+            self, 'StaffUsers2',
             cognito_domain_prefix=staff_prefix if environment_name == 'prod'
             else f'{staff_prefix}-{environment_name}',
             environment_name=environment_name,
             environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
+            sign_in_aliases=SignInAliases(email=True, username=False),
+            standard_attributes=StandardAttributes(
+                email=StandardAttribute(
+                    required=True,
+                    mutable=True
+                )
+            ),
+            # user_invitation=UserInvitationConfig(...),
             removal_policy=removal_policy
         )
 

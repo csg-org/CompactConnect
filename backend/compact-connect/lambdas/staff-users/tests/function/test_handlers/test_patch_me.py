@@ -7,7 +7,7 @@ from tests.function import TstFunction
 
 @mock_aws
 class TestHandlers(TstFunction):
-    def test_patch_me_access_denied(self):
+    def test_patch_me_not_found(self):
         from handlers.me import patch_me
 
         with open('tests/resources/api-event.json', 'r') as f:
@@ -25,7 +25,7 @@ class TestHandlers(TstFunction):
         # We haven't loaded any users, so this won't find a user
         resp = patch_me(event, self.mock_context)
 
-        self.assertEqual(403, resp['statusCode'])
+        self.assertEqual(404, resp['statusCode'])
 
     def test_patch_me(self):
         user_id = self._load_user_data()
