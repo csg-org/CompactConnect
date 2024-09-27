@@ -42,10 +42,10 @@ class TestApp(TestCase):
         """
         Helper function to retrieve a resource from a CloudFormation template by its logical ID.
         """""
-        for resource_name, resource in resources.items():
-            if resource_name == logical_id:
-                return resource['Properties']
-        raise RuntimeError(f'{logical_id} not found!')
+        try:
+            return resources[logical_id]['Properties']
+        except KeyError as exc:
+            raise RuntimeError(f'{logical_id} not found in resources!') from exc
 
     def test_no_compact_jurisdiction_name_clash(self):
         """

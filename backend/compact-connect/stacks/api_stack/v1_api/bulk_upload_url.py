@@ -3,8 +3,7 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration
-from aws_cdk.aws_apigateway import Resource, MethodResponse, JsonSchema, \
-    JsonSchemaType, MethodOptions, LambdaIntegration, Model, AuthorizationType
+from aws_cdk.aws_apigateway import Resource, MethodResponse, MethodOptions, LambdaIntegration, AuthorizationType
 from aws_cdk.aws_s3 import IBucket
 from cdk_nag import NagSuppressions
 
@@ -12,6 +11,7 @@ from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 # Importing module level to allow lazy loading for typing
 from stacks.api_stack import cc_api
+from .api_model import ApiModel
 
 
 class BulkUploadUrl:
@@ -20,12 +20,14 @@ class BulkUploadUrl:
             *,
             resource: Resource,
             method_options: MethodOptions,
-            bulk_uploads_bucket: IBucket
+            bulk_uploads_bucket: IBucket,
+            api_model: ApiModel
     ):
         super().__init__()
 
         self.resource = resource.add_resource('bulk-upload')
         self.api: cc_api.CCApi = resource.api
+        self.api_model = api_model
         self.log_groups = []
         self._add_bulk_upload_url(
             method_options=method_options,
@@ -79,7 +81,7 @@ class BulkUploadUrl:
                 MethodResponse(
                     status_code='200',
                     response_models={
-                        'application/json': self.get_bulk_upload_response_model(self.api)
+                        'application/json': self.api_model.bulk_upload_response_model
                     }
                 )
             ],
@@ -96,31 +98,3 @@ class BulkUploadUrl:
             authorizer=method_options.authorizer,
             authorization_scopes=method_options.authorization_scopes
         )
-
-    @staticmethod
-    def get_bulk_upload_response_model(api: cc_api.CCApi) -> Model:
-        """
-        Return the Post License Model, which should only be created once per API
-        """
-        if hasattr(api, 'bulk_upload_response_model'):
-            return api.bulk_upload_response_model
-
-        api.bulk_upload_response_model = api.add_model(
-            'BulkUploadResponseModel',
-            description='Bulk upload url response model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                required=[
-                    'upload',
-                    'fields'
-                ],
-                properties={
-                    'url': JsonSchema(type=JsonSchemaType.STRING),
-                    'fields': JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        additional_properties=JsonSchema(type=JsonSchemaType.STRING)
-                    )
-                }
-            )
-        )
-        return api.bulk_upload_response_model

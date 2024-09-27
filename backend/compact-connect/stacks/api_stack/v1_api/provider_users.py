@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration
-from aws_cdk.aws_apigateway import Resource, MethodResponse, Model, LambdaIntegration
+from aws_cdk.aws_apigateway import Resource, MethodResponse, LambdaIntegration
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 
@@ -12,6 +12,7 @@ from common_constructs.stack import Stack
 # Importing module level to allow lazy loading for typing
 from stacks.api_stack import cc_api
 from stacks.persistent_stack import ProviderTable
+from .api_model import ApiModel
 
 
 class ProviderUsers:
@@ -19,11 +20,13 @@ class ProviderUsers:
             self,
             resource: Resource,
             data_encryption_key: IKey,
-            provider_data_table: ProviderTable
+            provider_data_table: ProviderTable,
+            api_model: ApiModel
     ):
         super().__init__()
         # /v1/provider-users
         self.provider_users_resource = resource
+        self.api_model = api_model
         self.api: cc_api.CCApi = resource.api
 
         self.provider_users_me_resource = self.provider_users_resource.add_resource('me')
@@ -62,7 +65,7 @@ class ProviderUsers:
                 MethodResponse(
                     status_code='200',
                     response_models={
-                        'application/json': self._get_provider_response_model()
+                        'application/json': self.api_model.provider_response_model
                     }
                 )
             ],
@@ -75,20 +78,6 @@ class ProviderUsers:
             },
             authorizer=self.api.provider_users_authorizer,
         )
-
-
-    def _get_provider_response_model(self) -> Model:
-        """
-        Return the query license response model, which should only be created once per API
-        """
-        if hasattr(self.api, 'v1_get_provider_response_model'):
-            return self.api.v1_get_provider_response_model
-        self.api.v1_get_provider_response_model = self.api.add_model(
-            'V1GetProviderResponseModel',
-            description='Get provider response model',
-            schema=self.api.v1_provider_detail_response_schema
-        )
-        return self.api.v1_get_provider_response_model
 
 
     def _get_provider_user_me_handler(
