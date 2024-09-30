@@ -128,7 +128,7 @@ const getEnvironmentUrls = (requestDomain) => {
     environmentUrls.dataApi = getFullyQualified(environment.dataApi);
     environmentUrls.s3Upload = getFullyQualified(environment.s3Upload);
     environmentUrls.cognitoStaff = getFullyQualified(environment.cognitoStaff);
-    environmentUrls.cognitoStaff = getFullyQualified(environment.cognitoProvider);
+    environmentUrls.cognitoProvider = getFullyQualified(environment.cognitoProvider);
 
     return environmentUrls;
 };
