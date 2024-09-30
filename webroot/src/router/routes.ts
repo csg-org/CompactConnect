@@ -57,6 +57,12 @@ const routes: Array<RouteConfig> = [
         meta: { requiresAuth: true },
     },
     {
+        path: '/:compact/Users',
+        name: 'Users',
+        component: () => import(/* webpackChunkName: "users" */ '@pages/UserList/UserList.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
         path: '/styleguide',
         name: 'StyleGuide',
         component: () => import(/* webpackChunkName: "styleGuide" */ '@pages/StyleGuide/StyleGuide.vue'),
@@ -67,7 +73,7 @@ const routes: Array<RouteConfig> = [
     {
         path: '/:pathMatch(.*)*',
         name: '404',
-        component: () => import(/* webpackChunkName: "login" */ '@pages/404/404.vue'),
+        component: () => import(/* webpackChunkName: "home" */ '@pages/404/404.vue'),
     },
 ];
 

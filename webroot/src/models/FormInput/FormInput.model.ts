@@ -109,7 +109,7 @@ export class FormInput implements InterfaceFormInput {
         let max = -1;
 
         if (validation) {
-            const { _rules: rules = []} = validation;
+            const { _rules: rules = [] } = validation;
             const maxRule: any = rules?.find((rule) => (rule as any).name === 'max') || null;
 
             if (maxRule) {

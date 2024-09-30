@@ -55,7 +55,7 @@ describe('Global Store Mutations', () => {
         expect(state.messages).to.matchPattern([message]);
     });
     it('should successfully push a message (some messages exist)', () => {
-        const state = { messages: [ 'existing' ]};
+        const state = { messages: [ 'existing' ] };
         const message = 'message';
 
         mutations[MutationTypes.PUSH_MESSAGE](state, message);

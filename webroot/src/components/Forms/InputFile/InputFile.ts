@@ -53,12 +53,12 @@ class InputFile extends mixins(MixinInput) {
         return formatted;
     }
 
-    blur(formInput: FormInput): void {
+    input(formInput: FormInput): void {
+        this.updateSelectedFiles();
         this.validateSelectedFiles(formInput);
     }
 
-    input(formInput: FormInput): void {
-        this.updateSelectedFiles();
+    cancel(formInput: FormInput): void {
         this.validateSelectedFiles(formInput);
     }
 
@@ -98,7 +98,7 @@ class InputFile extends mixins(MixinInput) {
     updateSelectedFiles(): void {
         // $refs are not reactive, so we have to manually update the selected files to a reactive array
         const input = this.$refs.inputFiles || {};
-        const { files: fileList = []} = (input as any);
+        const { files: fileList = [] } = (input as any);
         const files: Array<File> = Array.from(fileList);
 
         this.selectedFiles = files;

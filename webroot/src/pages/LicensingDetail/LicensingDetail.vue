@@ -31,26 +31,21 @@
         <div class="licensee-section licenses">
             <div class="licensee-section-title">Licenses</div>
             <div v-if="$matches.tablet.min" class="license-row headers">
-                <div class="license-row-cell residence-state header">{{ $t('licensing.residenceLocation') }}</div>
-                <div class="license-row-cell license-state header">{{ $t('licensing.stateOfLicense') }}</div>
-                <div class="license-row-cell practicing-state header">{{ $t('licensing.practicingLocations') }}</div>
+                <div class="license-row-cell residence-location header">{{ $t('licensing.residenceLocation') }}</div>
+                <div class="license-row-cell home-state header">{{ $t('licensing.homeState') }}</div>
+                <div class="license-row-cell privilege-states header">{{ $t('licensing.privileges') }}</div>
             </div>
-            <div
-                v-for="(license, idx) in licenseeLicenses"
-                :key="idx"
-                class="license-row"
-            >
-                <div class="license-row-cell residence-state">
+            <div class="license-row">
+                <div class="license-row-cell residence-location">
                     <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.residenceLocation') }}: </span>
-                    {{ licensee.residenceLocation() }}
                 </div>
-                <div class="license-row-cell license-state">
-                    <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.stateOfLicense') }}: </span>
-                    {{ license.issueState.name() }}
+                <div class="license-row-cell home-state">
+                    <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.homeState') }}: </span>
+                    {{ licenseeHomeStateDisplay }}
                 </div>
-                <div class="license-row-cell practicing-state">
-                    <span v-if="$matches.phone.only" class="cell-title">{{$t('licensing.practicingLocations')}}: </span>
-                    {{ licensee.practicingLocationsAll() }}
+                <div class="license-row-cell privilege-states">
+                    <span v-if="$matches.phone.only" class="cell-title">{{$t('licensing.privileges')}}: </span>
+                    {{ licenseePrivilegeStatesDisplay }}
                 </div>
             </div>
         </div>

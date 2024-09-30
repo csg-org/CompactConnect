@@ -1,0 +1,37 @@
+//
+//  InputSearch.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 9/11/2024.
+//
+
+.input-search {
+    width: 100%;
+
+    label {
+        &.hide {
+            position: absolute;
+            display: none;
+        }
+    }
+
+    .input-wrapper {
+        .search-icon {
+            position: absolute;
+            top: 50%;
+            left: 12px;
+            width: 2rem;
+            transform: translateY(-50%);
+            fill: @fontColor;
+        }
+
+        input {
+            width: 100%;
+            height: 4.8rem;
+            padding-left: 4.2rem;
+            border: 0;
+            border-radius: 8px;
+            background-color: @veryLightGrey;
+        }
+    }
+}

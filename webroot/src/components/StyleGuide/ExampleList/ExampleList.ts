@@ -117,6 +117,7 @@ class ExampleList extends Vue {
         await this.fetchListData();
     }
 
+    // Match pageChange() @Prop signature from /components/Lists/Pagination/Pagination.ts
     async paginationChange() {
         await this.fetchListData();
     }

@@ -8,7 +8,8 @@
 import deleteUndefinedProperties from '@models/_helpers';
 import { dateDisplay, relativeFromNowDisplay } from '@models/_formatters/date';
 import { Address, AddressSerializer } from '@models/Address/Address.model';
-import { License, LicenseSerializer } from '@models/License/License.model';
+import { License, LicenseOccupation, LicenseSerializer } from '@models/License/License.model';
+import { State } from '@models/State/State.model';
 
 // ========================================================
 // =                       Interface                      =
@@ -20,34 +21,55 @@ export enum LicenseeStatus {
 
 export interface InterfaceLicensee {
     id?: string | null;
+    npi?: string | null;
     firstName?: string | null;
     middleName?: string | null;
     lastName?: string | null;
     address?: Address;
-    licenses?: Array<License>
     dob?: string | null;
     ssn?: string | null;
+    isMilitary?: boolean;
+    occupation?: LicenseOccupation | null;
+    licenseStates?: Array<State>;
+    licenses?: Array<License>;
+    privilegeStates?: Array<State>;
+    privileges?: Array<License>;
     lastUpdated?: string | null;
-    status?: LicenseeStatus | null;
+    status?: LicenseeStatus;
 }
 
 // ========================================================
 // =                        Model                         =
 // ========================================================
 export class Licensee implements InterfaceLicensee {
+    public $tm?: any = () => [];
+    public $t?: any = () => '';
     public id? = null;
+    public npi? = null;
     public firstName? = null;
     public middleName? = null;
     public lastName? = null;
     public address? = new Address();
-    public licenses? = [];
     public dob? = null;
     public ssn? = null;
+    public isMilitary? = false;
+    public occupation? = null;
+    public licenseStates? = [];
+    public licenses? = [];
+    public privilegeStates? = [];
+    public privileges? = [];
     public lastUpdated? = null;
-    public status? = null;
+    public status? = LicenseeStatus.INACTIVE;
 
     constructor(data?: InterfaceLicensee) {
         const cleanDataObject = deleteUndefinedProperties(data);
+        const global = window as any;
+        const { $tm, $t } = global.Vue?.config?.globalProperties || {};
+
+        if ($tm) {
+            this.$tm = $tm;
+            this.$t = $t;
+        }
 
         Object.assign(this, cleanDataObject);
     }
@@ -73,7 +95,7 @@ export class Licensee implements InterfaceLicensee {
         let masked = '';
 
         if (ssn) {
-            masked = (ssn as string).replace(/[0-9]/g, '#') || '';
+            masked = (ssn as string).replace(/[0-9]/g, '#');
         }
 
         return masked;
@@ -96,55 +118,84 @@ export class Licensee implements InterfaceLicensee {
         return relativeFromNowDisplay(this.lastUpdated, true);
     }
 
+    public getStateListDisplay(stateNames: Array<string>, maxNames = 2): string {
+        let stateList = '';
+
+        if (stateNames.length > maxNames) {
+            stateNames.forEach((state, idx) => {
+                if (idx === 0) {
+                    stateList += state;
+                } else if (idx + 1 <= maxNames) {
+                    stateList += (state) ? `, ${state}` : '';
+                }
+            });
+
+            stateList += (stateList) ? ` +` : '';
+        } else {
+            stateList = stateNames.join(', ');
+        }
+
+        return stateList;
+    }
+
     public licenseStatesDisplay(): string {
-        const states: Array<string> = this.licenses?.map((license: License) => license.issueState?.name() || '') || [];
-        const maxNames = 2;
-        let stateList = '';
+        let stateNames: Array<string> = [];
 
-        if (states.length > maxNames) {
-            states.forEach((state, idx) => {
-                if (idx === 0) {
-                    stateList += state;
-                } else if (idx + 1 <= maxNames) {
-                    stateList += (state) ? `, ${state}` : '';
-                }
-            });
-
-            stateList += (stateList) ? ` +` : '';
+        if (this.licenses?.length) {
+            stateNames = this.licenses.map((license: License) => license.issueState?.name() || '');
         } else {
-            stateList = states.join(', ');
+            stateNames = this.licenseStates?.map((state: State) => state.name()) || [];
         }
 
-        return stateList;
+        return this.getStateListDisplay(stateNames);
     }
 
-    public practicingLocationsAll(): string {
-        const states: Array<string> = this.licenses?.map((license: License) => license.issueState?.name() || '') || [];
-        const stateList = states.filter((state) => state).join(', ') || '';
+    public privilegeStatesAllDisplay(): string {
+        const maxStateNamesToShow = 99;
+        let stateNames: Array<string> = [];
 
-        return stateList;
-    }
-
-    public practicingLocationsDisplay(): string {
-        const states: Array<string> = this.licenses?.map((license: License) => license.issueState?.name() || '') || [];
-        const maxNames = 2;
-        let stateList = '';
-
-        if (states.length > maxNames) {
-            states.forEach((state, idx) => {
-                if (idx === 0) {
-                    stateList += state;
-                } else if (idx + 1 <= maxNames) {
-                    stateList += (state) ? `, ${state}` : '';
-                }
-            });
-
-            stateList += (stateList) ? ` +` : '';
+        if (this.privileges?.length) {
+            stateNames = this.privileges.map((privilege: License) => privilege.issueState?.name() || '');
         } else {
-            stateList = states.join(', ');
+            stateNames = this.privilegeStates?.map((state: State) => state.name()) || [];
         }
 
-        return stateList;
+        return this.getStateListDisplay(stateNames, maxStateNamesToShow);
+    }
+
+    public privilegeStatesDisplay(): string {
+        let stateNames: Array<string> = [];
+
+        if (this.privileges?.length) {
+            stateNames = this.privileges.map((privilege: License) => privilege.issueState?.name() || '');
+        } else {
+            stateNames = this.privilegeStates?.map((state: State) => state.name()) || [];
+        }
+
+        return this.getStateListDisplay(stateNames);
+    }
+
+    public occupationName(): string {
+        let occupations = this.$tm('licensing.occupations') || [];
+
+        /* istanbul ignore next */ // i18n translations are not functions in the test runner environment, so this block won't be traversed
+        if (typeof occupations[0]?.key === 'function') {
+            const normalize = ([value]) => value;
+
+            occupations = occupations.map((translate) => ({
+                key: translate.key({ normalize }),
+                name: translate.name({ normalize }),
+            }));
+        }
+
+        const occupation = occupations.find((translate) => translate.key === this.occupation);
+        const occupationName = occupation?.name || '';
+
+        return occupationName;
+    }
+
+    public statusDisplay(): string {
+        return this.$t(`licensing.statusOptions.${this.status}`);
     }
 }
 
@@ -155,30 +206,54 @@ export class LicenseeSerializer {
     static fromServer(json: any): Licensee {
         const licenseeData: any = {
             id: json.providerId,
+            npi: json.npi,
             firstName: json.givenName,
             middleName: json.middleName,
             lastName: json.familyName,
+            address: AddressSerializer.fromServer({
+                street1: json.homeAddressStreet1,
+                street2: json.homeAddressStreet2,
+                city: json.homeAddressCity,
+                state: json.homeAddressState,
+                zip: json.homeAddressPostalCode,
+            }),
             dob: json.dateOfBirth,
             ssn: json.ssn,
-            address: AddressSerializer.fromServer({
-                street1: json.homeStateStreet1,
-                street2: json.homeStateStreet2,
-                city: json.homeStateCity,
-                state: json.jurisdiction,
-                zip: json.homeStatePostalCode,
-            }),
-            licenses: [
-                LicenseSerializer.fromServer({
-                    issueState: json.jurisdiction,
-                    issueDate: json.dateOfIssuance,
-                    renewalDate: json.dateOfRenewal,
-                    expireDate: json.dateOfExpiration,
-                    type: json.licenseType,
-                }),
-            ],
+            isMilitary: json.militaryWaiver || false,
+            occupation: json.licenseType,
+            licenseStates: [] as Array<State>,
+            licenses: [] as Array<License>,
+            privilegeStates: [] as Array<State>,
+            privileges: [] as Array<License>,
             status: json.status,
             lastUpdated: json.dateOfUpdate,
         };
+
+        // In get-all responses, server only returns a license state, not the actual license objects
+        if (json.licenseJurisdiction) {
+            licenseeData.licenseStates.push(new State({ abbrev: json.licenseJurisdiction }));
+        }
+
+        // In get-one responses, server returns actual license objects
+        if (Array.isArray(json.licenses)) {
+            json.licenses.forEach((serverLicense) => {
+                licenseeData.licenses.push(LicenseSerializer.fromServer(serverLicense));
+            });
+        }
+
+        // In get-all responses, server only returns privilege states, not the actual privilege objects
+        if (Array.isArray(json.privilegeJurisdictions)) {
+            json.privilegeJurisdictions.forEach((serverPrivilegeJurisdiction) => {
+                licenseeData.privilegeStates.push(new State({ abbrev: serverPrivilegeJurisdiction }));
+            });
+        }
+
+        // In get-one responses, server returns actual privilege objects
+        if (Array.isArray(json.privileges)) {
+            json.privileges.forEach((serverPrivilege) => {
+                licenseeData.privileges.push(LicenseSerializer.fromServer(serverPrivilege));
+            });
+        }
 
         return new Licensee(licenseeData);
     }

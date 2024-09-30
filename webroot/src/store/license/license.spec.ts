@@ -90,7 +90,7 @@ describe('License Store Mutations', () => {
         expect(state.model).to.matchPattern([licensee]);
     });
     it('should successfully update licensee (not already in store - non-empty store)', () => {
-        const state = { model: [{ id: 2 }]};
+        const state = { model: [{ id: 2 }] };
         const licensee = { id: 1 };
 
         mutations[MutationTypes.STORE_UPDATE_LICENSEE](state, licensee);
@@ -98,7 +98,7 @@ describe('License Store Mutations', () => {
         expect(state.model).to.matchPattern([ { id: 2 }, licensee]);
     });
     it('should successfully update licensee (already in store)', () => {
-        const state = { model: [{ id: 1, name: 'test1' }]};
+        const state = { model: [{ id: 1, name: 'test1' }] };
         const licensee = { id: 1, name: 'test2' };
 
         mutations[MutationTypes.STORE_UPDATE_LICENSEE](state, licensee);
@@ -122,7 +122,7 @@ describe('License Store Mutations', () => {
         expect(state).to.equal(state);
     });
     it('should successfully remove licensee (already in store)', () => {
-        const state = { model: [{ id: 1 }, { id: 2 }]};
+        const state = { model: [{ id: 1 }, { id: 2 }] };
         const licenseeId = 1;
 
         mutations[MutationTypes.STORE_REMOVE_LICENSEE](state, licenseeId);
@@ -130,7 +130,7 @@ describe('License Store Mutations', () => {
         expect(state.model).to.matchPattern([{ id: 2 }]);
     });
     it('should successfully remove licensee (already in store - only record)', () => {
-        const state = { model: [{ id: 1 }]};
+        const state = { model: [{ id: 1 }] };
         const licenseeId = 1;
 
         mutations[MutationTypes.STORE_REMOVE_LICENSEE](state, licenseeId);
@@ -198,10 +198,10 @@ describe('License Store Actions', async () => {
     it('should successfully start licensee request', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
+        const compact = 'aslp';
         const licenseeId = '1';
-        const params = {};
 
-        await actions.getLicenseeRequest({ commit, dispatch }, { licenseeId, params });
+        await actions.getLicenseeRequest({ commit, dispatch }, { compact, licenseeId });
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_LICENSEE_REQUEST]);
@@ -299,7 +299,7 @@ describe('License Store Getters', async () => {
     });
     it('should successfully get licensee by id (found)', async () => {
         const record = { id: '1' };
-        const state = { model: [record]};
+        const state = { model: [record] };
         const licensee = getters.licenseeById(state)('1');
 
         expect(licensee).to.matchPattern(record);

@@ -18,6 +18,7 @@ class UserPool(CdkUserPool):
             encryption_key: IKey,
             sign_in_aliases: SignInAliases,
             standard_attributes: StandardAttributes,
+            email: UserPoolEmail,
             removal_policy,
             **kwargs
     ):
@@ -25,7 +26,7 @@ class UserPool(CdkUserPool):
             scope, construct_id,
             removal_policy=removal_policy,
             deletion_protection=removal_policy != RemovalPolicy.DESTROY,
-            email=UserPoolEmail.with_cognito(),
+            email=email,
             # user_invitation=UserInvitationConfig(...),
             account_recovery=AccountRecovery.EMAIL_ONLY,
             auto_verify=AutoVerifiedAttrs(email=True),

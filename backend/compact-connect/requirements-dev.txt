@@ -28,7 +28,7 @@ cyclonedx-python-lib==7.6.1
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
-dill==0.3.8
+dill==0.3.9
     # via pylint
 faker==28.4.1
     # via -r compact-connect/requirements-dev.in
@@ -80,7 +80,7 @@ pylint==3.3.1
     # via -r compact-connect/requirements-dev.in
 pyparsing==3.1.4
     # via pip-requirements-parser
-pyproject-hooks==1.1.0
+pyproject-hooks==1.2.0
     # via
     #   build
     #   pip-tools

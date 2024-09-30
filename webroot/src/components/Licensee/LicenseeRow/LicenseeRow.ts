@@ -21,7 +21,7 @@ class LicenseeRow extends Vue {
     @Prop({ required: true }) protected listId!: string;
     @Prop({ required: true }) item!: any;
     @Prop({ default: false }) isHeaderRow?: boolean;
-    @Prop({ default: []}) sortOptions?: Array<any>;
+    @Prop({ default: [] }) sortOptions?: Array<any>;
     @Prop({ default: () => null }) sortChange?: (selectedSortOption?: string, ascending?: boolean) => any;
 
     //
@@ -146,7 +146,7 @@ class LicenseeRow extends Vue {
         this.$router.push(
             {
                 name: 'LicensingDetail',
-                params: { compact: this.userStore.currentCompact, licenseeId },
+                params: { compact: this.userStore.currentCompact?.type, licenseeId },
             }
         );
     }

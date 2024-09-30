@@ -20,16 +20,18 @@ export interface InterfaceStateCreate {
 // ========================================================
 export class State implements InterfaceStateCreate {
     public $tm?: any = () => [];
+    public $t?: any = () => '';
     public id? = null;
     public abbrev? = null;
 
     constructor(data?: InterfaceStateCreate) {
         const cleanDataObject = deleteUndefinedProperties(data);
         const global = window as any;
-        const $tm = global.Vue?.config?.globalProperties?.$tm;
+        const { $tm, $t } = global.Vue?.config?.globalProperties || {};
 
         if ($tm) {
             this.$tm = $tm;
+            this.$t = $t;
         }
 
         Object.assign(this, cleanDataObject);
@@ -40,6 +42,7 @@ export class State implements InterfaceStateCreate {
         const abbrev = (this.abbrev || '').toUpperCase() || '';
         let states = this.$tm('common.states') || [];
 
+        /* istanbul ignore next */ // i18n translations are not functions in the test runner environment, so this block won't be traversed
         if (typeof states[0]?.abbrev === 'function') {
             const normalize = ([value]) => value;
 
@@ -50,7 +53,7 @@ export class State implements InterfaceStateCreate {
         }
 
         const state = states.find((st) => st.abbrev === abbrev);
-        const stateName = state?.full || '';
+        const stateName = state?.full || this.$t('common.stateUnknown');
 
         return stateName;
     }

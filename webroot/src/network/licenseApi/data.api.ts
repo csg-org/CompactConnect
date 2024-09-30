@@ -31,7 +31,6 @@ export interface RequestParamsInterfaceRemote {
     pagination?: {
         pageSize?: number,
         lastKey?: string,
-        prevLastKey?: string,
     },
     sorting?: {
         key?: string,
@@ -55,7 +54,6 @@ export class LicenseDataApi implements DataApiInterface {
         // Initial Axios config
         this.api = axios.create({
             baseURL: envConfig.apiUrlLicense,
-            // withCredentials: true,
             timeout: 30000,
             headers: {
                 'Cache-Control': 'no-cache',
@@ -115,7 +113,7 @@ export class LicenseDataApi implements DataApiInterface {
         if (params.licenseeId) {
             requestParams.query.providerId = params.licenseeId;
         } else {
-            if (params.pageSize || params.lastKey || params.prevLastKey) {
+            if (params.pageSize || params.lastKey) {
                 requestParams.pagination = {};
 
                 if (params.pageSize) {
@@ -123,8 +121,6 @@ export class LicenseDataApi implements DataApiInterface {
                 }
                 if (params.lastKey) {
                     requestParams.pagination.lastKey = params.lastKey;
-                } else if (params.prevLastKey) {
-                    requestParams.pagination.prevLastKey = params.prevLastKey;
                 }
             }
 
@@ -150,12 +146,13 @@ export class LicenseDataApi implements DataApiInterface {
      */
     public async getLicensees(params: RequestParamsInterfaceLocal = {}) {
         const requestParams: RequestParamsInterfaceRemote = this.prepRequestPostParams(params);
-        const serverReponse: any = await this.api.post(`/v0/providers/query`, requestParams);
-        const { prevLastKey, lastKey, items } = serverReponse;
+        const serverReponse: any = await this.api.post(`/v1/compacts/${params.compact}/providers/query`, requestParams);
+        const { pagination = {}, providers } = serverReponse;
+        const { prevLastKey, lastKey } = pagination;
         const response = {
             prevLastKey,
             lastKey,
-            licensees: items.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
+            licensees: providers.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
         };
 
         return response;
@@ -166,8 +163,8 @@ export class LicenseDataApi implements DataApiInterface {
      * @param  {string}          licenseeId A licensee ID.
      * @return {Promise<object>}            A licensee server response.
      */
-    public async getLicensee(licenseeId: string) {
-        const serverResponse: any = await this.api.get(`/v0/providers/${licenseeId}`);
+    public async getLicensee(compact: string, licenseeId: string) {
+        const serverResponse: any = await this.api.get(`/v1/compacts/${compact}/providers/${licenseeId}`);
         let licensee: Licensee | null = null;
 
         if (serverResponse?.items?.length) {

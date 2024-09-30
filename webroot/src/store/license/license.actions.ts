@@ -17,7 +17,7 @@ export default {
         if (params?.getNextPage) {
             params.lastKey = getters.lastKey;
         } else if (params?.getPrevPage) {
-            params.prevLastKey = getters.prevLastKey;
+            params.lastKey = getters.prevLastKey;
         }
 
         await dataApi.getLicensees(params).then(async ({ prevLastKey, lastKey, licensees }) => {
@@ -41,9 +41,9 @@ export default {
         commit(MutationTypes.GET_LICENSEES_FAILURE, error);
     },
     // GET LICENSEE
-    getLicenseeRequest: async ({ commit, dispatch }, { licenseeId }: any) => {
+    getLicenseeRequest: async ({ commit, dispatch }, { compact, licenseeId }: any) => {
         commit(MutationTypes.GET_LICENSEE_REQUEST);
-        await dataApi.getLicensee(licenseeId).then(async ({ licensee }) => {
+        await dataApi.getLicensee(compact, licenseeId).then(async ({ licensee }) => {
             if (licensee) {
                 // Only update the store if we received a response
                 await dispatch('setStoreLicensee', licensee);
