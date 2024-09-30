@@ -68,7 +68,8 @@ class StaffUsers(UserPool):
         self.ui_client = self.add_ui_client(
             callback_urls=callback_urls,
             write_attributes=ClientAttributes().with_standard_attributes(
-                email=False
+                # We have to provide one True value or CFn will make every attribute writeable
+                email=True
             ),
             read_attributes=ClientAttributes().with_standard_attributes(
                 email=True

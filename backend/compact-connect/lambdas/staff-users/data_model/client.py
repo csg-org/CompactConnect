@@ -183,7 +183,6 @@ class UserClient():
     ):  # pylint: disable-redefined-outer-name
         """
         Update the provided user's attributes
-        :param str compact: The compact the user's attributes are within
         :param str user_id: The user to update
         :param dict attributes: Dict of user attributes to update.
         Keys are the attribute names, values are the attribute values
@@ -204,11 +203,11 @@ class UserClient():
         expression_attribute_values = {}
 
         for attr_name, attr_value in attributes.items():
-            update_expression_parts.append(f'SET attributes.#{attr_name} = :{attr_name}')
+            update_expression_parts.append(f'attributes.#{attr_name} = :{attr_name}')
             expression_attribute_names[f'#{attr_name}'] = attr_name
             expression_attribute_values[f':{attr_name}'] = attr_value
 
-        update_expression = ' '.join(update_expression_parts)
+        update_expression = 'SET ' + ', '.join(update_expression_parts)
 
         records = self.get_user(user_id=user_id)['items']  # pylint: disable=missing-kwoa
         compacts =  {record['compact'] for record in records}

@@ -2,6 +2,7 @@ import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
+from config import logger
 from exceptions import CCNotFoundException
 from handlers import user_client, user_api_schema
 from utils import api_handler, authorize_compact, get_event_scopes, get_allowed_jurisdictions, collect_changes
@@ -77,14 +78,16 @@ def patch_user(event: dict, context: LambdaContext):  # pylint: disable=unused-a
     ```json
     {
       "permissions": {
-        "actions": {
-          "admin": true
-        }
-        "jurisdictions": {
-          "oh": {
-            "actions": {
-              "admin": true,
-              "write": false
+        "aslp": {
+          "actions": {
+            "admin": true
+          }
+          "jurisdictions": {
+            "oh": {
+              "actions": {
+                "admin": true,
+                "write": false
+            }
           }
         }
       }
@@ -95,7 +98,8 @@ def patch_user(event: dict, context: LambdaContext):  # pylint: disable=unused-a
     user_id = event['pathParameters']['userId']
     scopes = get_event_scopes(event)
     path_compact = event['pathParameters']['compact']
-    permission_changes = json.loads(event['body']).get('permissions', {})
+    permission_changes = json.loads(event['body']).get('permissions', {}).get(compact, {})
+    logger.debug('Requested changes', permission_changes=permission_changes)
     changes = collect_changes(path_compact=path_compact, scopes=scopes, compact_changes=permission_changes)
     user = user_client.update_user_permissions(
         compact=compact,

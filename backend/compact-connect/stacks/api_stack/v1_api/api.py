@@ -85,5 +85,6 @@ class V1Api:
         StaffUsers(
             admin_resource=staff_users_admin_resource,
             self_resource=staff_users_self_resource,
-            admin_scopes=admin_scopes
+            admin_scopes=admin_scopes,
+            persistent_stack=persistent_stack
         )

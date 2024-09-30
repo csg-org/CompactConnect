@@ -64,7 +64,7 @@ class PersistentStack(AppStack):
         staff_prefix = f'{app_name}-staff'
 
         self.staff_users = StaffUsers(
-            self, 'StaffUsers2',
+            self, 'StaffUsersGreen',
             cognito_domain_prefix=staff_prefix if environment_name == 'prod'
             else f'{staff_prefix}-{environment_name}',
             environment_name=environment_name,

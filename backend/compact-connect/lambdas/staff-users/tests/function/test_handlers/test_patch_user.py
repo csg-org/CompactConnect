@@ -23,10 +23,12 @@ class TestHandlers(TstFunction):
         }
         event['body'] = json.dumps({
             'permissions': {
-                'jurisdictions': {
-                    'oh': {
-                        'actions': {
-                            'admin': True
+                'aslp': {
+                    'jurisdictions': {
+                        'oh': {
+                            'actions': {
+                                'admin': True
+                            }
                         }
                     }
                 }

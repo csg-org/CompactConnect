@@ -5,10 +5,16 @@ from typing import List
 
 from aws_cdk.aws_apigateway import Resource, MethodResponse, JsonSchema, JsonSchemaType, AuthorizationType, \
     LambdaIntegration
+from aws_cdk.aws_cognito import IUserPool
+from aws_cdk.aws_dynamodb import ITable
+from aws_cdk.aws_kms import IKey
+from cdk_nag import NagSuppressions
 
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
+
 # Importing module level to allow lazy loading for typing
+from stacks import persistent_stack as ps
 from .. import cc_api
 
 
@@ -17,7 +23,8 @@ class StaffUsers:
             self, *,
             admin_resource: Resource,
             self_resource: Resource,
-            admin_scopes: List[str]
+            admin_scopes: List[str],
+            persistent_stack: ps.PersistentStack
     ):
         super().__init__()
 
@@ -26,33 +33,41 @@ class StaffUsers:
         self.api: cc_api.CCApi = admin_resource.api
 
         self.log_groups = []
+        env_vars = {
+            **self.stack.common_env_vars,
+            'USER_POOL_ID': persistent_stack.staff_users.user_pool_id,
+            'USERS_TABLE_NAME': persistent_stack.staff_users.user_table.table_name,
+            'FAM_GIV_INDEX_NAME': persistent_stack.staff_users.user_table.family_given_index_name
+        }
 
         # .../
-        self._add_get_users(self.admin_resource, admin_scopes)
-        self._add_post_user(self.admin_resource, admin_scopes)
+        self._add_get_users(self.admin_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
+        self._add_post_user(self.admin_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
 
         user_id_resource = self.admin_resource.add_resource('{userId}')
         # .../{userId}
-        self._add_get_user(user_id_resource, admin_scopes)
-        self._add_patch_user(user_id_resource, admin_scopes)
+        self._add_get_user(user_id_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
+        self._add_patch_user(user_id_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
 
         self.me_resource = self_resource.add_resource('me')
         # .../me
-        self._add_get_me(self.me_resource)
-        self._add_patch_me(self.me_resource)
+        profile_scopes = ['profile']
+        self._add_get_me(self.me_resource, profile_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
+        self._add_patch_me(self.me_resource, profile_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
 
         self.api.log_groups.extend(self.log_groups)
 
-    def _add_get_me(self, me_resource: Resource):
-        get_me_handler = PythonFunction(
-            self.stack,
-            "GetMeHandler",
-            entry="lambdas/staff-users",
-            index="handlers/me.py",
-            handler="get_me",
-            environment={
-                **self.stack.common_env_vars
-            }
+    def _add_get_me(
+            self,
+            me_resource: Resource,
+            scopes: list[str],
+            env_vars: dict,
+            persistent_stack: ps.PersistentStack
+    ):
+        get_me_handler = self._get_me_handler(
+            env_vars=env_vars,
+            data_encryption_key=persistent_stack.shared_encryption_key,
+            users_table=persistent_stack.staff_users.user_table
         )
 
         # Add the GET method to the me_resource
@@ -73,20 +88,48 @@ class StaffUsers:
             ],
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
-            authorization_scopes=['profile']
+            authorization_scopes=scopes
         )
 
-    def _add_patch_me(self, me_resource: Resource):
-        # Create a PythonFunction for the patch_me handler
-        patch_me_handler = PythonFunction(
+    def _get_me_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable):
+        handler = PythonFunction(
             self.stack,
-            "PatchMeHandler",
-            entry="lambdas/staff-users",
-            index="handlers/me.py",
-            handler="patch_me",
-            environment={
-                **self.stack.common_env_vars
-            }
+            'GetMeStaffUserHandler',
+            entry='lambdas/staff-users',
+            index='handlers/me.py',
+            handler='get_me',
+            environment=env_vars
+        )
+        data_encryption_key.grant_decrypt(handler)
+        users_table.grant_read_data(handler)
+
+        self.log_groups.append(handler.log_group)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self.stack,
+            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
+                              'and is scoped to one table and encryption key.'
+                }
+            ]
+        )
+        return handler
+
+    def _add_patch_me(
+            self,
+            me_resource: Resource,
+            scopes: list[str],
+            env_vars: dict,
+            persistent_stack: ps.PersistentStack
+    ):
+        patch_me_handler = self._patch_me_handler(
+            env_vars=env_vars,
+            data_encryption_key=persistent_stack.shared_encryption_key,
+            users_table=persistent_stack.staff_users.user_table,
+            user_pool=persistent_stack.staff_users
         )
 
         # Add the PATCH method to the me_resource
@@ -110,22 +153,55 @@ class StaffUsers:
             ],
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
-            authorization_scopes=['profile']
+            authorization_scopes=scopes
         )
 
-    def _add_get_users(self, users_resource: Resource, admin_scopes: List[str]):
-        # Create a PythonFunction for the get_users handler
-        get_users_handler = PythonFunction(
-            users_resource,
-            'GetUsersHandler',
+    def _patch_me_handler(
+            self,
+            env_vars: dict,
+            data_encryption_key: IKey,
+            users_table: ITable,
+            user_pool: IUserPool
+    ):
+        handler = PythonFunction(
+            self.stack,
+            'PatchMeStaffUserHandler',
             entry='lambdas/staff-users',
-            index='handlers/users.py',
-            handler='get_users',
-            environment={
-                **self.stack.common_env_vars
-            }
+            index='handlers/me.py',
+            handler='patch_me',
+            environment=env_vars
         )
+        data_encryption_key.grant_encrypt_decrypt(handler)
+        users_table.grant_read_write_data(handler)
+        user_pool.grant(handler, 'cognito-idp:AdminUpdateUserAttributes')
 
+        self.log_groups.append(handler.log_group)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self.stack,
+            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
+                              'and is scoped to one table and encryption key.'
+                }
+            ]
+        )
+        return handler
+
+    def _add_get_users(
+            self,
+            users_resource: Resource,
+            scopes: List[str],
+            env_vars: dict,
+            persistent_stack: ps.PersistentStack
+    ):
+        get_users_handler = self._get_users_handler(
+            env_vars=env_vars,
+            data_encryption_key=persistent_stack.shared_encryption_key,
+            users_table=persistent_stack.staff_users.user_table
+        )
         # Add the GET method to the users resource
         users_resource.add_method(
             'GET',
@@ -144,20 +220,47 @@ class StaffUsers:
             ],
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
-            authorization_scopes=admin_scopes
+            authorization_scopes=scopes
         )
 
-    def _add_get_user(self, user_id_resource: Resource, admin_scopes: List[str]):
-        # Create a PythonFunction for the get_user handler
-        get_user_handler = PythonFunction(
-            user_id_resource,
-            'GetUserHandler',
+    def _get_users_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable):
+        handler = PythonFunction(
+            self.stack,
+            'GetStaffUsersHandler',
             entry='lambdas/staff-users',
             index='handlers/users.py',
-            handler='get_user',
-            environment={
-                **self.stack.common_env_vars
-            }
+            handler='get_users',
+            environment=env_vars
+        )
+        data_encryption_key.grant_decrypt(handler)
+        users_table.grant_read_data(handler)
+
+        self.log_groups.append(handler.log_group)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self.stack,
+            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
+                              'and is scoped to one table and encryption key.'
+                }
+            ]
+        )
+        return handler
+
+    def _add_get_user(
+            self,
+            user_id_resource: Resource,
+            scopes: List[str],
+            env_vars: dict,
+            persistent_stack: ps.PersistentStack
+    ):
+        get_user_handler = self._get_user_handler(
+            env_vars=env_vars,
+            data_encryption_key=persistent_stack.shared_encryption_key,
+            users_table=persistent_stack.staff_users.user_table
         )
 
         # Add the GET method to the user_id resource
@@ -178,18 +281,47 @@ class StaffUsers:
             ],
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
-            authorization_scopes=admin_scopes
+            authorization_scopes=scopes
         )
 
-    def _add_patch_user(self, user_resource: Resource, admin_scopes: List[str]):
-        patch_user_handler = PythonFunction(
-            user_resource, 'PatchUserHandler',
+    def _get_user_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable):
+        handler = PythonFunction(
+            self.stack,
+            'GetStaffUserHandler',
             entry='lambdas/staff-users',
             index='handlers/users.py',
-            handler='patch_user',
-            environment={
-                **self.stack.common_env_vars
-            }
+            handler='get_one_user',
+            environment=env_vars
+        )
+        data_encryption_key.grant_decrypt(handler)
+        users_table.grant_read_data(handler)
+
+        self.log_groups.append(handler.log_group)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self.stack,
+            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
+                              'and is scoped to one table and encryption key.'
+                }
+            ]
+        )
+        return handler
+
+    def _add_patch_user(
+            self,
+            user_resource: Resource,
+            scopes: List[str],
+            env_vars: dict,
+            persistent_stack: ps.PersistentStack
+    ):
+        patch_user_handler = self._patch_user_handler(
+            env_vars=env_vars,
+            data_encryption_key=persistent_stack.shared_encryption_key,
+            users_table=persistent_stack.staff_users.user_table
         )
 
         # Add the PATCH method to the me_resource
@@ -213,19 +345,47 @@ class StaffUsers:
             ],
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
-            authorization_scopes=admin_scopes
+            authorization_scopes=scopes
         )
 
-    def _add_post_user(self, users_resource: Resource, admin_scopes: List[str]):
-        post_user_handler = PythonFunction(
-            users_resource,
-            'PostUserHandler',
-            entry='lambdas/staff-users',
-            index='handlers/users.py',
-            handler='post_user',
-            environment={
-                **self.stack.common_env_vars
-            }
+    def _patch_user_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable):
+        handler = PythonFunction(
+                self.stack, 'PatchUserHandler',
+                entry='lambdas/staff-users',
+                index='handlers/users.py',
+                handler='patch_user',
+                environment=env_vars
+            )
+        data_encryption_key.grant_encrypt_decrypt(handler)
+        users_table.grant_read_write_data(handler)
+
+        self.log_groups.append(handler.log_group)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self.stack,
+            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
+                              'and is scoped to one table and encryption key.'
+                }
+            ]
+        )
+        return handler
+
+    def _add_post_user(
+            self,
+            users_resource: Resource,
+            scopes: List[str],
+            env_vars: dict,
+            persistent_stack: ps.PersistentStack
+    ):
+        post_user_handler = self._post_user_handler(
+            env_vars=env_vars,
+            data_encryption_key=persistent_stack.shared_encryption_key,
+            users_table=persistent_stack.staff_users.user_table,
+            user_pool=persistent_stack.staff_users
         )
 
         # Add the POST method to the me_resource
@@ -249,8 +409,49 @@ class StaffUsers:
             ],
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
-            authorization_scopes=admin_scopes
+            authorization_scopes=scopes
         )
+
+    def _post_user_handler(
+            self,
+            env_vars: dict,
+            data_encryption_key: IKey,
+            users_table: ITable,
+            user_pool: IUserPool
+    ):
+        handler = PythonFunction(
+            self.stack,
+            'PostStaffUserHandler',
+            entry='lambdas/staff-users',
+            index='handlers/users.py',
+            handler='post_user',
+            environment=env_vars
+        )
+        data_encryption_key.grant_encrypt_decrypt(handler)
+        users_table.grant_read_write_data(handler)
+        user_pool.grant(
+            handler,
+            'cognito-idp:AdminCreateUser',
+            'cognito-idp:AdminDeleteUser',
+            'cognito-idp:AdminDisableUser',
+            'cognito-idp:AdminEnableUser',
+            'cognito-idp:AdminGetUser'
+        )
+
+        self.log_groups.append(handler.log_group)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self.stack,
+            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
+                              'and is scoped to one table and encryption key.'
+                }
+            ]
+        )
+        return handler
 
     @cached_property
     def get_me_model(self):
