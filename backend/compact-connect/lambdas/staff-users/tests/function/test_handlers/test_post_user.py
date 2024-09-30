@@ -8,8 +8,6 @@ from tests.function import TstFunction
 @mock_aws
 class TestHandlers(TstFunction):
     def test_post_user(self):
-        self._load_user_data()
-
         from handlers.users import post_user
 
         with open('tests/resources/api-event.json', 'r') as f:
@@ -20,7 +18,7 @@ class TestHandlers(TstFunction):
             f.seek(0)
             api_user = json.load(f)
 
-        # The user has admin permission for all of aslp
+        # The user has admin permission for aslp/oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/oh.admin'
         event['pathParameters'] = {
             'compact': 'aslp'
@@ -37,3 +35,23 @@ class TestHandlers(TstFunction):
         del user['dateOfUpdate']
 
         self.assertEqual(api_user, user)
+
+    def test_post_user_unauthorized(self):
+        from handlers.users import post_user
+
+        with open('tests/resources/api-event.json', 'r') as f:
+            event = json.load(f)
+
+        with open('tests/resources/api/user-post.json', 'r') as f:
+            event['body'] = f.read()
+
+        # The user has admin permission for nebraska, not oh, which is where the user they are trying to create
+        # has permission.
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/ne.admin'
+        event['pathParameters'] = {
+            'compact': 'aslp'
+        }
+
+        resp = post_user(event, self.mock_context)
+
+        self.assertEqual(403, resp['statusCode'])

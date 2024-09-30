@@ -117,10 +117,9 @@ def post_user(event: dict, context: LambdaContext):  # pylint: disable=unused-ar
     body = json.loads(event['body'])
 
     # Verify that the client has permission to create a user with the requested permissions
-    permissions = body['permissions']
-    # This method will raise an exception if they request an inappropriate permission for the new user
-    collect_changes(path_compact=compact, scopes=scopes, compact_changes=permissions)
-    del permissions
+    for compact, compact_permissions in body['permissions'].items():
+        # This method will raise an exception if they request an inappropriate permission for the new user
+        collect_changes(path_compact=compact, scopes=scopes, compact_changes=compact_permissions)
 
     # Use the UserClient to create a new user
     user = user_api_schema.dump(body)
