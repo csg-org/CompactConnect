@@ -8,8 +8,19 @@ jobs:
   check_branch:
     runs-on: ubuntu-latest
     steps:
-      - name: Check branch
-        if: github.head_ref != 'development'
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check if branch is based on development
         run: |
-          echo "ERROR: You can only merge to main from development."
-          exit 1
+          # Fetch development branch
+          git fetch origin development
+
+          # Check if the current branch contains commits from the development branch
+          if git merge-base --is-ancestor HEAD origin/development; then
+            exit 0
+          else
+            echo "ERROR: The branch is not based on the 'development' branch."
+            exit 1
+          fi
+        shell: bash
