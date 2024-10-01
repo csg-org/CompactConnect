@@ -124,8 +124,8 @@ export default {
         dispatch('startRefreshTokenTimer', authType);
     },
     startRefreshTokenTimer: ({ dispatch }, authType) => {
-        const expiry = authStorage.getItem(tokens[authType].AUTH_TOKEN_EXPIRY);
-        const refreshToken = authStorage.getItem(tokens[authType].REFRESH_TOKEN);
+        const expiry = authStorage.getItem(tokens[authType]?.AUTH_TOKEN_EXPIRY);
+        const refreshToken = authStorage.getItem(tokens[authType]?.REFRESH_TOKEN);
 
         if (expiry && refreshToken) {
             const expiresIn = moment(expiry, 'YYYY-MM-DD:HH:mm:ss').diff(moment(), 'seconds');

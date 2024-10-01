@@ -6,6 +6,15 @@
 //
 import sessionStorage from '@store/session.storage';
 
+// =========================
+// =  Authorization Types  =
+// =========================
+export enum AuthTypes {
+    STAFF = 'staff',
+    LICENSEE = 'licensee',
+    PUBLIC = 'public',
+}
+
 // ====================
 // =   Auth storage   =
 // ====================
@@ -105,14 +114,6 @@ export enum UploadFileType {
     DATA = 'data',
     IMAGE = 'image',
     DOCUMENT = 'document',
-}
-
-// =============================
-// =  Authorization Types        =
-// =============================
-export enum AuthTypes {
-    STAFF = 'staff',
-    LICENSEE = 'licensee'
 }
 
 export interface InterfaceUploadFile {

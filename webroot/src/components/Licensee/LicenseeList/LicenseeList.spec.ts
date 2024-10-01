@@ -97,6 +97,8 @@ describe('LicenseeList component', async () => {
         const component = wrapper.vm;
         const fetchListData = sinon.spy();
 
+        await component.$store.dispatch('user/setCurrentCompact', new Compact({ type: CompactType.ASLP }));
+
         component.fetchListData = fetchListData;
         component.isInitialFetchCompleted = true;
         populateComponentStorePagingKeys(component);
@@ -107,13 +109,13 @@ describe('LicenseeList component', async () => {
         expect(component.nextKey).to.equal('');
         expect(fetchListData.notCalled).to.equal(true);
     });
-    it('should successfully fetch data with expected search params (no params)', async () => {
+    it('should successfully fetch data with expected search params (no params except compact)', async () => {
         const wrapper = await mountShallow(LicenseeList);
         const component = wrapper.vm;
         const requestConfig = await component.fetchListData();
 
         expect(requestConfig).to.matchPattern({
-            compact: undefined,
+            compact: CompactType.ASLP,
             jurisdiction: undefined,
             licenseeFirstName: undefined,
             licenseeLastName: undefined,

@@ -5,6 +5,7 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
+import { AuthTypes } from '@/app.config';
 import { AppMessage } from '@/models/AppMessage/AppMessage.model';
 import { State } from './global.state';
 
@@ -18,6 +19,7 @@ export enum MutationTypes {
     STORE_RESET_GLOBAL = '[Global] Store reset',
     SET_MODAL_OPEN = '[Global] Modal isOpen set',
     SET_MODAL_LOGOUT_ONLY = '[Global] Modal isLogoutOnly set',
+    SET_AUTH_TYPE = '[Global] Auth type set',
 }
 
 export default {
@@ -49,5 +51,8 @@ export default {
         state.messages = [];
         state.isModalOpen = false;
         state.isModalLogoutOnly = false;
+    },
+    [MutationTypes.SET_AUTH_TYPE]: (state: State, type: AuthTypes) => {
+        state.authType = type;
     },
 };

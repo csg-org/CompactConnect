@@ -11,13 +11,14 @@ import {
     Watch,
     toNative
 } from 'vue-facing-decorator';
+import { RouteRecordName } from 'vue-router';
 import {
     authStorage,
     AuthTypes,
     relativeTimeFormats,
     tokens
 } from '@/app.config';
-// import { CompactType, CompactSerializer } from '@models/Compact/Compact.model';
+import { CompactType } from '@models/Compact/Compact.model';
 import PageContainer from '@components/Page/PageContainer/PageContainer.vue';
 import Modal from '@components/Modal/Modal.vue';
 import moment from 'moment';
@@ -43,20 +44,7 @@ class App extends Vue {
     //
     async created() {
         if (this.userStore.isLoggedIn) {
-            let authType = AuthTypes.LICENSEE;
-
-            if (authStorage.getItem(tokens?.staff?.AUTH_TOKEN)) {
-                authType = AuthTypes.STAFF;
-            }
-            this.$store.dispatch('user/startRefreshTokenTimer', authType);
-
-            await this.getAccount();
-
-            console.log(this.userStore.currentCompact);
-
-            if (!this.userStore.currentCompact) {
-                this.setCurrentCompact();
-            }
+            await this.handleAuth();
         }
 
         this.setRelativeTimeFormats();
@@ -65,6 +53,10 @@ class App extends Vue {
     //
     // Computed
     //
+    get routeCompactType(): CompactType | null {
+        return (this.$route.params.compact as CompactType) || null;
+    }
+
     get globalStore() {
         return this.$store.state;
     }
@@ -92,21 +84,57 @@ class App extends Vue {
     //
     // Methods
     //
-    async getAccount() {
-        const authType = authStorage.getItem(tokens.staff.AUTH_TYPE);
+    async handleAuth() {
+        const authType = this.setAuthType();
+
+        if (authType !== AuthTypes.PUBLIC) {
+            this.$store.dispatch('user/startRefreshTokenTimer', authType);
+            await this.getAccount();
+            await this.setCurrentCompact();
+        }
+    }
+
+    setAuthType() {
+        let authType: AuthTypes;
+
+        if (authStorage.getItem(tokens?.staff?.AUTH_TOKEN)) {
+            authType = AuthTypes.STAFF;
+        } else if (authStorage.getItem(tokens?.licensee?.AUTH_TOKEN)) {
+            authType = AuthTypes.LICENSEE;
+        } else {
+            authType = AuthTypes.PUBLIC;
+        }
+
+        this.$store.dispatch('setAuthType', authType);
+
+        return authType;
+    }
+
+    async getAccount(): Promise<void> {
+        const { authType } = this.globalStore;
 
         if (authType === AuthTypes.STAFF) {
             await this.$store.dispatch('user/getStaffAccountRequest');
         }
     }
 
-    async setCurrentCompact() {
-        const { permissions } = this.userStore.model;
-        const currentCompact = permissions?.[0]?.compact || null;
+    async setCurrentCompact(): Promise<void> {
+        const { currentCompact, model: user } = this.userStore;
+        const { permissions = [] } = user || {};
+        const userDefaultCompact = permissions?.[0]?.compact || null;
 
-        await this.$store.dispatch('user/setCurrentCompact', currentCompact);
+        // If a current compact is not set or the current compact is not part of the user permissions
+        if (!currentCompact || !permissions.some((permission) => permission.compact.type === currentCompact.type)) {
+            await this.$store.dispatch('user/setCurrentCompact', userDefaultCompact);
 
-        return currentCompact;
+            // If the current route is not matching the newly set compact, the redirect
+            if (this.routeCompactType && this.routeCompactType !== userDefaultCompact?.type) {
+                this.$router.replace({
+                    name: (this.$route.name as RouteRecordName),
+                    params: { compact: userDefaultCompact.type }
+                });
+            }
+        }
     }
 
     setRelativeTimeFormats() {
@@ -127,9 +155,11 @@ class App extends Vue {
         this.body.style.overflow = (this.globalStore.isModalOpen) ? 'hidden' : 'visible';
     }
 
-    @Watch('userStore.isLoggedIn') onLogout() {
+    @Watch('userStore.isLoggedIn') async loginState() {
         if (!this.userStore.isLoggedIn) {
             this.$router.push({ name: 'Logout' });
+        } else {
+            await this.handleAuth();
         }
     }
 }
