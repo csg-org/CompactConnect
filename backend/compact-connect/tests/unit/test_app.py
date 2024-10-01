@@ -28,6 +28,7 @@ class TestApp(TestCase):
         return context
 
     def _when_testing_sandbox_stack_context(self):
+
         with open('cdk.json', 'r') as f:
             context = json.load(f)['context']
         with open('cdk.context.sandbox-example.json', 'r') as f:
@@ -46,6 +47,7 @@ class TestApp(TestCase):
             return resources[logical_id]['Properties']
         except KeyError as exc:
             raise RuntimeError(f'{logical_id} not found in resources!') from exc
+
 
     def test_no_compact_jurisdiction_name_clash(self):
         """
@@ -136,6 +138,7 @@ class TestApp(TestCase):
         we will skip setting up domain names and DNS records for the API and UI.
         """
         context = self._when_testing_sandbox_stack_context()
+
         # Drop domain name to ensure we still handle the optional DNS setup
         del context['ssm_context']['environments'][context['environment_name']]['domain_name']
 
@@ -211,6 +214,7 @@ class TestApp(TestCase):
                       provider_users_user_pool['Schema'])
         self.assertIn({'AttributeDataType': 'String', 'Mutable': False, 'Name': 'compact'},
                       provider_users_user_pool['Schema'])
+
 
 
     def _inspect_persistent_stack(
