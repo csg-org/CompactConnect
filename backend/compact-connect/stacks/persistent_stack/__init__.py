@@ -13,6 +13,7 @@ from stacks.persistent_stack.license_table import LicenseTable
 from stacks.persistent_stack.event_bus import EventBus
 from stacks.persistent_stack.provider_table import ProviderTable
 from stacks.persistent_stack.staff_users import StaffUsers
+from stacks.persistent_stack.provider_users import ProviderUsers
 from stacks.persistent_stack.user_email_notifications import UserEmailNotifications
 
 # cdk leverages instance attributes to make resource exports accessible to other stacks
@@ -93,11 +94,25 @@ class PersistentStack(AppStack):
             user_pool_email=user_pool_email_settings,
             removal_policy=removal_policy
         )
+
+        provider_prefix = f'{app_name}-provider'
+        self.provider_users = ProviderUsers(
+            self, 'ProviderUsers',
+            cognito_domain_prefix=provider_prefix if environment_name == 'prod'
+            else f'{provider_prefix}-{environment_name}',
+            environment_name=environment_name,
+            environment_context=environment_context,
+            encryption_key=self.shared_encryption_key,
+            user_pool_email=user_pool_email_settings,
+            removal_policy=removal_policy
+        )
+
         if self.hosted_zone:
-            # The SES email identity needs to be created before the user pool
+            # The SES email identity needs to be created before the user pools
             # so that the domain address will be verified before being referenced
             # by the user pool email settings
             self.staff_users.node.add_dependency(self.user_email_notifications)
+            self.provider_users.node.add_dependency(self.user_email_notifications)
 
     def _add_mock_data_resources(self):
         self.mock_bulk_uploads_bucket = BulkUploadsBucket(

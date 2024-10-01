@@ -18,6 +18,7 @@ class StaffUsers(UserPool):
     """
     User pool for Compact, Board, and CSG staff
     """
+
     def __init__(
             self, scope: Construct, construct_id: str, *,
             cognito_domain_prefix: str | None,
@@ -72,13 +73,10 @@ class StaffUsers(UserPool):
         # to allow for user attribute-based access
         self.ui_client = self.add_ui_client(
             callback_urls=callback_urls,
-            write_attributes=ClientAttributes().with_standard_attributes(
-                # We have to provide one True value or CFn will make every attribute writeable
-                email=True
-            ),
-            read_attributes=ClientAttributes().with_standard_attributes(
-                email=True
-            )
+            # We have to provide one True value or CFn will make every attribute writeable
+            write_attributes=ClientAttributes().with_standard_attributes(email=True),
+            # We want to limit the attributes that this app can read and write so only email is visible.
+            read_attributes=ClientAttributes().with_standard_attributes(email=True)
         )
 
     def _add_resource_servers(self):

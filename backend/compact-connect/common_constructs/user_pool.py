@@ -1,23 +1,25 @@
-from typing import List
+from typing import List, Optional, Mapping
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy
 from aws_cdk.aws_cognito import UserPool as CdkUserPool, UserPoolEmail, AccountRecovery, AutoVerifiedAttrs, \
     AdvancedSecurityMode, DeviceTracking, Mfa, MfaSecondFactor, PasswordPolicy, StandardAttributes, \
     CognitoDomainOptions, AuthFlow, OAuthSettings, OAuthFlows, ClientAttributes, \
-    CfnUserPoolRiskConfigurationAttachment, OAuthScope, SignInAliases
+    CfnUserPoolRiskConfigurationAttachment, OAuthScope, ICustomAttribute, SignInAliases
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
 
 class UserPool(CdkUserPool):
-    def __init__(
+    # A lot of arguments legitimately need to be passed into the constructor
+    def __init__(  # pylint: disable=too-many-arguments
             self, scope: Construct, construct_id: str, *,
             cognito_domain_prefix: str,
             environment_name: str,
             encryption_key: IKey,
-            sign_in_aliases: SignInAliases,
+            sign_in_aliases: SignInAliases | None,
             standard_attributes: StandardAttributes,
+            custom_attributes: Optional[Mapping[str, ICustomAttribute]] = None,
             email: UserPoolEmail,
             removal_policy,
             **kwargs
@@ -45,6 +47,7 @@ class UserPool(CdkUserPool):
             sign_in_aliases=sign_in_aliases,
             sign_in_case_sensitive=False,
             standard_attributes=standard_attributes,
+            custom_attributes=custom_attributes,
             **kwargs
         )
 
@@ -87,6 +90,14 @@ class UserPool(CdkUserPool):
                       read_attributes: ClientAttributes,
                       write_attributes: ClientAttributes,
                       ui_scopes: List[OAuthScope] = None):
+        """
+        Creates an app client for the UI to authenticate with the user pool.
+
+        :param callback_urls: The URLs that Cognito allows the UI to redirect to after authentication.
+        :param read_attributes: The attributes that the UI can read.
+        :param write_attributes: The attributes that the UI can write.
+        :param ui_scopes: OAuth scopes that are allowed with this client
+        """
         return self.add_client(
             'UIClient',
             auth_flows=AuthFlow(
