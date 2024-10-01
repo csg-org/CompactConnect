@@ -6,19 +6,13 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
+import { AuthTypes } from '@/app.config';
 
 @Component({
     name: 'Login',
     components: {}
 })
 export default class Login extends Vue {
-    //
-    // Lifecycle
-    //
-    created() {
-        this.redirectToHostedLogin();
-    }
-
     //
     // Computed
     //
@@ -37,10 +31,29 @@ export default class Login extends Vue {
             `?client_id=${cognitoClientIdStaff}`,
             `&response_type=${loginResponseType}`,
             `&scope=${encodeURIComponent(loginScopes)}`,
+            `&state=${AuthTypes.STAFF}`,
             `&redirect_uri=${encodeURIComponent(`${domain}${loginRedirectPath}`)}`,
         ].join('');
         const idpPath = (this.shouldRemoteLogout) ? '/logout' : '/login';
         const loginUri = `${cognitoAuthDomainStaff}${idpPath}${loginUriQuery}`;
+
+        return loginUri;
+    }
+
+    get hostedLoginUriLicensee(): string {
+        const { domain, cognitoAuthDomainLicensee, cognitoClientIdLicensee } = this.$envConfig;
+        const loginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
+        const loginResponseType = 'code';
+        const loginRedirectPath = '/auth/callback';
+        const loginUriQuery = [
+            `?client_id=${cognitoClientIdLicensee}`,
+            `&response_type=${loginResponseType}`,
+            `&scope=${encodeURIComponent(loginScopes)}`,
+            `&state=${AuthTypes.LICENSEE}`,
+            `&redirect_uri=${encodeURIComponent(`${domain}${loginRedirectPath}`)}`,
+        ].join('');
+        const idpPath = (this.shouldRemoteLogout) ? '/logout' : '/login';
+        const loginUri = `${cognitoAuthDomainLicensee}${idpPath}${loginUriQuery}`;
 
         return loginUri;
     }

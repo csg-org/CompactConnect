@@ -19,6 +19,14 @@ export const tokens = {
         ID_TOKEN: 'id_token_staff',
         REFRESH_TOKEN: 'refresh_token_staff',
     },
+    licensee: {
+        AUTH_TYPE: 'auth_type',
+        AUTH_TOKEN: 'auth_token_licensee',
+        AUTH_TOKEN_TYPE: 'auth_token_type_licensee',
+        AUTH_TOKEN_EXPIRY: 'auth_token_expiry_licensee',
+        ID_TOKEN: 'id_token_licensee',
+        REFRESH_TOKEN: 'refresh_token_licensee',
+    },
 };
 export const AUTH_LOGIN_GOTO_PATH = 'login_goto';
 
@@ -97,6 +105,14 @@ export enum UploadFileType {
     DATA = 'data',
     IMAGE = 'image',
     DOCUMENT = 'document',
+}
+
+// =============================
+// =  Authorization Types        =
+// =============================
+export enum AuthTypes {
+    STAFF = 'staff',
+    LICENSEE = 'licensee'
 }
 
 export interface InterfaceUploadFile {

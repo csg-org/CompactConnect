@@ -8,6 +8,7 @@
 import { authStorage, tokens } from '@/app.config';
 import mutations, { MutationTypes } from './user.mutations';
 import actions from './user.actions';
+import getters from './user.getters';
 
 const chaiMatchPattern = require('chai-match-pattern');
 const chai = require('chai').use(chaiMatchPattern);
@@ -183,7 +184,7 @@ describe('User Store Actions', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
 
-        actions.logoutRequest({ commit, dispatch });
+        actions.logoutRequest({ commit, dispatch }, 'staff');
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.LOGOUT_REQUEST]);
@@ -253,8 +254,10 @@ describe('User Store Actions', async () => {
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_RESET_USER]);
     });
-    it('should successfully store staff auth tokens with a tokenResponse', () => {
+    it('should successfully store arbitrary auth tokens with a tokenResponse', () => {
         const dispatch = sinon.spy();
+        const authType = 'staff';
+
         const tokenResponse = {
             access_token: 'test_access_token',
             token_type: 'test_token_type',
@@ -263,23 +266,27 @@ describe('User Store Actions', async () => {
             refresh_token: 'test_refresh_token',
         };
 
-        actions.storeAuthTokensStaff({ dispatch }, tokenResponse);
+        actions.storeAuthTokens({ dispatch }, { tokenResponse, authType });
 
         expect(dispatch.calledOnce).to.equal(true);
-        expect(dispatch.firstCall.args).to.matchPattern(['startRefreshTokenTimer']);
+        expect(dispatch.firstCall.args).to.matchPattern(['startRefreshTokenTimer', 'staff']);
     });
-    it('should successfully store staff auth tokens without a tokenResponse', () => {
+    it('should successfully store arbitrary auth tokens without a tokenResponse', () => {
         const dispatch = sinon.spy();
 
-        actions.storeAuthTokensStaff({ dispatch });
+        const authType = 'licensee';
+
+        actions.storeAuthTokens({ dispatch }, { tokenResponse: null, authType });
 
         expect(dispatch.calledOnce).to.equal(true);
-        expect(dispatch.firstCall.args).to.matchPattern(['startRefreshTokenTimer']);
+        expect(dispatch.firstCall.args).to.matchPattern(['startRefreshTokenTimer', 'licensee']);
     });
     it('should successfully start refresh token timer with data', () => {
         const dispatch = sinon.spy();
 
-        actions.startRefreshTokenTimer({ dispatch });
+        const authType = 'staff';
+
+        actions.startRefreshTokenTimer({ dispatch }, authType);
 
         expect(dispatch.calledOnce).to.equal(true);
     });
@@ -289,17 +296,32 @@ describe('User Store Actions', async () => {
         authStorage.removeItem(tokens.staff.AUTH_TOKEN_EXPIRY);
         authStorage.removeItem(tokens.staff.REFRESH_TOKEN);
 
-        actions.startRefreshTokenTimer({ dispatch });
+        const authType = 'licensee';
+
+        actions.startRefreshTokenTimer({ dispatch }, authType);
 
         expect(dispatch.calledOnce).to.equal(false);
     });
-    it('should successfully set refresh token timeout', () => {
+    it('should successfully set staff refresh token timeout', () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
         const refreshToken = 'test_refresh_token';
         const expiresIn = 7200;
+        const authType = 'staff';
 
-        actions.setRefreshTokenTimeout({ commit, dispatch }, { refreshToken, expiresIn });
+        actions.setRefreshTokenTimeout({ commit, dispatch }, { refreshToken, expiresIn, authType });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(dispatch.calledOnce).to.equal(false);
+    });
+    it('should successfully set licensee refresh token timeout', () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const refreshToken = 'test_refresh_token';
+        const expiresIn = 7200;
+        const authType = 'licensee';
+
+        actions.setRefreshTokenTimeout({ commit, dispatch }, { refreshToken, expiresIn, authType });
 
         expect(commit.calledOnce).to.equal(true);
         expect(dispatch.calledOnce).to.equal(false);
@@ -319,5 +341,47 @@ describe('User Store Actions', async () => {
         actions.clearSessionStores({ dispatch });
 
         expect(dispatch.callCount).to.equal(5);
+    });
+    it('should successfully use the authType getter for licensee auth', () => {
+        const dispatch = sinon.spy();
+
+        authStorage.removeItem(tokens.staff.AUTH_TOKEN);
+
+        const authType = 'licensee';
+
+        const tokenResponse = {
+            access_token: 'test_access_token',
+            token_type: 'test_token_type',
+            expires_in: 1,
+            id_token: 'test_id_token',
+            refresh_token: 'test_refresh_token',
+        };
+
+        actions.storeAuthTokens({ dispatch }, { tokenResponse, authType });
+
+        const authTypeReturned = getters.highestPermissionAuthType()();
+
+        expect(authTypeReturned).to.equal('licensee');
+    });
+    it('should successfully use the authType getter for staff auth', () => {
+        const dispatch = sinon.spy();
+
+        const authType = 'staff';
+
+        authStorage.removeItem(tokens.licensee.AUTH_TOKEN);
+
+        const tokenResponse = {
+            access_token: 'test_access_token',
+            token_type: 'test_token_type',
+            expires_in: 1,
+            id_token: 'test_id_token',
+            refresh_token: 'test_refresh_token',
+        };
+
+        actions.storeAuthTokens({ dispatch }, { tokenResponse, authType });
+
+        const authTypeReturned = getters.highestPermissionAuthType()();
+
+        expect(authTypeReturned).to.equal('staff');
     });
 });
