@@ -53,7 +53,13 @@ class paginated_query:  # pylint: disable=invalid-name
 
         items = []
         raw_resp = {}
-        for raw_resp in self._generate_pages(last_key, page_size, client_filter, args, kwargs):
+        for raw_resp in self._generate_pages(
+                last_key=last_key,
+                page_size=page_size,
+                client_filter=client_filter,
+                args=args,
+                kwargs=kwargs
+        ):
             items.extend(raw_resp.get('Items', []))
 
         # items can be longer than page_size, so trim it:
@@ -85,7 +91,7 @@ class paginated_query:  # pylint: disable=invalid-name
         return resp
 
     def _generate_pages(
-            self,
+            self, *,
             last_key: str | None,
             page_size: int,
             client_filter: Callable[[dict], bool] | None,
