@@ -17,7 +17,7 @@ import {
     relativeTimeFormats,
     tokens
 } from '@/app.config';
-import { CompactType, CompactSerializer } from '@models/Compact/Compact.model';
+// import { CompactType, CompactSerializer } from '@models/Compact/Compact.model';
 import PageContainer from '@components/Page/PageContainer/PageContainer.vue';
 import Modal from '@components/Modal/Modal.vue';
 import moment from 'moment';
@@ -49,6 +49,10 @@ class App extends Vue {
                 authType = AuthTypes.STAFF;
             }
             this.$store.dispatch('user/startRefreshTokenTimer', authType);
+
+            await this.getAccount();
+
+            console.log(this.userStore.currentCompact);
 
             if (!this.userStore.currentCompact) {
                 this.setCurrentCompact();
@@ -88,12 +92,21 @@ class App extends Vue {
     //
     // Methods
     //
+    async getAccount() {
+        const authType = authStorage.getItem(tokens.staff.AUTH_TYPE);
+
+        if (authType === AuthTypes.STAFF) {
+            await this.$store.dispatch('user/getStaffAccountRequest');
+        }
+    }
+
     async setCurrentCompact() {
-        const compact = CompactSerializer.fromServer({ type: CompactType.ASLP }); // Temp until server endpoints define the user's compact
+        const { permissions } = this.userStore.model;
+        const currentCompact = permissions?.[0]?.compact || null;
 
-        await this.$store.dispatch('user/setCurrentCompact', compact);
+        await this.$store.dispatch('user/setCurrentCompact', currentCompact);
 
-        return compact;
+        return currentCompact;
     }
 
     setRelativeTimeFormats() {
