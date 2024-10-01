@@ -44,9 +44,10 @@ def get_users(event: dict, context: LambdaContext):  # pylint: disable=unused-ar
     # If no query string parameters are provided, APIGW will set the value to None, which we need to handle here
     query_string_params = event.get('queryStringParameters') if event.get('queryStringParameters') is not None else {}
     pagination = {}
-    for pagination_key in ('lastKey', 'pageSize'):
-        if pagination_key in query_string_params:
-            pagination[pagination_key]: query_string_params[pagination_key]
+    if 'pageSize' in query_string_params.keys():
+        pagination['pageSize'] = int(query_string_params['pageSize'])
+    if 'lastKey' in query_string_params.keys():
+        pagination['lastKey'] = query_string_params['lastKey']
 
     scopes = get_event_scopes(event)
     allowed_jurisdictions = get_allowed_jurisdictions(compact=compact, scopes=scopes)

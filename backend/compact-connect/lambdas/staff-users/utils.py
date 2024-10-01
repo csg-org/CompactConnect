@@ -192,13 +192,6 @@ def get_allowed_jurisdictions(*, compact: str, scopes: Set[str]) -> List[str] | 
     return compact_jurisdictions
 
 
-def validate_compact_in_scopes(scopes: set, compact: str):
-    for scope in scopes:
-        if scope.startswith(f'{compact}/'):
-            return
-    raise CCAccessDeniedException(f'Disallowed compact: {compact}')
-
-
 def get_event_scopes(event: dict):
     return set(event['requestContext']['authorizer']['claims']['scope'].split(' '))
 

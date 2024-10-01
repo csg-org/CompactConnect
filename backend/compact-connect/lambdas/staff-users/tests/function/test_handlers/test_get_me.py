@@ -6,7 +6,7 @@ from tests.function import TstFunction
 
 
 @mock_aws
-class TestHandlers(TstFunction):
+class TestGetMe(TstFunction):
     def test_get_me_access_denied(self):
         from handlers.me import get_me
 

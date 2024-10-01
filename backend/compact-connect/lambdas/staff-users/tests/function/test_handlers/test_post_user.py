@@ -6,7 +6,7 @@ from tests.function import TstFunction
 
 
 @mock_aws
-class TestHandlers(TstFunction):
+class TestPostUser(TstFunction):
     def test_post_user(self):
         from handlers.users import post_user
 

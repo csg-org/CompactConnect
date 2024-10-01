@@ -6,7 +6,7 @@ from tests.function import TstFunction
 
 
 @mock_aws
-class TestHandlers(TstFunction):
+class TestPatchMe(TstFunction):
     def test_patch_me_not_found(self):
         from handlers.me import patch_me
 

@@ -6,7 +6,7 @@ from tests.function import TstFunction
 
 
 @mock_aws
-class TestHandlers(TstFunction):
+class TestPatchUser(TstFunction):
     def test_patch_user(self):
         self._load_user_data()
 

@@ -117,7 +117,8 @@ if __name__ == '__main__':
         compacts = context['compacts']
 
     parser = ArgumentParser(
-        description='Create a staff user'
+        description='Create a staff user',
+        epilog='example: bin/create_staff_user.py -e justin@example.org -f williams -g justin -t board-ed -c octp -j oh'
     )
     parser.add_argument('-e', '--email', help="The new user's email address", required=True)
     parser.add_argument(

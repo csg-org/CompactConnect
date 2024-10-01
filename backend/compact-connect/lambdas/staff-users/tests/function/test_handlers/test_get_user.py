@@ -6,7 +6,7 @@ from tests.function import TstFunction
 
 
 @mock_aws
-class TestHandlers(TstFunction):
+class TestGetUser(TstFunction):
     def test_get_user_not_found(self):
         from handlers.users import get_one_user
 
