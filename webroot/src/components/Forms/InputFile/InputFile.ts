@@ -53,12 +53,12 @@ class InputFile extends mixins(MixinInput) {
         return formatted;
     }
 
-    blur(formInput: FormInput): void {
+    input(formInput: FormInput): void {
+        this.updateSelectedFiles();
         this.validateSelectedFiles(formInput);
     }
 
-    input(formInput: FormInput): void {
-        this.updateSelectedFiles();
+    cancel(formInput: FormInput): void {
         this.validateSelectedFiles(formInput);
     }
 
