@@ -14,7 +14,7 @@ class TestApi(TestCase):
 
     When adding or modifying API resources, a test should be added to ensure that the
     resource is created as expected. The pattern for these tests includes the following checks:
-    1. The path and parent id of the API GW resource matches expected values.
+    1. The path and parent id of the API Gateway resource matches expected values.
     2. If the resource has a lambda function associated with it, the function is present with the expected
     module and function.
     3. Check the methods associated with the resource, ensuring they are all present and have the correct handlers.

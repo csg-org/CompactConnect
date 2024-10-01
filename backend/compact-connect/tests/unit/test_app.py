@@ -197,12 +197,12 @@ class TestApp(TestCase):
         context = self._when_testing_sandbox_stack_context()
 
         app = CompactConnectApp(context=context)
-        persistant_stack = app.sandbox_stage.persistent_stack
-        persistent_stack_template = Template.from_stack(persistant_stack)
+        persistent_stack = app.sandbox_stage.persistent_stack
+        persistent_stack_template = Template.from_stack(persistent_stack)
 
         # Ensure our provider user pool is created with expected custom attributes
         provider_users_user_pool = self._get_resource_properties_by_logical_id(
-            persistant_stack.get_logical_id(persistant_stack.provider_users.node.default_child),
+            persistent_stack.get_logical_id(persistent_stack.provider_users.node.default_child),
             persistent_stack_template.find_resources(CfnUserPool.CFN_RESOURCE_TYPE_NAME)
         )
 
