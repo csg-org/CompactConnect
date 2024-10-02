@@ -10,7 +10,7 @@ from stacks import persistent_stack as ps
 
 class ProviderUsers(UserPool):
     """
-    User pool for medical providers (aka Licensees)
+    User pool for providers (aka Licensees)
     """
 
     def __init__(

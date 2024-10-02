@@ -3,8 +3,7 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration
-from aws_cdk.aws_apigateway import Resource, MethodResponse, JsonSchema, \
-    JsonSchemaType, MethodOptions, Model, LambdaIntegration
+from aws_cdk.aws_apigateway import Resource, MethodResponse, MethodOptions, LambdaIntegration
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 
@@ -13,6 +12,7 @@ from common_constructs.stack import Stack
 # Importing module level to allow lazy loading for typing
 from stacks.api_stack import cc_api
 from stacks.persistent_stack import ProviderTable
+from .api_model import ApiModel
 
 
 class QueryProviders:
@@ -21,12 +21,14 @@ class QueryProviders:
             resource: Resource,
             method_options: MethodOptions,
             data_encryption_key: IKey,
-            provider_data_table: ProviderTable
+            provider_data_table: ProviderTable,
+            api_model: ApiModel
     ):
         super().__init__()
 
         self.resource = resource
         self.api: cc_api.CCApi = resource.api
+        self.api_model = api_model
 
         stack: Stack = Stack.of(resource)
         lambda_environment = {
@@ -70,7 +72,7 @@ class QueryProviders:
                 MethodResponse(
                     status_code='200',
                     response_models={
-                        'application/json': self._get_provider_response_model()
+                        'application/json': self.api_model.provider_response_model
                     }
                 )
             ],
@@ -106,13 +108,13 @@ class QueryProviders:
             'POST',
             request_validator=self.api.parameter_body_validator,
             request_models={
-                'application/json': self._query_providers_request_model()
+                'application/json': self.api_model.query_providers_request_model
             },
             method_responses=[
                 MethodResponse(
                     status_code='200',
                     response_models={
-                        'application/json': self._query_providers_response_model()
+                        'application/json': self.api_model.query_providers_response_model
                     }
                 )
             ],
@@ -128,137 +130,6 @@ class QueryProviders:
             authorization_scopes=method_options.authorization_scopes
         )
 
-    @property
-    def _sorting_schema(self):
-        return JsonSchema(
-            type=JsonSchemaType.OBJECT,
-            description='How to sort results',
-            required=['key'],
-            properties={
-                'key': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    description='The key to sort results by',
-                    enum=['dateOfUpdate', 'familyName']
-                ),
-                'direction': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    description='Direction to sort results by',
-                    enum=['ascending', 'descending']
-                )
-            }
-        )
-
-    @property
-    def _pagination_request_schema(self):
-        return JsonSchema(
-            type=JsonSchemaType.OBJECT,
-            additional_properties=False,
-            properties={
-                'lastKey': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=1024),
-                'pageSize': JsonSchema(type=JsonSchemaType.INTEGER, minimum=5, maximum=100)
-            }
-        )
-
-    @property
-    def _pagination_response_schema(self):
-        return JsonSchema(
-            type=JsonSchemaType.OBJECT,
-            properties={
-                'lastKey': JsonSchema(
-                    type=[JsonSchemaType.STRING, JsonSchemaType.NULL],
-                    min_length=1,
-                    max_length=1024
-                ),
-                'prevLastKey': JsonSchema(
-                    type=[JsonSchemaType.STRING, JsonSchemaType.NULL],
-                    min_length=1,
-                    max_length=1024
-                ),
-                'pageSize': JsonSchema(type=JsonSchemaType.INTEGER, minimum=5, maximum=100)
-            }
-        )
-
-    def _query_providers_request_model(self) -> Model:
-        """
-        Return the query licenses request model, which should only be created once per API
-        """
-        if hasattr(self.api, 'v1_query_providers_request_model'):
-            return self.api.v1_query_providers_request_model
-        self.api.v1_query_providers_request_model = self.api.add_model(
-            'V1QueryProvidersRequestModel',
-            description='Query providers request model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                additional_properties=False,
-                required=[
-                    'query'
-                ],
-                properties={
-                    'query': JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        description='The query parameters',
-                        properties={
-                            'ssn': JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                description='Social security number to look up',
-                                pattern=cc_api.SSN_FORMAT
-                            ),
-                            'providerId': JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                description='Internal UUID for the provider',
-                                pattern=cc_api.UUID4_FORMAT
-                            ),
-                            'jurisdiction': JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                description="Filter for providers with privilege/license in a jurisdiction",
-                                enum=self.api.node.get_context('jurisdictions')
-                            )
-                        }
-                    ),
-                    'pagination': self._pagination_request_schema,
-                    'sorting': self._sorting_schema
-                }
-            )
-        )
-        return self.api.v1_query_providers_request_model
-
-    def _get_provider_response_model(self) -> Model:
-        """
-        Return the query license response model, which should only be created once per API
-        """
-        if hasattr(self.api, 'v1_get_provider_response_model'):
-            return self.api.v1_get_provider_response_model
-        self.api.v1_get_provider_response_model = self.api.add_model(
-            'V1GetProviderResponseModel',
-            description='Get provider response model',
-            schema=self.api.v1_provider_detail_response_schema
-        )
-        return self.api.v1_get_provider_response_model
-
-    def _query_providers_response_model(self) -> Model:
-        """
-        Return the query license response model, which should only be created once per API
-        """
-        if hasattr(self.api, 'v1_query_providers_response_model'):
-            return self.api.v1_query_providers_response_model
-        self.api.v1_query_providers_response_model = self.api.add_model(
-            'V1QueryProvidersResponseModel',
-            description='Query providers response model',
-            schema=JsonSchema(
-                type=JsonSchemaType.OBJECT,
-                required=['items', 'pagination'],
-                properties={
-                    'providers': JsonSchema(
-                        type=JsonSchemaType.ARRAY,
-                        max_length=100,
-                        items=self.api.v1_providers_response_schema
-                    ),
-                    'pagination': self._pagination_response_schema,
-                    'sorting': self._sorting_schema
-                }
-            )
-        )
-        return self.api.v1_query_providers_response_model
 
     def _get_provider_handler(
             self,
