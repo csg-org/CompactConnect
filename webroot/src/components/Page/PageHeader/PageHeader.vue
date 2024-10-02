@@ -7,7 +7,13 @@
 
 <template>
     <div class="page-header">
-        <div class="header-content"></div>
+        <div class="header-content">
+            <CompactSelector
+                v-if="isStaffUser"
+                :isPermissionBased="true"
+                :hideIfNotMultiple="true"
+            />
+        </div>
         <div class="nav-container">
             <PageNav />
         </div>
