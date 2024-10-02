@@ -15,7 +15,7 @@ class TestPatchUser(TstFunction):
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
 
-        # The user has admin permission for all of aslp
+        # The user has admin permission for aslp/oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/oh.admin'
         event['pathParameters'] = {
             'compact': 'aslp',
@@ -67,3 +67,35 @@ class TestPatchUser(TstFunction):
             },
             user
         )
+
+    def test_patch_user_forbidden(self):
+        self._load_user_data()
+
+        from handlers.users import patch_user
+
+        with open('tests/resources/api-event.json', 'r') as f:
+            event = json.load(f)
+
+        # The user has admin permission for aslp/oh not aslp/ne
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/oh.admin'
+        event['pathParameters'] = {
+            'compact': 'aslp',
+            'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'
+        }
+        event['body'] = json.dumps({
+            'permissions': {
+                'aslp': {
+                    'jurisdictions': {
+                        'ne': {
+                            'actions': {
+                                'admin': True
+                            }
+                        }
+                    }
+                }
+            }
+        })
+
+        resp = patch_user(event, self.mock_context)
+
+        self.assertEqual(403, resp['statusCode'])
