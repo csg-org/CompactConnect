@@ -6,7 +6,7 @@ from unittest.mock import patch
 from aws_cdk import Stack
 from aws_cdk.assertions import Annotations, Match, Template
 from aws_cdk.aws_apigateway import CfnMethod
-from aws_cdk.aws_cognito import CfnUserPoolClient
+from aws_cdk.aws_cognito import CfnUserPoolClient, CfnUserPool
 
 from app import CompactConnectApp
 from stacks.api_stack import ApiStack
@@ -14,6 +14,28 @@ from stacks.persistent_stack import PersistentStack
 
 
 class TestApp(TestCase):
+
+    def _when_testing_production_stack_synth(self):
+        with open('cdk.json', 'r') as f:
+            context = json.load(f)['context']
+        with open('cdk.context.production-example.json', 'r') as f:
+            context['ssm_context'] = json.load(f)['ssm_context']
+
+        # Suppresses lambda bundling for tests
+        context['aws:cdk:bundling-stacks'] = []
+
+        return context
+
+    def _when_testing_sandbox_stack_synth(self):
+        with open('cdk.json', 'r') as f:
+            context = json.load(f)['context']
+        with open('cdk.context.sandbox-example.json', 'r') as f:
+            context.update(json.load(f))
+
+        # Suppresses lambda bundling for tests
+        context['aws:cdk:bundling-stacks'] = []
+
+        return context
 
     def test_no_compact_jurisdiction_name_clash(self):
         """
@@ -42,13 +64,7 @@ class TestApp(TestCase):
         """
         Test infrastructure as deployed via the pipeline
         """
-        with open('cdk.json', 'r') as f:
-            context = json.load(f)['context']
-        with open('cdk.context.production-example.json', 'r') as f:
-            context['ssm_context'] = json.load(f)['ssm_context']
-
-        # Suppresses lambda bundling for tests
-        context['aws:cdk:bundling-stacks'] = []
+        context = self._when_testing_production_stack_synth()
 
         app = CompactConnectApp(context=context)
 
@@ -86,13 +102,7 @@ class TestApp(TestCase):
         """
         Test infrastructure as deployed in a developer's sandbox
         """
-        with open('cdk.json', 'r') as f:
-            context = json.load(f)['context']
-        with open('cdk.context.sandbox-example.json', 'r') as f:
-            context.update(json.load(f))
-
-        # Suppresses lambda bundling for tests
-        context['aws:cdk:bundling-stacks'] = []
+        context = self._when_testing_sandbox_stack_synth()
 
         app = CompactConnectApp(context=context)
 
@@ -115,15 +125,9 @@ class TestApp(TestCase):
         In the case where they opt _not_ to set up a hosted zone and domain name for their sandbox,
         we will skip setting up domain names and DNS records for the API and UI.
         """
-        with open('cdk.json', 'r') as f:
-            context = json.load(f)['context']
-        with open('cdk.context.sandbox-example.json', 'r') as f:
-            context.update(json.load(f))
+        context = self._when_testing_sandbox_stack_synth()
         # Drop domain name to ensure we still handle the optional DNS setup
         del context['ssm_context']['environments'][context['environment_name']]['domain_name']
-
-        # Suppresses lambda bundling for tests
-        context['aws:cdk:bundling-stacks'] = []
 
         app = CompactConnectApp(context=context)
 
@@ -144,15 +148,10 @@ class TestApp(TestCase):
         If a developer tries to deploy this app without either a domain name or allowing a local UI, the app
         should fail to synthesize.
         """
-        with open('cdk.json', 'r') as f:
-            context = json.load(f)['context']
-        with open('cdk.context.sandbox-example.json', 'r') as f:
-            context.update(json.load(f))
+        context = self._when_testing_sandbox_stack_synth()
+
         del context['ssm_context']['environments'][context['environment_name']]['domain_name']
         del context['ssm_context']['environments'][context['environment_name']]['allow_local_ui']
-
-        # Suppresses lambda bundling for tests
-        context['aws:cdk:bundling-stacks'] = []
 
         with self.assertRaises(ValueError):
             CompactConnectApp(context=context)
@@ -161,16 +160,10 @@ class TestApp(TestCase):
         """
         Test infrastructure as deployed in a developer's sandbox
         """
-        with open('cdk.json', 'r') as f:
-            context = json.load(f)['context']
-        with open('cdk.context.sandbox-example.json', 'r') as f:
-            context.update(json.load(f))
+        context = self._when_testing_sandbox_stack_synth()
 
         del context['ssm_context']['environments'][context['environment_name']]['domain_name']
         context['ssm_context']['environments'][context['environment_name']]['local_ui_port'] = '5432'
-
-        # Suppresses lambda bundling for tests
-        context['aws:cdk:bundling-stacks'] = []
 
         app = CompactConnectApp(context=context)
 
@@ -186,6 +179,33 @@ class TestApp(TestCase):
             local_ui_port='5432'
         )
         self._inspect_api_stack(app.sandbox_stage.api_stack)
+
+    def test_synth_generates_provider_user_pool_with_expected_custom_attributes(self):
+        """
+        Test infrastructure as deployed in a developer's sandbox
+        """
+        context = self._when_testing_sandbox_stack_synth()
+
+        app = CompactConnectApp(context=context)
+        persistent_stack_template = Template.from_stack(app.sandbox_stage.persistent_stack)
+
+        # Ensure our provider user pool is created
+        persistent_stack_template.has_resource_properties(
+            type=CfnUserPool.CFN_RESOURCE_TYPE_NAME,
+            props={
+                "Schema": Match.array_with([
+                    {
+                        "Name": "providerId",
+                        "AttributeDataType": "String",
+                        "Mutable": False
+                    },
+                    {
+                        "Name": "compact",
+                        "AttributeDataType": "String",
+                        "Mutable": False
+                    }
+                ]
+        )})
 
     def _inspect_persistent_stack(
             self,
@@ -205,15 +225,39 @@ class TestApp(TestCase):
             local_ui_port = '3018' if not local_ui_port else local_ui_port
             callbacks.append(f'http://localhost:{local_ui_port}/auth/callback')
 
-        # Ensure our Staff user pool is configured with the expected callbacks
+        # ensure we have two user pools, one for staff users and one for providers
+        persistent_stack_template.resource_count_is(CfnUserPool.CFN_RESOURCE_TYPE_NAME, 2)
+
+        # Ensure our Staff user pool is configured with the expected callbacks and read/write attributes
         persistent_stack_template.has_resource(
             type=CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME,
             props={
                 'Properties': {
-                    'CallbackURLs': callbacks
+                    'CallbackURLs': callbacks,
+                    "ReadAttributes": ["email"],
+                    "WriteAttributes": ["email"],
                 }
             }
         )
+
+        # Ensure our Provider user pool is created with expected values
+        persistent_stack_template.has_resource_properties(
+            type=CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME,
+            props={
+                "ReadAttributes": Match.array_equals([
+                    "custom:compact",
+                    "custom:providerId",
+                    "email",
+                    "family_name",
+                    "given_name"
+                ]),
+                "WriteAttributes": Match.array_equals([
+                    "email",
+                    "family_name",
+                    "given_name"
+                ]),
+                "CallbackURLs": callbacks
+            })
 
     def _inspect_api_stack(self, api_stack: ApiStack):
         api_template = Template.from_stack(api_stack)
