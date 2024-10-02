@@ -12,7 +12,7 @@ class TestLicenses(TstFunction):
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
+        # The user has write permission for aslp/oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read aslp/write aslp/oh.write'
         event['pathParameters'] = {
             'compact': 'aslp',
@@ -31,7 +31,7 @@ class TestLicenses(TstFunction):
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
+        # The user has write permission for aslp/oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read aslp/write aslp/oh.write'
         event['pathParameters'] = {
             'compact': 'aslp',
