@@ -5,7 +5,8 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from config import logger
 from exceptions import CCNotFoundException
 from handlers import user_client, user_api_schema
-from utils import api_handler, authorize_compact, get_event_scopes, get_allowed_jurisdictions, collect_changes
+from utils import api_handler, authorize_compact, get_event_scopes, get_allowed_jurisdictions, \
+    collect_and_authorize_changes
 
 
 @api_handler
@@ -101,7 +102,11 @@ def patch_user(event: dict, context: LambdaContext):  # pylint: disable=unused-a
     path_compact = event['pathParameters']['compact']
     permission_changes = json.loads(event['body']).get('permissions', {}).get(compact, {})
     logger.debug('Requested changes', permission_changes=permission_changes)
-    changes = collect_changes(path_compact=path_compact, scopes=scopes, compact_changes=permission_changes)
+    changes = collect_and_authorize_changes(
+        path_compact=path_compact,
+        scopes=scopes,
+        compact_changes=permission_changes
+    )
     user = user_client.update_user_permissions(
         compact=compact,
         user_id=user_id,
@@ -120,7 +125,7 @@ def post_user(event: dict, context: LambdaContext):  # pylint: disable=unused-ar
     # Verify that the client has permission to create a user with the requested permissions
     for compact, compact_permissions in body['permissions'].items():
         # This method will raise an exception if they request an inappropriate permission for the new user
-        collect_changes(path_compact=compact, scopes=scopes, compact_changes=compact_permissions)
+        collect_and_authorize_changes(path_compact=compact, scopes=scopes, compact_changes=compact_permissions)
 
     # Use the UserClient to create a new user
     user = user_api_schema.dump(body)

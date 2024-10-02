@@ -55,6 +55,7 @@ class UserClient():
         Get users with permissions in the provided compact, sorted by family name
         :param compact: The compact to filter by
         :param dynamo_pagination: DynamoDB query pagination fields
+        :param jurisdictions: List of jurisdiction codes to filter by
         :param scan_forward: Whether to scan forward (True) or backward (False)
         """
         logger.info('Getting staff users by family name')
@@ -65,7 +66,7 @@ class UserClient():
             iter_jurisdictions = iter(jurisdictions)
             jurisdiction = next(iter_jurisdictions)
             filter_expression = Attr(f'permissions.jurisdictions.{jurisdiction}').exists()
-            while jurisdiction :=  next(iter_jurisdictions, None):
+            for jurisdiction in iter_jurisdictions:
                 filter_expression = filter_expression | Attr(f'permissions.jurisdictions.{jurisdiction}').exists()
         return self.config.users_table.query(
             IndexName=self.config.fam_giv_index_name,

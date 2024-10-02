@@ -93,7 +93,7 @@ class TestPaginated(TstLambdas):
                 'Items': [],
                 'Count': 3
             }
-            # 2 items, starting after last_key
+            # 3 items, starting after last_key
             for i in range(last_key+1, last_key+4):
                 item = self._item.copy()
                 # Number users to give us something simple to inspect

@@ -57,6 +57,7 @@ class TestGetUser(TstFunction):
         )
 
     def test_get_user_jurisdiction_admin(self):
+        # This user has permissions in oh
         self._load_user_data()
 
         from handlers.users import get_one_user
@@ -94,7 +95,7 @@ class TestGetUser(TstFunction):
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
 
-        # The user has admin permission for aslp/ne, user does not have aslp/ne permissions
+        # The user has admin permission for aslp/ne, user does not have aslp/oh permissions
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/ne.admin'
         event['pathParameters'] = {
             'compact': 'aslp',

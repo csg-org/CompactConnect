@@ -195,7 +195,7 @@ def get_allowed_jurisdictions(*, compact: str, scopes: Set[str]) -> List[str] | 
 def get_event_scopes(event: dict):
     return set(event['requestContext']['authorizer']['claims']['scope'].split(' '))
 
-def collect_changes(*, path_compact: str, scopes: set, compact_changes: dict) -> dict:
+def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_changes: dict) -> dict:
     """
     Transform PATCH user API changes to permissions into db operation changes. Operation changes are checked
     against the provided scopes to ensure the user is allowed to make the requested changes.

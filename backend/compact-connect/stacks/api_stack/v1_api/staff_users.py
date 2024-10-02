@@ -40,17 +40,17 @@ class StaffUsers:
             'FAM_GIV_INDEX_NAME': persistent_stack.staff_users.user_table.family_given_index_name
         }
 
-        # .../
+        # <base-url>/
         self._add_get_users(self.admin_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
         self._add_post_user(self.admin_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
 
         user_id_resource = self.admin_resource.add_resource('{userId}')
-        # .../{userId}
+        # <base-url>/{userId}
         self._add_get_user(user_id_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
         self._add_patch_user(user_id_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
 
         self.me_resource = self_resource.add_resource('me')
-        # .../me
+        # <base-url>/me
         profile_scopes = ['profile']
         self._add_get_me(self.me_resource, profile_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
         self._add_patch_me(self.me_resource, profile_scopes, env_vars=env_vars, persistent_stack=persistent_stack)

@@ -117,10 +117,9 @@ class TestClient(TstFunction):
 
         client = UserClient(self.config)
 
-        # Provide a client filter that will filter out users without permissions in the jurisdiction we're looking for
         resp = client.get_users_sorted_by_family_name(  # pylint: disable=missing-kwoa
             compact='aslp',
-            # All three jurisdictions, this time
+            # Only oh this time
             jurisdictions=['oh']
         )
 
