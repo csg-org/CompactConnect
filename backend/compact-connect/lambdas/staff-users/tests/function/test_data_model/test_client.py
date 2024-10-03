@@ -322,6 +322,12 @@ class TestClient(TstFunction):
         )
 
     def test_create_existing_user(self):
+        """
+        In the case that two compact admins invite the same individual to their respective compacts, we want there to
+        only be a single Cognito user created, but two database records for that user (one for each compact). So what
+        we're looking at here is that we have two sets of permissions (DB records, internally) but that they share the
+        same userId.
+        """
         from data_model.client import UserClient
 
         client = UserClient(self.config)

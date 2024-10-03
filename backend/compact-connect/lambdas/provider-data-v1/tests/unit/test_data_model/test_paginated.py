@@ -116,8 +116,8 @@ class TestPaginated(TstLambdas):
             kwarg1='baf'
         )
 
-        # We are requesting 10 users, starting with exclusive key 1, and filtering out all odds client-side. This
-        # should result in three queries to the DB, with the last record included in the response having a pk of 20:
+        # We are requesting 10 users, starting with exclusive key 1. This should result in three queries to the DB,
+        # with the last record included in the response having a pk of 20:
         #
         # | Query | DB sequence | PK | Ret Sequence |  Filter   | last_key |
         # |-------|-------------|----|--------------|-----------|----------|
@@ -136,8 +136,8 @@ class TestPaginated(TstLambdas):
         # |   4   |     3       | 13 |              | truncated |          |
         # |-------|-------------|----|--------------|-----------|----------|
 
-        # With client-side filtering every other item, we'll need at least 19 items from the DB to produce a 10-item
-        # page. If each DB query returns 9 items, that means 3 queries.
+        # We'll need at least 13 items from the DB to produce a 10-item page. If each DB query returns 3 items, that
+        # means 4 queries.
         self.assertEqual(
             [
                 (
