@@ -95,18 +95,18 @@ activeEnvironments: ["sandbox", "test"]
 ```
 
 ## Add State Configuration File to the System
-Once all of the above information has been gathered, the state configuration file must be added for the specific compact.
-These files are stored in the `compact-config` subdirectory under the `compact-connect` directory. 
-The file system structure is as follows:
+Once all of the above information has been gathered, the state configuration file must be added for the specific compact
+in a YAML format, see https://yaml.org/spec/1.2.2/. These files are stored in the `compact-config` subdirectory under 
+the `compact-connect` directory. The file system structure is as follows:
 ```
 compact-connect
 │
 └───compact-config
-    │   <compact-name>.yaml
+    │   <compact-name>.yml
     │   
     └───<compact-name ie aslp>
-        │   <state-name>.yaml
-        │   <state-name>.yaml
+        │   <state-name>.yml
+        │   <state-name>.yml
 ```
 
 The state configuration file name must be the name of the state with '-' characters in place of spaces. 
