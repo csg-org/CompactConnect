@@ -242,6 +242,161 @@ export const licensees = {
     ],
 };
 
+export const users = {
+    prevLastKey: 'xyz',
+    lastKey: 'abc',
+    items: [
+        {
+            userId: '10',
+            attributes: {
+                givenName: 'Miles',
+                familyName: 'Bennet-Dyson',
+                email: 'test@example.com',
+            },
+            permissions: {
+                aslp: {
+                    actions: {
+                        read: true,
+                        admin: true,
+                    },
+                    jurisdictions: {
+                        al: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                        co: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                        ky: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                    },
+                },
+                octp: {
+                    actions: {
+                        read: true,
+                        admin: true,
+                    },
+                    jurisdictions: {
+                        ak: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                        ar: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                        co: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                    },
+                },
+                coun: {
+                    actions: {
+                        read: true,
+                        admin: true,
+                    },
+                    jurisdictions: {
+                        al: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                        co: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                        ky: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        {
+            userId: '11',
+            attributes: {
+                givenName: 'John',
+                familyName: 'Conner',
+                email: 'test1@example.com',
+            },
+            permissions: {
+                aslp: {
+                    actions: {
+                        read: false,
+                        admin: false,
+                    },
+                    jurisdictions: {
+                        al: {
+                            actions: {
+                                admin: false,
+                                write: false,
+                            },
+                        },
+                        co: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                        ky: {
+                            actions: {
+                                admin: false,
+                                write: true,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        {
+            userId: '12',
+            attributes: {
+                givenName: 'Sarah',
+                familyName: 'Conner',
+                email: 'test2@example.com',
+            },
+            permissions: {
+                aslp: {
+                    actions: {
+                        read: false,
+                        admin: false,
+                    },
+                    jurisdictions: {
+                        ky: {
+                            actions: {
+                                admin: true,
+                                write: true,
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ],
+};
+
 export const pets = [
     {
         id: 1,

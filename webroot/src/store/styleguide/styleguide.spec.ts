@@ -96,7 +96,7 @@ describe('Styleguide Store Mutations', () => {
         expect(state.model).to.matchPattern([pet]);
     });
     it('should successfully update pet (not already in store - non-empty store)', () => {
-        const state = { model: [{ id: 2 }]};
+        const state = { model: [{ id: 2 }] };
         const pet = { id: 1 };
 
         mutations[MutationTypes.STORE_UPDATE_PET](state, pet);
@@ -104,7 +104,7 @@ describe('Styleguide Store Mutations', () => {
         expect(state.model).to.matchPattern([ { id: 2 }, pet]);
     });
     it('should successfully update pet (already in store)', () => {
-        const state = { model: [{ id: 1, name: 'test1' }]};
+        const state = { model: [{ id: 1, name: 'test1' }] };
         const pet = { id: 1, name: 'test2' };
 
         mutations[MutationTypes.STORE_UPDATE_PET](state, pet);
@@ -128,7 +128,7 @@ describe('Styleguide Store Mutations', () => {
         expect(state).to.equal(state);
     });
     it('should successfully remove pet (already in store)', () => {
-        const state = { model: [{ id: 1 }, { id: 2 }]};
+        const state = { model: [{ id: 1 }, { id: 2 }] };
         const petId = 1;
 
         mutations[MutationTypes.STORE_REMOVE_PET](state, petId);
@@ -136,7 +136,7 @@ describe('Styleguide Store Mutations', () => {
         expect(state.model).to.matchPattern([{ id: 2 }]);
     });
     it('should successfully remove pet (already in store - only record)', () => {
-        const state = { model: [{ id: 1 }]};
+        const state = { model: [{ id: 1 }] };
         const petId = 1;
 
         mutations[MutationTypes.STORE_REMOVE_PET](state, petId);

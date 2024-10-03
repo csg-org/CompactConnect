@@ -25,6 +25,7 @@
         "region": "us-east-1",
         "domain_name": "compactconnect.org",
         "notifications": {
+          "ses_operations_support_email": "justin@example.com",
           "email": [
             "justin@example.com"
           ],
@@ -43,6 +44,7 @@
         "domain_name": "test.compactconnect.org",
         "allow_local_ui": true,
         "notifications": {
+          "ses_operations_support_email": "justin@example.com",
           "email": [
             "justin@example.com"
           ],

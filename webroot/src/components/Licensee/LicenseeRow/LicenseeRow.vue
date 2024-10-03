@@ -65,7 +65,7 @@
             @keyup.enter="isSortOptionEnabled('stateOfLicense') && handleSortSelect('stateOfLicense')"
             :tabindex="(isHeaderRow && isSortOptionEnabled('stateOfLicense')) ? 0 : -1"
         >
-            <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.stateOfLicense') }}:</span>
+            <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.homeState') }}:</span>
             {{ item.licenseStatesDisplay() }}
             <span v-if="isSortOptionEnabled('stateOfLicense')" class="sort-icon" :class="{
                 'is-selected': isSortOptionSelected('stateOfLicense'),
@@ -80,7 +80,7 @@
             @keyup.enter="isSortOptionEnabled('practicingLocations') && handleSortSelect('practicingLocations')"
             :tabindex="(isHeaderRow && isSortOptionEnabled('practicingLocations')) ? 0 : -1"
         >
-            <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.practicingLocations') }}:</span>
+            <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.privileges') }}:</span>
             {{ item.privilegeStatesDisplay() }}
             <span v-if="isSortOptionEnabled('practicingLocations')" class="sort-icon" :class="{
                 'is-selected': isSortOptionSelected('practicingLocations'),

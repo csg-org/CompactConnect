@@ -2,7 +2,7 @@ from __future__ import annotations
 import json
 import os
 
-from aws_cdk.aws_cognito import ResourceServerScope, UserPoolOperation, LambdaVersion
+from aws_cdk.aws_cognito import ResourceServerScope, UserPoolOperation, LambdaVersion, UserPoolEmail
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from constructs import Construct
@@ -23,6 +23,7 @@ class StaffUsers(UserPool):
             environment_name: str,
             environment_context: dict,
             encryption_key: IKey,
+            user_pool_email: UserPoolEmail,
             removal_policy,
             **kwargs
     ):
@@ -32,6 +33,7 @@ class StaffUsers(UserPool):
             environment_name=environment_name,
             encryption_key=encryption_key,
             removal_policy=removal_policy,
+            email=user_pool_email,
             **kwargs
         )
         stack: ps.PersistentStack = ps.PersistentStack.of(self)

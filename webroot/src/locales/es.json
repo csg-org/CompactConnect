@@ -298,6 +298,7 @@
                 "abbrev": "VI"
             }
         ],
+        "stateUnknown": "Desconocido",
         "communicationPreference": "Preferencias de comunicación",
         "communicationPreferenceOptions": {
             "email": "Correo electrónico",
@@ -326,6 +327,7 @@
         "home": "Hogar",
         "upload": "Subir",
         "licensing": "Licencia",
+        "users": "Usuarios",
         "styleGuide": "Guía de estilo",
         "account": "Cuenta",
         "logout": "Cerrar sesión"
@@ -395,15 +397,18 @@
     "compacts": [
         {
             "name": "Patología del audio y del habla y el lenguaje",
+            "abbrev": "ASLP",
             "key": "aslp"
         },
         {
             "name": "Terapia ocupacional",
-            "key": "ot"
+            "abbrev": "OT",
+            "key": "octp"
         },
         {
             "name": "Asesoramiento",
-            "key": "counseling"
+            "abbrev": "Counseling",
+            "key": "coun"
         }
     ],
     "stateUpload": {
@@ -466,6 +471,26 @@
                 "key": "licensed professional clinical counselor"
             }
         ]
+    },
+    "account": {
+        "usersListTitle": "Usuarios",
+        "usersListEmpty": "Invita a los usuarios con el botón de arriba",
+        "permissions": "Permisos",
+        "affiliation": "Afiliación",
+        "states": "Estado/Jurisdicción",
+        "accountStatus": "Estado de la cuenta",
+        "accessLevel": {
+            "read": "Lectura",
+            "write": "Escritura",
+            "admin": "Administración"
+        },
+        "status": {
+            "active": "Activo",
+            "inactive": "Inactivo",
+            "pending": "Pendiente"
+        },
+        "resendInvite": "Reenviar invitación",
+        "userSearchLabel": "Introduzca un nombre"
     },
     "styleGuide": {
         "headerPlaceholder": "Contenido del encabezado",

@@ -35,6 +35,7 @@ describe('Compact model', () => {
 
         // Test methods
         expect(compact.name()).to.equal('');
+        expect(compact.abbrev()).to.equal('');
     });
     it('should create a Compact with specific values', () => {
         const data = {
@@ -53,6 +54,7 @@ describe('Compact model', () => {
 
         // Test methods
         expect(compact.name()).to.equal('Audio and Speech Language Pathology');
+        expect(compact.abbrev()).to.equal('ASLP');
     });
     it('should create a Compact with specific values through serializer', () => {
         const data = {
@@ -75,5 +77,6 @@ describe('Compact model', () => {
 
         // Test methods
         expect(compact.name()).to.equal('Audio and Speech Language Pathology');
+        expect(compact.abbrev()).to.equal('ASLP');
     });
 });

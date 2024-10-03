@@ -16,6 +16,7 @@ class UserPool(CdkUserPool):
             cognito_domain_prefix: str,
             environment_name: str,
             encryption_key: IKey,
+            email: UserPoolEmail,
             removal_policy,
             **kwargs
     ):
@@ -23,7 +24,7 @@ class UserPool(CdkUserPool):
             scope, construct_id,
             removal_policy=removal_policy,
             deletion_protection=removal_policy != RemovalPolicy.DESTROY,
-            email=UserPoolEmail.with_cognito(),
+            email=email,
             # user_invitation=UserInvitationConfig(...),
             account_recovery=AccountRecovery.EMAIL_ONLY,
             auto_verify=AutoVerifiedAttrs(email=True),
