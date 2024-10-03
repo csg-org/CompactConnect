@@ -413,7 +413,7 @@
     ],
     "stateUpload": {
         "formTitle": "Compact data upload",
-        "formSubtext": "Do not upload real data",
+        "formSubtext": "Current uploads are for test purposes and the data will not be saved permanently",
         "uploadHint": "Only 1 CSV",
         "successTitle": "Your document has been uploaded successfully",
         "successSubtext": "Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet"

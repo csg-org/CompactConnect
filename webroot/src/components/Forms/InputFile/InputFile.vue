@@ -11,6 +11,7 @@
         class="input-container"
         :class="{
             'form-row': formInput.isFormRow,
+            'no-margin': formInput.shouldHideMargin,
             'has-error': !!formInput.errorMessage,
             'is-drag-over': isDragOver,
         }"
