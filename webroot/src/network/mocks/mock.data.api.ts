@@ -98,7 +98,7 @@ export class DataApi {
     }
 
     // ========================================================================
-    //                              USER API
+    //                              STAFF USER API
     // ========================================================================
     // Get Users
     public getUsers() {
@@ -127,6 +127,14 @@ export class DataApi {
     // Get Authenticated Staff User
     public getAuthenticatedStaffUser() {
         return this.wait(500).then(() => UserSerializer.fromServer(staffAccount));
+    }
+
+    // ========================================================================
+    //                              LICENSEE USER API
+    // ========================================================================
+    // Get Authenticated Licensee User
+    public getAuthenticatedLicenseeUser() {
+        // return this.wait(500).then(() => UserSerializer.fromServer(staffAccount));
     }
 
     // ========================================================================

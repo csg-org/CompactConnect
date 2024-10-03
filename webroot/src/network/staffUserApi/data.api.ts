@@ -11,7 +11,7 @@ import {
     requestSuccess,
     responseSuccess,
     responseError
-} from '@network/userApi/interceptors';
+} from '@network/staffUserApi/interceptors';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { UserSerializer } from '@models/User/User.model';
 
@@ -30,7 +30,7 @@ export interface DataApiInterface {
     api: AxiosInstance;
 }
 
-export class UserDataApi implements DataApiInterface {
+export class StaffUserDataApi implements DataApiInterface {
     api: AxiosInstance;
 
     public constructor() {
@@ -184,4 +184,4 @@ export class UserDataApi implements DataApiInterface {
     }
 }
 
-export const userDataApi = new UserDataApi();
+export const staffUserDataApi = new StaffUserDataApi();
