@@ -254,7 +254,7 @@ describe('User Store Actions', async () => {
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_RESET_USER]);
     });
-    it('should successfully store arbitrary auth tokens with a tokenResponse', () => {
+    it('should successfully store staff auth tokens with a tokenResponse', () => {
         const dispatch = sinon.spy();
         const authType = 'staff';
 
@@ -271,7 +271,7 @@ describe('User Store Actions', async () => {
         expect(dispatch.calledOnce).to.equal(true);
         expect(dispatch.firstCall.args).to.matchPattern(['startRefreshTokenTimer', 'staff']);
     });
-    it('should successfully store arbitrary auth tokens without a tokenResponse', () => {
+    it('should successfully store licensee auth tokens without a tokenResponse', () => {
         const dispatch = sinon.spy();
 
         const authType = 'licensee';
