@@ -46,6 +46,8 @@ jobs:
       VUE_APP_COGNITO_REGION: us-east-1
       VUE_APP_COGNITO_AUTH_DOMAIN_STAFF: https://compact-connect-staff-test.auth.us-east-1.amazoncognito.com
       VUE_APP_COGNITO_CLIENT_ID_STAFF: 5iauq7le7npofot0l7vav5qh0t
+      VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE: https://compact-connect-provider-test.auth.us-east-1.amazoncognito.com
+      VUE_APP_COGNITO_CLIENT_ID_LICENSEE: 6erj63mpa5tjqdtdi6vfi9q9hi
 
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
@@ -101,6 +103,8 @@ jobs:
           VUE_APP_COGNITO_REGION: ${{ env.VUE_APP_COGNITO_REGION }}
           VUE_APP_COGNITO_AUTH_DOMAIN_STAFF: ${{ env.VUE_APP_COGNITO_AUTH_DOMAIN_STAFF }}
           VUE_APP_COGNITO_CLIENT_ID_STAFF: ${{ env.VUE_APP_COGNITO_CLIENT_ID_STAFF }}
+          VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE: ${{ env.VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE }}
+          VUE_APP_COGNITO_CLIENT_ID_LICENSEE: ${{ env.VUE_APP_COGNITO_CLIENT_ID_LICENSEE }}
         run: yarn build
         working-directory: ./webroot
 

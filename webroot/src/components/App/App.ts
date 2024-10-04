@@ -11,7 +11,12 @@ import {
     Watch,
     toNative
 } from 'vue-facing-decorator';
-import { relativeTimeFormats } from '@/app.config';
+import {
+    authStorage,
+    AuthTypes,
+    relativeTimeFormats,
+    tokens
+} from '@/app.config';
 import { CompactType, CompactSerializer } from '@models/Compact/Compact.model';
 import PageContainer from '@components/Page/PageContainer/PageContainer.vue';
 import Modal from '@components/Modal/Modal.vue';
@@ -38,7 +43,12 @@ class App extends Vue {
     //
     async created() {
         if (this.userStore.isLoggedIn) {
-            this.$store.dispatch('user/startRefreshTokenTimer');
+            let authType = AuthTypes.LICENSEE;
+
+            if (authStorage.getItem(tokens?.staff?.AUTH_TOKEN)) {
+                authType = AuthTypes.STAFF;
+            }
+            this.$store.dispatch('user/startRefreshTokenTimer', authType);
 
             if (!this.userStore.currentCompact) {
                 this.setCurrentCompact();

@@ -7,6 +7,7 @@
 
 import { reactive, computed } from 'vue';
 import { Component, Vue, toNative } from 'vue-facing-decorator';
+import { AuthTypes } from '@/app.config';
 import { Compact } from '@models/Compact/Compact.model';
 
 @Component({
@@ -45,13 +46,17 @@ class PageMainNav extends Vue {
         return this.userStore.currentCompact;
     }
 
+    get isLoggedInAsStaff(): boolean {
+        return this.isLoggedIn && this.$store.getters['user/highestPermissionAuthType']() === AuthTypes.STAFF;
+    }
+
     get mainLinks() {
         return reactive([
             {
                 to: 'Licensing',
                 params: { compact: this.currentCompact?.type },
                 label: computed(() => this.$t('navigation.licensing')),
-                isEnabled: this.isLoggedIn && Boolean(this.currentCompact),
+                isEnabled: Boolean(this.currentCompact) && this.isLoggedInAsStaff,
                 isExternal: false,
                 isExactActive: false,
             },
@@ -59,7 +64,7 @@ class PageMainNav extends Vue {
                 to: 'StateUpload',
                 params: { compact: this.currentCompact?.type },
                 label: computed(() => this.$t('navigation.upload')),
-                isEnabled: this.isLoggedIn && Boolean(this.currentCompact),
+                isEnabled: Boolean(this.currentCompact) && this.isLoggedInAsStaff,
                 isExternal: false,
                 isExactActive: true,
             },

@@ -63,6 +63,12 @@ const routes: Array<RouteConfig> = [
         meta: { requiresAuth: true },
     },
     {
+        path: '/:compact/LicenseeDashboard',
+        name: 'LicenseeDashboard',
+        component: () => import(/* webpackChunkName: "licenseeDashboard" */ '@pages/LicenseeDashboard/LicenseeDashboard.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
         path: '/styleguide',
         name: 'StyleGuide',
         component: () => import(/* webpackChunkName: "styleGuide" */ '@pages/StyleGuide/StyleGuide.vue'),
