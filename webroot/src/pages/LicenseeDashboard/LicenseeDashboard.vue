@@ -7,7 +7,15 @@
 
 <template>
     <div class="licensee-dashboard-container">
-        <h2 class="welcome-user">{{ userFullName }}</h2>
+        <div class="top-block">
+            <h2 class="welcome-user">Welcome, {{ userFullName }}</h2>
+            <InputButton
+                label="+ Obtain Privileges"
+                aria-label="obtatin privilege"
+                class="obtain-priv-btn"
+                @click="startPrivPurchaseFlow"
+            />
+        </div>
         <div class="home-state-list">
             <HomeStateBlock
                 v-for="state in homeStateList"

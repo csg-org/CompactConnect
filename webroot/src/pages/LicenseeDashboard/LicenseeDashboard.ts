@@ -8,6 +8,7 @@
 import { Component, Vue } from 'vue-facing-decorator';
 import AdverseActionList from '@/components/AdverseActionList/AdverseActionList.vue';
 import HomeStateBlock from '@/components/HomeStateBlock/HomeStateBlock.vue';
+import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import LicenseePrivilegeList from '@/components/LicenseePrivilegeList/LicenseePrivilegeList.vue';
 import { User } from '@models/User/User.model';
 
@@ -16,6 +17,7 @@ import { User } from '@models/User/User.model';
     components: {
         AdverseActionList,
         HomeStateBlock,
+        InputButton,
         LicenseePrivilegeList
     }
 })
