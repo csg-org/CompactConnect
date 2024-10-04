@@ -7,7 +7,7 @@
 
 import { dataApi } from '@network/data.api';
 import { config } from '@plugins/EnvConfig/envConfig.plugin';
-import { authStorage, tokens } from '@/app.config';
+import { authStorage, AuthTypes, tokens } from '@/app.config';
 import localStorage from '@store/local.storage';
 import { Compact } from '@models/Compact/Compact.model';
 import moment from 'moment';
@@ -32,10 +32,15 @@ export default {
         commit(MutationTypes.LOGIN_FAILURE, error);
     },
     // LOGOUT
-    logoutRequest: ({ commit, dispatch }) => {
+    logoutRequest: ({ commit, dispatch }, authType) => {
         dispatch('clearSessionStores');
         dispatch('startLoading', null, { root: true });
-        dispatch('clearAuthTokens');
+        let tokenType = AuthTypes.STAFF;
+
+        if (authType === AuthTypes.LICENSEE) {
+            tokenType = authType;
+        }
+        dispatch('clearAuthToken', tokenType);
         commit(MutationTypes.LOGOUT_REQUEST);
 
         /* istanbul ignore next */
@@ -80,7 +85,7 @@ export default {
     resetStoreUser: ({ commit }) => {
         commit(MutationTypes.STORE_RESET_USER);
     },
-    storeAuthTokensStaff: ({ dispatch }, tokenResponse) => {
+    storeAuthTokens: ({ dispatch }, { tokenResponse, authType }) => {
         const {
             access_token: accessToken,
             token_type: tokenType,
@@ -89,61 +94,71 @@ export default {
             refresh_token: refreshToken,
         } = tokenResponse || {};
 
-        authStorage.setItem(tokens.staff.AUTH_TYPE, 'staff');
+        authStorage.setItem(tokens[authType].AUTH_TYPE, authType);
 
         if (accessToken) {
-            authStorage.setItem(tokens.staff.AUTH_TOKEN, accessToken);
+            authStorage.setItem(tokens[authType].AUTH_TOKEN, accessToken);
         }
 
         if (tokenType) {
-            authStorage.setItem(tokens.staff.AUTH_TOKEN_TYPE, tokenType);
+            authStorage.setItem(tokens[authType].AUTH_TOKEN_TYPE, tokenType);
         }
 
         if (refreshToken) {
-            authStorage.setItem(tokens.staff.REFRESH_TOKEN, refreshToken);
+            authStorage.setItem(tokens[authType].REFRESH_TOKEN, refreshToken);
         }
 
         if (expiresIn) {
             const expiry = moment().add(expiresIn, 'seconds').format('YYYY-MM-DD:HH:mm:ss');
 
-            authStorage.setItem(tokens.staff.AUTH_TOKEN_EXPIRY, expiry);
+            authStorage.setItem(tokens[authType].AUTH_TOKEN_EXPIRY, expiry);
         }
 
         if (idToken) {
-            authStorage.setItem(tokens.staff.ID_TOKEN, idToken);
+            authStorage.setItem(tokens[authType].ID_TOKEN, idToken);
         }
 
-        dispatch('startRefreshTokenTimer');
+        dispatch('startRefreshTokenTimer', authType);
     },
-    startRefreshTokenTimer: ({ dispatch }) => {
-        const expiry = authStorage.getItem(tokens.staff.AUTH_TOKEN_EXPIRY);
-        const refreshToken = authStorage.getItem(tokens.staff.REFRESH_TOKEN);
+    startRefreshTokenTimer: ({ dispatch }, authType) => {
+        const expiry = authStorage.getItem(tokens[authType].AUTH_TOKEN_EXPIRY);
+        const refreshToken = authStorage.getItem(tokens[authType].REFRESH_TOKEN);
 
         if (expiry && refreshToken) {
             const expiresIn = moment(expiry, 'YYYY-MM-DD:HH:mm:ss').diff(moment(), 'seconds');
 
-            dispatch('setRefreshTokenTimeout', { refreshToken, expiresIn });
+            dispatch('setRefreshTokenTimeout', { refreshToken, expiresIn, authType });
         }
     },
-    setRefreshTokenTimeout: async ({ commit, dispatch }, { refreshToken, expiresIn }) => {
-        const { cognitoAuthDomainStaff, cognitoClientIdStaff } = config;
+    setRefreshTokenTimeout: async ({ commit, dispatch }, { refreshToken, expiresIn, authType }) => {
+        let cognitoClientId;
+        let cognitoAuthDomain;
+
+        if (authType === AuthTypes.STAFF) {
+            cognitoClientId = config.cognitoClientIdStaff;
+            cognitoAuthDomain = config.cognitoAuthDomainStaff;
+        } else if (authType === AuthTypes.LICENSEE) {
+            cognitoClientId = config.cognitoClientIdLicensee;
+            cognitoAuthDomain = config.cognitoAuthDomainLicensee;
+        }
+
         const params = new URLSearchParams();
         const refreshInMs = moment().add(expiresIn, 'seconds').subtract(5, 'minutes').diff(moment(), 'milliseconds');
         const refreshTokens = async () => {
             let isError = false;
 
             params.append('grant_type', 'refresh_token');
-            params.append('client_id', cognitoClientIdStaff || '');
+            params.append('client_id', cognitoClientId || '');
             params.append('refresh_token', refreshToken);
 
-            const { data } = await axios.post(`${cognitoAuthDomainStaff}/oauth2/token`, params).catch(() => {
+            const { data } = await axios.post(`${cognitoAuthDomain}/oauth2/token`, params).catch(() => {
                 isError = true;
 
                 return { data: {}};
             });
 
             if (!isError) {
-                dispatch('storeAuthTokensStaff', data);
+                dispatch('storeAuthTokens', { tokenResponse: data, authType });
             }
         };
         const timeoutId = setTimeout(refreshTokens, refreshInMs);
@@ -163,11 +178,11 @@ export default {
         dispatch('sorting/resetStoreSorting', null, { root: true });
         dispatch('reset', null, { root: true });
     },
-    clearAuthTokens: () => {
+    clearAuthToken: (def, authType) => {
         /* istanbul ignore next */
-        Object.keys(tokens.staff).forEach((key) => {
-            authStorage.removeItem(tokens.staff[key]);
-            localStorage.removeItem(tokens.staff[key]); // Always remove localStorage to reduce edge cache states; e.g. from switching auth storage
+        Object.keys(tokens[authType]).forEach((key) => {
+            authStorage.removeItem(tokens[authType][key]);
+            localStorage.removeItem(tokens[authType][key]); // Always remove localStorage to reduce edge cache states; e.g. from switching auth storage
         });
     },
 };

@@ -288,6 +288,58 @@
         }
       }
     },
+    "/v1/provider-users/me" : {
+      "get" : {
+        "parameters" : [ {
+          "name" : "Authorization",
+          "in" : "header",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "200 response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/definitions/SandboLicenCdZUBqRikZnZ"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SandboxAPIStackLicenseApiProviderUsersPoolAuthorizerEB7523BA" : [ ]
+        } ]
+      },
+      "options" : {
+        "responses" : {
+          "204" : {
+            "description" : "204 response",
+            "headers" : {
+              "Access-Control-Allow-Origin" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Methods" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              },
+              "Access-Control-Allow-Headers" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "content" : { }
+          }
+        }
+      }
+    },
     "/v1/compacts/{compact}/providers" : {
       "options" : {
         "consumes" : [ "application/json" ],
