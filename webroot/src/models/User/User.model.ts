@@ -5,8 +5,11 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
+/* eslint-disable max-classes-per-file */
+
 import deleteUndefinedProperties from '@models/_helpers';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
+import { Licensee, LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { State } from '@models/State/State.model';
 
 // ========================================================
@@ -32,6 +35,7 @@ export interface InterfaceUserCreate {
     lastName?: string | null;
     permissions?: Array<CompactPermission>;
     accountStatus?: string;
+    licensee?: Licensee | null;
     serverPage?: number;
 }
 
@@ -295,7 +299,7 @@ export class User implements InterfaceUserCreate {
 // ========================================================
 // =                      Serializer                      =
 // ========================================================
-export class UserSerializer {
+export class StaffUserSerializer {
     static fromServer(json: any, fetchConfig?: any): User {
         const userData: any = {
             id: json.userId,
@@ -327,6 +331,24 @@ export class UserSerializer {
 
             userData.permissions.push(compactPermission);
         });
+
+        return new User(userData);
+    }
+}
+
+export class LicenseeUserSerializer {
+    static fromServer(json: any): User {
+        const userData: any = {
+            id: json.providerId,
+            email: json.emailAddress,
+            firstName: json.givenName,
+            lastName: json.familyName,
+            permissions: [],
+            accountStatus: json.status || 'inactive',
+            licensee: LicenseeSerializer.fromServer(json)
+        };
+
+        console.log('userData', userData);
 
         return new User(userData);
     }

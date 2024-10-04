@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 4/12/2020.
 //
 
-import { User, UserSerializer } from '@models/User/User.model';
+import { User, StaffUserSerializer } from '@models/User/User.model';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import i18n from '@/i18n';
@@ -228,7 +228,7 @@ describe('User model', () => {
                 },
             },
         };
-        const user = UserSerializer.fromServer(data, { pageNum: 1 });
+        const user = StaffUserSerializer.fromServer(data, { pageNum: 1 });
 
         expect(user).to.be.an.instanceof(User);
         expect(user.id).to.equal(data.userId);

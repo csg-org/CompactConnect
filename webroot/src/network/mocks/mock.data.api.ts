@@ -6,7 +6,7 @@
 //
 
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
-import { UserSerializer } from '@models/User/User.model';
+import { StaffUserSerializer } from '@models/User/User.model';
 import {
     userData,
     staffAccount,
@@ -105,28 +105,28 @@ export class DataApi {
         return this.wait(500).then(() => ({
             prevLastKey: users.prevLastKey,
             lastKey: users.lastKey,
-            users: users.items.map((serverItem) => UserSerializer.fromServer(serverItem)),
+            users: users.items.map((serverItem) => StaffUserSerializer.fromServer(serverItem)),
         }));
     }
 
     // Create User
     public createUser() {
-        return this.wait(500).then(() => UserSerializer.fromServer(users.items[0]));
+        return this.wait(500).then(() => StaffUserSerializer.fromServer(users.items[0]));
     }
 
     // Get User by ID
     public getUser() {
-        return this.wait(500).then(() => UserSerializer.fromServer(users.items[0]));
+        return this.wait(500).then(() => StaffUserSerializer.fromServer(users.items[0]));
     }
 
     // Update User by ID
     public updateUser() {
-        return this.wait(500).then(() => UserSerializer.fromServer(users.items[0]));
+        return this.wait(500).then(() => StaffUserSerializer.fromServer(users.items[0]));
     }
 
     // Get Authenticated Staff User
     public getAuthenticatedStaffUser() {
-        return this.wait(500).then(() => UserSerializer.fromServer(staffAccount));
+        return this.wait(500).then(() => StaffUserSerializer.fromServer(staffAccount));
     }
 
     // ========================================================================
@@ -154,7 +154,7 @@ export class DataApi {
     public getAccount() {
         return this.wait(0).then(async () => {
             const mockUser: any = { ...userData };
-            const serializedUser = UserSerializer.fromServer(mockUser);
+            const serializedUser = StaffUserSerializer.fromServer(mockUser);
 
             return serializedUser;
         });

@@ -13,7 +13,7 @@ import {
     responseError
 } from '@network/licenseeUserApi/interceptors';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
-// import { UserSerializer } from '@models/User/User.model';
+import { LicenseeUserSerializer } from '@models/User/User.model';
 
 export interface RequestParamsInterfaceLocal {
     compact?: string;
@@ -84,14 +84,11 @@ export class LicenseeUserDataApi implements DataApiInterface {
      * @return {Promise<User>}         A User model instance.
      */
     public async getAuthenticatedLicenseeUser() {
-        console.log('try?');
-
         const serverResponse: any = await this.api.get(`/v1/provider-users/me`);
 
-        console.log('serverResponse', serverResponse);
-        // const response = UserSerializer.fromServer(serverResponse);
+        const response = LicenseeUserSerializer.fromServer(serverResponse);
 
-        return serverResponse;
+        return response;
     }
 }
 
