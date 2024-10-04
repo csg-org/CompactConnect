@@ -1,0 +1,14 @@
+{
+  "pk": "aslp#CONFIGURATION",
+  "sk": "aslp#CONFIGURATION",
+  "type": "compact",
+  "compactName": "aslp",
+  "compactCommissionFee": {
+    "feeType": "FLAT_RATE",
+    "feeAmount": 3.50
+  },
+  "compactOperationsTeamEmails": ["<email address>"],
+  "compactAdverseActionsNotificationEmails": ["<email address>"],
+  "compactSummaryReportNotificationEmails": ["<email address>"],
+  "dateOfUpdate": "2024-10-04"
+}

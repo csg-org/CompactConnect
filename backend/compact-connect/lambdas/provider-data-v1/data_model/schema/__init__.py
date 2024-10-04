@@ -3,3 +3,5 @@
 from .provider import ProviderRecordSchema
 from .license import LicenseRecordSchema
 from .privilege import PrivilegeRecordSchema
+from .compact import CompactRecordSchema
+from .jurisdiction import JurisdictionRecordSchema

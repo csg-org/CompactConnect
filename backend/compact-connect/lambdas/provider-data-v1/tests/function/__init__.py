@@ -124,13 +124,13 @@ class TstFunction(TstLambdas):
         test_resources = glob('tests/resources/dynamo/*.json')
 
         def provider_jurisdictions_to_set(obj: dict):
-            if obj['type'] == 'provider' and 'providerJurisdictions' in obj.keys():
+            if obj.get('type') == 'provider' and 'providerJurisdictions' in obj.keys():
                 obj['providerJurisdictions'] = set(obj['providerJurisdictions'])
             return obj
 
         for resource in test_resources:
             with open(resource, 'r') as f:
-                record = json.load(f, object_hook=provider_jurisdictions_to_set)
+                record = json.load(f, object_hook=provider_jurisdictions_to_set, parse_float=lambda x: str(x))
 
             logger.debug("Loading resource, %s: %s", resource, str(record))
             self._table.put_item(
