@@ -1,4 +1,5 @@
 from datetime import datetime, UTC
+from urllib.parse import quote
 from uuid import uuid4
 
 from boto3.dynamodb.conditions import Key, Attr
@@ -95,19 +96,36 @@ class DataClient():
             self, *,
             compact: str,
             dynamo_pagination: dict,
+            provider_name: tuple[str, str] = None,  # (givenName, familyName)
             jurisdiction: str = None,
             scan_forward: bool = True
     ):  # pylint: disable-redefined-outer-name
         logger.info('Getting providers by family name')
+
+        # Create a name value to use in key condition if name fields are provided
+        name_value = None
+        if provider_name is not None and provider_name[0] is not None:
+            name_value = f'{quote(provider_name[0])}#'
+            # We won't consider givenName if familyName is not provided
+            if provider_name[1] is not None:
+                name_value += f'{quote(provider_name[1])}#'
+
+        # Set key condition to query by
+        key_condition = Key('sk').eq(f'{compact}#PROVIDER')
+        if name_value is not None:
+            key_condition = key_condition & Key('providerFamGivMid').begins_with(name_value)
+
+        # Create a jurisdiction filter expression if a jurisdiction is provided
         if jurisdiction is not None:
             filter_expression = Attr('licenseJurisdiction').eq(jurisdiction) \
                                 | Attr('privilegeJurisdictions').contains(jurisdiction)
         else:
             filter_expression = None
+
         return config.provider_table.query(
             IndexName=config.fam_giv_mid_index_name,
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('sk').eq(f'{compact}#PROVIDER'),
+            KeyConditionExpression=key_condition,
             ScanIndexForward=scan_forward,
             **({'FilterExpression': filter_expression} if filter_expression is not None else {}),
             **dynamo_pagination
@@ -121,7 +139,7 @@ class DataClient():
             jurisdiction: str = None,
             scan_forward: bool = True
     ):  # pylint: disable-redefined-outer-name
-        logger.info('Getting licenses by family name')
+        logger.info('Getting providers by date updated')
         if jurisdiction is not None:
             filter_expression = Attr('licenseJurisdiction').eq(jurisdiction) \
                 | Attr('privilegeJurisdictions').contains(jurisdiction)

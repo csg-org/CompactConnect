@@ -212,6 +212,19 @@ class QueryProviders:
                                 type=JsonSchemaType.STRING,
                                 description="Filter for providers with privilege/license in a jurisdiction",
                                 enum=self.api.node.get_context('jurisdictions')
+                            ),
+                            'givenName': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description="Filter for providers by given name. familyName is required if this field "
+                                "is included.",
+                                min_length=1,
+                                max_length=100
+                            ),
+                            'familyName': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description="Filter for providers by family name",
+                                min_length=1,
+                                max_length=100
                             )
                         }
                     ),
