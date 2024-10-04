@@ -1,14 +1,14 @@
 # FOR TESTING PURPOSES ONLY, NOT ACTUAL CONFIGURATION
-stateName: "nebraska"
+jurisdictionName: "nebraska"
 postalAbbreviation: "ne"
-stateFee: 100
+jurisdictionFee: 100
 militaryDiscount:
     active: true
     discountType: "FLAT_RATE"
     discountAmount: 10
-stateOperationsTeamEmail: "<email address>"
-stateAdverseActionsNotificationEmail: "<email address>"
-stateSummaryReportNotificationEmail: "<email address>"
+jurisdictionOperationsTeamEmail: "<email address>"
+jurisdictionAdverseActionsNotificationEmail: "<email address>"
+jurisdictionSummaryReportNotificationEmail: "<email address>"
 jurisprudenceRequirements:
     required: true
 activeEnvironments: []

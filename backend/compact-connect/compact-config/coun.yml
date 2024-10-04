@@ -1,6 +1,6 @@
 # FOR TESTING PURPOSES ONLY, NOT ACTUAL CONFIGURATION
 compactName: "coun"
-compactFees:
+compactCommissionFee:
     feeType: "FLAT_RATE"
     feeAmount: 3.50
 compactOperationsTeamEmail: "<email address>"
