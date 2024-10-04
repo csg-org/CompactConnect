@@ -113,6 +113,7 @@ The state configuration file name must be the name of the state with '-' charact
 The file must be defined in the following format (unless otherwise noted, all fields are required):
 ```
 stateName: "<state name>"
+postalAbbreviation: "<state abbreviation>"
 stateFee: <number>
 militaryDiscount:  
     active: true | false

@@ -1,5 +1,6 @@
 # FOR TESTING PURPOSES ONLY, NOT ACTUAL CONFIGURATION
 stateName: "kentucky"
+postalAbbreviation: "ky"
 stateFee: 100
 militaryDiscount:
     active: true

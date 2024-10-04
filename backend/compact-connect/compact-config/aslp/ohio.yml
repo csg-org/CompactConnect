@@ -1,5 +1,6 @@
 # FOR TESTING PURPOSES ONLY, NOT ACTUAL CONFIGURATION
 stateName: "ohio"
+postalAbbreviation: "oh"
 stateFee: 100
 militaryDiscount:
     active: true

@@ -1,5 +1,6 @@
 # FOR TESTING PURPOSES ONLY, NOT ACTUAL CONFIGURATION
 stateName: "nebraska"
+postalAbbreviation: "ne"
 stateFee: 100
 militaryDiscount:
     active: true
