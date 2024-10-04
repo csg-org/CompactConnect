@@ -45,7 +45,7 @@ jobs:
       VUE_APP_API_USER_ROOT: https://api.test.compactconnect.org
       VUE_APP_COGNITO_REGION: us-east-1
       VUE_APP_COGNITO_AUTH_DOMAIN_STAFF: https://compact-connect-staff-test.auth.us-east-1.amazoncognito.com
-      VUE_APP_COGNITO_CLIENT_ID_STAFF: 5iauq7le7npofot0l7vav5qh0t
+      VUE_APP_COGNITO_CLIENT_ID_STAFF: ${{ secrets.TEST_WEBROOT_COGNITO_CLIENT_ID_STAFF }}
 
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
