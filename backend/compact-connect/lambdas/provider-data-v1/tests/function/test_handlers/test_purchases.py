@@ -37,6 +37,13 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
             expected_jurisdiction_option = json.load(f)
             expected_jurisdiction_option.pop('pk')
             expected_jurisdiction_option.pop('sk')
+            # we should not be returning email information in the response
+            expected_jurisdiction_option.pop('jurisdictionOperationsTeamEmails')
+            expected_jurisdiction_option.pop('jurisdictionAdverseActionsNotificationEmails')
+            expected_jurisdiction_option.pop('jurisdictionSummaryReportNotificationEmails')
+            # remove date fields as they are not needed in the response
+            expected_jurisdiction_option.pop('dateOfUpdate')
+
 
         # the jurisdiction configuration is stored in the dynamo db as part of the
         # parent TstFunction setup, so we can compare the response directly
@@ -57,12 +64,17 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
             expected_compact_option = json.load(f)
             expected_compact_option.pop('pk')
             expected_compact_option.pop('sk')
+            # we should not be returning email information in the response
+            expected_compact_option.pop('compactOperationsTeamEmails')
+            expected_compact_option.pop('compactAdverseActionsNotificationEmails')
+            expected_compact_option.pop('compactSummaryReportNotificationEmails')
+            # remove date fields as they are not needed in the response
+            expected_compact_option.pop('dateOfUpdate')
 
         # the compact configuration is stored in the dynamo db as part of the
         # parent TstFunction setup, so we can compare the response directly
         compact_option = [option for option in privilege_options['items'] if option['type'] == 'compact'][0]
         self.assertEqual(expected_compact_option, compact_option)
-
 
 
     def test_get_purchase_privilege_options_returns_400_if_api_call_made_without_proper_claims(self):

@@ -25,8 +25,22 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # pyli
         logger.error(f'Missing custom provider attribute: {e}')
         raise CCInvalidRequestException('Missing required user profile attribute') from e
 
-    return config.data_client.get_privilege_purchase_options(
+    options_response = config.data_client.get_privilege_purchase_options(
         compact=compact,
         pagination=event.get('queryStringParameters', {})
     )
 
+    # we need to filter out contact information from the response, which is not needed by the client
+    for item in options_response['items']:
+        # remove date field as it is not needed in the response
+        item.pop('dateOfUpdate', None)
+        if item['type'] == 'jurisdiction':
+            item.pop('jurisdictionOperationsTeamEmails', None)
+            item.pop('jurisdictionAdverseActionsNotificationEmails', None)
+            item.pop('jurisdictionSummaryReportNotificationEmails', None)
+        elif item['type'] == 'compact':
+            item.pop('compactOperationsTeamEmails', None)
+            item.pop('compactAdverseActionsNotificationEmails', None)
+            item.pop('compactSummaryReportNotificationEmails', None)
+
+    return options_response
