@@ -7,7 +7,16 @@
 
 <template>
     <div class="licensee-dashboard-container">
-        <h3>LicenseeDashboard</h3>
+        <h2 class="welcome-user">{{ userFullName }}</h2>
+        <div class="home-state-list">
+            <HomeStateBlock
+                v-for="state in homeStateList"
+                :key="state.id"
+            />
+        </div>
+        <LicenseePrivilegeList />
+        <AdverseActionList />
+
     </div>
 </template>
 
