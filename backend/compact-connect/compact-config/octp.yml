@@ -3,7 +3,7 @@ compactName: "octp"
 compactCommissionFee:
     feeType: "FLAT_RATE"
     feeAmount: 3.50
-compactOperationsTeamEmail: "<email address>"
-compactAdverseActionsNotificationEmail: "<email address>"
-compactSummaryReportNotificationEmail: "<email address>"
+compactOperationsTeamEmails: ["<email address>"]
+compactAdverseActionsNotificationEmails: ["<email address>"]
+compactSummaryReportNotificationEmails: ["<email address>"]
 activeEnvironments: ["sandbox"]

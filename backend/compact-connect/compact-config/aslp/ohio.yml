@@ -6,9 +6,9 @@ militaryDiscount:
     active: true
     discountType: "FLAT_RATE"
     discountAmount: 10
-jurisdictionOperationsTeamEmail: "<email address>"
-jurisdictionAdverseActionsNotificationEmail: "<email address>"
-jurisdictionSummaryReportNotificationEmail: "<email address>"
+jurisdictionOperationsTeamEmails: ["<email address>"]
+jurisdictionAdverseActionsNotificationEmails: ["<email address>"]
+jurisdictionSummaryReportNotificationEmails: ["<email address>"]
 jurisprudenceRequirements:
     required: true
 activeEnvironments: []
