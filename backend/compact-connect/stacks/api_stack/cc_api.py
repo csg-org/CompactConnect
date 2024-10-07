@@ -6,8 +6,8 @@ from functools import cached_property
 import jsii
 from aws_cdk import CfnOutput, IAspect, Aspects, Duration
 from aws_cdk.aws_apigateway import RestApi, StageOptions, MethodLoggingLevel, LogGroupLogDestination, \
-    AccessLogFormat, JsonSchema, JsonSchemaType, ResponseType, CorsOptions, Cors, \
-    CognitoUserPoolsAuthorizer, DomainNameOptions, Method
+    AccessLogFormat, JsonSchema, JsonSchemaType, ResponseType, CorsOptions, Cors, DomainNameOptions, Method, \
+    CognitoUserPoolsAuthorizer
 from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
 from aws_cdk.aws_cloudwatch import Alarm, Stats, ComparisonOperator, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction

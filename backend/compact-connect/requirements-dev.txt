@@ -4,7 +4,7 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/requirements-dev.in
 #
-astroid==3.3.5
+astroid==3.3.4
     # via pylint
 boolean-py==4.0
     # via license-expression
@@ -72,7 +72,7 @@ platformdirs==4.3.6
     # via pylint
 pluggy==1.5.0
     # via pytest
-py-serializable==1.1.2
+py-serializable==1.1.1
     # via cyclonedx-python-lib
 pygments==2.18.0
     # via rich
@@ -96,7 +96,7 @@ requests==2.32.3
     # via
     #   cachecontrol
     #   pip-audit
-rich==13.9.2
+rich==13.8.1
     # via pip-audit
 six==1.16.0
     # via

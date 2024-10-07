@@ -38,6 +38,10 @@ class TstLambdas(TestCase):
                 {
                     'AttributeName': 'pk',
                     'AttributeType': 'S'
+                },
+                {
+                    'AttributeName': 'sk',
+                    'AttributeType': 'S'
                 }
             ],
             TableName=os.environ['USERS_TABLE_NAME'],
@@ -45,6 +49,10 @@ class TstLambdas(TestCase):
                 {
                     'AttributeName': 'pk',
                     'KeyType': 'HASH'
+                },
+                {
+                    'AttributeName': 'sk',
+                    'KeyType': 'RANGE'
                 }
             ],
             BillingMode='PAY_PER_REQUEST'
