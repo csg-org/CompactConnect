@@ -219,6 +219,45 @@ class TestQueryProviders(TstFunction):
         body = json.loads(resp['body'])
         self.assertEqual(2, len(body['providers']))
 
+    def test_query_providers_given_name_only_not_allowed(self):
+        from handlers.providers import query_providers
+
+        # 10 providers, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
+        self._generate_providers(
+            home='oh',
+            privilege='ne',
+            start_serial=9999,
+            names=(
+                ('Testerly', 'Tess'),
+                ('Testerly', 'Ted')
+            )
+        )
+
+        with open('tests/resources/api-event.json', 'r') as f:
+            event = json.load(f)
+
+        # The user has read permission for aslp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['pathParameters'] = {
+            'compact': 'aslp'
+        }
+        event['body'] = json.dumps({
+            'sorting': {
+                'key': 'familyName'
+            },
+            'query': {
+                'jurisdiction': 'oh',
+                'givenName': 'Tess'
+            },
+            'pagination': {
+                'pageSize': 10
+            }
+        })
+
+        resp = query_providers(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+
     def test_query_providers_default_sorting(self):
         """
         If sorting is not specified, familyName is default

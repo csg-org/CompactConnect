@@ -96,7 +96,7 @@ class DataClient():
             self, *,
             compact: str,
             dynamo_pagination: dict,
-            provider_name: tuple[str, str] = None,  # (givenName, familyName)
+            provider_name: tuple[str, str] = None,  # (familyName, givenName)
             jurisdiction: str = None,
             scan_forward: bool = True
     ):  # pylint: disable-redefined-outer-name
