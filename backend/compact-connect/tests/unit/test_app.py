@@ -215,6 +215,309 @@ class TestApp(TestCase):
         self.assertIn({'AttributeDataType': 'String', 'Mutable': False, 'Name': 'compact'},
                       provider_users_user_pool['Schema'])
 
+    @patch.dict(os.environ, {
+        'CDK_DEFAULT_ACCOUNT': '000000000000',
+        'CDK_DEFAULT_REGION': 'us-east-1'
+    })
+    def test_synth_generates_compact_configuration_upload_custom_resource_with_expected_configuration_data(self):
+        context = self._when_testing_pipeline_stack_context()
+
+        app = CompactConnectApp(context=context)
+        persistent_stack = app.pipeline_stack.test_stage.persistent_stack
+        persistent_stack_template = Template.from_stack(persistent_stack)
+
+        # Ensure our provider user pool is created with expected custom attributes
+        compact_configuration_uploader_custom_resource = self._get_resource_properties_by_logical_id(
+            persistent_stack.get_logical_id(
+                persistent_stack.compact_configuration_upload
+                .compact_configuration_uploader_custom_resource.node.default_child),
+            persistent_stack_template.find_resources("Custom::CompactConfigurationUpload")
+        )
+
+        self.assertEqual(compact_configuration_uploader_custom_resource['environment_name'], 'test')
+        # Assert that the compact_configuration property is set to the expected values
+        # This is essentially a snapshot test. If the configuration values for any jurisdiction changes,
+        # this test will need to be updated.
+        self.assertEqual(compact_configuration_uploader_custom_resource['compact_configuration'],
+                         json.dumps(
+{
+  "compacts": [
+    {
+      "compactName": "aslp",
+      "compactCommissionFee": {
+        "feeType": "FLAT_RATE",
+        "feeAmount": 3.5
+      },
+      "compactOperationsTeamEmails": [
+        "<email address>"
+      ],
+      "compactAdverseActionsNotificationEmails": [
+        "<email address>"
+      ],
+      "compactSummaryReportNotificationEmails": [
+        "<email address>"
+      ],
+      "activeEnvironments": [
+        "sandbox"
+      ]
+    },
+    {
+      "compactName": "octp",
+      "compactCommissionFee": {
+        "feeType": "FLAT_RATE",
+        "feeAmount": 3.5
+      },
+      "compactOperationsTeamEmails": [
+        "<email address>"
+      ],
+      "compactAdverseActionsNotificationEmails": [
+        "<email address>"
+      ],
+      "compactSummaryReportNotificationEmails": [
+        "<email address>"
+      ],
+      "activeEnvironments": [
+        "sandbox"
+      ]
+    },
+    {
+      "compactName": "coun",
+      "compactCommissionFee": {
+        "feeType": "FLAT_RATE",
+        "feeAmount": 3.5
+      },
+      "compactOperationsTeamEmails": [
+        "<email address>"
+      ],
+      "compactAdverseActionsNotificationEmails": [
+        "<email address>"
+      ],
+      "compactSummaryReportNotificationEmails": [
+        "<email address>"
+      ],
+      "activeEnvironments": [
+        "sandbox"
+      ]
+    }
+  ],
+  "jurisdictions": {
+    "aslp": [
+      {
+        "jurisdictionName": "nebraska",
+        "postalAbbreviation": "ne",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": True,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [
+          "<email address>"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisdictionSummaryReportNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisprudenceRequirements": {
+          "required": True
+        },
+        "activeEnvironments": []
+      },
+      {
+        "jurisdictionName": "ohio",
+        "postalAbbreviation": "oh",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": True,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [
+          "<email address>"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisdictionSummaryReportNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisprudenceRequirements": {
+          "required": True
+        },
+        "activeEnvironments": []
+      },
+      {
+        "jurisdictionName": "kentucky",
+        "postalAbbreviation": "ky",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": True,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [
+          "<email address>"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisdictionSummaryReportNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisprudenceRequirements": {
+          "required": True
+        },
+        "activeEnvironments": []
+      }
+    ],
+    "octp": [
+      {
+        "jurisdictionName": "nebraska",
+        "postalAbbreviation": "ne",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": True,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [
+          "<email address>"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisdictionSummaryReportNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisprudenceRequirements": {
+          "required": True
+        },
+        "activeEnvironments": []
+      },
+      {
+        "jurisdictionName": "ohio",
+        "postalAbbreviation": "oh",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": True,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [
+          "<email address>"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisdictionSummaryReportNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisprudenceRequirements": {
+          "required": True
+        },
+        "activeEnvironments": []
+      },
+      {
+        "jurisdictionName": "kentucky",
+        "postalAbbreviation": "ky",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": True,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [
+          "<email address>"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisdictionSummaryReportNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisprudenceRequirements": {
+          "required": True
+        },
+        "activeEnvironments": []
+      }
+    ],
+    "coun": [
+      {
+        "jurisdictionName": "nebraska",
+        "postalAbbreviation": "ne",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": True,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [
+          "<email address>"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisdictionSummaryReportNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisprudenceRequirements": {
+          "required": True
+        },
+        "activeEnvironments": []
+      },
+      {
+        "jurisdictionName": "ohio",
+        "postalAbbreviation": "oh",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": True,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [
+          "<email address>"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisdictionSummaryReportNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisprudenceRequirements": {
+          "required": True
+        },
+        "activeEnvironments": []
+      },
+      {
+        "jurisdictionName": "kentucky",
+        "postalAbbreviation": "ky",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": True,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [
+          "<email address>"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisdictionSummaryReportNotificationEmails": [
+          "<email address>"
+        ],
+        "jurisprudenceRequirements": {
+          "required": True
+        },
+        "activeEnvironments": []
+      }
+    ]
+  }
+}))
+
+
 
 
     def _inspect_persistent_stack(

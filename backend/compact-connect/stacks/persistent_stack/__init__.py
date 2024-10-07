@@ -14,6 +14,7 @@ from stacks.persistent_stack.provider_table import ProviderTable
 from stacks.persistent_stack.staff_users import StaffUsers
 from stacks.persistent_stack.provider_users import ProviderUsers
 from stacks.persistent_stack.user_email_notifications import UserEmailNotifications
+from stacks.persistent_stack.compact_configuration_upload import CompactConfigurationUpload
 
 # cdk leverages instance attributes to make resource exports accessible to other stacks
 # pylint: disable=too-many-instance-attributes
@@ -63,6 +64,13 @@ class PersistentStack(AppStack):
 
         # The new data resources
         self._add_data_resources(removal_policy=removal_policy)
+
+        self.compact_configuration_upload = CompactConfigurationUpload(
+            self, 'CompactConfigurationUpload',
+            table=self.provider_table,
+            master_key=self.shared_encryption_key,
+            environment_name=environment_name
+        )
 
         if self.hosted_zone:
             self.user_email_notifications = UserEmailNotifications(
