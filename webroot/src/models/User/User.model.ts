@@ -51,6 +51,7 @@ export class User implements InterfaceUserCreate {
     public lastName? = null;
     public permissions? = [];
     public accountStatus? = '';
+    public licensee? = null;
     public serverPage? = 0;
 
     constructor(data?: InterfaceUserCreate) {

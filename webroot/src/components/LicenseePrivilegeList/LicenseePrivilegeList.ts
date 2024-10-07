@@ -5,32 +5,29 @@
 //  Created by InspiringApps on 10/3/2024.
 //
 
-import { Component, Vue, toNative } from 'vue-facing-decorator';
+import { License } from '@models/License/License.model';
+import {
+    Component,
+    Vue,
+    toNative,
+    Prop
+} from 'vue-facing-decorator';
 
 @Component({
     name: 'LicenseePrivilegeList',
 })
 class LicenseePrivilegeList extends Vue {
-    // PROPS
-
-    //
-    // Data
-    //
-
-    //
-    // Lifecycle
-    //
-
+    @Prop({ required: true }) privilegeList!: Array<License>;
     //
     // Computed
     //
-    // get privListImg(): string {
-    //     return '@assets/images/ellipse.svg';
-    // }
+    get privStateList(): Array <string> {
+        return this.privilegeList.map((priv) => (priv.issueState?.name() || 'State missing'));
+    }
 
-    //
-    // Methods
-    //
+    get privExpirationList(): Array <string> {
+        return this.privilegeList.map((priv) => (priv.expireDate) || 'Expiry missing');
+    }
 }
 
 export default toNative(LicenseePrivilegeList);

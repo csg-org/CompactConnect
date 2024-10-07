@@ -4,3 +4,47 @@
 //
 //  Created by InspiringApps on 10/3/2024.
 //
+.licensee-privilege-list-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 32rem;
+    margin: 2rem;
+    padding: 2rem;
+    border: 1px solid @lightGrey;
+    border-radius: 2rem;
+
+    .priv-list-table {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+
+        .state-name-list {
+            display: flex;
+            flex-direction: column;
+
+            .state-name {
+                margin-top: 0.8rem;
+
+                &.state-title {
+                    font-weight: @fontWeightBold;
+                }
+            }
+        }
+
+        .expiry-list {
+            display: flex;
+            flex-direction: column;
+
+            .expiry {
+                margin-top: 0.8rem;
+
+                &.expiry-title {
+                    font-weight: @fontWeightBold;
+                }
+            }
+        }
+    }
+}

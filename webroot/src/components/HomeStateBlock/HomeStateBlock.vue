@@ -6,7 +6,17 @@
 -->
 
 <template>
-    <h3>HomeStateBlock</h3>
+    <div class="home-state-block-container">
+        <div class="home-state-img-container">
+            <img class="home-state-img" src="@assets/images/ellipse.svg" alt="Privilege List Logo" />
+        </div>
+        <div class="home-state-title">
+            Home State
+        </div>
+        <div class="home-state-name">
+            {{stateName}}
+        </div>
+    </div>
 </template>
 
 <script lang="ts" src="./HomeStateBlock.ts"></script>

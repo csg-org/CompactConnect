@@ -7,10 +7,32 @@
 
 <template>
     <div class="licensee-privilege-list-container">
-        <h4 class="licensee-privilege-list-header-row">
+        <div class="licensee-privilege-list-header-row">
             <img class="priv-list-img" src="@assets/images/ellipse.svg" alt="Privilege List Logo" />
             <span class="priv-list-title">Current privileges</span>
-        </h4>
+        </div>
+        <div class="priv-list-table">
+            <div class="state-name-list">
+                <div class="state-title state-name">State</div>
+                <div
+                    v-for="(state, i) in privStateList"
+                    :key="state.abbrev+i"
+                    class="state-name"
+                >
+                    {{state}}
+                </div>
+            </div>
+            <div class="expiry-list">
+                <div class="expiry-title expiry">Expires</div>
+                <div
+                    v-for="(expiry, i) in privExpirationList"
+                    :key="expiry+i"
+                    class="expiry"
+                >
+                    {{expiry}}
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 

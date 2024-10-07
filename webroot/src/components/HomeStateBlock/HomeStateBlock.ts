@@ -5,13 +5,19 @@
 //  Created by InspiringApps on 10/3/2024.
 //
 
-import { Component, Vue, toNative } from 'vue-facing-decorator';
+import {
+    Component,
+    Vue,
+    toNative,
+    Prop
+} from 'vue-facing-decorator';
+import { State } from '@models/State/State.model';
 
 @Component({
     name: 'HomeStateBlock',
 })
 class HomeStateBlock extends Vue {
-    // PROPS
+    @Prop({ required: true }) state!: State;
 
     //
     // Data
@@ -24,6 +30,9 @@ class HomeStateBlock extends Vue {
     //
     // Computed
     //
+    get stateName(): string {
+        return this.state.name();
+    }
 
     //
     // Methods

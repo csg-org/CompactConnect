@@ -10,6 +10,9 @@ import AdverseActionList from '@/components/AdverseActionList/AdverseActionList.
 import HomeStateBlock from '@/components/HomeStateBlock/HomeStateBlock.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import LicenseePrivilegeList from '@/components/LicenseePrivilegeList/LicenseePrivilegeList.vue';
+import { License } from '@models/License/License.model';
+import { Licensee } from '@models/Licensee/Licensee.model';
+import { State } from '@models/State/State.model';
 import { User } from '@models/User/User.model';
 
 @Component({
@@ -25,7 +28,7 @@ export default class LicenseeDashboard extends Vue {
     //
     // Computed
     //
-    get userStore() {
+    get userStore(): any {
         return this.$store.state.user;
     }
 
@@ -33,7 +36,11 @@ export default class LicenseeDashboard extends Vue {
         return this.userStore.model;
     }
 
-    get userFullName() {
+    get licensee(): Licensee | null {
+        return this.user?.licensee || null;
+    }
+
+    get userFullName(): string {
         let name = '';
 
         if (this.user) {
@@ -43,7 +50,18 @@ export default class LicenseeDashboard extends Vue {
         return name;
     }
 
-    get homeStateList() {
-        return ['', ''];
+    get homeStateList(): Array<State> {
+        return this.licensee?.licenseStates || [];
+    }
+
+    get privilegeList(): Array<License> {
+        return this.licensee?.privileges || [];
+    }
+
+    //
+    // Methods
+    //
+    startPrivPurchaseFlow() {
+        console.log('Starting Privilege Purchase Flow!');
     }
 }

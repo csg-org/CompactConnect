@@ -18,13 +18,15 @@
         </div>
         <div class="home-state-list">
             <HomeStateBlock
-                v-for="state in homeStateList"
-                :key="state.id"
+                v-for="(state, i) in homeStateList"
+                :key="state.abbrev+i"
+                :state="state"
             />
         </div>
-        <LicenseePrivilegeList />
+        <LicenseePrivilegeList
+            :privilegeList="privilegeList"
+        />
         <AdverseActionList />
-
     </div>
 </template>
 
