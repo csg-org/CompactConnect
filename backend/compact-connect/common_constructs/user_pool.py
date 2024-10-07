@@ -4,22 +4,24 @@ from aws_cdk import CfnOutput, Duration, RemovalPolicy
 from aws_cdk.aws_cognito import UserPool as CdkUserPool, UserPoolEmail, AccountRecovery, AutoVerifiedAttrs, \
     AdvancedSecurityMode, DeviceTracking, Mfa, MfaSecondFactor, PasswordPolicy, StandardAttributes, \
     CognitoDomainOptions, AuthFlow, OAuthSettings, OAuthFlows, ClientAttributes, \
-    CfnUserPoolRiskConfigurationAttachment, OAuthScope, ICustomAttribute
+    CfnUserPoolRiskConfigurationAttachment, OAuthScope, ICustomAttribute, SignInAliases
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
 
 class UserPool(CdkUserPool):
-    def __init__(
+    # A lot of arguments legitimately need to be passed into the constructor
+    def __init__(  # pylint: disable=too-many-arguments
             self, scope: Construct, construct_id: str, *,
             cognito_domain_prefix: str,
             environment_name: str,
             encryption_key: IKey,
-            email: UserPoolEmail,
+            sign_in_aliases: SignInAliases | None,
             standard_attributes: StandardAttributes,
-            removal_policy,
             custom_attributes: Optional[Mapping[str, ICustomAttribute]] = None,
+            email: UserPoolEmail,
+            removal_policy,
             **kwargs
     ):
         super().__init__(
@@ -42,7 +44,7 @@ class UserPool(CdkUserPool):
                 min_length=12
             ),
             self_sign_up_enabled=False,
-            sign_in_aliases=None,
+            sign_in_aliases=sign_in_aliases,
             sign_in_case_sensitive=False,
             standard_attributes=standard_attributes,
             custom_attributes=custom_attributes,
@@ -117,8 +119,8 @@ class UserPool(CdkUserPool):
             enable_token_revocation=True,
             generate_secret=False,
             refresh_token_validity=Duration.days(30),
-            read_attributes=read_attributes,
             write_attributes=write_attributes,
+            read_attributes=read_attributes
         )
 
     def _add_risk_configuration(self):

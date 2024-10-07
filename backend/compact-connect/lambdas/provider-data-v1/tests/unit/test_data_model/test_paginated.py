@@ -79,27 +79,33 @@ class TestPaginated(TstLambdas):
         that match filter criteria, which can be fewer. In this case, paginated_query should automatically query
         multiple times to fill out the requested page size.
         """
-        from data_model.query_paginator import paginated_query
         from data_model.schema.provider import ProviderRecordSchema
+        from data_model.query_paginator import paginated_query
 
         calls = []
 
         @paginated_query
         def get_something(*args, **kwargs):
-            """
-            Pretend 4 items were filtered out
-            """
             calls.append((args, kwargs))
-            return {
-                'Items': [self._item] * 6,
-                'Count': 6,
-                'LastEvaluatedKey': {
-                    'pk': self._item['pk'],
-                    'sk': self._item['sk']
-                }
-            }
 
-        last_key = b64encode(json.dumps({'pk': '안녕하세요', 'sk': '2'}).encode('utf-8'))
+            last_key = int(kwargs['dynamo_pagination'].get('ExclusiveStartKey', {}).get('pk', 0))
+            resp = {
+                'Items': [],
+                'Count': 3
+            }
+            # 3 items, starting after last_key
+            for i in range(last_key+1, last_key+4):
+                item = self._item.copy()
+                # Number users to give us something simple to inspect
+                item['pk'] = str(i)
+                resp['Items'].append(item)
+
+            resp['LastEvaluatedKey'] = {
+                'pk': resp['Items'][-1]['pk']
+            }
+            return resp
+
+        last_key = b64encode(json.dumps({'pk': '1'}).encode('utf-8'))
         resp = get_something(
             'arg1',
             'arg2',
@@ -110,22 +116,28 @@ class TestPaginated(TstLambdas):
             kwarg1='baf'
         )
 
-        self.assertEqual(
-            {
-                # 12 items will have been returned from queries internally, but only 10 make it out
-                # to fill out the pageSize
-                'items': [ProviderRecordSchema().load(self._item)] * 10,
-                'pagination': {
-                    'pageSize': 10,
-                    'lastKey': b64encode(
-                        json.dumps({'pk': self._item['pk'], 'sk': self._item['sk']}).encode('utf-8')
-                    ).decode('ascii'),
-                    'prevLastKey': last_key
-                },
-            },
-            resp
-        )
-        # 2 calls, each returning 6 items, will fill out the page size.
+        # We are requesting 10 users, starting with exclusive key 1. This should result in three queries to the DB,
+        # with the last record included in the DB response having a pk of 13:
+        #
+        # | Query | DB sequence | PK | Ret Sequence |  Filter   | last_key |
+        # |-------|-------------|----|--------------|-----------|----------|
+        # |   1   |     1       |  2 |      1       |           |    1     |
+        # |   1   |     2       |  3 |      2       |           |          |
+        # |   1   |     3       |  4 |      3       |           |          |
+        # |   2   |     1       |  5 |      4       |           |    4     |
+        # |   2   |     2       |  6 |      5       |           |          |
+        # |   2   |     3       |  7 |      6       |           |          |
+        # |   3   |     1       |  8 |      7       |           |    7     |
+        # |   3   |     2       |  9 |      8       |           |          |
+        # |   3   |     3       | 10 |      9       |           |          |
+        # |   4   |     1       | 11 |     10       |           |   10     |
+        # |-------|-------------|----|--------------|-----------|----------|
+        # |   4   |     2       | 12 |              | truncated |          |
+        # |   4   |     3       | 13 |              | truncated |          |
+        # |-------|-------------|----|--------------|-----------|----------|
+
+        # We'll need at least 12 items from the DB to produce a 10-item page. If each DB query returns 3 items, that
+        # means 4 queries.
         self.assertEqual(
             [
                 (
@@ -134,8 +146,7 @@ class TestPaginated(TstLambdas):
                         'kwarg1': 'baf',
                         'dynamo_pagination': {
                             'ExclusiveStartKey': {
-                                'pk': '안녕하세요',
-                                'sk': '2'
+                                'pk': '1'
                             },
                             'Limit': 10
                         }
@@ -147,8 +158,31 @@ class TestPaginated(TstLambdas):
                         'kwarg1': 'baf',
                         'dynamo_pagination': {
                             'ExclusiveStartKey': {
-                                'pk': self._item['pk'],
-                                'sk': self._item['sk']
+                                'pk': '4',
+                            },
+                            'Limit': 10
+                        }
+                    }
+                ),
+                (
+                    ('arg1', 'arg2'),
+                    {
+                        'kwarg1': 'baf',
+                        'dynamo_pagination': {
+                            'ExclusiveStartKey': {
+                                'pk': '7',
+                            },
+                            'Limit': 10
+                        }
+                    }
+                ),
+                (
+                    ('arg1', 'arg2'),
+                    {
+                        'kwarg1': 'baf',
+                        'dynamo_pagination': {
+                            'ExclusiveStartKey': {
+                                'pk': '10',
                             },
                             'Limit': 10
                         }
@@ -156,6 +190,22 @@ class TestPaginated(TstLambdas):
                 )
             ],
             calls
+        )
+        self.assertEqual(
+            {
+
+                # 3*4=12 items will have been returned from queries internally, but only 10 make it out to fill out the
+                # pageSize
+                'items': [ProviderRecordSchema().load(self._item)] * 10,
+                'pagination': {
+                    'pageSize': 10,
+                    'lastKey': b64encode(
+                        json.dumps({'pk': '11'}).encode('utf-8')
+                    ).decode('utf-8'),
+                    'prevLastKey': last_key
+                },
+            },
+            resp
         )
 
     def test_no_pagination_parameters(self):
