@@ -397,15 +397,9 @@ class TestApp(TestCase):
           "discountType": "FLAT_RATE",
           "discountAmount": 10
         },
-        "jurisdictionOperationsTeamEmails": [
-          "<email address>"
-        ],
-        "jurisdictionAdverseActionsNotificationEmails": [
-          "<email address>"
-        ],
-        "jurisdictionSummaryReportNotificationEmails": [
-          "<email address>"
-        ],
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
         "jurisprudenceRequirements": {
           "required": True
         },
@@ -420,15 +414,9 @@ class TestApp(TestCase):
           "discountType": "FLAT_RATE",
           "discountAmount": 10
         },
-        "jurisdictionOperationsTeamEmails": [
-          "<email address>"
-        ],
-        "jurisdictionAdverseActionsNotificationEmails": [
-          "<email address>"
-        ],
-        "jurisdictionSummaryReportNotificationEmails": [
-          "<email address>"
-        ],
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
         "jurisprudenceRequirements": {
           "required": True
         },
@@ -443,15 +431,9 @@ class TestApp(TestCase):
           "discountType": "FLAT_RATE",
           "discountAmount": 10
         },
-        "jurisdictionOperationsTeamEmails": [
-          "<email address>"
-        ],
-        "jurisdictionAdverseActionsNotificationEmails": [
-          "<email address>"
-        ],
-        "jurisdictionSummaryReportNotificationEmails": [
-          "<email address>"
-        ],
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
         "jurisprudenceRequirements": {
           "required": True
         },
