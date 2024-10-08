@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from decimal import Decimal
 from datetime import datetime, UTC, timedelta
 from glob import glob
 from random import randint, choice
@@ -130,7 +131,7 @@ class TstFunction(TstLambdas):
 
         for resource in test_resources:
             with open(resource, 'r') as f:
-                record = json.load(f, object_hook=provider_jurisdictions_to_set, parse_float=lambda x: str(x))
+                record = json.load(f, object_hook=provider_jurisdictions_to_set, parse_float=Decimal)
 
             logger.debug("Loading resource, %s: %s", resource, str(record))
             self._table.put_item(

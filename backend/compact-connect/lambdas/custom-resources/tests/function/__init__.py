@@ -1,3 +1,4 @@
+# pylint: disable=invalid-name
 import logging
 import os
 from unittest.mock import MagicMock
@@ -37,7 +38,7 @@ class TstFunction(TestCase):
         config.config = cls.config
         cls.mock_context = MagicMock(name='MockLambdaContext', spec=LambdaContext)
 
-    def setUp(self):  # pylint: disable=invalid-name
+    def setUp(self):
 
         self.build_resources()
         self.addCleanup(self.delete_resources)
