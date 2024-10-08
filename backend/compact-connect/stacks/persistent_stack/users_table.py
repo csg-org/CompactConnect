@@ -23,14 +23,16 @@ class UsersTable(Table):
             removal_policy=removal_policy,
             point_in_time_recovery=True,
             partition_key=Attribute(name='pk', type=AttributeType.STRING),
+            sort_key=Attribute(name='sk', type=AttributeType.STRING),
             **kwargs
         )
-        self.compact_jurisdiction_index_name = 'compact_jurisdiction'
+        self.family_given_index_name = 'famGiv'
 
         self.add_global_secondary_index(
-            index_name=self.compact_jurisdiction_index_name,
-            partition_key=Attribute(name='createdCompactJur', type=AttributeType.STRING),
-            projection_type=ProjectionType.KEYS_ONLY
+            index_name=self.family_given_index_name,
+            partition_key=Attribute(name='sk', type=AttributeType.STRING),
+            sort_key=Attribute(name='famGiv', type=AttributeType.STRING),
+            projection_type=ProjectionType.ALL
         )
         NagSuppressions.add_resource_suppressions(
             self,

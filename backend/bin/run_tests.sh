@@ -10,6 +10,7 @@ for dir in \
   compact-connect/lambdas/license-data \
   compact-connect/lambdas/provider-data-v1 \
   compact-connect/lambdas/staff-user-pre-token \
+  compact-connect/lambdas/staff-users \
   compact-connect/lambdas/delete-objects \
   multi-account
   do

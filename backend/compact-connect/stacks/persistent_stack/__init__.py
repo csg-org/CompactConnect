@@ -1,4 +1,5 @@
 from aws_cdk import RemovalPolicy
+from aws_cdk.aws_cognito import StandardAttributes, StandardAttribute, SignInAliases
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_cognito import UserPoolEmail
 from constructs import Construct
@@ -89,8 +90,9 @@ class PersistentStack(AppStack):
             user_pool_email_settings = UserPoolEmail.with_cognito()
 
         staff_prefix = f'{app_name}-staff'
+
         self.staff_users = StaffUsers(
-            self, 'StaffUsers',
+            self, 'StaffUsersGreen',
             cognito_domain_prefix=staff_prefix if environment_name == 'prod'
             else f'{staff_prefix}-{environment_name}',
             environment_name=environment_name,
