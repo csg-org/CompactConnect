@@ -31,6 +31,8 @@ export interface EnvConfig {
     cognitoRegion?: string;
     cognitoAuthDomainStaff?: string;
     cognitoClientIdStaff?: string;
+    cognitoAuthDomainLicensee?: string;
+    cognitoClientIdLicensee?: string;
     isUsingMockApi?: boolean;
 }
 
@@ -50,6 +52,8 @@ export const config: EnvConfig = {
     cognitoRegion: context.VUE_APP_COGNITO_REGION,
     cognitoAuthDomainStaff: context.VUE_APP_COGNITO_AUTH_DOMAIN_STAFF,
     cognitoClientIdStaff: context.VUE_APP_COGNITO_CLIENT_ID_STAFF,
+    cognitoAuthDomainLicensee: context.VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE,
+    cognitoClientIdLicensee: context.VUE_APP_COGNITO_CLIENT_ID_LICENSEE,
     isUsingMockApi: (context.VUE_APP_MOCK_API === 'true'),
 };
 

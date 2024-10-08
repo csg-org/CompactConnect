@@ -6,7 +6,20 @@
 -->
 
 <template>
-    <div class="login-container"></div>
+    <div class="login-container">
+        <a
+            :href="hostedLoginUriStaff"
+            class="login-link"
+        >
+            Login as Staff
+        </a>
+        <a
+            :href="hostedLoginUriLicensee"
+            class="login-link"
+        >
+            Login as Provider
+        </a>
+    </div>
 </template>
 
 <script lang="ts" src="./Login.ts"></script>

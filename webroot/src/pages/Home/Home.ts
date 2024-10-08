@@ -6,6 +6,7 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
+import { AuthTypes } from '@/app.config';
 import { CompactType, Compact, CompactSerializer } from '@models/Compact/Compact.model';
 
 @Component({
@@ -38,7 +39,13 @@ export default class Home extends Vue {
             compactType = this.storeCurrentCompact?.type;
         }
 
-        this.$router.push({ name: 'Licensing', params: { compact: compactType }});
+        const authType = this.$store.getters['user/highestPermissionAuthType']();
+
+        if (authType === AuthTypes.STAFF) {
+            this.$router.push({ name: 'Licensing', params: { compact: compactType }});
+        } else if (authType === AuthTypes.LICENSEE) {
+            this.$router.push({ name: 'LicenseeDashboard', params: { compact: compactType }});
+        }
     }
 
     setCurrentCompact() {

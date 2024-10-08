@@ -47,6 +47,13 @@ class LicensePostSchema(LicensePublicSchema):
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
 
 
+    @validates_schema
+    def validate_license_type(self, data, **kwargs):  # pylint: disable=unused-argument
+        license_types = config.license_types_for_compact(data['compact'])
+        if data['licenseType'] not in license_types:
+            raise ValidationError({'licenseType': f"'licenseType' must be one of {license_types}"})
+
+
 @BaseRecordSchema.register_schema('license')
 class LicenseRecordSchema(BaseRecordSchema, LicensePostSchema):
     """
@@ -56,12 +63,6 @@ class LicenseRecordSchema(BaseRecordSchema, LicensePostSchema):
 
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
-
-    @validates_schema
-    def validate_license_type(self, data, **kwargs):  # pylint: disable=unused-argument
-        license_types = config.license_types_for_compact(data['compact'])
-        if data['licenseType'] not in license_types:
-            raise ValidationError({'licenseType': f"'licenseType' must be one of {license_types}"})
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # pylint: disable=unused-argument

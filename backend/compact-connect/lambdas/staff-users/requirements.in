@@ -1,0 +1,3 @@
+aws-lambda-powertools>=2.29.1, <3
+boto3>=1.34.33, <2
+marshmallow>=3.21.3

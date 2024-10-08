@@ -1,13 +1,14 @@
-# pylint: disable=unused-argument,unexpected-keyword-arg,missing-kwoa
+# pylint: disable=unexpected-keyword-arg,missing-kwoa
 # Pylint really butchers these function signatures because they are modified via decorator
 # to cut down on noise level, we're disabling those rules for the whole module
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-from exceptions import CCInvalidRequestException, CCInternalException
+from exceptions import CCInvalidRequestException
 from handlers.utils import api_handler, authorize_compact
 from config import config, logger
+from . import get_provider_information
 
 
 @api_handler
@@ -42,14 +43,21 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
         resp['query'] = query
 
     else:
-        sorting = body.get('sorting', {})
+        if 'givenName' in query.keys() and 'familyName' not in query.keys():
+            raise CCInvalidRequestException('familyName is required if givenName is provided')
+        provider_name = None
+        if 'familyName' in query.keys():
+            provider_name = (query.get('familyName'), query.get('givenName'))
+
         jurisdiction = query.get('jurisdiction')
 
-        key = sorting.get('key')
+        sorting = body.get('sorting', {})
+        sorting_key = sorting.get('key')
+
         sort_direction = sorting.get('direction', 'ascending')
         scan_forward = sort_direction == 'ascending'
 
-        match key:
+        match sorting_key:
             case None | 'familyName':
                 resp = {
                     'query': query,
@@ -60,11 +68,16 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
                     **config.data_client.get_providers_sorted_by_family_name(
                         compact=compact,
                         jurisdiction=jurisdiction,
+                        provider_name=provider_name,
                         scan_forward=scan_forward,
                         pagination=body.get('pagination')
                     )
                 }
             case 'dateOfUpdate':
+                if provider_name is not None:
+                    raise CCInvalidRequestException(
+                        'givenName and familyName are not supported for sorting by dateOfUpdate'
+                    )
                 resp = {
                     'query': query,
                     'sorting': {
@@ -80,7 +93,7 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
                 }
             case _:
                 # This shouldn't happen unless our api validation gets misconfigured
-                raise CCInvalidRequestException(f"Invalid sort key: '{key}'")
+                raise CCInvalidRequestException(f"Invalid sort key: '{sorting_key}'")
     # Convert generic field to more specific one for this API
     resp['providers'] = resp.pop('items', [])
     return resp
@@ -102,31 +115,4 @@ def get_provider(event: dict, context: LambdaContext):  # pylint: disable=unused
         logger.error(f'Missing parameter: {e}')
         raise CCInvalidRequestException('Missing required field') from e
 
-    provider_data = config.data_client.get_provider(compact=compact, provider_id=provider_id)
-    # This is really unlikely, but will check anyway
-    last_key = provider_data['pagination'].get('lastKey')
-    if last_key is not None:
-        logger.error('A provider had so many records, they paginated!')
-        raise CCInternalException('Unexpected provider data')
-
-    provider = None
-    privileges = []
-    licenses = []
-    for record in provider_data['items']:
-        match record['type']:
-            case 'provider':
-                logger.debug('Identified provider record', provider_id=provider_id)
-                provider = record
-            case 'license':
-                logger.debug('Identified license record', provider_id=provider_id)
-                licenses.append(record)
-            case 'privilege':
-                logger.debug('Identified privilege record', provider_id=provider_id)
-                privileges.append(record)
-    if provider is None:
-        logger.error("Failed to find a provider's primary record!", provider_id=provider_id)
-        raise CCInternalException('Unexpected provider data')
-
-    provider['licenses'] = licenses
-    provider['privileges'] = privileges
-    return provider
+    return get_provider_information(compact=compact, provider_id=provider_id)

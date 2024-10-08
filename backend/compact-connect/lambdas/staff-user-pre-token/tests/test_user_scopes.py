@@ -18,13 +18,12 @@ class TestGetUserScopesFromDB(TstLambdas):
         # Create a DB record for a typical compact executive director's permissions
         self._table.put_item(
             Item={
-                'pk': self._user_sub,
-                'createdCompactJurisdiction': 'aslp/aslp',
+                'pk': f'USER#{self._user_sub}',
+                'sk': 'COMPACT#aslp',
+                'compact': 'aslp',
                 'permissions': {
-                    'aslp': {
-                        'actions': {'read', 'admin'},
-                        'jurisdictions': {}
-                    }
+                    'actions': {'read', 'admin'},
+                    'jurisdictions': {}
                 }
             }
         )
@@ -42,14 +41,13 @@ class TestGetUserScopesFromDB(TstLambdas):
         # Create a DB record for a typical board executive director's permissions
         self._table.put_item(
             Item={
-                'pk': self._user_sub,
-                'createdCompactJurisdiction': 'aslp/al',
+                'pk': f'USER#{self._user_sub}',
+                'sk': 'COMPACT#aslp',
+                'compact': 'aslp',
                 'permissions': {
-                    'aslp': {
-                        'actions': {'read'},
-                        'jurisdictions': {
-                            'al': {'actions': {'write', 'admin'}}
-                        }
+                    'actions': {'read'},
+                    'jurisdictions': {
+                        'al': {'write', 'admin'}
                     }
                 }
             }
@@ -72,20 +70,26 @@ class TestGetUserScopesFromDB(TstLambdas):
         # Create a DB record for a board executive director's permissions
         self._table.put_item(
             Item={
-                'pk': self._user_sub,
-                'createdCompactJurisdiction': 'aslp/al',
+                'pk': f'USER#{self._user_sub}',
+                'sk': 'COMPACT#aslp',
+                'compact': 'aslp',
                 'permissions': {
-                    'aslp': {
-                        'actions': {'read'},
-                        'jurisdictions': {
-                            'al': {'actions': {'write', 'admin'}}
-                        }
-                    },
-                    'octp': {
-                        'actions': {'read'},
-                        'jurisdictions': {
-                            'al': {'actions': {'write', 'admin'}}
-                        }
+                    'actions': {'read'},
+                    'jurisdictions': {
+                        'al': {'write', 'admin'}
+                    }
+                }
+            }
+        )
+        self._table.put_item(
+            Item={
+                'pk': f'USER#{self._user_sub}',
+                'sk': 'COMPACT#octp',
+                'compact': 'octp',
+                'permissions': {
+                    'actions': {'read'},
+                    'jurisdictions': {
+                        'al': {'write', 'admin'}
                     }
                 }
             }
@@ -107,14 +111,13 @@ class TestGetUserScopesFromDB(TstLambdas):
         # Create a DB record for a typical board staff user's permissions
         self._table.put_item(
             Item={
-                'pk': self._user_sub,
-                'createdCompactJurisdiction': 'aslp/al',
+                'pk': f'USER#{self._user_sub}',
+                'sk': 'COMPACT#aslp',
+                'compact': 'aslp',
                 'permissions': {
-                    'aslp': {
-                        'actions': {'read'},
-                        'jurisdictions': {
-                            'al': {'actions': {'write'}}  # should correspond to the 'aslp/al.write' scope
-                        }
+                    'actions': {'read'},
+                    'jurisdictions': {
+                        'al': {'write'}  # should correspond to the 'aslp/al.write' scope
                     }
                 }
             }
@@ -144,20 +147,26 @@ class TestGetUserScopesFromDB(TstLambdas):
         # Create a DB record with permissions for an unsupported compact
         self._table.put_item(
             Item={
-                'pk': self._user_sub,
-                'createdCompactJurisdiction': 'aslp/al',
+                'pk': f'USER#{self._user_sub}',
+                'sk': 'COMPACT#aslp',
+                'compact': 'aslp',
                 'permissions': {
-                    'aslp': {
-                        'actions': {'read'},
-                        'jurisdictions': {
-                            'al': {'actions': {'write', 'admin'}}
-                        }
-                    },
-                    'abc': {
-                        'read': True,
-                        'jurisdictions': {
-                            'al': {'actions': {'write', 'admin'}}
-                        }
+                    'actions': {'read'},
+                    'jurisdictions': {
+                        'al': {'write', 'admin'}
+                    }
+                }
+            }
+        )
+        self._table.put_item(
+            Item={
+                'pk': f'USER#{self._user_sub}',
+                'sk': 'COMPACT#aslp',
+                'compact': 'abc',
+                'permissions': {
+                    'actions': {'read'},
+                    'jurisdictions': {
+                        'al': {'write', 'admin'}
                     }
                 }
             }
@@ -176,15 +185,14 @@ class TestGetUserScopesFromDB(TstLambdas):
         # Create a DB record with permissions for an unsupported compact action
         self._table.put_item(
             Item={
-                'pk': self._user_sub,
-                'createdCompactJurisdiction': 'aslp/al',
+                'pk': f'USER#{self._user_sub}',
+                'sk': 'COMPACT#aslp',
+                'compact': 'aslp',
                 'permissions': {
-                    'aslp': {
-                        # Write is jurisdiction-specific
-                        'actions': {'read', 'write'},
-                        'jurisdictions': {
-                            'al': {'actions': {'write', 'admin'}}
-                        }
+                    # Write is jurisdiction-specific
+                    'actions': {'read', 'write'},
+                    'jurisdictions': {
+                        'al': {'write', 'admin'}
                     }
                 }
             }
@@ -203,14 +211,13 @@ class TestGetUserScopesFromDB(TstLambdas):
         # Create a DB record with permissions for an unsupported jurisdiction
         self._table.put_item(
             Item={
-                'pk': self._user_sub,
-                'createdCompactJurisdiction': 'aslp/aslp',
+                'pk': f'USER#{self._user_sub}',
+                'sk': 'COMPACT#aslp',
+                'compact': 'aslp',
                 'permissions': {
-                    'aslp': {
-                        'actions': {'read'},
-                        'jurisdictions': {
-                            'ab': {'actions': {'write', 'admin'}}
-                        }
+                    'actions': {'read'},
+                    'jurisdictions': {
+                        'ab': {'write', 'admin'}
                     }
                 }
             }
@@ -229,14 +236,13 @@ class TestGetUserScopesFromDB(TstLambdas):
         # Create a DB record with permissions for an unsupported jurisdiction action
         self._table.put_item(
             Item={
-                'pk': self._user_sub,
-                'createdCompactJurisdiction': 'aslp/aslp',
+                'pk': f'USER#{self._user_sub}',
+                'sk': 'COMPACT#aslp',
+                'compact': 'aslp',
                 'permissions': {
-                    'aslp': {
-                        'actions': {'read'},
-                        'jurisdictions': {
-                            'al': {'actions': {'write', 'hack'}}
-                        }
+                    'actions': {'read'},
+                    'jurisdictions': {
+                        'al': {'write', 'hack'}
                     }
                 }
             }

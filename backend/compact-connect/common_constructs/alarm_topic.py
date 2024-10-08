@@ -12,7 +12,7 @@ from common_constructs.slack_channel_configuration import SlackChannelConfigurat
 
 class AlarmTopic(Topic):
     def __init__(
-            self, scope: Construct, construct_id: str,
+            self, scope: Construct, construct_id: str, *,
             master_key: IKey,
             email_subscriptions: List[str] = tuple(),
             slack_subscriptions: List[dict] = tuple(),

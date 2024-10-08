@@ -49,7 +49,7 @@ describe('Date formatters', () => {
     it('should calculate a date diff in the default unit', () => {
         const date1 = moment();
         const date2 = moment().subtract(5, 'seconds');
-        const diff = dateDiff(date1, date2);
+        const diff = Math.round(dateDiff(date1, date2));
 
         expect(diff).to.equal(5);
     });

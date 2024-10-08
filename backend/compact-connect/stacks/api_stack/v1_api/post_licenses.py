@@ -3,8 +3,7 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration
-from aws_cdk.aws_apigateway import Resource, MethodResponse, JsonSchema, \
-    JsonSchemaType, MethodOptions, Model, LambdaIntegration
+from aws_cdk.aws_apigateway import Resource, MethodResponse, MethodOptions, LambdaIntegration
 from aws_cdk.aws_events import EventBus
 from cdk_nag import NagSuppressions
 
@@ -12,6 +11,7 @@ from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 # Importing module level to allow lazy loading for typing
 from .. import cc_api
+from .api_model import ApiModel
 
 
 class PostLicenses:
@@ -20,11 +20,13 @@ class PostLicenses:
             resource: Resource,
             method_options: MethodOptions,
             event_bus: EventBus,
+            api_model: ApiModel
     ):
         super().__init__()
 
         self.resource = resource
         self.api: cc_api.CCApi = resource.api
+        self.api_model = api_model
         self.log_groups = []
 
         self._add_post_license(
@@ -42,7 +44,7 @@ class PostLicenses:
             'POST',
             request_validator=self.api.parameter_body_validator,
             request_models={
-                'application/json': self.post_license_model
+                'application/json': self.api_model.post_license_model
             },
             method_responses=[
                 MethodResponse(
@@ -63,44 +65,6 @@ class PostLicenses:
             authorizer=method_options.authorizer,
             authorization_scopes=method_options.authorization_scopes
         )
-
-    @property
-    def post_license_model(self) -> Model:
-        """
-        Return the Post License Model, which should only be created once per API
-        """
-        if hasattr(self.api, 'v1_post_license_model'):
-            return self.api.v1_post_license_model
-
-        self.api.v1_post_license_model = self.api.add_model(
-            'V1PostLicenseModel',
-            description='POST licenses request model',
-            schema=JsonSchema(
-                type=JsonSchemaType.ARRAY,
-                max_length=100,
-                items=JsonSchema(
-                    type=JsonSchemaType.OBJECT,
-                    required=[
-                        'ssn',
-                        'givenName',
-                        'familyName',
-                        'dateOfBirth',
-                        'homeAddressStreet1',
-                        'homeAddressCity',
-                        'homeAddressState',
-                        'homeAddressPostalCode',
-                        'licenseType',
-                        'dateOfIssuance',
-                        'dateOfRenewal',
-                        'dateOfExpiration',
-                        'status'
-                    ],
-                    additional_properties=False,
-                    properties=self.api.v1_common_license_properties
-                )
-            )
-        )
-        return self.api.v1_post_license_model
 
     def _post_licenses_handler(
             self,

@@ -19,12 +19,14 @@ const environments = {
             dataApi: `api.compactconnect.org`,
             s3Upload: `prod-persistentstack-bulkuploadsbucketda4bdcd0-zq5o0q8uqq5i.s3.amazonaws.com`,
             cognitoStaff: `compact-connect-staff.auth.us-east-1.amazoncognito.com`,
+            cognitoProvider: `compact-connect-provider.auth.us-east-1.amazoncognito.com`,
         },
         test: {
             webFrontend: `app.test.compactconnect.org`,
             dataApi: `api.test.compactconnect.org`,
             s3Upload: `test-persistentstack-bulkuploadsbucketda4bdcd0-gxzuwbuqfepm.s3.amazonaws.com`,
             cognitoStaff: `compact-connect-staff-test.auth.us-east-1.amazoncognito.com`,
+            cognitoProvider: `compact-connect-provider-test.auth.us-east-1.amazoncognito.com`,
         },
     },
     ia: {
@@ -33,18 +35,21 @@ const environments = {
             dataApi: `api.jcc.iaapi.io`,
             s3Upload: ``, // Waiting for environment configuration.
             cognitoStaff: ``, // Waiting for environment configuration.
+            cognitoProvider: ``, // Waiting for environment configuration.
         },
         test: {
             webFrontend: `app.test.jcc.iaapi.io`,
             dataApi: `api.test.jcc.iaapi.io`,
             s3Upload: `test-persistentstack-bulkuploadsbucketda4bdcd0-er1izmgsrdva.s3.amazonaws.com`,
             cognitoStaff: `ia-cc-staff-test.auth.us-east-1.amazoncognito.com`,
+            cognitoProvider: `ia-cc-provider-test.auth.us-east-1.amazoncognito.com`,
         },
         justin: {
             webFrontend: `app.justin.jcc.iaapi.io`,
             dataApi: `api.test.jcc.iaapi.io`,
             s3Upload: `test-persistentstack-mockbulkuploadsbucket0e8f27eb-4h1anohxetmp.s3.amazonaws.com`,
             cognitoStaff: ``, // Waiting for environment configuration.
+            cognitoProvider: ``, // Waiting for environment configuration.
         },
     },
 };
@@ -123,6 +128,7 @@ const getEnvironmentUrls = (requestDomain) => {
     environmentUrls.dataApi = getFullyQualified(environment.dataApi);
     environmentUrls.s3Upload = getFullyQualified(environment.s3Upload);
     environmentUrls.cognitoStaff = getFullyQualified(environment.cognitoStaff);
+    environmentUrls.cognitoProvider = getFullyQualified(environment.cognitoProvider);
 
     return environmentUrls;
 };
@@ -278,6 +284,7 @@ const setCspHeader = (requestDomain, headers = {}) => {
                 domains.dataApi,
                 domains.s3Upload,
                 domains.cognitoStaff,
+                domains.cognitoProvider,
                 cognitoIdpUrl,
             ]),
         ].join(' ')}`,

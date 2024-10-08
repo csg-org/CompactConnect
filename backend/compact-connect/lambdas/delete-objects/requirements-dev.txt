@@ -4,22 +4,22 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/lambdas/delete-objects/requirements-dev.in
 #
-boto3==1.35.12
+boto3==1.35.29
     # via moto
-botocore==1.35.12
+botocore==1.35.29
     # via
     #   boto3
     #   moto
     #   s3transfer
 certifi==2024.8.30
     # via requests
-cffi==1.17.0
+cffi==1.17.1
     # via cryptography
 charset-normalizer==3.3.2
     # via requests
 cryptography==43.0.1
     # via moto
-idna==3.8
+idna==3.10
     # via requests
 jinja2==3.1.4
     # via moto
@@ -31,9 +31,9 @@ markupsafe==2.1.5
     # via
     #   jinja2
     #   werkzeug
-moto[s3]==5.0.13
+moto[s3]==5.0.16
     # via -r compact-connect/lambdas/delete-objects/requirements-dev.in
-py-partiql-parser==0.5.5
+py-partiql-parser==0.5.6
     # via moto
 pycparser==2.22
     # via cffi
@@ -55,7 +55,7 @@ s3transfer==0.10.2
     # via boto3
 six==1.16.0
     # via python-dateutil
-urllib3==2.2.2
+urllib3==2.2.3
     # via
     #   botocore
     #   requests

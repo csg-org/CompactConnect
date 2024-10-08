@@ -1,4 +1,5 @@
 import json
+from urllib.parse import quote
 
 from moto import mock_aws
 from tests.function import TstFunction
@@ -84,7 +85,7 @@ class TestClient(TstFunction):
                 provider_id=provider_id
             )
 
-    def test_get_licenses_sorted_by_family_name(self):
+    def test_get_providers_sorted_by_family_name(self):
         from data_model.client import DataClient
 
         self._generate_providers(home='oh', privilege='ne', start_serial=9999)
@@ -121,9 +122,9 @@ class TestClient(TstFunction):
         # Verify sorting by family name (without getting into how duplicate family names are sorted)
         all_items = [*first_items, *resp['items']]
         family_names = [item['familyName'] for item in all_items]
-        self.assertListEqual(sorted(family_names), family_names)
+        self.assertListEqual(sorted(family_names, key=quote), family_names)
 
-    def test_get_licenses_sorted_by_family_name_descending(self):
+    def test_get_providers_sorted_by_family_name_descending(self):
         from data_model.client import DataClient
 
         self._generate_providers(home='oh', privilege='ne', start_serial=9999)
@@ -138,9 +139,64 @@ class TestClient(TstFunction):
 
         # Verify sorting by family name (without getting into how duplicate family names are sorted)
         family_names = [item['familyName'] for item in resp['items']]
-        self.assertListEqual(sorted(family_names, reverse=True), family_names)
+        self.assertListEqual(sorted(family_names, key=quote, reverse=True), family_names)
 
-    def test_get_licenses_sorted_by_date_updated(self):
+    def test_get_providers_by_family_name(self):
+        from data_model.client import DataClient
+
+        # We'll provide names, so we know we'll have one record for our friends, Tess and Ted Testerly
+        self._generate_providers(
+            home='oh',
+            privilege='ne',
+            start_serial=9999,
+            names=(
+                ('Testerly', 'Tess'),
+                ('Testerly', 'Ted'),
+            )
+        )
+        client = DataClient(self.config)
+
+        resp = client.get_providers_sorted_by_family_name(  # pylint: disable=missing-kwoa
+            compact='aslp',
+            jurisdiction='oh',
+            provider_name=('Testerly', None),
+            scan_forward=False
+        )
+
+        self.assertEqual(2, len(resp['items']))
+        # Make sure both our providers have the expected familyName
+        for provider in resp['items']:
+            self.assertEqual('Testerly', provider['familyName'])
+
+    def test_get_providers_by_family_and_given_name(self):
+        from data_model.client import DataClient
+
+        # We'll provide names, so we know we'll have one record for our friends, Tess and Ted Testerly
+        self._generate_providers(
+            home='oh',
+            privilege='ne',
+            start_serial=9999,
+            names=(
+                ('Testerly', 'Tess'),
+                ('Testerly', 'Ted'),
+            )
+        )
+        client = DataClient(self.config)
+
+        resp = client.get_providers_sorted_by_family_name(  # pylint: disable=missing-kwoa
+            compact='aslp',
+            jurisdiction='oh',
+            # By providing given and family name, we can expect only one provider returned
+            provider_name=('Testerly', 'Tess'),
+            scan_forward=False
+        )
+        self.assertEqual(1, len(resp['items']))
+
+        # Make sure we got the right provider
+        self.assertEqual('Tess', resp['items'][0]['givenName'])
+        self.assertEqual('Testerly', resp['items'][0]['familyName'])
+
+    def test_get_providers_sorted_by_date_updated(self):
         from data_model.client import DataClient
 
         self._generate_providers(home='oh', privilege='ne', start_serial=9999)
@@ -179,7 +235,7 @@ class TestClient(TstFunction):
         dates_of_update = [item['dateOfUpdate'] for item in all_items]
         self.assertListEqual(sorted(dates_of_update), dates_of_update)
 
-    def test_get_licenses_sorted_by_date_of_update_descending(self):
+    def test_get_providers_sorted_by_date_of_update_descending(self):
         from data_model.client import DataClient
 
         self._generate_providers(home='oh', privilege='ne', start_serial=9999)

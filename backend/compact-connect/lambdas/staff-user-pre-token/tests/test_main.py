@@ -19,15 +19,14 @@ class TestCustomizeScopes(TstLambdas):
         # Create a DB record for this user's permissions
         self._table.put_item(
             Item={
-                'pk': sub,
-                'createdCompactJurisdiction': 'aslp/al',
+                'pk': f'USER#{sub}',
+                'sk': 'COMPACT#aslp',
+                'compact': 'aslp',
                 'permissions': {
-                    'aslp': {
-                        'actions': {'read'},
-                        'jurisdictions': {
-                            # should correspond to the 'aslp/write' and 'aslp/al.write' scopes
-                            'al': {'actions': {'write'}}
-                        }
+                    'actions': {'read'},
+                    'jurisdictions': {
+                        # should correspond to the 'aslp/write' and 'aslp/al.write' scopes
+                        'al': {'write'}
                     }
                 }
             }

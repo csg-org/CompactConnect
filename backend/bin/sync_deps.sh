@@ -9,5 +9,7 @@ pip-sync \
   compact-connect/lambdas/provider-data-v1/requirements-dev.txt \
   compact-connect/lambdas/staff-user-pre-token/requirements.txt \
   compact-connect/lambdas/staff-user-pre-token/requirements-dev.txt \
+  compact-connect/lambdas/staff-users/requirements.txt \
+  compact-connect/lambdas/staff-users/requirements-dev.txt \
   compact-connect/lambdas/delete-objects/requirements.txt \
   compact-connect/lambdas/delete-objects/requirements-dev.txt

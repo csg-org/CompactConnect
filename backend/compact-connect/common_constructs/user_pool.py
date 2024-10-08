@@ -1,21 +1,25 @@
-from typing import List
+from typing import List, Optional, Mapping
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy
 from aws_cdk.aws_cognito import UserPool as CdkUserPool, UserPoolEmail, AccountRecovery, AutoVerifiedAttrs, \
     AdvancedSecurityMode, DeviceTracking, Mfa, MfaSecondFactor, PasswordPolicy, StandardAttributes, \
-    StandardAttribute, CognitoDomainOptions, AuthFlow, OAuthSettings, OAuthFlows, ClientAttributes, \
-    CfnUserPoolRiskConfigurationAttachment, OAuthScope
+    CognitoDomainOptions, AuthFlow, OAuthSettings, OAuthFlows, ClientAttributes, \
+    CfnUserPoolRiskConfigurationAttachment, OAuthScope, ICustomAttribute, SignInAliases
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
 
 class UserPool(CdkUserPool):
-    def __init__(
+    # A lot of arguments legitimately need to be passed into the constructor
+    def __init__(  # pylint: disable=too-many-arguments
             self, scope: Construct, construct_id: str, *,
             cognito_domain_prefix: str,
             environment_name: str,
             encryption_key: IKey,
+            sign_in_aliases: SignInAliases | None,
+            standard_attributes: StandardAttributes,
+            custom_attributes: Optional[Mapping[str, ICustomAttribute]] = None,
             email: UserPoolEmail,
             removal_policy,
             **kwargs
@@ -40,14 +44,10 @@ class UserPool(CdkUserPool):
                 min_length=12
             ),
             self_sign_up_enabled=False,
-            sign_in_aliases=None,
+            sign_in_aliases=sign_in_aliases,
             sign_in_case_sensitive=False,
-            standard_attributes=StandardAttributes(
-                email=StandardAttribute(
-                    mutable=False,
-                    required=True
-                )
-            ),
+            standard_attributes=standard_attributes,
+            custom_attributes=custom_attributes,
             **kwargs
         )
 
@@ -85,7 +85,19 @@ class UserPool(CdkUserPool):
             ]
         )
 
-    def add_ui_client(self, callback_urls: List[str], ui_scopes: List[OAuthScope] = None):
+    def add_ui_client(self,
+                      callback_urls: List[str],
+                      read_attributes: ClientAttributes,
+                      write_attributes: ClientAttributes,
+                      ui_scopes: List[OAuthScope] = None):
+        """
+        Creates an app client for the UI to authenticate with the user pool.
+
+        :param callback_urls: The URLs that Cognito allows the UI to redirect to after authentication.
+        :param read_attributes: The attributes that the UI can read.
+        :param write_attributes: The attributes that the UI can write.
+        :param ui_scopes: OAuth scopes that are allowed with this client
+        """
         return self.add_client(
             'UIClient',
             auth_flows=AuthFlow(
@@ -107,11 +119,8 @@ class UserPool(CdkUserPool):
             enable_token_revocation=True,
             generate_secret=False,
             refresh_token_validity=Duration.days(30),
-            # If you provide no attributes at all here, it will default
-            # to making _all_ attributes writeable, so if we want to limit writes,
-            # we have to provide at least _one_ that the client _can_ write.
-            write_attributes=ClientAttributes().with_standard_attributes(email=True),
-            read_attributes=ClientAttributes().with_standard_attributes(email=True)
+            write_attributes=write_attributes,
+            read_attributes=read_attributes
         )
 
     def _add_risk_configuration(self):

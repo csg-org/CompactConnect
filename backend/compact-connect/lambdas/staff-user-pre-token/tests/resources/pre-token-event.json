@@ -12,7 +12,7 @@
         "userAttributes": {
             "sub": "a4182428-d061-701c-82e5-a3d1d547d797",
             "cognito:user_status": "CONFIRMED",
-            "email": "joe@example.com"
+            "email": "justin@example.com"
         },
         "groupConfiguration": {
             "groupsToOverride": [],
