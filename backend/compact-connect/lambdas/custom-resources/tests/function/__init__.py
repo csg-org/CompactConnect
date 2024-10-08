@@ -112,6 +112,3 @@ class TstFunction(TestCase):
 
     def delete_resources(self):
         self._table.delete()
-
-
-

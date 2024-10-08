@@ -107,154 +107,156 @@ class TestPurchasesApi(TestApi):
         )
 
         self.assertEqual(get_purchase_privilege_options_response_model["Schema"],
+ {
+         "$schema": "http://json-schema.org/draft-04/schema#",
+         "properties": {
+             "items": {
+                 "items": {
+                     "oneOf": [
                          {
-                             "$schema": "http://json-schema.org/draft-04/schema#",
-                             "properties": {
-                                 "items": {
-                                     "items": {
-                                         "oneOf": [
-                                             {
-                                                 "properties": {
-                                                     "compactCommissionFee": {
-                                                         "properties": {
-                                                             "feeAmount": {
-                                                                 "type": "number"
-                                                             },
-                                                             "feeType": {
-                                                                 "enum": [
-                                                                     "FLAT_RATE"
-                                                                 ],
-                                                                 "type": "string"
-                                                             }
-                                                         },
-                                                         "required": [
-                                                             "feeType",
-                                                             "feeAmount"
-                                                         ],
-                                                         "type": "object"
-                                                     },
-                                                     "compactName": {
-                                                         "description": "The name of the compact",
-                                                         "type": "string"
-                                                     },
-                                                     "type": {
-                                                         "enum": [
-                                                             "compact"
-                                                         ],
-                                                         "type": "string"
-                                                     }
-                                                 },
-                                                 "required": [
-                                                     "type",
-                                                     "compactName",
-                                                     "compactCommissionFee"
-                                                 ],
-                                                 "type": "object"
-                                             },
-                                             {
-                                                 "properties": {
-                                                     "jurisdictionFee": {
-                                                         "description": "The fee for the jurisdiction",
-                                                         "type": "number"
-                                                     },
-                                                     "jurisdictionName": {
-                                                         "description": "The name of the jurisdiction",
-                                                         "type": "string"
-                                                     },
-                                                     "jurisprudenceRequirements": {
-                                                         "properties": {
-                                                             "required": {
-                                                                 "description": "Whether jurisprudence requirements exist",
-                                                                 "type": "boolean"
-                                                             }
-                                                         },
-                                                         "required": [
-                                                             "required"
-                                                         ],
-                                                         "type": "object"
-                                                     },
-                                                     "militaryDiscount": {
-                                                         "properties": {
-                                                             "active": {
-                                                                 "description": "Whether the military discount is active",
-                                                                 "type": "boolean"
-                                                             },
-                                                             "discountAmount": {
-                                                                 "description": "The amount of the discount",
-                                                                 "type": "number"
-                                                             },
-                                                             "discountType": {
-                                                                 "description": "The type of discount",
-                                                                 "enum": [
-                                                                     "FLAT_RATE"
-                                                                 ],
-                                                                 "type": "string"
-                                                             }
-                                                         },
-                                                         "required": [
-                                                             "active",
-                                                             "discountType",
-                                                             "discountAmount"
-                                                         ],
-                                                         "type": "object"
-                                                     },
-                                                     "postalAbbreviation": {
-                                                         "description": "The postal abbreviation of the jurisdiction",
-                                                         "type": "string"
-                                                     },
-                                                     "type": {
-                                                         "enum": [
-                                                             "jurisdiction"
-                                                         ],
-                                                         "type": "string"
-                                                     }
-                                                 },
-                                                 "required": [
-                                                     "type",
-                                                     "jurisdictionName",
-                                                     "postalAbbreviation",
-                                                     "jurisdictionFee",
-                                                     "jurisprudenceRequirements"
-                                                 ],
-                                                 "type": "object"
-                                             }
+                         "properties": {
+                             "compactCommissionFee": {
+                                 "properties": {
+                                     "feeAmount": {
+                                         "type": "number"
+                                     },
+                                     "feeType": {
+                                         "enum": [
+                                             "FLAT_RATE"
                                          ],
-                                         "type": "object"
-                                     },
-                                     "maxLength": 100,
-                                     "type": "array"
+                                         "type": "string"
+                                     }
                                  },
-                                 "pagination": {
-                                     "properties": {
-                                         "lastKey": {
-                                             "maxLength": 1024,
-                                             "minLength": 1,
-                                             "type": [
-                                                 "string",
-                                                 "null"
-                                             ]
-                                         },
-                                         "pageSize": {
-                                             "maximum": 100,
-                                             "minimum": 5,
-                                             "type": "integer"
-                                         },
-                                         "prevLastKey": {
-                                             "maxLength": 1024,
-                                             "minLength": 1,
-                                             "type": [
-                                                 "string",
-                                                 "null"
-                                             ]
-                                         }
-                                     },
-                                     "type": "object"
-                                 }
+                                 "required": [
+                                     "feeType",
+                                     "feeAmount"
+                                 ],
+                                 "type": "object"
                              },
-                             "required": [
-                                 "items",
-                                 "pagination"
-                             ],
-                             "type": "object"
-                         }
-                         )
+                             "compactName": {
+                                 "description": "The name of the compact",
+                                 "type": "string"
+                             },
+                             "type": {
+                                 "enum": [
+                                     "compact"
+                                 ],
+                                 "type": "string"
+                             }
+                         },
+                         "required": [
+                             "type",
+                             "compactName",
+                             "compactCommissionFee"
+                         ],
+                         "type": "object"
+                     },
+                     {
+                         "properties": {
+                             "jurisdictionFee": {
+                                 "description": "The fee for the jurisdiction",
+                                 "type": "number"
+                             },
+                             "jurisdictionName": {
+                                 "description": "The name of the jurisdiction",
+                                 "type": "string"
+                             },
+                             "jurisprudenceRequirements": {
+                                 "properties": {
+                                     "required": {
+                                         "description":
+                                             "Whether jurisprudence requirements exist",
+                                         "type": "boolean"
+                                     }
+                                 },
+                                 "required": [
+                                     "required"
+                                 ],
+                                 "type": "object"
+                             },
+                             "militaryDiscount": {
+                                 "properties": {
+                                     "active": {
+                                         "description":
+                                             "Whether the military discount is active",
+                                         "type": "boolean"
+                                     },
+                                     "discountAmount": {
+                                         "description": "The amount of the discount",
+                                         "type": "number"
+                                     },
+                                     "discountType": {
+                                         "description": "The type of discount",
+                                         "enum": [
+                                             "FLAT_RATE"
+                                         ],
+                                         "type": "string"
+                                     }
+                                 },
+                                 "required": [
+                                     "active",
+                                     "discountType",
+                                     "discountAmount"
+                                 ],
+                                 "type": "object"
+                             },
+                             "postalAbbreviation": {
+                                 "description": "The postal abbreviation of the jurisdiction",
+                                 "type": "string"
+                             },
+                             "type": {
+                                 "enum": [
+                                     "jurisdiction"
+                                 ],
+                                 "type": "string"
+                             }
+                         },
+                         "required": [
+                             "type",
+                             "jurisdictionName",
+                             "postalAbbreviation",
+                             "jurisdictionFee",
+                             "jurisprudenceRequirements"
+                         ],
+                         "type": "object"
+                     }
+                 ],
+                 "type": "object"
+             },
+             "maxLength": 100,
+             "type": "array"
+         },
+         "pagination": {
+             "properties": {
+                 "lastKey": {
+                     "maxLength": 1024,
+                     "minLength": 1,
+                     "type": [
+                         "string",
+                         "null"
+                     ]
+                 },
+                 "pageSize": {
+                     "maximum": 100,
+                     "minimum": 5,
+                     "type": "integer"
+                 },
+                 "prevLastKey": {
+                     "maxLength": 1024,
+                     "minLength": 1,
+                     "type": [
+                         "string",
+                         "null"
+                     ]
+                 }
+             },
+             "type": "object"
+         }
+     },
+     "required": [
+         "items",
+         "pagination"
+     ],
+     "type": "object"
+ }
+ )

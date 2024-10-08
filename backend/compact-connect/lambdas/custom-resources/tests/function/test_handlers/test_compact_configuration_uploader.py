@@ -81,7 +81,7 @@ class TestCompactConfigurationUploader(TstFunction):
         # now query for all the aslp compact configurations
         response = self.config.provider_table.query(
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(f'aslp#CONFIGURATION')
+            KeyConditionExpression=Key('pk').eq('aslp#CONFIGURATION')
         )
 
         # note we don't store the activeEnvironments field in the database
@@ -139,12 +139,12 @@ class TestCompactConfigurationUploader(TstFunction):
         # now query for all the aslp compact configurations
         aslp_response = self.config.provider_table.query(
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(f'aslp#CONFIGURATION')
+            KeyConditionExpression=Key('pk').eq('aslp#CONFIGURATION')
         )
 
         octp_response = self.config.provider_table.query(
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(f'octp#CONFIGURATION')
+            KeyConditionExpression=Key('pk').eq('octp#CONFIGURATION')
         )
 
         items = aslp_response['Items'] + octp_response['Items']

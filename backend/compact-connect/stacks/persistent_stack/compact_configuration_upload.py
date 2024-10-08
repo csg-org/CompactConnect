@@ -5,12 +5,11 @@ import yaml
 from aws_cdk import Duration, Stack, CustomResource
 from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.custom_resources import Provider
-from cdk_nag import NagSuppressions
 from aws_cdk.aws_kms import IKey
 from common_constructs.python_function import PythonFunction
+from cdk_nag import NagSuppressions
 
 from constructs import Construct
-
 
 from .provider_table import ProviderTable
 
@@ -86,7 +85,8 @@ class CompactConfigurationUpload(Construct):
 
         NagSuppressions.add_resource_suppressions_by_path(
             Stack.of(scope),
-            path=f'{self.compact_configuration_upload_provider.node.path}/framework-onEvent/ServiceRole/DefaultPolicy/Resource',
+            path=f'{self.compact_configuration_upload_provider.node.path}'
+                 f'/framework-onEvent/ServiceRole/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -145,12 +145,13 @@ class CompactConfigurationUpload(Construct):
 
         # Read all jurisdiction configuration YAML files from each compact directory
         for compact in uploader_input['compacts']:
-            uploader_input['jurisdictions'][compact['compactName']] = []
+            compact_name = compact['compactName']
+            uploader_input['jurisdictions'][compact_name] = []
             for jurisdiction_config_file in os.listdir(os.path.join('compact-config', compact['compactName'])):
                 if jurisdiction_config_file.endswith('.yml'):
-                    with open(os.path.join('compact-config', compact['compactName'], jurisdiction_config_file), 'r') as f:
+                    with open(os.path.join('compact-config', compact_name, jurisdiction_config_file), 'r') as f:
                         # convert YAML to JSON
-                        uploader_input['jurisdictions'][compact['compactName']].append(yaml.safe_load(f))
+                        uploader_input['jurisdictions'][compact_name].append(yaml.safe_load(f))
 
 
         return json.dumps(uploader_input)
