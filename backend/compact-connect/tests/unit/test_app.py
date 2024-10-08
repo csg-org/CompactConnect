@@ -238,9 +238,7 @@ class TestApp(TestCase):
         # Assert that the compact_configuration property is set to the expected values
         # This is essentially a snapshot test. If the configuration values for any jurisdiction changes,
         # this test will need to be updated.
-        self.assertEqual(compact_configuration_uploader_custom_resource['compact_configuration'],
-                         json.dumps(
-{
+        self.assertEqual(json.dumps({
   "compacts": [
     {
       "compactName": "aslp",
@@ -248,15 +246,9 @@ class TestApp(TestCase):
         "feeType": "FLAT_RATE",
         "feeAmount": 3.5
       },
-      "compactOperationsTeamEmails": [
-        "<email address>"
-      ],
-      "compactAdverseActionsNotificationEmails": [
-        "<email address>"
-      ],
-      "compactSummaryReportNotificationEmails": [
-        "<email address>"
-      ],
+      "compactOperationsTeamEmails": [],
+      "compactAdverseActionsNotificationEmails": [],
+      "compactSummaryReportNotificationEmails": [],
       "activeEnvironments": [
         "sandbox"
       ]
@@ -267,15 +259,9 @@ class TestApp(TestCase):
         "feeType": "FLAT_RATE",
         "feeAmount": 3.5
       },
-      "compactOperationsTeamEmails": [
-        "<email address>"
-      ],
-      "compactAdverseActionsNotificationEmails": [
-        "<email address>"
-      ],
-      "compactSummaryReportNotificationEmails": [
-        "<email address>"
-      ],
+      "compactOperationsTeamEmails": [],
+      "compactAdverseActionsNotificationEmails": [],
+      "compactSummaryReportNotificationEmails": [],
       "activeEnvironments": [
         "sandbox"
       ]
@@ -286,15 +272,9 @@ class TestApp(TestCase):
         "feeType": "FLAT_RATE",
         "feeAmount": 3.5
       },
-      "compactOperationsTeamEmails": [
-        "<email address>"
-      ],
-      "compactAdverseActionsNotificationEmails": [
-        "<email address>"
-      ],
-      "compactSummaryReportNotificationEmails": [
-        "<email address>"
-      ],
+      "compactOperationsTeamEmails": [],
+      "compactAdverseActionsNotificationEmails": [],
+      "compactSummaryReportNotificationEmails": [],
       "activeEnvironments": [
         "sandbox"
       ]
@@ -311,15 +291,9 @@ class TestApp(TestCase):
           "discountType": "FLAT_RATE",
           "discountAmount": 10
         },
-        "jurisdictionOperationsTeamEmails": [
-          "<email address>"
-        ],
-        "jurisdictionAdverseActionsNotificationEmails": [
-          "<email address>"
-        ],
-        "jurisdictionSummaryReportNotificationEmails": [
-          "<email address>"
-        ],
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
         "jurisprudenceRequirements": {
           "required": True
         },
@@ -334,15 +308,9 @@ class TestApp(TestCase):
           "discountType": "FLAT_RATE",
           "discountAmount": 10
         },
-        "jurisdictionOperationsTeamEmails": [
-          "<email address>"
-        ],
-        "jurisdictionAdverseActionsNotificationEmails": [
-          "<email address>"
-        ],
-        "jurisdictionSummaryReportNotificationEmails": [
-          "<email address>"
-        ],
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
         "jurisprudenceRequirements": {
           "required": True
         },
@@ -357,15 +325,9 @@ class TestApp(TestCase):
           "discountType": "FLAT_RATE",
           "discountAmount": 10
         },
-        "jurisdictionOperationsTeamEmails": [
-          "<email address>"
-        ],
-        "jurisdictionAdverseActionsNotificationEmails": [
-          "<email address>"
-        ],
-        "jurisdictionSummaryReportNotificationEmails": [
-          "<email address>"
-        ],
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
         "jurisprudenceRequirements": {
           "required": True
         },
@@ -382,15 +344,9 @@ class TestApp(TestCase):
           "discountType": "FLAT_RATE",
           "discountAmount": 10
         },
-        "jurisdictionOperationsTeamEmails": [
-          "<email address>"
-        ],
-        "jurisdictionAdverseActionsNotificationEmails": [
-          "<email address>"
-        ],
-        "jurisdictionSummaryReportNotificationEmails": [
-          "<email address>"
-        ],
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
         "jurisprudenceRequirements": {
           "required": True
         },
@@ -405,15 +361,9 @@ class TestApp(TestCase):
           "discountType": "FLAT_RATE",
           "discountAmount": 10
         },
-        "jurisdictionOperationsTeamEmails": [
-          "<email address>"
-        ],
-        "jurisdictionAdverseActionsNotificationEmails": [
-          "<email address>"
-        ],
-        "jurisdictionSummaryReportNotificationEmails": [
-          "<email address>"
-        ],
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
         "jurisprudenceRequirements": {
           "required": True
         },
@@ -428,15 +378,9 @@ class TestApp(TestCase):
           "discountType": "FLAT_RATE",
           "discountAmount": 10
         },
-        "jurisdictionOperationsTeamEmails": [
-          "<email address>"
-        ],
-        "jurisdictionAdverseActionsNotificationEmails": [
-          "<email address>"
-        ],
-        "jurisdictionSummaryReportNotificationEmails": [
-          "<email address>"
-        ],
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
         "jurisprudenceRequirements": {
           "required": True
         },
@@ -515,7 +459,7 @@ class TestApp(TestCase):
       }
     ]
   }
-}))
+}),compact_configuration_uploader_custom_resource['compact_configuration'])
 
 
 
