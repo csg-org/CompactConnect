@@ -19,9 +19,14 @@ export interface RequestParamsInterfaceLocal {
     compact?: string;
     jurisdiction?: string;
     licenseeId?: string;
+    licenseeFirstName?: string;
+    licenseeLastName?: string;
+    licenseeSsn?: string;
     pageSize?: number;
     pageNumber?: number;
     lastKey?: string;
+    getNextPage?: boolean;
+    getPrevPage?: boolean;
     prevLastKey?: string;
     sortBy?: string;
     sortDirection?: string;
@@ -40,6 +45,9 @@ export interface RequestParamsInterfaceRemote {
         compact?: string,
         jurisdiction?: string,
         providerId?: string,
+        givenName?: string;
+        familyName?: string;
+        ssn?: string,
     },
 }
 
@@ -100,38 +108,64 @@ export class LicenseDataApi implements DataApiInterface {
      * @return {object}                             The URI query param object.
      */
     public prepRequestPostParams(params: RequestParamsInterfaceLocal = {}): RequestParamsInterfaceRemote {
+        const {
+            compact,
+            jurisdiction,
+            licenseeId,
+            licenseeFirstName,
+            licenseeLastName,
+            licenseeSsn,
+            pageSize,
+            lastKey,
+            sortBy,
+            sortDirection,
+        } = params;
+        const hasSearchTerms = Boolean(licenseeId || licenseeFirstName || licenseeLastName || licenseeSsn);
         const requestParams: RequestParamsInterfaceRemote = { query: {}};
 
         if (params.compact) {
-            requestParams.query.compact = params.compact;
+            requestParams.query.compact = compact;
         }
 
-        if (params.jurisdiction) {
-            requestParams.query.jurisdiction = params.jurisdiction;
+        if (jurisdiction) {
+            requestParams.query.jurisdiction = jurisdiction;
         }
 
-        if (params.licenseeId) {
-            requestParams.query.providerId = params.licenseeId;
-        } else {
-            if (params.pageSize || params.lastKey) {
+        if (hasSearchTerms) {
+            if (licenseeId) {
+                requestParams.query.providerId = licenseeId;
+            }
+            if (licenseeFirstName) {
+                requestParams.query.givenName = licenseeFirstName;
+            }
+            if (licenseeLastName) {
+                requestParams.query.familyName = licenseeLastName;
+            }
+            if (licenseeSsn) {
+                requestParams.query.ssn = licenseeSsn;
+            }
+        }
+
+        if (!licenseeId && !licenseeSsn) {
+            if (pageSize || lastKey) {
                 requestParams.pagination = {};
 
-                if (params.pageSize) {
-                    requestParams.pagination.pageSize = params.pageSize;
+                if (pageSize) {
+                    requestParams.pagination.pageSize = pageSize;
                 }
-                if (params.lastKey) {
-                    requestParams.pagination.lastKey = params.lastKey;
+                if (lastKey) {
+                    requestParams.pagination.lastKey = lastKey;
                 }
             }
 
-            if (params.sortBy || params.sortDirection) {
+            if (sortBy || sortDirection) {
                 requestParams.sorting = {};
 
-                if (params.sortBy) {
-                    requestParams.sorting.key = params.sortBy;
+                if (sortBy) {
+                    requestParams.sorting.key = sortBy;
                 }
-                if (params.sortDirection) {
-                    requestParams.sorting.direction = params.sortDirection;
+                if (sortDirection) {
+                    requestParams.sorting.direction = sortDirection;
                 }
             }
         }

@@ -49,7 +49,7 @@ class V1Api:
         # /v1/provider-users
         self.provider_users_resource = self.resource.add_resource('provider-users')
         self.provider_users = ProviderUsers(
-            self.provider_users_resource,
+            resource=self.provider_users_resource,
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
             api_model=self.api_model

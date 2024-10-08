@@ -23,7 +23,7 @@ export const paginationTemplate = {
 export interface PageChangeConfig {
     firstIndex: number;
     lastIndexExclusive: number;
-    prevNext: number; // The increment of the page from the previous page; assists with storing the correct prev / next paging keys sent by the server.
+    prevNext?: number; // The increment of the page from the previous page; assists with storing the correct prev / next paging keys sent by the server.
 }
 
 export const state: State = {

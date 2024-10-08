@@ -17,7 +17,7 @@ from .api_model import ApiModel
 
 class ProviderUsers:
     def __init__(
-            self,
+            self, *,
             resource: Resource,
             data_encryption_key: IKey,
             provider_data_table: ProviderTable,

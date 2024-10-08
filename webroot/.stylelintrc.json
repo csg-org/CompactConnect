@@ -9,7 +9,13 @@
         "selector-pseudo-element-no-unknown": [
             true,
             {
-                "ignorePseudoElements": ["v-deep", "deep"]
+                "ignorePseudoElements": ["v-deep"]
+            }
+        ],
+        "selector-pseudo-class-no-unknown": [
+            true,
+            {
+                "ignorePseudoClasses": ["deep"]
             }
         ],
         "order/properties-order": [],

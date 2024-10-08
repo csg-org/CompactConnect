@@ -42,6 +42,7 @@ pycparser==2.22
 python-dateutil==2.9.0.post0
     # via
     #   botocore
+    #   faker
     #   moto
 pyyaml==6.0.2
     # via
