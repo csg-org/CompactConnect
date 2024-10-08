@@ -118,8 +118,10 @@ class PersistentStack(AppStack):
             # The SES email identity needs to be created before the user pools
             # so that the domain address will be verified before being referenced
             # by the user pool email settings
-            self.staff_users.node.add_dependency(self.user_email_notifications)
-            self.provider_users.node.add_dependency(self.user_email_notifications)
+            self.staff_users.node.add_dependency(self.user_email_notifications.email_identity)
+            self.staff_users.node.add_dependency(self.user_email_notifications.dmarc_record)
+            self.provider_users.node.add_dependency(self.user_email_notifications.email_identity)
+            self.provider_users.node.add_dependency(self.user_email_notifications.dmarc_record)
 
     def _add_mock_data_resources(self):
         self.mock_bulk_uploads_bucket = BulkUploadsBucket(
