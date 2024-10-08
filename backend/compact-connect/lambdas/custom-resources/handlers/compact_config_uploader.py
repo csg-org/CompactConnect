@@ -65,6 +65,9 @@ def _upload_compact_root_configuration(compact_configuration: dict, environment_
                 "type": "compact",
                 "dateOfUpdate": date.today().strftime('%Y-%m-%d')
             })
+            # remove the activeEnvironments field as it's an implementation detail
+            compact.pop('activeEnvironments')
+
             # without this step, the write action will fail as Dynamo doesn't support floats
             formatted_compact = json.loads(json.dumps(compact), parse_float=Decimal)
             config.provider_table.put_item(Item=formatted_compact)
@@ -91,6 +94,8 @@ def _upload_jurisdiction_configuration(compact_configuration: dict, environment_
                     "compact": compact_name,
                     "dateOfUpdate": date.today().strftime('%Y-%m-%d')
                 })
+                # remove the activeEnvironments field as it's an implementation detail
+                jurisdiction.pop('activeEnvironments')
 
                 # without this step, the write action will fail as Dynamo doesn't support floats
                 formatted_jurisdiction = json.loads(json.dumps(jurisdiction), parse_float=Decimal)

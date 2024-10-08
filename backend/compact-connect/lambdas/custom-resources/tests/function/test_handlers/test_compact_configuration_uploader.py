@@ -84,9 +84,10 @@ class TestCompactConfigurationUploader(TstFunction):
             KeyConditionExpression=Key('pk').eq(f'aslp#CONFIGURATION')
         )
 
+        # note we don't store the activeEnvironments field in the database
+        # as this is an implementation detail for the uploader
         self.assertEqual([
             {
-              "activeEnvironments": ["test"],
               "compactAdverseActionsNotificationEmails": [],
               "compactCommissionFee": {
                 "feeAmount": Decimal("3.5"),
@@ -101,7 +102,6 @@ class TestCompactConfigurationUploader(TstFunction):
               "type": "compact"
             },
             {
-              "activeEnvironments": ["test"],
               "compact": "aslp",
               "dateOfUpdate": "2024-10-08",
               "jurisdictionAdverseActionsNotificationEmails": [],
