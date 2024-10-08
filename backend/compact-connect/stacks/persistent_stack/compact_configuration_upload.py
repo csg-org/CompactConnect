@@ -43,15 +43,27 @@ class CompactConfigurationUpload(Construct):
         # grant lambda access to the KMS key
         master_key.grant_encrypt_decrypt(self.compact_configuration_upload_function)
 
+        NagSuppressions.add_resource_suppressions_by_path(
+            Stack.of(scope),
+            path=f'{self.compact_configuration_upload_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
+                              'and is scoped to one table and encryption key.'
+                }
+            ]
+        )
 
-        compact_configuration_upload_provider = Provider(
+
+        self.compact_configuration_upload_provider = Provider(
             scope, 'CompactConfigurationUploadProvider',
             on_event_handler=self.compact_configuration_upload_function,
             log_retention=RetentionDays.ONE_DAY
         )
         NagSuppressions.add_resource_suppressions_by_path(
             Stack.of(scope),
-            f'{compact_configuration_upload_provider.node.path}/framework-onEvent/Resource', [
+            f'{self.compact_configuration_upload_provider.node.path}/framework-onEvent/Resource', [
                 {
                     'id': 'AwsSolutions-L1',
                     'reason': 'We do not control this runtime'
@@ -64,6 +76,33 @@ class CompactConfigurationUpload(Construct):
                 {
                     'id': 'HIPAA.Security-LambdaDLQ',
                     'reason': 'This is a synchronous function run at deploy time. It does not need a DLQ'
+                },
+                {
+                    'id': 'HIPAA.Security-LambdaInsideVPC',
+                    'reason': 'We may choose to move our lambdas into private VPC subnets in a future enhancement'
+                },
+            ]
+        )
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            Stack.of(scope),
+            path=f'{self.compact_configuration_upload_provider.node.path}/framework-onEvent/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
+                              'and is scoped to one table and encryption key.'
+                }
+            ]
+        )
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            Stack.of(scope),
+            path=f'{self.compact_configuration_upload_provider.node.path}/framework-onEvent/ServiceRole/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM4',
+                    'reason': 'This role is managed by AWS CDK.'
                 }
             ]
         )
@@ -71,7 +110,7 @@ class CompactConfigurationUpload(Construct):
         self.compact_configuration_uploader_custom_resource = CustomResource(
             scope, 'CompactConfigurationUploadCustomResource',
             resource_type='Custom::CompactConfigurationUpload',
-            service_token=compact_configuration_upload_provider.service_token,
+            service_token=self.compact_configuration_upload_provider.service_token,
             properties={
                 # passing this as a property to the custom resource so that the lambda can access it
                 'compact_configuration': self._generate_compact_configuration_json_string(),
