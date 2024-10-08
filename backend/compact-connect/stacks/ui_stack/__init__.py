@@ -57,7 +57,8 @@ class UIStack(AppStack):
             suppressions=[{
                 'id': 'AwsSolutions-CFR7',
                 'reason': 'TODO - the UI distribution should be updated to use Origin access control instead of'
-                          'Origin access identity. See https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html#migrate-from-oai-to-oac'
+                          'Origin access identity. See https://docs.aws.amazon.com/AmazonCloudFront/latest/'
+                          'DeveloperGuide/private-content-restricting-access-to-s3.html#migrate-from-oai-to-oac'
             }]
         )
 

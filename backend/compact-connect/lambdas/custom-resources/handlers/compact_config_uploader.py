@@ -4,7 +4,7 @@ from decimal import Decimal
 from datetime import date
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
-from .config import config, logger
+from config import config, logger
 
 
 def on_event(event: dict, context: LambdaContext):  # pylint: disable=inconsistent-return-statements,unused-argument
