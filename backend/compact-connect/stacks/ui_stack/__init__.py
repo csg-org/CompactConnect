@@ -51,6 +51,16 @@ class UIStack(AppStack):
             persistent_stack=persistent_stack
         )
 
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            path=f'{self.distribution.node.path}/Resource',
+            suppressions=[{
+                'id': 'AwsSolutions-CFR7',
+                'reason': 'TODO - the UI distribution should be updated to use Origin access control instead of'
+                          'Origin access identity. See https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html#migrate-from-oai-to-oac'
+            }]
+        )
+
         # Configure permission for GitHub Actions to deploy the UI
         github_actions = GitHubActionsAccess(
             self, 'GitHubActionsAccess',
