@@ -3,8 +3,8 @@ import os
 from unittest import TestCase
 from unittest.mock import patch
 
-from aws_cdk.assertions import Template
-from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolRiskConfigurationAttachment
+from aws_cdk.assertions import Template, Match
+from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolRiskConfigurationAttachment, CfnUserPoolClient
 
 from app import CompactConnectApp
 from tests.unit.base import TstCompactConnectABC
@@ -102,6 +102,19 @@ class TestPipeline(TstCompactConnectABC, TestCase):
         )
         # One for each of two user pools
         self.assertEqual(2, len(risk_configurations))
+
+        # Verify that we're not allowing the implicit grant flow in any of our clients
+        implicit_grant_clients = template.find_resources(
+            CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'AllowedOAuthFlows': Match.array_with([
+                        'implicit'
+                    ])
+                }
+            }
+        )
+        self.assertEqual(0, len(implicit_grant_clients))
 
 
 class TestPipelineVulnerable(TestCase):

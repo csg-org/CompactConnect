@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/lambdas/delete-objects/requirements-dev.in
 #
-boto3==1.35.29
+boto3==1.35.36
     # via moto
-botocore==1.35.29
+botocore==1.35.36
     # via
     #   boto3
     #   moto
@@ -27,7 +27,7 @@ jmespath==1.0.1
     # via
     #   boto3
     #   botocore
-markupsafe==2.1.5
+markupsafe==3.0.1
     # via
     #   jinja2
     #   werkzeug
@@ -51,7 +51,7 @@ requests==2.32.3
     #   responses
 responses==0.25.3
     # via moto
-s3transfer==0.10.2
+s3transfer==0.10.3
     # via boto3
 six==1.16.0
     # via python-dateutil
@@ -62,5 +62,5 @@ urllib3==2.2.3
     #   responses
 werkzeug==3.0.4
     # via moto
-xmltodict==0.13.0
+xmltodict==0.14.0
     # via moto

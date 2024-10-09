@@ -4,11 +4,11 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/requirements-dev.in
 #
-astroid==3.3.4
+astroid==3.3.5
     # via pylint
 boolean-py==4.0
     # via license-expression
-build==1.2.2
+build==1.2.2.post1
     # via pip-tools
 cachecontrol[filecache]==0.14.0
     # via
@@ -24,7 +24,7 @@ coverage[toml]==7.6.1
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
-cyclonedx-python-lib==7.6.1
+cyclonedx-python-lib==7.6.2
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
@@ -72,7 +72,7 @@ platformdirs==4.3.6
     # via pylint
 pluggy==1.5.0
     # via pytest
-py-serializable==1.1.1
+py-serializable==1.1.2
     # via cyclonedx-python-lib
 pygments==2.18.0
     # via rich
@@ -96,7 +96,7 @@ requests==2.32.3
     # via
     #   cachecontrol
     #   pip-audit
-rich==13.8.1
+rich==13.9.2
     # via pip-audit
 six==1.16.0
     # via
