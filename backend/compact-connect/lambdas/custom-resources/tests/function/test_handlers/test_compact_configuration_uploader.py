@@ -79,7 +79,7 @@ class TestCompactConfigurationUploader(TstFunction):
         on_event(event, self.mock_context)
 
         # now query for all the aslp compact configurations
-        response = self.config.provider_table.query(
+        response = self.config.compact_configuration_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq('aslp#CONFIGURATION')
         )
@@ -137,12 +137,12 @@ class TestCompactConfigurationUploader(TstFunction):
         on_event(event, self.mock_context)
 
         # now query for all the aslp compact configurations
-        aslp_response = self.config.provider_table.query(
+        aslp_response = self.config.compact_configuration_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq('aslp#CONFIGURATION')
         )
 
-        octp_response = self.config.provider_table.query(
+        octp_response = self.config.compact_configuration_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq('octp#CONFIGURATION')
         )

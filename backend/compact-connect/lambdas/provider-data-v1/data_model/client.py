@@ -196,7 +196,7 @@ class DataClient():
     ):
         logger.info('Getting privilege purchase options for compact', compact=compact)
 
-        resp = self.config.provider_table.query(
+        resp = self.config.compact_configuration_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(f'{compact}#CONFIGURATION'),
             **dynamo_pagination

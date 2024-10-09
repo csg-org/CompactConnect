@@ -11,13 +11,16 @@ from cdk_nag import NagSuppressions
 
 from constructs import Construct
 
-from .provider_table import ProviderTable
+from .compact_configuration_table import CompactConfigurationTable
 
 
 class CompactConfigurationUpload(Construct):
+    """
+    Custom resource to upload compact configuration data to the compact configuration table.
+    """
     def __init__(
             self, scope: Construct, construct_id: str, *,
-            table: ProviderTable,
+            table: CompactConfigurationTable,
             master_key: IKey,
             environment_name: str,
             **kwargs
@@ -29,15 +32,15 @@ class CompactConfigurationUpload(Construct):
             entry=os.path.join('lambdas', 'custom-resources'),
             index=os.path.join('handlers', 'compact_config_uploader.py'),
             handler='on_event',
-            description='Uploads contents of compact-config directory to the provider Dynamo table',
+            description='Uploads contents of compact-config directory to the compact configuration Dynamo table',
             timeout=Duration.minutes(10),
             log_retention=RetentionDays.THREE_MONTHS,
             environment={
-                'PROVIDER_TABLE_NAME': table.table_name,
+                'COMPACT_CONFIGURATION_TABLE_NAME': table.table_name,
             }
         )
 
-        # grant lambda access to the provider table
+        # grant lambda access to the compact configuration table
         table.grant_read_write_data(self.compact_configuration_upload_function)
         # grant lambda access to the KMS key
         master_key.grant_encrypt_decrypt(self.compact_configuration_upload_function)

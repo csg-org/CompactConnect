@@ -11,7 +11,7 @@ from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 # Importing module level to allow lazy loading for typing
 from stacks.api_stack import cc_api
-from stacks.persistent_stack import ProviderTable
+from stacks.persistent_stack import CompactConfigurationTable
 from .api_model import ApiModel
 
 
@@ -20,7 +20,7 @@ class Purchases:
             self,
             resource: Resource,
             data_encryption_key: IKey,
-            provider_data_table: ProviderTable,
+            compact_configuration_table: CompactConfigurationTable,
             api_model: ApiModel
     ):
         super().__init__()
@@ -37,27 +37,25 @@ class Purchases:
 
         stack: Stack = Stack.of(resource)
         lambda_environment = {
-            'PROVIDER_TABLE_NAME': provider_data_table.table_name,
-            'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
-            'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
+            'COMPACT_CONFIGURATION_TABLE_NAME': compact_configuration_table.table_name,
             **stack.common_env_vars
         }
 
         self._add_get_purchase_privileges_options(
             data_encryption_key=data_encryption_key,
-            provider_data_table=provider_data_table,
+            compact_configuration_table=compact_configuration_table,
             lambda_environment=lambda_environment
         )
 
     def _add_get_purchase_privileges_options(
             self,
             data_encryption_key: IKey,
-            provider_data_table: ProviderTable,
+            compact_configuration_table: CompactConfigurationTable,
             lambda_environment: dict
     ):
         self.get_purchase_privilege_options_handler = self._get_purchase_privilege_options_handler(
             data_encryption_key=data_encryption_key,
-            provider_data_table=provider_data_table,
+            compact_configuration_table=compact_configuration_table,
             lambda_environment=lambda_environment
         )
         self.api.log_groups.append(self.get_purchase_privilege_options_handler.log_group)
@@ -87,7 +85,7 @@ class Purchases:
     def _get_purchase_privilege_options_handler(
             self,
             data_encryption_key: IKey,
-            provider_data_table: ProviderTable,
+            compact_configuration_table: CompactConfigurationTable,
             lambda_environment: dict
     ) -> PythonFunction:
         stack = Stack.of(self.purchases_resource)
@@ -101,7 +99,7 @@ class Purchases:
             alarm_topic=self.api.alarm_topic
         )
         data_encryption_key.grant_decrypt(handler)
-        provider_data_table.grant_read_data(handler)
+        compact_configuration_table.grant_read_data(handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack,

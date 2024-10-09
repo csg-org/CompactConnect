@@ -14,7 +14,7 @@ class TestClient(TstFunction):
         provider_ssn = record['ssn']
         expected_provider_id = record['providerId']
 
-        self._table.put_item(
+        self._provider_table.put_item(
             # We'll use the schema/serializer to populate index fields for us
             Item=record
         )
@@ -67,7 +67,7 @@ class TestClient(TstFunction):
         with open('tests/resources/dynamo/license.json', 'r') as f:
             license_record = json.load(f)
 
-        self._table.put_item(
+        self._provider_table.put_item(
             Item={
                 # Oh, no! We've somehow put somebody's SSN in the wrong place!
                 'something_unexpected': '123-12-1234',
@@ -201,14 +201,14 @@ class TestClient(TstFunction):
             provider_record = json.load(f)
         provider_id = provider_record['providerId']
         provider_record['privilegeJurisdictions'] = set(provider_record['privilegeJurisdictions'])
-        self._table.put_item(Item=provider_record)
+        self._provider_table.put_item(Item=provider_record)
 
         with open('tests/resources/dynamo/privilege.json', 'r') as f:
             privilege_record = json.load(f)
-        self._table.put_item(Item=privilege_record)
+        self._provider_table.put_item(Item=privilege_record)
 
         with open('tests/resources/dynamo/license.json', 'r') as f:
             license_record = json.load(f)
-        self._table.put_item(Item=license_record)
+        self._provider_table.put_item(Item=license_record)
 
         return provider_id

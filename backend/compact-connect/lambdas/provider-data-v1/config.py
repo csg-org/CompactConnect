@@ -38,6 +38,10 @@ class _Config:
         return os.environ['EVENT_BUS_NAME']
 
     @cached_property
+    def compact_configuration_table(self):
+        return boto3.resource('dynamodb').Table(self.compact_configuration_table_name)
+
+    @cached_property
     def provider_table(self):
         return boto3.resource('dynamodb').Table(self.provider_table_name)
 
@@ -55,6 +59,10 @@ class _Config:
 
     def license_types_for_compact(self, compact):
         return self.license_types[compact]
+
+    @property
+    def compact_configuration_table_name(self):
+        return os.environ['COMPACT_CONFIGURATION_TABLE_NAME']
 
     @property
     def provider_table_name(self):

@@ -292,7 +292,7 @@ class TestGetProvider(TstFunction):
         with open('tests/resources/dynamo/license.json', 'r') as f:
             license_data = json.load(f)
 
-        self._table.put_item(Item=license_data)
+        self._provider_table.put_item(Item=license_data)
 
         from handlers.providers import get_provider
 

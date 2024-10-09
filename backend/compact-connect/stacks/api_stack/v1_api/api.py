@@ -61,7 +61,7 @@ class V1Api:
         self.purchases = Purchases(
             self.purchases_resource,
             data_encryption_key=persistent_stack.shared_encryption_key,
-            provider_data_table=persistent_stack.provider_table,
+            compact_configuration_table=persistent_stack.compact_configuration_table,
             api_model=self.api_model
         )
 

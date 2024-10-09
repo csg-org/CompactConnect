@@ -12,6 +12,7 @@ from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.license_table import LicenseTable
 from stacks.persistent_stack.event_bus import EventBus
 from stacks.persistent_stack.provider_table import ProviderTable
+from stacks.persistent_stack.compact_configuration_table import CompactConfigurationTable
 from stacks.persistent_stack.staff_users import StaffUsers
 from stacks.persistent_stack.provider_users import ProviderUsers
 from stacks.persistent_stack.user_email_notifications import UserEmailNotifications
@@ -68,7 +69,7 @@ class PersistentStack(AppStack):
 
         self.compact_configuration_upload = CompactConfigurationUpload(
             self, 'CompactConfigurationUpload',
-            table=self.provider_table,
+            table=self.compact_configuration_table,
             master_key=self.shared_encryption_key,
             environment_name=environment_name
         )
@@ -159,6 +160,12 @@ class PersistentStack(AppStack):
 
         self.provider_table = ProviderTable(
             self, 'ProviderTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy
+        )
+
+        self.compact_configuration_table = CompactConfigurationTable(
+            self, 'CompactConfigurationTable',
             encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy
         )

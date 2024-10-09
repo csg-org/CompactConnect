@@ -70,7 +70,7 @@ def _upload_compact_root_configuration(compact_configuration: dict, environment_
 
             # without this step, the write action will fail as Dynamo doesn't support floats
             formatted_compact = json.loads(json.dumps(compact), parse_float=Decimal)
-            config.provider_table.put_item(Item=formatted_compact)
+            config.compact_configuration_table.put_item(Item=formatted_compact)
         else:
             logger.info(f'Compact {compact_name} not active in environment, skipping')
 
@@ -99,7 +99,7 @@ def _upload_jurisdiction_configuration(compact_configuration: dict, environment_
 
                 # without this step, the write action will fail as Dynamo doesn't support floats
                 formatted_jurisdiction = json.loads(json.dumps(jurisdiction), parse_float=Decimal)
-                config.provider_table.put_item(Item=formatted_jurisdiction)
+                config.compact_configuration_table.put_item(Item=formatted_jurisdiction)
             else:
                 logger.info(f'Jurisdiction {jurisdiction_postal_abbreviation} '
                             f'for compact {compact_name} not active in environment, skipping')
