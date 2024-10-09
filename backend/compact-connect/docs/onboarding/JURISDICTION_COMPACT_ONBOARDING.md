@@ -103,16 +103,20 @@ jurisprudenceRequirements:
 ## Determine Active Development Environments for Jurisdiction
 When a jurisdiction is first being onboarded to the system, they may only want to be active in certain development 
 environments.
-As if this time of writing, the following environment names are supported:
+As if this time of writing, the following environment names are supported in the list:
 ```
-sandbox, test, prod
+test, prod
 ```
 
 In order for a jurisdiction to be active in a specific environment, you must define the list of environments that the 
 configuration should be deployed to under the following required field.
 ```
-activeEnvironments: ["sandbox", "test"]
+activeEnvironments: ["test"]
 ```
+
+NOTE: for sandbox environments deployed locally, ALL defined compacts and jurisdictions will be deployed to 
+the sandbox environment, regardless of the `activeEnvironments` list. This is to ensure that all configurations are
+available for testing purposes.
 
 ## Add Jurisdiction Configuration File to the System
 Once all of the above information has been gathered, the jurisdiction configuration file must be added for the 

@@ -119,7 +119,10 @@ class CompactConfigurationUpload(Construct):
                 'compact_configuration': self._generate_compact_configuration_json_string(),
                 # this defines the environment that the lambda is running in so it only uploads configuration
                 # which is active in that environment
-                'environment_name': environment_name
+                'environment_name': environment_name,
+                # if this is being deployed in a sandbox environment, we upload all configuration to the sandbox
+                # environment
+                'sandbox_environment': 'true' if self.node.try_get_context('sandbox') else 'false'
             }
         )
 

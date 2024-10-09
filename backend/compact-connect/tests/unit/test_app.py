@@ -258,6 +258,7 @@ class TestApp(TestCase):
         )
 
         self.assertEqual(compact_configuration_uploader_custom_resource['environment_name'], 'test')
+        self.assertEqual(compact_configuration_uploader_custom_resource['sandbox_environment'], 'false')
 
         # we don't care about ordering of the jurisdictions, but the snapshot is sensitive to the order,
         # so we ensure to sort the jurisdictions before comparing

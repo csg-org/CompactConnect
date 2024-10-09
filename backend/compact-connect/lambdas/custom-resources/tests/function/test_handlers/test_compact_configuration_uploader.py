@@ -78,7 +78,8 @@ class TestCompactConfigurationUploader(TstFunction):
             "RequestType": "Create",
             "ResourceProperties": {
                 "environment_name": TEST_ENVIRONMENT_NAME,
-                "compact_configuration": generate_mock_compact_configuration()
+                "compact_configuration": generate_mock_compact_configuration(),
+                "sandbox_environment": "false"
             }
         }
 
@@ -156,3 +157,37 @@ class TestCompactConfigurationUploader(TstFunction):
         items = aslp_response['Items'] + octp_response['Items']
 
         self.assertEqual([], items)
+
+
+    def test_compact_configuration_uploader_store_all_config_in_sandbox_env(self):
+        from handlers.compact_config_uploader import on_event
+        event = {
+            "RequestType": "Create",
+            "ResourceProperties": {
+                "environment_name": "production",
+                "compact_configuration": generate_mock_compact_configuration(),
+                "sandbox_environment": "true"
+            }
+        }
+
+        on_event(event, self.mock_context)
+
+        # now query for all the aslp compact configurations
+        aslp_response = self.config.compact_configuration_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq('aslp#CONFIGURATION')
+        )
+
+        octp_response = self.config.compact_configuration_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq('octp#CONFIGURATION')
+        )
+
+        coun_response = self.config.compact_configuration_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq('coun#CONFIGURATION')
+        )
+
+        items = aslp_response['Items'] + octp_response['Items'] + coun_response['Items']
+
+        self.assertEqual(6, len(items))

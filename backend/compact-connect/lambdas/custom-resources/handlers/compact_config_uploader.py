@@ -37,28 +37,32 @@ def on_event(event: dict, context: LambdaContext):  # pylint: disable=inconsiste
 def upload_configuration(properties: dict):
     compact_configuration = json.loads(properties['compact_configuration'], parse_float=Decimal)
     environment_name = properties['environment_name']
+    sandbox_environment = properties.get('sandbox_environment', 'false')
     logger.info('Uploading compact configuration for environment %s', environment_name)
 
     # upload the root compact configuration
-    _upload_compact_root_configuration(compact_configuration, environment_name)
+    _upload_compact_root_configuration(compact_configuration, environment_name, sandbox_environment)
 
     # now store active jurisdictions for each compact
-    _upload_jurisdiction_configuration(compact_configuration, environment_name)
+    _upload_jurisdiction_configuration(compact_configuration, environment_name, sandbox_environment)
 
     logger.info('Configuration upload successful')
 
 
-def _upload_compact_root_configuration(compact_configuration: dict, environment_name: str) -> None:
+def _upload_compact_root_configuration(compact_configuration: dict,
+                                       environment_name: str,
+                                       sandbox_environment: str) -> None:
     """
     Upload the root compact configuration to the provider table.
     :param compact_configuration: The compact configuration
     :param environment_name: The environment
+    :param sandbox_environment: if sandbox environment, all compacts are uploaded
     """
     for compact in compact_configuration['compacts']:
         compact_name = compact['compactName']
         compact_active_environments = compact.get('activeEnvironments', [])
-        if environment_name in compact_active_environments:
-            logger.info(f'Compact {compact_name} in active in environment, uploading')
+        if environment_name in compact_active_environments or sandbox_environment == 'true':
+            logger.info(f'Compact {compact_name} active for environment, uploading')
             compact.update({
                 "pk": f"{compact_name.lower()}#CONFIGURATION",
                 "sk": f"{compact_name.lower()}#CONFIGURATION",
@@ -72,19 +76,22 @@ def _upload_compact_root_configuration(compact_configuration: dict, environment_
         else:
             logger.info(f'Compact {compact_name} not active in environment, skipping')
 
-def _upload_jurisdiction_configuration(compact_configuration: dict, environment_name: str) -> None:
+def _upload_jurisdiction_configuration(compact_configuration: dict,
+                                       environment_name: str,
+                                       sandbox_environment: str) -> None:
     """
     Upload the jurisdiction configuration to the provider table.
     :param compact_configuration: The compact configuration
     :param environment_name: The environment
+    :param sandbox_environment: if sandbox environment, all jurisdictions are uploaded
     """
     for compact_name, jurisdictions in compact_configuration['jurisdictions'].items():
         for jurisdiction in jurisdictions:
             jurisdiction_postal_abbreviation = jurisdiction['postalAbbreviation']
             jurisdiction_active_environments = jurisdiction.get('activeEnvironments', [])
-            if environment_name in jurisdiction_active_environments:
+            if environment_name in jurisdiction_active_environments or sandbox_environment == 'true':
                 logger.info(f'Jurisdiction {jurisdiction_postal_abbreviation} '
-                            f'for compact {compact_name} active in environment, uploading')
+                            f'for compact {compact_name} active for environment, uploading')
                 jurisdiction.update({
                     "pk": f"{compact_name.lower()}#CONFIGURATION",
                     "sk": f"{compact_name.lower()}#JURISDICTION#{jurisdiction_postal_abbreviation.lower()}",
