@@ -1,5 +1,6 @@
 import json
 from decimal import Decimal
+from datetime import date
 
 from tests.function import TstFunction
 from moto import mock_aws
@@ -39,6 +40,11 @@ def generate_single_jurisdiction_config(jurisdiction_name: str, postal_abbreviat
         },
         "activeEnvironments": active_environments
       }
+
+def generate_date_string():
+    # yes, there is always a chance that the tests are run precisely at midnight
+    # but that's a risk we're willing to take
+    return date.today().strftime('%Y-%m-%d')
 
 
 def generate_mock_compact_configuration():
@@ -96,14 +102,14 @@ class TestCompactConfigurationUploader(TstFunction):
               "compactName": "aslp",
               "compactOperationsTeamEmails": [],
               "compactSummaryReportNotificationEmails": [],
-              "dateOfUpdate": "2024-10-08",
+              "dateOfUpdate": generate_date_string(),
               "pk": "aslp#CONFIGURATION",
               "sk": "aslp#CONFIGURATION",
               "type": "compact"
             },
             {
               "compact": "aslp",
-              "dateOfUpdate": "2024-10-08",
+              "dateOfUpdate": generate_date_string(),
               "jurisdictionAdverseActionsNotificationEmails": [],
               "jurisdictionFee": Decimal("100"),
               "jurisdictionName": "nebraska",

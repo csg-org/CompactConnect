@@ -35,7 +35,7 @@ def on_event(event: dict, context: LambdaContext):  # pylint: disable=inconsiste
 
 
 def upload_configuration(properties: dict):
-    compact_configuration = json.loads(properties['compact_configuration'])
+    compact_configuration = json.loads(properties['compact_configuration'], parse_float=Decimal)
     environment_name = properties['environment_name']
     logger.info('Uploading compact configuration for environment %s', environment_name)
 
@@ -68,9 +68,7 @@ def _upload_compact_root_configuration(compact_configuration: dict, environment_
             # remove the activeEnvironments field as it's an implementation detail
             compact.pop('activeEnvironments')
 
-            # without this step, the write action will fail as Dynamo doesn't support floats
-            formatted_compact = json.loads(json.dumps(compact), parse_float=Decimal)
-            config.compact_configuration_table.put_item(Item=formatted_compact)
+            config.compact_configuration_table.put_item(Item=compact)
         else:
             logger.info(f'Compact {compact_name} not active in environment, skipping')
 
@@ -97,9 +95,7 @@ def _upload_jurisdiction_configuration(compact_configuration: dict, environment_
                 # remove the activeEnvironments field as it's an implementation detail
                 jurisdiction.pop('activeEnvironments')
 
-                # without this step, the write action will fail as Dynamo doesn't support floats
-                formatted_jurisdiction = json.loads(json.dumps(jurisdiction), parse_float=Decimal)
-                config.compact_configuration_table.put_item(Item=formatted_jurisdiction)
+                config.compact_configuration_table.put_item(Item=jurisdiction)
             else:
                 logger.info(f'Jurisdiction {jurisdiction_postal_abbreviation} '
                             f'for compact {compact_name} not active in environment, skipping')
