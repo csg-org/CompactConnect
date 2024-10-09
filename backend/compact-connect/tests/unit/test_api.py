@@ -5,10 +5,10 @@ from aws_cdk.assertions import Template
 from aws_cdk.aws_apigateway import CfnResource, CfnMethod
 from aws_cdk.aws_lambda import CfnFunction
 
-from app import CompactConnectApp
+from tests.unit.base import TstCompactConnectABC
 
 
-class TestApi(TestCase):
+class TestApi(TstCompactConnectABC, TestCase):
     """
     These tests are focused on checking that the API stack is configured correctly.
 
@@ -19,13 +19,8 @@ class TestApi(TestCase):
     module and function.
     3. Check the methods associated with the resource, ensuring they are all present and have the correct handlers.
     """
-
     @classmethod
-    def setUpClass(cls):
-        cls.app = cls._when_testing_sandbox_stack_app()
-
-    @classmethod
-    def _when_testing_sandbox_stack_app(cls):
+    def get_context(cls):
         with open('cdk.json', 'r') as f:
             context = json.load(f)['context']
         with open('cdk.context.sandbox-example.json', 'r') as f:
@@ -33,10 +28,7 @@ class TestApi(TestCase):
 
         # Suppresses lambda bundling for tests
         context['aws:cdk:bundling-stacks'] = []
-
-        app = CompactConnectApp(context=context)
-
-        return app
+        return context
 
     def _generate_expected_integration_object(self, handler_logical_id: str) -> dict:
         return {

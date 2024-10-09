@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import List, Optional, Mapping
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy
@@ -8,6 +9,13 @@ from aws_cdk.aws_cognito import UserPool as CdkUserPool, UserPoolEmail, AccountR
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from constructs import Construct
+
+
+class SecurityProfile(Enum):
+    RECOMMENDED = 1
+    # We need to open up security rules to allow for automated security testing in some environments
+    # (but NEVER production)
+    VULNERABLE = 2
 
 
 class UserPool(CdkUserPool):
@@ -22,8 +30,12 @@ class UserPool(CdkUserPool):
             custom_attributes: Optional[Mapping[str, ICustomAttribute]] = None,
             email: UserPoolEmail,
             removal_policy,
+            security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
             **kwargs
     ):
+        if environment_name == 'prod' and security_profile != SecurityProfile.RECOMMENDED:
+            raise ValueError('Security profile must be RECOMMENDED in production environments')
+
         super().__init__(
             scope, construct_id,
             removal_policy=removal_policy,
@@ -32,13 +44,15 @@ class UserPool(CdkUserPool):
             # user_invitation=UserInvitationConfig(...),
             account_recovery=AccountRecovery.EMAIL_ONLY,
             auto_verify=AutoVerifiedAttrs(email=True),
-            advanced_security_mode=AdvancedSecurityMode.ENFORCED,
+            advanced_security_mode=AdvancedSecurityMode.ENFORCED
+            if security_profile == SecurityProfile.RECOMMENDED else AdvancedSecurityMode.AUDIT,
             custom_sender_kms_key=encryption_key,
             device_tracking=DeviceTracking(
                 challenge_required_on_new_device=True,
                 device_only_remembered_on_user_prompt=True
             ),
-            mfa=Mfa.REQUIRED if environment_name in ('prod', 'test') else Mfa.OPTIONAL,
+            mfa=Mfa.REQUIRED
+            if security_profile == SecurityProfile.RECOMMENDED else Mfa.OPTIONAL,
             mfa_second_factor=MfaSecondFactor(otp=True, sms=False),
             password_policy=PasswordPolicy(
                 min_length=12
@@ -51,6 +65,8 @@ class UserPool(CdkUserPool):
             **kwargs
         )
 
+        self.security_profile = security_profile
+
         self.user_pool_domain = self.add_domain(
             f'{construct_id}Domain',
             cognito_domain=CognitoDomainOptions(
@@ -61,16 +77,21 @@ class UserPool(CdkUserPool):
         CfnOutput(self, f'{construct_id}UsersDomain', value=self.user_pool_domain.domain_name)
         CfnOutput(self, f'{construct_id}UserPoolId', value=self.user_pool_id)
 
-        self._add_risk_configuration()
+        self._add_risk_configuration(security_profile)
 
-        if environment_name not in ('prod', 'test'):
+        if security_profile == SecurityProfile.VULNERABLE:
             NagSuppressions.add_resource_suppressions(
                 self,
                 suppressions=[
                     {
                         'id': 'AwsSolutions-COG2',
-                        'reason': 'MFA is not necessary in the sandboxes/dev environment as there is '
-                                  'no real user data to protect'
+                        'reason': 'MFA is disabled to facilitate automated security testing in some pre-production '
+                                  'environments.'
+                    },
+                    {
+                        'id': 'AwsSolutions-COG3',
+                        'reason': 'Advanced security mode is not enforced in some pre-production environments to'
+                                  'facilitate automated security testing.'
                     }
                 ]
             )
@@ -123,7 +144,7 @@ class UserPool(CdkUserPool):
             read_attributes=read_attributes
         )
 
-    def _add_risk_configuration(self):
+    def _add_risk_configuration(self, security_profile: SecurityProfile):
         CfnUserPoolRiskConfigurationAttachment(
             self, 'UserPoolRiskConfiguration',
             # Applies to all clients
@@ -134,15 +155,18 @@ class UserPool(CdkUserPool):
             CfnUserPoolRiskConfigurationAttachment.AccountTakeoverRiskConfigurationTypeProperty(
                 actions=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionsTypeProperty(
                     high_action=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionTypeProperty(
-                        event_action='BLOCK',
+                        event_action='BLOCK'
+                        if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION',
                         notify=True
                     ),
                     medium_action=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionTypeProperty(
-                        event_action='BLOCK',
+                        event_action='BLOCK'
+                        if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION',
                         notify=True
                     ),
                     low_action=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionTypeProperty(
-                        event_action='BLOCK',
+                        event_action='BLOCK'
+                        if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION',
                         notify=True
                     )
                 )
@@ -152,6 +176,7 @@ class UserPool(CdkUserPool):
             CfnUserPoolRiskConfigurationAttachment.CompromisedCredentialsRiskConfigurationTypeProperty(
                 actions=CfnUserPoolRiskConfigurationAttachment.CompromisedCredentialsActionsTypeProperty(
                     event_action='BLOCK'
+                    if security_profile == SecurityProfile.RECOMMENDED else 'NO_ACTION'
                 )
             )
         )
