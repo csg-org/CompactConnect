@@ -92,8 +92,8 @@ class Purchases:
         handler = PythonFunction(
             self.purchases_resource, 'GetPurchasePrivilegeOptionsHandler',
             description='Get purchase privilege options handler',
-            entry=os.path.join('lambdas', 'provider-data-v1'),
-            index=os.path.join('handlers', 'purchases.py'),
+            entry=os.path.join('lambdas', 'purchases'),
+            index=os.path.join('handlers', 'privileges.py'),
             handler='get_purchase_privilege_options',
             environment=lambda_environment,
             alarm_topic=self.api.alarm_topic

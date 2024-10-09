@@ -18,7 +18,7 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
         return event
 
     def test_get_purchase_privilege_options_returns_expected_jurisdiction_option(self):
-        from handlers.purchases import get_purchase_privilege_options
+        from handlers.privileges import get_purchase_privilege_options
         event = self._when_testing_provider_user_event_with_custom_claims()
 
         resp = get_purchase_privilege_options(event, self.mock_context)
@@ -45,7 +45,7 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
 
 
     def test_get_purchase_privilege_options_returns_expected_compact_option(self):
-        from handlers.purchases import get_purchase_privilege_options
+        from handlers.privileges import get_purchase_privilege_options
         event = self._when_testing_provider_user_event_with_custom_claims()
 
         resp = get_purchase_privilege_options(event, self.mock_context)
@@ -71,7 +71,7 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
 
 
     def test_get_purchase_privilege_options_returns_400_if_api_call_made_without_proper_claims(self):
-        from handlers.purchases import get_purchase_privilege_options
+        from handlers.privileges import get_purchase_privilege_options
 
         event = self._when_testing_provider_user_event_with_custom_claims()
 
@@ -84,7 +84,7 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
         self.assertEqual(400, resp['statusCode'])
 
     def test_get_purchase_privilege_options_returns_empty_list_if_user_compact_do_not_match_any_option_in_db(self):
-        from handlers.purchases import get_purchase_privilege_options
+        from handlers.privileges import get_purchase_privilege_options
 
         event = self._when_testing_provider_user_event_with_custom_claims(test_compact='some-compact')
 

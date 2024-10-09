@@ -69,7 +69,7 @@ class TestPurchasesApi(TestApi):
         api_stack_template.has_resource_properties(
             type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
             props={
-                "Handler": "handlers.purchases.get_purchase_privilege_options"
+                "Handler": "handlers.privileges.get_purchase_privilege_options"
             })
 
         method_model_logical_id_capture = Capture()
