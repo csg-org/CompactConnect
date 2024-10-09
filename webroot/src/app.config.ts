@@ -116,14 +116,6 @@ export enum UploadFileType {
     DOCUMENT = 'document',
 }
 
-// =============================
-// =     Authorization Types   =
-// =============================
-export enum AuthTypes {
-    STAFF = 'staff',
-    LICENSEE = 'licensee'
-}
-
 export interface InterfaceUploadFile {
     mime: string;
     ext: string;
