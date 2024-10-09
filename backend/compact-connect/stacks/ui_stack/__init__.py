@@ -56,9 +56,8 @@ class UIStack(AppStack):
             path=f'{self.distribution.node.path}/Resource',
             suppressions=[{
                 'id': 'AwsSolutions-CFR7',
-                'reason': 'TODO - the UI distribution should be updated to use Origin access control instead of'
-                          'Origin access identity. See https://docs.aws.amazon.com/AmazonCloudFront/latest/'
-                          'DeveloperGuide/private-content-restricting-access-to-s3.html#migrate-from-oai-to-oac'
+                'reason': 'We will upgrade to an Origin Access Control as part of this issue in our backlog:'
+                          'https://github.com/csg-org/CompactConnect/issues/238'
             }]
         )
 
