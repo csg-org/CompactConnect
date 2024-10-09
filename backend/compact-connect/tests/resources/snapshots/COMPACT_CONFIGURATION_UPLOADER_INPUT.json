@@ -1,0 +1,204 @@
+{
+  "compacts": [
+    {
+      "compactName": "aslp",
+      "compactCommissionFee": {
+        "feeType": "FLAT_RATE",
+        "feeAmount": 3.5
+      },
+      "compactOperationsTeamEmails": [],
+      "compactAdverseActionsNotificationEmails": [],
+      "compactSummaryReportNotificationEmails": [],
+      "activeEnvironments": [
+        "sandbox"
+      ]
+    },
+    {
+      "compactName": "octp",
+      "compactCommissionFee": {
+        "feeType": "FLAT_RATE",
+        "feeAmount": 3.5
+      },
+      "compactOperationsTeamEmails": [],
+      "compactAdverseActionsNotificationEmails": [],
+      "compactSummaryReportNotificationEmails": [],
+      "activeEnvironments": [
+        "sandbox"
+      ]
+    },
+    {
+      "compactName": "coun",
+      "compactCommissionFee": {
+        "feeType": "FLAT_RATE",
+        "feeAmount": 3.5
+      },
+      "compactOperationsTeamEmails": [],
+      "compactAdverseActionsNotificationEmails": [],
+      "compactSummaryReportNotificationEmails": [],
+      "activeEnvironments": [
+        "sandbox"
+      ]
+    }
+  ],
+  "jurisdictions": {
+    "aslp": [
+      {
+        "jurisdictionName": "nebraska",
+        "postalAbbreviation": "ne",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": true,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "activeEnvironments": []
+      },
+      {
+        "jurisdictionName": "ohio",
+        "postalAbbreviation": "oh",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": true,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "activeEnvironments": []
+      },
+      {
+        "jurisdictionName": "kentucky",
+        "postalAbbreviation": "ky",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": true,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "activeEnvironments": []
+      }
+    ],
+    "octp": [
+      {
+        "jurisdictionName": "nebraska",
+        "postalAbbreviation": "ne",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": true,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "activeEnvironments": []
+      },
+      {
+        "jurisdictionName": "ohio",
+        "postalAbbreviation": "oh",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": true,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "activeEnvironments": []
+      },
+      {
+        "jurisdictionName": "kentucky",
+        "postalAbbreviation": "ky",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": true,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "activeEnvironments": []
+      }
+    ],
+    "coun": [
+      {
+        "jurisdictionName": "nebraska",
+        "postalAbbreviation": "ne",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": true,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "activeEnvironments": []
+      },
+      {
+        "jurisdictionName": "ohio",
+        "postalAbbreviation": "oh",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": true,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "activeEnvironments": []
+      },
+      {
+        "jurisdictionName": "kentucky",
+        "postalAbbreviation": "ky",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": true,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "activeEnvironments": []
+      }
+    ]
+  }
+}

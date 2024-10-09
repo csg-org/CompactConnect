@@ -48,6 +48,29 @@ class TestApp(TestCase):
         except KeyError as exc:
             raise RuntimeError(f'{logical_id} not found in resources!') from exc
 
+    def compare_snapshot(self, actual: dict, snapshot_name: str, overwrite_snapshot: bool = False):
+        """
+        Compare the actual dictionary to the snapshot with the given name.
+        If overwrite_snapshot is True, overwrite the snapshot with the actual data.
+        """
+        snapshot_path = f'tests/resources/snapshots/{snapshot_name}.json'
+
+        if os.path.exists(snapshot_path):
+            with open(snapshot_path, 'r') as f:
+                snapshot = json.load(f)
+        else:
+            print(f"Snapshot at path '{snapshot_path}' does not exist.")
+            snapshot = None
+
+        if snapshot != actual and overwrite_snapshot:
+            with open(snapshot_path, 'w') as f:
+                json.dump(actual, f, indent=2)
+            print(f"Snapshot '{snapshot_name}' has been overwritten.")
+        else:
+            self.maxDiff = None
+            self.assertEqual(snapshot, actual, f"Snapshot '{snapshot_name}' does not match the actual data. "
+                                               "To overwrite the snapshot, set overwrite_snapshot=True.")
+
 
     def test_no_compact_jurisdiction_name_clash(self):
         """
@@ -236,214 +259,10 @@ class TestApp(TestCase):
 
         self.assertEqual(compact_configuration_uploader_custom_resource['environment_name'], 'test')
         # Assert that the compact_configuration property is set to the expected values
-        # This is essentially a snapshot test. If the configuration values for any jurisdiction changes,
-        # this test will need to be updated.
-        self.assertEqual(json.dumps({
-  "compacts": [
-    {
-      "compactName": "aslp",
-      "compactCommissionFee": {
-        "feeType": "FLAT_RATE",
-        "feeAmount": 3.5
-      },
-      "compactOperationsTeamEmails": [],
-      "compactAdverseActionsNotificationEmails": [],
-      "compactSummaryReportNotificationEmails": [],
-      "activeEnvironments": [
-        "sandbox"
-      ]
-    },
-    {
-      "compactName": "octp",
-      "compactCommissionFee": {
-        "feeType": "FLAT_RATE",
-        "feeAmount": 3.5
-      },
-      "compactOperationsTeamEmails": [],
-      "compactAdverseActionsNotificationEmails": [],
-      "compactSummaryReportNotificationEmails": [],
-      "activeEnvironments": [
-        "sandbox"
-      ]
-    },
-    {
-      "compactName": "coun",
-      "compactCommissionFee": {
-        "feeType": "FLAT_RATE",
-        "feeAmount": 3.5
-      },
-      "compactOperationsTeamEmails": [],
-      "compactAdverseActionsNotificationEmails": [],
-      "compactSummaryReportNotificationEmails": [],
-      "activeEnvironments": [
-        "sandbox"
-      ]
-    }
-  ],
-  "jurisdictions": {
-    "aslp": [
-      {
-        "jurisdictionName": "nebraska",
-        "postalAbbreviation": "ne",
-        "jurisdictionFee": 100,
-        "militaryDiscount": {
-          "active": True,
-          "discountType": "FLAT_RATE",
-          "discountAmount": 10
-        },
-        "jurisdictionOperationsTeamEmails": [],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": True
-        },
-        "activeEnvironments": []
-      },
-      {
-        "jurisdictionName": "ohio",
-        "postalAbbreviation": "oh",
-        "jurisdictionFee": 100,
-        "militaryDiscount": {
-          "active": True,
-          "discountType": "FLAT_RATE",
-          "discountAmount": 10
-        },
-        "jurisdictionOperationsTeamEmails": [],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": True
-        },
-        "activeEnvironments": []
-      },
-      {
-        "jurisdictionName": "kentucky",
-        "postalAbbreviation": "ky",
-        "jurisdictionFee": 100,
-        "militaryDiscount": {
-          "active": True,
-          "discountType": "FLAT_RATE",
-          "discountAmount": 10
-        },
-        "jurisdictionOperationsTeamEmails": [],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": True
-        },
-        "activeEnvironments": []
-      }
-    ],
-    "octp": [
-      {
-        "jurisdictionName": "nebraska",
-        "postalAbbreviation": "ne",
-        "jurisdictionFee": 100,
-        "militaryDiscount": {
-          "active": True,
-          "discountType": "FLAT_RATE",
-          "discountAmount": 10
-        },
-        "jurisdictionOperationsTeamEmails": [],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": True
-        },
-        "activeEnvironments": []
-      },
-      {
-        "jurisdictionName": "ohio",
-        "postalAbbreviation": "oh",
-        "jurisdictionFee": 100,
-        "militaryDiscount": {
-          "active": True,
-          "discountType": "FLAT_RATE",
-          "discountAmount": 10
-        },
-        "jurisdictionOperationsTeamEmails": [],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": True
-        },
-        "activeEnvironments": []
-      },
-      {
-        "jurisdictionName": "kentucky",
-        "postalAbbreviation": "ky",
-        "jurisdictionFee": 100,
-        "militaryDiscount": {
-          "active": True,
-          "discountType": "FLAT_RATE",
-          "discountAmount": 10
-        },
-        "jurisdictionOperationsTeamEmails": [],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": True
-        },
-        "activeEnvironments": []
-      }
-    ],
-    "coun": [
-      {
-        "jurisdictionName": "nebraska",
-        "postalAbbreviation": "ne",
-        "jurisdictionFee": 100,
-        "militaryDiscount": {
-          "active": True,
-          "discountType": "FLAT_RATE",
-          "discountAmount": 10
-        },
-        "jurisdictionOperationsTeamEmails": [],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": True
-        },
-        "activeEnvironments": []
-      },
-      {
-        "jurisdictionName": "ohio",
-        "postalAbbreviation": "oh",
-        "jurisdictionFee": 100,
-        "militaryDiscount": {
-          "active": True,
-          "discountType": "FLAT_RATE",
-          "discountAmount": 10
-        },
-        "jurisdictionOperationsTeamEmails": [],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": True
-        },
-        "activeEnvironments": []
-      },
-      {
-        "jurisdictionName": "kentucky",
-        "postalAbbreviation": "ky",
-        "jurisdictionFee": 100,
-        "militaryDiscount": {
-          "active": True,
-          "discountType": "FLAT_RATE",
-          "discountAmount": 10
-        },
-        "jurisdictionOperationsTeamEmails": [],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": True
-        },
-        "activeEnvironments": []
-      }
-    ]
-  }
-}),compact_configuration_uploader_custom_resource['compact_configuration'])
-
-
+        # If the configuration values for any jurisdiction changes, the snapshot will need to be updated.
+        self.compare_snapshot(actual=json.loads(compact_configuration_uploader_custom_resource['compact_configuration']),
+                              snapshot_name='COMPACT_CONFIGURATION_UPLOADER_INPUT',
+                              overwrite_snapshot=False)
 
 
     def _inspect_persistent_stack(
