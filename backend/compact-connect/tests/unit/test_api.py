@@ -74,6 +74,6 @@ class TestApi(TestCase):
                 json.dump(actual, f, indent=2)
             print(f"Snapshot '{snapshot_name}' has been overwritten.")
         else:
-            self.maxDiff = None
+            self.maxDiff = None #pylint: disable=invalid-name
             self.assertEqual(snapshot, actual, f"Snapshot '{snapshot_name}' does not match the actual data. "
                                                "To overwrite the snapshot, set overwrite_snapshot=True.")

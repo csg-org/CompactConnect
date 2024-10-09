@@ -67,7 +67,7 @@ class TestApp(TestCase):
                 json.dump(actual, f, indent=2)
             print(f"Snapshot '{snapshot_name}' has been overwritten.")
         else:
-            self.maxDiff = None
+            self.maxDiff = None #pylint: disable=invalid-name
             self.assertEqual(snapshot, actual, f"Snapshot '{snapshot_name}' does not match the actual data. "
                                                "To overwrite the snapshot, set overwrite_snapshot=True.")
 
@@ -260,9 +260,11 @@ class TestApp(TestCase):
         self.assertEqual(compact_configuration_uploader_custom_resource['environment_name'], 'test')
         # Assert that the compact_configuration property is set to the expected values
         # If the configuration values for any jurisdiction changes, the snapshot will need to be updated.
-        self.compare_snapshot(actual=json.loads(compact_configuration_uploader_custom_resource['compact_configuration']),
-                              snapshot_name='COMPACT_CONFIGURATION_UPLOADER_INPUT',
-                              overwrite_snapshot=False)
+        self.compare_snapshot(
+            actual=json.loads(compact_configuration_uploader_custom_resource['compact_configuration']),
+            snapshot_name='COMPACT_CONFIGURATION_UPLOADER_INPUT',
+            overwrite_snapshot=False
+        )
 
 
     def _inspect_persistent_stack(
