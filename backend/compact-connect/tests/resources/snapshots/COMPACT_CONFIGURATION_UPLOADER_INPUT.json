@@ -14,7 +14,7 @@
       ]
     },
     {
-      "compactName": "octp",
+      "compactName": "coun",
       "compactCommissionFee": {
         "feeType": "FLAT_RATE",
         "feeAmount": 3.5
@@ -27,7 +27,7 @@
       ]
     },
     {
-      "compactName": "coun",
+      "compactName": "octp",
       "compactCommissionFee": {
         "feeType": "FLAT_RATE",
         "feeAmount": 3.5
@@ -42,6 +42,23 @@
   ],
   "jurisdictions": {
     "aslp": [
+      {
+        "jurisdictionName": "kentucky",
+        "postalAbbreviation": "ky",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": true,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "activeEnvironments": []
+      },
       {
         "jurisdictionName": "nebraska",
         "postalAbbreviation": "ne",
@@ -62,23 +79,6 @@
       {
         "jurisdictionName": "ohio",
         "postalAbbreviation": "oh",
-        "jurisdictionFee": 100,
-        "militaryDiscount": {
-          "active": true,
-          "discountType": "FLAT_RATE",
-          "discountAmount": 10
-        },
-        "jurisdictionOperationsTeamEmails": [],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": true
-        },
-        "activeEnvironments": []
-      },
-      {
-        "jurisdictionName": "kentucky",
-        "postalAbbreviation": "ky",
         "jurisdictionFee": 100,
         "militaryDiscount": {
           "active": true,
@@ -96,6 +96,23 @@
     ],
     "octp": [
       {
+        "jurisdictionName": "kentucky",
+        "postalAbbreviation": "ky",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": true,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "activeEnvironments": []
+      },
+      {
         "jurisdictionName": "nebraska",
         "postalAbbreviation": "ne",
         "jurisdictionFee": 100,
@@ -115,23 +132,6 @@
       {
         "jurisdictionName": "ohio",
         "postalAbbreviation": "oh",
-        "jurisdictionFee": 100,
-        "militaryDiscount": {
-          "active": true,
-          "discountType": "FLAT_RATE",
-          "discountAmount": 10
-        },
-        "jurisdictionOperationsTeamEmails": [],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": true
-        },
-        "activeEnvironments": []
-      },
-      {
-        "jurisdictionName": "kentucky",
-        "postalAbbreviation": "ky",
         "jurisdictionFee": 100,
         "militaryDiscount": {
           "active": true,
@@ -149,6 +149,23 @@
     ],
     "coun": [
       {
+        "jurisdictionName": "kentucky",
+        "postalAbbreviation": "ky",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": true,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "activeEnvironments": []
+      },
+      {
         "jurisdictionName": "nebraska",
         "postalAbbreviation": "ne",
         "jurisdictionFee": 100,
@@ -168,23 +185,6 @@
       {
         "jurisdictionName": "ohio",
         "postalAbbreviation": "oh",
-        "jurisdictionFee": 100,
-        "militaryDiscount": {
-          "active": true,
-          "discountType": "FLAT_RATE",
-          "discountAmount": 10
-        },
-        "jurisdictionOperationsTeamEmails": [],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": true
-        },
-        "activeEnvironments": []
-      },
-      {
-        "jurisdictionName": "kentucky",
-        "postalAbbreviation": "ky",
         "jurisdictionFee": 100,
         "militaryDiscount": {
           "active": true,

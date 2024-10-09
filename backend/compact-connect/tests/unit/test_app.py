@@ -258,13 +258,36 @@ class TestApp(TestCase):
         )
 
         self.assertEqual(compact_configuration_uploader_custom_resource['environment_name'], 'test')
+
+        # we don't care about ordering of the jurisdictions, but the snapshot is sensitive to the order,
+        # so we ensure to sort the jurisdictions before comparing
+        sorted_compact_configuration = self._sort_compact_configuration_input(
+            json.loads(compact_configuration_uploader_custom_resource['compact_configuration']))
+
         # Assert that the compact_configuration property is set to the expected values
         # If the configuration values for any jurisdiction changes, the snapshot will need to be updated.
         self.compare_snapshot(
-            actual=json.loads(compact_configuration_uploader_custom_resource['compact_configuration']),
+            actual=sorted_compact_configuration,
             snapshot_name='COMPACT_CONFIGURATION_UPLOADER_INPUT',
             overwrite_snapshot=False
         )
+
+    def _sort_compact_configuration_input(self, compact_configuration_input: dict) -> dict:
+        """
+        Sort the compact configuration input by compact name and then by jurisdiction postal abbreviation.
+        This ensures the snapshot comparison is consistent.
+        """
+        compact_configuration_input['compacts'] = sorted(
+            compact_configuration_input['compacts'],
+            key=lambda compact: compact['compactName']
+        )
+        for compact_name, jurisdictions in compact_configuration_input['jurisdictions'].items():
+            compact_configuration_input['jurisdictions'][compact_name] = sorted(
+                jurisdictions,
+                key=lambda jurisdiction: jurisdiction['postalAbbreviation']
+            )
+
+        return compact_configuration_input
 
 
     def _inspect_persistent_stack(
