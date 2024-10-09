@@ -420,7 +420,15 @@
         "successTitle": "Your document has been uploaded successfully",
         "successSubtext": "Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet"
     },
+    "licenseeDashboard": {
+        "formTitle": "Compact data upload",
+        "formSubtext": "Current uploads are for test purposes and the data will not be saved permanently",
+        "uploadHint": "Only 1 CSV",
+        "successTitle": "Your document has been uploaded successfully",
+        "successSubtext": "Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet"
+    },
     "licensing": {
+        "license": "License",
         "licensingListTitle": "Licensing Data",
         "searchTitle": "Begin a search",
         "searchSubtext": "Enter at least one field to search for licensing data.",
@@ -432,12 +440,19 @@
         "ssn": "SSN",
         "adverseActions": "Adverse actions",
         "status": "Status",
+        "active": "Active",
+        "expired": "Expired",
         "issueDate": "Issue Date",
+        "issued": "Issued",
         "expireDate": "Expire Date",
+        "expires": "Expires",
         "lastUpdate": "Latest upload",
+        "disciplineStatus": "Discipline status",
+        "state": "State",
         "statusOptions": {
             "active": "Active",
-            "inactive": "Inactive"
+            "inactive": "Inactive",
+            "expired": "Expired"
         },
         "occupations": [
             {

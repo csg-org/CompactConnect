@@ -11,11 +11,30 @@
     justify-content: center;
     margin-top: 4rem;
 
+    @media @desktopWidth {
+        padding: 0 12rem;
+    }
+
+    // @media @largeDesktopWidth {
+    //     padding: 0 24rem;
+    // }
+
     .top-block {
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
+
+        @media @desktopWidth {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            width: 50rem;
+        }
+
+        @media @largeDesktopWidth {
+            width: 80rem;
+        }
 
         .welcome-user {
             text-align: center;
@@ -23,6 +42,17 @@
 
         .obtain-priv-btn {
             margin-top: 2rem;
+        }
+    }
+
+    .privilege-section {
+        margin-top: 3rem;
+        padding-top: 3rem;
+        border-top: 1px solid grey;
+
+        .privilege-section-title-row {
+            display: flex;
+            flex-direction: row;
         }
     }
 }

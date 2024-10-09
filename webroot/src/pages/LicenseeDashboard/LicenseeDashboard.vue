@@ -10,7 +10,7 @@
         <div class="top-block">
             <h2 class="welcome-user">Welcome, {{ userFullName }}</h2>
             <InputButton
-                label="+ Obtain Privileges"
+                :label="obtainPrivButtonLabel"
                 aria-label="obtatin privilege"
                 class="obtain-priv-btn"
                 @click="startPrivPurchaseFlow"
@@ -23,10 +23,26 @@
                 :state="state"
             />
         </div>
-        <LicenseePrivilegeList
+        <LicenseCard
+            v-for="(license, index) in licenseList"
+            :key="index"
+            :license="license"
+        />
+        <div class="privilege-section">
+            <div class="privilege-section-title-row">
+                <div class="privilege-logo-container">
+                    <img class="home-state-img" src="@assets/images/black-ellipse.svg" alt="Privilege List Logo" />
+                </div>
+                <div class="privilege-title">
+                    {{privilegeTitle}}
+                </div>
+            </div>
+            <PrivilegeCard />
+        </div>
+        <!-- <LicenseePrivilegeList
             :privilegeList="privilegeList"
         />
-        <AdverseActionList />
+        <AdverseActionList /> -->
     </div>
 </template>
 

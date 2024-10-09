@@ -8,6 +8,8 @@
 import { Component, Vue } from 'vue-facing-decorator';
 import AdverseActionList from '@/components/AdverseActionList/AdverseActionList.vue';
 import HomeStateBlock from '@/components/HomeStateBlock/HomeStateBlock.vue';
+import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
+import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import LicenseePrivilegeList from '@/components/LicenseePrivilegeList/LicenseePrivilegeList.vue';
 import { License } from '@models/License/License.model';
@@ -20,6 +22,8 @@ import { User } from '@models/User/User.model';
     components: {
         AdverseActionList,
         HomeStateBlock,
+        LicenseCard,
+        PrivilegeCard,
         InputButton,
         LicenseePrivilegeList
     }
@@ -56,6 +60,18 @@ export default class LicenseeDashboard extends Vue {
 
     get privilegeList(): Array<License> {
         return this.licensee?.privileges || [];
+    }
+
+    get licenseList(): Array<License> {
+        return this.licensee?.licenses || [];
+    }
+
+    get obtainPrivButtonLabel():string {
+        return '+ Obtain Privileges';
+    }
+
+    get privilegeTitle():string {
+        return this.$t('licensing.privileges');
     }
 
     //

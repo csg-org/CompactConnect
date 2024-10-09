@@ -1,0 +1,49 @@
+//
+//  LicenseCard.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 10/8/2024.
+//
+.license-card-container {
+    width: 30rem;
+    padding: 2rem;
+    border-radius: 2rem;
+    background-color: @lightBlue;
+
+    .license-title-row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        .license-title {
+            padding-left: 1rem;
+            font-size: @fontSizeLarge;
+        }
+
+        .license-logo-container {
+            width: 3rem;
+
+            .license-logo {
+                width: 100%;
+            }
+        }
+    }
+
+    .license-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        margin-top: 1rem;
+        column-gap: 6rem;
+        row-gap: 3rem;
+    }
+
+    .license-status {
+        position: absolute;
+        top: 2rem;
+        right: 2rem;
+
+        &.expired {
+            font-style: italic;
+        }
+    }
+}
