@@ -11,6 +11,10 @@
     justify-content: center;
     margin-top: 4rem;
 
+    @media @tabletWidth {
+        padding: 0 8rem;
+    }
+
     @media @desktopWidth {
         padding: 0 12rem;
     }
@@ -25,10 +29,14 @@
         align-items: center;
         justify-content: center;
 
-        @media @desktopWidth {
+        @media @tabletWidth {
             display: flex;
             flex-direction: row;
+            align-items: center;
             justify-content: space-between;
+        }
+
+        @media @desktopWidth {
             width: 50rem;
         }
 
@@ -45,10 +53,22 @@
         }
     }
 
+    .license-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        @media @tabletWidth {
+            flex-direction: row;
+        }
+    }
+
     .privilege-section {
+        width: 100%;
         margin-top: 3rem;
         padding-top: 3rem;
-        border-top: 1px solid grey;
+        border-top: 1px solid @lightGrey;
 
         .privilege-section-title-row {
             display: flex;

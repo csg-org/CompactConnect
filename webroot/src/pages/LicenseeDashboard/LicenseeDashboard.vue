@@ -16,18 +16,20 @@
                 @click="startPrivPurchaseFlow"
             />
         </div>
-        <div class="home-state-list">
-            <HomeStateBlock
-                v-for="(state, i) in homeStateList"
-                :key="state.abbrev+i"
-                :state="state"
+        <div class="license-section">
+            <div class="home-state-list">
+                <HomeStateBlock
+                    v-for="(state, i) in homeStateList"
+                    :key="state.abbrev+i"
+                    :state="state"
+                />
+            </div>
+            <LicenseCard
+                v-for="(license, index) in licenseList"
+                :key="license.type+index"
+                :license="license"
             />
         </div>
-        <LicenseCard
-            v-for="(license, index) in licenseList"
-            :key="license.type+index"
-            :license="license"
-        />
         <div class="privilege-section">
             <div class="privilege-section-title-row">
                 <div class="privilege-logo-container">
