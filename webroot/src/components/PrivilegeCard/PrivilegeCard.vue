@@ -6,24 +6,20 @@
 -->
 
 <template>
-    <div class="license-card-container">
-        <div class="license-title-row">
-            <div class="license-logo-container">
+    <div class="privilege-card-container">
+        <div class="privilege-title-row">
+            <div class="privilege-logo-container">
                 <img
-                    class="license-logo"
+                    class="privilege-logo"
                     src="@assets/images/black-ellipse.svg"
-                    alt="License Card Logo"
+                    alt="privilege Card Logo"
                 />
             </div>
-            <span class="license-title">
-                License
+            <span class="privilege-title">
+                {{stateContent}}
             </span>
         </div>
-        <div class="license-info-grid">
-            <div class="info-item-container">
-                <div class="info-item-title">{{stateTitle}}</div>
-                <div class="info-item">{{stateContent}}</div>
-            </div>
+        <div class="privilege-info-grid">
             <div class="info-item-container">
                 <div class="info-item-title">{{issuedTitle}}</div>
                 <div class="info-item">{{issuedContent}}</div>
@@ -37,7 +33,7 @@
                 <div class="info-item">{{disciplineContent}}</div>
             </div>
         </div>
-        <div class="license-status">
+        <div class="privilege-status">
             {{status}}
         </div>
     </div>

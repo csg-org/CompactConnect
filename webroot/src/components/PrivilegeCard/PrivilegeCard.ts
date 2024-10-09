@@ -17,7 +17,7 @@ import { State } from '@/models/State/State.model';
     name: 'PrivilegeCard',
 })
 class PrivilegeCard extends Vue {
-    @Prop({ required: true }) license?: License;
+    @Prop({ required: true }) privilege?: License;
 
     //
     // Data
@@ -39,7 +39,7 @@ class PrivilegeCard extends Vue {
     }
 
     get state(): State | null {
-        return this.license?.issueState || null;
+        return this.privilege?.issueState || null;
     }
 
     get stateContent():string {
@@ -51,7 +51,7 @@ class PrivilegeCard extends Vue {
     }
 
     get issuedContent():string {
-        return this.license?.issueDateDisplay() || '';
+        return this.privilege?.issueDateDisplay() || '';
     }
 
     get expiresTitle():string {
@@ -59,7 +59,7 @@ class PrivilegeCard extends Vue {
     }
 
     get expiresContent():string {
-        return this.license?.expireDateDisplay() || '';
+        return this.privilege?.expireDateDisplay() || '';
     }
 
     get disciplineTitle():string {

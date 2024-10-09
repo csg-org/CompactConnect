@@ -25,7 +25,7 @@
         </div>
         <LicenseCard
             v-for="(license, index) in licenseList"
-            :key="index"
+            :key="license.type+index"
             :license="license"
         />
         <div class="privilege-section">
@@ -37,12 +37,12 @@
                     {{privilegeTitle}}
                 </div>
             </div>
-            <PrivilegeCard />
+            <PrivilegeCard
+                v-for="(privilege, index) in privilegeList"
+                :key="privilege.type+index"
+                :privilege="privilege"
+            />
         </div>
-        <!-- <LicenseePrivilegeList
-            :privilegeList="privilegeList"
-        />
-        <AdverseActionList /> -->
     </div>
 </template>
 
