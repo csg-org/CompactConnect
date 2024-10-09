@@ -40,7 +40,6 @@ class TstFunction(TstLambdas):
     def build_resources(self):
         self._bucket = boto3.resource('s3').create_bucket(Bucket=os.environ['BULK_BUCKET_NAME'])
         self.create_provider_table()
-        self.create_compact_configuration_table()
 
         boto3.client('events').create_event_bus(
             Name=os.environ['EVENT_BUS_NAME']
@@ -114,32 +113,6 @@ class TstFunction(TstLambdas):
             ]
         )
 
-    def create_compact_configuration_table(self):
-        self._compact_configuration_table = boto3.resource('dynamodb').create_table(
-            AttributeDefinitions=[
-                {
-                    'AttributeName': 'pk',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'sk',
-                    'AttributeType': 'S'
-                }
-            ],
-            TableName=os.environ['COMPACT_CONFIGURATION_TABLE_NAME'],
-            KeySchema=[
-                {
-                    'AttributeName': 'pk',
-                    'KeyType': 'HASH'
-                },
-                {
-                    'AttributeName': 'sk',
-                    'KeyType': 'RANGE'
-                }
-            ],
-            BillingMode='PAY_PER_REQUEST'
-        )
-
     def delete_resources(self):
         self._bucket.objects.delete()
         self._bucket.delete()
@@ -165,15 +138,9 @@ class TstFunction(TstLambdas):
                 record = json.load(f, object_hook=provider_jurisdictions_to_set, parse_float=Decimal)
 
             logger.debug("Loading resource, %s: %s", resource, str(record))
-            if resource.endswith('compact.json') or resource.endswith('jurisdiction.json'):
-                # compact and jurisdiction records go in the compact configuration table
-                self._compact_configuration_table.put_item(
-                    Item=record
-                )
-            else:
-                self._provider_table.put_item(
-                    Item=record
-                )
+            self._provider_table.put_item(
+                Item=record
+            )
 
     def _generate_providers(self, *, home: str, privilege: str, start_serial: int):
         """

@@ -4,22 +4,15 @@ from moto import mock_aws
 from tests.function import TstFunction
 
 TEST_COMPACT = "aslp"
-MOCK_SSN = "123-12-1234"
+TEST_PROVIDER_ID = "some-provider-id"
 @mock_aws
 class TestGetPurchasePrivilegeOptions(TstFunction):
 
-    def _create_test_provider(self):
-        from config import config
-        provider_id = config.data_client.get_or_create_provider_id(compact=TEST_COMPACT, ssn=MOCK_SSN)
-
-        return provider_id
-
     def _when_testing_provider_user_event_with_custom_claims(self, test_compact=TEST_COMPACT):
-        self._load_provider_data()
-        provider_id = self._create_test_provider()
+        self._load_compact_configuration_data()
         with open('tests/resources/api-event.json', 'r') as f:
             event = json.load(f)
-            event['requestContext']['authorizer']['claims']['custom:providerId'] = provider_id
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = TEST_PROVIDER_ID
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_compact
 
         return event
