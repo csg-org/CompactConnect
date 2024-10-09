@@ -1,21 +1,23 @@
 # pylint: disable=invalid-name
-from marshmallow import pre_dump, Schema
+from marshmallow import pre_dump, Schema, EXCLUDE
 from marshmallow.fields import String, Decimal, Nested, List
 from marshmallow.validate import Length, OneOf
 
 from config import config
 from data_model.schema.base_record import BaseRecordSchema
 
+COMPACT_TYPE = 'compact'
+
 class CompactCommissionFeeSchema(Schema):
     feeType = String(required=False, allow_none=False, validate=OneOf(['FLAT_RATE']))
     feeAmount = Decimal(required=False, allow_none=False)
 
-@BaseRecordSchema.register_schema('compact')
+@BaseRecordSchema.register_schema(COMPACT_TYPE)
 class CompactRecordSchema(BaseRecordSchema):
     """
     Schema for the root compact configuration records
     """
-    _record_type = 'compact'
+    _record_type = COMPACT_TYPE
 
     # Provided fields
     compactName = String(required=True, allow_none=False, validate=OneOf(config.compacts))
@@ -46,3 +48,13 @@ class CompactRecordSchema(BaseRecordSchema):
         in_data['pk'] = f'{in_data['compact']}#CONFIGURATION'
         in_data['sk'] = f'{in_data['compact']}#CONFIGURATION'
         return in_data
+
+class CompactOptionsApiResponseSchema(Schema):
+    """
+    Used to serialize the compact objects for the GET /purchase/privileges/options endpoint
+    """
+    class Meta:
+        unknown = EXCLUDE
+    compactName = String(required=True, allow_none=False, validate=OneOf(config.compacts))
+    compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=False, allow_none=False)
+    type = String(required=True, allow_none=False, validate=OneOf([COMPACT_TYPE]))

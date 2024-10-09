@@ -3,6 +3,8 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from exceptions import CCInvalidRequestException
 from handlers.utils import api_handler
 from config import logger, config
+from data_model.schema.compact import CompactOptionsApiResponseSchema, COMPACT_TYPE
+from data_model.schema.jurisdiction import JurisdictionOptionsApiResponseSchema, JURISDICTION_TYPE
 
 
 @api_handler
@@ -31,16 +33,13 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # pyli
     )
 
     # we need to filter out contact information from the response, which is not needed by the client
+    serlialized_options = []
     for item in options_response['items']:
-        # remove date field as it is not needed in the response
-        item.pop('dateOfUpdate', None)
-        if item['type'] == 'jurisdiction':
-            item.pop('jurisdictionOperationsTeamEmails', None)
-            item.pop('jurisdictionAdverseActionsNotificationEmails', None)
-            item.pop('jurisdictionSummaryReportNotificationEmails', None)
-        elif item['type'] == 'compact':
-            item.pop('compactOperationsTeamEmails', None)
-            item.pop('compactAdverseActionsNotificationEmails', None)
-            item.pop('compactSummaryReportNotificationEmails', None)
+        if item['type'] == JURISDICTION_TYPE:
+            serlialized_options.append(JurisdictionOptionsApiResponseSchema().load(item))
+        elif item['type'] == COMPACT_TYPE:
+            serlialized_options.append(CompactOptionsApiResponseSchema().load(item))
+
+    options_response['items'] = serlialized_options
 
     return options_response

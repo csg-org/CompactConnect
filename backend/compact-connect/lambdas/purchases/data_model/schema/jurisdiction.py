@@ -1,10 +1,12 @@
 # pylint: disable=invalid-name
-from marshmallow import pre_dump, Schema
+from marshmallow import pre_dump, Schema, EXCLUDE
 from marshmallow.fields import String, Decimal, Boolean, Nested, List
 from marshmallow.validate import Length, OneOf
 
 from config import config
 from data_model.schema.base_record import BaseRecordSchema
+
+JURISDICTION_TYPE = 'jurisdiction'
 
 class JurisdictionMilitaryDiscountSchema(Schema):
     active = Boolean(required=False, allow_none=False)
@@ -14,12 +16,12 @@ class JurisdictionMilitaryDiscountSchema(Schema):
 class JurisdictionJurisprudenceRequirementsSchema(Schema):
     required = Boolean(required=False, allow_none=False)
 
-@BaseRecordSchema.register_schema('jurisdiction')
+@BaseRecordSchema.register_schema(JURISDICTION_TYPE)
 class JurisdictionRecordSchema(BaseRecordSchema):
     """
     Schema for the root jurisdiction configuration records
     """
-    _record_type = 'jurisdiction'
+    _record_type = JURISDICTION_TYPE
 
     # Provided fields
     jurisdictionName = String(required=True, allow_none=False)
@@ -53,3 +55,20 @@ class JurisdictionRecordSchema(BaseRecordSchema):
         in_data['pk'] = f'{in_data['compact']}#CONFIGURATION'
         in_data['sk'] = f'{in_data['compact']}#JURISDICTION#{in_data['postalAbbreviation']}'
         return in_data
+
+
+class JurisdictionOptionsApiResponseSchema(Schema):
+    """
+    Used to serialize the jurisdiction objects for the GET /purchase/privileges/options endpoint
+    """
+    class Meta:
+        unknown = EXCLUDE
+
+    jurisdictionName = String(required=True, allow_none=False)
+    postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
+    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
+    jurisdictionFee = Decimal(required=True, allow_none=False)
+    militaryDiscount = Nested(JurisdictionMilitaryDiscountSchema(), required=False, allow_none=False)
+    jurisprudenceRequirements = Nested(JurisdictionJurisprudenceRequirementsSchema(), required=True, allow_none=False)
+    type = String(required=True, allow_none=False, validate=OneOf([JURISDICTION_TYPE]))
+
