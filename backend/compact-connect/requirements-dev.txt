@@ -4,11 +4,11 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/requirements-dev.in
 #
-astroid==3.2.4
+astroid==3.3.4
     # via pylint
 boolean-py==4.0
     # via license-expression
-build==1.2.1
+build==1.2.2
     # via pip-tools
 cachecontrol[filecache]==0.14.0
     # via
@@ -24,19 +24,19 @@ coverage[toml]==7.6.1
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
-cyclonedx-python-lib==7.6.0
+cyclonedx-python-lib==7.6.1
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
-dill==0.3.8
+dill==0.3.9
     # via pylint
 faker==28.4.1
     # via -r compact-connect/requirements-dev.in
-filelock==3.15.4
+filelock==3.16.1
     # via cachecontrol
 html5lib==1.1
     # via pip-audit
-idna==3.8
+idna==3.10
     # via requests
 iniconfig==2.0.0
     # via pytest
@@ -50,7 +50,7 @@ mccabe==0.7.0
     # via pylint
 mdurl==0.1.2
     # via markdown-it-py
-msgpack==1.0.8
+msgpack==1.1.0
     # via cachecontrol
 packageurl-python==0.15.6
     # via cyclonedx-python-lib
@@ -68,23 +68,23 @@ pip-requirements-parser==32.0.1
     # via pip-audit
 pip-tools==7.4.1
     # via -r compact-connect/requirements-dev.in
-platformdirs==4.2.2
+platformdirs==4.3.6
     # via pylint
 pluggy==1.5.0
     # via pytest
-py-serializable==1.1.0
+py-serializable==1.1.1
     # via cyclonedx-python-lib
 pygments==2.18.0
     # via rich
-pylint==3.2.7
+pylint==3.3.1
     # via -r compact-connect/requirements-dev.in
 pyparsing==3.1.4
     # via pip-requirements-parser
-pyproject-hooks==1.1.0
+pyproject-hooks==1.2.0
     # via
     #   build
     #   pip-tools
-pytest==8.3.2
+pytest==8.3.3
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
@@ -96,7 +96,7 @@ requests==2.32.3
     # via
     #   cachecontrol
     #   pip-audit
-rich==13.8.0
+rich==13.8.1
     # via pip-audit
 six==1.16.0
     # via
@@ -108,7 +108,7 @@ toml==0.10.2
     # via pip-audit
 tomlkit==0.13.2
     # via pylint
-urllib3==2.2.2
+urllib3==2.2.3
     # via requests
 webencodings==0.5.1
     # via html5lib

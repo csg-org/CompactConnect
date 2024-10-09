@@ -40,6 +40,10 @@ export default class AuthCallback extends Vue {
     }
 
     get userType(): string {
+        // The state query param is used by cognito to pass a value through the login workflow
+        // where we hop between domains. Here we are using it to keep track of which login
+        // screen we just returned from. Docs here:
+        // https://docs.aws.amazon.com/cognito/latest/developerguide/authorization-endpoint.html
         return this.$route.query?.state?.toString() || '';
     }
 

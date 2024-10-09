@@ -17,7 +17,7 @@ from .api_model import ApiModel
 
 class QueryProviders:
     def __init__(
-            self,
+            self, *,
             resource: Resource,
             method_options: MethodOptions,
             data_encryption_key: IKey,
@@ -129,7 +129,6 @@ class QueryProviders:
             authorizer=method_options.authorizer,
             authorization_scopes=method_options.authorization_scopes
         )
-
 
     def _get_provider_handler(
             self,

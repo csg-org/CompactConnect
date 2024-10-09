@@ -370,7 +370,9 @@
         "oneOrMoreFilesTooLarge": "Uno o más archivos son demasiado grandes",
         "fileMaxSize": "El tamaño máximo del archivo es",
         "tooManyFiles": "Demasiados archivos, solo se permite 1",
-        "fileWrongType": "Tipo de archivo incorrecto"
+        "fileWrongType": "Tipo de archivo incorrecto",
+        "lastNameRequired": "Obligatorio cuando se proporciona el nombre",
+        "ssnFormat": "Debe estar en formato ###-##-####"
     },
     "serverErrors": {
         "networkError": "Error de red",
@@ -420,6 +422,10 @@
     },
     "licensing": {
         "licensingListTitle": "Datos de licencia",
+        "searchTitle": "Iniciar una búsqueda",
+        "searchSubtext": "Introduzca al menos un campo para buscar datos de licencia.",
+        "searchLabel": "Buscar",
+        "searchPlaceholderName": "Introducir nombre",
         "homeState": "Estado de origen",
         "residenceLocation": "Ubicación de la residencia",
         "privileges": "Privilegios",

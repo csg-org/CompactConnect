@@ -1,0 +1,2 @@
+moto[dynamodb, s3, cognitoidp]>=5.0.15, <6
+Faker>=28,<29
