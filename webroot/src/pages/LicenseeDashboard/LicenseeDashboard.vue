@@ -8,24 +8,27 @@
 <template>
     <div class="licensee-dashboard-container">
         <div class="top-block">
-            <h2 class="welcome-user">Welcome, {{ userFullName }}</h2>
+            <h2 class="welcome-user">{{welcomeText}}, {{ userFullName }}</h2>
             <InputButton
                 :label="obtainPrivButtonLabel"
                 aria-label="obtatin privilege"
                 class="obtain-priv-btn"
+                :isEnabled="!isPrivilegePurchaseDisabled"
                 @click="startPrivPurchaseFlow"
             />
         </div>
         <div class="license-section">
-            <div class="home-state-list">
-                <HomeStateBlock
-                    v-for="(state, i) in homeStateList"
-                    :key="'state'+i"
-                    :state="state"
-                    class="no-touch-item"
-                />
-                <div v-if="hasTwoActiveLicenses" class="red">
-                    Oh no
+            <div class="home-state-section">
+                <div class="home-state-list">
+                    <HomeStateBlock
+                        v-for="(state, i) in homeStateList"
+                        :key="'state'+i"
+                        :state="state"
+                        class="no-touch-item"
+                    />
+                </div>
+                <div v-if="hasTwoActiveLicensesInDifferentStates" class="homestate-error-text">
+                    {{twoHomeStateErrorText}}
                 </div>
             </div>
             <LicenseCard

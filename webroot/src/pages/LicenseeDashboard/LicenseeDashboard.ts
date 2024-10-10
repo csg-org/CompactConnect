@@ -70,12 +70,35 @@ export default class LicenseeDashboard extends Vue {
         return '+ Obtain Privileges';
     }
 
-    get privilegeTitle():string {
+    get privilegeTitle(): string {
         return this.$t('licensing.privileges');
     }
 
     get welcomeText(): string {
         return this.$t('common.welcome');
+    }
+
+    get activeLicenses(): Array<License> {
+        return this.licenseList.filter((license) => (license.statusState === 'active'));
+    }
+
+    get hasTwoActiveLicensesInDifferentStates(): boolean {
+        const homeStateAbrevs = this.homeStateList.map((state) => (state.abbrev));
+
+        return (new Set(homeStateAbrevs)).size === homeStateAbrevs.length;
+    }
+
+    get isPrivilegePurchaseDisabled(): boolean {
+        return this.hasTwoActiveLicensesInDifferentStates || !this.hasActiveLicense;
+    }
+
+    get hasActiveLicense(): boolean {
+        return this.activeLicenses.length > 0;
+    }
+
+    get twoHomeStateErrorText(): string {
+        // return 'huh';
+        return 'Two states have you listed as a resident. Please update your information with those states to reflect your current residency status.';
     }
 
     //

@@ -234,7 +234,9 @@ export class LicenseeSerializer {
             licenseeData.licenseStates.push(new State({ abbrev: json.licenseJurisdiction }));
         } else if (json.licenses && json.licenses.length > 1) {
             json.licenses.forEach((serverLicense) => {
-                licenseeData.licenseStates.push(new State({ abbrev: serverLicense.jurisdiction }));
+                if (serverLicense.status === 'active') {
+                    licenseeData.licenseStates.push(new State({ abbrev: serverLicense.jurisdiction }));
+                }
             });
         }
 
