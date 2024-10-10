@@ -433,6 +433,7 @@
         "licensingListTitle": "Licensing Data",
         "searchTitle": "Begin a search",
         "searchSubtext": "Enter at least one field to search for licensing data.",
+        "licenseExpiredMessage": "Your license has expired.",
         "searchLabel": "Search",
         "searchPlaceholderName": "Enter name",
         "homeState": "Home State",

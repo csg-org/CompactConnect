@@ -31,12 +31,18 @@
                     {{twoHomeStateErrorText}}
                 </div>
             </div>
-            <LicenseCard
+            <div
                 v-for="(license, index) in licenseList"
                 :key="'license'+index"
-                :license="license"
-                class="no-touch-item"
-            />
+                class="no-touch-item license-chunk"
+            >
+                <LicenseCard
+                    :license="license"
+                />
+                <div v-if="!checkIfLicenseActive(license)" class="license-expired-message">
+                    {{licenseExpiredMessage}}
+                </div>
+            </div>
         </div>
         <div class="privilege-section">
             <div class="privilege-section-title-row">
@@ -50,7 +56,7 @@
             <div class="privilege-card-list-container">
                 <PrivilegeCard
                     v-for="(privilege, index) in privilegeList"
-                    :key="'priv'+index"
+                    :key="'privilege'+index"
                     :privilege="privilege"
                     class="no-touch-item"
                 />

@@ -12,7 +12,7 @@ import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import LicenseePrivilegeList from '@/components/LicenseePrivilegeList/LicenseePrivilegeList.vue';
-import { License } from '@models/License/License.model';
+import { License, LicenseStatus } from '@models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { State } from '@models/State/State.model';
 import { User } from '@models/User/User.model';
@@ -99,10 +99,24 @@ export default class LicenseeDashboard extends Vue {
         return 'Two states have you listed as a resident. Please update your information with those states to reflect your current residency status.';
     }
 
+    get licenseExpiredMessage(): string {
+        return this.$t('licensing.licenseExpiredMessage');
+    }
+
     //
     // Methods
     //
     startPrivPurchaseFlow() {
         console.log('Starting Privilege Purchase Flow!');
+    }
+
+    checkIfLicenseActive(license: License) {
+        let isLicenseActive = false;
+
+        if (license && license.statusState === LicenseStatus.ACTIVE) {
+            isLicenseActive = true;
+        }
+
+        return isLicenseActive;
     }
 }
