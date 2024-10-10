@@ -1,10 +1,10 @@
 # pylint: disable=invalid-name
-from marshmallow import pre_dump, Schema, EXCLUDE
+from marshmallow import pre_dump, Schema
 from marshmallow.fields import String, Decimal, Nested, List
 from marshmallow.validate import Length, OneOf
 
 from config import config
-from data_model.schema.base_record import BaseRecordSchema
+from data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 
 COMPACT_TYPE = 'compact'
 
@@ -49,12 +49,10 @@ class CompactRecordSchema(BaseRecordSchema):
         in_data['sk'] = f'{in_data['compact']}#CONFIGURATION'
         return in_data
 
-class CompactOptionsApiResponseSchema(Schema):
+class CompactOptionsApiResponseSchema(ForgivingSchema):
     """
-    Used to serialize the compact objects for the GET /purchase/privileges/options endpoint
+    Used to enforce which fields are returned in compact objects for the GET /purchase/privileges/options endpoint
     """
-    class Meta:
-        unknown = EXCLUDE
     compactName = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=False, allow_none=False)
     type = String(required=True, allow_none=False, validate=OneOf([COMPACT_TYPE]))

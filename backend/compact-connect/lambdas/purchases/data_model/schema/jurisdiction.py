@@ -1,10 +1,10 @@
 # pylint: disable=invalid-name
-from marshmallow import pre_dump, Schema, EXCLUDE
+from marshmallow import pre_dump, Schema
 from marshmallow.fields import String, Decimal, Boolean, Nested, List
 from marshmallow.validate import Length, OneOf
 
 from config import config
-from data_model.schema.base_record import BaseRecordSchema
+from data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 
 JURISDICTION_TYPE = 'jurisdiction'
 
@@ -57,13 +57,10 @@ class JurisdictionRecordSchema(BaseRecordSchema):
         return in_data
 
 
-class JurisdictionOptionsApiResponseSchema(Schema):
+class JurisdictionOptionsApiResponseSchema(ForgivingSchema):
     """
-    Used to serialize the jurisdiction objects for the GET /purchase/privileges/options endpoint
+    Used to enforce which fields are returned in jurisdiction objects for the GET /purchase/privileges/options endpoint
     """
-    class Meta:
-        unknown = EXCLUDE
-
     jurisdictionName = String(required=True, allow_none=False)
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
