@@ -42,6 +42,7 @@
         "gender": "Gender",
         "race": "Race",
         "ethnicity": "Ethnicity",
+        "welcome": "Welcome",
         "daysOfTheWeek": {
             "monday": {
                 "full": "Monday",

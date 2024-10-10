@@ -66,6 +66,15 @@
             justify-content: flex-start;
             width: 100%;
         }
+
+        .home-state-list {
+            display: flex;
+            flex-direction: column;
+
+            @media @tabletWidth {
+                flex-direction: row;
+            }
+        }
     }
 
     .privilege-section {

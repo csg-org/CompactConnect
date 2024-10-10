@@ -24,6 +24,9 @@
                     :state="state"
                     class="no-touch-item"
                 />
+                <div v-if="hasTwoActiveLicenses" class="red">
+                    Oh no
+                </div>
             </div>
             <LicenseCard
                 v-for="(license, index) in licenseList"

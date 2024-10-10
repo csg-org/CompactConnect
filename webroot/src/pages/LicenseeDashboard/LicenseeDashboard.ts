@@ -74,6 +74,10 @@ export default class LicenseeDashboard extends Vue {
         return this.$t('licensing.privileges');
     }
 
+    get welcomeText(): string {
+        return this.$t('common.welcome');
+    }
+
     //
     // Methods
     //
