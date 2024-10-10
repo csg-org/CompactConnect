@@ -16,7 +16,7 @@
                 />
             </div>
             <span class="license-title">
-                License
+                {{licenseTitle}}
             </span>
         </div>
         <div class="license-info-grid">
@@ -38,7 +38,7 @@
             </div>
         </div>
         <div class="license-status">
-            {{status}}
+            {{statusDisplay}}
         </div>
     </div>
 </template>

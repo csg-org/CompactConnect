@@ -10,7 +10,7 @@ import {
     toNative,
     Prop
 } from 'vue-facing-decorator';
-import { License } from '@/models/License/License.model';
+import { License, LicenseStatus } from '@/models/License/License.model';
 import { State } from '@/models/State/State.model';
 
 @Component({
@@ -30,8 +30,18 @@ class PrivilegeCard extends Vue {
     //
     // Computed
     //
-    get status():string {
-        return 'Active';
+    get statusDisplay():string {
+        let licenseStatus = this.$t('licensing.statusOptions.inactive');
+
+        if (this.isActive) {
+            licenseStatus = this.$t('licensing.statusOptions.active');
+        }
+
+        return licenseStatus;
+    }
+
+    get isActive(): boolean {
+        return Boolean(this.privilege && this.privilege.statusState === LicenseStatus.ACTIVE);
     }
 
     get stateTitle():string {

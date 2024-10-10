@@ -11,8 +11,8 @@
             <span class="privilege-title">
                 {{stateContent}}
             </span>
-            <div class="privilege-status">
-                {{status}}
+            <div class="privilege-status" :class="{ 'italics': !isActive }">
+                {{statusDisplay}}
             </div>
         </div>
         <div class="privilege-info-grid">

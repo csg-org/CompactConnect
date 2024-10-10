@@ -202,7 +202,67 @@ describe('User model', () => {
         expect(user.affiliationDisplay(CompactType.ASLP)).to.equal('Unknown, Colorado +');
         expect(user.statesDisplay(CompactType.ASLP)).to.equal('Unknown, Colorado +');
     });
-    it('should create a User with specific values through serializer', () => {
+    it('should create a staff user with specific values through staff serializer', () => {
+        const data = {
+            userId: 'id',
+            status: 'active',
+            attributes: {
+                email: 'email',
+                givenName: 'firstName',
+                familyName: 'lastName',
+            },
+            permissions: {
+                aslp: {
+                    actions: {
+                        read: true,
+                        admin: true,
+                    },
+                    jurisdictions: {
+                        co: {
+                            actions: {
+                                write: true,
+                                admin: true,
+                            },
+                        },
+                    },
+                },
+            },
+        };
+        const user = StaffUserSerializer.fromServer(data, { pageNum: 1 });
+
+        expect(user).to.be.an.instanceof(User);
+        expect(user.id).to.equal(data.userId);
+        expect(user.email).to.equal(data.attributes.email);
+        expect(user.firstName).to.equal(data.attributes.givenName);
+        expect(user.lastName).to.equal(data.attributes.familyName);
+        expect(user.permissions).to.matchPattern([
+            {
+                compact: new Compact({ type: CompactType.ASLP }),
+                isRead: true,
+                isAdmin: true,
+                states: [
+                    {
+                        isWrite: true,
+                        isAdmin: true,
+                        '...': '',
+                    },
+                ],
+            },
+        ]);
+        expect(user.accountStatus).to.equal(data.status);
+        expect(user.serverPage).to.equal(1);
+        expect(user.getFullName()).to.equal(`${data.attributes.givenName} ${data.attributes.familyName}`);
+        expect(user.getInitials()).to.equal('FL');
+        expect(user.permissionsShortDisplay()).to.equal('Read, Admin');
+        expect(user.permissionsFullDisplay()).to.matchPattern([
+            'ASLP: Read, Admin',
+            'Colorado: Write, Admin',
+        ]);
+        expect(user.affiliationDisplay()).to.equal('ASLP');
+        expect(user.statesDisplay()).to.equal('Colorado');
+        expect(user.accountStatusDisplay()).to.equal('Active');
+    });
+    it('should create a licensee user with specific values through licensee serializer', () => {
         const data = {
             userId: 'id',
             status: 'active',

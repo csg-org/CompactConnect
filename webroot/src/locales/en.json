@@ -441,7 +441,6 @@
         "ssn": "SSN",
         "adverseActions": "Adverse actions",
         "status": "Status",
-        "active": "Active",
         "expired": "Expired",
         "issueDate": "Issue Date",
         "issued": "Issued",
@@ -452,8 +451,7 @@
         "state": "State",
         "statusOptions": {
             "active": "Active",
-            "inactive": "Inactive",
-            "expired": "Expired"
+            "inactive": "Inactive"
         },
         "occupations": [
             {

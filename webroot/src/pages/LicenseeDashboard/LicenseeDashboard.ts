@@ -82,14 +82,12 @@ export default class LicenseeDashboard extends Vue {
         return this.licenseList.filter((license) => (license.statusState === 'active'));
     }
 
-    get hasTwoActiveLicensesInDifferentStates(): boolean {
-        const homeStateAbrevs = this.homeStateList.map((state) => (state.abbrev));
-
-        return (new Set(homeStateAbrevs)).size === homeStateAbrevs.length;
+    get hasTwoActiveLicenses(): boolean {
+        return this.activeLicenses.length > 1;
     }
 
     get isPrivilegePurchaseDisabled(): boolean {
-        return this.hasTwoActiveLicensesInDifferentStates || !this.hasActiveLicense;
+        return this.hasTwoActiveLicenses || !this.hasActiveLicense;
     }
 
     get hasActiveLicense(): boolean {

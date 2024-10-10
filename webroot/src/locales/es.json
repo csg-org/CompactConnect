@@ -435,7 +435,7 @@
         "issueDate": "Fecha de asunto",
         "expireDate": "Fecha de caducidad",
         "lastUpdate": "Última carga",
-        "status": {
+        "statusOptions": {
             "active": "Activo",
             "inactive": "Inactivo"
         },
