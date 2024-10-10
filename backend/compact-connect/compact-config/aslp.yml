@@ -6,4 +6,4 @@ compactCommissionFee:
 compactOperationsTeamEmails: []
 compactAdverseActionsNotificationEmails: []
 compactSummaryReportNotificationEmails: []
-activeEnvironments: []
+activeEnvironments: ["test"]

@@ -9,18 +9,9 @@
       "compactOperationsTeamEmails": [],
       "compactAdverseActionsNotificationEmails": [],
       "compactSummaryReportNotificationEmails": [],
-      "activeEnvironments": []
-    },
-    {
-      "compactName": "coun",
-      "compactCommissionFee": {
-        "feeType": "FLAT_RATE",
-        "feeAmount": 3.5
-      },
-      "compactOperationsTeamEmails": [],
-      "compactAdverseActionsNotificationEmails": [],
-      "compactSummaryReportNotificationEmails": [],
-      "activeEnvironments": []
+      "activeEnvironments": [
+        "test"
+      ]
     },
     {
       "compactName": "octp",
@@ -31,7 +22,9 @@
       "compactOperationsTeamEmails": [],
       "compactAdverseActionsNotificationEmails": [],
       "compactSummaryReportNotificationEmails": [],
-      "activeEnvironments": []
+      "activeEnvironments": [
+        "test"
+      ]
     }
   ],
   "jurisdictions": {
@@ -51,7 +44,9 @@
         "jurisprudenceRequirements": {
           "required": true
         },
-        "activeEnvironments": []
+        "activeEnvironments": [
+          "test"
+        ]
       },
       {
         "jurisdictionName": "nebraska",
@@ -68,7 +63,9 @@
         "jurisprudenceRequirements": {
           "required": true
         },
-        "activeEnvironments": []
+        "activeEnvironments": [
+          "test"
+        ]
       },
       {
         "jurisdictionName": "ohio",
@@ -85,7 +82,9 @@
         "jurisprudenceRequirements": {
           "required": true
         },
-        "activeEnvironments": []
+        "activeEnvironments": [
+          "test"
+        ]
       }
     ],
     "octp": [
@@ -104,7 +103,9 @@
         "jurisprudenceRequirements": {
           "required": true
         },
-        "activeEnvironments": []
+        "activeEnvironments": [
+          "test"
+        ]
       },
       {
         "jurisdictionName": "nebraska",
@@ -121,7 +122,9 @@
         "jurisprudenceRequirements": {
           "required": true
         },
-        "activeEnvironments": []
+        "activeEnvironments": [
+          "test"
+        ]
       },
       {
         "jurisdictionName": "ohio",
@@ -138,60 +141,9 @@
         "jurisprudenceRequirements": {
           "required": true
         },
-        "activeEnvironments": []
-      }
-    ],
-    "coun": [
-      {
-        "jurisdictionName": "kentucky",
-        "postalAbbreviation": "ky",
-        "jurisdictionFee": 100,
-        "militaryDiscount": {
-          "active": true,
-          "discountType": "FLAT_RATE",
-          "discountAmount": 10
-        },
-        "jurisdictionOperationsTeamEmails": [],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": true
-        },
-        "activeEnvironments": []
-      },
-      {
-        "jurisdictionName": "nebraska",
-        "postalAbbreviation": "ne",
-        "jurisdictionFee": 100,
-        "militaryDiscount": {
-          "active": true,
-          "discountType": "FLAT_RATE",
-          "discountAmount": 10
-        },
-        "jurisdictionOperationsTeamEmails": [],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": true
-        },
-        "activeEnvironments": []
-      },
-      {
-        "jurisdictionName": "ohio",
-        "postalAbbreviation": "oh",
-        "jurisdictionFee": 100,
-        "militaryDiscount": {
-          "active": true,
-          "discountType": "FLAT_RATE",
-          "discountAmount": 10
-        },
-        "jurisdictionOperationsTeamEmails": [],
-        "jurisdictionAdverseActionsNotificationEmails": [],
-        "jurisdictionSummaryReportNotificationEmails": [],
-        "jurisprudenceRequirements": {
-          "required": true
-        },
-        "activeEnvironments": []
+        "activeEnvironments": [
+          "test"
+        ]
       }
     ]
   }

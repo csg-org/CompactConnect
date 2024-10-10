@@ -105,7 +105,9 @@ class CompactConfigurationUpload(Construct):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',
-                    'reason': 'This role is managed by AWS CDK.'
+                    'applies_to':
+                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
+                    'reason': 'This policy is appropriate for the log retention lambda'
                 }
             ]
         )
@@ -116,17 +118,17 @@ class CompactConfigurationUpload(Construct):
             service_token=self.compact_configuration_upload_provider.service_token,
             properties={
                 # passing this as a property to the custom resource so that the lambda can access it
-                'compact_configuration': self._generate_compact_configuration_json_string(),
-                # this defines the environment that the lambda is running in so it only uploads configuration
-                # which is active in that environment
-                'environment_name': environment_name,
-                # if this is being deployed in a sandbox environment, we upload all configuration to the sandbox
-                # environment
-                'sandbox_environment': 'true' if self.node.try_get_context('sandbox') else 'false'
+                'compact_configuration': self._generate_compact_configuration_json_string(environment_name)
             }
         )
 
-    def _generate_compact_configuration_json_string(self):
+    def _configuration_is_active_for_environment(self, environment_name: str, active_environments: list[str]) -> bool:
+        """
+        Check if the compact configuration is active in the given environment.
+        """
+        return environment_name in active_environments or self.node.try_get_context('sandbox') == 'true'
+
+    def _generate_compact_configuration_json_string(self, environment_name: str) -> str:
         """
         Currently, all configuration for compacts and jurisdictions is hardcoded in the compact-config directory.
         This reads the YAML configuration files and generates a JSON string of all the configuration objects that
@@ -145,11 +147,15 @@ class CompactConfigurationUpload(Construct):
         # Read all compact configuration YAML files from top level compact-config directory
         for compact_config_file in os.listdir('compact-config'):
             if compact_config_file.endswith('.yml'):
-                with open(os.path.join('compact-config', compact_config_file), 'r') as f:
+                with (open(os.path.join('compact-config', compact_config_file), 'r') as f):
                     # convert YAML to JSON
-                    uploader_input['compacts'].append(yaml.safe_load(f))
+                    formatted_compact = yaml.safe_load(f)
+                    # only include the compact configuration if it is active in the environment
+                    if self._configuration_is_active_for_environment(environment_name,
+                                                                     formatted_compact['activeEnvironments']):
+                        uploader_input['compacts'].append(formatted_compact)
 
-        # Read all jurisdiction configuration YAML files from each compact directory
+        # Read all jurisdiction configuration YAML files from each active compact directory
         for compact in uploader_input['compacts']:
             compact_name = compact['compactName']
             uploader_input['jurisdictions'][compact_name] = []
@@ -157,7 +163,11 @@ class CompactConfigurationUpload(Construct):
                 if jurisdiction_config_file.endswith('.yml'):
                     with open(os.path.join('compact-config', compact_name, jurisdiction_config_file), 'r') as f:
                         # convert YAML to JSON
-                        uploader_input['jurisdictions'][compact_name].append(yaml.safe_load(f))
+                        formatted_jurisdiction = yaml.safe_load(f)
+                        # only include the jurisdiction configuration if it is active in the environment
+                        if self._configuration_is_active_for_environment(environment_name,
+                                                                         formatted_jurisdiction['activeEnvironments']):
+                            uploader_input['jurisdictions'][compact_name].append(formatted_jurisdiction)
 
 
         return json.dumps(uploader_input)

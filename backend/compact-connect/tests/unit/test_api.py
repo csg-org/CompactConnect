@@ -60,7 +60,7 @@ class TestApi(TestCase):
         Compare the actual dictionary to the snapshot with the given name.
         If overwrite_snapshot is True, overwrite the snapshot with the actual data.
         """
-        snapshot_path = f'tests/resources/snapshots/{snapshot_name}.json'
+        snapshot_path = os.path.join('tests', 'resources', 'snapshots', f'{snapshot_name}.json')
 
         if os.path.exists(snapshot_path):
             with open(snapshot_path, 'r') as f:

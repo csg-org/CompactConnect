@@ -53,7 +53,7 @@ class TestApp(TestCase):
         Compare the actual dictionary to the snapshot with the given name.
         If overwrite_snapshot is True, overwrite the snapshot with the actual data.
         """
-        snapshot_path = f'tests/resources/snapshots/{snapshot_name}.json'
+        snapshot_path = os.path.join('tests', 'resources', 'snapshots', f'{snapshot_name}.json')
 
         if os.path.exists(snapshot_path):
             with open(snapshot_path, 'r') as f:
@@ -256,10 +256,6 @@ class TestApp(TestCase):
                 .compact_configuration_uploader_custom_resource.node.default_child),
             persistent_stack_template.find_resources("Custom::CompactConfigurationUpload")
         )
-
-        self.assertEqual(compact_configuration_uploader_custom_resource['environment_name'], 'test')
-        self.assertEqual(compact_configuration_uploader_custom_resource['sandbox_environment'], 'false')
-
         # we don't care about ordering of the jurisdictions, but the snapshot is sensitive to the order,
         # so we ensure to sort the jurisdictions before comparing
         sorted_compact_configuration = self._sort_compact_configuration_input(

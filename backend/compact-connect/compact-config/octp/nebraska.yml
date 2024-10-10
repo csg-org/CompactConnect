@@ -11,4 +11,4 @@ jurisdictionAdverseActionsNotificationEmails: []
 jurisdictionSummaryReportNotificationEmails: []
 jurisprudenceRequirements:
     required: true
-activeEnvironments: []
+activeEnvironments: ["test"]
