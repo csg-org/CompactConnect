@@ -12,6 +12,7 @@ import {
 } from 'vue-facing-decorator';
 import { License, LicenseStatus } from '@/models/License/License.model';
 import { State } from '@/models/State/State.model';
+import moment from 'moment';
 
 @Component({
     name: 'LicenseCard',
@@ -77,11 +78,28 @@ class LicenseCard extends Vue {
     }
 
     get disciplineContent():string {
-        return 'No discipline';
+        return this.$t('licensing.noDiscipline');
     }
 
-    get licenseTitle(): string {
+    get licenseTitle():string {
         return this.$t('licensing.license');
+    }
+
+    get isPastExiprationDate():boolean {
+        let isPastDate = false;
+
+        const expireDate = this.license?.expireDate;
+
+        if (expireDate) {
+            const now = moment();
+            const expirationDate = moment(expireDate);
+
+            if (!expirationDate.isAfter(now)) {
+                isPastDate = true;
+            }
+        }
+
+        return isPastDate;
     }
 
     //

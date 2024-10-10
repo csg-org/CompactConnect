@@ -95,8 +95,7 @@ export default class LicenseeDashboard extends Vue {
     }
 
     get twoHomeStateErrorText(): string {
-        // return 'huh';
-        return 'Two states have you listed as a resident. Please update your information with those states to reflect your current residency status.';
+        return this.$t('licensing.twoHomeStateErrorMessage');
     }
 
     get licenseExpiredMessage(): string {

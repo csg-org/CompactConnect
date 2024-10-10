@@ -421,13 +421,6 @@
         "successTitle": "Your document has been uploaded successfully",
         "successSubtext": "Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet"
     },
-    "licenseeDashboard": {
-        "formTitle": "Compact data upload",
-        "formSubtext": "Current uploads are for test purposes and the data will not be saved permanently",
-        "uploadHint": "Only 1 CSV",
-        "successTitle": "Your document has been uploaded successfully",
-        "successSubtext": "Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet"
-    },
     "licensing": {
         "license": "License",
         "licensingListTitle": "Licensing Data",
@@ -449,6 +442,8 @@
         "expires": "Expires",
         "lastUpdate": "Latest upload",
         "disciplineStatus": "Discipline status",
+        "noDiscipline": "No discipline",
+        "twoHomeStateErrorMessage": "Two states have you listed as a resident. Please update your information with those states to reflect your current residency status.",
         "state": "State",
         "statusOptions": {
             "active": "Active",

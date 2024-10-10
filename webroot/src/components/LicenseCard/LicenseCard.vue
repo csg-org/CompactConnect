@@ -30,14 +30,14 @@
             </div>
            <div class="info-item-container">
                 <div class="info-item-title">{{expiresTitle}}</div>
-                <div class="info-item">{{expiresContent}}</div>
+                <div class="info-item" :class="{ 'error': isPastExiprationDate }">{{expiresContent}}</div>
             </div>
             <div class="info-item-container">
                 <div class="info-item-title">{{disciplineTitle}}</div>
                 <div class="info-item">{{disciplineContent}}</div>
             </div>
         </div>
-        <div class="license-status">
+        <div class="license-status" :class="{ 'italics': !isActive }">
             {{statusDisplay}}
         </div>
     </div>
