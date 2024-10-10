@@ -5,6 +5,7 @@
 //  Created by InspiringApps on 4/12/20.
 //
 
+import { AuthTypes } from '@/app.config';
 import mutations, { MutationTypes } from './global.mutations';
 import actions from './global.actions';
 
@@ -98,6 +99,14 @@ describe('Global Store Mutations', () => {
 
         expect(state.isModalLogoutOnly).to.equal(isModalLogoutOnly);
     });
+    it('should successfully set auth type', () => {
+        const state = {};
+        const authType = AuthTypes.LICENSEE;
+
+        mutations[MutationTypes.SET_AUTH_TYPE](state, authType);
+
+        expect(state.authType).to.equal(authType);
+    });
 });
 describe('Global Store Actions', () => {
     it('should successfully start store loading', () => {
@@ -158,5 +167,14 @@ describe('Global Store Actions', () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_MODAL_LOGOUT_ONLY, isLogoutOnly]);
+    });
+    it('should successfully set auth type', () => {
+        const commit = sinon.spy();
+        const authType = AuthTypes.LICENSEE;
+
+        actions.setAuthType({ commit }, authType);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_AUTH_TYPE, authType]);
     });
 });

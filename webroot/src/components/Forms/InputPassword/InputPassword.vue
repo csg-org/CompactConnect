@@ -10,6 +10,7 @@
         class="input-container input-password"
         :class="{
             'form-row': formInput.isFormRow,
+            'no-margin': formInput.shouldHideMargin,
             'has-error': !!formInput.errorMessage
         }"
     >

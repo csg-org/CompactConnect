@@ -110,6 +110,14 @@ export class DataApi {
         return userDataApi.updateUser(compact, userId, data);
     }
 
+    /**
+     * GET Authenticated Staff User.
+     * @return {Promise<User>} A User model instance.
+     */
+    public getAuthenticatedStaffUser() {
+        return userDataApi.getAuthenticatedStaffUser();
+    }
+
     // ========================================================================
     //                              EXAMPLE API
     // ========================================================================

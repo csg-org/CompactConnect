@@ -207,11 +207,11 @@ describe('User Store Actions', async () => {
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.LOGOUT_FAILURE, error]);
     });
-    it('should successfully start account request', async () => {
+    it('should successfully start staff account request', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
 
-        await actions.getAccountRequest({ commit, dispatch });
+        await actions.getStaffAccountRequest({ commit, dispatch });
 
         expect(commit.calledOnce, 'commit').to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_ACCOUNT_REQUEST]);

@@ -57,15 +57,18 @@ export default {
     logoutFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.LOGOUT_FAILURE, error);
     },
-    // GET ACCOUNT
-    getAccountRequest: async ({ commit, dispatch }) => {
+    // GET STAFF ACCOUNT
+    getStaffAccountRequest: async ({ commit, dispatch }) => {
         commit(MutationTypes.GET_ACCOUNT_REQUEST);
-        await dataApi.getAccount().then((account) => {
+        return dataApi.getAuthenticatedStaffUser().then((account) => {
             dispatch('getAccountSuccess', account);
+
+            return account;
         }).catch((error) => {
             dispatch('getAccountFailure', error);
         });
     },
+    // GET ACCOUNT SUCCESS / FAIL HANDLERS
     getAccountSuccess: ({ commit, dispatch }, account) => {
         commit(MutationTypes.GET_ACCOUNT_SUCCESS, account);
         if (account) {
@@ -121,8 +124,8 @@ export default {
         dispatch('startRefreshTokenTimer', authType);
     },
     startRefreshTokenTimer: ({ dispatch }, authType) => {
-        const expiry = authStorage.getItem(tokens[authType].AUTH_TOKEN_EXPIRY);
-        const refreshToken = authStorage.getItem(tokens[authType].REFRESH_TOKEN);
+        const expiry = authStorage.getItem(tokens[authType]?.AUTH_TOKEN_EXPIRY);
+        const refreshToken = authStorage.getItem(tokens[authType]?.REFRESH_TOKEN);
 
         if (expiry && refreshToken) {
             const expiresIn = moment(expiry, 'YYYY-MM-DD:HH:mm:ss').diff(moment(), 'seconds');

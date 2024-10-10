@@ -29,13 +29,14 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
     const isAuthGuardedRoute = to.matched.some((route) => route.meta.requiresAuth);
+    const routeParamCompactType = to.params?.compact;
 
-    // If the store does not have the current compact, set it from the route (e.g. page refreshes)
-    if (to.params?.compact) {
+    // If the store does not have the requested compact, set it from the route (e.g. page refreshes)
+    if (routeParamCompactType) {
         const { currentCompact } = store.getters['user/state'];
 
-        if (!currentCompact) {
-            store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: to.params.compact }));
+        if (!currentCompact || currentCompact.type !== routeParamCompactType) {
+            store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: routeParamCompactType }));
         }
     }
 

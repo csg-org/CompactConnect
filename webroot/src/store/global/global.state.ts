@@ -4,6 +4,7 @@
 //
 //  Created by InspiringApps on 4/12/20.
 //
+import { AuthTypes } from '@/app.config';
 import { AppMessage } from '@/models/AppMessage/AppMessage.model';
 
 export interface State {
@@ -12,6 +13,7 @@ export interface State {
     messages: Array<AppMessage>;
     isModalOpen: boolean;
     isModalLogoutOnly: boolean;
+    authType: AuthTypes;
 }
 
 export const state: State = {
@@ -20,4 +22,5 @@ export const state: State = {
     messages: [],
     isModalOpen: false,
     isModalLogoutOnly: false,
+    authType: AuthTypes.PUBLIC,
 };

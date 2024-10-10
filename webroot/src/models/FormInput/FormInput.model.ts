@@ -42,6 +42,7 @@ export interface InterfaceFormInput {
     isValid?: boolean;
     isSubmitInput?: boolean;
     isFormRow?: boolean;
+    shouldHideMargin?: boolean;
     isDisabled?: boolean;
 }
 
@@ -81,6 +82,7 @@ export class FormInput implements InterfaceFormInput {
     public isValid = false;
     public isSubmitInput = false;
     public isFormRow = false;
+    public shouldHideMargin = false;
     public isDisabled = false;
 
     constructor(data?: InterfaceFormInput) {

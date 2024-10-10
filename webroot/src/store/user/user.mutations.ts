@@ -78,7 +78,10 @@ export default {
     },
     [MutationTypes.STORE_RESET_USER]: (state: any) => {
         state.model = null;
+        state.isLoggedIn = false;
         state.isLoading = false;
+        state.refreshTokenTimeoutId = null;
+        state.currentCompact = null;
         state.error = null;
     },
     [MutationTypes.UPDATE_ACCOUNT_REQUEST]: (state: any) => {

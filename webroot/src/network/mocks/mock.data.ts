@@ -12,6 +12,95 @@ export const userData = {
     lastName: 'Doe',
 };
 
+export const staffAccount = {
+    userId: '1',
+    attributes: {
+        givenName: 'Jane',
+        familyName: 'Doe',
+        email: 'test@example.com',
+    },
+    permissions: {
+        aslp: {
+            actions: {
+                read: true,
+                admin: true,
+            },
+            jurisdictions: {
+                al: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+                co: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+                ky: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+            },
+        },
+        octp: {
+            actions: {
+                read: true,
+                admin: true,
+            },
+            jurisdictions: {
+                ak: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+                ar: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+                co: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+            },
+        },
+        coun: {
+            actions: {
+                read: true,
+                admin: true,
+            },
+            jurisdictions: {
+                al: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+                co: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+                ky: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+            },
+        },
+    },
+};
+
 export const stateUploadRequestData = {
     upload: {
         url: `https://example.com`,
