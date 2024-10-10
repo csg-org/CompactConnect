@@ -12,6 +12,12 @@
             <div class="search-container">
                 <form @submit.prevent="handleSearch">
                     <InputSearch :formInput="formData.userSearch" class="user-search" />
+                    <input
+                        type="submit"
+                        class="user-search-submit"
+                        tabindex="-1"
+                        :aria-label="$t('common.submit')"
+                    />
                 </form>
             </div>
         </div>
