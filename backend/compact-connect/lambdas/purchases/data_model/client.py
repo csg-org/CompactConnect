@@ -8,7 +8,7 @@ class DataClient():
     """
     Client interface for license data dynamodb queries
     """
-    def __init__(self, config: _Config):  # pylint: disable=redefined-outer-name
+    def __init__(self, config: _Config):
         self.config = config
 
     @paginated_query

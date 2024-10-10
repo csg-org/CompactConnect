@@ -5,7 +5,6 @@ from functools import cached_property
 
 import boto3
 from aws_lambda_powertools.logging import Logger
-from botocore.config import Config as BotoConfig
 
 logging.basicConfig()
 logger = Logger()

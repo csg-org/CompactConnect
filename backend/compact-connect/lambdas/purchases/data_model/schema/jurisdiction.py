@@ -68,4 +68,3 @@ class JurisdictionOptionsApiResponseSchema(ForgivingSchema):
     militaryDiscount = Nested(JurisdictionMilitaryDiscountSchema(), required=False, allow_none=False)
     jurisprudenceRequirements = Nested(JurisdictionJurisprudenceRequirementsSchema(), required=True, allow_none=False)
     type = String(required=True, allow_none=False, validate=OneOf([JURISDICTION_TYPE]))
-
