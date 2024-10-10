@@ -1,0 +1,44 @@
+{
+    "ClientName": "zap-tmp",
+    "GenerateSecret": true,
+    "RefreshTokenValidity": 30,
+    "AccessTokenValidity": 60,
+    "IdTokenValidity": 60,
+    "TokenValidityUnits": {
+        "AccessToken": "minutes",
+        "IdToken": "minutes",
+        "RefreshToken": "days"
+    },
+    "ReadAttributes": [
+        "email"
+    ],
+    "WriteAttributes": [
+        "email"
+    ],
+    "ExplicitAuthFlows": [
+        "ALLOW_REFRESH_TOKEN_AUTH"
+    ],
+    "SupportedIdentityProviders": [
+        "COGNITO"
+    ],
+    "AllowedOAuthFlows": [
+        "client_credentials"
+    ],
+    "AllowedOAuthScopes": [
+        "profile",
+        "aslp/admin",
+        "aslp/read",
+        "aslp/write",
+        "coun/admin",
+        "coun/read",
+        "coun/write",
+        "octp/admin",
+        "octp/read",
+        "octp/write"
+    ],
+    "AllowedOAuthFlowsUserPoolClient": true,
+    "PreventUserExistenceErrors": "ENABLED",
+    "EnableTokenRevocation": true,
+    "EnablePropagateAdditionalUserContextData": true,
+    "AuthSessionValidity": 3
+}
