@@ -127,7 +127,7 @@ class App extends Vue {
         if (!currentCompact || !permissions.some((permission) => permission.compact.type === currentCompact.type)) {
             await this.$store.dispatch('user/setCurrentCompact', userDefaultCompact);
 
-            // If the current route is not matching the newly set compact, the redirect
+            // If the current route is not matching the newly set compact, then redirect
             if (this.routeCompactType && this.routeCompactType !== userDefaultCompact?.type) {
                 this.$router.replace({
                     name: (this.$route.name as RouteRecordName),
