@@ -147,7 +147,7 @@ class CompactConfigurationUpload(Construct):
         # Read all compact configuration YAML files from top level compact-config directory
         for compact_config_file in os.listdir('compact-config'):
             if compact_config_file.endswith('.yml'):
-                with (open(os.path.join('compact-config', compact_config_file), 'r') as f):
+                with open(os.path.join('compact-config', compact_config_file), 'r') as f:
                     # convert YAML to JSON
                     formatted_compact = yaml.safe_load(f)
                     # only include the compact configuration if it is active in the environment
