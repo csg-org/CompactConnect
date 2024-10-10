@@ -431,6 +431,7 @@
         "searchPlaceholderName": "Enter name",
         "homeState": "Home State",
         "residenceLocation": "Residence location",
+        "obtainPrivileges": "Obtain Privileges",
         "privileges": "Privileges",
         "ssn": "SSN",
         "adverseActions": "Adverse actions",

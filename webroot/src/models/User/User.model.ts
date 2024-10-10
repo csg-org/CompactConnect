@@ -349,8 +349,6 @@ export class LicenseeUserSerializer {
             licensee: LicenseeSerializer.fromServer(json)
         };
 
-        console.log('userData', userData);
-
         return new User(userData);
     }
 }

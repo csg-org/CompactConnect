@@ -134,8 +134,6 @@ export class DataApi {
     // ========================================================================
     // Get Authenticated Licensee User
     public getAuthenticatedLicenseeUser() {
-        console.log('inside', licensees[0]);
-
         return this.wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.items[0]));
     }
 

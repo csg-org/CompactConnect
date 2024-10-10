@@ -67,7 +67,7 @@ export default class LicenseeDashboard extends Vue {
     }
 
     get obtainPrivButtonLabel():string {
-        return '+ Obtain Privileges';
+        return `+ ${this.$t('licensing.obtainPrivileges')}`;
     }
 
     get privilegeTitle(): string {
@@ -82,12 +82,12 @@ export default class LicenseeDashboard extends Vue {
         return this.licenseList.filter((license) => (license.statusState === 'active'));
     }
 
-    get hasTwoActiveLicenses(): boolean {
+    get hasMoreThanOneActiveLicense(): boolean {
         return this.activeLicenses.length > 1;
     }
 
     get isPrivilegePurchaseDisabled(): boolean {
-        return this.hasTwoActiveLicenses || !this.hasActiveLicense;
+        return this.hasMoreThanOneActiveLicense || !this.hasActiveLicense;
     }
 
     get hasActiveLicense(): boolean {

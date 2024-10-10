@@ -27,7 +27,7 @@
                         class="no-touch-item"
                     />
                 </div>
-                <div v-if="hasTwoActiveLicenses" class="homestate-error-text">
+                <div v-if="hasMoreThanOneActiveLicense" class="homestate-error-text">
                     {{twoHomeStateErrorText}}
                 </div>
             </div>
