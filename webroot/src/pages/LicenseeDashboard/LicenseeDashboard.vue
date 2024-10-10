@@ -20,14 +20,16 @@
             <div class="home-state-list">
                 <HomeStateBlock
                     v-for="(state, i) in homeStateList"
-                    :key="state.abbrev+i"
+                    :key="'state'+i"
                     :state="state"
+                    class="no-touch-item"
                 />
             </div>
             <LicenseCard
                 v-for="(license, index) in licenseList"
-                :key="license.type+index"
+                :key="'license'+index"
                 :license="license"
+                class="no-touch-item"
             />
         </div>
         <div class="privilege-section">
@@ -39,11 +41,14 @@
                     {{privilegeTitle}}
                 </div>
             </div>
-            <PrivilegeCard
-                v-for="(privilege, index) in privilegeList"
-                :key="privilege.type+index"
-                :privilege="privilege"
-            />
+            <div class="privilege-card-list-container">
+                <PrivilegeCard
+                    v-for="(privilege, index) in privilegeList"
+                    :key="'priv'+index"
+                    :privilege="privilege"
+                    class="no-touch-item"
+                />
+            </div>
         </div>
     </div>
 </template>

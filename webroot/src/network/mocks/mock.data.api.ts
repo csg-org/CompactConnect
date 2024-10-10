@@ -6,7 +6,7 @@
 //
 
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
-import { StaffUserSerializer } from '@models/User/User.model';
+import { LicenseeUserSerializer, StaffUserSerializer } from '@models/User/User.model';
 import {
     userData,
     staffAccount,
@@ -134,7 +134,9 @@ export class DataApi {
     // ========================================================================
     // Get Authenticated Licensee User
     public getAuthenticatedLicenseeUser() {
-        // return this.wait(500).then(() => UserSerializer.fromServer(staffAccount));
+        console.log('inside', licensees[0]);
+
+        return this.wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.items[0]));
     }
 
     // ========================================================================

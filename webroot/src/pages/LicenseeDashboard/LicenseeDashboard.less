@@ -34,6 +34,7 @@
             flex-direction: row;
             align-items: center;
             justify-content: space-between;
+            width: 100%;
         }
 
         @media @desktopWidth {
@@ -61,18 +62,47 @@
 
         @media @tabletWidth {
             flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            width: 100%;
         }
     }
 
     .privilege-section {
         width: 100%;
         margin-top: 3rem;
-        padding-top: 3rem;
+        padding: 3rem 4rem;
         border-top: 1px solid @lightGrey;
+
+        @media @tabletWidth {
+            padding: 3rem 0;
+        }
 
         .privilege-section-title-row {
             display: flex;
             flex-direction: row;
+            align-items: center;
+            margin-bottom: 1rem;
+
+            .privilege-title {
+                padding-left: 1rem;
+                font-size: @fontSizeLarger;
+            }
+        }
+
+        .privilege-card-list-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            @media @tabletWidth {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
         }
     }
+}
+
+.no-touch-item {
+    margin: 1rem;
 }
