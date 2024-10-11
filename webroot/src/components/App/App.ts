@@ -131,37 +131,32 @@ class App extends Vue {
     async setCurrentCompact(): Promise<void> {
         const { authType } = this.globalStore;
         const { currentCompact, model: user } = this.userStore;
+        let userDefaultCompact;
+        let isCompactPartOfUserPermissions;
 
-        console.log('user', user);
         if (authType === AuthTypes.STAFF) {
             const { permissions = [] } = user || {};
-            const userDefaultCompact = permissions?.[0]?.compact || null;
 
-            // If a current compact is not set or the current compact is not part of the user permissions
-            if (!currentCompact || !permissions.some((permission) => permission.compact.type === currentCompact.type)) {
-                await this.$store.dispatch('user/setCurrentCompact', userDefaultCompact);
-
-                // If the current route is not matching the newly set compact, then redirect
-                if (this.routeCompactType && this.routeCompactType !== userDefaultCompact?.type) {
-                    this.$router.replace({
-                        name: (this.$route.name as RouteRecordName),
-                        params: { compact: userDefaultCompact.type }
-                    });
-                }
-            }
+            userDefaultCompact = permissions?.[0]?.compact || null;
+            isCompactPartOfUserPermissions = permissions.some((permission) =>
+                permission.compact.type === currentCompact?.type);
         } else if (authType === AuthTypes.LICENSEE) {
-            const userDefaultCompact = user.licensee.licenses[0]?.compact;
+            const { licenses = [] } = user?.licensee || {};
 
-            if (!currentCompact) {
-                await this.$store.dispatch('user/setCurrentCompact', userDefaultCompact);
+            userDefaultCompact = licenses?.[0]?.compact || null;
+            isCompactPartOfUserPermissions = licenses.some((license) => license.compact.type === currentCompact?.type);
+        }
 
-                // If the current route is not matching the newly set compact, then redirect
-                if (this.routeCompactType && this.routeCompactType !== userDefaultCompact?.type) {
-                    this.$router.replace({
-                        name: (this.$route.name as RouteRecordName),
-                        params: { compact: userDefaultCompact.type }
-                    });
-                }
+        // If a current compact is not set or the current compact is not part of the user permissions
+        if ((!currentCompact || !isCompactPartOfUserPermissions) && userDefaultCompact) {
+            await this.$store.dispatch('user/setCurrentCompact', userDefaultCompact);
+
+            // If the current route is not matching the newly set compact, then redirect
+            if (this.routeCompactType && this.routeCompactType !== userDefaultCompact?.type) {
+                this.$router.replace({
+                    name: (this.$route.name as RouteRecordName),
+                    params: { compact: userDefaultCompact.type }
+                });
             }
         }
     }
