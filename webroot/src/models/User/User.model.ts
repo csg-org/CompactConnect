@@ -8,12 +8,8 @@
 /* eslint-disable max-classes-per-file */
 
 import deleteUndefinedProperties from '@models/_helpers';
-<<<<<<< HEAD
-import { Compact, CompactType } from '@models/Compact/Compact.model';
-import { Licensee, LicenseeSerializer } from '@models/Licensee/Licensee.model';
-=======
 import { Compact, CompactType, CompactSerializer } from '@models/Compact/Compact.model';
->>>>>>> frontend/staff-post-login
+import { Licensee, LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { State } from '@models/State/State.model';
 
 // ========================================================

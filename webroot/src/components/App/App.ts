@@ -125,7 +125,6 @@ class App extends Vue {
             await this.$store.dispatch('user/getStaffAccountRequest');
         } else if (authType === AuthTypes.LICENSEE) {
             await this.$store.dispatch('user/getLicenseeAccountRequest');
-
         }
     }
 
