@@ -130,7 +130,6 @@ class QueryProviders:
             authorization_scopes=method_options.authorization_scopes
         )
 
-
     def _get_provider_handler(
             self,
             data_encryption_key: IKey,

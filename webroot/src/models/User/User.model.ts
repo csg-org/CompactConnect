@@ -6,7 +6,7 @@
 //
 
 import deleteUndefinedProperties from '@models/_helpers';
-import { Compact, CompactType } from '@models/Compact/Compact.model';
+import { Compact, CompactType, CompactSerializer } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 
 // ========================================================
@@ -311,7 +311,7 @@ export class UserSerializer {
         Object.keys(json.permissions || {}).forEach((compactType) => {
             const { actions = {}, jurisdictions = {}} = json.permissions?.[compactType] || {};
             const compactPermission: CompactPermission = {
-                compact: new Compact({ type: compactType as CompactType }),
+                compact: CompactSerializer.fromServer({ type: compactType }),
                 isRead: actions?.read || false,
                 isAdmin: actions?.admin || false,
                 states: [],

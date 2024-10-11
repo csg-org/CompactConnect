@@ -138,6 +138,8 @@ class MixinForm extends Vue {
 
             formData[key].validate();
         });
+
+        this.checkValidForAll();
     }
 
     checkValidForAll(): void {

@@ -5,11 +5,11 @@ import os
 from decimal import Decimal
 from datetime import datetime, UTC, timedelta
 from glob import glob
-from random import randint, choice
-from string import ascii_letters
+from random import randint
 from unittest.mock import patch
 
 import boto3
+from faker import Faker
 from moto import mock_aws
 
 from tests import TstLambdas
@@ -142,7 +142,7 @@ class TstFunction(TstLambdas):
                 Item=record
             )
 
-    def _generate_providers(self, *, home: str, privilege: str, start_serial: int):
+    def _generate_providers(self, *, home: str, privilege: str, start_serial: int, names: tuple[tuple[str, str]] = ()):
         """
         Generate 10 providers with one license and one privilege
         :param home: The jurisdiction for the license
@@ -155,21 +155,31 @@ class TstFunction(TstLambdas):
         with open('tests/resources/ingest/message.json', 'r') as f:
             ingest_message = json.load(f)
 
+
+        name_faker = Faker(['en_US', 'ja_JP', 'es_MX'])
         data_client = DataClient(self.config)
 
         # Generate 10 providers, each with a license and a privilege
-        for i in range(start_serial, start_serial-10, -1):
+        for name_idx, ssn_serial in enumerate(range(start_serial, start_serial-10, -1)):
             # So we can mutate top-level fields without messing up subsequent iterations
             ingest_message_copy = json.loads(json.dumps(ingest_message))
 
-            ssn = f'{randint(100, 999)}-{randint(10, 99)}-{i}'
+            # Use a requested name, if provided
+            try:
+                family_name, given_name = names[name_idx]
+            except IndexError:
+                family_name = name_faker.unique.last_name()
+                given_name = name_faker.unique.first_name()
+            ingest_message['detail']['familyName'] = family_name
+            ingest_message['detail']['givenName'] = given_name
+            ingest_message['detail']['middleName'] = name_faker.unique.first_name()
+
+            ssn = f'{randint(100, 999)}-{randint(10, 99)}-{ssn_serial}'
 
             ingest_message_copy['detail'].update({
                 'ssn': ssn,
                 'compact': 'aslp',
                 'jurisdiction': home,
-                # Introduce some variability for sorting
-                'familyName': f'{choice(ascii_letters)}{ingest_message_copy['detail']['familyName']}'
             })
 
             # Create a new provider with a license

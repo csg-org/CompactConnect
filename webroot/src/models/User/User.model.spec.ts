@@ -5,6 +5,7 @@
 //  Created by InspiringApps on 4/12/2020.
 //
 
+import { compacts as compactConfigs } from '@/app.config';
 import { User, UserSerializer } from '@models/User/User.model';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
@@ -237,7 +238,14 @@ describe('User model', () => {
         expect(user.lastName).to.equal(data.attributes.familyName);
         expect(user.permissions).to.matchPattern([
             {
-                compact: new Compact({ type: CompactType.ASLP }),
+                compact: {
+                    type: CompactType.ASLP,
+                    memberStates: compactConfigs.aslp.memberStates.map((memberState) => ({
+                        abbrev: memberState,
+                        '...': '',
+                    })),
+                    '...': '',
+                },
                 isRead: true,
                 isAdmin: true,
                 states: [

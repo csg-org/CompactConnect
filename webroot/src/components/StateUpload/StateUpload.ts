@@ -11,7 +11,7 @@ import {
     Watch,
     toNative
 } from 'vue-facing-decorator';
-import { reactive, computed } from 'vue';
+import { reactive, computed, ComputedRef } from 'vue';
 import { uploadTypes } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Card from '@components/Card/Card.vue';
@@ -22,9 +22,15 @@ import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import CheckCircle from '@components/Icons/CheckCircle/CheckCircle.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import { CompactType } from '@models/Compact/Compact.model';
+import { User } from '@models/User/User.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import { dataApi } from '@network/data.api';
 import Joi from 'joi';
+
+interface StateOption {
+    value: string | number;
+    name: string | ComputedRef<string>;
+}
 
 @Component({
     name: 'StateUpload',
@@ -39,11 +45,6 @@ import Joi from 'joi';
     },
 })
 class StateUpload extends mixins(MixinForm) {
-    //
-    // Data
-    //
-    isInitializing = false;
-
     //
     // Lifecycle
     //
@@ -62,22 +63,57 @@ class StateUpload extends mixins(MixinForm) {
         return this.userStore.currentCompact?.type;
     }
 
-    get stateOptions(): Array<any> {
+    get user(): User | null {
+        return this.userStore.model;
+    }
+
+    get isDataFetched(): boolean {
+        return Boolean(this.compactType && this.user);
+    }
+
+    get isInitializing(): boolean {
+        return !this.isDataFetched;
+    }
+
+    get compactStateOptions(): Array<StateOption> {
         const { currentCompact } = this.userStore;
         const compactMemberStates = (currentCompact?.memberStates || []).map((state) => ({
             value: state.abbrev, name: state.name()
         }));
-        const defaultSelectOption: any = { value: '' };
 
-        if (!compactMemberStates.length) {
+        return compactMemberStates;
+    }
+
+    get stateOptions(): Array<StateOption> {
+        const { model: user } = this.userStore;
+        const { permissions } = user || {};
+        const compactPermissions = permissions?.find((permission) =>
+            permission.compact.type === this.compactType) || null;
+        const defaultSelectOption: any = { value: '' };
+        let stateOptions: Array<StateOption> = [];
+
+        if (compactPermissions) {
+            if (compactPermissions.isAdmin) {
+                stateOptions = this.compactStateOptions;
+            } else {
+                stateOptions = compactPermissions.states.map((statePermissions) => ({
+                    value: statePermissions?.state?.abbrev, name: statePermissions?.state?.name()
+                }));
+            }
+        }
+
+        if (!stateOptions.length) {
             defaultSelectOption.name = '';
         } else {
             defaultSelectOption.name = computed(() => this.$t('common.selectOption'));
         }
 
-        compactMemberStates.unshift(defaultSelectOption);
+        // If no or multiple state options, then set the default select option
+        if (stateOptions.length !== 1) {
+            stateOptions.unshift(defaultSelectOption);
+        }
 
-        return compactMemberStates;
+        return stateOptions;
     }
 
     get isStateSelectEnabled(): boolean {
@@ -140,6 +176,10 @@ class StateUpload extends mixins(MixinForm) {
 
         stateInput.valueOptions = this.stateOptions;
         stateInput.isDisabled = !this.isStateSelectEnabled;
+
+        if (stateInput.valueOptions.length === 1) {
+            stateInput.value = stateInput.valueOptions[0].value;
+        }
     }
 
     async handleSubmit(): Promise<void> {
@@ -189,6 +229,10 @@ class StateUpload extends mixins(MixinForm) {
     // Watchers
     //
     @Watch('compactType') updateCompactStates(): void {
+        this.updateStateInput();
+    }
+
+    @Watch('user') updateUserStates(): void {
         this.updateStateInput();
     }
 }
