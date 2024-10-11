@@ -237,7 +237,14 @@ describe('User model', () => {
         expect(user.lastName).to.equal(data.attributes.familyName);
         expect(user.permissions).to.matchPattern([
             {
-                compact: new Compact({ type: CompactType.ASLP }),
+                compact: {
+                    type: CompactType.ASLP,
+                    memberStates: compactConfigs.aslp.memberStates.map((memberState) => ({
+                        abbrev: memberState,
+                        '...': '',
+                    })),
+                    '...': '',
+                },
                 isRead: true,
                 isAdmin: true,
                 states: [

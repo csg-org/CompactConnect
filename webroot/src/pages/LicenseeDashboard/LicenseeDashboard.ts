@@ -6,12 +6,10 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
-import AdverseActionList from '@/components/AdverseActionList/AdverseActionList.vue';
 import HomeStateBlock from '@/components/HomeStateBlock/HomeStateBlock.vue';
 import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
-import LicenseePrivilegeList from '@/components/LicenseePrivilegeList/LicenseePrivilegeList.vue';
 import { License, LicenseStatus } from '@models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { State } from '@models/State/State.model';
@@ -20,12 +18,10 @@ import { User } from '@models/User/User.model';
 @Component({
     name: 'LicenseeDashboard',
     components: {
-        AdverseActionList,
         HomeStateBlock,
         LicenseCard,
         PrivilegeCard,
-        InputButton,
-        LicenseePrivilegeList
+        InputButton
     }
 })
 export default class LicenseeDashboard extends Vue {

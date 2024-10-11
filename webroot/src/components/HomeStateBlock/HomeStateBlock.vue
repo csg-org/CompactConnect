@@ -11,7 +11,7 @@
             <img class="home-state-img" src="@assets/images/white-ellipse.svg" alt="Privilege List Logo" />
         </div>
         <div class="home-state-title">
-            Home State
+            {{homeStateTitle}}
         </div>
         <div class="home-state-name">
             {{stateName}}

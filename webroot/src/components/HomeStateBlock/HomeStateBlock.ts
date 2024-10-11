@@ -34,6 +34,10 @@ class HomeStateBlock extends Vue {
         return this.state.name();
     }
 
+    get homeStateTitle(): string {
+        return this.$t('licensing.homeState');
+    }
+
     //
     // Methods
     //
