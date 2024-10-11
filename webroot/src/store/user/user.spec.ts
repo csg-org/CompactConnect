@@ -217,6 +217,16 @@ describe('User Store Actions', async () => {
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_ACCOUNT_REQUEST]);
         expect(dispatch.calledOnce, 'dispatch').to.equal(true);
     });
+    it('should successfully start licensee account request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        await actions.getLicenseeAccountRequest({ commit, dispatch });
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_ACCOUNT_REQUEST]);
+        expect(dispatch.calledOnce, 'dispatch').to.equal(true);
+    });
     it('should successfully start account success', () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();

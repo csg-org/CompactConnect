@@ -177,6 +177,7 @@ export const licensees = {
             givenName: 'Janet',
             homeAddressStreet1: '1640 Riverside Drive',
             militaryWaiver: true,
+            emailAddress: 'test@test.com',
             dateOfBirth: '1990-08-29',
             privilegeJurisdictions: [
                 'al'
