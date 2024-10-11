@@ -21,14 +21,6 @@ class PrivilegeCard extends Vue {
     @Prop({ required: true }) privilege?: License;
 
     //
-    // Data
-    //
-
-    //
-    // Lifecycle
-    //
-
-    //
     // Computed
     //
     get statusDisplay():string {

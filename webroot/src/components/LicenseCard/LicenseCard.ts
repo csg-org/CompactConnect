@@ -21,14 +21,6 @@ class LicenseCard extends Vue {
     @Prop({ required: true }) license?: License;
 
     //
-    // Data
-    //
-
-    //
-    // Lifecycle
-    //
-
-    //
     // Computed
     //
     get statusDisplay():string {
@@ -101,10 +93,6 @@ class LicenseCard extends Vue {
 
         return isPastDate;
     }
-
-    //
-    // Methods
-    //
 }
 
 export default toNative(LicenseCard);

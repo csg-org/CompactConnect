@@ -81,14 +81,6 @@ class App extends Vue {
         return Boolean(this.globalStore.messages.find((m) => m.type === 'error'));
     }
 
-    get isStaffUser(): boolean {
-        return this.$store.state.authType === AuthTypes.STAFF;
-    }
-
-    // get isLicenseeUser(): boolean {
-    //     return this.$store.state.authType === AuthTypes.LICENSEE;
-    // }
-
     //
     // Methods
     //
