@@ -20,14 +20,6 @@ class HomeStateBlock extends Vue {
     @Prop({ required: true }) state!: State;
 
     //
-    // Data
-    //
-
-    //
-    // Lifecycle
-    //
-
-    //
     // Computed
     //
     get stateName(): string {
@@ -37,10 +29,6 @@ class HomeStateBlock extends Vue {
     get homeStateTitle(): string {
         return this.$t('licensing.homeState');
     }
-
-    //
-    // Methods
-    //
 }
 
 export default toNative(HomeStateBlock);
