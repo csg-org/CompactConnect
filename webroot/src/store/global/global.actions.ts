@@ -30,4 +30,7 @@ export default {
     setModalIsLogoutOnly: ({ commit }, isLogoutOnly) => {
         commit(MutationTypes.SET_MODAL_LOGOUT_ONLY, isLogoutOnly);
     },
+    setAuthType: ({ commit }, type) => {
+        commit(MutationTypes.SET_AUTH_TYPE, type);
+    },
 };
