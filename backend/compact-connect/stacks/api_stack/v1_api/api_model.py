@@ -186,7 +186,8 @@ class ApiModel:
             type=JsonSchemaType.OBJECT,
             required=['items', 'pagination'],
             properties={
-                # this endpoint returns a list of objects with the
+                # this endpoint returns a list of jurisdiction options for a provider to purchase
+                # within a particular compact
                 'items': JsonSchema(
                     type=JsonSchemaType.ARRAY,
                     max_length=100,
@@ -200,7 +201,7 @@ class ApiModel:
     def _purchase_privilege_options_items_schema(self):
         """
         This endpoint returns a single list containing all available jurisdiction options for a provider to purchase,
-        and one compact option.
+        and one compact object which contains information related to compact service fees for privileges.
         """
         return JsonSchema(
             type=JsonSchemaType.OBJECT,

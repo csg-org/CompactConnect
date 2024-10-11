@@ -6,8 +6,7 @@ from datetime import datetime, UTC
 from typing import Type
 
 from marshmallow import Schema, RAISE, EXCLUDE, post_load, pre_dump
-from marshmallow.fields import String, Date, UUID, List
-from marshmallow.validate import Regexp
+from marshmallow.fields import String, Date
 
 from exceptions import CCInternalException
 
@@ -26,27 +25,6 @@ class ForgivingSchema(Schema):
     """
     class Meta:
         unknown = EXCLUDE
-
-
-class SocialSecurityNumber(String):
-    def __init__(self, *args, **kwargs):
-        super().__init__(
-            *args,
-            validate=Regexp('^[0-9]{3}-[0-9]{2}-[0-9]{4}$'),
-            **kwargs
-        )
-
-
-class Set(List):
-    """
-    A Field that de/serializes to a Set (not compatible with JSON)
-    """
-    def _serialize(self, *args, **kwargs):
-        return set(super()._serialize(*args, **kwargs))
-
-    def _deserialize(self, *args, **kwargs):
-        return set(super()._deserialize(*args, **kwargs))
-
 
 class BaseRecordSchema(StrictSchema, ABC):
     """
@@ -105,23 +83,3 @@ class BaseRecordSchema(StrictSchema, ABC):
             return cls._registered_schema[record_type]
         except KeyError as e:
             raise CCInternalException(f'Unsupported record type, "{record_type}"') from e
-
-
-class ITUTE164PhoneNumber(String):
-    """
-    Phone number format consistent with ITU-T E.164:
-    https://www.itu.int/rec/T-REC-E.164-201011-I/en
-    """
-    def __init__(self, *args, **kwargs):
-        super().__init__(
-            *args,
-            validate=Regexp(r'^\+[0-9]{8,15}$'),
-            **kwargs
-        )
-
-
-class SSNIndexRecordSchema(StrictSchema):
-    pk = String(required=True, allow_none=False)
-    sk = String(required=True, allow_none=False)
-    ssn = SocialSecurityNumber(required=True, allow_none=False)
-    providerId = UUID(required=True, allow_none=False)
