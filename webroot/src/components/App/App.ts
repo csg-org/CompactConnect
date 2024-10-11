@@ -125,27 +125,25 @@ class App extends Vue {
             await this.$store.dispatch('user/getStaffAccountRequest');
         } else if (authType === AuthTypes.LICENSEE) {
             await this.$store.dispatch('user/getLicenseeAccountRequest');
+
         }
     }
 
     async setCurrentCompact(): Promise<void> {
-        if (this.isStaffUser) {
-            const { currentCompact, model: user } = this.userStore;
-            const { permissions = [] } = user || {};
-            const userDefaultCompact = permissions?.[0]?.compact || null;
+        const { currentCompact, model: user } = this.userStore;
+        const { permissions = [] } = user || {};
+        const userDefaultCompact = permissions?.[0]?.compact || null;
 
-            // If a current compact is not set or the current compact is not part of the user permissions
-            if (!currentCompact || !permissions.some((permission) => permission.compact.type === currentCompact.type)) {
-                await this.$store.dispatch('user/setCurrentCompact', userDefaultCompact);
+        // If a current compact is not set or the current compact is not part of the user permissions
+        if (!currentCompact || !permissions.some((permission) => permission.compact.type === currentCompact.type)) {
+            await this.$store.dispatch('user/setCurrentCompact', userDefaultCompact);
 
-                // If the current route is not matching the newly set compact, the redirect
-                if (this.routeCompactType && this.routeCompactType !== userDefaultCompact?.type) {
-                    this.$router.replace({
-                        name: (this.$route.name as RouteRecordName),
-                        // params: { compact: 'aslp' } // TODO-TEMP: replace with line below once I have clarified with John
-                        params: { compact: userDefaultCompact.type }
-                    });
-                }
+            // If the current route is not matching the newly set compact, then redirect
+            if (this.routeCompactType && this.routeCompactType !== userDefaultCompact?.type) {
+                this.$router.replace({
+                    name: (this.$route.name as RouteRecordName),
+                    params: { compact: userDefaultCompact.type }
+                });
             }
         }
     }

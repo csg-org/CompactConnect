@@ -1,0 +1,22 @@
+{
+  "type": "user",
+  "attributes": {
+    "email": "justin@example.org",
+    "givenName": "Justin",
+    "familyName": "Williams"
+  },
+  "permissions": {
+    "aslp": {
+      "actions": {
+        "read": true
+      },
+      "jurisdictions": {
+        "oh": {
+          "actions": {
+            "write": true
+          }
+        }
+      }
+    }
+  }
+}

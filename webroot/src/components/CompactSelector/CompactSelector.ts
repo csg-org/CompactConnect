@@ -91,7 +91,7 @@ class CompactSelector extends mixins(MixinForm) {
         const { compactOptions, hideIfNotMultiple } = this;
         const optionsLength = compactOptions.length;
 
-        return !optionsLength || !(optionsLength === 1 && hideIfNotMultiple);
+        return !(optionsLength === 1 && hideIfNotMultiple);
     }
 
     get routeCompactType(): CompactType | null {
@@ -139,7 +139,7 @@ class CompactSelector extends mixins(MixinForm) {
         // Set the new compact type on the store
         this.$store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: selectedCompactType }));
 
-        // If the current route is not matching the newly selected compact, the redirect
+        // If the current route is not matching the newly selected compact, then redirect
         if (this.routeCompactType && this.routeCompactType !== selectedCompactType) {
             await this.$router.push({
                 name: (this.$route.name as RouteRecordName),

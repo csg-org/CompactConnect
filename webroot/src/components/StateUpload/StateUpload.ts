@@ -96,8 +96,8 @@ class StateUpload extends mixins(MixinForm) {
             if (compactPermissions.isAdmin) {
                 stateOptions = this.compactStateOptions;
             } else {
-                stateOptions = compactPermissions.states.map((state) => ({
-                    value: state.abbrev, name: state.name()
+                stateOptions = compactPermissions.states.map((statePermissions) => ({
+                    value: statePermissions?.state?.abbrev, name: statePermissions?.state?.name()
                 }));
             }
         }

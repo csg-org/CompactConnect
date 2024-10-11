@@ -65,3 +65,4 @@ the feature, you can open a Swagger UI view of it by opening up the accompanying
 
 ### Change summary:
 - 2024-08-21: First API version release
+- 2024-09-03: Proposed addition of staff-user API

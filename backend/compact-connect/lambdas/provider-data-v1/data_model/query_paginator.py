@@ -102,6 +102,7 @@ class paginated_query:  # pylint: disable=invalid-name
 
             raw_resp = self._caught_query(*args, dynamo_pagination=dynamo_pagination, **kwargs)
             count += raw_resp['Count']
+            last_key = raw_resp.get('LastEvaluatedKey')
             yield raw_resp
 
     def _caught_query(self, *args, **kwargs):

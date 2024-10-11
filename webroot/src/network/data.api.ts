@@ -131,6 +131,14 @@ export class DataApi {
         return licenseeUserDataApi.getAuthenticatedLicenseeUser();
     }
 
+    /**
+     * GET Authenticated Staff User.
+     * @return {Promise<User>} A User model instance.
+     */
+    public getAuthenticatedStaffUser() {
+        return userDataApi.getAuthenticatedStaffUser();
+    }
+
     // ========================================================================
     //                              EXAMPLE API
     // ========================================================================

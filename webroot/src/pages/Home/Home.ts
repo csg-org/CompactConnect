@@ -11,8 +11,8 @@ import {
     Watch,
     toNative
 } from 'vue-facing-decorator';
-import { AuthTypes } from '@/app.config';
 import { Compact } from '@models/Compact/Compact.model';
+import { AuthTypes } from '@/app.config';
 
 @Component({
     name: 'HomePage',

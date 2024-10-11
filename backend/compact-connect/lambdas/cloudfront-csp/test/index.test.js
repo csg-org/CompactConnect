@@ -22,14 +22,14 @@ const environments = {
             dataApi: `api.compactconnect.org`,
             s3Upload: `prod-persistentstack-bulkuploadsbucketda4bdcd0-zq5o0q8uqq5i.s3.amazonaws.com`,
             cognitoStaff: `compact-connect-staff.auth.us-east-1.amazoncognito.com`,
-            cognitoProvider: ``,
+            cognitoProvider: `compact-connect-provider.auth.us-east-1.amazoncognito.com`,
         },
         test: {
             webFrontend: `app.test.compactconnect.org`,
             dataApi: `api.test.compactconnect.org`,
             s3Upload: `test-persistentstack-bulkuploadsbucketda4bdcd0-gxzuwbuqfepm.s3.amazonaws.com`,
             cognitoStaff: `compact-connect-staff-test.auth.us-east-1.amazoncognito.com`,
-            cognitoProvider: ``,
+            cognitoProvider: `compact-connect-provider-test.auth.us-east-1.amazoncognito.com`,
         },
     },
     ia: {

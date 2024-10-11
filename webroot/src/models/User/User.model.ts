@@ -8,8 +8,12 @@
 /* eslint-disable max-classes-per-file */
 
 import deleteUndefinedProperties from '@models/_helpers';
+<<<<<<< HEAD
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { Licensee, LicenseeSerializer } from '@models/Licensee/Licensee.model';
+=======
+import { Compact, CompactType, CompactSerializer } from '@models/Compact/Compact.model';
+>>>>>>> frontend/staff-post-login
 import { State } from '@models/State/State.model';
 
 // ========================================================
@@ -316,7 +320,7 @@ export class StaffUserSerializer {
         Object.keys(json.permissions || {}).forEach((compactType) => {
             const { actions = {}, jurisdictions = {}} = json.permissions?.[compactType] || {};
             const compactPermission: CompactPermission = {
-                compact: new Compact({ type: compactType as CompactType }),
+                compact: CompactSerializer.fromServer({ type: compactType }),
                 isRead: actions?.read || false,
                 isAdmin: actions?.admin || false,
                 states: [],
