@@ -40,7 +40,9 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
 
         # the jurisdiction configuration is stored in the dynamo db as part of the
         # parent TstFunction setup, so we can compare the response directly
-        jurisdiction_option = [option for option in privilege_options['items'] if option['type'] == 'jurisdiction'][0]
+        jurisdiction_options = [option for option in privilege_options['items'] if option['type'] == 'jurisdiction']
+        self.assertEqual(1, len(jurisdiction_options))
+        jurisdiction_option = jurisdiction_options[0]
         self.assertEqual(expected_jurisdiction_option, jurisdiction_option)
 
 
@@ -66,7 +68,10 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
 
         # the compact configuration is stored in the dynamo db as part of the
         # parent TstFunction setup, so we can compare the response directly
-        compact_option = [option for option in privilege_options['items'] if option['type'] == 'compact'][0]
+        compact_options = [option for option in privilege_options['items'] if option['type'] == 'compact']
+        # there should only be one compact option for a given user, since the cognito user is tied to a compact
+        self.assertEqual(1, len(compact_options))
+        compact_option = compact_options[0]
         self.assertEqual(expected_compact_option, compact_option)
 
 

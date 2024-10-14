@@ -45,7 +45,8 @@ def generate_single_jurisdiction_config(jurisdiction_name: str, postal_abbreviat
 
 def generate_date_string():
     # yes, there is always a chance that the tests are run precisely at midnight
-    # but that's a risk we're willing to take
+    # which will cause the test to fail and will need to be rerun,
+    # but that's a risk we're willing to take.
     return date.today().strftime('%Y-%m-%d')
 
 

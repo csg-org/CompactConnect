@@ -29,6 +29,8 @@ def on_event(event: dict, context: LambdaContext):  # pylint: disable=inconsiste
         case 'Create' | 'Update':
             return upload_configuration(properties)
         case 'Delete':
+            # In the case of delete we do not remove any data from the table
+            # data deletion will be managed by the DB's removal policy.
             return
         case _:
             raise ValueError(f'Unexpected request type: {request_type}')
@@ -51,8 +53,6 @@ def _upload_compact_root_configuration(compact_configuration: dict) -> None:
     """
     Upload the root compact configuration to the provider table.
     :param compact_configuration: The compact configuration
-    :param environment_name: The environment
-    :param sandbox_environment: if sandbox environment, all compacts are uploaded
     """
     for compact in compact_configuration['compacts']:
         compact_name = compact['compactName']
@@ -72,8 +72,6 @@ def _upload_jurisdiction_configuration(compact_configuration: dict) -> None:
     """
     Upload the jurisdiction configuration to the provider table.
     :param compact_configuration: The compact configuration
-    :param environment_name: The environment
-    :param sandbox_environment: if sandbox environment, all jurisdictions are uploaded
     """
     for compact_name, jurisdictions in compact_configuration['jurisdictions'].items():
         for jurisdiction in jurisdictions:

@@ -9,8 +9,8 @@ from data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 COMPACT_TYPE = 'compact'
 
 class CompactCommissionFeeSchema(Schema):
-    feeType = String(required=False, allow_none=False, validate=OneOf(['FLAT_RATE']))
-    feeAmount = Decimal(required=False, allow_none=False)
+    feeType = String(required=True, allow_none=False, validate=OneOf(['FLAT_RATE']))
+    feeAmount = Decimal(required=True, allow_none=False)
 
 @BaseRecordSchema.register_schema(COMPACT_TYPE)
 class CompactRecordSchema(BaseRecordSchema):
@@ -21,7 +21,7 @@ class CompactRecordSchema(BaseRecordSchema):
 
     # Provided fields
     compactName = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=False, allow_none=False)
+    compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
     compactOperationsTeamEmails = List(
         String(required=True, allow_none=False),
         required=True,
@@ -54,5 +54,5 @@ class CompactOptionsApiResponseSchema(ForgivingSchema):
     Used to enforce which fields are returned in compact objects for the GET /purchase/privileges/options endpoint
     """
     compactName = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=False, allow_none=False)
+    compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
     type = String(required=True, allow_none=False, validate=OneOf([COMPACT_TYPE]))

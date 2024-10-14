@@ -12,7 +12,6 @@ logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false').lower() == 'tr
 
 
 class _Config:
-    presigned_post_ttl_seconds = 3600
     default_page_size = 100
 
     @cached_property

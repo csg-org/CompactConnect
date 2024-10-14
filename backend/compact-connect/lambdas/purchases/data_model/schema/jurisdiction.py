@@ -9,12 +9,12 @@ from data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 JURISDICTION_TYPE = 'jurisdiction'
 
 class JurisdictionMilitaryDiscountSchema(Schema):
-    active = Boolean(required=False, allow_none=False)
-    discountType = String(required=False, allow_none=False, validate=OneOf(['FLAT_RATE']))
-    discountAmount = Decimal(required=False, allow_none=False)
+    active = Boolean(required=True, allow_none=False)
+    discountType = String(required=True, allow_none=False, validate=OneOf(['FLAT_RATE']))
+    discountAmount = Decimal(required=True, allow_none=False)
 
 class JurisdictionJurisprudenceRequirementsSchema(Schema):
-    required = Boolean(required=False, allow_none=False)
+    required = Boolean(required=True, allow_none=False)
 
 @BaseRecordSchema.register_schema(JURISDICTION_TYPE)
 class JurisdictionRecordSchema(BaseRecordSchema):
