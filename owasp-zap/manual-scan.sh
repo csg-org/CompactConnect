@@ -1,18 +1,17 @@
 #/usr/bin/env bash
-set -x
+set -e
 
 # Copy our official API doc to ZAP data
-cp backend/compact-connect/docs/api-specification/latest-oas30.json /zap-data/latest-oas30.json
+cp backend/compact-connect/docs/api-specification/latest-oas30.json owasp-zap/data/latest-oas30.json
 
 # Log in as a user to get a token
-TOKEN="$(cd authenticator; node main.js | jq -r '.accessToken')"
+TOKEN="$(cd owasp-zap/authenticator; node main.js | jq -r '.accessToken')"
 
-echo "Using token: '$TOKEN'"
+[[ -z "$TOKEN" ]] && echo "Failed to get token" && exit 1
 
 docker run \
-  -v "$(pwd)/session:/zap/wrk/:rw" \
-  -v "$(pwd)/data:/data:ro" \
+  -v "$(pwd):/zap/wrk:rw" \
   -e TOKEN="$TOKEN" \
   -t zaproxy/zap-stable \
   zap.sh -cmd \
-  -autorun /data/justin-automation.yml
+  -autorun /zap/wrk/owasp-zap/data/test-automation.yml

@@ -58,12 +58,10 @@ jobs:
         run: |
           token=$(node main.js | jq -r '.accessToken')
           [[ -z "$token" ]] && exit 1
-          echo "TOKEN=$token" >> "$GITHUB_ENV"
+          echo "ZAP_AUTH_HEADER_VALUE=$token" >> "$GITHUB_ENV"
         working-directory: 'owasp-zap/authenticator'
 
       - name: ZAP Scan
         uses: zaproxy/action-af@v0.1.0
         with:
-          docker_env_vars: |
-            TOKEN
           plan: 'owasp-zap/data/test-automation.yml'
