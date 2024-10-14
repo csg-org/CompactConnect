@@ -8,7 +8,7 @@
 <template>
     <div class="licensee-dashboard-container">
         <div class="top-block">
-            <h2 class="welcome-user">{{welcomeText}}, {{ userFullName }}</h2>
+            <div class="welcome-user">{{welcomeText}}, {{ userFullName }}</div>
             <InputButton
                 :label="obtainPrivButtonLabel"
                 aria-label="obtatin privilege"
