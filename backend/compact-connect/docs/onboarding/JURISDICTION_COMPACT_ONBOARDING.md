@@ -175,3 +175,15 @@ activeEnvironments: ["sandbox", "test"]
 ```
 At deploy time, if the environment name matches one of the files in the `activeEnvironments` list, these configuration
 files will be written to the database and accessible by the system.
+
+
+## Updating Snapshot Tests to match Configuration Changes
+In order to ensure that the system is functioning as expected, we have tests in place to verify that the configuration
+files are being formatted correctly. We do this through 'Snapshot' tests, which are json files stored under the 
+`tests/resources/snapshots` directory.
+
+Whenever making changes to the configuration files which are active in the test or prod environments, you will need to
+update the snapshot to match the expected configuration. The simplest way to do this is to find the test in the 
+`tests/unit` directory that is checking the snapshot labeled 'COMPACT_CONFIGURATION_UPLOADER_INPUT', and update the 
+parameter 'overwrite_snapshot=' to 'True'. Rerun the tests to overwrite the snapshot with the updated configuration 
+json content, then set the parameter back to 'False' to prevent accidental overwrites in the future.
