@@ -124,7 +124,7 @@ class UserPool(CdkUserPool):
             auth_flows=AuthFlow(
                 admin_user_password=False,
                 custom=False,
-                user_srp=False,
+                user_srp=self.security_profile == SecurityProfile.VULNERABLE,
                 user_password=False
             ),
             o_auth=OAuthSettings(

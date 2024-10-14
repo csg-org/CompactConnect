@@ -12,17 +12,23 @@
  */
 
 var HttpSender = Java.type('org.parosproxy.paros.network.HttpSender');
-var ScriptVars = Java.type('org.zaproxy.zap.extension.script.ScriptVars');
+// var ScriptVars = Java.type('org.zaproxy.zap.extension.script.ScriptVars');
+const System = Java.type('java.lang.System');
 
 function sendingRequest(msg, initiator, helper) {
     // add Authorization header to all request in scope except the authorization request itself
     if (initiator !== HttpSender.AUTHENTICATION_INITIATOR && msg.isInScope()) {
-        const token = ScriptVars.getGlobalVar('accessToken');
+        // const token = ScriptVars.getGlobalVar('accessToken');
+        const token = System.getenv('TOKEN');
         if (!token) {
-            print('Access token not defined');
+            print('Token not defined');
             return
         }
-        print('Adding Authorization header to request: ' + msg.getRequestHeader().getURI().toString());
+        print(
+            'Adding Authorization header to request: ',
+            msg.getRequestHeader().getMethod(),
+            msg.getRequestHeader().getURI().toString()
+        );
         msg.getRequestHeader().setHeader(
             'Authorization',
             'Bearer ' + token
@@ -30,4 +36,6 @@ function sendingRequest(msg, initiator, helper) {
     }
 }
 
-function responseReceived(msg, initiator, helper) {}
+function responseReceived(msg, initiator, helper) {
+    print('Response code: ', msg.getResponseHeader().getStatusCode());
+}
