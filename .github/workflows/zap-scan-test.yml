@@ -56,7 +56,7 @@ jobs:
           COGNITO_USERNAME: ${{ secrets.DEV_ZAP_USERNAME_STAFF }}
           COGNITO_PASSWORD: ${{ secrets.DEV_ZAP_PASSWORD_STAFF }}
         run: |
-          TOKEN=$(node main.js | jq -r '.accessToken')
+          token=$(node main.js | jq -r '.accessToken')
           [[ -z "$token" ]] && exit 1
           echo "TOKEN=$token" >> "$GITHUB_ENV"
         working-directory: 'owasp-zap/authenticator'
