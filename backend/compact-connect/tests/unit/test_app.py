@@ -48,6 +48,29 @@ class TestApp(TestCase):
         except KeyError as exc:
             raise RuntimeError(f'{logical_id} not found in resources!') from exc
 
+    def compare_snapshot(self, actual: dict, snapshot_name: str, overwrite_snapshot: bool = False):
+        """
+        Compare the actual dictionary to the snapshot with the given name.
+        If overwrite_snapshot is True, overwrite the snapshot with the actual data.
+        """
+        snapshot_path = os.path.join('tests', 'resources', 'snapshots', f'{snapshot_name}.json')
+
+        if os.path.exists(snapshot_path):
+            with open(snapshot_path, 'r') as f:
+                snapshot = json.load(f)
+        else:
+            print(f"Snapshot at path '{snapshot_path}' does not exist.")
+            snapshot = None
+
+        if snapshot != actual and overwrite_snapshot:
+            with open(snapshot_path, 'w') as f:
+                json.dump(actual, f, indent=2)
+            print(f"Snapshot '{snapshot_name}' has been overwritten.")
+        else:
+            self.maxDiff = None #pylint: disable=invalid-name
+            self.assertEqual(snapshot, actual, f"Snapshot '{snapshot_name}' does not match the actual data. "
+                                               "To overwrite the snapshot, set overwrite_snapshot=True.")
+
 
     def test_no_compact_jurisdiction_name_clash(self):
         """
@@ -215,6 +238,53 @@ class TestApp(TestCase):
         self.assertIn({'AttributeDataType': 'String', 'Mutable': False, 'Name': 'compact'},
                       provider_users_user_pool['Schema'])
 
+    @patch.dict(os.environ, {
+        'CDK_DEFAULT_ACCOUNT': '000000000000',
+        'CDK_DEFAULT_REGION': 'us-east-1'
+    })
+    def test_synth_generates_compact_configuration_upload_custom_resource_with_expected_configuration_data(self):
+        context = self._when_testing_pipeline_stack_context()
+
+        app = CompactConnectApp(context=context)
+        persistent_stack = app.pipeline_stack.test_stage.persistent_stack
+        persistent_stack_template = Template.from_stack(persistent_stack)
+
+        # Ensure our provider user pool is created with expected custom attributes
+        compact_configuration_uploader_custom_resource = self._get_resource_properties_by_logical_id(
+            persistent_stack.get_logical_id(
+                persistent_stack.compact_configuration_upload
+                .compact_configuration_uploader_custom_resource.node.default_child),
+            persistent_stack_template.find_resources("Custom::CompactConfigurationUpload")
+        )
+        # we don't care about ordering of the jurisdictions, but the snapshot is sensitive to the order,
+        # so we ensure to sort the jurisdictions before comparing
+        sorted_compact_configuration = self._sort_compact_configuration_input(
+            json.loads(compact_configuration_uploader_custom_resource['compact_configuration']))
+
+        # Assert that the compact_configuration property is set to the expected values
+        # If the configuration values for any jurisdiction changes, the snapshot will need to be updated.
+        self.compare_snapshot(
+            actual=sorted_compact_configuration,
+            snapshot_name='COMPACT_CONFIGURATION_UPLOADER_INPUT',
+            overwrite_snapshot=False
+        )
+
+    def _sort_compact_configuration_input(self, compact_configuration_input: dict) -> dict:
+        """
+        Sort the compact configuration input by compact name and then by jurisdiction postal abbreviation.
+        This ensures the snapshot comparison is consistent.
+        """
+        compact_configuration_input['compacts'] = sorted(
+            compact_configuration_input['compacts'],
+            key=lambda compact: compact['compactName']
+        )
+        for compact_name, jurisdictions in compact_configuration_input['jurisdictions'].items():
+            compact_configuration_input['jurisdictions'][compact_name] = sorted(
+                jurisdictions,
+                key=lambda jurisdiction: jurisdiction['postalAbbreviation']
+            )
+
+        return compact_configuration_input
 
 
     def _inspect_persistent_stack(

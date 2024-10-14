@@ -1,0 +1,9 @@
+# PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
+compactName: "coun"
+compactCommissionFee:
+    feeType: "FLAT_RATE"
+    feeAmount: 3.50
+compactOperationsTeamEmails: []
+compactAdverseActionsNotificationEmails: []
+compactSummaryReportNotificationEmails: []
+activeEnvironments: []

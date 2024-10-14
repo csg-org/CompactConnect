@@ -1,6 +1,8 @@
+# pylint: disable=attribute-defined-outside-init
 import json
 import logging
 import os
+from decimal import Decimal
 from datetime import datetime, UTC, timedelta
 from glob import glob
 from random import randint
@@ -37,7 +39,14 @@ class TstFunction(TstLambdas):
 
     def build_resources(self):
         self._bucket = boto3.resource('s3').create_bucket(Bucket=os.environ['BULK_BUCKET_NAME'])
-        self._table = boto3.resource('dynamodb').create_table(
+        self.create_provider_table()
+
+        boto3.client('events').create_event_bus(
+            Name=os.environ['EVENT_BUS_NAME']
+        )
+
+    def create_provider_table(self):
+        self._provider_table = boto3.resource('dynamodb').create_table(
             AttributeDefinitions=[
                 {
                     'AttributeName': 'pk',
@@ -104,14 +113,10 @@ class TstFunction(TstLambdas):
             ]
         )
 
-        boto3.client('events').create_event_bus(
-            Name=os.environ['EVENT_BUS_NAME']
-        )
-
     def delete_resources(self):
         self._bucket.objects.delete()
         self._bucket.delete()
-        self._table.delete()
+        self._provider_table.delete()
         boto3.client('events').delete_event_bus(
             Name=os.environ['EVENT_BUS_NAME']
         )
@@ -124,16 +129,16 @@ class TstFunction(TstLambdas):
         test_resources = glob('tests/resources/dynamo/*.json')
 
         def provider_jurisdictions_to_set(obj: dict):
-            if obj['type'] == 'provider' and 'providerJurisdictions' in obj.keys():
+            if obj.get('type') == 'provider' and 'providerJurisdictions' in obj.keys():
                 obj['providerJurisdictions'] = set(obj['providerJurisdictions'])
             return obj
 
         for resource in test_resources:
             with open(resource, 'r') as f:
-                record = json.load(f, object_hook=provider_jurisdictions_to_set)
+                record = json.load(f, object_hook=provider_jurisdictions_to_set, parse_float=Decimal)
 
             logger.debug("Loading resource, %s: %s", resource, str(record))
-            self._table.put_item(
+            self._provider_table.put_item(
                 Item=record
             )
 
