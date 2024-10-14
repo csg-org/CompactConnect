@@ -1,0 +1,48 @@
+//
+//  UserRowEdit.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 10/14/2024.
+//
+
+.edit-user-container {
+    display: flex;
+    flex-direction: column;
+
+    .edit-user-title {
+        margin-bottom: 1.6rem;
+        font-size: @fontSizeExtraLarge;
+    }
+
+    .edit-user-name {
+        margin-bottom: 1.2rem;
+        font-size: @fontSizeLarge;
+    }
+
+    .edit-user-form-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .edit-user-button {
+        width: 100%;
+
+        &:not(:first-child) {
+            margin-top: 1.6rem;
+        }
+
+        @media @desktopWidth {
+            width: 48%;
+
+            &:not(:first-child) {
+                margin-top: 0;
+            }
+        }
+
+        &:deep(input) {
+            width: 100%;
+        }
+    }
+}

@@ -18,6 +18,7 @@
         "change": "Change",
         "reset": "Reset",
         "save": "Save",
+        "saveChanges": "Save changes",
         "submit": "Submit",
         "clear": "Clear",
         "success": "Success",
@@ -36,7 +37,7 @@
         "phoneNumber": "Phone Number",
         "address": "Address",
         "city": "City",
-        "state": "State/Jurisdiction",
+        "state": "State / Jurisdiction",
         "zipCode": "Zip Code",
         "language": "Language",
         "gender": "Gender",
@@ -483,9 +484,10 @@
         "usersListEmpty": "Invite users with the button above",
         "permissions": "Permissions",
         "affiliation": "Affiliation",
-        "states": "State/Jurisdiction(s)",
+        "states": "State / Jurisdiction(s)",
         "accountStatus": "Account Status",
         "accessLevel": {
+            "none": "None",
             "read": "Read",
             "write": "Write",
             "admin": "Admin"
@@ -496,7 +498,10 @@
             "pending": "Pending"
         },
         "resendInvite": "Resend invite",
-        "userSearchLabel": "Enter a name"
+        "userSearchLabel": "Enter a name",
+        "edit": "Edit",
+        "editPermissions": "Edit permissions",
+        "editUserPermissions": "Edit user permissions"
     },
     "styleGuide": {
         "headerPlaceholder": "Header Content",

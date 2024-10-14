@@ -18,6 +18,7 @@
         "change": "Cambiar",
         "reset": "Restablecer",
         "save": "Guardar",
+        "saveChanges": "Guardar cambios",
         "submit": "Enviar",
         "clear": "Borrar",
         "success": "Correcto",
@@ -486,6 +487,7 @@
         "states": "Estado/Jurisdicción",
         "accountStatus": "Estado de la cuenta",
         "accessLevel": {
+            "none": "Ninguno",
             "read": "Lectura",
             "write": "Escritura",
             "admin": "Administración"
@@ -496,7 +498,10 @@
             "pending": "Pendiente"
         },
         "resendInvite": "Reenviar invitación",
-        "userSearchLabel": "Introduzca un nombre"
+        "userSearchLabel": "Introduzca un nombre",
+        "edit": "Editar",
+        "editPermissions": "Editar permisos",
+        "editUserPermissions": "Editar permisos de usuario"
     },
     "styleGuide": {
         "headerPlaceholder": "Contenido del encabezado",

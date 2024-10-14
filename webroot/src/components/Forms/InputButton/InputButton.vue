@@ -6,7 +6,7 @@
 -->
 
 <template>
-    <div class="input-container input-button-container">
+    <div class="input-container input-button-container" :class="{ 'no-margin': shouldHideMargin }">
         <input
             type="button"
             class="input-button"

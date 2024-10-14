@@ -20,6 +20,7 @@ class InputButton extends Vue {
     @Prop({ default: true }) private isEnabled?: boolean;
     @Prop({ required: true }) private onClick?: () => void;
     @Prop({ default: false }) private shouldTransformText?: boolean;
+    @Prop({ default: false }) private shouldHideMargin?: boolean;
     @Prop({ default: false }) private isTransparent?: boolean;
     @Prop({ default: false }) private isTextLike?: boolean;
 }
