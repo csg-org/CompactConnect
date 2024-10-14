@@ -80,14 +80,13 @@ jurisdictionSummaryReportNotificationEmails: ["<email address>"]
 ## Ensure Jurisdiction License Names and Adverse Actions are compatible with System
 
 ### Translate License Names
-Each compact supports a specific set of license types, as defined under the `license_types` field in the `cdk.json` file.
+Each compact supports a specific set of license types, as defined under the `license_types` field in the [`cdk.json`](../../cdk.json) file.
 As part of onboarding, the jurisdiction is responsible for translating their license names to correlate with the names
 defined for the compact.
 
 ### Translate Adverse Actions
-In addition to license names, jurisdictions will be responsible for this translating their jurisdiction specific 
+In addition to license names, jurisdictions will be responsible for translating their jurisdiction specific 
 adverse action types for system recognized types. Currently, these have yet to be defined, but will be in the future.
-TODO - define adverse action types
 
 ## Determine Jurisprudence Requirements
 The jurisdiction must notify the commission as to whether or not there are jurisprudence requirements for licensees 
@@ -103,7 +102,7 @@ jurisprudenceRequirements:
 ## Determine Active Development Environments for Jurisdiction
 When a jurisdiction is first being onboarded to the system, they may only want to be active in certain development 
 environments.
-As if this time of writing, the following environment names are supported in the list:
+The following environment names are supported in the list:
 ```
 test, prod
 ```
@@ -119,27 +118,15 @@ the sandbox environment, regardless of the `activeEnvironments` list. This is to
 available for testing purposes.
 
 ## Add Jurisdiction Configuration File to the System
-Once all of the above information has been gathered, the jurisdiction configuration file must be added for the 
-specific compact in a YAML format, see https://yaml.org/spec/1.2.2/. These files are stored in the `compact-config` 
-subdirectory under the `compact-connect` directory. The file system structure is as follows:
-```
-compact-connect
-│
-└───compact-config
-    │   <compact-name>.yml
-    │   
-    └───<compact-name ie aslp>
-        │   <jurisdiction-name>.yml
-        │   <jurisdiction-name>.yml
-```
+Together, the above information constitutes the jurisdiction configuration file, which must be constructed in YAML 
+format (see https://yaml.org/spec/1.2.2/). The file must be defined in the following format (unless otherwise noted, 
+all fields are required):
 
-The jurisdiction configuration file name must be the name of the jurisdiction with '-' characters in place of spaces. 
-The file must be defined in the following format (unless otherwise noted, all fields are required):
 ```
 jurisdictionName: "<jurisdiction name>"
 postalAbbreviation: "<jurisdiction abbreviation>"
 jurisdictionFee: <number>
-militaryDiscount:  
+militaryDiscount:               # OPTIONAL - only if military discount is offered
     active: true | false
     discountType: "FLAT_RATE" 
     discountAmount: <number>
@@ -151,11 +138,28 @@ jurisprudenceRequirements:
 activeEnvironments: ["sandbox", "test"]
 ```
 
+These files are stored in the `compact-config` subdirectory under the `compact-connect` directory.
+The file system structure is as follows:
+
+```
+compact-connect
+│
+└───compact-config
+    │   <compact-name>.yml
+    │   
+    └───<compact-name ie aslp>
+        │   <jurisdiction-name>.yml
+        │   <jurisdiction-name>.yml
+```
+
+Note the jurisdiction configuration file name must be the name of the jurisdiction with '-' 
+characters in place of spaces.
+
+
 ## Add Global Compact Configuration File to the System
 In addition to the jurisdiction configuration files, if a new compact is being added, a global compact configuration 
 file must be added to the root of the `compact-config` directory. If it is not present for an associated directory of 
-the same name, the deployment will fail. The compact file includes the following information (unless otherwise noted,
-all fields are required).
+the same name, the deployment will fail. The compact file includes the following information (all fields are required):
 ```
 compactName: "<compact name>"
 compactCommissionFee:
