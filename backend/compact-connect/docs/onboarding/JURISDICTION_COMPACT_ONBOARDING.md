@@ -1,8 +1,10 @@
 # Jurisdiction Onboarding for Compact Connect
 
 Before a jurisdiction (i.e. state) can be onboarded to the Compact Connect system, there is certain information that 
-must be provided for that jurisdiction. This document outlines the information that is required and how that information
-is to be defined in the system. The following steps must be taken to onboard a jurisdiction to the Compact Connect system:
+must be provided for that jurisdiction. This document is intended to be referenced by State IT staff/CSG maintainers 
+that will need to assist with onboarding new jurisdictions or compacts into the system. It outlines the information 
+that is required and how that information is to be defined in the system. The following steps must be taken to onboard 
+a jurisdiction to the Compact Connect system:
 
 1. Decide Jurisdiction Fee for a Compact Privilege
 2. Determine Contact Details for System Notifications
@@ -21,12 +23,13 @@ jurisdictionFee: number
 
 ### Decide Military Discount
 The jurisdiction must also decide if they will offer a military discount for military affiliated licensees. 
-If they choose to do so, that discount amount must be defined.
+If they choose to do so, that discount amount must be defined. If you add the 'militaryDiscount' field to the
+configuration file, the following fields must be defined:
 ```
-militaryDiscount:  
-    discountType: "FLAT_RATE" 
-    active: true 
-    discountAmount: <number>
+militaryDiscount:             
+    discountType: "FLAT_RATE" # Currently only "FLAT_RATE" type is supported.
+    active: true              # Determines if the discount is active. Does NOT default to false.
+    discountAmount: <number>  # This value will subtracted from the jurisdiction fee.
 ```
 
 ## Determine Contact Details for System Notifications
@@ -163,8 +166,8 @@ the same name, the deployment will fail. The compact file includes the following
 ```
 compactName: "<compact name>"
 compactCommissionFee:
-    feeType: "FLAT_RATE"
-    feeAmount: <number>
+    feeType: "FLAT_RATE"                            # Currently only "FLAT_RATE" type is supported.
+    feeAmount: <number>                             # This value will be added to the jurisdiciton fee.
 compactOperationsTeamEmails: ["<email address>"]
 compactAdverseActionsNotificationEmails: ["<email address>"]
 compactSummaryReportNotificationEmails: ["<email address>"]
