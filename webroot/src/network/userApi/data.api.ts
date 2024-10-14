@@ -171,6 +171,17 @@ export class UserDataApi implements DataApiInterface {
 
         return response;
     }
+
+    /**
+     * GET Authenticated Staff User.
+     * @return {Promise<User>} A User model instance.
+     */
+    public async getAuthenticatedStaffUser() {
+        const serverResponse: any = await this.api.get(`/v1/staff-users/me`);
+        const response = UserSerializer.fromServer(serverResponse);
+
+        return response;
+    }
 }
 
 export const userDataApi = new UserDataApi();

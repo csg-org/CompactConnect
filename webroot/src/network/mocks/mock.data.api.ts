@@ -5,9 +5,11 @@
 //  Created by InspiringApps on 5/27/20.
 //
 
+import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { UserSerializer } from '@models/User/User.model';
 import {
     userData,
+    staffAccount,
     stateUploadRequestData,
     licensees,
     users,
@@ -29,7 +31,11 @@ const initMockStore = (store) => {
 
 export class DataApi {
     // Helper to simulate wait time on endpoints where desired, to test things like the loading UI
-    wait = (ms = 0) => new Promise((resolve) => setTimeout(() => resolve(true), ms));
+    wait = (ms = 0) => new Promise((resolve) => {
+        const waitMs = (envConfig.isTest) ? 0 : ms; // Skip any simulated waits during automated tests
+
+        setTimeout(() => resolve(true), waitMs);
+    });
 
     // Init interceptors
     public initInterceptors(store) {
@@ -105,17 +111,22 @@ export class DataApi {
 
     // Create User
     public createUser() {
-        return this.wait(500).then(() => users[0]);
+        return this.wait(500).then(() => UserSerializer.fromServer(users.items[0]));
     }
 
     // Get User by ID
     public getUser() {
-        return this.wait(500).then(() => users[0]);
+        return this.wait(500).then(() => UserSerializer.fromServer(users.items[0]));
     }
 
     // Update User by ID
     public updateUser() {
-        return this.wait(500).then(() => users[0]);
+        return this.wait(500).then(() => UserSerializer.fromServer(users.items[0]));
+    }
+
+    // Get Authenticated Staff User
+    public getAuthenticatedStaffUser() {
+        return this.wait(500).then(() => UserSerializer.fromServer(staffAccount));
     }
 
     // ========================================================================
