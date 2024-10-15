@@ -107,7 +107,7 @@ class BackendPipeline(CdkCodePipeline):
             suppressions=[
                 {
                     'id': 'HIPAA.Security-CodeBuildProjectSourceRepoUrl',
-                    'reason': 'This resource does in fact use a secure integration by virtue of the CodeStar connection',
+                    'reason': 'This resource uses a secure integration by virtue of the CodeStar connection',
                 },
                 {
                     'id': 'AwsSolutions-IAM5',

@@ -78,8 +78,10 @@ class UIStack(AppStack):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
-                    'reason': 'The wild-carded actions and resources in this policy are still scoped specifically to the'
-                    ' bucket and actions needed for this principal to deploy the UI to this infrastructure',
+                    'reason': """
+                    The wild-carded actions and resources in this policy are still scoped specifically to the
+                    bucket and actions needed for this principal to deploy the UI to this infrastructure
+                    """,
                 }
             ],
         )
