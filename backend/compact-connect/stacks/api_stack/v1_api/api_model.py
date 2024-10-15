@@ -1,4 +1,4 @@
-# pylint: disable=protected-access
+# ruff: noqa: SLF001  Private member accessed
 # This class initializes the api models for the root api, which we then want to set as protected
 # so other classes won't modify it. This is a valid use case for protected access to work with cdk.
 from aws_cdk.aws_apigateway import JsonSchema, JsonSchemaType, Model

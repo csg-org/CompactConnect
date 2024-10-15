@@ -55,15 +55,13 @@ class TestApp(TestCase):
             with open(snapshot_path) as f:
                 snapshot = json.load(f)
         else:
-            print(f"Snapshot at path '{snapshot_path}' does not exist.")
-            snapshot = None
+            self.fail(f"Snapshot at path '{snapshot_path}' does not exist.")
 
         if snapshot != actual and overwrite_snapshot:
             with open(snapshot_path, 'w') as f:
                 json.dump(actual, f, indent=2)
-            print(f"Snapshot '{snapshot_name}' has been overwritten.")
         else:
-            self.maxDiff = None  # pylint: disable=invalid-name
+            self.maxDiff = None  # noqa: N801 invalid-name
             self.assertEqual(
                 snapshot,
                 actual,

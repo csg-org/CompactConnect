@@ -1,3 +1,4 @@
+# ruff: noqa: ARG001, SLF001 unused-function-argument private-access
 import json
 from base64 import b64encode
 

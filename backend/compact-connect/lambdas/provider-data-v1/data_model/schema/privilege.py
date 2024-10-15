@@ -1,4 +1,4 @@
-# pylint: disable=invalid-name
+# noqa: N801 invalid-name
 from config import config
 from marshmallow import pre_dump
 from marshmallow.fields import UUID, Date, String

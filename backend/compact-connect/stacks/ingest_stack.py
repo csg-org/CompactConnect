@@ -167,7 +167,7 @@ class IngestStack(AppStack):
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': """
-                    This policy contains wild-carded actions and resources but they are scoped to the 
+                    This policy contains wild-carded actions and resources but they are scoped to the
                     specific actions, KMS key and Table that this lambda specifically needs access to.
                     """,
                 },

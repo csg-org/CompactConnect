@@ -7,7 +7,7 @@ from tests import TstLambdas
 
 @mock_aws
 class TestGetUserScopesFromDB(TstLambdas):
-    def setUp(self):  # pylint: disable=invalid-name
+    def setUp(self):  # noqa: N801 invalid-name
         super().setUp()
         self._user_sub = str(uuid4())
 

@@ -1,4 +1,4 @@
-# pylint: disable=invalid-name
+# noqa: N801 invalid-name
 import logging
 import os
 

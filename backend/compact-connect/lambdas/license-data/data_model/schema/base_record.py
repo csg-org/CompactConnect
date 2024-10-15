@@ -1,4 +1,4 @@
-# pylint: disable=invalid-name
+# noqa: N801 invalid-name
 # We diverge from PEP8 variable naming in schema because they map to our API JSON Schema in which,
 # by convention, we use camelCase.
 from abc import ABC

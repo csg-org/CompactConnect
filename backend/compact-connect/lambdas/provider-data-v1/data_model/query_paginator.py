@@ -12,7 +12,7 @@ from data_model.schema.base_record import BaseRecordSchema
 
 
 # It's conventional to name a decorator in snake_case, even if it is implemented as a class
-class paginated_query:  # pylint: disable=invalid-name
+class paginated_query:  # noqa: N801 invalid-name
     """Decorator to handle converting API interface pagination to DynamoDB pagination.
 
     This will process incoming pagination fields for passing to DynamoDB, then take the raw DynamoDB response and

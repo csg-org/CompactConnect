@@ -97,9 +97,9 @@ class PostLicenses:
     def post_license_model(self) -> Model:
         """Return the Post License Model, which should only be created once per API"""
         if hasattr(self.api, '_post_license_model'):
-            return self.api._post_license_model  # pylint: disable=protected-access
+            return self.api._post_license_model  # noqa: SLF001 protected-access
 
-        self.api._post_license_model = self.api.add_model(  # pylint: disable=protected-access
+        self.api._post_license_model = self.api.add_model(  # noqa: SLF001 protected-access
             'PostLicenseModel',
             description='POST licenses request model',
             schema=JsonSchema(
@@ -126,7 +126,7 @@ class PostLicenses:
                 ),
             ),
         )
-        return self.api._post_license_model  # pylint: disable=protected-access
+        return self.api._post_license_model  # noqa: SLF001 protected-access
 
     def _post_licenses_handler(self, event_bus: EventBus) -> PythonFunction:
         stack: Stack = Stack.of(self.resource)

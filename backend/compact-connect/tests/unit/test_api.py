@@ -23,12 +23,10 @@ class TestApi(TestCase):
         # Suppresses lambda bundling for tests
         context['aws:cdk:bundling-stacks'] = []
 
-        app = CompactConnectApp(context=context)
-
-        return app
+        return CompactConnectApp(context=context)
 
     @staticmethod
-    def _get_resource_properties_by_logical_id(logical_id: str, resources: Mapping[str, Mapping]) -> Mapping:
+    def get_resource_properties_by_logical_id(logical_id: str, resources: Mapping[str, Mapping]) -> Mapping:
         """
         Helper function to retrieve a resource from a CloudFormation template by its logical ID.
         """ ''
@@ -38,7 +36,7 @@ class TestApi(TestCase):
             raise RuntimeError(f'{logical_id} not found in resources!') from exc
 
     @staticmethod
-    def _generate_expected_integration_object(handler_logical_id: str) -> dict:
+    def generate_expected_integration_object(handler_logical_id: str) -> dict:
         return {
             'Uri': {
                 'Fn::Join': [
@@ -62,15 +60,13 @@ class TestApi(TestCase):
             with open(snapshot_path) as f:
                 snapshot = json.load(f)
         else:
-            print(f"Snapshot at path '{snapshot_path}' does not exist.")
-            snapshot = None
+            self.fail(f"Snapshot at path '{snapshot_path}' does not exist.")
 
         if snapshot != actual and overwrite_snapshot:
             with open(snapshot_path, 'w') as f:
                 json.dump(actual, f, indent=2)
-            print(f"Snapshot '{snapshot_name}' has been overwritten.")
         else:
-            self.maxDiff = None  # pylint: disable=invalid-name
+            self.maxDiff = None  # noqa: N801 invalid-name
             self.assertEqual(
                 snapshot,
                 actual,

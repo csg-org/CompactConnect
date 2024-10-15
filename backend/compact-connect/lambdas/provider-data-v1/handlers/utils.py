@@ -111,7 +111,7 @@ def api_handler(fn: Callable):
     return caught_handler
 
 
-class authorize_compact_jurisdiction:  # pylint: disable=invalid-name
+class authorize_compact_jurisdiction:  # noqa: N801 invalid-name
     """Authorize endpoint by matching path parameters compact and jurisdiction to the expected scope. (i.e. aslp/oh.write)"""
 
     def __init__(self, action: str):
@@ -162,7 +162,7 @@ class authorize_compact_jurisdiction:  # pylint: disable=invalid-name
         return authorized
 
 
-class authorize_compact:  # pylint: disable=invalid-name
+class authorize_compact:  # noqa: N801 invalid-name
     """Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/read)"""
 
     def __init__(self, action: str):

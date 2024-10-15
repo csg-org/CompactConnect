@@ -68,7 +68,7 @@ class TestProviderUsersApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi._generate_expected_integration_object(
+                'Integration': TestApi.generate_expected_integration_object(
                     api_stack.get_logical_id(
                         api_stack.api.v1_api.provider_users.get_provider_users_me_handler.node.default_child,
                     ),
@@ -83,7 +83,7 @@ class TestProviderUsersApi(TestApi):
         )
 
         # now check the model matches expected contract
-        get_provider_users_me_response_model = TestApi._get_resource_properties_by_logical_id(
+        get_provider_users_me_response_model = TestApi.get_resource_properties_by_logical_id(
             method_model_logical_id_capture.as_string(),
             api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
         )

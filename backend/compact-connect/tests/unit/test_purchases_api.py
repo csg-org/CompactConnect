@@ -6,7 +6,8 @@ from tests.unit.test_api import TestApi
 
 
 class TestPurchasesApi(TestApi):
-    """These tests are focused on checking that the API endpoints for the `/purchases/ root path are configured correctly.
+    """
+    These tests are focused on checking that the API endpoints for the `/purchases/ root path are configured correctly.
 
     When adding or modifying API resources under /purchases/, a test should be added to ensure that the
     resource is created as expected. The pattern for these tests includes the following checks:
@@ -85,7 +86,7 @@ class TestPurchasesApi(TestApi):
                     'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
-                'Integration': TestApi._generate_expected_integration_object(
+                'Integration': TestApi.generate_expected_integration_object(
                     api_stack.get_logical_id(
                         api_stack.api.v1_api.purchases.get_purchase_privilege_options_handler.node.default_child,
                     ),
@@ -100,7 +101,7 @@ class TestPurchasesApi(TestApi):
         )
 
         # now check the model matches expected contract
-        get_purchase_privilege_options_response_model = TestApi._get_resource_properties_by_logical_id(
+        get_purchase_privilege_options_response_model = TestApi.get_resource_properties_by_logical_id(
             method_model_logical_id_capture.as_string(),
             api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
         )

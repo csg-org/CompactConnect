@@ -18,7 +18,7 @@ logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false') == 'true' else
 class TstFunction(TstLambdas):
     """Base class to set up Moto mocking and create mock AWS resources for functional testing"""
 
-    def setUp(self):  # pylint: disable=invalid-name
+    def setUp(self):  # noqa: N801 invalid-name
         super().setUp()
 
         self.faker = Faker(['en_US', 'ja_JP', 'es_MX'])
