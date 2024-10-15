@@ -8,7 +8,9 @@ class UserScopes(set):
     Custom Set that will populate itself based on the user's database record contents
     """
     def __init__(self, sub: str):
-        super().__init__()
+        # Some auth flows (like SRP) don't grant 'profile', so we'll make sure it's included by default
+        super().__init__(('profile',))
+
         self._get_scopes_from_db(sub)
 
     def _get_scopes_from_db(self, sub: str):
