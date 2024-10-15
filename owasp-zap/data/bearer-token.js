@@ -19,11 +19,6 @@ function sendingRequest(msg, initiator, helper) {
             print('Token not defined');
             return
         }
-        print(
-            'Adding Authorization header to request: ',
-            msg.getRequestHeader().getMethod(),
-            msg.getRequestHeader().getURI().toString()
-        );
         msg.getRequestHeader().setHeader(
             'Authorization',
             'Bearer ' + token
@@ -33,9 +28,13 @@ function sendingRequest(msg, initiator, helper) {
 
 function responseReceived(msg, initiator, helper) {
     const statusCode = msg.getResponseHeader().getStatusCode();
-    print('Response code: ', msg.getResponseHeader().getStatusCode());
-    if ( statusCode === 401 || statusCode == 403 ) {
-        print('Request header: ', msg.getRequestHeader().getHeader('Authorization').substring(0, 16));
-        print('Response body: ', msg.getResponseBody().toString());
+    print(
+        statusCode,
+        msg.getRequestHeader().getMethod(),
+        msg.getRequestHeader().getURI().toString()
+    );
+    if (statusCode === 401 || statusCode == 403 ) {
+        print('Request header:', msg.getRequestHeader().getHeader('Authorization').substring(0, 16));
+        print('Response body:', msg.getResponseBody().toString());
     }
 }
