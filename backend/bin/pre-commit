@@ -91,7 +91,7 @@ files=$(git diff-index \
     --diff-filter=dr \
     -- '*.py')
 if [ -n "$files" ]; then
-    pylint $files || exit "$?"
+    ruff check $files || exit "$?"
 fi
 
 # Run the back-end tests
