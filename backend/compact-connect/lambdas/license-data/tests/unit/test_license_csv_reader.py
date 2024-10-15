@@ -8,7 +8,7 @@ class TestCSVParser(TstLambdas):
         from license_csv_reader import LicenseCSVReader
 
         schema = LicensePostSchema()
-        with open('tests/resources/licenses.csv', 'r') as f:
+        with open('tests/resources/licenses.csv') as f:
             reader = LicenseCSVReader()
             for license_row in reader.licenses(f):
                 validated = schema.load({

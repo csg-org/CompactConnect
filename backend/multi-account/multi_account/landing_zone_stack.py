@@ -1,4 +1,3 @@
-from typing import List
 
 from aws_cdk import ArnFormat, RemovalPolicy, Stack
 from aws_cdk.aws_controltower import CfnLandingZone
@@ -13,7 +12,7 @@ class LandingZoneStack(Stack):
     def __init__(
             self, scope: Construct, construct_id: str, *,
             bare_org_stack: BareOrgStack,
-            governed_regions: List[str],
+            governed_regions: list[str],
             **kwargs
     ):
         """

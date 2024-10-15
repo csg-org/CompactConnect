@@ -73,7 +73,7 @@ class TstFunction(TstLambdas):
         test_resources = glob('tests/resources/dynamo/*.json')
 
         for resource in test_resources:
-            with open(resource, 'r') as f:
+            with open(resource) as f:
                 record = json.load(f, parse_float=Decimal)
 
             logger.debug("Loading resource, %s: %s", resource, str(record))

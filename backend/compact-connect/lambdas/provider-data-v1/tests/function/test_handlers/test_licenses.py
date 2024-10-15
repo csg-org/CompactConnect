@@ -10,7 +10,7 @@ class TestLicenses(TstFunction):
     def test_post_licenses(self):
         from handlers.licenses import post_licenses
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has write permission for aslp/oh
@@ -19,7 +19,7 @@ class TestLicenses(TstFunction):
             'compact': 'aslp',
             'jurisdiction': 'oh'
         }
-        with open('tests/resources/api/license-post.json', 'r') as f:
+        with open('tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
 
         resp = post_licenses(event, self.mock_context)
@@ -29,7 +29,7 @@ class TestLicenses(TstFunction):
     def test_post_licenses_invalid_license_type(self):
         from handlers.licenses import post_licenses
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has write permission for aslp/oh
@@ -38,7 +38,7 @@ class TestLicenses(TstFunction):
             'compact': 'aslp',
             'jurisdiction': 'oh'
         }
-        with open('tests/resources/api/license-post.json', 'r') as f:
+        with open('tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
         license_data['licenseType'] = 'occupational therapist'
         event['body'] = json.dumps([license_data])

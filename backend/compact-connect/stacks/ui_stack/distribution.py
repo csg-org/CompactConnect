@@ -62,7 +62,7 @@ class UIDistribution(Distribution):
                 ' to the AWS account for basic operational support visibility. Encrypting is not appropriate here.'
             }]
         )
-        with open(os.path.join('lambdas', 'cloudfront-csp', 'index.js'), 'r') as f:
+        with open(os.path.join('lambdas', 'cloudfront-csp', 'index.js')) as f:
             csp_function = Function(
                 scope, 'CSPFunction',
                 code=Code.from_inline(f.read()),

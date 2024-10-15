@@ -128,12 +128,12 @@ class TstFunction(TstLambdas):
         test_resources = glob('tests/resources/dynamo/*.json')
 
         def provider_jurisdictions_to_set(obj: dict):
-            if obj.get('type') == 'provider' and 'providerJurisdictions' in obj.keys():
+            if obj.get('type') == 'provider' and 'providerJurisdictions' in obj:
                 obj['providerJurisdictions'] = set(obj['providerJurisdictions'])
             return obj
 
         for resource in test_resources:
-            with open(resource, 'r') as f:
+            with open(resource) as f:
                 record = json.load(f, object_hook=provider_jurisdictions_to_set, parse_float=Decimal)
 
             logger.debug("Loading resource, %s: %s", resource, str(record))
@@ -151,7 +151,7 @@ class TstFunction(TstLambdas):
         from data_model.client import DataClient
         from handlers.ingest import ingest_license_message
 
-        with open('tests/resources/ingest/message.json', 'r') as f:
+        with open('tests/resources/ingest/message.json') as f:
             ingest_message = json.load(f)
 
 
@@ -185,7 +185,7 @@ class TstFunction(TstLambdas):
             now = datetime.now(tz=UTC)
             with patch('data_model.schema.base_record.datetime') as mock:
                 # This gives us some variation in dateOfUpdate values to sort by
-                mock.now.side_effect = lambda tz: now - timedelta(  # pylint: disable=cell-var-from-loop
+                mock.now.side_effect = lambda tz: now - timedelta(  # noqa: B023
                     days=randint(1, 365)
                 )
 

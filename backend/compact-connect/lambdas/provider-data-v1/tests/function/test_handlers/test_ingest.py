@@ -11,7 +11,7 @@ class TestIngest(TstFunction):
         from handlers.ingest import ingest_license_message
         from handlers.providers import query_providers
 
-        with open('tests/resources/ingest/message.json', 'r') as f:
+        with open('tests/resources/ingest/message.json') as f:
             message = f.read()
 
         event = {
@@ -32,7 +32,7 @@ class TestIngest(TstFunction):
 
         # To test full internal consistency, we'll also pull this new license record out
         # via the API to make sure it shows up as expected.
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['pathParameters'] = {'compact': 'aslp'}
@@ -45,7 +45,7 @@ class TestIngest(TstFunction):
         resp = query_providers(event, self.mock_context)
         self.assertEqual(resp['statusCode'], 200)
 
-        with open('tests/resources/api/provider-response.json', 'r') as f:
+        with open('tests/resources/api/provider-response.json') as f:
             expected_provider = json.load(f)
         # The canned response resource assumes that the provider will be given a privilege in NE. We didn't do that,
         # so we'll reset the privilege array.
@@ -68,10 +68,10 @@ class TestIngest(TstFunction):
         from handlers.providers import get_provider
 
         self._load_provider_data()
-        with open('tests/resources/dynamo/provider-ssn.json', 'r') as f:
+        with open('tests/resources/dynamo/provider-ssn.json') as f:
             provider_id = json.load(f)['providerId']
 
-        with open('tests/resources/ingest/message.json', 'r') as f:
+        with open('tests/resources/ingest/message.json') as f:
             message = json.load(f)
         # What happens if their license goes inactive?
         message['detail']['status'] = 'inactive'
@@ -94,7 +94,7 @@ class TestIngest(TstFunction):
 
         # To test full internal consistency, we'll also pull this new license record out
         # via the API to make sure it shows up as expected.
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
@@ -102,7 +102,7 @@ class TestIngest(TstFunction):
         resp = get_provider(event, self.mock_context)
         self.assertEqual(resp['statusCode'], 200)
 
-        with open('tests/resources/api/provider-detail-response.json', 'r') as f:
+        with open('tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
         # The license and provider should immediately be inactive
         expected_provider['status'] = 'inactive'
@@ -131,10 +131,10 @@ class TestIngest(TstFunction):
 
         # The test resource provider has a license in oh
         self._load_provider_data()
-        with open('tests/resources/dynamo/provider-ssn.json', 'r') as f:
+        with open('tests/resources/dynamo/provider-ssn.json') as f:
             provider_id = json.load(f)['providerId']
 
-        with open('tests/resources/ingest/message.json', 'r') as f:
+        with open('tests/resources/ingest/message.json') as f:
             message = json.load(f)
         # Imagine that this provider used to be licensed in ky.
         # What happens if ky uploads that inactive license?
@@ -161,7 +161,7 @@ class TestIngest(TstFunction):
 
         # To test full internal consistency, we'll also pull this new license record out
         # via the API to make sure it shows up as expected.
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
@@ -169,7 +169,7 @@ class TestIngest(TstFunction):
         resp = get_provider(event, self.mock_context)
         self.assertEqual(resp['statusCode'], 200)
 
-        with open('tests/resources/api/provider-detail-response.json', 'r') as f:
+        with open('tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
 
         provider_data = json.loads(resp['body'])
@@ -199,10 +199,10 @@ class TestIngest(TstFunction):
 
         # The test resource provider has a license in oh
         self._load_provider_data()
-        with open('tests/resources/dynamo/provider-ssn.json', 'r') as f:
+        with open('tests/resources/dynamo/provider-ssn.json') as f:
             provider_id = json.load(f)['providerId']
 
-        with open('tests/resources/ingest/message.json', 'r') as f:
+        with open('tests/resources/ingest/message.json') as f:
             message = json.load(f)
         # Imagine that this provider was just licensed in ky.
         # What happens if ky uploads that new license?
@@ -229,7 +229,7 @@ class TestIngest(TstFunction):
 
         # To test full internal consistency, we'll also pull this new license record out
         # via the API to make sure it shows up as expected.
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}

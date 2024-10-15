@@ -1,4 +1,4 @@
-from typing import Iterable
+from collections.abc import Iterable
 
 from boto3.dynamodb.types import TypeSerializer
 from config import config, logger
@@ -95,14 +95,14 @@ def ingest_license_message(message: dict):
 
 def populate_provider_record(*, provider_id: str, license_post: dict, privilege_jurisdictions: set) -> dict:
     dynamodb_serializer = TypeSerializer()
-    return dynamodb_serializer.serialize((ProviderRecordSchema().dump({
+    return dynamodb_serializer.serialize(ProviderRecordSchema().dump({
         'providerId': provider_id,
         'compact': license_post['compact'],
         'licenseJurisdiction': license_post['jurisdiction'],
         # We can't put an empty string set to DynamoDB, so we'll only add the field if it is not empty
         **({'privilegeJurisdictions': privilege_jurisdictions} if privilege_jurisdictions else {}),
         **license_post
-    })))['M']
+    }))['M']
 
 
 def find_best_license(all_licenses: Iterable) -> dict:

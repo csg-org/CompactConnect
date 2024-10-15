@@ -10,10 +10,10 @@ class TestUserRecordSchema(TstLambdas):
     def test_transform_api_to_dynamo_permissions(self):
         from data_model.schema.user import UserAPISchema
 
-        with open('tests/resources/api/user-post.json', 'r') as f:
+        with open('tests/resources/api/user-post.json') as f:
             api_user = json.load(f)
 
-        with open('tests/resources/dynamo/user.json', 'r') as f:
+        with open('tests/resources/dynamo/user.json') as f:
             dynamo_user = TypeDeserializer().deserialize({'M': json.load(f)})
 
         schema = UserAPISchema()
@@ -27,10 +27,10 @@ class TestUserRecordSchema(TstLambdas):
     def test_transform_dynamo_to_api_permissions(self):
         from data_model.schema.user import UserAPISchema, UserRecordSchema
 
-        with open('tests/resources/api/user-post.json', 'r') as f:
+        with open('tests/resources/api/user-post.json') as f:
             api_user = json.load(f)
 
-        with open('tests/resources/dynamo/user.json', 'r') as f:
+        with open('tests/resources/dynamo/user.json') as f:
             dynamo_user = UserRecordSchema().load(TypeDeserializer().deserialize({'M': json.load(f)}))
 
         schema = UserAPISchema()
@@ -47,7 +47,7 @@ class TestUserRecordSchema(TstLambdas):
         """
         from data_model.schema.user import UserRecordSchema
 
-        with open('tests/resources/dynamo/user.json', 'r') as f:
+        with open('tests/resources/dynamo/user.json') as f:
             expected_user = TypeDeserializer().deserialize({'M': json.load(f)})
 
         schema = UserRecordSchema()
@@ -62,7 +62,7 @@ class TestUserRecordSchema(TstLambdas):
     def test_invalid_record(self):
         from data_model.schema.user import UserRecordSchema
 
-        with open('tests/resources/dynamo/user.json', 'r') as f:
+        with open('tests/resources/dynamo/user.json') as f:
             user_data = TypeDeserializer().deserialize({'M': json.load(f)})
         user_data.pop('attributes')
 

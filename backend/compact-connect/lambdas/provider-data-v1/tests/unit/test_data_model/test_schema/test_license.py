@@ -10,7 +10,7 @@ class TestLicenseSchema(TstLambdas):
     def test_validate_post(self):
         from data_model.schema.license import LicensePostSchema
 
-        with open('tests/resources/api/license-post.json', 'r') as f:
+        with open('tests/resources/api/license-post.json') as f:
             LicensePostSchema().load({
                 'compact': 'aslp',
                 'jurisdiction': 'oh',
@@ -20,7 +20,7 @@ class TestLicenseSchema(TstLambdas):
     def test_invalid_post(self):
         from data_model.schema.license import LicensePostSchema
 
-        with open('tests/resources/api/license-post.json', 'r') as f:
+        with open('tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
         license_data.pop('ssn')
 
@@ -37,7 +37,7 @@ class TestLicenseSchema(TstLambdas):
         """
         from data_model.schema.license import LicenseRecordSchema
 
-        with open('tests/resources/dynamo/license.json', 'r') as f:
+        with open('tests/resources/dynamo/license.json') as f:
             expected_license = json.load(f)
 
         schema = LicenseRecordSchema()
@@ -52,7 +52,7 @@ class TestLicenseSchema(TstLambdas):
     def test_invalid_record(self):
         from data_model.schema.license import LicenseRecordSchema
 
-        with open('tests/resources/dynamo/license.json', 'r') as f:
+        with open('tests/resources/dynamo/license.json') as f:
             license_data = json.load(f)
         license_data.pop('ssn')
 
@@ -66,14 +66,14 @@ class TestLicenseSchema(TstLambdas):
         """
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
 
-        with open('tests/resources/api/license-post.json', 'r') as f:
+        with open('tests/resources/api/license-post.json') as f:
             license_data = LicensePostSchema().load({
                 'compact': 'aslp',
                 'jurisdiction': 'oh',
                 **json.load(f)
             })
 
-        with open('tests/resources/dynamo/license.json', 'r') as f:
+        with open('tests/resources/dynamo/license.json') as f:
             expected_license_record = json.load(f)
         # Provider will normally be looked up / generated internally, not come from the client
         provider_id = expected_license_record['providerId']

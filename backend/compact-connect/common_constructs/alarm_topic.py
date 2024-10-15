@@ -1,4 +1,3 @@
-from typing import List
 
 from aws_cdk import ArnFormat, Stack
 from aws_cdk.aws_iam import Effect, PolicyStatement, ServicePrincipal
@@ -14,8 +13,8 @@ class AlarmTopic(Topic):
     def __init__(
             self, scope: Construct, construct_id: str, *,
             master_key: IKey,
-            email_subscriptions: List[str] = tuple(),
-            slack_subscriptions: List[dict] = tuple(),
+            email_subscriptions: list[str] = tuple(),
+            slack_subscriptions: list[dict] = tuple(),
             **kwargs
     ):
         super().__init__(

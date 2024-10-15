@@ -1,4 +1,4 @@
-from typing import Iterable
+from collections.abc import Iterable
 
 from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError
@@ -10,7 +10,7 @@ from data_model.query_paginator import paginated_query
 from data_model.schema.user import CompactPermissionsRecordSchema, UserAttributesSchema, UserRecordSchema
 
 
-class UserClient():
+class UserClient:
     """
     Client interface for license data dynamodb queries
     """

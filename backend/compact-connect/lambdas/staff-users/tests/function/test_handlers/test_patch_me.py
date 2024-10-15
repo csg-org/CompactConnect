@@ -10,7 +10,7 @@ class TestPatchMe(TstFunction):
     def test_patch_me_not_found(self):
         from handlers.me import patch_me
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has admin permission for all of aslp
@@ -32,7 +32,7 @@ class TestPatchMe(TstFunction):
 
         from handlers.me import patch_me
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has admin permission for all of aslp
@@ -49,7 +49,7 @@ class TestPatchMe(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
 
-        with open('tests/resources/api/user-response.json', 'r') as f:
+        with open('tests/resources/api/user-response.json') as f:
             expected_user = json.load(f)
         expected_user['attributes']['givenName'] = 'George'
 

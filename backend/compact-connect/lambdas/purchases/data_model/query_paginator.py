@@ -1,7 +1,7 @@
 import json
 from base64 import b64decode, b64encode
+from collections.abc import Callable
 from types import MethodType
-from typing import Callable, List
 
 from botocore.exceptions import ClientError
 from config import config, logger
@@ -120,7 +120,7 @@ class paginated_query:  # pylint: disable=invalid-name
             raise
 
     @staticmethod
-    def _load_records(records: List[dict]):
+    def _load_records(records: list[dict]):
         """
         Every record coming through this paginator should be de-serializable through our *RecordSchema
         """

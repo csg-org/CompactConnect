@@ -1,4 +1,4 @@
-from typing import List, Mapping, Optional
+from typing import Mapping
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy
 from aws_cdk.aws_cognito import (
@@ -38,7 +38,7 @@ class UserPool(CdkUserPool):
             encryption_key: IKey,
             sign_in_aliases: SignInAliases | None,
             standard_attributes: StandardAttributes,
-            custom_attributes: Optional[Mapping[str, ICustomAttribute]] = None,
+            custom_attributes: Mapping[str, ICustomAttribute] | None = None,
             email: UserPoolEmail,
             removal_policy,
             security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
@@ -118,10 +118,10 @@ class UserPool(CdkUserPool):
         )
 
     def add_ui_client(self,
-                      callback_urls: List[str],
+                      callback_urls: list[str],
                       read_attributes: ClientAttributes,
                       write_attributes: ClientAttributes,
-                      ui_scopes: List[OAuthScope] = None):
+                      ui_scopes: list[OAuthScope] = None):
         """
         Creates an app client for the UI to authenticate with the user pool.
 

@@ -14,7 +14,7 @@ class TestApiHandler(TstLambdas):
         def lambda_handler(event, context):  # pylint: disable=unused-argument
             return {'message': 'OK'}
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         resp = lambda_handler(event, self.mock_context)
@@ -29,7 +29,7 @@ class TestApiHandler(TstLambdas):
         def lambda_handler(event, context):
             raise CCInvalidRequestException("You can't do that")
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         resp = lambda_handler(event, self.mock_context)
@@ -53,7 +53,7 @@ class TestApiHandler(TstLambdas):
                 operation_name='DoAWSThing'
             )
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         with self.assertRaises(ClientError):
@@ -66,7 +66,7 @@ class TestApiHandler(TstLambdas):
         def lambda_handler(event, context):
             raise RuntimeError('Egads!')
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         with self.assertRaises(RuntimeError):
@@ -79,7 +79,7 @@ class TestApiHandler(TstLambdas):
         def lambda_handler(event, context):  # pylint: disable=unused-argument
             return {'message': 'OK'}
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         event['headers'] = None
 

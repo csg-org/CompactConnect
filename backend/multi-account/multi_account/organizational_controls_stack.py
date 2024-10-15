@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import List
 
 from aws_cdk import IResolvable, Resource, Stack
 from aws_cdk.aws_iam import Effect, PolicyDocument, PolicyStatement
@@ -38,14 +37,14 @@ class ServiceControlPolicy(Resource):
             self, scope: Construct, construct_id: str, *,
             name: str,
             description: str,
-            target_ids: List[str] | IResolvable
+            target_ids: list[str] | IResolvable
     ):
         super().__init__(scope, construct_id)
         self.name = name
         self.description = description
         self.target_ids = self.resolve_targets(target_ids)
 
-    def resolve_targets(self, target_ids: List[str] | IResolvable) -> List[str]:
+    def resolve_targets(self, target_ids: list[str] | IResolvable) -> list[str]:
         stack = Stack.of(self)
         return [
             target_id if isinstance(target_id, str) else stack.resolve(target_id)
@@ -71,7 +70,7 @@ class ServiceControlPolicy(Resource):
 class NoLeavingServiceControlPolicy(ServiceControlPolicy):
     def __init__(
             self, scope: Construct, construct_id: str, *,
-            target_ids: List[str]
+            target_ids: list[str]
     ):
         super().__init__(
             scope, construct_id,

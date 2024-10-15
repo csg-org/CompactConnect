@@ -1,5 +1,4 @@
 import json
-from typing import List
 from unittest.mock import MagicMock
 from uuid import uuid4
 
@@ -14,14 +13,14 @@ class TestEventBatchWriter(TstLambdas):
 
         put_count = []
 
-        def mock_put_items(Entries: List[dict]):  # pylint: disable=invalid-name
+        def mock_put_items(Entries: list[dict]):  # pylint: disable=invalid-name
             put_count.extend(Entries)
             return {}
 
         mock_client = MagicMock()
         mock_client.put_events.side_effect = mock_put_items
 
-        with open('tests/resources/ingest/message.json', 'r') as f:
+        with open('tests/resources/ingest/message.json') as f:
             event = json.load(f)
 
         with EventBatchWriter(client=mock_client) as writer:
@@ -44,14 +43,14 @@ class TestEventBatchWriter(TstLambdas):
 
         put_count = []
 
-        def mock_put_items(Entries: List[dict]):  # pylint: disable=invalid-name
+        def mock_put_items(Entries: list[dict]):  # pylint: disable=invalid-name
             put_count.extend(Entries)
             return {}
 
         mock_client = MagicMock()
         mock_client.put_events.side_effect = mock_put_items
 
-        with open('tests/resources/ingest/message.json', 'r') as f:
+        with open('tests/resources/ingest/message.json') as f:
             event = json.load(f)
 
         with EventBatchWriter(client=mock_client) as writer:
@@ -75,7 +74,7 @@ class TestEventBatchWriter(TstLambdas):
 
         put_count = []
 
-        def mock_put_items(Entries: List[dict]):  # pylint: disable=invalid-name
+        def mock_put_items(Entries: list[dict]):  # pylint: disable=invalid-name
             if len(Entries) < 1:
                 raise ParamValidationError(report='Invalid length for parameter Entries, value: 0, valid min length: 1')
             put_count.extend(Entries)
@@ -84,7 +83,7 @@ class TestEventBatchWriter(TstLambdas):
         mock_client = MagicMock()
         mock_client.put_events.side_effect = mock_put_items
 
-        with open('tests/resources/ingest/message.json', 'r') as f:
+        with open('tests/resources/ingest/message.json') as f:
             event = json.load(f)
 
         with EventBatchWriter(client=mock_client) as writer:
@@ -104,14 +103,14 @@ class TestEventBatchWriter(TstLambdas):
 
         put_count = []
 
-        def mock_put_items(Entries: List[dict]):  # pylint: disable=invalid-name
+        def mock_put_items(Entries: list[dict]):  # pylint: disable=invalid-name
             put_count.extend(Entries)
             return {}
 
         mock_client = MagicMock()
         mock_client.put_events.side_effect = mock_put_items
 
-        with open('tests/resources/ingest/message.json', 'r') as f:
+        with open('tests/resources/ingest/message.json') as f:
             event = json.load(f)
 
         def interrupted_with_exception():
@@ -149,7 +148,7 @@ class TestEventBatchWriter(TstLambdas):
 
         put_count = []
 
-        def mock_put_items(Entries: List[dict]):  # pylint: disable=invalid-name
+        def mock_put_items(Entries: list[dict]):  # pylint: disable=invalid-name
             """
             Fail every last entry
             """
@@ -171,7 +170,7 @@ class TestEventBatchWriter(TstLambdas):
         mock_client = MagicMock()
         mock_client.put_events.side_effect = mock_put_items
 
-        with open('tests/resources/ingest/message.json', 'r') as f:
+        with open('tests/resources/ingest/message.json') as f:
             event = json.load(f)
 
         with EventBatchWriter(client=mock_client) as writer:
@@ -194,14 +193,14 @@ class TestEventBatchWriter(TstLambdas):
 
         put_count = []
 
-        def mock_put_items(Entries: List[dict]):  # pylint: disable=invalid-name
+        def mock_put_items(Entries: list[dict]):  # pylint: disable=invalid-name
             put_count.extend(Entries)
             return {}
 
         mock_client = MagicMock()
         mock_client.put_events.side_effect = mock_put_items
 
-        with open('tests/resources/ingest/message.json', 'r') as f:
+        with open('tests/resources/ingest/message.json') as f:
             event = json.load(f)
 
         with EventBatchWriter(client=mock_client, batch_size=5) as writer:

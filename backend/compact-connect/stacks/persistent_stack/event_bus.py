@@ -3,11 +3,12 @@ from aws_cdk.aws_events import EventBus as CdkEventBus
 from aws_cdk.aws_events import EventPattern
 from constructs import Construct
 
+DEFAULT_ARCHIVE_RETENTION_DURATION = Duration.days(180)
 
 class EventBus(CdkEventBus):
     def __init__(
             self, scope: Construct, construct_id,
-            archive_retention: Duration = Duration.days(180),
+            archive_retention: Duration = DEFAULT_ARCHIVE_RETENTION_DURATION,
             **kwargs
     ):
         super().__init__(scope, construct_id, **kwargs)

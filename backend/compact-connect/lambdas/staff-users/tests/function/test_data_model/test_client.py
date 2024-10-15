@@ -207,7 +207,7 @@ class TestClient(TstFunction):
     def test_update_user_permissions_compact_to_board_admin(self):
         from boto3.dynamodb.types import TypeDeserializer
 
-        with open('tests/resources/dynamo/user.json', 'r') as f:
+        with open('tests/resources/dynamo/user.json') as f:
             user_data = TypeDeserializer().deserialize({'M': json.load(f)})
 
         user_id = UUID(user_data['userId'])

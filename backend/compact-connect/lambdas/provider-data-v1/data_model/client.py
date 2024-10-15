@@ -13,7 +13,7 @@ from data_model.schema import PrivilegeRecordSchema
 from data_model.schema.base_record import SSNIndexRecordSchema
 
 
-class DataClient():
+class DataClient:
     """
     Client interface for license data dynamodb queries
     """
@@ -192,7 +192,7 @@ class DataClient():
                 {
                     'Put': {
                         'TableName': config.provider_table_name,
-                        'Item': dynamodb_serializer.serialize((PrivilegeRecordSchema().dump({
+                        'Item': dynamodb_serializer.serialize(PrivilegeRecordSchema().dump({
                             'providerId': provider_id,
                             'compact': compact,
                             'jurisdiction': jurisdiction,
@@ -200,7 +200,7 @@ class DataClient():
                             'dateOfExpiration': provider_data['dateOfExpiration'],
                             'dateOfIssuance': now.date(),
                             'dateOfUpdate': now.date()
-                        })))['M']
+                        }))['M']
                     }
                 }
             ]

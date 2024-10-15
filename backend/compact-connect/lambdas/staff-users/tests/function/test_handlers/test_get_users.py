@@ -10,7 +10,7 @@ class TestGetUsers(TstFunction):
     def test_get_users_empty(self):
         from handlers.users import get_users
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has admin permission for all of aslp
@@ -34,7 +34,7 @@ class TestGetUsers(TstFunction):
 
         from handlers.users import get_users
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has admin permission for all of aslp
@@ -61,7 +61,7 @@ class TestGetUsers(TstFunction):
 
         from handlers.users import get_users
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has admin permission for all of aslp
@@ -103,7 +103,7 @@ class TestGetUsers(TstFunction):
 
         from handlers.users import get_users
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has admin permission for all of octp (but not aslp)

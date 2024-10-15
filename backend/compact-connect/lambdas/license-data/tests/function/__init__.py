@@ -147,14 +147,14 @@ class TstFunction(TstLambdas):
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
         from data_model.schema.privilege import PrivilegePostSchema, PrivilegeRecordSchema
 
-        with open('tests/resources/api/license-post.json', 'r') as f:
+        with open('tests/resources/api/license-post.json') as f:
             license_data = LicensePostSchema().load({
                 'compact': 'aslp',
                 'jurisdiction': home,
                 **json.load(f)
             })
 
-        with open('tests/resources/api/privilege.json', 'r') as f:
+        with open('tests/resources/api/privilege.json') as f:
             privilege_data = PrivilegePostSchema().loads(f.read())
 
         # Generate 100 licensees, each with a license and a privilege

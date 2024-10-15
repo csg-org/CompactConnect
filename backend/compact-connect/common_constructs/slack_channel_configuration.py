@@ -1,4 +1,3 @@
-from typing import List
 
 from aws_cdk import ArnFormat, Stack
 from aws_cdk.aws_chatbot import SlackChannelConfiguration as CdkSlackChannelConfiguration
@@ -16,7 +15,7 @@ class SlackChannelConfiguration(CdkSlackChannelConfiguration):
             self, scope: Construct, construct_id: str, *,
             workspace_id: str,
             channel_id: str,
-            notification_topics: List[ITopic]
+            notification_topics: list[ITopic]
     ):
         super().__init__(
             scope, construct_id,

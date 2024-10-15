@@ -40,15 +40,11 @@ target-version = "py312"
 # McCabe complexity (`C901`) by default.
 select = [
     # pycodestyle
-#    "E",
+    "E",
     # Pyflakes
-#    "F",
-    # pyupgrade
-#    "UP",
+    "F",
     # flake8-bugbear
-#    "B",
-    # flake8-simplify
-#    "SIM",
+    "B",
     # isort
     "I",
 ]

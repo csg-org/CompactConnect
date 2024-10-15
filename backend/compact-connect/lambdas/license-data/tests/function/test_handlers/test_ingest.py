@@ -11,7 +11,7 @@ class TestIngest(TstFunction):
         from handlers.ingest import ingest_license_message
         from handlers.providers import query_providers
 
-        with open('tests/resources/ingest/message.json', 'r') as f:
+        with open('tests/resources/ingest/message.json') as f:
             message = f.read()
 
         event = {
@@ -32,7 +32,7 @@ class TestIngest(TstFunction):
 
         # To test full internal consistency, we'll also pull this new license record out
         # via the API to make sure it shows up as expected.
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['body'] = json.dumps({
@@ -43,7 +43,7 @@ class TestIngest(TstFunction):
         resp = query_providers(event, self.mock_context)
         self.assertEqual(resp['statusCode'], 200)
 
-        with open('tests/resources/api/license-response.json', 'r') as f:
+        with open('tests/resources/api/license-response.json') as f:
             expected_license = json.load(f)
 
         license_data = json.loads(resp['body'])['items'][0]

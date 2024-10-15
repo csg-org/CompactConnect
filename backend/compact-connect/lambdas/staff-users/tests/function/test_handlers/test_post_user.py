@@ -10,10 +10,10 @@ class TestPostUser(TstFunction):
     def test_post_user(self):
         from handlers.users import post_user
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        with open('tests/resources/api/user-post.json', 'r') as f:
+        with open('tests/resources/api/user-post.json') as f:
             event['body'] = f.read()
             f.seek(0)
             api_user = json.load(f)
@@ -39,10 +39,10 @@ class TestPostUser(TstFunction):
     def test_post_user_unauthorized(self):
         from handlers.users import post_user
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        with open('tests/resources/api/user-post.json', 'r') as f:
+        with open('tests/resources/api/user-post.json') as f:
             event['body'] = f.read()
 
         # The user has admin permission for nebraska, not oh, which is where the user they are trying to create

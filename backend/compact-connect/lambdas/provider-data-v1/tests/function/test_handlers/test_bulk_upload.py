@@ -12,7 +12,7 @@ class TestBulkUpload(TstFunction):
     def test_get_bulk_upload_url(self):
         from handlers.bulk_upload import bulk_upload_url_handler
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/oh.write'
@@ -29,7 +29,7 @@ class TestBulkUpload(TstFunction):
     def test_get_bulk_upload_url_forbidden(self):
         from handlers.bulk_upload import bulk_upload_url_handler
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         # User has permission in ne, not oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/ne.write'
@@ -54,7 +54,7 @@ class TestProcessObjects(TstFunction):
         self._bucket.upload_file('tests/resources/licenses.csv', object_key)
 
         # Simulate the s3 bucket event
-        with open('tests/resources/put-event.json', 'r') as f:
+        with open('tests/resources/put-event.json') as f:
             event = json.load(f)
 
         event['Records'][0]['s3']['bucket'] = {

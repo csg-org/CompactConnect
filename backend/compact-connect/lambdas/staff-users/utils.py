@@ -1,10 +1,10 @@
 import json
+from collections.abc import Callable
 from datetime import date
 from decimal import Decimal
 from functools import wraps
 from json import JSONEncoder
 from re import match
-from typing import Callable, List, Set
 from uuid import UUID
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -175,7 +175,7 @@ class authorize_compact:  # pylint: disable=invalid-name
         return authorized
 
 
-def get_allowed_jurisdictions(*, compact: str, scopes: Set[str]) -> List[str] | None:
+def get_allowed_jurisdictions(*, compact: str, scopes: set[str]) -> list[str] | None:
     """
     Return a list of jurisdictions the user is allowed to access based on their scopes. If the scopes indicate
     the user is a compact admin, the function will return None, as they will do no jurisdiction-based filtering.

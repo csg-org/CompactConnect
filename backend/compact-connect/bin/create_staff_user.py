@@ -18,7 +18,7 @@ from botocore.exceptions import ClientError
 provider_data_path = os.path.join('lambdas', 'staff-users')
 sys.path.append(provider_data_path)
 
-with open('cdk.json', 'r') as context_file:
+with open('cdk.json') as context_file:
     _context = json.load(context_file)['context']
 JURISDICTIONS = _context['jurisdictions']
 COMPACTS = _context['compacts']
@@ -110,7 +110,7 @@ if __name__ == '__main__':
     from argparse import ArgumentParser
 
     # Pull compacts and jurisdictions from cdk.json
-    with open('cdk.json', 'r') as f:
+    with open('cdk.json') as f:
         context = json.load(f)['context']
         jurisdictions = context['jurisdictions']
         compacts = context['compacts']

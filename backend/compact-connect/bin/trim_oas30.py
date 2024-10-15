@@ -21,7 +21,7 @@ def strip_sort_paths(oas30: dict) -> dict:
 
 
 if __name__ == '__main__':
-    with open('docs/api-specification/latest-oas30.json', 'r') as f:
+    with open('docs/api-specification/latest-oas30.json') as f:
         original_spec = json.load(f)
 
     new_spec = strip_sort_paths(original_spec)
