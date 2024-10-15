@@ -1,11 +1,12 @@
 from typing import List
 
 import jsii
-from aws_cdk import Stack, Duration
-from aws_cdk.aws_cloudwatch import Alarm, Stats, ComparisonOperator, TreatMissingData
+from aws_cdk import Duration, Stack
+from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_lambda import Runtime
-from aws_cdk.aws_lambda_python_alpha import PythonFunction as CdkPythonFunction, ICommandHooks, BundlingOptions
+from aws_cdk.aws_lambda_python_alpha import BundlingOptions, ICommandHooks
+from aws_cdk.aws_lambda_python_alpha import PythonFunction as CdkPythonFunction
 from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions

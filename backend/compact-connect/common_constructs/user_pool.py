@@ -1,10 +1,27 @@
-from typing import List, Optional, Mapping
+from typing import List, Mapping, Optional
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy
-from aws_cdk.aws_cognito import UserPool as CdkUserPool, UserPoolEmail, AccountRecovery, AutoVerifiedAttrs, \
-    AdvancedSecurityMode, DeviceTracking, Mfa, MfaSecondFactor, PasswordPolicy, StandardAttributes, \
-    CognitoDomainOptions, AuthFlow, OAuthSettings, OAuthFlows, ClientAttributes, \
-    CfnUserPoolRiskConfigurationAttachment, OAuthScope, ICustomAttribute, SignInAliases
+from aws_cdk.aws_cognito import (
+    AccountRecovery,
+    AdvancedSecurityMode,
+    AuthFlow,
+    AutoVerifiedAttrs,
+    CfnUserPoolRiskConfigurationAttachment,
+    ClientAttributes,
+    CognitoDomainOptions,
+    DeviceTracking,
+    ICustomAttribute,
+    Mfa,
+    MfaSecondFactor,
+    OAuthFlows,
+    OAuthScope,
+    OAuthSettings,
+    PasswordPolicy,
+    SignInAliases,
+    StandardAttributes,
+    UserPoolEmail,
+)
+from aws_cdk.aws_cognito import UserPool as CdkUserPool
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from constructs import Construct

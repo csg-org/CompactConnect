@@ -1,9 +1,9 @@
 # pylint: disable=invalid-name
-from marshmallow import pre_dump, Schema
-from marshmallow.fields import String, Decimal, Nested, List
+from config import config
+from marshmallow import Schema, pre_dump
+from marshmallow.fields import Decimal, List, Nested, String
 from marshmallow.validate import Length, OneOf
 
-from config import config
 from data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 
 COMPACT_TYPE = 'compact'

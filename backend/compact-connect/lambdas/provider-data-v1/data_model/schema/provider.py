@@ -1,13 +1,18 @@
 # pylint: disable=invalid-name
 from urllib.parse import quote
 
-from marshmallow import pre_dump, post_load, validates_schema, ValidationError
-from marshmallow.fields import String, Date, UUID, Email, Boolean
-from marshmallow.validate import Regexp, Length, OneOf
-
 from config import config
-from data_model.schema.base_record import BaseRecordSchema, SocialSecurityNumber, ForgivingSchema, \
-    ITUTE164PhoneNumber, Set
+from marshmallow import ValidationError, post_load, pre_dump, validates_schema
+from marshmallow.fields import UUID, Boolean, Date, Email, String
+from marshmallow.validate import Length, OneOf, Regexp
+
+from data_model.schema.base_record import (
+    BaseRecordSchema,
+    ForgivingSchema,
+    ITUTE164PhoneNumber,
+    Set,
+    SocialSecurityNumber,
+)
 
 
 class ProviderPublicSchema(ForgivingSchema):

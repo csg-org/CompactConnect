@@ -27,8 +27,8 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
         self.assertEqual({'body': 'Hurray!'}, example_entrypoint(event, self.mock_context))
 
     def test_no_path_param(self):
-        from handlers.utils import authorize_compact_jurisdiction
         from exceptions import CCInvalidRequestException
+        from handlers.utils import authorize_compact_jurisdiction
 
         @authorize_compact_jurisdiction(action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
@@ -45,8 +45,8 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
             example_entrypoint(event, self.mock_context)
 
     def test_no_authorizer(self):
-        from handlers.utils import authorize_compact_jurisdiction
         from exceptions import CCUnauthorizedException
+        from handlers.utils import authorize_compact_jurisdiction
 
         @authorize_compact_jurisdiction(action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
@@ -66,8 +66,8 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
             example_entrypoint(event, self.mock_context)
 
     def test_missing_scope(self):
-        from handlers.utils import authorize_compact_jurisdiction
         from exceptions import CCAccessDeniedException
+        from handlers.utils import authorize_compact_jurisdiction
 
         @authorize_compact_jurisdiction(action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
@@ -108,8 +108,8 @@ class TestAuthorizeCompact(TstLambdas):
         self.assertEqual({'body': 'Hurray!'}, example_entrypoint(event, self.mock_context))
 
     def test_no_path_param(self):
-        from handlers.utils import authorize_compact
         from exceptions import CCInvalidRequestException
+        from handlers.utils import authorize_compact
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
@@ -126,8 +126,8 @@ class TestAuthorizeCompact(TstLambdas):
             example_entrypoint(event, self.mock_context)
 
     def test_no_authorizer(self):
-        from handlers.utils import authorize_compact
         from exceptions import CCUnauthorizedException
+        from handlers.utils import authorize_compact
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
@@ -146,8 +146,8 @@ class TestAuthorizeCompact(TstLambdas):
             example_entrypoint(event, self.mock_context)
 
     def test_missing_scope(self):
-        from handlers.utils import authorize_compact
         from exceptions import CCAccessDeniedException
+        from handlers.utils import authorize_compact
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument

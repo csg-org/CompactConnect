@@ -1,5 +1,5 @@
-from aws_cdk.assertions import Template, Capture
-from aws_cdk.aws_apigateway import CfnResource, CfnMethod, CfnModel
+from aws_cdk.assertions import Capture, Template
+from aws_cdk.aws_apigateway import CfnMethod, CfnModel, CfnResource
 from aws_cdk.aws_lambda import CfnFunction
 
 from tests.unit.test_api import TestApi

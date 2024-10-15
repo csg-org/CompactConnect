@@ -1,19 +1,20 @@
 from __future__ import annotations
+
 import os
+
 from aws_cdk import Duration
-from aws_cdk.aws_cloudwatch import Alarm, Stats, ComparisonOperator, TreatMissingData
+from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_logs import QueryDefinition, QueryString
-from aws_cdk.aws_s3 import BucketEncryption, EventType, CorsRule, HttpMethods
+from aws_cdk.aws_s3 import BucketEncryption, CorsRule, EventType, HttpMethods
 from aws_cdk.aws_s3_notifications import LambdaDestination
 from cdk_nag import NagSuppressions
-from constructs import Construct
-
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.bucket import Bucket
 from common_constructs.python_function import PythonFunction
+from constructs import Construct
 
 import stacks.persistent_stack as ps
 

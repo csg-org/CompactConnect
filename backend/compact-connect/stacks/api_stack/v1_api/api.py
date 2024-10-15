@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from aws_cdk.aws_apigateway import IResource, MethodOptions, AuthorizationType
+from aws_cdk.aws_apigateway import AuthorizationType, IResource, MethodOptions
 
 from stacks import persistent_stack as ps
 from stacks.api_stack import cc_api
 from stacks.api_stack.v1_api.bulk_upload_url import BulkUploadUrl
-from stacks.api_stack.v1_api.query_providers import QueryProviders
 from stacks.api_stack.v1_api.provider_users import ProviderUsers
 from stacks.api_stack.v1_api.purchases import Purchases
+from stacks.api_stack.v1_api.query_providers import QueryProviders
 
+from .api_model import ApiModel
 from .post_licenses import PostLicenses
 from .staff_users import StaffUsers
-from .api_model import ApiModel
 
 
 class V1Api:

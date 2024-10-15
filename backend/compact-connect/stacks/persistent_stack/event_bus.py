@@ -1,5 +1,6 @@
 from aws_cdk import Duration, Stack
-from aws_cdk.aws_events import EventBus as CdkEventBus, EventPattern
+from aws_cdk.aws_events import EventBus as CdkEventBus
+from aws_cdk.aws_events import EventPattern
 from constructs import Construct
 
 

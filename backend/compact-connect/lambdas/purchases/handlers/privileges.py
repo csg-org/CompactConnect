@@ -1,10 +1,10 @@
 from aws_lambda_powertools.utilities.typing import LambdaContext
-
+from config import config, logger
+from data_model.schema.compact import COMPACT_TYPE, CompactOptionsApiResponseSchema
+from data_model.schema.jurisdiction import JURISDICTION_TYPE, JurisdictionOptionsApiResponseSchema
 from exceptions import CCInvalidRequestException
+
 from handlers.utils import api_handler
-from config import logger, config
-from data_model.schema.compact import CompactOptionsApiResponseSchema, COMPACT_TYPE
-from data_model.schema.jurisdiction import JurisdictionOptionsApiResponseSchema, JURISDICTION_TYPE
 
 
 @api_handler

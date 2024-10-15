@@ -2,7 +2,6 @@
 import os
 
 from aws_cdk import App, Environment
-
 from common_constructs.stack import StandardTags
 from pipeline import PipelineStack
 from pipeline.backend_stage import BackendStage

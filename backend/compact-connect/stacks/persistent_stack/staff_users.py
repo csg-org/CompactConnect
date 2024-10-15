@@ -1,17 +1,26 @@
 from __future__ import annotations
+
 import json
 import os
 
-from aws_cdk.aws_cognito import ResourceServerScope, UserPoolOperation, LambdaVersion, ClientAttributes, \
-    StandardAttributes, SignInAliases, UserPoolEmail, StandardAttribute
+from aws_cdk.aws_cognito import (
+    ClientAttributes,
+    LambdaVersion,
+    ResourceServerScope,
+    SignInAliases,
+    StandardAttribute,
+    StandardAttributes,
+    UserPoolEmail,
+    UserPoolOperation,
+)
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
-from constructs import Construct
-
 from common_constructs.python_function import PythonFunction
 from common_constructs.user_pool import UserPool
-from stacks.persistent_stack.users_table import UsersTable
+from constructs import Construct
+
 from stacks import persistent_stack as ps
+from stacks.persistent_stack.users_table import UsersTable
 
 
 class StaffUsers(UserPool):

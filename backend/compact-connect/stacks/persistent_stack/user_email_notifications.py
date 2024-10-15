@@ -1,9 +1,8 @@
 from aws_cdk.aws_iam import ServicePrincipal
-from aws_cdk.aws_ses import EmailIdentity, Identity, ConfigurationSet, EmailSendingEvent, EventDestination
-from aws_cdk.aws_sns import Topic, Subscription, SubscriptionProtocol
-from aws_cdk.aws_route53 import TxtRecord, IHostedZone
 from aws_cdk.aws_kms import IKey
-
+from aws_cdk.aws_route53 import IHostedZone, TxtRecord
+from aws_cdk.aws_ses import ConfigurationSet, EmailIdentity, EmailSendingEvent, EventDestination, Identity
+from aws_cdk.aws_sns import Subscription, SubscriptionProtocol, Topic
 from constructs import Construct
 
 

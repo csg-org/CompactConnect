@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 import jsii
-from aws_cdk import IAspect, Aspects
-from aws_cdk.aws_apigateway import IResource, MethodOptions, AuthorizationType, Method
+from aws_cdk import Aspects, IAspect
+from aws_cdk.aws_apigateway import AuthorizationType, IResource, Method, MethodOptions
 from cdk_nag import NagSuppressions
 
+from stacks import persistent_stack as ps
 from stacks.api_stack.bulk_upload_url import BulkUploadUrl
 from stacks.api_stack.post_license import PostLicenses
 from stacks.api_stack.query_providers import QueryProviders
-from stacks import persistent_stack as ps
 
 
 @jsii.implements(IAspect)

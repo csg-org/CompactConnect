@@ -5,14 +5,14 @@ from uuid import uuid4
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
-from marshmallow import ValidationError
-
-from config import logger, config
+from config import config, logger
 from data_model.schema.license import LicensePostSchema, LicensePublicSchema
 from event_batch_writer import EventBatchWriter
 from exceptions import CCInternalException
-from handlers.utils import scope_by_path, api_handler, ResponseEncoder
 from license_csv_reader import LicenseCSVReader
+from marshmallow import ValidationError
+
+from handlers.utils import ResponseEncoder, api_handler, scope_by_path
 
 
 @scope_by_path(resource_parameter='compact', scope_parameter='jurisdiction', action='write')

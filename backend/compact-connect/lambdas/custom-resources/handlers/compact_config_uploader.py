@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import json
-from decimal import Decimal
 from datetime import date
-from aws_lambda_powertools.utilities.typing import LambdaContext
+from decimal import Decimal
 
+from aws_lambda_powertools.utilities.typing import LambdaContext
 from config import config, logger
 
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from aws_cdk import App, Environment
-
 from multi_account.bare_org_stack import BareOrgStack
 from multi_account.landing_zone_stack import LandingZoneStack
 from multi_account.organizational_controls_stack import OrganizationalControlsStack

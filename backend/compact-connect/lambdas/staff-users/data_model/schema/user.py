@@ -1,10 +1,10 @@
 # pylint: disable=invalid-name
 
-from marshmallow import pre_dump, Schema, post_load, post_dump, pre_load
-from marshmallow.fields import UUID, Nested, String, Dict, Boolean, Raw
+from config import config
+from marshmallow import Schema, post_dump, post_load, pre_dump, pre_load
+from marshmallow.fields import UUID, Boolean, Dict, Nested, Raw, String
 from marshmallow.validate import Length, OneOf
 
-from config import config
 from data_model.schema.base_record import BaseRecordSchema, Set
 
 

@@ -4,7 +4,6 @@ from tests import TstLambdas
 class TestCSVParser(TstLambdas):
     def test_csv_parser(self):
         from config import logger
-
         from data_model.schema.license import LicensePostSchema
         from license_csv_reader import LicenseCSVReader
 

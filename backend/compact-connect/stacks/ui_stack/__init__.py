@@ -1,11 +1,11 @@
 from aws_cdk import RemovalPolicy
 from cdk_nag import NagSuppressions
-from constructs import Construct
-
 from common_constructs.bucket import Bucket
 from common_constructs.github_actions_access import GitHubActionsAccess
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
+from constructs import Construct
+
 from stacks.persistent_stack import PersistentStack
 from stacks.ui_stack.distribution import UIDistribution
 

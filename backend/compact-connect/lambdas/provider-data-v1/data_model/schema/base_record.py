@@ -2,14 +2,13 @@
 # We diverge from PEP8 variable naming in schema because they map to our API JSON Schema in which,
 # by convention, we use camelCase.
 from abc import ABC
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from typing import Type
 
-from marshmallow import Schema, RAISE, EXCLUDE, post_load, pre_dump
-from marshmallow.fields import String, Date, UUID, List
-from marshmallow.validate import Regexp
-
 from exceptions import CCInternalException
+from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump
+from marshmallow.fields import UUID, Date, List, String
+from marshmallow.validate import Regexp
 
 
 class StrictSchema(Schema):

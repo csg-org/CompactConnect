@@ -5,7 +5,6 @@ from functools import cached_property
 import boto3
 from aws_lambda_powertools import Logger
 
-
 logging.basicConfig()
 logger = Logger()
 logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false').lower() == 'true' else logging.INFO)

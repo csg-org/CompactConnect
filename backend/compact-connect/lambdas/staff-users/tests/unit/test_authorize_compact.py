@@ -26,8 +26,8 @@ class TestAuthorizeCompact(TstLambdas):
         self.assertEqual({'body': 'Hurray!'}, example_entrypoint(event, self.mock_context))
 
     def test_no_path_param(self):
-        from utils import authorize_compact
         from exceptions import CCInvalidRequestException
+        from utils import authorize_compact
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
@@ -44,8 +44,8 @@ class TestAuthorizeCompact(TstLambdas):
             example_entrypoint(event, self.mock_context)
 
     def test_no_authorizer(self):
-        from utils import authorize_compact
         from exceptions import CCUnauthorizedException
+        from utils import authorize_compact
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
@@ -64,8 +64,8 @@ class TestAuthorizeCompact(TstLambdas):
             example_entrypoint(event, self.mock_context)
 
     def test_missing_scope(self):
-        from utils import authorize_compact
         from exceptions import CCAccessDeniedException
+        from utils import authorize_compact
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument

@@ -1,5 +1,5 @@
 from aws_cdk import RemovalPolicy
-from aws_cdk.aws_dynamodb import Table, TableEncryption, BillingMode, Attribute, AttributeType
+from aws_cdk.aws_dynamodb import Attribute, AttributeType, BillingMode, Table, TableEncryption
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from constructs import Construct

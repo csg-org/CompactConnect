@@ -1,10 +1,10 @@
 from uuid import uuid4
 
-from config import logger, config
+from config import config, logger
 from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
 from exceptions import CCNotFoundException
-from handlers.utils import sqs_handler
 
+from handlers.utils import sqs_handler
 
 license_schema = LicensePostSchema()
 

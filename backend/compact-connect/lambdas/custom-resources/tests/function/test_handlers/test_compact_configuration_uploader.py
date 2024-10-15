@@ -1,10 +1,11 @@
 import json
-from decimal import Decimal
 from datetime import date
+from decimal import Decimal
+
+from boto3.dynamodb.conditions import Key
+from moto import mock_aws
 
 from tests.function import TstFunction
-from moto import mock_aws
-from boto3.dynamodb.conditions import Key
 
 TEST_ENVIRONMENT_NAME = "test"
 

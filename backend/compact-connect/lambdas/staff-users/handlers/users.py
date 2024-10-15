@@ -1,12 +1,17 @@
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-
 from config import logger
 from exceptions import CCNotFoundException
-from handlers import user_client, user_api_schema
-from utils import api_handler, authorize_compact, get_event_scopes, get_allowed_jurisdictions, \
-    collect_and_authorize_changes
+from utils import (
+    api_handler,
+    authorize_compact,
+    collect_and_authorize_changes,
+    get_allowed_jurisdictions,
+    get_event_scopes,
+)
+
+from handlers import user_api_schema, user_client
 
 
 @api_handler

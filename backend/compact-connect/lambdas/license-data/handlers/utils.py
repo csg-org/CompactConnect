@@ -1,14 +1,13 @@
 import json
+from datetime import date
 from decimal import Decimal
 from functools import wraps
 from json import JSONEncoder
 from typing import Callable
-from datetime import date
 from uuid import UUID
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
-
 from config import logger
 from exceptions import CCInvalidRequestException
 

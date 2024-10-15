@@ -1,14 +1,14 @@
 import json
 
 from aws_cdk import RemovalPolicy
-from aws_cdk.aws_iam import PolicyStatement, Effect
+from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_ssm import StringParameter
-from constructs import Construct
-
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.stack import Stack
+from constructs import Construct
+
 from pipeline.backend_pipeline import BackendPipeline
 from pipeline.backend_stage import BackendStage
 

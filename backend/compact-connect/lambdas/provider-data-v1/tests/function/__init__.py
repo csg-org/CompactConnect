@@ -2,8 +2,8 @@
 import json
 import logging
 import os
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
-from datetime import datetime, UTC, timedelta
 from glob import glob
 from random import randint
 from unittest.mock import patch
@@ -13,7 +13,6 @@ from faker import Faker
 from moto import mock_aws
 
 from tests import TstLambdas
-
 
 logger = logging.getLogger(__name__)
 logging.basicConfig()
@@ -149,8 +148,8 @@ class TstFunction(TstLambdas):
         :param privilege: The jurisdiction for the privilege
         :param start_serial: Starting number for last portion of the provider's SSN
         """
-        from handlers.ingest import ingest_license_message
         from data_model.client import DataClient
+        from handlers.ingest import ingest_license_message
 
         with open('tests/resources/ingest/message.json', 'r') as f:
             ingest_message = json.load(f)

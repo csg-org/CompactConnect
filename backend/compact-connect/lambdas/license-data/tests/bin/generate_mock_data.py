@@ -14,8 +14,8 @@ from random import randint
 from uuid import uuid4
 
 from config import config, logger
-from license_csv_reader import LicenseCSVReader
 from data_model.schema.license import LicenseRecordSchema
+from license_csv_reader import LicenseCSVReader
 
 
 def generate_csv_rows(count):

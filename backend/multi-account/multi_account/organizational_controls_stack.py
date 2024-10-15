@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import List
 
-from aws_cdk import Stack, Resource, IResolvable
-from aws_cdk.aws_iam import PolicyDocument, PolicyStatement, Effect
+from aws_cdk import IResolvable, Resource, Stack
+from aws_cdk.aws_iam import Effect, PolicyDocument, PolicyStatement
 from aws_cdk.aws_organizations import CfnPolicy
 from constructs import Construct
 

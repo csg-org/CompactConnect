@@ -1,6 +1,6 @@
 import jsii
 from aws_cdk import CfnOutput
-from aws_cdk.aws_iam import IGrantable, Role, FederatedPrincipal, OpenIdConnectProvider
+from aws_cdk.aws_iam import FederatedPrincipal, IGrantable, OpenIdConnectProvider, Role
 from constructs import Construct
 
 

@@ -1,11 +1,11 @@
 # pylint: disable=invalid-name
 
-from marshmallow import validates_schema, ValidationError, pre_dump
-from marshmallow.fields import String, Date, UUID, Email, Boolean
-from marshmallow.validate import Regexp, Length, OneOf
-
 from config import config
-from data_model.schema.base_record import BaseRecordSchema, SocialSecurityNumber, ForgivingSchema, ITUTE164PhoneNumber
+from marshmallow import ValidationError, pre_dump, validates_schema
+from marshmallow.fields import UUID, Boolean, Date, Email, String
+from marshmallow.validate import Length, OneOf, Regexp
+
+from data_model.schema.base_record import BaseRecordSchema, ForgivingSchema, ITUTE164PhoneNumber, SocialSecurityNumber
 
 
 class LicenseCommonSchema(ForgivingSchema):

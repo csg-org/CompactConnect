@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 
+
 class TstLambdas(TestCase):
     @classmethod
     def setUpClass(cls):
