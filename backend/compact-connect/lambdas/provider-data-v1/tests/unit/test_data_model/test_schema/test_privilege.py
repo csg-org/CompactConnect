@@ -7,9 +7,7 @@ from tests import TstLambdas
 
 class TestPrivilegeRecordSchema(TstLambdas):
     def test_serde(self):
-        """
-        Test round-trip deserialization/serialization
-        """
+        """Test round-trip deserialization/serialization"""
         from data_model.schema.privilege import PrivilegeRecordSchema
 
         with open('tests/resources/dynamo/privilege.json') as f:

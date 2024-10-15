@@ -13,8 +13,7 @@ from stacks.api_stack.query_providers import QueryProviders
 
 @jsii.implements(IAspect)
 class NagSuppressNotAuthorized:
-    """
-    This Aspect will be called over every node in the construct tree from where it is added, through all children:
+    """This Aspect will be called over every node in the construct tree from where it is added, through all children:
     https://docs.aws.amazon.com/cdk/v2/guide/aspects.html
 
     This entire API portion is intentionally unauthenticated, so we will suppress those Nag findings en masse.
@@ -32,9 +31,7 @@ class NagSuppressNotAuthorized:
 
 
 class MockApi:
-    """
-    Deprecated - Mock API portion
-    """
+    """Deprecated - Mock API portion"""
 
     def __init__(self, resource: IResource, persistent_stack: ps.PersistentStack):
         self.root = resource

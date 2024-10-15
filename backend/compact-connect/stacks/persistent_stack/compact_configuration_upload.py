@@ -14,9 +14,7 @@ from .compact_configuration_table import CompactConfigurationTable
 
 
 class CompactConfigurationUpload(Construct):
-    """
-    Custom resource to upload compact configuration data to the compact configuration table.
-    """
+    """Custom resource to upload compact configuration data to the compact configuration table."""
 
     def __init__(
         self,
@@ -57,7 +55,7 @@ class CompactConfigurationUpload(Construct):
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
-                }
+                },
             ],
         )
 
@@ -97,7 +95,7 @@ class CompactConfigurationUpload(Construct):
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
-                }
+                },
             ],
         )
 
@@ -109,7 +107,7 @@ class CompactConfigurationUpload(Construct):
                     'id': 'AwsSolutions-IAM4',
                     'applies_to': 'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',  # noqa: E501 line-too-long
                     'reason': 'This policy is appropriate for the log retention lambda',
-                }
+                },
             ],
         )
 
@@ -120,23 +118,19 @@ class CompactConfigurationUpload(Construct):
             service_token=self.compact_configuration_upload_provider.service_token,
             properties={
                 # passing this as a property to the custom resource so that the lambda can access it
-                'compact_configuration': self._generate_compact_configuration_json_string(environment_name)
+                'compact_configuration': self._generate_compact_configuration_json_string(environment_name),
             },
         )
 
     def _configuration_is_active_for_environment(self, environment_name: str, active_environments: list[str]) -> bool:
-        """
-        Check if the compact configuration is active in the given environment.
-        """
+        """Check if the compact configuration is active in the given environment."""
         return environment_name in active_environments or self.node.try_get_context('sandbox') == 'true'
 
     def _generate_compact_configuration_json_string(self, environment_name: str) -> str:
-        """
-        Currently, all configuration for compacts and jurisdictions is hardcoded in the compact-config directory.
+        """Currently, all configuration for compacts and jurisdictions is hardcoded in the compact-config directory.
         This reads the YAML configuration files and generates a JSON string of all the configuration objects that
         should be uploaded into the provider table.
         """
-
         # This object consists of two attributes: compacts and jurisdictions.
         # 'compacts' is a list of top level compact configuration files converted into JSON.
         # 'jurisdictions' is a dictionary of jurisdiction configuration files for a specific
@@ -151,7 +145,8 @@ class CompactConfigurationUpload(Construct):
                     formatted_compact = yaml.safe_load(f)
                     # only include the compact configuration if it is active in the environment
                     if self._configuration_is_active_for_environment(
-                        environment_name, formatted_compact['activeEnvironments']
+                        environment_name,
+                        formatted_compact['activeEnvironments'],
                     ):
                         uploader_input['compacts'].append(formatted_compact)
 
@@ -166,7 +161,8 @@ class CompactConfigurationUpload(Construct):
                         formatted_jurisdiction = yaml.safe_load(f)
                         # only include the jurisdiction configuration if it is active in the environment
                         if self._configuration_is_active_for_environment(
-                            environment_name, formatted_jurisdiction['activeEnvironments']
+                            environment_name,
+                            formatted_jurisdiction['activeEnvironments'],
                         ):
                             uploader_input['jurisdictions'][compact_name].append(formatted_jurisdiction)
 

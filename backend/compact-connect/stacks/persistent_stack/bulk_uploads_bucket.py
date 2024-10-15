@@ -40,8 +40,10 @@ class BulkUploadsBucket(Bucket):
             versioned=False,
             cors=[
                 CorsRule(
-                    allowed_methods=[HttpMethods.GET, HttpMethods.POST], allowed_origins=['*'], allowed_headers=['*']
-                )
+                    allowed_methods=[HttpMethods.GET, HttpMethods.POST],
+                    allowed_origins=['*'],
+                    allowed_headers=['*'],
+                ),
             ],
             **kwargs,
         )
@@ -80,9 +82,7 @@ class BulkUploadsBucket(Bucket):
         )
 
     def _add_delete_object_events(self):
-        """
-        Delete any objects that get uploaded - for mock api purposes
-        """
+        """Delete any objects that get uploaded - for mock api purposes"""
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
 
         delete_objects_handler = PythonFunction(
@@ -106,7 +106,7 @@ class BulkUploadsBucket(Bucket):
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions and resource have wildcards but are still scoped to this bucket and'
                     ' only the actions needed to perform its function',
-                }
+                },
             ],
         )
         NagSuppressions.add_resource_suppressions_by_path(
@@ -119,7 +119,7 @@ class BulkUploadsBucket(Bucket):
                     'applies_to': ['Resource::*'],
                     'reason': """The lambda policy is scoped specifically to the PutBucketNotification action, which 
                     suits its purpose.""",
-                }
+                },
             ],
         )
         NagSuppressions.add_resource_suppressions_by_path(
@@ -129,17 +129,15 @@ class BulkUploadsBucket(Bucket):
                 {
                     'id': 'AwsSolutions-IAM4',
                     'applies_to': [
-                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
                     ],
                     'reason': 'The BasicExecutionRole policy is appropriate for this lambda',
-                }
+                },
             ],
         )
 
     def _add_v1_ingest_object_events(self, event_bus: EventBus):
-        """
-        Read any objects that get uploaded and trigger ingest events
-        """
+        """Read any objects that get uploaded and trigger ingest events"""
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
         parse_objects_handler = PythonFunction(
             self,
@@ -181,7 +179,7 @@ class BulkUploadsBucket(Bucket):
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions and resource have wildcards but are still scoped to this bucket and'
                     ' only the actions needed to perform its function',
-                }
+                },
             ],
         )
         NagSuppressions.add_resource_suppressions_by_path(
@@ -196,7 +194,7 @@ class BulkUploadsBucket(Bucket):
                     The lambda policy is scoped specifically to the PutBucketNotification action, which 
                     suits its purpose.
                     """,
-                }
+                },
             ],
         )
         NagSuppressions.add_resource_suppressions_by_path(
@@ -206,9 +204,9 @@ class BulkUploadsBucket(Bucket):
                 {
                     'id': 'AwsSolutions-IAM4',
                     'applies_to': [
-                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
                     ],
                     'reason': 'The BasicExecutionRole policy is appropriate for this lambda',
-                }
+                },
             ],
         )

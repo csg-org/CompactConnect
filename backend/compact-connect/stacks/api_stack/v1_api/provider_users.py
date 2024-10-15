@@ -18,7 +18,12 @@ from .api_model import ApiModel
 
 class ProviderUsers:
     def __init__(
-        self, *, resource: Resource, data_encryption_key: IKey, provider_data_table: ProviderTable, api_model: ApiModel
+        self,
+        *,
+        resource: Resource,
+        data_encryption_key: IKey,
+        provider_data_table: ProviderTable,
+        api_model: ApiModel,
     ):
         super().__init__()
         # /v1/provider-users
@@ -43,7 +48,10 @@ class ProviderUsers:
         )
 
     def _add_get_provider_user_me(
-        self, data_encryption_key: IKey, provider_data_table: ProviderTable, lambda_environment: dict
+        self,
+        data_encryption_key: IKey,
+        provider_data_table: ProviderTable,
+        lambda_environment: dict,
     ):
         self.get_provider_users_me_handler = self._get_provider_user_me_handler(
             data_encryption_key=data_encryption_key,
@@ -57,8 +65,9 @@ class ProviderUsers:
             request_validator=self.api.parameter_body_validator,
             method_responses=[
                 MethodResponse(
-                    status_code='200', response_models={'application/json': self.api_model.provider_response_model}
-                )
+                    status_code='200',
+                    response_models={'application/json': self.api_model.provider_response_model},
+                ),
             ],
             integration=LambdaIntegration(self.get_provider_users_me_handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
@@ -66,7 +75,10 @@ class ProviderUsers:
         )
 
     def _get_provider_user_me_handler(
-        self, data_encryption_key: IKey, provider_data_table: ProviderTable, lambda_environment: dict
+        self,
+        data_encryption_key: IKey,
+        provider_data_table: ProviderTable,
+        lambda_environment: dict,
     ) -> PythonFunction:
         stack = Stack.of(self.provider_users_resource)
         handler = PythonFunction(
@@ -90,7 +102,7 @@ class ProviderUsers:
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
-                }
+                },
             ],
         )
         return handler

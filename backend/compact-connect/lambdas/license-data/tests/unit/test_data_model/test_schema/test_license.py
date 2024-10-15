@@ -34,7 +34,7 @@ class TestLicensePostSchema(TstLambdas):
         provider_id = expected_license_record['providerId']
 
         license_record = LicenseRecordSchema().dump(
-            {'compact': 'aslp', 'jurisdiction': 'co', 'providerId': UUID(provider_id), **license_data}
+            {'compact': 'aslp', 'jurisdiction': 'co', 'providerId': UUID(provider_id), **license_data},
         )
 
         # These are dynamic and so won't match

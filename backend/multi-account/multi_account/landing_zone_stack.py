@@ -17,8 +17,7 @@ class LandingZoneStack(Stack):
         governed_regions: list[str],
         **kwargs,
     ):
-        """
-        Creates an AWS ControlTower LandingZone with its expected IAM roles.
+        """Creates an AWS ControlTower LandingZone with its expected IAM roles.
 
         This stack must be deployed in the Management AWS account.
 
@@ -45,7 +44,7 @@ class LandingZoneStack(Stack):
                 principals=[ServicePrincipal('config.amazonaws.com')],
                 actions=['kms:GenerateDataKey', 'kms:Decrypt'],
                 resources=['*'],
-            )
+            ),
         )
         encryption_key.add_to_resource_policy(
             PolicyStatement(
@@ -64,7 +63,7 @@ class LandingZoneStack(Stack):
                             account=self.account,
                             resource='trail',
                             resource_name='aws-controltower-BaselineCloudTrail',
-                        )
+                        ),
                     },
                     'StringLike': {
                         # arn:aws:cloudtrail:*:111122223333:trail/*
@@ -75,10 +74,10 @@ class LandingZoneStack(Stack):
                             account=self.account,
                             resource='trail',
                             resource_name='*',
-                        )
+                        ),
                     },
                 },
-            )
+            ),
         )
 
         control_tower_role = Role(
@@ -100,19 +99,19 @@ class LandingZoneStack(Stack):
                         resource='policy',
                         resource_name='service-role/AWSControlTowerServiceRolePolicy',
                     ),
-                )
+                ),
             ],
         )
         control_tower_role.apply_removal_policy(RemovalPolicy.RETAIN)
         control_tower_role.add_to_policy(
-            PolicyStatement(effect=Effect.ALLOW, actions=['ec2:DescribeAvailabilityZones'], resources=['*'])
+            PolicyStatement(effect=Effect.ALLOW, actions=['ec2:DescribeAvailabilityZones'], resources=['*']),
         )
         control_tower_role.add_to_policy(
             PolicyStatement(
                 effect=Effect.ALLOW,
                 actions=['account:EnableRegion', 'account:ListRegions', 'account:GetRegionOptStatus'],
                 resources=['*'],
-            )
+            ),
         )
         control_tower_role.add_to_policy(
             PolicyStatement(
@@ -129,9 +128,9 @@ class LandingZoneStack(Stack):
                         region='*',
                         resource='log-group',
                         resource_name='aws-controltower/CloudTrailLogs:*',
-                    )
+                    ),
                 ],
-            )
+            ),
         )
 
         cloudtrail_role = Role(
@@ -157,9 +156,9 @@ class LandingZoneStack(Stack):
                         region='*',
                         resource='log-group',
                         resource_name='aws-controltower/CloudTrailLogs:*',
-                    )
+                    ),
                 ],
-            )
+            ),
         )
 
         config_aggregator_role = Role(
@@ -180,7 +179,7 @@ class LandingZoneStack(Stack):
                         resource='policy',
                         resource_name='service-role/AWSConfigRoleForOrganizations',
                     ),
-                )
+                ),
             ],
         )
         config_aggregator_role.apply_removal_policy(RemovalPolicy.RETAIN)
@@ -206,9 +205,9 @@ class LandingZoneStack(Stack):
                         account='*',
                         resource='role',
                         resource_name='AWSControlTowerExecution',
-                    )
+                    ),
                 ],
-            )
+            ),
         )
 
         landing_zone = CfnLandingZone(

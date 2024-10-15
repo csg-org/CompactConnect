@@ -64,7 +64,11 @@ class StaffUsers:
         self.api.log_groups.extend(self.log_groups)
 
     def _add_get_me(
-        self, me_resource: Resource, scopes: list[str], env_vars: dict, persistent_stack: ps.PersistentStack
+        self,
+        me_resource: Resource,
+        scopes: list[str],
+        env_vars: dict,
+        persistent_stack: ps.PersistentStack,
     ):
         get_me_handler = self._get_me_handler(
             env_vars=env_vars,
@@ -82,7 +86,7 @@ class StaffUsers:
                     status_code='200',
                     response_models={'application/json': self.get_me_model},
                     response_parameters={'method.response.header.Access-Control-Allow-Origin': True},
-                )
+                ),
             ],
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
@@ -111,13 +115,17 @@ class StaffUsers:
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
-                }
+                },
             ],
         )
         return handler
 
     def _add_patch_me(
-        self, me_resource: Resource, scopes: list[str], env_vars: dict, persistent_stack: ps.PersistentStack
+        self,
+        me_resource: Resource,
+        scopes: list[str],
+        env_vars: dict,
+        persistent_stack: ps.PersistentStack,
     ):
         patch_me_handler = self._patch_me_handler(
             env_vars=env_vars,
@@ -137,7 +145,7 @@ class StaffUsers:
                     status_code='200',
                     response_models={'application/json': self.get_me_model},
                     response_parameters={'method.response.header.Access-Control-Allow-Origin': True},
-                )
+                ),
             ],
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
@@ -167,13 +175,17 @@ class StaffUsers:
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
-                }
+                },
             ],
         )
         return handler
 
     def _add_get_users(
-        self, users_resource: Resource, scopes: list[str], env_vars: dict, persistent_stack: ps.PersistentStack
+        self,
+        users_resource: Resource,
+        scopes: list[str],
+        env_vars: dict,
+        persistent_stack: ps.PersistentStack,
     ):
         get_users_handler = self._get_users_handler(
             env_vars=env_vars,
@@ -190,7 +202,7 @@ class StaffUsers:
                     status_code='200',
                     response_models={'application/json': self.get_staff_users_response_model},
                     response_parameters={'method.response.header.Access-Control-Allow-Origin': True},
-                )
+                ),
             ],
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
@@ -219,13 +231,17 @@ class StaffUsers:
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
-                }
+                },
             ],
         )
         return handler
 
     def _add_get_user(
-        self, user_id_resource: Resource, scopes: list[str], env_vars: dict, persistent_stack: ps.PersistentStack
+        self,
+        user_id_resource: Resource,
+        scopes: list[str],
+        env_vars: dict,
+        persistent_stack: ps.PersistentStack,
     ):
         get_user_handler = self._get_user_handler(
             env_vars=env_vars,
@@ -243,7 +259,7 @@ class StaffUsers:
                     status_code='200',
                     response_models={'application/json': self.get_me_model},
                     response_parameters={'method.response.header.Access-Control-Allow-Origin': True},
-                )
+                ),
             ],
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
@@ -272,13 +288,17 @@ class StaffUsers:
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
-                }
+                },
             ],
         )
         return handler
 
     def _add_patch_user(
-        self, user_resource: Resource, scopes: list[str], env_vars: dict, persistent_stack: ps.PersistentStack
+        self,
+        user_resource: Resource,
+        scopes: list[str],
+        env_vars: dict,
+        persistent_stack: ps.PersistentStack,
     ):
         patch_user_handler = self._patch_user_handler(
             env_vars=env_vars,
@@ -297,7 +317,7 @@ class StaffUsers:
                     status_code='200',
                     response_models={'application/json': self.get_me_model},
                     response_parameters={'method.response.header.Access-Control-Allow-Origin': True},
-                )
+                ),
             ],
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
@@ -326,13 +346,17 @@ class StaffUsers:
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
-                }
+                },
             ],
         )
         return handler
 
     def _add_post_user(
-        self, users_resource: Resource, scopes: list[str], env_vars: dict, persistent_stack: ps.PersistentStack
+        self,
+        users_resource: Resource,
+        scopes: list[str],
+        env_vars: dict,
+        persistent_stack: ps.PersistentStack,
     ):
         post_user_handler = self._post_user_handler(
             env_vars=env_vars,
@@ -352,7 +376,7 @@ class StaffUsers:
                     status_code='200',
                     response_models={'application/json': self.get_me_model},
                     response_parameters={'method.response.header.Access-Control-Allow-Origin': True},
-                )
+                ),
             ],
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
@@ -389,29 +413,27 @@ class StaffUsers:
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
-                }
+                },
             ],
         )
         return handler
 
     @cached_property
     def get_me_model(self):
-        """
-        Return the Get Me Model, which should only be created once per API
-        """
+        """Return the Get Me Model, which should only be created once per API"""
         if hasattr(self.api, 'v1_get_me_model'):
             return self.api.v1_get_me_model
 
         self.api.v1_get_me_model = self.api.add_model(
-            'V1GetMeModel', description='Get me response model', schema=self._user_response_schema
+            'V1GetMeModel',
+            description='Get me response model',
+            schema=self._user_response_schema,
         )
         return self.api.v1_get_me_model
 
     @cached_property
     def get_staff_users_response_model(self):
-        """
-        Return the Get Users Model, which should only be created once per API
-        """
+        """Return the Get Users Model, which should only be created once per API"""
         if hasattr(self.api, 'v1_get_staff_users_response_model'):
             return self.api.v1_get_staff_users_response_model
 
@@ -431,9 +453,7 @@ class StaffUsers:
 
     @cached_property
     def patch_me_model(self):
-        """
-        Return the Get Me Model, which should only be created once per API
-        """
+        """Return the Get Me Model, which should only be created once per API"""
         if hasattr(self.api, 'v1_patch_me_request_model'):
             return self.api.v1_patch_me_request_model
 
@@ -452,9 +472,7 @@ class StaffUsers:
 
     @cached_property
     def patch_user_model(self):
-        """
-        Return the Patch User Model, which should only be created once per API
-        """
+        """Return the Patch User Model, which should only be created once per API"""
         if hasattr(self.api, 'v1_patch_user_request_model'):
             return self.api.v1_patch_user_request_model
 
@@ -471,9 +489,7 @@ class StaffUsers:
 
     @property
     def post_user_model(self):
-        """
-        Return the Post User Model, which should only be created once per API
-        """
+        """Return the Post User Model, which should only be created once per API"""
         if hasattr(self.api, 'v1_post_user_request_model'):
             return self.api.v1_post_user_request_model
 
@@ -503,9 +519,7 @@ class StaffUsers:
 
     @property
     def _patch_attributes_schema(self):
-        """
-        No support for changing a user's email address.
-        """
+        """No support for changing a user's email address."""
         return JsonSchema(
             type=JsonSchemaType.OBJECT,
             additional_properties=False,
@@ -542,7 +556,7 @@ class StaffUsers:
                                         'write': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                         'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                     },
-                                )
+                                ),
                             },
                         ),
                     ),
@@ -570,7 +584,9 @@ class StaffUsers:
             properties={
                 'lastKey': JsonSchema(type=[JsonSchemaType.STRING, JsonSchemaType.NULL], min_length=1, max_length=1024),
                 'prevLastKey': JsonSchema(
-                    type=[JsonSchemaType.STRING, JsonSchemaType.NULL], min_length=1, max_length=1024
+                    type=[JsonSchemaType.STRING, JsonSchemaType.NULL],
+                    min_length=1,
+                    max_length=1024,
                 ),
                 'pageSize': JsonSchema(type=JsonSchemaType.INTEGER, minimum=5, maximum=100),
             },

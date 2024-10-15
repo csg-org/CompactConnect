@@ -6,8 +6,7 @@ from exceptions import CCInternalException
 
 
 def get_provider_information(compact: str, provider_id: str) -> dict:
-    """
-    Common method to get provider information by compact and provider id.
+    """Common method to get provider information by compact and provider id.
 
     Currently, this is used by both staff-users to get information for a specific provider,
     and provider-users to get their own information.

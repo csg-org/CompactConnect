@@ -10,8 +10,7 @@ from tests.function import TstFunction
 @mock_aws
 class TestTransformations(TstFunction):
     def test_transformations(self):
-        """
-        License data undergoes several transformations from when it is first posted, stored into the database,
+        """License data undergoes several transformations from when it is first posted, stored into the database,
         then returned via the API. We will specifically test that chain, end to end, to make sure the transformations
         all happen as expected.
         """
@@ -46,7 +45,7 @@ class TestTransformations(TstFunction):
             event_bridge_event = json.loads(
                 mock_event_batch_writer.return_value.__enter__.return_value.put_event.call_args.kwargs['Entry'][
                     'Detail'
-                ]
+                ],
             )
 
         # A sample SQS message from EventBridge

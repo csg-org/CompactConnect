@@ -50,7 +50,10 @@ class UIStack(AppStack):
         )
 
         self.distribution = UIDistribution(
-            self, 'UIDistribution', ui_bucket=ui_bucket, persistent_stack=persistent_stack
+            self,
+            'UIDistribution',
+            ui_bucket=ui_bucket,
+            persistent_stack=persistent_stack,
         )
 
         NagSuppressions.add_resource_suppressions_by_path(
@@ -61,13 +64,16 @@ class UIStack(AppStack):
                     'id': 'AwsSolutions-CFR7',
                     'reason': 'We will upgrade to an Origin Access Control as part of this issue in our backlog:'
                     'https://github.com/csg-org/CompactConnect/issues/238',
-                }
+                },
             ],
         )
 
         # Configure permission for GitHub Actions to deploy the UI
         github_actions = GitHubActionsAccess(
-            self, 'GitHubActionsAccess', github_repo_string=github_repo_string, role_name='github_ui_push'
+            self,
+            'GitHubActionsAccess',
+            github_repo_string=github_repo_string,
+            role_name='github_ui_push',
         )
         self.distribution.grant_create_invalidation(github_actions)
         self.distribution.grant(github_actions, 'cloudfront:GetInvalidation')
@@ -82,6 +88,6 @@ class UIStack(AppStack):
                     The wild-carded actions and resources in this policy are still scoped specifically to the
                     bucket and actions needed for this principal to deploy the UI to this infrastructure
                     """,
-                }
+                },
             ],
         )

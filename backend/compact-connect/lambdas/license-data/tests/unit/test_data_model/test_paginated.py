@@ -17,7 +17,7 @@ class TestPaginated(TstLambdas):
                     # Really, this would be actual db records, but we're just going
                     # to stash our args and kwargs here, so we can inspect what this
                     # function was called with
-                    {'args': args, 'kwargs': kwargs}
+                    {'args': args, 'kwargs': kwargs},
                 ],
                 'LastEvaluatedKey': {
                     # Just to make sure we're handling non-ascii
@@ -38,12 +38,12 @@ class TestPaginated(TstLambdas):
                             'kwarg1': 'baf',
                             'dynamo_pagination': {'ExclusiveStartKey': {'pk': '안녕하세요', 'sk': '2'}, 'Limit': 5},
                         },
-                    }
+                    },
                 ],
                 'pagination': {
                     'pageSize': 5,
                     'lastKey': b64encode(
-                        json.dumps({'pk': 'gòrach', 'sk': 'aslp/co/license-home'}).encode('utf-8')
+                        json.dumps({'pk': 'gòrach', 'sk': 'aslp/co/license-home'}).encode('utf-8'),
                     ).decode('ascii'),
                     'prevLastKey': last_key,
                 },
@@ -61,8 +61,8 @@ class TestPaginated(TstLambdas):
                     # Really, this would be actual db records, but we're just going
                     # to stash our args and kwargs here, so we can inspect what this
                     # function was called with
-                    {'args': args, 'kwargs': kwargs}
-                ]
+                    {'args': args, 'kwargs': kwargs},
+                ],
             }
 
         resp = get_something()
@@ -75,10 +75,10 @@ class TestPaginated(TstLambdas):
                         'kwargs': {
                             'dynamo_pagination': {
                                 # Should fall back to default from config
-                                'Limit': 100
-                            }
+                                'Limit': 100,
+                            },
                         },
-                    }
+                    },
                 ],
                 'pagination': {'pageSize': 100, 'lastKey': None, 'prevLastKey': None},
             },

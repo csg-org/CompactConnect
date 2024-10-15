@@ -2,9 +2,7 @@ from tests import TstLambdas
 
 
 class TestCollectChanges(TstLambdas):
-    """
-    Testing that permissions changes are parsed correctly from the API
-    """
+    """Testing that permissions changes are parsed correctly from the API"""
 
     def test_compact_changes(self):
         from utils import collect_and_authorize_changes

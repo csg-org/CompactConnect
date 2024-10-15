@@ -11,18 +11,14 @@ from marshmallow.validate import Regexp
 
 
 class StrictSchema(Schema):
-    """
-    Base Schema explicitly stating what we do if unknown fields are included - raise an error
-    """
+    """Base Schema explicitly stating what we do if unknown fields are included - raise an error"""
 
     class Meta:
         unknown = RAISE
 
 
 class ForgivingSchema(Schema):
-    """
-    Base schema that will silently remove any unknown fields that are included
-    """
+    """Base schema that will silently remove any unknown fields that are included"""
 
     class Meta:
         unknown = EXCLUDE
@@ -34,9 +30,7 @@ class SocialSecurityNumber(String):
 
 
 class Set(List):
-    """
-    A Field that de/serializes to a Set (not compatible with JSON)
-    """
+    """A Field that de/serializes to a Set (not compatible with JSON)"""
 
     def _serialize(self, *args, **kwargs):
         return set(super()._serialize(*args, **kwargs))
@@ -46,9 +40,7 @@ class Set(List):
 
 
 class BaseRecordSchema(StrictSchema, ABC):
-    """
-    Abstract base class, common to all records in the license data table
-    """
+    """Abstract base class, common to all records in the license data table"""
 
     _record_type = None
     _registered_schema = {}
@@ -63,35 +55,27 @@ class BaseRecordSchema(StrictSchema, ABC):
 
     @post_load
     def drop_base_gen_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
-        """
-        Drop the db-specific pk and sk fields before returning loaded data
-        """
+        """Drop the db-specific pk and sk fields before returning loaded data"""
         del in_data['pk']
         del in_data['sk']
         return in_data
 
     @pre_dump
     def populate_type(self, in_data, **kwargs):  # pylint: disable=unused-argument
-        """
-        Populate db-specific fields before dumping to the database
-        """
+        """Populate db-specific fields before dumping to the database"""
         in_data['type'] = self._record_type
         return in_data
 
     @pre_dump
     def populate_date_of_update(self, in_data, **kwargs):  # pylint: disable=unused-argument
-        """
-        Populate db-specific fields before dumping to the database
-        """
+        """Populate db-specific fields before dumping to the database"""
         # YYYY-MM-DD
         in_data['dateOfUpdate'] = datetime.now(tz=UTC).date()
         return in_data
 
     @classmethod
     def register_schema(cls, record_type: str):
-        """
-        Add the record type to the class map of schema, so we can look one up by type
-        """
+        """Add the record type to the class map of schema, so we can look one up by type"""
 
         def do_register(schema_cls: type[Schema]) -> type[Schema]:
             cls._registered_schema[record_type] = schema_cls()
@@ -108,8 +92,7 @@ class BaseRecordSchema(StrictSchema, ABC):
 
 
 class ITUTE164PhoneNumber(String):
-    """
-    Phone number format consistent with ITU-T E.164:
+    """Phone number format consistent with ITU-T E.164:
     https://www.itu.int/rec/T-REC-E.164-201011-I/en
     """
 

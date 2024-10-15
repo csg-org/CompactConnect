@@ -24,9 +24,7 @@ from stacks.persistent_stack.users_table import UsersTable
 
 
 class StaffUsers(UserPool):
-    """
-    User pool for Compact, Board, and CSG staff
-    """
+    """User pool for Compact, Board, and CSG staff"""
 
     def __init__(
         self,
@@ -71,7 +69,7 @@ class StaffUsers(UserPool):
         if not callback_urls:
             raise ValueError(
                 "This app requires a callback url for its authentication path. Either provide 'domain_name' or set "
-                "'allow_local_ui' to true in this environment's context."
+                "'allow_local_ui' to true in this environment's context.",
             )
 
         # Do not allow resource server scopes via the client - they are assigned via token customization
@@ -85,19 +83,19 @@ class StaffUsers(UserPool):
         )
 
     def _add_resource_servers(self):
-        """
-        Add scopes for all compact/jurisdictions
-        """
+        """Add scopes for all compact/jurisdictions"""
         # {compact}.write, {compact}.admin, {compact}.read for every compact
         # Note: the .write and .admin scopes will control access to API endpoints via the Cognito authorizer, however
         # there will be a secondary level of authorization within the business logic that controls further granularity
         # of authorization (i.e. 'aslp/write' will grant access to POST license data, but the business logic inside
         # the endpoint also expects an 'aslp/co.write' if the POST includes data for Colorado.)
         self.write_scope = ResourceServerScope(
-            scope_name='write', scope_description='Write access for the compact, paired with a more specific scope'
+            scope_name='write',
+            scope_description='Write access for the compact, paired with a more specific scope',
         )
         self.admin_scope = ResourceServerScope(
-            scope_name='admin', scope_description='Admin access for the compact, paired with a more specific scope'
+            scope_name='admin',
+            scope_description='Admin access for the compact, paired with a more specific scope',
         )
         self.read_scope = ResourceServerScope(scope_name='read', scope_description='Read access for the compact')
 
@@ -112,9 +110,7 @@ class StaffUsers(UserPool):
         }
 
     def _add_scope_customization(self, persistent_stack: ps.PersistentStack):
-        """
-        Add scopes to access tokens based on the Users table
-        """
+        """Add scopes to access tokens based on the Users table"""
         compacts = self.node.get_context('compacts')
         jurisdictions = self.node.get_context('jurisdictions')
 
@@ -145,7 +141,7 @@ class StaffUsers(UserPool):
                     This lambda role policy contains wildcards in its statements, but all of its actions
                      are limited specifically to the actions and the Table it needs read access to.
                      """,
-                }
+                },
             ],
         )
         self.add_trigger(

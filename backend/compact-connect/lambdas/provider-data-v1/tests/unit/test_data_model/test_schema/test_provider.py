@@ -7,9 +7,7 @@ from tests import TstLambdas
 
 class TestProviderRecordSchema(TstLambdas):
     def test_serde(self):
-        """
-        Test round-trip deserialization/serialization
-        """
+        """Test round-trip deserialization/serialization"""
         from data_model.schema.provider import ProviderRecordSchema
 
         with open('tests/resources/dynamo/provider.json') as f:

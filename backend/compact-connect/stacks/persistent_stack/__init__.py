@@ -20,8 +20,7 @@ from stacks.persistent_stack.user_email_notifications import UserEmailNotificati
 # cdk leverages instance attributes to make resource exports accessible to other stacks
 # pylint: disable=too-many-instance-attributes
 class PersistentStack(AppStack):
-    """
-    The stack that holds long-lived resources such as license data and other things that should probably never
+    """The stack that holds long-lived resources such as license data and other things that should probably never
     be destroyed in production
     """
 
@@ -146,12 +145,18 @@ class PersistentStack(AppStack):
         )
 
         self.mock_license_table = LicenseTable(
-            self, 'MockLicenseTable', encryption_key=self.shared_encryption_key, removal_policy=RemovalPolicy.DESTROY
+            self,
+            'MockLicenseTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=RemovalPolicy.DESTROY,
         )
 
     def _add_deprecated_data_resources(self):
         self.license_table = LicenseTable(
-            self, 'LicenseTable', encryption_key=self.shared_encryption_key, removal_policy=RemovalPolicy.DESTROY
+            self,
+            'LicenseTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=RemovalPolicy.DESTROY,
         )
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
@@ -166,9 +171,15 @@ class PersistentStack(AppStack):
         )
 
         self.provider_table = ProviderTable(
-            self, 'ProviderTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
+            self,
+            'ProviderTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy,
         )
 
         self.compact_configuration_table = CompactConfigurationTable(
-            self, 'CompactConfigurationTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
+            self,
+            'CompactConfigurationTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy,
         )

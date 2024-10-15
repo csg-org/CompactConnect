@@ -11,9 +11,7 @@ logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false').lower() == 'tr
 
 @logger.inject_lambda_context()
 def customize_scopes(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    """
-    Customize the scopes in the access token before AWS generates and issues it
-    """
+    """Customize the scopes in the access token before AWS generates and issues it"""
     logger.info('Received event', event=event)
 
     try:

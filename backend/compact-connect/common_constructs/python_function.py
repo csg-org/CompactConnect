@@ -12,8 +12,7 @@ from constructs import Construct
 
 
 class PythonFunction(CdkPythonFunction):
-    """
-    Standard Python lambda function that assumes unittest-compatible tests are written in the 'tests' directory.
+    """Standard Python lambda function that assumes unittest-compatible tests are written in the 'tests' directory.
 
     On bundling, this function will validate the lambda by temporarily installing dev dependencies in
     requirements-dev.txt, then executing and removing tests.
@@ -65,10 +64,10 @@ class PythonFunction(CdkPythonFunction):
                 {
                     'id': 'AwsSolutions-IAM4',
                     'applies_to': [
-                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
                     ],
                     'reason': 'The BasicExecutionRole policy is appropriate for these lambdas',
-                }
+                },
             ],
         )
         NagSuppressions.add_resource_suppressions_by_path(
@@ -79,7 +78,7 @@ class PythonFunction(CdkPythonFunction):
                     'id': 'AwsSolutions-IAM4',
                     'applies_to': 'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',  # noqa: E501 line-too-long
                     'reason': 'This policy is appropriate for the log retention lambda',
-                }
+                },
             ],
         )
         NagSuppressions.add_resource_suppressions_by_path(
@@ -91,7 +90,7 @@ class PythonFunction(CdkPythonFunction):
                     'applies_to': ['Resource::*'],
                     'reason': 'This lambda needs to be able to configure log groups across the account, though the'
                     ' actions it is allowed are scoped specifically for this task.',
-                }
+                },
             ],
         )
 
@@ -112,8 +111,7 @@ class PythonFunction(CdkPythonFunction):
 
 @jsii.implements(ICommandHooks)
 class TestingHooks:
-    """
-    Testing hooks that will automatically run the expected tests package to validate the lambda.
+    """Testing hooks that will automatically run the expected tests package to validate the lambda.
 
     This command hook will temporarily install dev dependencies, then execute unittest-compatible
     tests expected to be in the `tests` directory.

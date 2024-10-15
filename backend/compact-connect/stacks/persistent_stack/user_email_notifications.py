@@ -7,8 +7,7 @@ from constructs import Construct
 
 
 class UserEmailNotifications(Construct):
-    """
-    This Construct leverages SES to set up an email notification system to send cognito user events from our custom
+    """This Construct leverages SES to set up an email notification system to send cognito user events from our custom
     domain with necessary SPF, DKIM, and DMARC verification records.
 
     The topic is set up to forward all bounce and complaint events to the provided email address.

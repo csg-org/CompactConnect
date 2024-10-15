@@ -34,7 +34,7 @@ class TestPrivilegePostSchema(TstLambdas):
         provider_id = expected_privilege_record['providerId']
 
         privilege_record = PrivilegeRecordSchema().dump(
-            {'compact': 'aslp', 'jurisdiction': 'co', 'providerId': UUID(provider_id), **privilege_data}
+            {'compact': 'aslp', 'jurisdiction': 'co', 'providerId': UUID(provider_id), **privilege_data},
         )
 
         # These are dynamic and so won't match

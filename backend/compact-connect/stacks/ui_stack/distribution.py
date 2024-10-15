@@ -57,7 +57,7 @@ class UIDistribution(Distribution):
                     'id': 'HIPAA.Security-CloudWatchLogGroupEncrypted',
                     'reason': 'This group will contain no PII or PHI and should be accessible by anyone with access'
                     ' to the AWS account for basic operational support visibility. Encrypting is not appropriate here.',
-                }
+                },
             ],
         )
         with open(os.path.join('lambdas', 'cloudfront-csp', 'index.js')) as f:
@@ -75,10 +75,10 @@ class UIDistribution(Distribution):
                 {
                     'id': 'AwsSolutions-IAM4',
                     'applies_to': [
-                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
                     ],
                     'reason': 'This policy enables CloudWatch logging and is appropriate for this lambda',
-                }
+                },
             ],
         )
         NagSuppressions.add_resource_suppressions(
@@ -108,8 +108,9 @@ class UIDistribution(Distribution):
                 viewer_protocol_policy=ViewerProtocolPolicy.HTTPS_ONLY,
                 edge_lambdas=[
                     EdgeLambda(
-                        event_type=LambdaEdgeEventType.VIEWER_RESPONSE, function_version=csp_function.current_version
-                    )
+                        event_type=LambdaEdgeEventType.VIEWER_RESPONSE,
+                        function_version=csp_function.current_version,
+                    ),
                 ],
             ),
             additional_behaviors={
@@ -118,7 +119,7 @@ class UIDistribution(Distribution):
                     allowed_methods=AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
                     origin=S3Origin(ui_bucket, origin_access_identity=origin_access_identity),
                     viewer_protocol_policy=ViewerProtocolPolicy.HTTPS_ONLY,
-                )
+                ),
             },
             minimum_protocol_version=SecurityPolicyProtocol.TLS_V1_2_2021,
             ssl_support_method=SSLMethod.SNI,
@@ -150,7 +151,7 @@ class UIDistribution(Distribution):
                     'id': 'AwsSolutions-CFR4',
                     'reason': 'An ACM certificate will be added to this distribution once we have linked '
                     'its domain name',
-                }
+                },
             ],
         )
         NagSuppressions.add_resource_suppressions(

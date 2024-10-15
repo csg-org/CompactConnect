@@ -61,11 +61,11 @@ class AlarmTopic(Topic):
                             resource='alarm',
                             resource_name='*',
                             arn_format=ArnFormat.COLON_RESOURCE_NAME,
-                        )
+                        ),
                     },
                     'StringEquals': {'aws:SourceAccount': stack.account},
                 },
-            )
+            ),
         )
 
     def _configure_s3_principal(self, master_key: IKey):
@@ -85,10 +85,14 @@ class AlarmTopic(Topic):
                     'ArnLike': {
                         # arn:aws:s3:*:*:*
                         'aws:SourceArn': stack.format_arn(
-                            partition=stack.partition, service='s3', region='*', account='*', resource='*'
-                        )
+                            partition=stack.partition,
+                            service='s3',
+                            region='*',
+                            account='*',
+                            resource='*',
+                        ),
                     },
                     'StringEquals': {'aws:SourceAccount': stack.account},
                 },
-            )
+            ),
         )

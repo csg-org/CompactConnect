@@ -5,9 +5,7 @@ from data_model.query_paginator import paginated_query
 
 
 class DataClient:
-    """
-    Client interface for license data dynamodb queries
-    """
+    """Client interface for license data dynamodb queries"""
 
     def __init__(self, config: _Config):
         self.config = config

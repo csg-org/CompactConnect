@@ -10,9 +10,7 @@ from handlers import user_api_schema, user_client
 
 @api_handler
 def get_me(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    """
-    Return a user by the sub in their token
-    """
+    """Return a user by the sub in their token"""
     user_id = event['requestContext']['authorizer']['claims']['sub']
 
     resp = user_client.get_user(user_id=user_id)  # pylint: disable=missing-kwoa
@@ -27,9 +25,7 @@ def get_me(event: dict, context: LambdaContext):  # pylint: disable=unused-argum
 
 @api_handler
 def patch_me(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    """
-    Edit a user's own attributes
-    """
+    """Edit a user's own attributes"""
     user_id = event['requestContext']['authorizer']['claims']['sub']
 
     body = json.loads(event['body'])

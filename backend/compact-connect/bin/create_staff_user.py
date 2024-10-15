@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Staff user generation helper script. Run from `backend/compact-connect`.
+"""Staff user generation helper script. Run from `backend/compact-connect`.
 
 Note: This script requires the boto3 library and two environment variables:
 USER_POOL_ID=us-east-1_7zzexample
@@ -50,8 +49,8 @@ def create_compact_ed_user(*, email: str, compact: str, user_attributes: dict):
                 'compact': compact,
                 'attributes': user_attributes,
                 'permissions': {'actions': {'read', 'admin'}, 'jurisdictions': {}},
-            }
-        )
+            },
+        ),
     )
 
 
@@ -66,8 +65,8 @@ def create_board_ed_user(*, email: str, compact: str, jurisdiction: str, user_at
                 'compact': compact,
                 'attributes': user_attributes,
                 'permissions': {'actions': {'read'}, 'jurisdictions': {jurisdiction: {'write', 'admin'}}},
-            }
-        )
+            },
+        ),
     )
 
 
@@ -131,7 +130,10 @@ if __name__ == '__main__':
                 print('jurisdiction is required for board-ed users.')
                 sys.exit(2)
             create_board_ed_user(
-                email=args.email, compact=args.compact, jurisdiction=args.jurisdiction, user_attributes=_user_attributes
+                email=args.email,
+                compact=args.compact,
+                jurisdiction=args.jurisdiction,
+                user_attributes=_user_attributes,
             )
         case _:
             print(f'Unsupported user type: {args.type}')

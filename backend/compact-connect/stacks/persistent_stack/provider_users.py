@@ -9,9 +9,7 @@ from stacks import persistent_stack as ps
 
 
 class ProviderUsers(UserPool):
-    """
-    User pool for providers (aka Licensees)
-    """
+    """User pool for providers (aka Licensees)"""
 
     def __init__(
         self,
@@ -57,7 +55,7 @@ class ProviderUsers(UserPool):
         if not callback_urls:
             raise ValueError(
                 "This app requires a callback url for its authentication path. Either provide 'domain_name' or set "
-                "'allow_local_ui' to true in this environment's context."
+                "'allow_local_ui' to true in this environment's context.",
             )
 
         # Create an app client to allow the front-end to authenticate.
@@ -74,8 +72,7 @@ class ProviderUsers(UserPool):
 
 
 def _configure_user_pool_standard_attributes() -> StandardAttributes:
-    """
-    The provider user pool standard attributes.
+    """The provider user pool standard attributes.
 
     Note that these values can never change! If you need to make other attributes
     required in the future, you must create an entirely new user pool and migrate

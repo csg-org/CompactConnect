@@ -7,9 +7,7 @@ from app import CompactConnectApp
 
 
 class TestApi(TestCase):
-    """
-    Base API test class with common methods for Compact Connect API resources.
-    """
+    """Base API test class with common methods for Compact Connect API resources."""
 
     @classmethod
     def setUpClass(cls):
@@ -50,13 +48,12 @@ class TestApi(TestCase):
                         {'Fn::GetAtt': [handler_logical_id, 'Arn']},
                         '/invocations',
                     ],
-                ]
-            }
+                ],
+            },
         }
 
     def compare_snapshot(self, actual: dict, snapshot_name: str, overwrite_snapshot: bool = False):
-        """
-        Compare the actual dictionary to the snapshot with the given name.
+        """Compare the actual dictionary to the snapshot with the given name.
         If overwrite_snapshot is True, overwrite the snapshot with the actual data.
         """
         snapshot_path = os.path.join('tests', 'resources', 'snapshots', f'{snapshot_name}.json')

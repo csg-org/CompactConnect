@@ -13,9 +13,7 @@ license_schema = LicensePostSchema()
 
 @sqs_handler
 def ingest_license_message(message: dict):
-    """
-    For each message, validate the license data and persist it in the database
-    """
+    """For each message, validate the license data and persist it in the database"""
     # This should already have been validated at this point, before the data was ever sent for ingest,
     # but validation is cheap. We can do it again, just to protect ourselves from something unexpected
     # happening on the way here.
@@ -35,16 +33,19 @@ def ingest_license_message(message: dict):
                 # We'll use the schema/serializer to populate index fields for us
                 'Item': TypeSerializer().serialize(
                     LicenseRecordSchema().dump(
-                        {'providerId': provider_id, 'compact': compact, 'jurisdiction': jurisdiction, **license_post}
-                    )
+                        {'providerId': provider_id, 'compact': compact, 'jurisdiction': jurisdiction, **license_post},
+                    ),
                 )['M'],
-            }
-        }
+            },
+        },
     ]
 
     try:
         provider_data = config.data_client.get_provider(  # pylint: disable=missing-kwoa,unexpected-keyword-arg
-            compact=compact, provider_id=provider_id, detail=True, consistent_read=True
+            compact=compact,
+            provider_id=provider_id,
+            detail=True,
+            consistent_read=True,
         )
         # Get all privilege jurisdictions, directly from privilege records
         privilege_jurisdictions = {
@@ -67,7 +68,9 @@ def ingest_license_message(message: dict):
     if best_license is license_post:
         logger.info('Updating provider data', provider_id=provider_id, compact=compact)
         provider_record = populate_provider_record(
-            provider_id=provider_id, license_post=license_post, privilege_jurisdictions=privilege_jurisdictions
+            provider_id=provider_id,
+            license_post=license_post,
+            privilege_jurisdictions=privilege_jurisdictions,
         )
         # Update our provider data
         dynamo_transactions.append({'Put': {'TableName': config.provider_table_name, 'Item': provider_record}})
@@ -87,8 +90,8 @@ def populate_provider_record(*, provider_id: str, license_post: dict, privilege_
                 # We can't put an empty string set to DynamoDB, so we'll only add the field if it is not empty
                 **({'privilegeJurisdictions': privilege_jurisdictions} if privilege_jurisdictions else {}),
                 **license_post,
-            }
-        )
+            },
+        ),
     )['M']
 
 

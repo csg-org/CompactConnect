@@ -18,7 +18,7 @@ class TstLambdas(TestCase):
                 'FAM_GIV_INDEX_NAME': 'famGiv',
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',
-            }
+            },
         )
         # Monkey-patch config object to be sure we have it based
         # on the env vars we set above

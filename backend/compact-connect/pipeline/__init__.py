@@ -22,7 +22,9 @@ class PipelineStack(Stack):
 
         # Fetch ssm_context if not provided locally
         parameter = StringParameter.from_string_parameter_name(
-            self, 'PipelineContext', string_parameter_name='compact-connect-context'
+            self,
+            'PipelineContext',
+            string_parameter_name='compact-connect-context',
         )
         value = StringParameter.value_from_lookup(self, parameter.parameter_name)
         # When CDK runs for the first time, it synthesizes fully without actually retrieving the SSM Parameter
@@ -103,9 +105,9 @@ class PipelineStack(Stack):
                         account='*',
                         resource='role',
                         resource_name='cdk-hnb659fds-lookup-role-*',
-                    )
+                    ),
                 ],
-            )
+            ),
         )
 
         self.prod_pipeline = BackendPipeline(
@@ -147,7 +149,7 @@ class PipelineStack(Stack):
                         account='*',
                         resource='role',
                         resource_name='cdk-hnb659fds-lookup-role-*',
-                    )
+                    ),
                 ],
-            )
+            ),
         )

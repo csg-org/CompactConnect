@@ -17,9 +17,7 @@ class WebACLScope(Enum):
 
 
 class WebACL(Resource):
-    """
-    A WebACL to protect AWS Resources
-    """
+    """A WebACL to protect AWS Resources"""
 
     def __init__(
         self,
@@ -63,7 +61,7 @@ class WebACL(Resource):
             # Regional ACLs need a log group in the matching region
             if scope == WebACLScope.CLOUDFRONT and not stack.region == 'us-east-1':
                 raise RuntimeError(
-                    'CLOUDFRONT scoped WebACLs must be in the "us-east-1" region to have' ' logging enabled'
+                    'CLOUDFRONT scoped WebACLs must be in the "us-east-1" region to have' ' logging enabled',
                 )
 
             self.log_group = LogGroup(
@@ -81,7 +79,7 @@ class WebACL(Resource):
                         'reason': 'This group will contain no PII or PHI and should be accessible by anyone with access'
                         ' to the AWS account for basic operational support visibility. Encrypting is not '
                         ' appropriate here.',
-                    }
+                    },
                 ],
             )
 
@@ -93,7 +91,7 @@ class WebACL(Resource):
                     actions=['logs:CreateLogStream', 'logs:PutLogEvents'],
                     resources=[
                         # arn:aws:logs:us-east-1:0123456789:log-group:my-log-group:log-stream:*
-                        f'{self.log_group.log_group_arn}:log-stream:*'
+                        f'{self.log_group.log_group_arn}:log-stream:*',
                     ],
                     conditions={
                         'StringEquals': {
@@ -106,11 +104,11 @@ class WebACL(Resource):
                                     region=stack.region,
                                     account=stack.account,
                                     resource='*',
-                                )
+                                ),
                             ],
-                        }
+                        },
                     },
-                )
+                ),
             )
             CfnLoggingConfiguration(
                 self,
@@ -130,8 +128,7 @@ class WebACL(Resource):
 class WebACLRules:
     @staticmethod
     def rate_limit_rule(limit: int = 100):
-        """
-        Limit calls to `limit` calls per 5 minutes for any IP
+        """Limit calls to `limit` calls per 5 minutes for any IP
         :param limit: The 5-minute call count limit. Default: 100.
         """
         # Limit calls to 100 per 5 minutes for any IP
@@ -139,29 +136,32 @@ class WebACLRules:
             name='RateLimit',
             priority=0,
             statement=CfnWebACL.StatementProperty(
-                rate_based_statement=CfnWebACL.RateBasedStatementProperty(aggregate_key_type='IP', limit=limit)
+                rate_based_statement=CfnWebACL.RateBasedStatementProperty(aggregate_key_type='IP', limit=limit),
             ),
             visibility_config=CfnWebACL.VisibilityConfigProperty(
-                cloud_watch_metrics_enabled=True, metric_name='MetricForWebACL-Rate', sampled_requests_enabled=True
+                cloud_watch_metrics_enabled=True,
+                metric_name='MetricForWebACL-Rate',
+                sampled_requests_enabled=True,
             ),
             action=CfnWebACL.RuleActionProperty(block={}),
         )
 
     @staticmethod
     def common_rule():
-        """
-        AWS-managed firewall rule set that protects from common attacks
-        """
+        """AWS-managed firewall rule set that protects from common attacks"""
         return CfnWebACL.RuleProperty(
             name='CRSRule',
             priority=2,
             statement=CfnWebACL.StatementProperty(
                 managed_rule_group_statement=CfnWebACL.ManagedRuleGroupStatementProperty(
-                    name='AWSManagedRulesCommonRuleSet', vendor_name='AWS'
-                )
+                    name='AWSManagedRulesCommonRuleSet',
+                    vendor_name='AWS',
+                ),
             ),
             visibility_config=CfnWebACL.VisibilityConfigProperty(
-                cloud_watch_metrics_enabled=True, metric_name='MetricForWebACL-CRS', sampled_requests_enabled=True
+                cloud_watch_metrics_enabled=True,
+                metric_name='MetricForWebACL-CRS',
+                sampled_requests_enabled=True,
             ),
             override_action=CfnWebACL.OverrideActionProperty(none={}),
         )

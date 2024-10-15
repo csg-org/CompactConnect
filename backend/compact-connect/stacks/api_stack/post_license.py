@@ -26,7 +26,12 @@ from . import cc_api
 
 class PostLicenses:
     def __init__(
-        self, *, resource: Resource, method_options: MethodOptions, event_bus: EventBus, mock_resource: bool = True
+        self,
+        *,
+        resource: Resource,
+        method_options: MethodOptions,
+        event_bus: EventBus,
+        mock_resource: bool = True,
     ):
         super().__init__()
 
@@ -46,10 +51,13 @@ class PostLicenses:
             request_validator=self.api.parameter_body_validator,
             request_models={'application/json': self.post_license_model},
             method_responses=[
-                MethodResponse(status_code='200', response_models={'application/json': self.api.message_response_model})
+                MethodResponse(
+                    status_code='200', response_models={'application/json': self.api.message_response_model}
+                ),
             ],
             integration=LambdaIntegration(
-                handler=self._post_licenses_handler(event_bus=event_bus), timeout=Duration.seconds(29)
+                handler=self._post_licenses_handler(event_bus=event_bus),
+                timeout=Duration.seconds(29),
             ),
             request_parameters={'method.request.header.Authorization': True}
             if method_options.authorization_type != AuthorizationType.NONE
@@ -65,12 +73,16 @@ class PostLicenses:
             request_validator=self.api.parameter_body_validator,
             request_models={'application/json': self.post_license_model},
             method_responses=[
-                MethodResponse(status_code='200', response_models={'application/json': self.api.message_response_model})
+                MethodResponse(
+                    status_code='200', response_models={'application/json': self.api.message_response_model}
+                ),
             ],
             integration=MockIntegration(
                 request_templates={'application/json': '{"statusCode": 200}'},
                 integration_responses=[
-                    IntegrationResponse(status_code='200', response_templates={'application/json': '{"message": "OK"}'})
+                    IntegrationResponse(
+                        status_code='200', response_templates={'application/json': '{"message": "OK"}'}
+                    ),
                 ],
             ),
             request_parameters={'method.request.header.Authorization': True}
@@ -83,9 +95,7 @@ class PostLicenses:
 
     @property
     def post_license_model(self) -> Model:
-        """
-        Return the Post License Model, which should only be created once per API
-        """
+        """Return the Post License Model, which should only be created once per API"""
         if hasattr(self.api, '_post_license_model'):
             return self.api._post_license_model  # pylint: disable=protected-access
 
@@ -141,7 +151,7 @@ class PostLicenses:
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
-                }
+                },
             ],
         )
         return handler

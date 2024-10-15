@@ -14,8 +14,7 @@ from data_model.schema.license import SSNIndexRecordSchema
 
 
 def paginated(fn):
-    """
-    Process incoming pagination fields for passing to DynamoDB, then take the raw DynamoDB response and transform it
+    """Process incoming pagination fields for passing to DynamoDB, then take the raw DynamoDB response and transform it
     into a dict that includes an encoded lastKey field.
 
     {
@@ -64,18 +63,14 @@ def paginated(fn):
 
 
 class DataClient:
-    """
-    Client interface for license data dynamodb queries
-    """
+    """Client interface for license data dynamodb queries"""
 
     def __init__(self, config: _Config):  # pylint: disable=redefined-outer-name
         self.config = config
         self.ssn_index_record_schema = SSNIndexRecordSchema()
 
     def get_provider_id(self, *, ssn: str) -> str:
-        """
-        Get all records associated with a given SSN.
-        """
+        """Get all records associated with a given SSN."""
         logger.info('Getting provider id by ssn')
         resp = self.config.license_table.query(
             IndexName=config.ssn_index_name,
@@ -99,14 +94,21 @@ class DataClient:
     def get_provider(self, *, provider_id: str, dynamo_pagination: dict):
         logger.info('Getting provider', provider_id=provider_id)
         resp = self.config.license_table.query(
-            Select='ALL_ATTRIBUTES', KeyConditionExpression=Key('pk').eq(provider_id), **dynamo_pagination
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(provider_id),
+            **dynamo_pagination,
         )
         resp['Items'] = self._load_records(resp.get('Items', []))
         return resp
 
     @paginated
     def get_licenses_sorted_by_family_name(
-        self, *, compact: str, jurisdiction: str, dynamo_pagination: dict, scan_forward: bool = True
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        dynamo_pagination: dict,
+        scan_forward: bool = True,
     ):  # pylint: disable-redefined-outer-name
         logger.info('Getting licenses by family name')
         resp = self.config.license_table.query(
@@ -121,7 +123,12 @@ class DataClient:
 
     @paginated
     def get_licenses_sorted_by_date_updated(
-        self, *, compact: str, jurisdiction: str, dynamo_pagination: dict, scan_forward: bool = True
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        dynamo_pagination: dict,
+        scan_forward: bool = True,
     ):  # pylint: disable-redefined-outer-name
         compact = quote(compact, safe='')
         jurisdiction = quote(jurisdiction, safe='')

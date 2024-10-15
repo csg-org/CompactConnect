@@ -49,14 +49,13 @@ class TestPaginated(TstLambdas):
                             'Limit': 5,
                         },
                     },
-                )
+                ),
             ],
             calls,
         )
 
     def test_multiple_internal_pages_server_filter(self):
-        """
-        In the case of server-side filtering, DynamoDB scans the Limit number of records but only returns records
+        """In the case of server-side filtering, DynamoDB scans the Limit number of records but only returns records
         that match filter criteria, which can be fewer. In this case, paginated_query should automatically query
         multiple times to fill out the requested page size.
         """
@@ -67,9 +66,7 @@ class TestPaginated(TstLambdas):
 
         @paginated_query
         def get_something(*args, **kwargs):
-            """
-            Pretend 4 items were filtered out
-            """
+            """Pretend 4 items were filtered out"""
             calls.append((args, kwargs))
             return {'Items': [self._item] * 6, 'Count': 6, 'LastEvaluatedKey': {'pk': self._item['pk']}}
 
@@ -114,8 +111,7 @@ class TestPaginated(TstLambdas):
         )
 
     def test_multiple_internal_pages_client_filter(self):
-        """
-        In the case of client-side filtering, DynamoDB may return the Limit of records, but a client-side filter may
+        """In the case of client-side filtering, DynamoDB may return the Limit of records, but a client-side filter may
         trim that number back below the Limit. In this case, paginated_query should automatically query multiple times
         to fill out the requested page size. Because of the complexity of this flow, we'll go out of our way to look
         closely at the last_key behavior between each query.
@@ -233,7 +229,7 @@ class TestPaginated(TstLambdas):
                     'lastKey': b64encode(
                         # Because we are mucking with pk for our filtering, the pk here should be the last value that
                         # passed through the client filter
-                        json.dumps({'pk': '20'}).encode('utf-8')
+                        json.dumps({'pk': '20'}).encode('utf-8'),
                     ).decode('utf-8'),
                     'prevLastKey': last_key,
                 },
@@ -268,10 +264,10 @@ class TestPaginated(TstLambdas):
                     {
                         'dynamo_pagination': {
                             # Should fall back to default from config
-                            'Limit': 100
-                        }
+                            'Limit': 100,
+                        },
                     },
-                )
+                ),
             ],
             calls,
         )
@@ -355,8 +351,7 @@ class TestPaginated(TstLambdas):
             throw_an_error()
 
     def test_instance_method(self):
-        """
-        Decorating instance methods works slightly differently than functions, so we'll make sure our decorator works
+        """Decorating instance methods works slightly differently than functions, so we'll make sure our decorator works
         for both.
         """
         from data_model.query_paginator import paginated_query
@@ -387,7 +382,7 @@ class TestPaginated(TstLambdas):
                             'Limit': 5,
                         },
                     },
-                )
+                ),
             ],
             calls,
         )

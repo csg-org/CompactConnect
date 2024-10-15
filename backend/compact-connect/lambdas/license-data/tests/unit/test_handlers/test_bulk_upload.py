@@ -41,7 +41,8 @@ class TestProcessS3Event(TstLambdas):
 
         # What if we've misconfigured something, so we can't access an AWS resource?
         mock_process.side_effect = ClientError(
-            error_response={'Error': {'Code': 'AccessDeniedError'}}, operation_name='DoAWSThing'
+            error_response={'Error': {'Code': 'AccessDeniedError'}},
+            operation_name='DoAWSThing',
         )
 
         with open('tests/resources/put-event.json') as f:

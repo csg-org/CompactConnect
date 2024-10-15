@@ -32,7 +32,7 @@ class TestPatchUser(TstFunction):
                     'aslp': {
                         'actions': {'read': True},
                         'jurisdictions': {'oh': {'actions': {'admin': True, 'write': True}}},
-                    }
+                    },
                 },
                 'type': 'user',
                 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797',

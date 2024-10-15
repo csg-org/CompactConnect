@@ -11,9 +11,7 @@ from data_model.schema.user import CompactPermissionsRecordSchema, UserAttribute
 
 
 class UserClient:
-    """
-    Client interface for license data dynamodb queries
-    """
+    """Client interface for license data dynamodb queries"""
 
     def __init__(self, config: _Config):
         self.config = config
@@ -24,7 +22,9 @@ class UserClient:
     @paginated_query
     def get_user(self, *, user_id: str, dynamo_pagination: dict, scan_forward: bool = True) -> list[dict]:
         resp = self.config.users_table.query(
-            KeyConditionExpression=Key('pk').eq(f'USER#{user_id}'), ScanIndexForward=scan_forward, **dynamo_pagination
+            KeyConditionExpression=Key('pk').eq(f'USER#{user_id}'),
+            ScanIndexForward=scan_forward,
+            **dynamo_pagination,
         )
         if not resp.get('Items', []):
             raise CCNotFoundException('User not found')
@@ -39,10 +39,14 @@ class UserClient:
 
     @paginated_query
     def get_users_sorted_by_family_name(
-        self, *, compact: str, dynamo_pagination: dict, jurisdictions: Iterable[str] = None, scan_forward: bool = True
+        self,
+        *,
+        compact: str,
+        dynamo_pagination: dict,
+        jurisdictions: Iterable[str] = None,
+        scan_forward: bool = True,
     ):  # pylint: disable-redefined-outer-name
-        """
-        Get users with permissions in the provided compact, sorted by family name
+        """Get users with permissions in the provided compact, sorted by family name
         :param compact: The compact to filter by
         :param dynamo_pagination: DynamoDB query pagination fields
         :param jurisdictions: List of jurisdiction codes to filter by
@@ -77,8 +81,7 @@ class UserClient:
         jurisdiction_action_additions: dict = None,
         jurisdiction_action_removals: dict = None,
     ):  # pylint: disable-redefined-outer-name
-        """
-        Update the provided user's permissions
+        """Update the provided user's permissions
         :param str compact: The compact the user's permissions are within
         :param str user_id: The user to update
         :param set compact_action_additions: Set of compact actions to add to the user ('read' or 'admin')
@@ -129,14 +132,14 @@ class UserClient:
 
                 # If this is not their first action, we simply add to the set
                 update_expression_parts['add'].append(
-                    f'#permissions.#jurisdictions.#{jurisdiction}  :{jurisdiction}AddActions'
+                    f'#permissions.#jurisdictions.#{jurisdiction}  :{jurisdiction}AddActions',
                 )
                 expression_attribute_values[f':{jurisdiction}AddActions'] = actions
 
         if jurisdiction_action_removals:
             for jurisdiction, actions in jurisdiction_action_removals.items():
                 update_expression_parts['delete'].append(
-                    f'#permissions.#jurisdictions.#{jurisdiction} :{jurisdiction}DeleteActions'
+                    f'#permissions.#jurisdictions.#{jurisdiction} :{jurisdiction}DeleteActions',
                 )
                 expression_attribute_names['#permissions'] = 'permissions'
                 expression_attribute_names['#jurisdictions'] = 'jurisdictions'
@@ -163,8 +166,7 @@ class UserClient:
         return self.schema.load(resp['Attributes'])
 
     def update_user_attributes(self, *, user_id: str, attributes: dict):  # pylint: disable-redefined-outer-name
-        """
-        Update the provided user's attributes
+        """Update the provided user's attributes
         :param str user_id: The user to update
         :param dict attributes: Dict of user attributes to update.
         Keys are the attribute names, values are the attribute values
@@ -209,8 +211,7 @@ class UserClient:
         return self.schema.load(records, many=True)
 
     def create_user(self, compact: str, attributes: dict, permissions: dict):
-        """
-        Create a new Cognito user and DB record with the given attributes and permissions
+        """Create a new Cognito user and DB record with the given attributes and permissions
         :param str compact: The compact the user will have permissions in
         :param dict attributes: The user attributes
         :param dict permissions: The permissions for the user
@@ -232,7 +233,8 @@ class UserClient:
             if e.response['Error']['Code'] == 'UsernameExistsException':
                 # If the user already exists, look them up
                 resp = self.config.cognito_client.admin_get_user(
-                    UserPoolId=self.config.user_pool_id, Username=attributes['email']
+                    UserPoolId=self.config.user_pool_id,
+                    Username=attributes['email'],
                 )
                 user_id = get_sub_from_user_attributes(resp['UserAttributes'])
             else:
@@ -240,11 +242,12 @@ class UserClient:
 
         try:
             user = self.schema.dump(
-                {'userId': user_id, 'compact': compact, 'attributes': attributes, 'permissions': permissions}
+                {'userId': user_id, 'compact': compact, 'attributes': attributes, 'permissions': permissions},
             )
             # If the user doesn't already exist, add them
             self.config.users_table.put_item(
-                Item=user, ConditionExpression=Attr('pk').not_exists() & Attr('sk').not_exists()
+                Item=user,
+                ConditionExpression=Attr('pk').not_exists() & Attr('sk').not_exists(),
             )
             user = self.schema.load(user)
         except ClientError as e:

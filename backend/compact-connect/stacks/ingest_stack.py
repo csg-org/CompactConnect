@@ -78,14 +78,17 @@ class IngestStack(AppStack):
                     This policy contains wild-carded actions and resources but they are scoped to the
                     specific actions, KMS key and Table that this lambda specifically needs access to.
                     """,
-                }
+                },
             ],
         )
 
         ingest_handler.add_event_source(
             SqsEventSource(
-                ingest_queue, batch_size=50, max_batching_window=Duration.minutes(5), report_batch_item_failures=True
-            )
+                ingest_queue,
+                batch_size=50,
+                max_batching_window=Duration.minutes(5),
+                report_batch_item_failures=True,
+            ),
         )
         # We should specifically set an alarm for any failures of this handler, since it could otherwise go unnoticed.
         Alarm(
@@ -167,14 +170,17 @@ class IngestStack(AppStack):
                     This policy contains wild-carded actions and resources but they are scoped to the 
                     specific actions, KMS key and Table that this lambda specifically needs access to.
                     """,
-                }
+                },
             ],
         )
 
         ingest_handler.add_event_source(
             SqsEventSource(
-                ingest_queue, batch_size=50, max_batching_window=Duration.minutes(5), report_batch_item_failures=True
-            )
+                ingest_queue,
+                batch_size=50,
+                max_batching_window=Duration.minutes(5),
+                report_batch_item_failures=True,
+            ),
         )
         self._add_queue_alarms(queue_retention_period, ingest_queue, ingest_dlq, persistent_stack)
 

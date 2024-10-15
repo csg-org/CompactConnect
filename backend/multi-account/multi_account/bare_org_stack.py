@@ -5,8 +5,7 @@ from constructs import Construct
 
 class BareOrgStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, *, account_name_prefix: str, email_domain: str, **kwargs):
-        """
-        Creates an AWS Organization with the minimum accounts needed
+        """Creates an AWS Organization with the minimum accounts needed
         to create a ControlTower LandingZone
 
         This stack must be deployed in the Management AWS account. Before deploying this stack, matching email

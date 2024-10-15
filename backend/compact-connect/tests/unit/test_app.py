@@ -46,8 +46,7 @@ class TestApp(TestCase):
             raise RuntimeError(f'{logical_id} not found in resources!') from exc
 
     def compare_snapshot(self, actual: dict, snapshot_name: str, overwrite_snapshot: bool = False):
-        """
-        Compare the actual dictionary to the snapshot with the given name.
+        """Compare the actual dictionary to the snapshot with the given name.
         If overwrite_snapshot is True, overwrite the snapshot with the actual data.
         """
         snapshot_path = os.path.join('tests', 'resources', 'snapshots', f'{snapshot_name}.json')
@@ -73,8 +72,7 @@ class TestApp(TestCase):
             )
 
     def test_no_compact_jurisdiction_name_clash(self):
-        """
-        Because compact and jurisdiction abbreviations share space in access token scopes, we need to ensure that
+        """Because compact and jurisdiction abbreviations share space in access token scopes, we need to ensure that
         there are no naming clashes between the two.
         """
         with open('cdk.json') as f:
@@ -93,9 +91,7 @@ class TestApp(TestCase):
 
     @patch.dict(os.environ, {'CDK_DEFAULT_ACCOUNT': '000000000000', 'CDK_DEFAULT_REGION': 'us-east-1'})
     def test_synth_pipeline(self):
-        """
-        Test infrastructure as deployed via the pipeline
-        """
+        """Test infrastructure as deployed via the pipeline"""
         context = self._when_testing_pipeline_stack_context()
 
         app = CompactConnectApp(context=context)
@@ -123,13 +119,12 @@ class TestApp(TestCase):
             allow_local_ui=True,
         )
         self._inspect_persistent_stack(
-            app.pipeline_stack.prod_stage.persistent_stack, domain_name='app.compactconnect.org'
+            app.pipeline_stack.prod_stage.persistent_stack,
+            domain_name='app.compactconnect.org',
         )
 
     def test_synth_sandbox(self):
-        """
-        Test infrastructure as deployed in a developer's sandbox
-        """
+        """Test infrastructure as deployed in a developer's sandbox"""
         context = self._when_testing_sandbox_stack_context()
 
         app = CompactConnectApp(context=context)
@@ -142,12 +137,13 @@ class TestApp(TestCase):
 
         self._inspect_api_stack(app.sandbox_stage.api_stack)
         self._inspect_persistent_stack(
-            app.sandbox_stage.persistent_stack, domain_name='app.justin.compactconnect.org', allow_local_ui=True
+            app.sandbox_stage.persistent_stack,
+            domain_name='app.justin.compactconnect.org',
+            allow_local_ui=True,
         )
 
     def test_synth_sandbox_no_domain(self):
-        """
-        Test infrastructure as deployed in a developer's sandbox:
+        """Test infrastructure as deployed in a developer's sandbox:
         In the case where they opt _not_ to set up a hosted zone and domain name for their sandbox,
         we will skip setting up domain names and DNS records for the API and UI.
         """
@@ -168,8 +164,7 @@ class TestApp(TestCase):
         self._inspect_persistent_stack(app.sandbox_stage.persistent_stack, allow_local_ui=True)
 
     def test_synth_no_ui_raises_value_error(self):
-        """
-        If a developer tries to deploy this app without either a domain name or allowing a local UI, the app
+        """If a developer tries to deploy this app without either a domain name or allowing a local UI, the app
         should fail to synthesize.
         """
         context = self._when_testing_sandbox_stack_context()
@@ -181,9 +176,7 @@ class TestApp(TestCase):
             CompactConnectApp(context=context)
 
     def test_synth_local_ui_port_override(self):
-        """
-        Test infrastructure as deployed in a developer's sandbox
-        """
+        """Test infrastructure as deployed in a developer's sandbox"""
         context = self._when_testing_sandbox_stack_context()
 
         del context['ssm_context']['environments'][context['environment_name']]['domain_name']
@@ -201,9 +194,7 @@ class TestApp(TestCase):
         self._inspect_api_stack(app.sandbox_stage.api_stack)
 
     def test_synth_generates_provider_user_pool_with_expected_custom_attributes(self):
-        """
-        Test infrastructure as deployed in a developer's sandbox
-        """
+        """Test infrastructure as deployed in a developer's sandbox"""
         context = self._when_testing_sandbox_stack_context()
 
         app = CompactConnectApp(context=context)
@@ -218,10 +209,12 @@ class TestApp(TestCase):
 
         # assert that both custom attributes are in schema
         self.assertIn(
-            {'AttributeDataType': 'String', 'Mutable': False, 'Name': 'providerId'}, provider_users_user_pool['Schema']
+            {'AttributeDataType': 'String', 'Mutable': False, 'Name': 'providerId'},
+            provider_users_user_pool['Schema'],
         )
         self.assertIn(
-            {'AttributeDataType': 'String', 'Mutable': False, 'Name': 'compact'}, provider_users_user_pool['Schema']
+            {'AttributeDataType': 'String', 'Mutable': False, 'Name': 'compact'},
+            provider_users_user_pool['Schema'],
         )
 
     @patch.dict(os.environ, {'CDK_DEFAULT_ACCOUNT': '000000000000', 'CDK_DEFAULT_REGION': 'us-east-1'})
@@ -235,14 +228,14 @@ class TestApp(TestCase):
         # Ensure our provider user pool is created with expected custom attributes
         compact_configuration_uploader_custom_resource = self._get_resource_properties_by_logical_id(
             persistent_stack.get_logical_id(
-                persistent_stack.compact_configuration_upload.compact_configuration_uploader_custom_resource.node.default_child
+                persistent_stack.compact_configuration_upload.compact_configuration_uploader_custom_resource.node.default_child,
             ),
             persistent_stack_template.find_resources('Custom::CompactConfigurationUpload'),
         )
         # we don't care about ordering of the jurisdictions, but the snapshot is sensitive to the order,
         # so we ensure to sort the jurisdictions before comparing
         sorted_compact_configuration = self._sort_compact_configuration_input(
-            json.loads(compact_configuration_uploader_custom_resource['compact_configuration'])
+            json.loads(compact_configuration_uploader_custom_resource['compact_configuration']),
         )
 
         # Assert that the compact_configuration property is set to the expected values
@@ -254,16 +247,17 @@ class TestApp(TestCase):
         )
 
     def _sort_compact_configuration_input(self, compact_configuration_input: dict) -> dict:
-        """
-        Sort the compact configuration input by compact name and then by jurisdiction postal abbreviation.
+        """Sort the compact configuration input by compact name and then by jurisdiction postal abbreviation.
         This ensures the snapshot comparison is consistent.
         """
         compact_configuration_input['compacts'] = sorted(
-            compact_configuration_input['compacts'], key=lambda compact: compact['compactName']
+            compact_configuration_input['compacts'],
+            key=lambda compact: compact['compactName'],
         )
         for compact_name, jurisdictions in compact_configuration_input['jurisdictions'].items():
             compact_configuration_input['jurisdictions'][compact_name] = sorted(
-                jurisdictions, key=lambda jurisdiction: jurisdiction['postalAbbreviation']
+                jurisdictions,
+                key=lambda jurisdiction: jurisdiction['postalAbbreviation'],
             )
 
         return compact_configuration_input

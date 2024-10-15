@@ -11,9 +11,7 @@ license_schema = LicensePostSchema()
 
 @sqs_handler
 def ingest_license_message(message: dict):
-    """
-    For each message, validate the license data and persist it in the database
-    """
+    """For each message, validate the license data and persist it in the database"""
     detail = message['detail']
     compact = detail.pop('compact')
     jurisdiction = detail.pop('jurisdiction')
@@ -33,6 +31,6 @@ def ingest_license_message(message: dict):
     config.license_table.put_item(
         # We'll use the schema/serializer to populate index fields for us
         Item=LicenseRecordSchema().dump(
-            {'providerId': provider_id, 'compact': compact, 'jurisdiction': jurisdiction, **license_post}
-        )
+            {'providerId': provider_id, 'compact': compact, 'jurisdiction': jurisdiction, **license_post},
+        ),
     )

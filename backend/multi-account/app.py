@@ -30,7 +30,11 @@ class MultiAccountApp(App):
         )
 
         self.controls_stack = OrganizationalControlsStack(
-            self, 'Controls', env=env, tags=tags, bare_org_stack=self.bare_org_stack
+            self,
+            'Controls',
+            env=env,
+            tags=tags,
+            bare_org_stack=self.bare_org_stack,
         )
 
 

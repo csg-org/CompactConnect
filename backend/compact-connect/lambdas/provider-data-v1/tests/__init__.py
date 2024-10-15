@@ -22,9 +22,9 @@ class TstLambdas(TestCase):
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',
                 'LICENSE_TYPES': json.dumps(
-                    {'aslp': ['audiologist', 'speech-language pathologist', 'speech and language pathologist']}
+                    {'aslp': ['audiologist', 'speech-language pathologist', 'speech and language pathologist']},
                 ),
-            }
+            },
         )
         # Monkey-patch config object to be sure we have it based
         # on the env vars we set above

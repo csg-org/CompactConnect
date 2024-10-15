@@ -44,8 +44,7 @@ UUID4_FORMAT = '[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-
 
 @jsii.implements(IAspect)
 class NagSuppressOptionsNotAuthorized:
-    """
-    This Aspect will be called over every node in the construct tree from where it is added, through all children:
+    """This Aspect will be called over every node in the construct tree from where it is added, through all children:
     https://docs.aws.amazon.com/cdk/v2/guide/aspects.html
 
     Because OPTIONS methods do not include authorization for CORS preflight, we'll suppress the authorization
@@ -86,7 +85,7 @@ class CCApi(RestApi):
                 subject_alternative_names=[stack.hosted_zone.zone_name],
             )
             domain_kwargs = {
-                'domain_name': DomainNameOptions(certificate=certificate, domain_name=stack.api_domain_name)
+                'domain_name': DomainNameOptions(certificate=certificate, domain_name=stack.api_domain_name),
             }
 
         access_log_group = LogGroup(scope, 'ApiAccessLogGroup', retention=RetentionDays.ONE_MONTH)
@@ -97,7 +96,7 @@ class CCApi(RestApi):
                     'id': 'HIPAA.Security-CloudWatchLogGroupEncrypted',
                     'reason': 'This group will contain no PII or PHI and should be accessible by anyone with access'
                     ' to the AWS account for basic operational support visibility. Encrypting is not appropriate here.',
-                }
+                },
             ],
         )
 
@@ -129,8 +128,8 @@ class CCApi(RestApi):
                             'status': '$context.status',
                             'response_length': '$context.responseLength',
                             'request_id': '$context.requestId',
-                        }
-                    )
+                        },
+                    ),
                 ),
                 tracing_enabled=True,
                 metrics_enabled=True,
@@ -210,10 +209,10 @@ class CCApi(RestApi):
                 {
                     'id': 'AwsSolutions-IAM4',
                     'applies_to': [
-                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
+                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs',
                     ],
                     'reason': 'This policy is crafted specifically for the account-level role created here.',
-                }
+                },
             ],
         )
         NagSuppressions.add_resource_suppressions(
@@ -234,13 +233,17 @@ class CCApi(RestApi):
     @cached_property
     def staff_users_authorizer(self):
         return CognitoUserPoolsAuthorizer(
-            self, 'StaffPoolsAuthorizer', cognito_user_pools=[self._persistent_stack.staff_users]
+            self,
+            'StaffPoolsAuthorizer',
+            cognito_user_pools=[self._persistent_stack.staff_users],
         )
 
     @cached_property
     def provider_users_authorizer(self):
         return CognitoUserPoolsAuthorizer(
-            self, 'ProviderUsersPoolAuthorizer', cognito_user_pools=[self._persistent_stack.provider_users]
+            self,
+            'ProviderUsersPoolAuthorizer',
+            cognito_user_pools=[self._persistent_stack.provider_users],
         )
 
     @cached_property

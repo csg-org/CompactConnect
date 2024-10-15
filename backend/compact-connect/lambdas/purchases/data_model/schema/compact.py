@@ -16,9 +16,7 @@ class CompactCommissionFeeSchema(Schema):
 
 @BaseRecordSchema.register_schema(COMPACT_TYPE)
 class CompactRecordSchema(BaseRecordSchema):
-    """
-    Schema for the root compact configuration records
-    """
+    """Schema for the root compact configuration records"""
 
     _record_type = COMPACT_TYPE
 
@@ -27,10 +25,14 @@ class CompactRecordSchema(BaseRecordSchema):
     compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
     compactOperationsTeamEmails = List(String(required=True, allow_none=False), required=True, allow_none=False)
     compactAdverseActionsNotificationEmails = List(
-        String(required=True, allow_none=False), required=True, allow_none=False
+        String(required=True, allow_none=False),
+        required=True,
+        allow_none=False,
     )
     compactSummaryReportNotificationEmails = List(
-        String(required=True, allow_none=False), required=True, allow_none=False
+        String(required=True, allow_none=False),
+        required=True,
+        allow_none=False,
     )
 
     # Generated fields
@@ -46,9 +48,7 @@ class CompactRecordSchema(BaseRecordSchema):
 
 
 class CompactOptionsApiResponseSchema(ForgivingSchema):
-    """
-    Used to enforce which fields are returned in compact objects for the GET /purchase/privileges/options endpoint
-    """
+    """Used to enforce which fields are returned in compact objects for the GET /purchase/privileges/options endpoint"""
 
     compactName = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)

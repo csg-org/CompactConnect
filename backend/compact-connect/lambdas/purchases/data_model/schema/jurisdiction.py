@@ -21,9 +21,7 @@ class JurisdictionJurisprudenceRequirementsSchema(Schema):
 
 @BaseRecordSchema.register_schema(JURISDICTION_TYPE)
 class JurisdictionRecordSchema(BaseRecordSchema):
-    """
-    Schema for the root jurisdiction configuration records
-    """
+    """Schema for the root jurisdiction configuration records"""
 
     _record_type = JURISDICTION_TYPE
 
@@ -35,10 +33,14 @@ class JurisdictionRecordSchema(BaseRecordSchema):
     militaryDiscount = Nested(JurisdictionMilitaryDiscountSchema(), required=False, allow_none=False)
     jurisdictionOperationsTeamEmails = List(String(required=True, allow_none=False), required=True, allow_none=False)
     jurisdictionAdverseActionsNotificationEmails = List(
-        String(required=True, allow_none=False), required=True, allow_none=False
+        String(required=True, allow_none=False),
+        required=True,
+        allow_none=False,
     )
     jurisdictionSummaryReportNotificationEmails = List(
-        String(required=True, allow_none=False), required=True, allow_none=False
+        String(required=True, allow_none=False),
+        required=True,
+        allow_none=False,
     )
     jurisprudenceRequirements = Nested(JurisdictionJurisprudenceRequirementsSchema(), required=True, allow_none=False)
 
@@ -54,9 +56,7 @@ class JurisdictionRecordSchema(BaseRecordSchema):
 
 
 class JurisdictionOptionsApiResponseSchema(ForgivingSchema):
-    """
-    Used to enforce which fields are returned in jurisdiction objects for the GET /purchase/privileges/options endpoint
-    """
+    """Used to enforce which fields are returned in jurisdiction objects for the GET /purchase/privileges/options endpoint"""
 
     jurisdictionName = String(required=True, allow_none=False)
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))

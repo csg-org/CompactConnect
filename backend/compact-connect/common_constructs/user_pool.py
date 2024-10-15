@@ -1,4 +1,4 @@
-from typing import Mapping
+from collections.abc import Mapping
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy
 from aws_cdk.aws_cognito import (
@@ -56,7 +56,8 @@ class UserPool(CdkUserPool):
             advanced_security_mode=AdvancedSecurityMode.ENFORCED,
             custom_sender_kms_key=encryption_key,
             device_tracking=DeviceTracking(
-                challenge_required_on_new_device=True, device_only_remembered_on_user_prompt=True
+                challenge_required_on_new_device=True,
+                device_only_remembered_on_user_prompt=True,
             ),
             mfa=Mfa.REQUIRED if environment_name in ('prod', 'test') else Mfa.OPTIONAL,
             mfa_second_factor=MfaSecondFactor(otp=True, sms=False),
@@ -70,7 +71,8 @@ class UserPool(CdkUserPool):
         )
 
         self.user_pool_domain = self.add_domain(
-            f'{construct_id}Domain', cognito_domain=CognitoDomainOptions(domain_prefix=cognito_domain_prefix)
+            f'{construct_id}Domain',
+            cognito_domain=CognitoDomainOptions(domain_prefix=cognito_domain_prefix),
         )
 
         CfnOutput(self, f'{construct_id}UsersDomain', value=self.user_pool_domain.domain_name)
@@ -86,7 +88,7 @@ class UserPool(CdkUserPool):
                         'id': 'AwsSolutions-COG2',
                         'reason': 'MFA is not necessary in the sandboxes/dev environment as there is '
                         'no real user data to protect',
-                    }
+                    },
                 ],
             )
         NagSuppressions.add_resource_suppressions(
@@ -96,7 +98,7 @@ class UserPool(CdkUserPool):
                     'id': 'AwsSolutions-COG1',
                     'reason': 'OWASP ASVS v4.0.3-2.1.9 specifically prohibits requirements on upper or lower case or'
                     ' numbers or special characters.',
-                }
+                },
             ],
         )
 
@@ -107,8 +109,7 @@ class UserPool(CdkUserPool):
         write_attributes: ClientAttributes,
         ui_scopes: list[OAuthScope] = None,
     ):
-        """
-        Creates an app client for the UI to authenticate with the user pool.
+        """Creates an app client for the UI to authenticate with the user pool.
 
         :param callback_urls: The URLs that Cognito allows the UI to redirect to after authentication.
         :param read_attributes: The attributes that the UI can read.
@@ -143,20 +144,23 @@ class UserPool(CdkUserPool):
             account_takeover_risk_configuration=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverRiskConfigurationTypeProperty(
                 actions=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionsTypeProperty(
                     high_action=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionTypeProperty(
-                        event_action='BLOCK', notify=True
+                        event_action='BLOCK',
+                        notify=True,
                     ),
                     medium_action=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionTypeProperty(
-                        event_action='BLOCK', notify=True
+                        event_action='BLOCK',
+                        notify=True,
                     ),
                     low_action=CfnUserPoolRiskConfigurationAttachment.AccountTakeoverActionTypeProperty(
-                        event_action='BLOCK', notify=True
+                        event_action='BLOCK',
+                        notify=True,
                     ),
-                )
+                ),
             ),
             # If Cognito detects the user trying to register compromised credentials, block the activity
             compromised_credentials_risk_configuration=CfnUserPoolRiskConfigurationAttachment.CompromisedCredentialsRiskConfigurationTypeProperty(
                 actions=CfnUserPoolRiskConfigurationAttachment.CompromisedCredentialsActionsTypeProperty(
-                    event_action='BLOCK'
-                )
+                    event_action='BLOCK',
+                ),
             ),
         )

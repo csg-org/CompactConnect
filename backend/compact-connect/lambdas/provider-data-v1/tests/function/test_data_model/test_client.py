@@ -18,7 +18,7 @@ class TestClient(TstFunction):
 
         self._provider_table.put_item(
             # We'll use the schema/serializer to populate index fields for us
-            Item=record
+            Item=record,
         )
 
         client = DataClient(self.config)
@@ -28,9 +28,7 @@ class TestClient(TstFunction):
         self.assertEqual(expected_provider_id, resp)
 
     def test_get_provider_id_not_found(self):
-        """
-        Provider ID not found should raise an exception
-        """
+        """Provider ID not found should raise an exception"""
         from data_model.client import DataClient
         from exceptions import CCNotFoundException
 
@@ -48,15 +46,15 @@ class TestClient(TstFunction):
         client = DataClient(self.config)
 
         resp = client.get_provider(  # pylint: disable=missing-kwoa,unexpected-keyword-arg
-            compact='aslp', provider_id=provider_id
+            compact='aslp',
+            provider_id=provider_id,
         )
         self.assertEqual(3, len(resp['items']))
         # Should be one each of provider, license, privilege
         self.assertEqual({'provider', 'license', 'privilege'}, {record['type'] for record in resp['items']})
 
     def test_get_provider_garbage_in_db(self):
-        """
-        Because of the risk of exposing sensitive data to the public if we manage to get corrupted
+        """Because of the risk of exposing sensitive data to the public if we manage to get corrupted
         data into our database, we'll specifically validate data coming _out_ of the database
         and throw an error if it doesn't look as expected.
         """
@@ -73,7 +71,7 @@ class TestClient(TstFunction):
                 # Oh, no! We've somehow put somebody's SSN in the wrong place!
                 'something_unexpected': '123-12-1234',
                 **license_record,
-            }
+            },
         )
 
         client = DataClient(self.config)
@@ -81,7 +79,8 @@ class TestClient(TstFunction):
         # This record should not be allowed out via API
         with self.assertRaises(CCInternalException):
             client.get_provider(  # pylint: disable=missing-kwoa,unexpected-keyword-arg
-                compact='aslp', provider_id=provider_id
+                compact='aslp',
+                provider_id=provider_id,
             )
 
     def test_get_providers_sorted_by_family_name(self):
@@ -94,7 +93,9 @@ class TestClient(TstFunction):
 
         # We expect to see 20 providers: 10 have privileges in oh, 10 have licenses in oh
         resp = client.get_providers_sorted_by_family_name(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
-            compact='aslp', jurisdiction='oh', pagination={'pageSize': 10}
+            compact='aslp',
+            jurisdiction='oh',
+            pagination={'pageSize': 10},
         )
         first_provider_ids = {item['providerId'] for item in resp['items']}
         first_items = resp['items']
@@ -103,7 +104,9 @@ class TestClient(TstFunction):
 
         last_key = resp['pagination']['lastKey']
         resp = client.get_providers_sorted_by_family_name(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
-            compact='aslp', jurisdiction='oh', pagination={'lastKey': last_key, 'pageSize': 100}
+            compact='aslp',
+            jurisdiction='oh',
+            pagination={'lastKey': last_key, 'pageSize': 100},
         )
         self.assertEqual(10, len(resp['items']))
         self.assertIsNone(resp['pagination']['lastKey'])
@@ -124,7 +127,9 @@ class TestClient(TstFunction):
         client = DataClient(self.config)
 
         resp = client.get_providers_sorted_by_family_name(  # pylint: disable=missing-kwoa
-            compact='aslp', jurisdiction='oh', scan_forward=False
+            compact='aslp',
+            jurisdiction='oh',
+            scan_forward=False,
         )
         self.assertEqual(10, len(resp['items']))
 
@@ -148,7 +153,10 @@ class TestClient(TstFunction):
         client = DataClient(self.config)
 
         resp = client.get_providers_sorted_by_family_name(  # pylint: disable=missing-kwoa
-            compact='aslp', jurisdiction='oh', provider_name=('Testerly', None), scan_forward=False
+            compact='aslp',
+            jurisdiction='oh',
+            provider_name=('Testerly', None),
+            scan_forward=False,
         )
 
         self.assertEqual(2, len(resp['items']))
@@ -194,7 +202,9 @@ class TestClient(TstFunction):
 
         # We expect to see 20 providers: 10 have privileges in oh, 10 have licenses in oh
         resp = client.get_providers_sorted_by_updated(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
-            compact='aslp', jurisdiction='oh', pagination={'pageSize': 10}
+            compact='aslp',
+            jurisdiction='oh',
+            pagination={'pageSize': 10},
         )
         first_provider_ids = {item['providerId'] for item in resp['items']}
         first_provider_items = resp['items']
@@ -203,7 +213,9 @@ class TestClient(TstFunction):
 
         last_key = resp['pagination']['lastKey']
         resp = client.get_providers_sorted_by_updated(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
-            compact='aslp', jurisdiction='oh', pagination={'lastKey': last_key, 'pageSize': 10}
+            compact='aslp',
+            jurisdiction='oh',
+            pagination={'lastKey': last_key, 'pageSize': 10},
         )
         self.assertEqual(10, len(resp['items']))
         self.assertIsNone(resp['pagination']['lastKey'])
@@ -224,7 +236,9 @@ class TestClient(TstFunction):
         client = DataClient(self.config)
 
         resp = client.get_providers_sorted_by_updated(  # pylint: disable=missing-kwoa
-            compact='aslp', jurisdiction='oh', scan_forward=False
+            compact='aslp',
+            jurisdiction='oh',
+            scan_forward=False,
         )
         self.assertEqual(10, len(resp['items']))
 

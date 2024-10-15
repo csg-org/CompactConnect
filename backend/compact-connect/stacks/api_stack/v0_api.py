@@ -10,9 +10,7 @@ from stacks.api_stack.query_providers import QueryProviders
 
 
 class V0Api:
-    """
-    Deprecated - v0 API portion
-    """
+    """Deprecated - v0 API portion"""
 
     def __init__(self, resource: IResource, persistent_stack: ps.PersistentStack):
         self.root = resource

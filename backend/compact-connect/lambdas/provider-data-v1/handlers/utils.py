@@ -13,9 +13,7 @@ from exceptions import CCAccessDeniedException, CCInvalidRequestException, CCNot
 
 
 class ResponseEncoder(JSONEncoder):
-    """
-    JSON Encoder to handle data types that come out of our schema
-    """
+    """JSON Encoder to handle data types that come out of our schema"""
 
     def default(self, o):
         if isinstance(o, Decimal):
@@ -38,8 +36,7 @@ class ResponseEncoder(JSONEncoder):
 
 
 def api_handler(fn: Callable):
-    """
-    Decorator to wrap an api gateway event handler in standard logging, HTTPError handling.
+    """Decorator to wrap an api gateway event handler in standard logging, HTTPError handling.
 
     - Logs each access
     - JSON-encodes returned responses
@@ -115,13 +112,10 @@ def api_handler(fn: Callable):
 
 
 class authorize_compact_jurisdiction:  # pylint: disable=invalid-name
-    """
-    Authorize endpoint by matching path parameters compact and jurisdiction to the expected scope. (i.e. aslp/oh.write)
-    """
+    """Authorize endpoint by matching path parameters compact and jurisdiction to the expected scope. (i.e. aslp/oh.write)"""
 
     def __init__(self, action: str):
-        """
-        Decorator to wrap scope-based authorization, for a scope like '{resource_server}/{scope}.{action}'.
+        """Decorator to wrap scope-based authorization, for a scope like '{resource_server}/{scope}.{action}'.
 
         For a URL path like:
         ```
@@ -169,9 +163,7 @@ class authorize_compact_jurisdiction:  # pylint: disable=invalid-name
 
 
 class authorize_compact:  # pylint: disable=invalid-name
-    """
-    Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/read)
-    """
+    """Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/read)"""
 
     def __init__(self, action: str):
         super().__init__()
@@ -204,8 +196,7 @@ class authorize_compact:  # pylint: disable=invalid-name
 
 
 def sqs_handler(fn: Callable):
-    """
-    Process messages from the ingest queue.
+    """Process messages from the ingest queue.
 
     This handler uses batch item failure reporting:
     https://docs.aws.amazon.com/lambda/latest/dg/example_serverless_SQS_Lambda_batch_item_failures_section.html
