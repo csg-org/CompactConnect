@@ -13,6 +13,28 @@
                 {{ user.getFullName() }}
             </div>
             <div class="edit-user-form-row">
+                <InputSelect :formInput="formData.compact" class="permission-type-select" />
+                <div class="input-connector"></div>
+                <InputSelect :formInput="formData.compactPermission" class="permission-select" />
+            </div>
+            <TransitionGroup name="fade">
+                <div
+                    v-for="(formInput, index) in permissionStateInputs"
+                    :key="formInput.id"
+                    class="edit-user-form-row"
+                >
+                    <div v-if="index === 0" class="row-separator"></div>
+                    <InputSelect :formInput="formData[`state-option-${index}`]" class="permission-type-select" />
+                    <div class="input-connector"></div>
+                    <InputSelect :formInput="formInput" class="permission-select" />
+                </div>
+            </TransitionGroup>
+            <button
+                class="add-state text-like"
+                @click.prevent="createNewStatePermission"
+                @keyup.enter.prevent="createNewStatePermission"
+            >{{ $t('common.add') }}</button>
+            <div class="edit-user-form-row">
                 <InputButton
                     class="edit-user-button"
                     :label="$t('common.cancel')"

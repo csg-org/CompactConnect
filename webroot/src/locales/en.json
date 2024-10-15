@@ -16,6 +16,8 @@
         "replaceFile": "Replace file",
         "replaceFiles": "Replace files",
         "change": "Change",
+        "add": "Add",
+        "remove": "Remove",
         "reset": "Reset",
         "save": "Save",
         "saveChanges": "Save changes",
@@ -483,7 +485,9 @@
         "usersListTitle": "Users",
         "usersListEmpty": "Invite users with the button above",
         "permissions": "Permissions",
+        "permission": "Permission",
         "affiliation": "Affiliation",
+        "state": "State / Jurisdiction",
         "states": "State / Jurisdiction(s)",
         "accountStatus": "Account Status",
         "accessLevel": {

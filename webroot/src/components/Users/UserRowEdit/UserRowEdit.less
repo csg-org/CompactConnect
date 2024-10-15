@@ -8,9 +8,11 @@
 .edit-user-container {
     display: flex;
     flex-direction: column;
+    max-height: 100vh;
+    overflow-y: auto;
 
     .edit-user-title {
-        margin-bottom: 1.6rem;
+        margin-bottom: 2rem;
         font-size: @fontSizeExtraLarge;
     }
 
@@ -24,6 +26,32 @@
         flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
+    }
+
+    .permission-type-select {
+        width: 50%;
+    }
+
+    .permission-select {
+        width: 40%;
+    }
+
+    .input-connector {
+        width: 5%;
+        height: 2px;
+        margin-bottom: 12px;
+        background-color: @black;
+    }
+
+    .row-separator {
+        width: 100%;
+        height: 2px;
+        margin-top: -32px;
+        background-color: @lightGrey;
+    }
+
+    .add-state {
+        margin-bottom: 1.6rem;
     }
 
     .edit-user-button {

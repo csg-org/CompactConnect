@@ -178,7 +178,7 @@
             <div class="cell account-status"></div>
             <div class="cell row-actions"></div>
         </div>
-        <transition name="fade" mode="out-in">
+        <transition mode="out-in">
             <div v-if="isModalDisplayed">
                 <div class="modal-mask"></div>
                 <div class="edit-user-modal">
