@@ -107,7 +107,7 @@ class CompactConfigurationUpload(Construct):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',
-                    'applies_to': 'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
+                    'applies_to': 'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',  # noqa: E501 line-too-long
                     'reason': 'This policy is appropriate for the log retention lambda',
                 }
             ],
