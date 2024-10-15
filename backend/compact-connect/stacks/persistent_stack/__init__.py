@@ -1,5 +1,4 @@
 from aws_cdk import RemovalPolicy
-from aws_cdk.aws_cognito import StandardAttributes, StandardAttribute, SignInAliases
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_cognito import UserPoolEmail
 from constructs import Construct
