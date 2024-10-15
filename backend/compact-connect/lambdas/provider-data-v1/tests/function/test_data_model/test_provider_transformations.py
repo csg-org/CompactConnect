@@ -19,7 +19,7 @@ class TestTransformations(TstFunction):
         with open('tests/resources/dynamo/provider-ssn.json', 'r') as f:
             provider_ssn = json.load(f)
 
-        self._table.put_item(
+        self._provider_table.put_item(
             Item=provider_ssn
         )
         expected_provider_id = provider_ssn['providerId']
@@ -94,7 +94,7 @@ class TestTransformations(TstFunction):
         client.create_privilege(compact='aslp', jurisdiction='ne', provider_id=provider_id)
 
         # Get the provider straight from the table, to inspect them
-        resp = self._table.query(
+        resp = self._provider_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
             & Key('sk').begins_with('aslp#PROVIDER')

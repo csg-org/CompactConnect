@@ -1,0 +1,150 @@
+{
+  "properties": {
+    "items": {
+      "items": {
+        "oneOf": [
+          {
+            "properties": {
+              "type": {
+                "enum": [
+                  "compact"
+                ],
+                "type": "string"
+              },
+              "compactName": {
+                "description": "The name of the compact",
+                "type": "string"
+              },
+              "compactCommissionFee": {
+                "properties": {
+                  "feeType": {
+                    "enum": [
+                      "FLAT_RATE"
+                    ],
+                    "type": "string"
+                  },
+                  "feeAmount": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "feeType",
+                  "feeAmount"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "type",
+              "compactName",
+              "compactCommissionFee"
+            ],
+            "type": "object"
+          },
+          {
+            "properties": {
+              "type": {
+                "enum": [
+                  "jurisdiction"
+                ],
+                "type": "string"
+              },
+              "jurisdictionName": {
+                "description": "The name of the jurisdiction",
+                "type": "string"
+              },
+              "postalAbbreviation": {
+                "description": "The postal abbreviation of the jurisdiction",
+                "type": "string"
+              },
+              "jurisdictionFee": {
+                "description": "The fee for the jurisdiction",
+                "type": "number"
+              },
+              "militaryDiscount": {
+                "properties": {
+                  "active": {
+                    "description": "Whether the military discount is active",
+                    "type": "boolean"
+                  },
+                  "discountType": {
+                    "description": "The type of discount",
+                    "enum": [
+                      "FLAT_RATE"
+                    ],
+                    "type": "string"
+                  },
+                  "discountAmount": {
+                    "description": "The amount of the discount",
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "active",
+                  "discountType",
+                  "discountAmount"
+                ],
+                "type": "object"
+              },
+              "jurisprudenceRequirements": {
+                "properties": {
+                  "required": {
+                    "description": "Whether jurisprudence requirements exist",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "required"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "type",
+              "jurisdictionName",
+              "postalAbbreviation",
+              "jurisdictionFee",
+              "jurisprudenceRequirements"
+            ],
+            "type": "object"
+          }
+        ],
+        "type": "object"
+      },
+      "maxLength": 100,
+      "type": "array"
+    },
+    "pagination": {
+      "properties": {
+        "lastKey": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "prevLastKey": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pageSize": {
+          "maximum": 100,
+          "minimum": 5,
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "items",
+    "pagination"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}
