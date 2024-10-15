@@ -2,11 +2,11 @@ env:
   contexts:
   - name: test
     urls:
-    - https://app.test.jcc.iaapi.io
-    - https://api.test.jcc.iaapi.io
+    - https://app.test.compactconnect.org
+    - https://api.test.compactconnect.org
     includePaths:
-    - https://app.test.jcc.iaapi.io.*
-    - https://api.test.jcc.iaapi.io.*
+    - https://app.test.compactconnect.org.*
+    - https://api.test.compactconnect.org.*
     authentication:
       verification:
         method: response
