@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "https://api.justin.jcc.iaapi.io"
+      "url": "https://api.test.jcc.iaapi.io"
     }
   ],
   "paths": {
