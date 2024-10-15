@@ -15,8 +15,7 @@ from . import get_provider_information
 @api_handler
 @authorize_compact(action='read')
 def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    """
-    Query providers data
+    """Query providers data
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
     """
@@ -36,7 +35,10 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
         logger.info('Found provider id by SSN', provider_id=provider_id)
     if provider_id is not None:
         resp = config.data_client.get_provider(
-            compact=compact, provider_id=provider_id, pagination=body.get('pagination'), detail=False
+            compact=compact,
+            provider_id=provider_id,
+            pagination=body.get('pagination'),
+            detail=False,
         )
         resp['query'] = query
 
@@ -71,7 +73,7 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
             case 'dateOfUpdate':
                 if provider_name is not None:
                     raise CCInvalidRequestException(
-                        'givenName and familyName are not supported for sorting by dateOfUpdate'
+                        'givenName and familyName are not supported for sorting by dateOfUpdate',
                     )
                 resp = {
                     'query': query,
@@ -94,8 +96,7 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
 @api_handler
 @authorize_compact(action='read')
 def get_provider(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    """
-    Return one provider's data
+    """Return one provider's data
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
     """

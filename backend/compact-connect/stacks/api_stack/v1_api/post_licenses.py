@@ -32,10 +32,13 @@ class PostLicenses:
             request_validator=self.api.parameter_body_validator,
             request_models={'application/json': self.api_model.post_license_model},
             method_responses=[
-                MethodResponse(status_code='200', response_models={'application/json': self.api.message_response_model})
+                MethodResponse(
+                    status_code='200', response_models={'application/json': self.api.message_response_model}
+                ),
             ],
             integration=LambdaIntegration(
-                handler=self._post_licenses_handler(event_bus=event_bus), timeout=Duration.seconds(29)
+                handler=self._post_licenses_handler(event_bus=event_bus),
+                timeout=Duration.seconds(29),
             ),
             request_parameters={'method.request.header.Authorization': True},
             authorization_type=method_options.authorization_type,
@@ -66,7 +69,7 @@ class PostLicenses:
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
-                }
+                },
             ],
         )
         return handler

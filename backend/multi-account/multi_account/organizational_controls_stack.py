@@ -10,13 +10,13 @@ from multi_account.bare_org_stack import BareOrgStack
 
 class OrganizationalControlsStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, *, bare_org_stack: BareOrgStack, **kwargs):
-        """
-        We can declare organizational controls that can be maintained here
-        """
+        """We can declare organizational controls that can be maintained here"""
         super().__init__(scope, construct_id, **kwargs)
 
         NoLeavingServiceControlPolicy(
-            self, 'NoLeavingServiceControlPolicy', target_ids=[bare_org_stack.organization.attr_root_id]
+            self,
+            'NoLeavingServiceControlPolicy',
+            target_ids=[bare_org_stack.organization.attr_root_id],
         )
 
 
@@ -29,7 +29,13 @@ class OrganizationalPolicyType(Enum):
 
 class ServiceControlPolicy(Resource):
     def __init__(
-        self, scope: Construct, construct_id: str, *, name: str, description: str, target_ids: list[str] | IResolvable
+        self,
+        scope: Construct,
+        construct_id: str,
+        *,
+        name: str,
+        description: str,
+        target_ids: list[str] | IResolvable,
     ):
         super().__init__(scope, construct_id)
         self.name = name
@@ -69,7 +75,7 @@ class NoLeavingServiceControlPolicy(ServiceControlPolicy):
         self.assign_document(
             PolicyDocument(
                 statements=[
-                    PolicyStatement(effect=Effect.DENY, actions=['organizations:LeaveOrganization'], resources=['*'])
-                ]
-            )
+                    PolicyStatement(effect=Effect.DENY, actions=['organizations:LeaveOrganization'], resources=['*']),
+                ],
+            ),
         )

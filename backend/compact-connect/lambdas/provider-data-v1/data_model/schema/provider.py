@@ -16,9 +16,7 @@ from data_model.schema.base_record import (
 
 
 class ProviderPublicSchema(ForgivingSchema):
-    """
-    Schema for license data that can be shared with the public
-    """
+    """Schema for license data that can be shared with the public"""
 
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
@@ -56,9 +54,7 @@ class ProviderPublicSchema(ForgivingSchema):
 
 @BaseRecordSchema.register_schema('provider')
 class ProviderRecordSchema(BaseRecordSchema, ProviderPublicSchema):
-    """
-    Schema for license records in the license data table
-    """
+    """Schema for license records in the license data table"""
 
     _record_type = 'provider'
 
@@ -91,7 +87,7 @@ class ProviderRecordSchema(BaseRecordSchema, ProviderPublicSchema):
     @pre_dump
     def populate_fam_giv_mid(self, in_data, **kwargs):  # pylint: disable=unused-argument
         in_data['providerFamGivMid'] = '#'.join(
-            (quote(in_data['familyName']), quote(in_data['givenName']), quote(in_data.get('middleName', '')))
+            (quote(in_data['familyName']), quote(in_data['givenName']), quote(in_data.get('middleName', ''))),
         )
         return in_data
 

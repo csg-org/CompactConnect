@@ -113,7 +113,7 @@ def _set_address_state(license_data: dict, jurisdiction: str) -> dict:
                 'homeAddressState': home_state,
                 'homeAddressPostalCode': faker.zipcode_in_state(state_abbr=home_state.upper()),
                 'militaryWaiver': military,
-            }
+            },
         )
     else:
         license_data.update(
@@ -122,7 +122,7 @@ def _set_address_state(license_data: dict, jurisdiction: str) -> dict:
                 'homeAddressPostalCode': faker.zipcode_in_state(state_abbr=jurisdiction.upper()),
                 # Explicitly set False for some, omit for others
                 'militaryWaiver': military if choice([True, False]) else None,
-            }
+            },
         )
     return license_data
 
@@ -152,7 +152,7 @@ def _set_dates(license_data: dict) -> dict:
             'dateOfIssuance': date_of_issuance,
             'dateOfRenewal': date_of_renewal,
             'dateOfExpiration': date_of_expiry,
-        }
+        },
     )
     return license_data
 

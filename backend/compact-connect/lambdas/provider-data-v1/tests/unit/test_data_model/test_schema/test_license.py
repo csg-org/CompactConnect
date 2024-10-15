@@ -24,9 +24,7 @@ class TestLicenseSchema(TstLambdas):
             LicensePostSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_data})
 
     def test_serde_record(self):
-        """
-        Test round-trip serialization/deserialization of license records
-        """
+        """Test round-trip serialization/deserialization of license records"""
         from data_model.schema.license import LicenseRecordSchema
 
         with open('tests/resources/dynamo/license.json') as f:
@@ -52,8 +50,7 @@ class TestLicenseSchema(TstLambdas):
             LicenseRecordSchema().load(license_data)
 
     def test_serialize(self):
-        """
-        Licenses are the only record that directly originate from external clients. We'll test their serialization
+        """Licenses are the only record that directly originate from external clients. We'll test their serialization
         as it comes from clients.
         """
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
@@ -67,7 +64,7 @@ class TestLicenseSchema(TstLambdas):
         provider_id = expected_license_record['providerId']
 
         license_record = LicenseRecordSchema().dump(
-            {'compact': 'aslp', 'jurisdiction': 'co', 'providerId': UUID(provider_id), **license_data}
+            {'compact': 'aslp', 'jurisdiction': 'co', 'providerId': UUID(provider_id), **license_data},
         )
 
         # These are dynamic and so won't match

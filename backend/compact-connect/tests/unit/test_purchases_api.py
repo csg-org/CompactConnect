@@ -6,8 +6,7 @@ from tests.unit.test_api import TestApi
 
 
 class TestPurchasesApi(TestApi):
-    """
-    These tests are focused on checking that the API endpoints for the `/purchases/ root path are configured correctly.
+    """These tests are focused on checking that the API endpoints for the `/purchases/ root path are configured correctly.
 
     When adding or modifying API resources under /purchases/, a test should be added to ensure that the
     resource is created as expected. The pattern for these tests includes the following checks:
@@ -28,7 +27,7 @@ class TestPurchasesApi(TestApi):
             props={
                 'ParentId': {
                     # Verify the parent id matches the expected 'v1' resource
-                    'Ref': api_stack.get_logical_id(api_stack.api.v1_api.resource.node.default_child)
+                    'Ref': api_stack.get_logical_id(api_stack.api.v1_api.resource.node.default_child),
                 },
                 'PathPart': 'purchases',
             },
@@ -44,7 +43,7 @@ class TestPurchasesApi(TestApi):
             props={
                 'ParentId': {
                     # Verify the parent id matches the expected 'v1' resource
-                    'Ref': api_stack.get_logical_id(api_stack.api.v1_api.purchases_resource.node.default_child)
+                    'Ref': api_stack.get_logical_id(api_stack.api.v1_api.purchases_resource.node.default_child),
                 },
                 'PathPart': 'privileges',
             },
@@ -61,8 +60,8 @@ class TestPurchasesApi(TestApi):
                 'ParentId': {
                     # Verify the parent id matches the expected 'provider-users' resource
                     'Ref': api_stack.get_logical_id(
-                        api_stack.api.v1_api.purchases.purchases_privileges_resource.node.default_child
-                    )
+                        api_stack.api.v1_api.purchases.purchases_privileges_resource.node.default_child,
+                    ),
                 },
                 'PathPart': 'options',
             },
@@ -83,19 +82,19 @@ class TestPurchasesApi(TestApi):
                 'HttpMethod': 'GET',
                 # the provider users endpoints uses a separate authorizer from the staff endpoints
                 'AuthorizerId': {
-                    'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child)
+                    'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
                 'Integration': TestApi._generate_expected_integration_object(
                     api_stack.get_logical_id(
-                        api_stack.api.v1_api.purchases.get_purchase_privilege_options_handler.node.default_child
-                    )
+                        api_stack.api.v1_api.purchases.get_purchase_privilege_options_handler.node.default_child,
+                    ),
                 ),
                 'MethodResponses': [
                     {
                         'ResponseModels': {'application/json': {'Ref': method_model_logical_id_capture}},
                         'StatusCode': '200',
-                    }
+                    },
                 ],
             },
         )

@@ -18,8 +18,7 @@ from handlers.utils import ResponseEncoder, api_handler, scope_by_path
 @scope_by_path(resource_parameter='compact', scope_parameter='jurisdiction', action='write')
 @api_handler
 def bulk_upload_url_handler(event: dict, context: LambdaContext):
-    """
-    Generate a pre-signed POST to the bulk-upload s3 bucket
+    """Generate a pre-signed POST to the bulk-upload s3 bucket
 
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
@@ -29,8 +28,7 @@ def bulk_upload_url_handler(event: dict, context: LambdaContext):
 
 @api_handler
 def no_auth_bulk_upload_url_handler(event: dict, context: LambdaContext):
-    """
-    For the mock API
+    """For the mock API
 
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
@@ -57,8 +55,7 @@ def _bulk_upload_url_handler(event: dict, context: LambdaContext):  # pylint: di
 
 @logger.inject_lambda_context
 def parse_bulk_upload_file(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    """
-    Receive an S3 put event, and parse/validate the new s3 file before deleting it
+    """Receive an S3 put event, and parse/validate the new s3 file before deleting it
     :param event: Standard S3 ObjectCreated event
     :param LambdaContext context:
     """
@@ -86,8 +83,8 @@ def parse_bulk_upload_file(event: dict, context: LambdaContext):  # pylint: disa
                             'DetailType': 'license-ingest-failure',
                             'Detail': json.dumps({'errors': [str(e)]}),
                             'EventBusName': config.event_bus_name,
-                        }
-                    ]
+                        },
+                    ],
                 )
                 if resp.get('FailedEntryCount', 0) > 0:
                     logger.error('Failed to put failure event!')
@@ -99,9 +96,7 @@ def parse_bulk_upload_file(event: dict, context: LambdaContext):  # pylint: disa
 
 
 def process_bulk_upload_file(body: StreamingBody, object_key: str):
-    """
-    Stream each line of the new CSV file, validating it then publishing an ingest event for each line.
-    """
+    """Stream each line of the new CSV file, validating it then publishing an ingest event for each line."""
     public_schema = LicensePublicSchema()
     schema = LicensePostSchema()
     reader = LicenseCSVReader()
@@ -124,7 +119,11 @@ def process_bulk_upload_file(body: StreamingBody, object_key: str):
                 except ValidationError as exc_second_try:
                     public_license_data = exc_second_try.valid_data
                 logger.info(
-                    'Invalid license in line %s uploaded: %s', i + 1, str(e), valid_data=public_license_data, exc_info=e
+                    'Invalid license in line %s uploaded: %s',
+                    i + 1,
+                    str(e),
+                    valid_data=public_license_data,
+                    exc_info=e,
                 )
                 event_writer.put_event(
                     Entry={
@@ -135,7 +134,7 @@ def process_bulk_upload_file(body: StreamingBody, object_key: str):
                             cls=ResponseEncoder,
                         ),
                         'EventBusName': config.event_bus_name,
-                    }
+                    },
                 )
                 continue
 
@@ -144,10 +143,10 @@ def process_bulk_upload_file(body: StreamingBody, object_key: str):
                     'Source': f'org.compactconnect.bulk-ingest.{object_key}',
                     'DetailType': 'license-ingest',
                     'Detail': json.dumps(
-                        {'compact': compact, 'jurisdiction': jurisdiction, **schema.dump(validated_license)}
+                        {'compact': compact, 'jurisdiction': jurisdiction, **schema.dump(validated_license)},
                     ),
                     'EventBusName': config.event_bus_name,
-                }
+                },
             )
 
     if event_writer.failed_entry_count > 0:

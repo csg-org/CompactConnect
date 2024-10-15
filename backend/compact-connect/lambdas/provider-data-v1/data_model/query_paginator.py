@@ -13,8 +13,7 @@ from data_model.schema.base_record import BaseRecordSchema
 
 # It's conventional to name a decorator in snake_case, even if it is implemented as a class
 class paginated_query:  # pylint: disable=invalid-name
-    """
-    Decorator to handle converting API interface pagination to DynamoDB pagination.
+    """Decorator to handle converting API interface pagination to DynamoDB pagination.
 
     This will process incoming pagination fields for passing to DynamoDB, then take the raw DynamoDB response and
     transform it into a dict that includes an encoded lastKey field.
@@ -77,9 +76,7 @@ class paginated_query:  # pylint: disable=invalid-name
         return resp
 
     def _generate_pages(self, last_key: str | None, page_size: int, args, kwargs):
-        """
-        Repeat the wrapped query until we get everything or the full page_size of items
-        """
+        """Repeat the wrapped query until we get everything or the full page_size of items"""
         dynamo_pagination = {'Limit': page_size, **({'ExclusiveStartKey': last_key} if last_key is not None else {})}
 
         raw_resp = self._caught_query(*args, dynamo_pagination=dynamo_pagination, **kwargs)
@@ -98,9 +95,7 @@ class paginated_query:  # pylint: disable=invalid-name
             yield raw_resp
 
     def _caught_query(self, *args, **kwargs):
-        """
-        Uniformly convert our DynamoDB query validation errors to invalid request exceptions
-        """
+        """Uniformly convert our DynamoDB query validation errors to invalid request exceptions"""
         try:
             return self.fn(*args, **kwargs)
         except ClientError as e:
@@ -113,9 +108,7 @@ class paginated_query:  # pylint: disable=invalid-name
 
     @staticmethod
     def _load_records(records: list[dict]):
-        """
-        Every record coming through this paginator should be de-serializable through our *RecordSchema
-        """
+        """Every record coming through this paginator should be de-serializable through our *RecordSchema"""
         try:
             return [BaseRecordSchema.get_schema_by_type(item['type']).load(item) for item in records]
         except (KeyError, ValidationError) as e:

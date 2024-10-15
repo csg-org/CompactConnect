@@ -24,7 +24,7 @@ class TestSQSHandler(TstLambdas):
 
         mock_partial_failures = Mock(
             # Responses when called - three successes, two failures
-            side_effect=[None, RuntimeError('Oh no!'), None, None, RuntimeError('Not again!')]
+            side_effect=[None, RuntimeError('Oh no!'), None, None, RuntimeError('Not again!')],
         )
 
         @sqs_handler
@@ -38,7 +38,7 @@ class TestSQSHandler(TstLambdas):
                 {'messageId': '3', 'body': json.dumps({'foo': 'bar'})},
                 {'messageId': '4', 'body': json.dumps({'foo': 'bar'})},
                 {'messageId': '5', 'body': json.dumps({'foo': 'bar'})},
-            ]
+            ],
         }
 
         resp = message_handler(event, self.mock_context)  # pylint: disable=too-many-function-args

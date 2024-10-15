@@ -37,7 +37,9 @@ class BulkUploadUrl:
         self.api: cc_api.CCApi = resource.api
         self.log_groups = []
         self._add_bulk_upload_url(
-            mock_bucket=mock_bucket, method_options=method_options, bulk_uploads_bucket=bulk_uploads_bucket
+            mock_bucket=mock_bucket,
+            method_options=method_options,
+            bulk_uploads_bucket=bulk_uploads_bucket,
         )
         self.api.log_groups.extend(self.log_groups)
 
@@ -65,7 +67,7 @@ class BulkUploadUrl:
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to write, and scoped '
                     ' to this bucket and encryption key.',
-                }
+                },
             ],
         )
         return handler
@@ -78,7 +80,7 @@ class BulkUploadUrl:
                 MethodResponse(
                     status_code='200',
                     response_models={'application/json': self.get_bulk_upload_response_model(self.api)},
-                )
+                ),
             ],
             integration=LambdaIntegration(
                 self._get_bulk_upload_url_handler(mock_bucket=mock_bucket, bulk_uploads_bucket=bulk_uploads_bucket),
@@ -94,9 +96,7 @@ class BulkUploadUrl:
 
     @staticmethod
     def get_bulk_upload_response_model(api: cc_api.CCApi) -> Model:
-        """
-        Return the Post License Model, which should only be created once per API
-        """
+        """Return the Post License Model, which should only be created once per API"""
         if hasattr(api, 'bulk_upload_response_model'):
             return api.bulk_upload_response_model
 
@@ -109,7 +109,8 @@ class BulkUploadUrl:
                 properties={
                     'url': JsonSchema(type=JsonSchemaType.STRING),
                     'fields': JsonSchema(
-                        type=JsonSchemaType.OBJECT, additional_properties=JsonSchema(type=JsonSchemaType.STRING)
+                        type=JsonSchemaType.OBJECT,
+                        additional_properties=JsonSchema(type=JsonSchemaType.STRING),
                     ),
                 },
             ),

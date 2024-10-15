@@ -9,9 +9,7 @@ from data_model.schema.base_record import BaseRecordSchema
 
 @BaseRecordSchema.register_schema('privilege')
 class PrivilegeRecordSchema(BaseRecordSchema):
-    """
-    Schema for privilege records in the license data table
-    """
+    """Schema for privilege records in the license data table"""
 
     _record_type = 'privilege'
 

@@ -9,18 +9,14 @@ from stacks.api_stack import cc_api
 
 
 class ApiModel:
-    """
-    This class is responsible for defining the model definitions used in the API endpoints.
-    """
+    """This class is responsible for defining the model definitions used in the API endpoints."""
 
     def __init__(self, api: cc_api):
         self.api = api
 
     @property
     def query_providers_request_model(self) -> Model:
-        """
-        Return the query providers request model, which should only be created once per API
-        """
+        """Return the query providers request model, which should only be created once per API"""
         if hasattr(self.api, '_v1_query_providers_request_model'):
             return self.api._v1_query_providers_request_model
         self.api._v1_query_providers_request_model = self.api.add_model(
@@ -61,9 +57,7 @@ class ApiModel:
 
     @property
     def query_providers_response_model(self) -> Model:
-        """
-        Return the query providers response model, which should only be created once per API
-        """
+        """Return the query providers response model, which should only be created once per API"""
         if hasattr(self.api, '_v1_query_providers_response_model'):
             return self.api._v1_query_providers_response_model
         self.api._v1_query_providers_response_model = self.api.add_model(
@@ -74,7 +68,9 @@ class ApiModel:
                 required=['items', 'pagination'],
                 properties={
                     'providers': JsonSchema(
-                        type=JsonSchemaType.ARRAY, max_length=100, items=self._providers_response_schema
+                        type=JsonSchemaType.ARRAY,
+                        max_length=100,
+                        items=self._providers_response_schema,
                     ),
                     'pagination': self._pagination_response_schema,
                     'sorting': self._sorting_schema,
@@ -85,9 +81,7 @@ class ApiModel:
 
     @property
     def provider_response_model(self) -> Model:
-        """
-        Return the provider response model, which should only be created once per API
-        """
+        """Return the provider response model, which should only be created once per API"""
         if hasattr(self.api, '_v1_get_provider_response_model'):
             return self.api._v1_get_provider_response_model
         self.api._v1_get_provider_response_model = self.api.add_model(
@@ -99,9 +93,7 @@ class ApiModel:
 
     @property
     def post_license_model(self) -> Model:
-        """
-        Return the Post License Model, which should only be created once per API
-        """
+        """Return the Post License Model, which should only be created once per API"""
         if hasattr(self.api, '_v1_post_license_model'):
             return self.api._v1_post_license_model
 
@@ -137,9 +129,7 @@ class ApiModel:
 
     @property
     def bulk_upload_response_model(self) -> Model:
-        """
-        Return the Bulk Upload Response Model, which should only be created once per API
-        """
+        """Return the Bulk Upload Response Model, which should only be created once per API"""
         if hasattr(self.api, 'bulk_upload_response_model'):
             return self.api.bulk_upload_response_model
 
@@ -152,7 +142,8 @@ class ApiModel:
                 properties={
                     'url': JsonSchema(type=JsonSchemaType.STRING),
                     'fields': JsonSchema(
-                        type=JsonSchemaType.OBJECT, additional_properties=JsonSchema(type=JsonSchemaType.STRING)
+                        type=JsonSchemaType.OBJECT,
+                        additional_properties=JsonSchema(type=JsonSchemaType.STRING),
                     ),
                 },
             ),
@@ -161,9 +152,7 @@ class ApiModel:
 
     @property
     def purchase_privilege_options_response_model(self) -> Model:
-        """
-        Return the purchase privilege options model, which should only be created once per API
-        """
+        """Return the purchase privilege options model, which should only be created once per API"""
         if hasattr(self.api, '_v1_get_purchase_privilege_options_response_model'):
             return self.api._v1_get_purchase_privilege_options_response_model
         self.api._v1_get_purchase_privilege_options_response_model = self.api.add_model(
@@ -182,7 +171,9 @@ class ApiModel:
                 # this endpoint returns a list of jurisdiction options for a provider to purchase
                 # within a particular compact
                 'items': JsonSchema(
-                    type=JsonSchemaType.ARRAY, max_length=100, items=self._purchase_privilege_options_items_schema
+                    type=JsonSchemaType.ARRAY,
+                    max_length=100,
+                    items=self._purchase_privilege_options_items_schema,
                 ),
                 'pagination': self._pagination_response_schema,
             },
@@ -190,8 +181,7 @@ class ApiModel:
 
     @property
     def _purchase_privilege_options_items_schema(self):
-        """
-        This endpoint returns a single list containing all available jurisdiction options for a provider to purchase,
+        """This endpoint returns a single list containing all available jurisdiction options for a provider to purchase,
         and one compact object which contains information related to compact service fees for privileges.
         """
         return JsonSchema(
@@ -225,26 +215,33 @@ class ApiModel:
                     properties={
                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['jurisdiction']),
                         'jurisdictionName': JsonSchema(
-                            type=JsonSchemaType.STRING, description='The name of the jurisdiction'
+                            type=JsonSchemaType.STRING,
+                            description='The name of the jurisdiction',
                         ),
                         'postalAbbreviation': JsonSchema(
-                            type=JsonSchemaType.STRING, description='The postal abbreviation of the jurisdiction'
+                            type=JsonSchemaType.STRING,
+                            description='The postal abbreviation of the jurisdiction',
                         ),
                         'jurisdictionFee': JsonSchema(
-                            type=JsonSchemaType.NUMBER, description='The fee for the jurisdiction'
+                            type=JsonSchemaType.NUMBER,
+                            description='The fee for the jurisdiction',
                         ),
                         'militaryDiscount': JsonSchema(
                             type=JsonSchemaType.OBJECT,
                             required=['active', 'discountType', 'discountAmount'],
                             properties={
                                 'active': JsonSchema(
-                                    type=JsonSchemaType.BOOLEAN, description='Whether the military discount is active'
+                                    type=JsonSchemaType.BOOLEAN,
+                                    description='Whether the military discount is active',
                                 ),
                                 'discountType': JsonSchema(
-                                    type=JsonSchemaType.STRING, enum=['FLAT_RATE'], description='The type of discount'
+                                    type=JsonSchemaType.STRING,
+                                    enum=['FLAT_RATE'],
+                                    description='The type of discount',
                                 ),
                                 'discountAmount': JsonSchema(
-                                    type=JsonSchemaType.NUMBER, description='The amount of the discount'
+                                    type=JsonSchemaType.NUMBER,
+                                    description='The amount of the discount',
                                 ),
                             },
                         ),
@@ -253,8 +250,9 @@ class ApiModel:
                             required=['required'],
                             properties={
                                 'required': JsonSchema(
-                                    type=JsonSchemaType.BOOLEAN, description='Whether jurisprudence requirements exist'
-                                )
+                                    type=JsonSchemaType.BOOLEAN,
+                                    description='Whether jurisprudence requirements exist',
+                                ),
                             },
                         ),
                     },
@@ -326,10 +324,13 @@ class ApiModel:
                             'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
                             'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
                             'jurisdiction': JsonSchema(
-                                type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
+                                type=JsonSchemaType.STRING,
+                                enum=stack.node.get_context('jurisdictions'),
                             ),
                             'dateOfUpdate': JsonSchema(
-                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                                type=JsonSchemaType.STRING,
+                                format='date',
+                                pattern=cc_api.YMD_FORMAT,
                             ),
                             **self._common_license_properties,
                         },
@@ -456,7 +457,9 @@ class ApiModel:
             properties={
                 'lastKey': JsonSchema(type=[JsonSchemaType.STRING, JsonSchemaType.NULL], min_length=1, max_length=1024),
                 'prevLastKey': JsonSchema(
-                    type=[JsonSchemaType.STRING, JsonSchemaType.NULL], min_length=1, max_length=1024
+                    type=[JsonSchemaType.STRING, JsonSchemaType.NULL],
+                    min_length=1,
+                    max_length=1024,
                 ),
                 'pageSize': JsonSchema(type=JsonSchemaType.INTEGER, minimum=5, maximum=100),
             },

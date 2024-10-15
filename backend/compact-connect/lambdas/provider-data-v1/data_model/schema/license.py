@@ -13,17 +13,13 @@ class LicenseCommonSchema(ForgivingSchema):
 
 
 class LicensePublicSchema(LicenseCommonSchema):
-    """
-    Schema for license data that can be shared with the public
-    """
+    """Schema for license data that can be shared with the public"""
 
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
 
 
 class LicensePostSchema(LicensePublicSchema):
-    """
-    Schema for license data as posted by a board
-    """
+    """Schema for license data as posted by a board"""
 
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
@@ -57,9 +53,7 @@ class LicensePostSchema(LicensePublicSchema):
 
 @BaseRecordSchema.register_schema('license')
 class LicenseRecordSchema(BaseRecordSchema, LicensePostSchema):
-    """
-    Schema for license records in the license data table
-    """
+    """Schema for license records in the license data table"""
 
     _record_type = 'license'
 

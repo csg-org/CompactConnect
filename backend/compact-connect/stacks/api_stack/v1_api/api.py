@@ -15,9 +15,7 @@ from .staff_users import StaffUsers
 
 
 class V1Api:
-    """
-    v1 of the Provider Data API
-    """
+    """v1 of the Provider Data API"""
 
     def __init__(self, root: IResource, persistent_stack: ps.PersistentStack):
         super().__init__()

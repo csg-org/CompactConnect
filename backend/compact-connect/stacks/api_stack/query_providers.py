@@ -78,8 +78,9 @@ class QueryProviders:
             request_validator=self.api.parameter_body_validator,
             method_responses=[
                 MethodResponse(
-                    status_code='200', response_models={'application/json': self._query_providers_response_model()}
-                )
+                    status_code='200',
+                    response_models={'application/json': self._query_providers_response_model()},
+                ),
             ],
             integration=LambdaIntegration(handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True}
@@ -112,8 +113,9 @@ class QueryProviders:
             request_models={'application/json': self._query_providers_request_model()},
             method_responses=[
                 MethodResponse(
-                    status_code='200', response_models={'application/json': self._query_providers_response_model()}
-                )
+                    status_code='200',
+                    response_models={'application/json': self._query_providers_response_model()},
+                ),
             ],
             integration=LambdaIntegration(handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True}
@@ -154,16 +156,16 @@ class QueryProviders:
             properties={
                 'lastKey': JsonSchema(type=[JsonSchemaType.STRING, JsonSchemaType.NULL], min_length=1, max_length=1024),
                 'prevLastKey': JsonSchema(
-                    type=[JsonSchemaType.STRING, JsonSchemaType.NULL], min_length=1, max_length=1024
+                    type=[JsonSchemaType.STRING, JsonSchemaType.NULL],
+                    min_length=1,
+                    max_length=1024,
                 ),
                 'pageSize': JsonSchema(type=JsonSchemaType.INTEGER, minimum=5, maximum=100),
             },
         )
 
     def _query_providers_request_model(self) -> Model:
-        """
-        Return the query licenses request model, which should only be created once per API
-        """
+        """Return the query licenses request model, which should only be created once per API"""
         if not hasattr(self.api, 'query_providers_request_model'):
             self.api.query_providers_request_model = self.api.add_model(
                 'QueryProvidersRequestModel',
@@ -207,9 +209,7 @@ class QueryProviders:
         return self.api.query_providers_request_model
 
     def _query_providers_response_model(self) -> Model:
-        """
-        Return the query license response model, which should only be created once per API
-        """
+        """Return the query license response model, which should only be created once per API"""
         if not hasattr(self.api, 'query_providers_response_model'):
             self.api.query_providers_response_model = self.api.add_model(
                 'QueryProvidersResponseModel',
@@ -219,7 +219,9 @@ class QueryProviders:
                     required=['items', 'pagination'],
                     properties={
                         'items': JsonSchema(
-                            type=JsonSchemaType.ARRAY, max_length=100, items=self.api.v0_license_response_schema
+                            type=JsonSchemaType.ARRAY,
+                            max_length=100,
+                            items=self.api.v0_license_response_schema,
                         ),
                         'pagination': self._pagination_response_schema,
                         'sorting': self._sorting_schema,
@@ -229,7 +231,10 @@ class QueryProviders:
         return self.api.query_providers_response_model
 
     def _get_provider_handler(
-        self, data_encryption_key: IKey, license_data_table: LicenseTable, lambda_environment: dict
+        self,
+        data_encryption_key: IKey,
+        license_data_table: LicenseTable,
+        lambda_environment: dict,
     ) -> PythonFunction:
         stack = Stack.of(self.resource)
         handler = PythonFunction(
@@ -253,13 +258,16 @@ class QueryProviders:
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
-                }
+                },
             ],
         )
         return handler
 
     def _query_providers_handler(
-        self, data_encryption_key: IKey, license_data_table: LicenseTable, lambda_environment: dict
+        self,
+        data_encryption_key: IKey,
+        license_data_table: LicenseTable,
+        lambda_environment: dict,
     ) -> PythonFunction:
         stack = Stack.of(self.api)
         handler = PythonFunction(
@@ -283,7 +291,7 @@ class QueryProviders:
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
-                }
+                },
             ],
         )
         return handler

@@ -22,8 +22,8 @@ class TestClient(TstFunction):
         self._table.put_item(
             # We'll use the schema/serializer to populate index fields for us
             Item=LicenseRecordSchema().dump(
-                {'providerId': provider_id, 'compact': 'aslp', 'jurisdiction': 'co', **license_data}
-            )
+                {'providerId': provider_id, 'compact': 'aslp', 'jurisdiction': 'co', **license_data},
+            ),
         )
 
         with open('tests/resources/api/privilege.json') as f:
@@ -31,8 +31,8 @@ class TestClient(TstFunction):
 
         self._table.put_item(
             Item=PrivilegeRecordSchema().dump(
-                {'providerId': provider_id, 'compact': 'aslp', 'jurisdiction': 'co', **privilege}
-            )
+                {'providerId': provider_id, 'compact': 'aslp', 'jurisdiction': 'co', **privilege},
+            ),
         )
 
         client = DataClient(self.config)
@@ -42,9 +42,7 @@ class TestClient(TstFunction):
         self.assertEqual(provider_id, resp)
 
     def test_get_provider_id_not_found(self):
-        """
-        Provider ID not found should raise an exception
-        """
+        """Provider ID not found should raise an exception"""
         from data_model.client import DataClient
         from exceptions import CCNotFoundException
 
@@ -55,9 +53,7 @@ class TestClient(TstFunction):
             client.get_provider_id(ssn='321-21-4321')  # pylint: disable=missing-kwoa
 
     def test_get_provider_id_data_inconsistency(self):
-        """
-        Check behavior in the case of a data inconsistency in the DB
-        """
+        """Check behavior in the case of a data inconsistency in the DB"""
         from data_model.client import DataClient
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
         from exceptions import CCInternalException
@@ -71,16 +67,16 @@ class TestClient(TstFunction):
         self._table.put_item(
             # We'll use the schema/serializer to populate index fields for us
             Item=LicenseRecordSchema().dump(
-                {'providerId': provider_id, 'compact': 'aslp', 'jurisdiction': 'co', **license_data}
-            )
+                {'providerId': provider_id, 'compact': 'aslp', 'jurisdiction': 'co', **license_data},
+            ),
         )
 
         # Associate a second provider with the same ssn - force a data consistency error
         self._table.put_item(
             # We'll use the schema/serializer to populate index fields for us
             Item=LicenseRecordSchema().dump(
-                {'providerId': str(uuid4()), 'compact': 'aslp', 'jurisdiction': 'co', **license_data}
-            )
+                {'providerId': str(uuid4()), 'compact': 'aslp', 'jurisdiction': 'co', **license_data},
+            ),
         )
 
         client = DataClient(self.config)
@@ -104,8 +100,8 @@ class TestClient(TstFunction):
         self._table.put_item(
             # We'll use the schema/serializer to populate index fields for us
             Item=LicenseRecordSchema().dump(
-                {'providerId': provider_id, 'compact': 'aslp', 'jurisdiction': 'co', **license_data}
-            )
+                {'providerId': provider_id, 'compact': 'aslp', 'jurisdiction': 'co', **license_data},
+            ),
         )
 
         with open('tests/resources/api/privilege.json') as f:
@@ -113,8 +109,8 @@ class TestClient(TstFunction):
 
         self._table.put_item(
             Item=PrivilegeRecordSchema().dump(
-                {'providerId': provider_id, 'compact': 'aslp', 'jurisdiction': 'co', **privilege}
-            )
+                {'providerId': provider_id, 'compact': 'aslp', 'jurisdiction': 'co', **privilege},
+            ),
         )
 
         client = DataClient(self.config)
@@ -123,8 +119,7 @@ class TestClient(TstFunction):
         self.assertEqual(2, len(resp['items']))
 
     def test_get_provider_garbage_in_db(self):
-        """
-        Because of the risk of exposing sensitive data to the public if we manage to get corrupted
+        """Because of the risk of exposing sensitive data to the public if we manage to get corrupted
         data into our database, we'll specifically validate data coming _out_ of the database
         and throw an error if it doesn't look as expected.
         """
@@ -143,9 +138,9 @@ class TestClient(TstFunction):
                 # Oh, no! We've somehow put somebody's SSN in the wrong place!
                 'something_unexpected': '123-12-1234',
                 **LicenseRecordSchema().dump(
-                    {'providerId': provider_id, 'compact': 'aslp', 'jurisdiction': 'co', **license_data}
+                    {'providerId': provider_id, 'compact': 'aslp', 'jurisdiction': 'co', **license_data},
                 ),
-            }
+            },
         )
 
         client = DataClient(self.config)
@@ -165,7 +160,8 @@ class TestClient(TstFunction):
 
         # We expect to see 100 co licenses, 100 co privileges, none of the al licenses/privileges
         resp = client.get_licenses_sorted_by_family_name(  # pylint: disable=missing-kwoa
-            compact='aslp', jurisdiction='co'
+            compact='aslp',
+            jurisdiction='co',
         )
         # To verify moto fix, uncomment below:
         # first_provider_ids = {item['providerId'] for item in resp['items']}
@@ -174,7 +170,9 @@ class TestClient(TstFunction):
 
         last_key = resp['pagination']['lastKey']
         resp = client.get_licenses_sorted_by_family_name(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
-            compact='aslp', jurisdiction='co', pagination={'lastKey': last_key, 'pageSize': 500}
+            compact='aslp',
+            jurisdiction='co',
+            pagination={'lastKey': last_key, 'pageSize': 500},
         )
         # Make sure there are no duplicate response items
         # To verify moto fix, uncomment below:
@@ -198,7 +196,8 @@ class TestClient(TstFunction):
 
         # We expect to see 100 co licenses, 100 co privileges, none of the al licenses/privileges
         resp = client.get_licenses_sorted_by_date_updated(  # pylint: disable=missing-kwoa
-            compact='aslp', jurisdiction='co'
+            compact='aslp',
+            jurisdiction='co',
         )
         self.assertEqual(100, len(resp['items']))
         self.assertIsInstance(resp['pagination']['lastKey'], str)
@@ -206,7 +205,9 @@ class TestClient(TstFunction):
         # The second should be the last 100 licenses, so no lastKey for a next page
         last_key = resp['pagination']['lastKey']
         resp = client.get_licenses_sorted_by_date_updated(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
-            compact='aslp', jurisdiction='co', pagination={'lastKey': last_key}
+            compact='aslp',
+            jurisdiction='co',
+            pagination={'lastKey': last_key},
         )
         # moto does not properly mimic dynamodb pagination in the case of an index with duplicate keys,
         # so we cannot test for the expected length of 100 records, here
@@ -218,6 +219,8 @@ class TestClient(TstFunction):
         # Again, moto does not mimic dynamodb pagination correctly, so we cannot test item sorting, but
         # we _can_ at least test that we get the expected 100 items.
         resp = client.get_licenses_sorted_by_date_updated(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
-            compact='aslp', jurisdiction='co', scan_forward=False
+            compact='aslp',
+            jurisdiction='co',
+            scan_forward=False,
         )
         self.assertEqual(100, len(resp['items']))

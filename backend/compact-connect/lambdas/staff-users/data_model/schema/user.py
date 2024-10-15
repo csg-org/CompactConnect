@@ -78,8 +78,7 @@ class CompactPermissionsAPISchema(CompactActionPermissionAPISchema):
 
 
 class UserAPISchema(Schema):
-    """
-    Schema to transform from the API-facing user data format (load) to the internal format (dump) that is ready for
+    """Schema to transform from the API-facing user data format (load) to the internal format (dump) that is ready for
     serialization to the DynamoDB table.
 
     Note: This schema is not intended for actual validation, only serialization/deserialization.
@@ -97,9 +96,7 @@ class UserAPISchema(Schema):
 
     @pre_load
     def transform_to_api_permissions(self, data, **kwargs):  # pylint: disable=unused-argument
-        """
-        Transform compact permissions from database format into API format
-        """
+        """Transform compact permissions from database format into API format"""
         compact = data.pop('compact')
         compact_permissions = data['permissions']
 
@@ -116,7 +113,7 @@ class UserAPISchema(Schema):
             for jurisdiction, jurisdiction_permissions in jurisdictions.items():
                 # Set to dict of '{action}: True' items
                 user_permissions[compact]['jurisdictions'][jurisdiction] = {
-                    'actions': {action: True for action in jurisdiction_permissions}
+                    'actions': {action: True for action in jurisdiction_permissions},
                 }
         data['permissions'] = user_permissions
 

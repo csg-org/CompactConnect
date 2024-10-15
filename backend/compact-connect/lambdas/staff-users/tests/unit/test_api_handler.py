@@ -7,9 +7,7 @@ from tests import TstLambdas
 
 
 class TestApiHandler(TstLambdas):
-    """
-    Testing that the api_handler decorator is working as expected.
-    """
+    """Testing that the api_handler decorator is working as expected."""
 
     def test_happy_path(self):
         from utils import api_handler
@@ -111,8 +109,7 @@ class TestApiHandler(TstLambdas):
             lambda_handler(event, self.mock_context)
 
     def test_null_headers(self):
-        """
-        API Gateway will send a null object in the case that a field that is usually a dict is empty. This test
+        """API Gateway will send a null object in the case that a field that is usually a dict is empty. This test
         verifies that the api_handler decorator can handle this case.
         """
         from utils import api_handler

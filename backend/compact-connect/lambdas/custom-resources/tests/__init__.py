@@ -14,7 +14,7 @@ class TstLambdas(TestCase):
                 'DEBUG': 'false',
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
-            }
+            },
         )
         # Monkey-patch config object to be sure we have it based
         # on the env vars we set above

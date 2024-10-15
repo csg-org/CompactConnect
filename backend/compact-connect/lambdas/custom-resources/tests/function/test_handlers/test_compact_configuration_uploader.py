@@ -59,7 +59,7 @@ def generate_mock_compact_configuration():
                     generate_single_jurisdiction_config('ohio', 'oh', active_environments=['sandbox']),
                 ],
             },
-        }
+        },
     )
 
 
@@ -79,11 +79,13 @@ class TestCompactConfigurationUploader(TstFunction):
 
         # now query for all the aslp compact configurations
         aslp_response = self.config.compact_configuration_table.query(
-            Select='ALL_ATTRIBUTES', KeyConditionExpression=Key('pk').eq('aslp#CONFIGURATION')
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq('aslp#CONFIGURATION'),
         )
 
         octp_response = self.config.compact_configuration_table.query(
-            Select='ALL_ATTRIBUTES', KeyConditionExpression=Key('pk').eq('octp#CONFIGURATION')
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq('octp#CONFIGURATION'),
         )
 
         items = aslp_response['Items'] + octp_response['Items']

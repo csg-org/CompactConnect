@@ -6,12 +6,16 @@ from constructs import Construct
 
 
 class CompactConfigurationTable(Table):
-    """
-    DynamoDB table to house compact configuration data
-    """
+    """DynamoDB table to house compact configuration data"""
 
     def __init__(
-        self, scope: Construct, construct_id: str, *, encryption_key: IKey, removal_policy: RemovalPolicy, **kwargs
+        self,
+        scope: Construct,
+        construct_id: str,
+        *,
+        encryption_key: IKey,
+        removal_policy: RemovalPolicy,
+        **kwargs,
     ):
         super().__init__(
             scope,
@@ -32,6 +36,6 @@ class CompactConfigurationTable(Table):
                     'id': 'HIPAA.Security-DynamoDBInBackupPlan',
                     'reason': 'We will implement data back-ups after we better understand regulatory data deletion'
                     ' requirements',
-                }
+                },
             ],
         )

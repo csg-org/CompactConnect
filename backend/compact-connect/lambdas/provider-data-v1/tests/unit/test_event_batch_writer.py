@@ -62,8 +62,7 @@ class TestEventBatchWriter(TstLambdas):
         self.assertEqual(1, mock_client.put_events.call_count)
 
     def test_write_batch(self):
-        """
-        Making sure that, in the event that we exit with exactly 0 messages remaining, we don't try
+        """Making sure that, in the event that we exit with exactly 0 messages remaining, we don't try
         to put an empty batch
         """
         from event_batch_writer import EventBatchWriter
@@ -124,8 +123,7 @@ class TestEventBatchWriter(TstLambdas):
         self.assertEqual(1, mock_client.put_events.call_count)
 
     def test_bad_use(self):
-        """
-        EventBatchWriter requires that it be used as a context manager (in a `with EventBatchWriter(...):` block)
+        """EventBatchWriter requires that it be used as a context manager (in a `with EventBatchWriter(...):` block)
         Trying to use it otherwise should raise an exception.
         """
         from event_batch_writer import EventBatchWriter
@@ -141,9 +139,7 @@ class TestEventBatchWriter(TstLambdas):
         put_count = []
 
         def mock_put_items(Entries: list[dict]):  # pylint: disable=invalid-name
-            """
-            Fail every last entry
-            """
+            """Fail every last entry"""
             put_count.extend(Entries)
             response = {'FailedEntryCount': 1, 'Entries': [{'EventId': uuid4().hex} for entry in Entries[:-1]]}
             response['Entries'].append(
@@ -151,7 +147,7 @@ class TestEventBatchWriter(TstLambdas):
                     'EventId': uuid4().hex,
                     'ErrorCode': 'InternalFailure',
                     'ErrorMessage': 'Oh no, AWS is having problems!',
-                }
+                },
             )
             return response
 
@@ -172,9 +168,7 @@ class TestEventBatchWriter(TstLambdas):
         self.assertEqual(13, len(writer.failed_entries))
 
     def test_write_custom_batch_size(self):
-        """
-        Override the default batch size of 10
-        """
+        """Override the default batch size of 10"""
         from event_batch_writer import EventBatchWriter
 
         put_count = []

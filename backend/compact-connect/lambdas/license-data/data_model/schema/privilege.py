@@ -9,9 +9,7 @@ from data_model.schema.base_record import BaseRecordSchema, ForgivingSchema, Soc
 
 
 class PrivilegePostSchema(ForgivingSchema):
-    """
-    Schema for privilege data as it may be posted by a board
-    """
+    """Schema for privilege data as it may be posted by a board"""
 
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
@@ -28,9 +26,7 @@ class PrivilegePostSchema(ForgivingSchema):
 
 @BaseRecordSchema.register_schema('license-privilege')
 class PrivilegeRecordSchema(BaseRecordSchema, PrivilegePostSchema):
-    """
-    Schema for privilege records in the license data table
-    """
+    """Schema for privilege records in the license data table"""
 
     _record_type = 'license-privilege'
 
@@ -54,6 +50,6 @@ class PrivilegeRecordSchema(BaseRecordSchema, PrivilegePostSchema):
                 quote(in_data['familyName'], safe=''),
                 quote(in_data['givenName'], safe=''),
                 quote(in_data.get('middleName', ''), safe=''),
-            )
+            ),
         )
         return in_data

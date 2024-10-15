@@ -31,7 +31,8 @@ class CompactConnectApp(App):
         else:
             tags = self.node.get_context('tags')
             environment = Environment(
-                account=os.environ['CDK_DEFAULT_ACCOUNT'], region=os.environ['CDK_DEFAULT_REGION']
+                account=os.environ['CDK_DEFAULT_ACCOUNT'],
+                region=os.environ['CDK_DEFAULT_REGION'],
             )
             self.pipeline_stack = PipelineStack(
                 self,

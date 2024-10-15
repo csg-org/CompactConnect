@@ -29,20 +29,20 @@ class AccessLogsBucket(CdkBucket):
             access_control=BucketAccessControl.LOG_DELIVERY_WRITE,
             versioned=True,
             intelligent_tiering_configurations=[
-                IntelligentTieringConfiguration(name='ArchiveAfter6Mo', archive_access_tier_time=Duration.days(180))
+                IntelligentTieringConfiguration(name='ArchiveAfter6Mo', archive_access_tier_time=Duration.days(180)),
             ],
             lifecycle_rules=[
                 LifecycleRule(
                     transitions=[
-                        Transition(storage_class=StorageClass.INTELLIGENT_TIERING, transition_after=Duration.days(0))
-                    ]
-                )
+                        Transition(storage_class=StorageClass.INTELLIGENT_TIERING, transition_after=Duration.days(0)),
+                    ],
+                ),
             ],
             **kwargs,
         )
 
         auto_delete_provider: CustomResourceProvider = stack.node.try_find_child(
-            'Custom::S3AutoDeleteObjectsCustomResourceProvider'
+            'Custom::S3AutoDeleteObjectsCustomResourceProvider',
         )
 
         if (
@@ -64,7 +64,7 @@ class AccessLogsBucket(CdkBucket):
                 actions=['s3:DeleteObject'],
                 principals=[StarPrincipal()],
                 **delete_conditions,
-            )
+            ),
         )
 
         NagSuppressions.add_resource_suppressions(

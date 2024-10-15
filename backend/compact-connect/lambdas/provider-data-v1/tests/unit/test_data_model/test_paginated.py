@@ -35,7 +35,7 @@ class TestPaginated(TstLambdas):
                 'pagination': {
                     'pageSize': 5,
                     'lastKey': b64encode(
-                        json.dumps({'pk': self._item['pk'], 'sk': self._item['sk']}).encode('utf-8')
+                        json.dumps({'pk': self._item['pk'], 'sk': self._item['sk']}).encode('utf-8'),
                     ).decode('ascii'),
                     'prevLastKey': last_key,
                 },
@@ -51,14 +51,13 @@ class TestPaginated(TstLambdas):
                         'kwarg1': 'baf',
                         'dynamo_pagination': {'ExclusiveStartKey': {'pk': '안녕하세요', 'sk': '2'}, 'Limit': 5},
                     },
-                )
+                ),
             ],
             calls,
         )
 
     def test_multiple_internal_pages(self):
-        """
-        In the case of server-side filtering, DynamoDB scans the Limit number of records but only returns records
+        """In the case of server-side filtering, DynamoDB scans the Limit number of records but only returns records
         that match filter criteria, which can be fewer. In this case, paginated_query should automatically query
         multiple times to fill out the requested page size.
         """
@@ -194,10 +193,10 @@ class TestPaginated(TstLambdas):
                     {
                         'dynamo_pagination': {
                             # Should fall back to default from config
-                            'Limit': 100
-                        }
+                            'Limit': 100,
+                        },
                     },
-                )
+                ),
             ],
             calls,
         )
@@ -281,8 +280,7 @@ class TestPaginated(TstLambdas):
             throw_an_error()
 
     def test_instance_method(self):
-        """
-        Decorating instance methods works slightly differently than functions, so we'll make sure our decorator works
+        """Decorating instance methods works slightly differently than functions, so we'll make sure our decorator works
         for both.
         """
         from data_model.query_paginator import paginated_query
@@ -310,7 +308,7 @@ class TestPaginated(TstLambdas):
                         'kwarg1': 'baf',
                         'dynamo_pagination': {'ExclusiveStartKey': {'pk': '안녕하세요', 'sk': '2'}, 'Limit': 5},
                     },
-                )
+                ),
             ],
             calls,
         )

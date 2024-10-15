@@ -13,9 +13,7 @@ from exceptions import CCAccessDeniedException, CCInvalidRequestException, CCNot
 
 
 class ResponseEncoder(JSONEncoder):
-    """
-    JSON Encoder to handle data types that come out of our schema
-    """
+    """JSON Encoder to handle data types that come out of our schema"""
 
     def default(self, o):
         if isinstance(o, Decimal):
@@ -38,8 +36,7 @@ class ResponseEncoder(JSONEncoder):
 
 
 def api_handler(fn: Callable):
-    """
-    Decorator to wrap an api gateway event handler in standard logging, HTTPError handling.
+    """Decorator to wrap an api gateway event handler in standard logging, HTTPError handling.
 
     - Logs each access
     - JSON-encodes returned responses

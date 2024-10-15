@@ -17,7 +17,12 @@ from .api_model import ApiModel
 
 class BulkUploadUrl:
     def __init__(
-        self, *, resource: Resource, method_options: MethodOptions, bulk_uploads_bucket: IBucket, api_model: ApiModel
+        self,
+        *,
+        resource: Resource,
+        method_options: MethodOptions,
+        bulk_uploads_bucket: IBucket,
+        api_model: ApiModel,
     ):
         super().__init__()
 
@@ -52,7 +57,7 @@ class BulkUploadUrl:
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to write, and scoped '
                     ' to this bucket and encryption key.',
-                }
+                },
             ],
         )
         return handler
@@ -63,11 +68,13 @@ class BulkUploadUrl:
             request_validator=self.api.parameter_body_validator,
             method_responses=[
                 MethodResponse(
-                    status_code='200', response_models={'application/json': self.api_model.bulk_upload_response_model}
-                )
+                    status_code='200',
+                    response_models={'application/json': self.api_model.bulk_upload_response_model},
+                ),
             ],
             integration=LambdaIntegration(
-                self._get_bulk_upload_url_handler(bulk_uploads_bucket=bulk_uploads_bucket), timeout=Duration.seconds(29)
+                self._get_bulk_upload_url_handler(bulk_uploads_bucket=bulk_uploads_bucket),
+                timeout=Duration.seconds(29),
             ),
             request_parameters={'method.request.header.Authorization': True}
             if method_options.authorization_type != AuthorizationType.NONE

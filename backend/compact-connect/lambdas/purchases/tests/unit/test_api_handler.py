@@ -7,9 +7,7 @@ from tests import TstLambdas
 
 
 class TestApiHandler(TstLambdas):
-    """
-    Testing that the api_handler decorator is working as expected.
-    """
+    """Testing that the api_handler decorator is working as expected."""
 
     def test_happy_path(self):
         from handlers.utils import api_handler

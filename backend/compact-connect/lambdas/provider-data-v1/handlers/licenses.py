@@ -15,8 +15,7 @@ schema = LicensePostSchema()
 @api_handler
 @authorize_compact_jurisdiction(action='write')
 def post_licenses(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    """
-    Synchronously validate and submit an array of licenses
+    """Synchronously validate and submit an array of licenses
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
     """
@@ -39,10 +38,10 @@ def post_licenses(event: dict, context: LambdaContext):  # pylint: disable=unuse
                     'Source': 'org.compactconnect.licenses',
                     'DetailType': 'license-ingest-v1',
                     'Detail': json.dumps(
-                        {'compact': compact, 'jurisdiction': jurisdiction, **schema.dump(license_data)}
+                        {'compact': compact, 'jurisdiction': jurisdiction, **schema.dump(license_data)},
                     ),
                     'EventBusName': config.event_bus_name,
-                }
+                },
             )
 
     if event_writer.failed_entry_count > 0:

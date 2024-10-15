@@ -21,9 +21,7 @@ logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false') == 'true' else
 
 @mock_aws
 class TstFunction(TstLambdas):
-    """
-    Base class to set up Moto mocking and create mock AWS resources for functional testing
-    """
+    """Base class to set up Moto mocking and create mock AWS resources for functional testing"""
 
     def setUp(self):  # pylint: disable=invalid-name
         super().setUp()
@@ -32,7 +30,7 @@ class TstFunction(TstLambdas):
 
         import config
 
-        config.config = config._Config()  # pylint: disable=protected-access
+        config.config = config._Config()
         self.config = config.config
 
         self.addCleanup(self.delete_resources)
@@ -81,10 +79,7 @@ class TstFunction(TstLambdas):
         boto3.client('events').delete_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
     def _load_provider_data(self):
-        """
-        Use the canned test resources to load a basic provider to the DB
-        """
-
+        """Use the canned test resources to load a basic provider to the DB"""
         test_resources = glob('tests/resources/dynamo/*.json')
 
         def provider_jurisdictions_to_set(obj: dict):
@@ -100,8 +95,7 @@ class TstFunction(TstLambdas):
             self._provider_table.put_item(Item=record)
 
     def _generate_providers(self, *, home: str, privilege: str, start_serial: int, names: tuple[tuple[str, str]] = ()):
-        """
-        Generate 10 providers with one license and one privilege
+        """Generate 10 providers with one license and one privilege
         :param home: The jurisdiction for the license
         :param privilege: The jurisdiction for the privilege
         :param start_serial: Starting number for last portion of the provider's SSN
@@ -137,7 +131,7 @@ class TstFunction(TstLambdas):
                     'ssn': ssn,
                     'compact': 'aslp',
                     'jurisdiction': home,
-                }
+                },
             )
 
             # Create a new provider with a license
@@ -145,11 +139,12 @@ class TstFunction(TstLambdas):
             with patch('data_model.schema.base_record.datetime') as mock:
                 # This gives us some variation in dateOfUpdate values to sort by
                 mock.now.side_effect = lambda tz: now - timedelta(  # noqa: B023
-                    days=randint(1, 365)
+                    days=randint(1, 365),
                 )
 
                 ingest_license_message(  # pylint: disable=too-many-function-args
-                    {'Records': [{'messageId': '123', 'body': json.dumps(ingest_message_copy)}]}, self.mock_context
+                    {'Records': [{'messageId': '123', 'body': json.dumps(ingest_message_copy)}]},
+                    self.mock_context,
                 )
             # Add a privilege
             provider_id = data_client.get_provider_id(compact='aslp', ssn=ssn)  # pylint: disable=unexpected-keyword-arg

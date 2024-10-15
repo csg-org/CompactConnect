@@ -14,22 +14,19 @@ from data_model.schema.base_record import SSNIndexRecordSchema
 
 
 class DataClient:
-    """
-    Client interface for license data dynamodb queries
-    """
+    """Client interface for license data dynamodb queries"""
 
     def __init__(self, config: _Config):  # pylint: disable=redefined-outer-name
         self.config = config
         self.ssn_index_record_schema = SSNIndexRecordSchema()
 
     def get_provider_id(self, *, compact: str, ssn: str) -> str:
-        """
-        Get all records associated with a given SSN.
-        """
+        """Get all records associated with a given SSN."""
         logger.info('Getting provider id by ssn')
         try:
             resp = self.config.provider_table.get_item(
-                Key={'pk': f'{compact}#SSN#{ssn}', 'sk': f'{compact}#SSN#{ssn}'}, ConsistentRead=True
+                Key={'pk': f'{compact}#SSN#{ssn}', 'sk': f'{compact}#SSN#{ssn}'},
+                ConsistentRead=True,
             )['Item']
         except KeyError as e:
             logger.info('Provider not found by SSN', exc_info=e)
@@ -116,7 +113,7 @@ class DataClient:
         # Create a jurisdiction filter expression if a jurisdiction is provided
         if jurisdiction is not None:
             filter_expression = Attr('licenseJurisdiction').eq(jurisdiction) | Attr('privilegeJurisdictions').contains(
-                jurisdiction
+                jurisdiction,
             )
         else:
             filter_expression = None
@@ -132,12 +129,17 @@ class DataClient:
 
     @paginated_query
     def get_providers_sorted_by_updated(
-        self, *, compact: str, dynamo_pagination: dict, jurisdiction: str = None, scan_forward: bool = True
+        self,
+        *,
+        compact: str,
+        dynamo_pagination: dict,
+        jurisdiction: str = None,
+        scan_forward: bool = True,
     ):  # pylint: disable-redefined-outer-name
         logger.info('Getting providers by date updated')
         if jurisdiction is not None:
             filter_expression = Attr('licenseJurisdiction').eq(jurisdiction) | Attr('privilegeJurisdictions').contains(
-                jurisdiction
+                jurisdiction,
             )
         else:
             filter_expression = None
@@ -156,7 +158,9 @@ class DataClient:
         provider_data = [
             record
             for record in self.get_provider(  # pylint: disable=missing-kwoa
-                compact=compact, provider_id=provider_id, detail=False
+                compact=compact,
+                provider_id=provider_id,
+                detail=False,
             )['items']
             if record['type'] == 'provider'
         ][0]
@@ -170,14 +174,14 @@ class DataClient:
                     'Update': {
                         'TableName': config.provider_table_name,
                         'Key': dynamodb_serializer.serialize(
-                            {'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'}
+                            {'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'},
                         )['M'],
                         'UpdateExpression': 'ADD #privilegeJurisdictions :newJurisdictions',
                         'ExpressionAttributeNames': {'#privilegeJurisdictions': 'privilegeJurisdictions'},
                         'ExpressionAttributeValues': {
-                            ':newJurisdictions': dynamodb_serializer.serialize({jurisdiction})
+                            ':newJurisdictions': dynamodb_serializer.serialize({jurisdiction}),
                         },
-                    }
+                    },
                 },
                 # Add a new privilege record
                 {
@@ -193,10 +197,10 @@ class DataClient:
                                     'dateOfExpiration': provider_data['dateOfExpiration'],
                                     'dateOfIssuance': now.date(),
                                     'dateOfUpdate': now.date(),
-                                }
-                            )
+                                },
+                            ),
                         )['M'],
-                    }
+                    },
                 },
-            ]
+            ],
         )

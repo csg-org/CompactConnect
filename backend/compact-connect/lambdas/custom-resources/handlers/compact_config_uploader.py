@@ -8,8 +8,7 @@ from config import config, logger
 
 
 def on_event(event: dict, context: LambdaContext):  # pylint: disable=inconsistent-return-statements,unused-argument
-    """
-    CloudFormation event handler using the CDK provider framework.
+    """CloudFormation event handler using the CDK provider framework.
     See: https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.custom_resources/README.html
 
     This custom resource uploads all the compact and jurisdiction configuration files into the provider DynamoDB table,
@@ -31,7 +30,7 @@ def on_event(event: dict, context: LambdaContext):  # pylint: disable=inconsiste
         case 'Delete':
             # In the case of delete we do not remove any data from the table
             # data deletion will be managed by the DB's removal policy.
-            return
+            return None
         case _:
             raise ValueError(f'Unexpected request type: {request_type}')
 
@@ -52,8 +51,7 @@ def upload_configuration(properties: dict):
 
 
 def _upload_compact_root_configuration(compact_configuration: dict) -> None:
-    """
-    Upload the root compact configuration to the provider table.
+    """Upload the root compact configuration to the provider table.
     :param compact_configuration: The compact configuration
     """
     for compact in compact_configuration['compacts']:
@@ -65,7 +63,7 @@ def _upload_compact_root_configuration(compact_configuration: dict) -> None:
                 'sk': f'{compact_name.lower()}#CONFIGURATION',
                 'type': 'compact',
                 'dateOfUpdate': date.today().strftime('%Y-%m-%d'),
-            }
+            },
         )
         # remove the activeEnvironments field as it's an implementation detail
         compact.pop('activeEnvironments')
@@ -74,8 +72,7 @@ def _upload_compact_root_configuration(compact_configuration: dict) -> None:
 
 
 def _upload_jurisdiction_configuration(compact_configuration: dict) -> None:
-    """
-    Upload the jurisdiction configuration to the provider table.
+    """Upload the jurisdiction configuration to the provider table.
     :param compact_configuration: The compact configuration
     """
     for compact_name, jurisdictions in compact_configuration['jurisdictions'].items():
@@ -83,7 +80,7 @@ def _upload_jurisdiction_configuration(compact_configuration: dict) -> None:
             jurisdiction_postal_abbreviation = jurisdiction['postalAbbreviation']
             logger.info(
                 f'Jurisdiction {jurisdiction_postal_abbreviation} '
-                f'for compact {compact_name} active for environment, uploading'
+                f'for compact {compact_name} active for environment, uploading',
             )
             jurisdiction.update(
                 {
@@ -92,7 +89,7 @@ def _upload_jurisdiction_configuration(compact_configuration: dict) -> None:
                     'type': 'jurisdiction',
                     'compact': compact_name,
                     'dateOfUpdate': date.today().strftime('%Y-%m-%d'),
-                }
+                },
             )
             # remove the activeEnvironments field as it's an implementation detail
             jurisdiction.pop('activeEnvironments')

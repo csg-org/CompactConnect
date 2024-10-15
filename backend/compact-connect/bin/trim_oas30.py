@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-"""
-A quick convenience script for trimming auto-generated schema to supported API paths
-"""
+"""A quick convenience script for trimming auto-generated schema to supported API paths"""
 
 import json
 from collections import OrderedDict

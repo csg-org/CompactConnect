@@ -17,9 +17,7 @@ logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false') == 'true' else
 
 @mock_aws
 class TstFunction(TstLambdas):
-    """
-    Base class to set up Moto mocking and create mock AWS resources for functional testing
-    """
+    """Base class to set up Moto mocking and create mock AWS resources for functional testing"""
 
     def setUp(self):  # pylint: disable=invalid-name
         super().setUp()
@@ -51,10 +49,7 @@ class TstFunction(TstLambdas):
         self._compact_configuration_table.delete()
 
     def _load_compact_configuration_data(self):
-        """
-        Use the canned test resources to load compact and jurisdiction information into the DB
-        """
-
+        """Use the canned test resources to load compact and jurisdiction information into the DB"""
         test_resources = glob('tests/resources/dynamo/*.json')
 
         for resource in test_resources:

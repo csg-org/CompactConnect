@@ -72,8 +72,9 @@ class QueryProviders:
             request_validator=self.api.parameter_body_validator,
             method_responses=[
                 MethodResponse(
-                    status_code='200', response_models={'application/json': self.api_model.provider_response_model}
-                )
+                    status_code='200',
+                    response_models={'application/json': self.api_model.provider_response_model},
+                ),
             ],
             integration=LambdaIntegration(handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
@@ -106,7 +107,7 @@ class QueryProviders:
                 MethodResponse(
                     status_code='200',
                     response_models={'application/json': self.api_model.query_providers_response_model},
-                )
+                ),
             ],
             integration=LambdaIntegration(handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
@@ -116,7 +117,10 @@ class QueryProviders:
         )
 
     def _get_provider_handler(
-        self, data_encryption_key: IKey, provider_data_table: ProviderTable, lambda_environment: dict
+        self,
+        data_encryption_key: IKey,
+        provider_data_table: ProviderTable,
+        lambda_environment: dict,
     ) -> PythonFunction:
         stack = Stack.of(self.resource)
         handler = PythonFunction(
@@ -140,13 +144,16 @@ class QueryProviders:
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
-                }
+                },
             ],
         )
         return handler
 
     def _query_providers_handler(
-        self, data_encryption_key: IKey, provider_data_table: ProviderTable, lambda_environment: dict
+        self,
+        data_encryption_key: IKey,
+        provider_data_table: ProviderTable,
+        lambda_environment: dict,
     ) -> PythonFunction:
         stack = Stack.of(self.api)
         handler = PythonFunction(
@@ -170,7 +177,7 @@ class QueryProviders:
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
-                }
+                },
             ],
         )
         return handler

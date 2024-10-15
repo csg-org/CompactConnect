@@ -42,9 +42,7 @@ class TestUserRecordSchema(TstLambdas):
         self.assertEqual(api_user['permissions'], loaded_user['permissions'])
 
     def test_serde_record(self):
-        """
-        Test round-trip serialization/deserialization of user records
-        """
+        """Test round-trip serialization/deserialization of user records"""
         from data_model.schema.user import UserRecordSchema
 
         with open('tests/resources/dynamo/user.json') as f:

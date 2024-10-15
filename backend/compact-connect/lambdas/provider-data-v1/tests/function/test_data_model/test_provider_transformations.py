@@ -11,8 +11,7 @@ from tests.function import TstFunction
 class TestTransformations(TstFunction):
     # Yes, this is an excessively long method. We're going with it for sake of a single illustrative test.
     def test_transformations(self):  # pylint: disable=too-many-statements,too-many-locals
-        """
-        Provider data undergoes several transformations from when a license is first posted, stored into the database,
+        """Provider data undergoes several transformations from when a license is first posted, stored into the database,
         then returned via the API. We will specifically test that chain, end to end, to make sure the transformations
         all happen as expected.
         """
@@ -54,7 +53,7 @@ class TestTransformations(TstFunction):
             event_bridge_event = json.loads(
                 mock_event_batch_writer.return_value.__enter__.return_value.put_event.call_args.kwargs['Entry'][
                     'Detail'
-                ]
+                ],
             )
 
         # A sample SQS message from EventBridge
@@ -75,7 +74,8 @@ class TestTransformations(TstFunction):
         # We'll use the data client to get the resulting provider id
         client = DataClient(self.config)
         provider_id = client.get_provider_id(  # pylint: disable=missing-kwoa,unexpected-keyword-arg
-            compact='aslp', ssn=license_ssn
+            compact='aslp',
+            ssn=license_ssn,
         )
         self.assertEqual(expected_provider_id, provider_id)
 

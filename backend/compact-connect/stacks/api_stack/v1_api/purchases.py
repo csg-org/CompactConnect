@@ -67,7 +67,7 @@ class Purchases:
                 MethodResponse(
                     status_code='200',
                     response_models={'application/json': self.api_model.purchase_privilege_options_response_model},
-                )
+                ),
             ],
             integration=LambdaIntegration(self.get_purchase_privilege_options_handler, timeout=Duration.seconds(29)),
             request_parameters={'method.request.header.Authorization': True},
@@ -102,7 +102,7 @@ class Purchases:
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
-                }
+                },
             ],
         )
         return handler

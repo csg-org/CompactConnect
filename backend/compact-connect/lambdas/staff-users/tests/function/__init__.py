@@ -16,9 +16,7 @@ logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false') == 'true' else
 
 @mock_aws
 class TstFunction(TstLambdas):
-    """
-    Base class to set up Moto mocking and create mock AWS resources for functional testing
-    """
+    """Base class to set up Moto mocking and create mock AWS resources for functional testing"""
 
     def setUp(self):  # pylint: disable=invalid-name
         super().setUp()
@@ -46,7 +44,7 @@ class TstFunction(TstLambdas):
                         {'AttributeName': 'famGiv', 'KeyType': 'RANGE'},
                     ],
                     'Projection': {'ProjectionType': 'ALL'},
-                }
+                },
             ],
         )
         # Adding a waiter allows for testing against an actual AWS account, if needed
@@ -57,7 +55,9 @@ class TstFunction(TstLambdas):
         cognito_client = boto3.client('cognito-idp')
         user_pool_name = 'TestUserPool'
         user_pool_response = cognito_client.create_user_pool(
-            PoolName=user_pool_name, AliasAttributes=['email'], UsernameAttributes=['email']
+            PoolName=user_pool_name,
+            AliasAttributes=['email'],
+            UsernameAttributes=['email'],
         )
         os.environ['USER_POOL_ID'] = user_pool_response['UserPool']['Id']
         self._user_pool_id = user_pool_response['UserPool']['Id']
@@ -80,9 +80,7 @@ class TstFunction(TstLambdas):
         return item['userId']
 
     def _create_compact_staff_user(self, compacts: list[str]):
-        """
-        Create a compact-staff style user for each jurisdiction in the provided compact.
-        """
+        """Create a compact-staff style user for each jurisdiction in the provided compact."""
         from data_model.schema.user import UserRecordSchema
 
         schema = UserRecordSchema()
@@ -102,15 +100,13 @@ class TstFunction(TstLambdas):
                             'givenName': self.faker.unique.first_name(),
                         },
                         'permissions': {'actions': {'read'}, 'jurisdictions': {}},
-                    }
-                )
+                    },
+                ),
             )
         return sub
 
     def _create_board_staff_users(self, compacts: list[str]):
-        """
-        Create a board-staff style user for each jurisdiction in the provided compact.
-        """
+        """Create a board-staff style user for each jurisdiction in the provided compact."""
         from data_model.schema.user import UserRecordSchema
 
         schema = UserRecordSchema()
@@ -131,8 +127,8 @@ class TstFunction(TstLambdas):
                                 'givenName': self.faker.unique.first_name(),
                             },
                             'permissions': self._create_write_permissions(jurisdiction),
-                        }
-                    )
+                        },
+                    ),
                 )
 
     def _create_cognito_user(self, *, email: str):

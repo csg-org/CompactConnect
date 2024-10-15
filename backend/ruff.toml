@@ -36,16 +36,31 @@ target-version = "py312"
 
 [lint]
 select = [
-    # pycodestyle
-    "E",
-    # Pyflakes
-    "F",
-    # flake8-bugbear
-    "B",
-    # isort
-    "I",
+    "A",  # flake8-builtins
+    "ARG", # flake8-unused-arguments
+    "B",  # flake8-bugbear
+    "BLE",  # flake8-blind-except
+    "DTZ",  # flake8-datetimez
+    "E",  # pycodestyle
+    "F",  # Pyflakes
+    "FIX",  # flake8-fixme
+    "FA",  # flake8-future-annotations
+    "G",  # flake8-logging-format
+    "I",  # isort
+    "N",  # pep8-naming
+    "PIE",  # flake8-pie
+    "SLF",  # flake8-self
+    "RET",  # flake8-return
+    "RSE",  # flake8-raise
+    "S",  # flake8-bandit
+    "T",  # flake8-print
+    "UP",  # pyupgrade
+    "W",  # warning
 ]
-ignore = []
+ignore = [
+    "S311",  # suspicious-non-cryptographic-random-usage
+    "N818",  # error-suffix-on-exception-name
+]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]

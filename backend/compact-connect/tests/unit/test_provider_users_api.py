@@ -6,8 +6,7 @@ from tests.unit.test_api import TestApi
 
 
 class TestProviderUsersApi(TestApi):
-    """
-    These tests are focused on checking that the API endpoints for the `/provider-users/ root path are
+    """These tests are focused on checking that the API endpoints for the `/provider-users/ root path are
     configured correctly.
 
     When adding or modifying API resources, a test should be added to ensure that the
@@ -29,7 +28,7 @@ class TestProviderUsersApi(TestApi):
             props={
                 'ParentId': {
                     # Verify the parent id matches the expected 'v1' resource
-                    'Ref': api_stack.get_logical_id(api_stack.api.v1_api.resource.node.default_child)
+                    'Ref': api_stack.get_logical_id(api_stack.api.v1_api.resource.node.default_child),
                 },
                 'PathPart': 'provider-users',
             },
@@ -45,7 +44,7 @@ class TestProviderUsersApi(TestApi):
             props={
                 'ParentId': {
                     # Verify the parent id matches the expected 'provider-users' resource
-                    'Ref': api_stack.get_logical_id(api_stack.api.v1_api.provider_users_resource.node.default_child)
+                    'Ref': api_stack.get_logical_id(api_stack.api.v1_api.provider_users_resource.node.default_child),
                 },
                 'PathPart': 'me',
             },
@@ -53,7 +52,8 @@ class TestProviderUsersApi(TestApi):
 
         # ensure the handler is created
         api_stack_template.has_resource_properties(
-            type=CfnFunction.CFN_RESOURCE_TYPE_NAME, props={'Handler': 'handlers.provider_users.get_provider_user_me'}
+            type=CfnFunction.CFN_RESOURCE_TYPE_NAME,
+            props={'Handler': 'handlers.provider_users.get_provider_user_me'},
         )
 
         method_model_logical_id_capture = Capture()
@@ -65,19 +65,19 @@ class TestProviderUsersApi(TestApi):
                 'HttpMethod': 'GET',
                 # the provider users endpoints uses a separate authorizer from the staff endpoints
                 'AuthorizerId': {
-                    'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child)
+                    'Ref': api_stack.get_logical_id(api_stack.api.provider_users_authorizer.node.default_child),
                 },
                 # ensure the lambda integration is configured with the expected handler
                 'Integration': TestApi._generate_expected_integration_object(
                     api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_users.get_provider_users_me_handler.node.default_child
-                    )
+                        api_stack.api.v1_api.provider_users.get_provider_users_me_handler.node.default_child,
+                    ),
                 ),
                 'MethodResponses': [
                     {
                         'ResponseModels': {'application/json': {'Ref': method_model_logical_id_capture}},
                         'StatusCode': '200',
-                    }
+                    },
                 ],
             },
         )

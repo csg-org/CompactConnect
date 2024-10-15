@@ -50,7 +50,7 @@ class BackendPipeline(CdkCodePipeline):
                     'id': 'HIPAA.Security-S3BucketReplicationEnabled',
                     'reason': 'These artifacts are reproduced on deploy, so the resilience from replication is not'
                     ' necessary',
-                }
+                },
             ],
         )
 
@@ -82,8 +82,8 @@ class BackendPipeline(CdkCodePipeline):
             ),
             synth_code_build_defaults=CodeBuildOptions(
                 partial_build_spec=BuildSpec.from_object(
-                    {'phases': {'install': {'runtime-versions': {'python': '3.12'}}}}
-                )
+                    {'phases': {'install': {'runtime-versions': {'python': '3.12'}}}},
+                ),
             ),
             cross_account_keys=True,
             enable_key_rotation=True,

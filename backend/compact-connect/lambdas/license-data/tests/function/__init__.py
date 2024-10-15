@@ -18,9 +18,7 @@ logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false') == 'true' else
 
 @mock_aws
 class TstFunction(TstLambdas):
-    """
-    Base class to set up Moto mocking and create mock AWS resources for functional testing
-    """
+    """Base class to set up Moto mocking and create mock AWS resources for functional testing"""
 
     def setUp(self):  # pylint: disable=invalid-name
         super().setUp()
@@ -112,7 +110,7 @@ class TstFunction(TstLambdas):
                     # Introduce some variability for sorting
                     'familyName': f'{choice(ascii_letters)}{license_data_copy['familyName']}',
                     'dateOfUpdate': datetime.now(tz=UTC) - timedelta(days=randint(1, 100)),
-                }
+                },
             )
 
             # We'll use the schema/serializer to populate index fields for us
@@ -120,7 +118,7 @@ class TstFunction(TstLambdas):
                 {
                     'compact': 'aslp',
                     'jurisdiction': home,
-                }
+                },
             )
             item = LicenseRecordSchema().dump(license_data_copy)
             logger.debug('Putting license: %s', json.dumps(item))

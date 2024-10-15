@@ -22,9 +22,7 @@ class TestClient(TstFunction):
         self.assertEqual(UUID(user_id), user['userId'])
 
     def test_get_user_not_found(self):
-        """
-        User ID not found should raise an exception
-        """
+        """User ID not found should raise an exception"""
         from data_model.client import UserClient
         from exceptions import CCNotFoundException
 
@@ -143,7 +141,8 @@ class TestClient(TstFunction):
 
         self.assertEqual(user_id, resp['userId'])
         self.assertEqual(
-            {'actions': {'read'}, 'jurisdictions': {'oh': {'admin'}, 'ky': {'write'}}}, resp['permissions']
+            {'actions': {'read'}, 'jurisdictions': {'oh': {'admin'}, 'ky': {'write'}}},
+            resp['permissions'],
         )
         # Just checking that we're getting the whole object, not just changes
         self.assertFalse({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - resp.keys())
@@ -228,8 +227,7 @@ class TestClient(TstFunction):
         self.assertEqual({'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}}, resp['permissions'])
 
     def test_create_existing_user(self):
-        """
-        In the case that two compact admins invite the same individual to their respective compacts, we want there to
+        """In the case that two compact admins invite the same individual to their respective compacts, we want there to
         only be a single Cognito user created, but two database records for that user (one for each compact). So what
         we're looking at here is that we have two sets of permissions (DB records, internally) but that they share the
         same userId.
@@ -255,7 +253,8 @@ class TestClient(TstFunction):
         self.assertEqual(first_user['userId'], second_user['userId'])
         self.assertEqual({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'}, second_user.keys())
         self.assertEqual(
-            {'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'}, second_user['attributes']
+            {'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
+            second_user['attributes'],
         )
         # The second user should see the second compact permissions, not the first, since they are presented separately
         self.assertEqual('octp', second_user['compact'])

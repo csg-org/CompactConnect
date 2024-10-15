@@ -7,9 +7,7 @@ from constructs import Construct
 
 
 class SlackChannelConfiguration(CdkSlackChannelConfiguration):
-    """
-    Simplified Chatbot configuration for our use
-    """
+    """Simplified Chatbot configuration for our use"""
 
     def __init__(
         self,
@@ -65,9 +63,9 @@ class SlackChannelConfiguration(CdkSlackChannelConfiguration):
                         resource='log-group',
                         resource_name='*',
                         arn_format=ArnFormat.COLON_RESOURCE_NAME,
-                    )
+                    ),
                 ],
-            )
+            ),
         )
 
         # Allow basic operational log/metric viewing
@@ -83,7 +81,7 @@ class SlackChannelConfiguration(CdkSlackChannelConfiguration):
                     'cloudwatch:ListMetrics',
                 ],
                 resources=['*'],
-            )
+            ),
         )
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
@@ -93,6 +91,6 @@ class SlackChannelConfiguration(CdkSlackChannelConfiguration):
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'This role is intended to be able to query logs across the account to facilitate '
                     'operational support, which requires log group wildcard resources.',
-                }
+                },
             ],
         )

@@ -15,8 +15,7 @@ _user_record_schema = UserRecordSchema()
 
 # It's conventional to name a decorator in snake_case, even if it is implemented as a class
 class paginated_query:  # pylint: disable=invalid-name
-    """
-    Decorator to handle converting API interface pagination to DynamoDB pagination.
+    """Decorator to handle converting API interface pagination to DynamoDB pagination.
 
     This will process incoming pagination fields for passing to DynamoDB, then take the raw DynamoDB response and
     transform it into a dict that includes an encoded lastKey field.
@@ -54,7 +53,11 @@ class paginated_query:  # pylint: disable=invalid-name
         items = []
         raw_resp = {}
         for raw_resp in self._generate_pages(
-            last_key=last_key, page_size=page_size, client_filter=client_filter, args=args, kwargs=kwargs
+            last_key=last_key,
+            page_size=page_size,
+            client_filter=client_filter,
+            args=args,
+            kwargs=kwargs,
         ):
             items.extend(raw_resp.get('Items', []))
 
@@ -81,11 +84,15 @@ class paginated_query:  # pylint: disable=invalid-name
         return resp
 
     def _generate_pages(
-        self, *, last_key: str | None, page_size: int, client_filter: Callable[[dict], bool] | None, args, kwargs
+        self,
+        *,
+        last_key: str | None,
+        page_size: int,
+        client_filter: Callable[[dict], bool] | None,
+        args,
+        kwargs,
     ):
-        """
-        Repeat the wrapped query until we get everything or the full page_size of items
-        """
+        """Repeat the wrapped query until we get everything or the full page_size of items"""
         dynamo_pagination = {'Limit': page_size, **({'ExclusiveStartKey': last_key} if last_key is not None else {})}
 
         raw_resp = self._caught_query(client_filter, *args, dynamo_pagination=dynamo_pagination, **kwargs)
@@ -105,9 +112,7 @@ class paginated_query:  # pylint: disable=invalid-name
             yield raw_resp
 
     def _caught_query(self, client_filter: Callable[[dict], bool] | None, *args, **kwargs):
-        """
-        Uniformly convert our DynamoDB query validation errors to invalid request exceptions
-        """
+        """Uniformly convert our DynamoDB query validation errors to invalid request exceptions"""
         try:
             raw_resp = self.fn(*args, **kwargs)
         except ClientError as e:
@@ -128,9 +133,7 @@ class paginated_query:  # pylint: disable=invalid-name
 
     @staticmethod
     def _load_records(records: list[dict]):
-        """
-        Every record coming through this paginator should be de-serializable through our *RecordSchema
-        """
+        """Every record coming through this paginator should be de-serializable through our *RecordSchema"""
         print(records)
         try:
             return [_user_record_schema.load(item) for item in records]

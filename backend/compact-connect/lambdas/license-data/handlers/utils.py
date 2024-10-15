@@ -13,9 +13,7 @@ from exceptions import CCInvalidRequestException
 
 
 class ResponseEncoder(JSONEncoder):
-    """
-    JSON Encoder to handle data types that come out of our schema
-    """
+    """JSON Encoder to handle data types that come out of our schema"""
 
     def default(self, o):
         if isinstance(o, Decimal):
@@ -35,9 +33,7 @@ class ResponseEncoder(JSONEncoder):
 
 
 def api_handler(fn: Callable):
-    """
-    Decorator to wrap an api gateway event handler in standard logging, HTTPError handling
-    """
+    """Decorator to wrap an api gateway event handler in standard logging, HTTPError handling"""
 
     @wraps(fn)
     @logger.inject_lambda_context
@@ -88,8 +84,7 @@ def api_handler(fn: Callable):
 
 class scope_by_path:  # pylint: disable=invalid-name
     def __init__(self, *, resource_parameter: str, scope_parameter: str, action: str):
-        """
-        Decorator to wrap scope-based authorization, for a scope like '{resource_server}/{scope}.{action}'.
+        """Decorator to wrap scope-based authorization, for a scope like '{resource_server}/{scope}.{action}'.
 
         For a URL path like:
         ```
@@ -147,8 +142,7 @@ class scope_by_path:  # pylint: disable=invalid-name
 
 
 def sqs_handler(fn: Callable):
-    """
-    Process messages from the ingest queue.
+    """Process messages from the ingest queue.
 
     This handler uses batch item failure reporting:
     https://docs.aws.amazon.com/lambda/latest/dg/example_serverless_SQS_Lambda_batch_item_failures_section.html

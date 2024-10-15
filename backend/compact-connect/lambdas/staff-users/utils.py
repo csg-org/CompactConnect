@@ -20,9 +20,7 @@ from exceptions import (
 
 
 class ResponseEncoder(JSONEncoder):
-    """
-    JSON Encoder to handle data types that come out of our schema
-    """
+    """JSON Encoder to handle data types that come out of our schema"""
 
     def default(self, o):
         if isinstance(o, Decimal):
@@ -45,8 +43,7 @@ class ResponseEncoder(JSONEncoder):
 
 
 def api_handler(fn: Callable):
-    """
-    Decorator to wrap an api gateway event handler in standard logging, HTTPError handling.
+    """Decorator to wrap an api gateway event handler in standard logging, HTTPError handling.
 
     - Logs each access
     - JSON-encodes returned responses
@@ -129,9 +126,7 @@ def api_handler(fn: Callable):
 
 
 class authorize_compact:  # pylint: disable=invalid-name
-    """
-    Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/read)
-    """
+    """Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/read)"""
 
     def __init__(self, action: str):
         super().__init__()
@@ -164,8 +159,7 @@ class authorize_compact:  # pylint: disable=invalid-name
 
 
 def get_allowed_jurisdictions(*, compact: str, scopes: set[str]) -> list[str] | None:
-    """
-    Return a list of jurisdictions the user is allowed to access based on their scopes. If the scopes indicate
+    """Return a list of jurisdictions the user is allowed to access based on their scopes. If the scopes indicate
     the user is a compact admin, the function will return None, as they will do no jurisdiction-based filtering.
     :param str compact: The compact the user is trying to access.
     :param set scopes: The user's scopes from the request.
@@ -189,8 +183,7 @@ def get_event_scopes(event: dict):
 
 
 def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_changes: dict) -> dict:
-    """
-    Transform PATCH user API changes to permissions into db operation changes. Operation changes are checked
+    """Transform PATCH user API changes to permissions into db operation changes. Operation changes are checked
     against the provided scopes to ensure the user is allowed to make the requested changes.
     :param str path_compact: The compact declared in the url path
     :param set scopes: The scopes associated with the user making the request
@@ -233,7 +226,7 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
         if not {f'{path_compact}/{path_compact}.admin', f'{path_compact}/{jurisdiction}.admin'}.intersection(scopes):
             raise CCAccessDeniedException(
                 f'Only {path_compact} or {path_compact}/{jurisdiction} admins can affect {path_compact}/{jurisdiction} '
-                'permissions'
+                'permissions',
             )
 
         for action, value in jurisdiction_changes.get('actions', {}).items():

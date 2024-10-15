@@ -77,8 +77,7 @@ class TestPostLicenses(TstLambdas):
 
     @patch('handlers.licenses.config', autospec=True)
     def test_event_error(self, mock_config):
-        """
-        If we have trouble publishing our events to AWS EventBridge, we should
+        """If we have trouble publishing our events to AWS EventBridge, we should
         return a 500 (raise a CCInternalException).
         """
         from handlers.licenses import post_licenses
@@ -90,7 +89,7 @@ class TestPostLicenses(TstLambdas):
                     'EventId': '123',
                     'ErrorCode': 'SomethingBad',
                     'ErrorMessage': 'There is something wrong with this event',
-                }
+                },
             ],
         }
 

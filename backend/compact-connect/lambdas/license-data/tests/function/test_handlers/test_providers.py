@@ -88,7 +88,7 @@ class TestProviders(TstFunction):
 
         event['pathParameters'] = {}
         event['body'] = json.dumps(
-            {'sorting': {'key': 'dateOfUpdate'}, 'query': {'compact': 'aslp', 'jurisdiction': 'co'}}
+            {'sorting': {'key': 'dateOfUpdate'}, 'query': {'compact': 'aslp', 'jurisdiction': 'co'}},
         )
 
         resp = query_providers(event, self.mock_context)
@@ -117,7 +117,7 @@ class TestProviders(TstFunction):
 
         event['pathParameters'] = {}
         event['body'] = json.dumps(
-            {'sorting': {'key': 'familyName'}, 'query': {'compact': 'aslp', 'jurisdiction': 'co'}}
+            {'sorting': {'key': 'familyName'}, 'query': {'compact': 'aslp', 'jurisdiction': 'co'}},
         )
 
         resp = query_providers(event, self.mock_context)

@@ -83,7 +83,7 @@ class TestQueryProviders(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps(
-            {'sorting': {'key': 'dateOfUpdate'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}}
+            {'sorting': {'key': 'dateOfUpdate'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
         )
 
         resp = query_providers(event, self.mock_context)
@@ -112,7 +112,7 @@ class TestQueryProviders(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps(
-            {'sorting': {'key': 'familyName'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}}
+            {'sorting': {'key': 'familyName'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
         )
 
         resp = query_providers(event, self.mock_context)
@@ -133,7 +133,10 @@ class TestQueryProviders(TstFunction):
 
         # 10 providers, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
         self._generate_providers(
-            home='oh', privilege='ne', start_serial=9999, names=(('Testerly', 'Tess'), ('Testerly', 'Ted'))
+            home='oh',
+            privilege='ne',
+            start_serial=9999,
+            names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
         )
 
         with open('tests/resources/api-event.json') as f:
@@ -147,7 +150,7 @@ class TestQueryProviders(TstFunction):
                 'sorting': {'key': 'familyName'},
                 'query': {'jurisdiction': 'oh', 'familyName': 'Testerly'},
                 'pagination': {'pageSize': 10},
-            }
+            },
         )
 
         resp = query_providers(event, self.mock_context)
@@ -162,7 +165,10 @@ class TestQueryProviders(TstFunction):
 
         # 10 providers, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
         self._generate_providers(
-            home='oh', privilege='ne', start_serial=9999, names=(('Testerly', 'Tess'), ('Testerly', 'Ted'))
+            home='oh',
+            privilege='ne',
+            start_serial=9999,
+            names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
         )
 
         with open('tests/resources/api-event.json') as f:
@@ -176,7 +182,7 @@ class TestQueryProviders(TstFunction):
                 'sorting': {'key': 'familyName'},
                 'query': {'jurisdiction': 'oh', 'givenName': 'Tess'},
                 'pagination': {'pageSize': 10},
-            }
+            },
         )
 
         resp = query_providers(event, self.mock_context)
@@ -184,9 +190,7 @@ class TestQueryProviders(TstFunction):
         self.assertEqual(400, resp['statusCode'])
 
     def test_query_providers_default_sorting(self):
-        """
-        If sorting is not specified, familyName is default
-        """
+        """If sorting is not specified, familyName is default"""
         from handlers.providers import query_providers
 
         # 20 providers, 10 with licenses in oh, 10 with privileges in oh
@@ -238,9 +242,7 @@ class TestQueryProviders(TstFunction):
 @mock_aws
 class TestGetProvider(TstFunction):
     def test_get_provider(self):
-        """
-        Provider detail response
-        """
+        """Provider detail response"""
         self._load_provider_data()
 
         from handlers.providers import get_provider
@@ -263,9 +265,7 @@ class TestGetProvider(TstFunction):
         self.assertEqual(expected_provider, provider_data)
 
     def test_get_provider_wrong_compact(self):
-        """
-        Provider detail response
-        """
+        """Provider detail response"""
         self._load_provider_data()
 
         from handlers.providers import get_provider

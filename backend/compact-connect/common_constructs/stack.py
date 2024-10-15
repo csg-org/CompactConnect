@@ -9,9 +9,7 @@ from cdk_nag import AwsSolutionsChecks, HIPAASecurityChecks, NagSuppressions
 
 
 class StandardTags(dict):
-    """
-    Enforces four required tags for all stacks
-    """
+    """Enforces four required tags for all stacks"""
 
     def __init__(self, *, project: str, service: str, environment: str, **kwargs):
         super().__init__(Project=project, Service=service, Environment=environment, **kwargs)
@@ -61,9 +59,7 @@ class Stack(CdkStack):
 
     @cached_property
     def license_types(self):
-        """
-        Flattened list of all license types across all compacts
-        """
+        """Flattened list of all license types across all compacts"""
         return [typ for comp in self.node.get_context('license_types').values() for typ in comp]
 
     @cached_property
@@ -77,9 +73,7 @@ class Stack(CdkStack):
 
 
 class AppStack(Stack):
-    """
-    A stack that is part of the main app deployment
-    """
+    """A stack that is part of the main app deployment"""
 
     def __init__(self, *args, environment_context: dict, **kwargs):
         super().__init__(*args, **kwargs)
