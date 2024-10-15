@@ -4,6 +4,7 @@
 //
 //  Created by InspiringApps on 4/12/2020.
 //
+import { AuthTypes } from '@/app.config';
 import { LicenseeUser, LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { LicenseeSerializer, Licensee } from '@models/Licensee/Licensee.model';
 import i18n from '@/i18n';
@@ -34,6 +35,7 @@ describe('User model', () => {
         expect(user.email).to.equal(null);
         expect(user.firstName).to.equal(null);
         expect(user.lastName).to.equal(null);
+        expect(user.userType).to.equal(null);
         expect(user.licensee).to.matchPattern(null);
         expect(user.accountStatus).to.equal('');
     });
@@ -45,6 +47,7 @@ describe('User model', () => {
             firstName: 'Faa',
             id: '443df4d8-60e7-4agg-aff4-c5d12ecc1234',
             lastName: 'Foo',
+            userType: AuthTypes.LICENSEE,
             licensee: licenseeData
         };
 
@@ -55,6 +58,7 @@ describe('User model', () => {
         expect(user.email).to.equal(data.email);
         expect(user.firstName).to.equal(data.firstName);
         expect(user.lastName).to.equal(data.lastName);
+        expect(user.userType).to.equal(data.userType);
         expect(typeof user.licensee).to.equal(typeof licenseeData);
     });
     it('should create a Licensee User with specific values through licensee serializer', () => {
@@ -131,6 +135,7 @@ describe('User model', () => {
         expect(user.email).to.equal(data.emailAddress);
         expect(user.firstName).to.equal(data.givenName);
         expect(user.lastName).to.equal(data.familyName);
+        expect(user.userType).to.equal(AuthTypes.LICENSEE);
         expect(typeof user.licensee).to.equal(typeof licensee);
         expect(user.accountStatus).to.equal(data.status);
         expect(user.getFullName()).to.equal(`${data.givenName} ${data.familyName}`);

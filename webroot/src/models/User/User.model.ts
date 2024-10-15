@@ -17,6 +17,7 @@ export interface InterfaceUserCreate {
     email?: string | null;
     firstName?: string | null;
     lastName?: string | null;
+    userType?: string | null;
     accountStatus?: string;
     serverPage?: number;
 }
@@ -31,6 +32,7 @@ export class User implements InterfaceUserCreate {
     public email? = null;
     public firstName? = null;
     public lastName? = null;
+    public userType? = null;
     public accountStatus? = '';
     public serverPage? = 0;
 

@@ -16,7 +16,6 @@ export interface State {
     isLoading: boolean;
     refreshTokenTimeoutId: number | null;
     currentCompact: Compact | null;
-    userType: string | null;
     error: any | null;
 }
 
@@ -26,6 +25,5 @@ export const state: State = {
     isLoading: false,
     refreshTokenTimeoutId: null,
     currentCompact: null,
-    userType: null,
     error: null,
 };

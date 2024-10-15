@@ -4,7 +4,7 @@
 //
 //  Created by InspiringApps on 4/12/2020.
 //
-import { compacts as compactConfigs } from '@/app.config';
+import { compacts as compactConfigs, AuthTypes } from '@/app.config';
 import { StaffUser, StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
@@ -36,6 +36,7 @@ describe('User model', () => {
         expect(user.email).to.equal(null);
         expect(user.firstName).to.equal(null);
         expect(user.lastName).to.equal(null);
+        expect(user.userType).to.equal(null);
         expect(user.permissions).to.matchPattern([]);
         expect(user.accountStatus).to.equal('');
         expect(user.getFullName()).to.equal('');
@@ -72,6 +73,7 @@ describe('User model', () => {
                     ],
                 },
             ],
+            userType: AuthTypes.STAFF,
             accountStatus: 'active',
         };
         const user = new StaffUser(data);
@@ -79,6 +81,7 @@ describe('User model', () => {
         expect(user).to.be.an.instanceof(StaffUser);
         expect(user.id).to.equal(data.id);
         expect(user.email).to.equal(data.email);
+        expect(user.userType).to.equal(data.userType);
         expect(user.firstName).to.equal(data.firstName);
         expect(user.lastName).to.equal(data.lastName);
         expect(user.permissions).to.matchPattern([
@@ -257,6 +260,7 @@ describe('User model', () => {
         ]);
         expect(user.accountStatus).to.equal(data.status);
         expect(user.serverPage).to.equal(1);
+        expect(user.userType).to.equal(AuthTypes.STAFF);
         expect(user.getFullName()).to.equal(`${data.attributes.givenName} ${data.attributes.familyName}`);
         expect(user.getInitials()).to.equal('FL');
         expect(user.permissionsShortDisplay()).to.equal('Read, Admin');

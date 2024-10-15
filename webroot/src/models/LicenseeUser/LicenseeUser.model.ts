@@ -6,7 +6,7 @@
 //
 
 /* eslint-disable max-classes-per-file */
-
+import { AuthTypes } from '@/app.config';
 import deleteUndefinedProperties from '@models/_helpers';
 import { Licensee, LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { User, InterfaceUserCreate } from '@models/User/User.model';
@@ -25,7 +25,7 @@ export class LicenseeUser extends User implements InterfaceLicenseeUserCreate {
     public licensee? = null;
 
     constructor(data?: InterfaceLicenseeUserCreate) {
-        super();
+        super(data);
         const cleanDataObject = deleteUndefinedProperties(data);
         const global = window as any;
         const { $tm, $t } = global.Vue?.config?.globalProperties || {};
@@ -50,6 +50,7 @@ export class LicenseeUserSerializer {
             firstName: json.givenName,
             lastName: json.familyName,
             accountStatus: json.status || 'inactive',
+            userType: AuthTypes.LICENSEE,
             licensee: LicenseeSerializer.fromServer(json)
         };
 

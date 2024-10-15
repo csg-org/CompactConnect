@@ -43,8 +43,6 @@ export default class LicenseeDashboard extends Vue {
     get userFullName(): string {
         let name = '';
 
-        console.log('user', this.user);
-
         if (this.user) {
             name = this.user.getFullName();
         }
