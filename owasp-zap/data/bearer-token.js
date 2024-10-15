@@ -32,5 +32,9 @@ function sendingRequest(msg, initiator, helper) {
 }
 
 function responseReceived(msg, initiator, helper) {
+    const statusCode = msg.getResponseHeader().getStatusCode();
     print('Response code: ', msg.getResponseHeader().getStatusCode());
+    if ( statusCode === 401 || statusCode == 403 ) {
+        print('Response body: ', msg.getResponseBody().toString());
+    }
 }

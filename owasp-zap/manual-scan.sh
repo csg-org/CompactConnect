@@ -11,7 +11,7 @@ TOKEN="$(cd owasp-zap/authenticator; node main.js | jq -r '.accessToken')"
 
 docker run \
   -v "$(pwd):/zap/wrk:rw" \
-  -e TOKEN="$TOKEN" \
+  -e ZAP_AUTH_HEADER_VALUE="$TOKEN" \
   -t zaproxy/zap-stable \
   zap.sh -cmd \
   -autorun /zap/wrk/owasp-zap/data/test-automation.yml
