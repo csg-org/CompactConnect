@@ -7,8 +7,7 @@
 
 import { stateDataApi } from '@network/stateApi/data.api';
 import { licenseDataApi } from '@network/licenseApi/data.api';
-import { staffUserDataApi } from '@network/staffUserApi/data.api';
-import { licenseeUserDataApi } from '@network/licenseeUserApi/data.api';
+import { userDataApi } from '@network/userApi/data.api';
 import { exampleDataApi } from '@network/exampleApi/data.api';
 
 export class DataApi {
@@ -19,8 +18,7 @@ export class DataApi {
     public initInterceptors(store) {
         stateDataApi.initInterceptors(store);
         licenseDataApi.initInterceptors(store);
-        staffUserDataApi.initInterceptors(store);
-        licenseeUserDataApi.initInterceptors(store);
+        userDataApi.initInterceptors(store);
         exampleDataApi.initInterceptors(store);
     }
 
@@ -78,7 +76,7 @@ export class DataApi {
      * @return {Promise<Array>}          An array of users.
      */
     public getUsers(params) {
-        return staffUserDataApi.getUsers(params);
+        return userDataApi.getUsers(params);
     }
 
     /**
@@ -88,7 +86,7 @@ export class DataApi {
      * @return {Promise<User>}         A User model instance.
      */
     public createUser(compact, data) {
-        return staffUserDataApi.createUser(compact, data);
+        return userDataApi.createUser(compact, data);
     }
 
     /**
@@ -98,7 +96,7 @@ export class DataApi {
      * @return {Promise<User>}           A User model instance.
      */
     public getUser(compact, userId) {
-        return staffUserDataApi.getUser(compact, userId);
+        return userDataApi.getUser(compact, userId);
     }
 
     /**
@@ -109,7 +107,7 @@ export class DataApi {
      * @return {Promise<User>}         A User model instance.
      */
     public updateUser(compact, userId, data) {
-        return staffUserDataApi.updateUser(compact, userId, data);
+        return userDataApi.updateUser(compact, userId, data);
     }
 
     /**
@@ -117,7 +115,7 @@ export class DataApi {
      * @return {Promise<User>} A User model instance.
      */
     public getAuthenticatedStaffUser() {
-        return staffUserDataApi.getAuthenticatedStaffUser();
+        return userDataApi.getAuthenticatedStaffUser();
     }
 
     // ========================================================================
@@ -128,7 +126,7 @@ export class DataApi {
      * @return {Promise<User>} A User model instance.
      */
     public getAuthenticatedLicenseeUser() {
-        return licenseeUserDataApi.getAuthenticatedLicenseeUser();
+        return userDataApi.getAuthenticatedLicenseeUser();
     }
 
     // ========================================================================

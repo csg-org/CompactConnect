@@ -13,7 +13,7 @@ import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import { License, LicenseStatus } from '@models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { State } from '@models/State/State.model';
-import { User } from '@models/User/User.model';
+import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 
 @Component({
     name: 'LicenseeDashboard',
@@ -32,7 +32,7 @@ export default class LicenseeDashboard extends Vue {
         return this.$store.state.user;
     }
 
-    get user(): User | null {
+    get user(): LicenseeUser | null {
         return this.userStore.model;
     }
 
@@ -42,6 +42,8 @@ export default class LicenseeDashboard extends Vue {
 
     get userFullName(): string {
         let name = '';
+
+        console.log('user', this.user);
 
         if (this.user) {
             name = this.user.getFullName();

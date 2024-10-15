@@ -6,7 +6,8 @@
 //
 
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
-import { LicenseeUserSerializer, StaffUserSerializer } from '@models/User/User.model';
+import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
+import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 import {
     userData,
     staffAccount,

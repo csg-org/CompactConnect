@@ -19,7 +19,7 @@ import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import { Compact, CompactSerializer, CompactType } from '@models/Compact/Compact.model';
-import { User, CompactPermission } from '@models/User/User.model';
+import { StaffUser, CompactPermission } from '@models/StaffUser/StaffUser.model';
 
 interface CompactOption {
     value: string | number;
@@ -50,7 +50,7 @@ class CompactSelector extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
-    get user(): User | null {
+    get user(): StaffUser | null {
         return this.userStore.model;
     }
 
