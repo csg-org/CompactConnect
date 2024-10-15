@@ -12,6 +12,7 @@ from aws_cdk.aws_s3 import IBucket
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
+from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from common_constructs.webacl import WebACL, WebACLScope
 from stacks.persistent_stack import PersistentStack
@@ -21,6 +22,7 @@ class UIDistribution(Distribution):
     def __init__(
         self, scope: Construct, construct_id: str, *,
         ui_bucket: IBucket,
+        security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
         persistent_stack: PersistentStack
     ):
         stack: AppStack = AppStack.of(scope)
@@ -48,6 +50,7 @@ class UIDistribution(Distribution):
         web_acl = WebACL(
             scope, 'DistributionAcl',
             acl_scope=WebACLScope.CLOUDFRONT,
+            security_profile=security_profile,
             enable_acl_logging=True
         )
         NagSuppressions.add_resource_suppressions_by_path(

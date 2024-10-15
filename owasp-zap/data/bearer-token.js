@@ -33,8 +33,9 @@ function responseReceived(msg, initiator, helper) {
         msg.getRequestHeader().getMethod(),
         msg.getRequestHeader().getURI().toString()
     );
-    if (statusCode === 401 || statusCode == 403 ) {
-        print('Request header:', msg.getRequestHeader().getHeader('Authorization').substring(0, 16));
-        print('Response body:', msg.getResponseBody().toString());
-    }
+    // To debug auth issues, uncomment this for a hint
+    // if (statusCode === 401 || statusCode == 403 ) {
+    //     print('Request header:', msg.getRequestHeader().getHeader('Authorization').substring(0, 16));
+    //     print('Response body:', msg.getResponseBody().toString());
+    // }
 }

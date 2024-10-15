@@ -1,4 +1,3 @@
-from enum import Enum
 from typing import List, Optional, Mapping
 
 from aws_cdk import CfnOutput, Duration, RemovalPolicy
@@ -10,12 +9,7 @@ from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
-
-class SecurityProfile(Enum):
-    RECOMMENDED = 1
-    # We need to open up security rules to allow for automated security testing in some environments
-    # (but NEVER production)
-    VULNERABLE = 2
+from common_constructs.security_profile import SecurityProfile
 
 
 class UserPool(CdkUserPool):

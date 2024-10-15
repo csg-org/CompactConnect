@@ -15,3 +15,11 @@ docker run \
   -t zaproxy/zap-stable \
   zap.sh -cmd \
   -autorun /zap/wrk/owasp-zap/data/test-automation.yml
+
+RESULT="$?"
+if [[ "$RESULT" -eq 0 ]]; then
+  echo "ZAP scan passed"
+else
+  echo "ZAP scan FAILED"
+  exit "$RESULT"
+fi

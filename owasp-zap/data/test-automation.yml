@@ -73,7 +73,7 @@ jobs:
   parameters:
     template: risk-confidence-html
     theme: original
-    reportDir: /zap/wrk
+    reportDir: /zap/wrk/report
     reportFile: ""
     reportTitle: ZAP by Checkmarx Scanning Report
     reportDescription: Test environment ZAP report

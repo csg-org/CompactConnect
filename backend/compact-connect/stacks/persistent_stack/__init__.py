@@ -7,7 +7,7 @@ from constructs import Construct
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.stack import AppStack
-from common_constructs.user_pool import SecurityProfile
+from common_constructs.security_profile import SecurityProfile
 
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.license_table import LicenseTable
