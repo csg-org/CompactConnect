@@ -15,7 +15,7 @@ class CompactPermissionsRecordSchema(Schema):
         values=Set(String, required=False, allow_none=False),
         dump_default={},
         required=True,
-        allow_none=False
+        allow_none=False,
     )
 
 
@@ -32,11 +32,7 @@ class UserRecordSchema(BaseRecordSchema):
     userId = UUID(required=True, allow_none=False)
     attributes = Nested(UserAttributesSchema(), required=True, allow_none=False)
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    permissions = Nested(
-        CompactPermissionsRecordSchema(),
-        required=True,
-        allow_none=False
-    )
+    permissions = Nested(CompactPermissionsRecordSchema(), required=True, allow_none=False)
 
     # Generated fields
     famGiv = String(required=True, allow_none=False)
@@ -53,10 +49,7 @@ class UserRecordSchema(BaseRecordSchema):
 
     @pre_dump
     def generate_fam_giv(self, in_data, **kwargs):  # pylint: disable=unused-argument
-        in_data['famGiv'] = '#'.join([
-            in_data['attributes']['familyName'],
-            in_data['attributes']['givenName']
-        ])
+        in_data['famGiv'] = '#'.join([in_data['attributes']['familyName'], in_data['attributes']['givenName']])
         return in_data
 
     @post_load
@@ -70,21 +63,17 @@ class CompactActionPermissionAPISchema(Schema):
         keys=String(),  # Keys are actions
         values=Boolean(),
         required=True,
-        allow_none=False
+        allow_none=False,
     )
 
 
 class CompactPermissionsAPISchema(CompactActionPermissionAPISchema):
     jurisdictions = Dict(
         keys=String(validate=OneOf(config.jurisdictions)),  # Keys are jurisdictions
-        values=Nested(
-            CompactActionPermissionAPISchema(),
-            required=True,
-            allow_none=False
-        ),
+        values=Nested(CompactActionPermissionAPISchema(), required=True, allow_none=False),
         dump_default={},
         required=True,
-        allow_none=False
+        allow_none=False,
     )
 
 
@@ -95,17 +84,14 @@ class UserAPISchema(Schema):
 
     Note: This schema is not intended for actual validation, only serialization/deserialization.
     """
+
     type = String(required=True, allow_none=False, validate=OneOf(['user']))
     userId = Raw(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
     attributes = Nested(UserAttributesSchema(), required=True, allow_none=False)
     permissions = Dict(
         keys=String(validate=OneOf(config.compacts)),
-        values=Nested(
-            CompactPermissionsAPISchema(),
-            required=True,
-            allow_none=False
-        ),
+        values=Nested(CompactPermissionsAPISchema(), required=True, allow_none=False),
         validate=Length(equal=1),
     )
 
@@ -122,10 +108,7 @@ class UserAPISchema(Schema):
         compact_actions = compact_permissions.get('actions')
         if compact_actions is not None:
             # Set to dict of '{action}: True' items
-            user_permissions[compact]['actions'] = {
-                action: True
-                for action in compact_permissions['actions']
-            }
+            user_permissions[compact]['actions'] = {action: True for action in compact_permissions['actions']}
         jurisdictions = compact_permissions['jurisdictions']
         if jurisdictions is not None:
             # Transform jurisdiction permissions
@@ -133,10 +116,7 @@ class UserAPISchema(Schema):
             for jurisdiction, jurisdiction_permissions in jurisdictions.items():
                 # Set to dict of '{action}: True' items
                 user_permissions[compact]['jurisdictions'][jurisdiction] = {
-                    'actions': {
-                        action: True
-                        for action in jurisdiction_permissions
-                    }
+                    'actions': {action: True for action in jurisdiction_permissions}
                 }
         data['permissions'] = user_permissions
 
@@ -150,18 +130,12 @@ class UserAPISchema(Schema):
             data['compact'] = compact
 
         # { "actions": { "read": True } } -> { "actions": { "read" } }
-        data['permissions']['actions'] = {
-            key
-            for key, value in data['permissions']['actions'].items()
-            if value is True
-        }
+        data['permissions']['actions'] = {key for key, value in data['permissions']['actions'].items() if value is True}
 
         # { "oh": { "actions": { "write": True } } } -> { "oh": { "write" } }
         for jurisdiction, jurisdiction_permissions in data['permissions']['jurisdictions'].items():
             data['permissions']['jurisdictions'][jurisdiction] = {
-                key
-                for key, value in jurisdiction_permissions['actions'].items()
-                if value is True
+                key for key, value in jurisdiction_permissions['actions'].items() if value is True
             }
 
         return data

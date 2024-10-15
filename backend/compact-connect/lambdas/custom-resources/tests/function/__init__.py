@@ -27,27 +27,13 @@ class TstFunction(TstLambdas):
     def build_resources(self):
         self._table = boto3.resource('dynamodb').create_table(
             AttributeDefinitions=[
-                {
-                    'AttributeName': 'pk',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'sk',
-                    'AttributeType': 'S'
-                }
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
             ],
             TableName=os.environ['COMPACT_CONFIGURATION_TABLE_NAME'],
-            KeySchema=[
-                {
-                    'AttributeName': 'pk',
-                    'KeyType': 'HASH'
-                },
-                {
-                    'AttributeName': 'sk',
-                    'KeyType': 'RANGE'
-                }
-            ],
-            BillingMode='PAY_PER_REQUEST')
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+        )
 
     def delete_resources(self):
         self._table.delete()

@@ -16,6 +16,7 @@ class ResponseEncoder(JSONEncoder):
     """
     JSON Encoder to handle data types that come out of our schema
     """
+
     def default(self, o):
         if isinstance(o, Decimal):
             ratio = o.as_integer_ratio()
@@ -58,52 +59,42 @@ def api_handler(fn: Callable):
             path=event['requestContext']['resourcePath'],
             query_params=event['queryStringParameters'],
             username=event['requestContext'].get('authorizer', {}).get('claims', {}).get('cognito:username'),
-            context=context
+            context=context,
         )
 
         try:
             return {
-                'headers': {
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {'Access-Control-Allow-Origin': '*'},
                 'statusCode': 200,
-                'body': json.dumps(fn(event, context), cls=ResponseEncoder)
+                'body': json.dumps(fn(event, context), cls=ResponseEncoder),
             }
         except CCUnauthorizedException as e:
             logger.info('Unauthorized request', exc_info=e)
             return {
-                'headers': {
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {'Access-Control-Allow-Origin': '*'},
                 'statusCode': 401,
-                'body': json.dumps({'message': 'Unauthorized'})
+                'body': json.dumps({'message': 'Unauthorized'}),
             }
         except CCAccessDeniedException as e:
             logger.info('Forbidden request', exc_info=e)
             return {
-                'headers': {
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {'Access-Control-Allow-Origin': '*'},
                 'statusCode': 403,
-                'body': json.dumps({'message': 'Access denied'})
+                'body': json.dumps({'message': 'Access denied'}),
             }
         except CCNotFoundException as e:
             logger.info('Resource not found', exc_info=e)
             return {
-                'headers': {
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {'Access-Control-Allow-Origin': '*'},
                 'statusCode': 404,
-                'body': json.dumps({'message': 'Resource not found'})
+                'body': json.dumps({'message': 'Resource not found'}),
             }
         except CCInvalidRequestException as e:
             logger.info('Invalid request', exc_info=e)
             return {
-                'headers': {
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {'Access-Control-Allow-Origin': '*'},
                 'statusCode': 400,
-                'body': json.dumps({'message': e.message})
+                'body': json.dumps({'message': e.message}),
             }
         except ClientError as e:
             # Any boto3 ClientErrors we haven't already caught and transformed are probably on us
@@ -116,7 +107,7 @@ def api_handler(fn: Callable):
                 path=event['requestContext']['resourcePath'],
                 query_params=event['queryStringParameters'],
                 context=context,
-                exc_info=e
+                exc_info=e,
             )
             raise
 
@@ -127,6 +118,7 @@ class authorize_compact_jurisdiction:  # pylint: disable=invalid-name
     """
     Authorize endpoint by matching path parameters compact and jurisdiction to the expected scope. (i.e. aslp/oh.write)
     """
+
     def __init__(self, action: str):
         """
         Decorator to wrap scope-based authorization, for a scope like '{resource_server}/{scope}.{action}'.
@@ -160,10 +152,7 @@ class authorize_compact_jurisdiction:  # pylint: disable=invalid-name
                 logger.error('Access attempt with missing path parameters!')
                 raise CCInvalidRequestException('Missing path parameter!') from e
 
-            logger.debug(
-                'Checking authorizer context',
-                request_context=event['requestContext']
-            )
+            logger.debug('Checking authorizer context', request_context=event['requestContext'])
             try:
                 scopes = event['requestContext']['authorizer']['claims']['scope'].split(' ')
             except KeyError as e:
@@ -175,6 +164,7 @@ class authorize_compact_jurisdiction:  # pylint: disable=invalid-name
                 logger.warning('Forbidden access attempt!')
                 raise CCAccessDeniedException('Forbidden access attempt!')
             return fn(event, context)
+
         return authorized
 
 
@@ -182,6 +172,7 @@ class authorize_compact:  # pylint: disable=invalid-name
     """
     Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/read)
     """
+
     def __init__(self, action: str):
         super().__init__()
         self.action = action
@@ -196,10 +187,7 @@ class authorize_compact:  # pylint: disable=invalid-name
                 logger.error('Access attempt with missing path parameter!')
                 raise CCInvalidRequestException('Missing path parameter!') from e
 
-            logger.debug(
-                'Checking authorizer context',
-                request_context=event['requestContext']
-            )
+            logger.debug('Checking authorizer context', request_context=event['requestContext'])
             try:
                 scopes = event['requestContext']['authorizer']['claims']['scope'].split(' ')
             except KeyError as e:
@@ -211,6 +199,7 @@ class authorize_compact:  # pylint: disable=invalid-name
                 logger.warning('Forbidden access attempt!')
                 raise CCAccessDeniedException('Forbidden access attempt!')
             return fn(event, context)
+
         return authorized
 
 
@@ -223,6 +212,7 @@ def sqs_handler(fn: Callable):
     This allows the queue to continue to scale under load, even if a number of the messages are failing. It
     also improves efficiency, as we don't have to throw away the entire batch for a single failure.
     """
+
     @wraps(fn)
     @logger.inject_lambda_context
     def process_messages(event, context: LambdaContext):  # pylint: disable=unused-argument
@@ -235,7 +225,7 @@ def sqs_handler(fn: Callable):
                 logger.info(
                     'Processing message',
                     message_id=record['messageId'],
-                    message_attributes=record.get('messageAttributes')
+                    message_attributes=record.get('messageAttributes'),
                 )
                 # No exception here means success
                 fn(message)
@@ -246,8 +236,6 @@ def sqs_handler(fn: Callable):
                 logger.error('Failed to process message', exc_info=e)
                 batch_failures.append({'itemIdentifier': record['messageId']})
         logger.info('Completed batch', batch_failures=len(batch_failures))
-        return {
-            'batchItemFailures': batch_failures
-        }
+        return {'batchItemFailures': batch_failures}
 
     return process_messages

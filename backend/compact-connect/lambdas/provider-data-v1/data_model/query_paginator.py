@@ -28,6 +28,7 @@ class paginated_query:  # pylint: disable=invalid-name
     that we always return the full pageSize, when there are enough results, this decorator will also potentially repeat
     queries multiple times internally, until it has pageSize items to return.
     """
+
     def __init__(self, fn: Callable):
         super().__init__()
         self.fn = fn
@@ -60,20 +61,14 @@ class paginated_query:  # pylint: disable=invalid-name
         resp = {
             # Deserializing everything that comes out of the database
             'items': self._load_records(items),
-            'pagination': {
-                'pageSize': page_size,
-                'prevLastKey': pagination.get('lastKey')
-            }
+            'pagination': {'pageSize': page_size, 'prevLastKey': pagination.get('lastKey')},
         }
 
         # Since we truncated our items, we need to recalculate the last key
         last_key = None
         if raw_last_key is not None:
             last_item = items[-1]
-            last_key = {
-                k: last_item[k]
-                for k in raw_last_key.keys()
-            }
+            last_key = {k: last_item[k] for k in raw_last_key.keys()}
 
         # Last key, if present, will be a dict like {'pk': 'some-pk', 'sk': 'aslp/PROVIDER'}
         if last_key is not None:
@@ -85,10 +80,7 @@ class paginated_query:  # pylint: disable=invalid-name
         """
         Repeat the wrapped query until we get everything or the full page_size of items
         """
-        dynamo_pagination = {
-            'Limit': page_size,
-            **({'ExclusiveStartKey': last_key} if last_key is not None else {})
-        }
+        dynamo_pagination = {'Limit': page_size, **({'ExclusiveStartKey': last_key} if last_key is not None else {})}
 
         raw_resp = self._caught_query(*args, dynamo_pagination=dynamo_pagination, **kwargs)
         count = raw_resp['Count']
@@ -97,7 +89,7 @@ class paginated_query:  # pylint: disable=invalid-name
         while last_key is not None and count < page_size:
             dynamo_pagination = {
                 'Limit': page_size,
-                **({'ExclusiveStartKey': last_key} if last_key is not None else {})
+                **({'ExclusiveStartKey': last_key} if last_key is not None else {}),
             }
 
             raw_resp = self._caught_query(*args, dynamo_pagination=dynamo_pagination, **kwargs)
@@ -125,9 +117,6 @@ class paginated_query:  # pylint: disable=invalid-name
         Every record coming through this paginator should be de-serializable through our *RecordSchema
         """
         try:
-            return [
-                BaseRecordSchema.get_schema_by_type(item['type']).load(item)
-                for item in records
-            ]
+            return [BaseRecordSchema.get_schema_by_type(item['type']).load(item) for item in records]
         except (KeyError, ValidationError) as e:
             raise CCInternalException('Data validation failure!') from e

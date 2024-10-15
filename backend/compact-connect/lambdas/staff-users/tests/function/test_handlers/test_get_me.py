@@ -48,18 +48,8 @@ class TestGetMe(TstFunction):
         # Verify we've successfully merged permissions from two compacts
         self.assertEqual(
             {
-                'aslp': {
-                    'actions': {
-                        'read': True
-                    },
-                    'jurisdictions': {}
-                },
-                'octp': {
-                    'actions': {
-                        'read': True
-                    },
-                    'jurisdictions': {}
-                }
+                'aslp': {'actions': {'read': True}, 'jurisdictions': {}},
+                'octp': {'actions': {'read': True}, 'jurisdictions': {}},
             },
-            body['permissions']
+            body['permissions'],
         )

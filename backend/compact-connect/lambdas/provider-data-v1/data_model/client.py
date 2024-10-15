@@ -17,6 +17,7 @@ class DataClient:
     """
     Client interface for license data dynamodb queries
     """
+
     def __init__(self, config: _Config):  # pylint: disable=redefined-outer-name
         self.config = config
         self.ssn_index_record_schema = SSNIndexRecordSchema()
@@ -28,11 +29,7 @@ class DataClient:
         logger.info('Getting provider id by ssn')
         try:
             resp = self.config.provider_table.get_item(
-                Key={
-                    'pk': f'{compact}#SSN#{ssn}',
-                    'sk': f'{compact}#SSN#{ssn}'
-                },
-                ConsistentRead=True
+                Key={'pk': f'{compact}#SSN#{ssn}', 'sk': f'{compact}#SSN#{ssn}'}, ConsistentRead=True
             )['Item']
         except KeyError as e:
             logger.info('Provider not found by SSN', exc_info=e)
@@ -51,10 +48,10 @@ class DataClient:
                     'sk': f'{compact}#SSN#{ssn}',
                     'compact': compact,
                     'ssn': ssn,
-                    'providerId': provider_id
+                    'providerId': provider_id,
                 },
                 ConditionExpression=Attr('pk').not_exists(),
-                ReturnValuesOnConditionCheckFailure='ALL_OLD'
+                ReturnValuesOnConditionCheckFailure='ALL_OLD',
             )
             logger.info('Creating new provider', provider_id=provider_id)
         except ClientError as e:
@@ -66,12 +63,13 @@ class DataClient:
 
     @paginated_query
     def get_provider(
-            self, *,
-            compact: str,
-            provider_id: str,
-            dynamo_pagination: dict,
-            detail: bool = True,
-            consistent_read: bool = False
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        dynamo_pagination: dict,
+        detail: bool = True,
+        consistent_read: bool = False,
     ):
         logger.info('Getting provider', provider_id=provider_id)
         if detail:
@@ -81,10 +79,9 @@ class DataClient:
 
         resp = self.config.provider_table.query(
             Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
-            & sk_condition,
+            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}') & sk_condition,
             ConsistentRead=consistent_read,
-            **dynamo_pagination
+            **dynamo_pagination,
         )
         if not resp['Items']:
             raise CCNotFoundException('Provider not found')
@@ -93,12 +90,13 @@ class DataClient:
 
     @paginated_query
     def get_providers_sorted_by_family_name(
-            self, *,
-            compact: str,
-            dynamo_pagination: dict,
-            provider_name: tuple[str, str] = None,  # (familyName, givenName)
-            jurisdiction: str = None,
-            scan_forward: bool = True
+        self,
+        *,
+        compact: str,
+        dynamo_pagination: dict,
+        provider_name: tuple[str, str] = None,  # (familyName, givenName)
+        jurisdiction: str = None,
+        scan_forward: bool = True,
     ):  # pylint: disable-redefined-outer-name
         logger.info('Getting providers by family name')
 
@@ -117,8 +115,9 @@ class DataClient:
 
         # Create a jurisdiction filter expression if a jurisdiction is provided
         if jurisdiction is not None:
-            filter_expression = Attr('licenseJurisdiction').eq(jurisdiction) \
-                                | Attr('privilegeJurisdictions').contains(jurisdiction)
+            filter_expression = Attr('licenseJurisdiction').eq(jurisdiction) | Attr('privilegeJurisdictions').contains(
+                jurisdiction
+            )
         else:
             filter_expression = None
 
@@ -128,21 +127,18 @@ class DataClient:
             KeyConditionExpression=key_condition,
             ScanIndexForward=scan_forward,
             **({'FilterExpression': filter_expression} if filter_expression is not None else {}),
-            **dynamo_pagination
+            **dynamo_pagination,
         )
 
     @paginated_query
     def get_providers_sorted_by_updated(
-            self, *,
-            compact: str,
-            dynamo_pagination: dict,
-            jurisdiction: str = None,
-            scan_forward: bool = True
+        self, *, compact: str, dynamo_pagination: dict, jurisdiction: str = None, scan_forward: bool = True
     ):  # pylint: disable-redefined-outer-name
         logger.info('Getting providers by date updated')
         if jurisdiction is not None:
-            filter_expression = Attr('licenseJurisdiction').eq(jurisdiction) \
-                | Attr('privilegeJurisdictions').contains(jurisdiction)
+            filter_expression = Attr('licenseJurisdiction').eq(jurisdiction) | Attr('privilegeJurisdictions').contains(
+                jurisdiction
+            )
         else:
             filter_expression = None
         return config.provider_table.query(
@@ -151,7 +147,7 @@ class DataClient:
             KeyConditionExpression=Key('sk').eq(f'{compact}#PROVIDER'),
             ScanIndexForward=scan_forward,
             **({'FilterExpression': filter_expression} if filter_expression is not None else {}),
-            **dynamo_pagination
+            **dynamo_pagination,
         )
 
     def create_privilege(self, *, compact: str, jurisdiction: str, provider_id: str):
@@ -160,9 +156,7 @@ class DataClient:
         provider_data = [
             record
             for record in self.get_provider(  # pylint: disable=missing-kwoa
-                compact=compact,
-                provider_id=provider_id,
-                detail=False
+                compact=compact, provider_id=provider_id, detail=False
             )['items']
             if record['type'] == 'provider'
         ][0]
@@ -175,33 +169,34 @@ class DataClient:
                 {
                     'Update': {
                         'TableName': config.provider_table_name,
-                        'Key': dynamodb_serializer.serialize({
-                            'pk': f'{compact}#PROVIDER#{provider_id}',
-                            'sk': f'{compact}#PROVIDER'
-                        })['M'],
+                        'Key': dynamodb_serializer.serialize(
+                            {'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'}
+                        )['M'],
                         'UpdateExpression': 'ADD #privilegeJurisdictions :newJurisdictions',
-                        'ExpressionAttributeNames': {
-                            '#privilegeJurisdictions': 'privilegeJurisdictions'
-                        },
+                        'ExpressionAttributeNames': {'#privilegeJurisdictions': 'privilegeJurisdictions'},
                         'ExpressionAttributeValues': {
                             ':newJurisdictions': dynamodb_serializer.serialize({jurisdiction})
-                        }
+                        },
                     }
                 },
                 # Add a new privilege record
                 {
                     'Put': {
                         'TableName': config.provider_table_name,
-                        'Item': dynamodb_serializer.serialize(PrivilegeRecordSchema().dump({
-                            'providerId': provider_id,
-                            'compact': compact,
-                            'jurisdiction': jurisdiction,
-                            'status': provider_data['status'],
-                            'dateOfExpiration': provider_data['dateOfExpiration'],
-                            'dateOfIssuance': now.date(),
-                            'dateOfUpdate': now.date()
-                        }))['M']
+                        'Item': dynamodb_serializer.serialize(
+                            PrivilegeRecordSchema().dump(
+                                {
+                                    'providerId': provider_id,
+                                    'compact': compact,
+                                    'jurisdiction': jurisdiction,
+                                    'status': provider_data['status'],
+                                    'dateOfExpiration': provider_data['dateOfExpiration'],
+                                    'dateOfIssuance': now.date(),
+                                    'dateOfUpdate': now.date(),
+                                }
+                            )
+                        )['M'],
                     }
-                }
+                },
             ]
         )

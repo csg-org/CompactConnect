@@ -18,10 +18,7 @@ class TestClient(TstFunction):
         user = client.get_user_in_compact(compact='aslp', user_id=user_id)
 
         # Verify that we're getting the expected fields
-        self.assertEqual(
-            {'type', 'userId', 'attributes', 'permissions', 'dateOfUpdate', 'compact'},
-            user.keys()
-        )
+        self.assertEqual({'type', 'userId', 'attributes', 'permissions', 'dateOfUpdate', 'compact'}, user.keys())
         self.assertEqual(UUID(user_id), user['userId'])
 
     def test_get_user_not_found(self):
@@ -57,14 +54,11 @@ class TestClient(TstFunction):
 
         # We created two users that have aslp permissions in each jurisdiction and one aslp compact-staff user
         # so those are what we should get back
-        self.assertEqual(2*len(self.config.jurisdictions) + 1, len(resp['items']))
+        self.assertEqual(2 * len(self.config.jurisdictions) + 1, len(resp['items']))
 
         # Verify that we're getting the expected fields
         for user in resp['items']:
-            self.assertEqual(
-                {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'},
-                user.keys()
-            )
+            self.assertEqual({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'}, user.keys())
 
         # Verify we're seeing the expected sorting
         family_names = [user['attributes']['familyName'] for user in resp['items']]
@@ -87,19 +81,16 @@ class TestClient(TstFunction):
         resp = client.get_users_sorted_by_family_name(  # pylint: disable=missing-kwoa
             compact='aslp',
             # All three jurisdictions, this time
-            jurisdictions=['oh', 'ne', 'ky']
+            jurisdictions=['oh', 'ne', 'ky'],
         )
 
         # We created two board users that have aslp permissions in each jurisdiction so those are what we should get
         # back
-        self.assertEqual(2*len(self.config.jurisdictions), len(resp['items']))
+        self.assertEqual(2 * len(self.config.jurisdictions), len(resp['items']))
 
         # Verify that we're getting the expected fields
         for user in resp['items']:
-            self.assertEqual(
-                {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'},
-                user.keys()
-            )
+            self.assertEqual({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'}, user.keys())
 
         # Verify we're seeing the expected sorting
         family_names = [user['attributes']['familyName'] for user in resp['items']]
@@ -121,7 +112,7 @@ class TestClient(TstFunction):
         resp = client.get_users_sorted_by_family_name(  # pylint: disable=missing-kwoa
             compact='aslp',
             # Only oh this time
-            jurisdictions=['oh']
+            jurisdictions=['oh'],
         )
 
         # We created two board users that have aslp permissions in oh so those are what we should get back
@@ -129,10 +120,7 @@ class TestClient(TstFunction):
 
         # Verify that we're getting the expected fields
         for user in resp['items']:
-            self.assertEqual(
-                {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'},
-                user.keys()
-            )
+            self.assertEqual({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'}, user.keys())
 
         # Verify we're seeing the expected sorting
         family_names = [user['attributes']['familyName'] for user in resp['items']]
@@ -149,30 +137,16 @@ class TestClient(TstFunction):
         resp = client.update_user_permissions(
             compact='aslp',
             user_id=user_id,
-            jurisdiction_action_additions={
-                'oh': {'admin'},
-                'ky': {'write'}
-            },
-            jurisdiction_action_removals={
-                'oh': {'write'}
-            }
+            jurisdiction_action_additions={'oh': {'admin'}, 'ky': {'write'}},
+            jurisdiction_action_removals={'oh': {'write'}},
         )
 
         self.assertEqual(user_id, resp['userId'])
         self.assertEqual(
-            {
-                'actions': {'read'},
-                'jurisdictions': {
-                    'oh': {'admin'},
-                    'ky': {'write'}
-                }
-            },
-            resp['permissions']
+            {'actions': {'read'}, 'jurisdictions': {'oh': {'admin'}, 'ky': {'write'}}}, resp['permissions']
         )
         # Just checking that we're getting the whole object, not just changes
-        self.assertFalse(
-            {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - resp.keys()
-        )
+        self.assertFalse({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - resp.keys())
 
     def test_update_user_permissions_board_to_compact_admin(self):
         # The sample user looks like board staff in aslp/oh
@@ -186,23 +160,13 @@ class TestClient(TstFunction):
             compact='aslp',
             user_id=user_id,
             compact_action_additions={'admin'},
-            jurisdiction_action_removals={
-                'oh': {'write'}
-            }
+            jurisdiction_action_removals={'oh': {'write'}},
         )
 
         self.assertEqual(user_id, resp['userId'])
-        self.assertEqual(
-            {
-                'actions': {'read', 'admin'},
-                'jurisdictions': {}
-            },
-            resp['permissions']
-        )
+        self.assertEqual({'actions': {'read', 'admin'}, 'jurisdictions': {}}, resp['permissions'])
         # Checking that we're getting the whole object, not just changes
-        self.assertFalse(
-            {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - resp.keys()
-        )
+        self.assertFalse({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - resp.keys())
 
     def test_update_user_permissions_compact_to_board_admin(self):
         from boto3.dynamodb.types import TypeDeserializer
@@ -212,13 +176,8 @@ class TestClient(TstFunction):
 
         user_id = UUID(user_data['userId'])
         # Convert our canned user into a compact admin
-        user_data['permissions'] = {
-            'actions': {'read', 'admin'},
-            'jurisdictions': {}
-        }
-        self._table.put_item(
-            Item=user_data
-        )
+        user_data['permissions'] = {'actions': {'read', 'admin'}, 'jurisdictions': {}}
+        self._table.put_item(Item=user_data)
 
         from data_model.client import UserClient
 
@@ -228,25 +187,13 @@ class TestClient(TstFunction):
             compact='aslp',
             user_id=user_id,
             compact_action_removals={'admin'},
-            jurisdiction_action_additions={
-                'oh': {'write', 'admin'}
-            }
+            jurisdiction_action_additions={'oh': {'write', 'admin'}},
         )
 
         self.assertEqual(user_id, resp['userId'])
-        self.assertEqual(
-            {
-                'actions': {'read'},
-                'jurisdictions': {
-                    'oh': {'write', 'admin'}
-                }
-            },
-            resp['permissions']
-        )
+        self.assertEqual({'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}}, resp['permissions'])
         # Checking that we're getting the whole object, not just changes
-        self.assertFalse(
-            {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - resp.keys()
-        )
+        self.assertFalse({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - resp.keys())
 
     def test_update_user_attributes(self):
         # The sample user looks like board staff in aslp/oh
@@ -256,29 +203,14 @@ class TestClient(TstFunction):
 
         client = UserClient(self.config)
 
-        resp = client.update_user_attributes(
-            user_id=user_id,
-            attributes={
-                'givenName': 'Bob',
-                'familyName': 'Smith'
-            }
-        )
+        resp = client.update_user_attributes(user_id=user_id, attributes={'givenName': 'Bob', 'familyName': 'Smith'})
         self.assertEqual(1, len(resp))
         user = resp[0]
 
         self.assertEqual(user_id, user['userId'])
-        self.assertEqual(
-            {
-                'givenName': 'Bob',
-                'familyName': 'Smith',
-                'email': 'justin@example.org'
-            },
-            user['attributes']
-        )
+        self.assertEqual({'givenName': 'Bob', 'familyName': 'Smith', 'email': 'justin@example.org'}, user['attributes'])
         # Checking that we're getting the whole object, not just changes
-        self.assertFalse(
-            {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - user.keys()
-        )
+        self.assertFalse({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - user.keys())
 
     def test_create_new_user(self):
         from data_model.client import UserClient
@@ -287,40 +219,13 @@ class TestClient(TstFunction):
 
         resp = client.create_user(
             compact='aslp',
-            attributes={
-                'givenName': 'Bob',
-                'familyName': 'Smith',
-                'email': 'bob@example.org'
-            },
-            permissions={
-                'actions': {'read'},
-                'jurisdictions': {
-                    'oh': {'write', 'admin'}
-                }
-            }
+            attributes={'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
+            permissions={'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}},
         )
 
-        self.assertEqual(
-            {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'},
-            resp.keys()
-        )
-        self.assertEqual(
-            {
-                'givenName': 'Bob',
-                'familyName': 'Smith',
-                'email': 'bob@example.org'
-            },
-            resp['attributes']
-        )
-        self.assertEqual(
-            {
-                'actions': {'read'},
-                'jurisdictions': {
-                    'oh': {'write', 'admin'}
-                }
-            },
-            resp['permissions']
-        )
+        self.assertEqual({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'}, resp.keys())
+        self.assertEqual({'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'}, resp['attributes'])
+        self.assertEqual({'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}}, resp['permissions'])
 
     def test_create_existing_user(self):
         """
@@ -336,62 +241,25 @@ class TestClient(TstFunction):
         # Create an aslp/oh board admin
         first_user = client.create_user(
             compact='aslp',
-            attributes={
-                'givenName': 'Bob',
-                'familyName': 'Smith',
-                'email': 'bob@example.org'
-            },
-            permissions={
-                'actions': {'read'},
-                'jurisdictions': {
-                    'oh': {'write', 'admin'}
-                }
-            }
+            attributes={'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
+            permissions={'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}},
         )
 
         # Create them again as an octp/ne board admin
         second_user = client.create_user(
             compact='octp',
-            attributes={
-                'givenName': 'Bob',
-                'familyName': 'Smith',
-                'email': 'bob@example.org'
-            },
-            permissions={
-                'actions': {'read'},
-                'jurisdictions': {
-                    'ne': {'write', 'admin'}
-                }
-            }
+            attributes={'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
+            permissions={'actions': {'read'}, 'jurisdictions': {'ne': {'write', 'admin'}}},
         )
 
         self.assertEqual(first_user['userId'], second_user['userId'])
+        self.assertEqual({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'}, second_user.keys())
         self.assertEqual(
-            {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'},
-            second_user.keys()
-        )
-        self.assertEqual(
-            {
-                'givenName': 'Bob',
-                'familyName': 'Smith',
-                'email': 'bob@example.org'
-            },
-            second_user['attributes']
+            {'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'}, second_user['attributes']
         )
         # The second user should see the second compact permissions, not the first, since they are presented separately
-        self.assertEqual(
-            'octp',
-             second_user['compact']
-        )
-        self.assertEqual(
-            {
-                'actions': {'read'},
-                'jurisdictions': {
-                    'ne': {'write', 'admin'}
-                }
-            },
-            second_user['permissions']
-        )
+        self.assertEqual('octp', second_user['compact'])
+        self.assertEqual({'actions': {'read'}, 'jurisdictions': {'ne': {'write', 'admin'}}}, second_user['permissions'])
 
     def test_create_existing_user_same_compact(self):
         from data_model.client import UserClient
@@ -401,48 +269,21 @@ class TestClient(TstFunction):
         # Create an oh board admin
         first_user = client.create_user(
             compact='aslp',
-            attributes={
-                'givenName': 'Bob',
-                'familyName': 'Smith',
-                'email': 'bob@example.org'
-            },
-            permissions={
-                'actions': {'read'},
-                'jurisdictions': {
-                    'oh': {'write', 'admin'}
-                }
-            }
+            attributes={'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
+            permissions={'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}},
         )
 
         # Create them again in the same compact
         second_user = client.create_user(
             compact='aslp',
-            attributes={
-                'givenName': 'Bob',
-                'familyName': 'Smith',
-                'email': 'bob@example.org'
-            },
-            permissions={
-                'actions': {'read'},
-                'jurisdictions': {
-                    'ne': {'write', 'admin'}
-                }
-            }
+            attributes={'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
+            permissions={'actions': {'read'}, 'jurisdictions': {'ne': {'write', 'admin'}}},
         )
 
         # The second user should now have permissions in both jurisdictions
-        self.assertEqual(
-            'aslp',
-            second_user['compact']
-        )
+        self.assertEqual('aslp', second_user['compact'])
         self.assertEqual(first_user['userId'], second_user['userId'])
         self.assertEqual(
-            {
-                'actions': {'read'},
-                'jurisdictions': {
-                    'oh': {'write', 'admin'},
-                    'ne': {'write', 'admin'}
-                }
-            },
-            second_user['permissions']
+            {'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}, 'ne': {'write', 'admin'}}},
+            second_user['permissions'],
         )

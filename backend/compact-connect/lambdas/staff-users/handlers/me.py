@@ -33,11 +33,9 @@ def patch_me(event: dict, context: LambdaContext):  # pylint: disable=unused-arg
     user_id = event['requestContext']['authorizer']['claims']['sub']
 
     body = json.loads(event['body'])
-    user_records = user_client.update_user_attributes(
-        user_id=user_id,
-        attributes=body['attributes']
-    )
+    user_records = user_client.update_user_attributes(user_id=user_id, attributes=body['attributes'])
     return _merge_user_records(user_id, user_records)
+
 
 def _merge_user_records(user_id: str, records: list) -> dict:
     users_iter = iter(records)

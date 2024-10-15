@@ -28,10 +28,7 @@ class TestTransformations(TstFunction):
         event['body'] = json.dumps([license_post])
 
         # Compact and jurisdiction are provided via path parameters
-        event['pathParameters'] = {
-            'compact': 'aslp',
-            'jurisdiction': 'co'
-        }
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'co'}
         # Authorize ourselves to write an aslp/co license
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/co.write'
 
@@ -47,8 +44,9 @@ class TestTransformations(TstFunction):
 
             # Capture the event the API POST will produce
             event_bridge_event = json.loads(
-                mock_event_batch_writer.return_value.__enter__.return_value
-                .put_event.call_args.kwargs['Entry']['Detail']
+                mock_event_batch_writer.return_value.__enter__.return_value.put_event.call_args.kwargs['Entry'][
+                    'Detail'
+                ]
             )
 
         # A sample SQS message from EventBridge
@@ -57,14 +55,7 @@ class TestTransformations(TstFunction):
 
         # Pack our license-ingest event into the sample message
         message['detail'] = event_bridge_event
-        event = {
-            'Records': [
-                {
-                    'messageId': '123',
-                    'body': json.dumps(message)
-                }
-            ]
-        }
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
 
         from handlers.ingest import ingest_license_message
 
@@ -78,10 +69,7 @@ class TestTransformations(TstFunction):
         provider_id = client.get_provider_id(ssn=license_ssn)  # pylint: disable=missing-kwoa
 
         # Get the license straight from the table, to inspect it
-        resp = self._table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(provider_id)
-        )
+        resp = self._table.query(Select='ALL_ATTRIBUTES', KeyConditionExpression=Key('pk').eq(provider_id))
         self.assertEqual(1, len(resp['Items']))
         db_license = resp['Items'][0]
 
@@ -106,9 +94,7 @@ class TestTransformations(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['pathParameters'] = {
-            'providerId': provider_id
-        }
+        event['pathParameters'] = {'providerId': provider_id}
 
         resp = get_provider(event, self.mock_context)
 

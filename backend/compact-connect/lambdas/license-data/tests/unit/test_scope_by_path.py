@@ -11,9 +11,7 @@ class TestScopeByPath(TstLambdas):
 
         @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact', action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-            return {
-                'body': 'Hurray!'
-            }
+            return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -25,9 +23,7 @@ class TestScopeByPath(TstLambdas):
 
         @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact', action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-            return {
-                'body': 'Hurray!'
-            }
+            return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -41,9 +37,7 @@ class TestScopeByPath(TstLambdas):
 
         @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact', action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-            return {
-                'body': 'Hurray!'
-            }
+            return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -57,9 +51,7 @@ class TestScopeByPath(TstLambdas):
 
         @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact', action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-            return {
-                'body': 'Hurray!'
-            }
+            return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)

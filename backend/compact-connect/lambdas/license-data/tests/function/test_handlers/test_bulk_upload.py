@@ -48,7 +48,6 @@ class TestBulkUpload(TstFunction):
 
 @mock_aws
 class TestProcessObjects(TstFunction):
-
     def test_uploaded_csv(self):
         from handlers.bulk_upload import parse_bulk_upload_file
 
@@ -63,9 +62,7 @@ class TestProcessObjects(TstFunction):
         event['Records'][0]['s3']['bucket'] = {
             'name': self._bucket.name,
             'arn': f'arn:aws:s3:::{self._bucket.name}',
-            'ownerIdentity': {
-                'principalId': 'ASDFG123'
-            }
+            'ownerIdentity': {'principalId': 'ASDFG123'},
         }
         event['Records'][0]['s3']['object']['key'] = object_key
 

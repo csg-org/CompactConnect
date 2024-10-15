@@ -20,9 +20,7 @@ class TestTransformations(TstFunction):
         with open('tests/resources/dynamo/provider-ssn.json') as f:
             provider_ssn = json.load(f)
 
-        self._provider_table.put_item(
-            Item=provider_ssn
-        )
+        self._provider_table.put_item(Item=provider_ssn)
         expected_provider_id = provider_ssn['providerId']
 
         # license data as it comes in from a board, in this case, as POSTed through the API
@@ -38,10 +36,7 @@ class TestTransformations(TstFunction):
         event['body'] = json.dumps([license_post])
 
         # Compact and jurisdiction are provided via path parameters
-        event['pathParameters'] = {
-            'compact': 'aslp',
-            'jurisdiction': 'oh'
-        }
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
         # Authorize ourselves to write the license
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write aslp/oh.write'
 
@@ -57,8 +52,9 @@ class TestTransformations(TstFunction):
 
             # Capture the event the API POST will produce
             event_bridge_event = json.loads(
-                mock_event_batch_writer.return_value.__enter__.return_value
-                .put_event.call_args.kwargs['Entry']['Detail']
+                mock_event_batch_writer.return_value.__enter__.return_value.put_event.call_args.kwargs['Entry'][
+                    'Detail'
+                ]
             )
 
         # A sample SQS message from EventBridge
@@ -67,14 +63,7 @@ class TestTransformations(TstFunction):
 
         # Pack our license-ingest event into the sample message
         message['detail'] = event_bridge_event
-        event = {
-            'Records': [
-                {
-                    'messageId': '123',
-                    'body': json.dumps(message)
-                }
-            ]
-        }
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
 
         from handlers.ingest import ingest_license_message
 
@@ -86,8 +75,7 @@ class TestTransformations(TstFunction):
         # We'll use the data client to get the resulting provider id
         client = DataClient(self.config)
         provider_id = client.get_provider_id(  # pylint: disable=missing-kwoa,unexpected-keyword-arg
-            compact='aslp',
-            ssn=license_ssn
+            compact='aslp', ssn=license_ssn
         )
         self.assertEqual(expected_provider_id, provider_id)
 
@@ -98,13 +86,11 @@ class TestTransformations(TstFunction):
         resp = self._provider_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('aslp#PROVIDER')
+            & Key('sk').begins_with('aslp#PROVIDER'),
         )
         # One record for reach of: provider, license, privilege
         self.assertEqual(3, len(resp['Items']))
-        records = {
-            item['type']: item for item in resp['Items']
-        }
+        records = {item['type']: item for item in resp['Items']}
 
         # Expected representation of each record in the database
         with open('tests/resources/dynamo/provider.json') as f:
@@ -138,10 +124,7 @@ class TestTransformations(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['pathParameters'] = {
-            'compact': 'aslp',
-            'providerId': provider_id
-        }
+        event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
 
         resp = get_provider(event, self.mock_context)

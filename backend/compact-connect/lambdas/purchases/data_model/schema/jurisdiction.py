@@ -8,19 +8,23 @@ from data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 
 JURISDICTION_TYPE = 'jurisdiction'
 
+
 class JurisdictionMilitaryDiscountSchema(Schema):
     active = Boolean(required=True, allow_none=False)
     discountType = String(required=True, allow_none=False, validate=OneOf(['FLAT_RATE']))
     discountAmount = Decimal(required=True, allow_none=False)
 
+
 class JurisdictionJurisprudenceRequirementsSchema(Schema):
     required = Boolean(required=True, allow_none=False)
+
 
 @BaseRecordSchema.register_schema(JURISDICTION_TYPE)
 class JurisdictionRecordSchema(BaseRecordSchema):
     """
     Schema for the root jurisdiction configuration records
     """
+
     _record_type = JURISDICTION_TYPE
 
     # Provided fields
@@ -29,20 +33,12 @@ class JurisdictionRecordSchema(BaseRecordSchema):
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     jurisdictionFee = Decimal(required=True, allow_none=False)
     militaryDiscount = Nested(JurisdictionMilitaryDiscountSchema(), required=False, allow_none=False)
-    jurisdictionOperationsTeamEmails = List(
-        String(required=True, allow_none=False),
-        required=True,
-        allow_none=False
-    )
+    jurisdictionOperationsTeamEmails = List(String(required=True, allow_none=False), required=True, allow_none=False)
     jurisdictionAdverseActionsNotificationEmails = List(
-        String(required=True, allow_none=False),
-        required=True,
-        allow_none=False
+        String(required=True, allow_none=False), required=True, allow_none=False
     )
     jurisdictionSummaryReportNotificationEmails = List(
-        String(required=True, allow_none=False),
-        required=True,
-        allow_none=False
+        String(required=True, allow_none=False), required=True, allow_none=False
     )
     jurisprudenceRequirements = Nested(JurisdictionJurisprudenceRequirementsSchema(), required=True, allow_none=False)
 
@@ -61,6 +57,7 @@ class JurisdictionOptionsApiResponseSchema(ForgivingSchema):
     """
     Used to enforce which fields are returned in jurisdiction objects for the GET /purchase/privileges/options endpoint
     """
+
     jurisdictionName = String(required=True, allow_none=False)
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))

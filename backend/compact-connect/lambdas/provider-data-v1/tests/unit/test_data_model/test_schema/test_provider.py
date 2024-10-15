@@ -6,7 +6,6 @@ from tests import TstLambdas
 
 
 class TestProviderRecordSchema(TstLambdas):
-
     def test_serde(self):
         """
         Test round-trip deserialization/serialization

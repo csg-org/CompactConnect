@@ -40,6 +40,7 @@ class LicensePublicSchema(LicenseCommonSchema):
     """
     Schema for license data that can be shared with the public
     """
+
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
 
 
@@ -47,6 +48,7 @@ class LicensePostSchema(LicensePublicSchema):
     """
     Schema for license data as posted by a board
     """
+
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
     homeStateStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
@@ -61,6 +63,7 @@ class LicenseRecordSchema(BaseRecordSchema, LicensePostSchema):
     """
     Schema for license records in the license data table
     """
+
     _record_type = 'license-home'
 
     # Provided fields
@@ -80,9 +83,11 @@ class LicenseRecordSchema(BaseRecordSchema, LicensePostSchema):
     def populate_license_generated_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
         in_data['licenseHomeProviderId'] = in_data['providerId']
         in_data['birthMonthDay'] = in_data['dateOfBirth'].strftime('%m-%d')
-        in_data['famGivMid'] = '/'.join((
-            quote(in_data['familyName'], safe=''),
-            quote(in_data['givenName'], safe=''),
-            quote(in_data.get('middleName', ''), safe='')
-        ))
+        in_data['famGivMid'] = '/'.join(
+            (
+                quote(in_data['familyName'], safe=''),
+                quote(in_data['givenName'], safe=''),
+                quote(in_data.get('middleName', ''), safe=''),
+            )
+        )
         return in_data

@@ -1,4 +1,3 @@
-
 import logging
 import os
 
@@ -19,7 +18,4 @@ def delete_objects(event, context):  # pylint: disable=unused-argument
         key = record['s3']['object']['key']
         size = record['s3']['object']['size']
         logger.info('Object', s3_url=f's3://{bucket_name}/{key}', size=size)
-        s3_client.delete_object(
-            Bucket=bucket_name,
-            Key=key
-        )
+        s3_client.delete_object(Bucket=bucket_name, Key=key)

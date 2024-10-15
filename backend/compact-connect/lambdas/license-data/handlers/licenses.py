@@ -24,11 +24,7 @@ def post_licenses(event: dict, context: LambdaContext):  # pylint: disable=unuse
     jurisdiction = event['pathParameters']['jurisdiction']
 
     body = [
-        {
-            'compact': compact,
-            'jurisdiction': jurisdiction,
-            **license_entry
-        }
+        {'compact': compact, 'jurisdiction': jurisdiction, **license_entry}
         for license_entry in json.loads(event['body'])
     ]
     try:
@@ -42,12 +38,10 @@ def post_licenses(event: dict, context: LambdaContext):  # pylint: disable=unuse
                 Entry={
                     'Source': 'org.compactconnect.licenses',
                     'DetailType': 'license-ingest',
-                    'Detail': json.dumps({
-                        'compact': compact,
-                        'jurisdiction': jurisdiction,
-                        **schema.dump(license_data)
-                    }),
-                    'EventBusName': config.event_bus_name
+                    'Detail': json.dumps(
+                        {'compact': compact, 'jurisdiction': jurisdiction, **schema.dump(license_data)}
+                    ),
+                    'EventBusName': config.event_bus_name,
                 }
             )
 

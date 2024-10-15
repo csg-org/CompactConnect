@@ -1,4 +1,3 @@
-
 import jsii
 from aws_cdk import Duration, Stack
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
@@ -19,11 +18,15 @@ class PythonFunction(CdkPythonFunction):
     On bundling, this function will validate the lambda by temporarily installing dev dependencies in
     requirements-dev.txt, then executing and removing tests.
     """
+
     def __init__(
-            self, scope: Construct, construct_id: str, *,
-            log_retention: RetentionDays = RetentionDays.ONE_MONTH,
-            alarm_topic: ITopic = None,
-            **kwargs
+        self,
+        scope: Construct,
+        construct_id: str,
+        *,
+        log_retention: RetentionDays = RetentionDays.ONE_MONTH,
+        alarm_topic: ITopic = None,
+        **kwargs,
     ):
         defaults = {
             'timeout': Duration.seconds(28),
@@ -31,11 +34,12 @@ class PythonFunction(CdkPythonFunction):
         defaults.update(kwargs)
 
         super().__init__(  # pylint: disable=missing-kwoa
-            scope, construct_id,
+            scope,
+            construct_id,
             bundling=BundlingOptions(command_hooks=TestingHooks()),
             runtime=Runtime.PYTHON_3_12,
             log_retention=log_retention,
-            **defaults
+            **defaults,
         )
         if alarm_topic is not None:
             self._add_alarms(alarm_topic)
@@ -46,13 +50,13 @@ class PythonFunction(CdkPythonFunction):
             suppressions=[
                 {
                     'id': 'HIPAA.Security-LambdaDLQ',
-                    'reason': "These lambdas are synchronous and so don't require any DLQ configuration"
+                    'reason': "These lambdas are synchronous and so don't require any DLQ configuration",
                 },
                 {
                     'id': 'HIPAA.Security-LambdaInsideVPC',
-                    'reason': 'We may choose to move our lambdas into private VPC subnets in a future enhancement'
-                }
-            ]
+                    'reason': 'We may choose to move our lambdas into private VPC subnets in a future enhancement',
+                },
+            ],
         )
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
@@ -63,9 +67,9 @@ class PythonFunction(CdkPythonFunction):
                     'applies_to': [
                         'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
                     ],
-                    'reason': 'The BasicExecutionRole policy is appropriate for these lambdas'
+                    'reason': 'The BasicExecutionRole policy is appropriate for these lambdas',
                 }
-            ]
+            ],
         )
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
@@ -73,11 +77,10 @@ class PythonFunction(CdkPythonFunction):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',
-                    'applies_to':
-                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
-                    'reason': 'This policy is appropriate for the log retention lambda'
+                    'applies_to': 'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
+                    'reason': 'This policy is appropriate for the log retention lambda',
                 }
-            ]
+            ],
         )
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
@@ -87,21 +90,22 @@ class PythonFunction(CdkPythonFunction):
                     'id': 'AwsSolutions-IAM5',
                     'applies_to': ['Resource::*'],
                     'reason': 'This lambda needs to be able to configure log groups across the account, though the'
-                              ' actions it is allowed are scoped specifically for this task.'
+                    ' actions it is allowed are scoped specifically for this task.',
                 }
-            ]
+            ],
         )
 
     def _add_alarms(self, alarm_topic: ITopic):
         throttle_alarm = Alarm(
-            self, 'ThrottleAlarm',
+            self,
+            'ThrottleAlarm',
             metric=self.metric_throttles(statistic=Stats.SUM),
             evaluation_periods=1,
             threshold=1,
             actions_enabled=True,
             alarm_description=f'{self.node.path} lambda throttles detected',
             comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
-            treat_missing_data=TreatMissingData.NOT_BREACHING
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
         )
         throttle_alarm.add_alarm_action(SnsAction(alarm_topic))
 
@@ -114,13 +118,14 @@ class TestingHooks:
     This command hook will temporarily install dev dependencies, then execute unittest-compatible
     tests expected to be in the `tests` directory.
     """
+
     def after_bundling(self, input_dir: str, output_dir: str) -> list[str]:  # pylint: disable=unused-argument
         return [
             'mkdir _tmp_dev_deps',
             'python -m pip install -r requirements-dev.txt -t _tmp_dev_deps',
             'PYTHONPATH="$(pwd)/_tmp_dev_deps" python -m unittest discover -s tests',
             'rm -rf _tmp_dev_deps',
-            'rm -rf tests'
+            'rm -rf tests',
         ]
 
     def before_bundling(self, input_dir: str, output_dir: str) -> list[str]:  # pylint: disable=unused-argument

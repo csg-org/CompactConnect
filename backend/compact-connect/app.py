@@ -21,26 +21,24 @@ class CompactConnectApp(App):
             app_name = ssm_context['app_name']
 
             self.sandbox_stage = BackendStage(
-                self, 'Sandbox',
+                self,
+                'Sandbox',
                 app_name=app_name,
                 environment_name=environment_name,
                 environment_context=environment_context,
-                github_repo_string=ssm_context['github_repo_string']
+                github_repo_string=ssm_context['github_repo_string'],
             )
         else:
             tags = self.node.get_context('tags')
             environment = Environment(
-                account=os.environ['CDK_DEFAULT_ACCOUNT'],
-                region=os.environ['CDK_DEFAULT_REGION']
+                account=os.environ['CDK_DEFAULT_ACCOUNT'], region=os.environ['CDK_DEFAULT_REGION']
             )
             self.pipeline_stack = PipelineStack(
-                self, 'PipelineStack',
+                self,
+                'PipelineStack',
                 env=environment,
-                standard_tags=StandardTags(
-                    **tags,
-                    environment='pipeline'
-                ),
-                cdk_path='backend/compact-connect'
+                standard_tags=StandardTags(**tags, environment='pipeline'),
+                cdk_path='backend/compact-connect',
             )
 
 

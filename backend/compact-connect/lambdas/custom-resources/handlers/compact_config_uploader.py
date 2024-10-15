@@ -38,7 +38,9 @@ def on_event(event: dict, context: LambdaContext):  # pylint: disable=inconsiste
 
 def upload_configuration(properties: dict):
     compact_configuration = json.loads(properties['compact_configuration'], parse_float=Decimal)
-    logger.info('Uploading compact configuration',)
+    logger.info(
+        'Uploading compact configuration',
+    )
 
     # upload the root compact configuration
     _upload_compact_root_configuration(compact_configuration)
@@ -57,16 +59,19 @@ def _upload_compact_root_configuration(compact_configuration: dict) -> None:
     for compact in compact_configuration['compacts']:
         compact_name = compact['compactName']
         logger.info(f'Compact {compact_name} active for environment, uploading')
-        compact.update({
-            "pk": f"{compact_name.lower()}#CONFIGURATION",
-            "sk": f"{compact_name.lower()}#CONFIGURATION",
-            "type": "compact",
-            "dateOfUpdate": date.today().strftime('%Y-%m-%d')
-        })
+        compact.update(
+            {
+                'pk': f'{compact_name.lower()}#CONFIGURATION',
+                'sk': f'{compact_name.lower()}#CONFIGURATION',
+                'type': 'compact',
+                'dateOfUpdate': date.today().strftime('%Y-%m-%d'),
+            }
+        )
         # remove the activeEnvironments field as it's an implementation detail
         compact.pop('activeEnvironments')
 
         config.compact_configuration_table.put_item(Item=compact)
+
 
 def _upload_jurisdiction_configuration(compact_configuration: dict) -> None:
     """
@@ -76,15 +81,19 @@ def _upload_jurisdiction_configuration(compact_configuration: dict) -> None:
     for compact_name, jurisdictions in compact_configuration['jurisdictions'].items():
         for jurisdiction in jurisdictions:
             jurisdiction_postal_abbreviation = jurisdiction['postalAbbreviation']
-            logger.info(f'Jurisdiction {jurisdiction_postal_abbreviation} '
-                        f'for compact {compact_name} active for environment, uploading')
-            jurisdiction.update({
-                "pk": f"{compact_name.lower()}#CONFIGURATION",
-                "sk": f"{compact_name.lower()}#JURISDICTION#{jurisdiction_postal_abbreviation.lower()}",
-                "type": "jurisdiction",
-                "compact": compact_name,
-                "dateOfUpdate": date.today().strftime('%Y-%m-%d')
-            })
+            logger.info(
+                f'Jurisdiction {jurisdiction_postal_abbreviation} '
+                f'for compact {compact_name} active for environment, uploading'
+            )
+            jurisdiction.update(
+                {
+                    'pk': f'{compact_name.lower()}#CONFIGURATION',
+                    'sk': f'{compact_name.lower()}#JURISDICTION#{jurisdiction_postal_abbreviation.lower()}',
+                    'type': 'jurisdiction',
+                    'compact': compact_name,
+                    'dateOfUpdate': date.today().strftime('%Y-%m-%d'),
+                }
+            )
             # remove the activeEnvironments field as it's an implementation detail
             jurisdiction.pop('activeEnvironments')
 

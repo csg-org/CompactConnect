@@ -12,6 +12,7 @@ class PrivilegePostSchema(ForgivingSchema):
     """
     Schema for privilege data as it may be posted by a board
     """
+
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -30,6 +31,7 @@ class PrivilegeRecordSchema(BaseRecordSchema, PrivilegePostSchema):
     """
     Schema for privilege records in the license data table
     """
+
     _record_type = 'license-privilege'
 
     # Provided fields
@@ -47,9 +49,11 @@ class PrivilegeRecordSchema(BaseRecordSchema, PrivilegePostSchema):
     @pre_dump
     def populate_privilege_generated_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
         in_data['birthMonthDay'] = in_data['dateOfBirth'].strftime('%m-%d')
-        in_data['famGivMid'] = '/'.join((
-            quote(in_data['familyName'], safe=''),
-            quote(in_data['givenName'], safe=''),
-            quote(in_data.get('middleName', ''), safe='')
-        ))
+        in_data['famGivMid'] = '/'.join(
+            (
+                quote(in_data['familyName'], safe=''),
+                quote(in_data['givenName'], safe=''),
+                quote(in_data.get('middleName', ''), safe=''),
+            )
+        )
         return in_data

@@ -16,11 +16,7 @@ class TestPatchMe(TstFunction):
         # The user has admin permission for all of aslp
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/aslp.admin'
         event['pathParameters'] = {}
-        event['body'] = json.dumps({
-            'attributes': {
-                'givenName': 'George'
-            }
-        })
+        event['body'] = json.dumps({'attributes': {'givenName': 'George'}})
 
         # We haven't loaded any users, so this won't find a user
         resp = patch_me(event, self.mock_context)
@@ -39,11 +35,7 @@ class TestPatchMe(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/aslp.admin'
         event['requestContext']['authorizer']['claims']['sub'] = user_id
         event['pathParameters'] = {}
-        event['body'] = json.dumps({
-            'attributes': {
-                'givenName': 'George'
-            }
-        })
+        event['body'] = json.dumps({'attributes': {'givenName': 'George'}})
 
         resp = patch_me(event, self.mock_context)
 
@@ -55,7 +47,4 @@ class TestPatchMe(TstFunction):
 
         body = json.loads(resp['body'])
 
-        self.assertEqual(
-            expected_user,
-            body
-        )
+        self.assertEqual(expected_user, body)

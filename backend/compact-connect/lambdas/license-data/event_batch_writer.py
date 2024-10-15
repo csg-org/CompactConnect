@@ -5,6 +5,7 @@ class EventBatchWriter:
     """
     Utility class to batch event bridge event puts for better efficiency with the AWS EventBridge API
     """
+
     def __init__(self, client: BaseClient, batch_size: int = 10):
         """
         :param BaseClient client: A boto3 EventBridge client to use for API calls
@@ -18,17 +19,11 @@ class EventBatchWriter:
         self.failed_entries = None
 
     def _do_put(self):
-        resp = self._client.put_events(
-            Entries=self._batch
-        )
+        resp = self._client.put_events(Entries=self._batch)
         failure_count = resp.get('FailedEntryCount', 0)
         if failure_count > 0:
             self.failed_entry_count += failure_count
-            self.failed_entries.extend(
-                entry
-                for entry in resp.get('Entries')
-                if entry.get('ErrorCode')
-            )
+            self.failed_entries.extend(entry for entry in resp.get('Entries') if entry.get('ErrorCode'))
         self._batch = []
         self._count = 0
 

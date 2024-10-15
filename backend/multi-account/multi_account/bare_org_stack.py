@@ -4,12 +4,7 @@ from constructs import Construct
 
 
 class BareOrgStack(Stack):
-    def __init__(
-            self, scope: Construct, construct_id: str, *,
-            account_name_prefix: str,
-            email_domain: str,
-            **kwargs
-    ):
+    def __init__(self, scope: Construct, construct_id: str, *, account_name_prefix: str, email_domain: str, **kwargs):
         """
         Creates an AWS Organization with the minimum accounts needed
         to create a ControlTower LandingZone
@@ -26,29 +21,28 @@ class BareOrgStack(Stack):
         """
         super().__init__(scope, construct_id, **kwargs)
 
-        self.organization = CfnOrganization(
-            self, 'Organization',
-            feature_set='ALL'
-        )
+        self.organization = CfnOrganization(self, 'Organization', feature_set='ALL')
         self.organization.apply_removal_policy(RemovalPolicy.RETAIN)
 
         logging_account_name = f'{account_name_prefix}-logs'
         logging_account_email = f'{logging_account_name}@{email_domain}'
         self.logging_account = CfnAccount(
-            self, 'LoggingAccount',
+            self,
+            'LoggingAccount',
             account_name=logging_account_name,
             email=logging_account_email,
-            parent_ids=[self.organization.attr_root_id]
+            parent_ids=[self.organization.attr_root_id],
         )
         self.logging_account.apply_removal_policy(RemovalPolicy.RETAIN)
 
         audit_account_name = f'{account_name_prefix}-audit'
         audit_account_email = f'{audit_account_name}@{email_domain}'
         self.audit_account = CfnAccount(
-            self, 'AuditAcount',
+            self,
+            'AuditAcount',
             account_name=audit_account_name,
             email=audit_account_email,
-            parent_ids=[self.organization.attr_root_id]
+            parent_ids=[self.organization.attr_root_id],
         )
         self.audit_account.apply_removal_policy(RemovalPolicy.RETAIN)
         self.audit_account.add_dependency(self.logging_account)

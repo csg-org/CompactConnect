@@ -12,6 +12,7 @@ class StrictSchema(Schema):
     """
     Base Schema explicitly stating what we do if unknown fields are included - raise an error
     """
+
     class Meta:
         unknown = RAISE
 
@@ -20,6 +21,7 @@ class ForgivingSchema(Schema):
     """
     Base schema that will silently remove any unknown fields that are included
     """
+
     class Meta:
         unknown = EXCLUDE
 
@@ -28,6 +30,7 @@ class Set(List):
     """
     A Field that de/serializes to a Set (not compatible with JSON)
     """
+
     def _serialize(self, *args, **kwargs):
         return set(super()._serialize(*args, **kwargs))
 
@@ -39,6 +42,7 @@ class BaseRecordSchema(StrictSchema, ABC):
     """
     Abstract base class, common to all records in the license data table
     """
+
     _record_type = None
     _registered_schema = {}
 

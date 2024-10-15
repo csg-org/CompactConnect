@@ -11,7 +11,6 @@ logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false').lower() == 'tr
 
 
 class _Config:
-
     @property
     def compact_configuration_table_name(self):
         return os.environ['COMPACT_CONFIGURATION_TABLE_NAME']
@@ -19,5 +18,6 @@ class _Config:
     @cached_property
     def compact_configuration_table(self):
         return boto3.resource('dynamodb').Table(self.compact_configuration_table_name)
+
 
 config = _Config()

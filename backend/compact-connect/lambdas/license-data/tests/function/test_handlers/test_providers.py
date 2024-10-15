@@ -21,11 +21,7 @@ class TestProviders(TstFunction):
             event = json.load(f)
 
         event['pathParameters'] = {}
-        event['body'] = json.dumps({
-            'query': {
-                'ssn': '123-12-1234'
-            }
-        })
+        event['body'] = json.dumps({'query': {'ssn': '123-12-1234'}})
 
         resp = query_providers(event, self.mock_context)
 
@@ -39,16 +35,10 @@ class TestProviders(TstFunction):
         self.assertEqual(
             {
                 'items': [expected_license],
-                'pagination': {
-                    'pageSize': 100,
-                    'lastKey': None,
-                    'prevLastKey': None
-                },
-                'query': {
-                    'ssn': '123-12-1234'
-                }
+                'pagination': {'pageSize': 100, 'lastKey': None, 'prevLastKey': None},
+                'query': {'ssn': '123-12-1234'},
             },
-            body
+            body,
         )
 
     def test_query_one_provider(self):
@@ -66,11 +56,7 @@ class TestProviders(TstFunction):
             event = json.load(f)
 
         event['pathParameters'] = {}
-        event['body'] = json.dumps({
-            'query': {
-                'providerId': provider_id
-            }
-        })
+        event['body'] = json.dumps({'query': {'providerId': provider_id}})
 
         resp = query_providers(event, self.mock_context)
 
@@ -83,16 +69,10 @@ class TestProviders(TstFunction):
         self.assertEqual(
             {
                 'items': [expected_license],
-                'pagination': {
-                    'pageSize': 100,
-                    'lastKey': None,
-                    'prevLastKey': None
-                },
-                'query': {
-                    'providerId': provider_id
-                }
+                'pagination': {'pageSize': 100, 'lastKey': None, 'prevLastKey': None},
+                'query': {'providerId': provider_id},
             },
-            body
+            body,
         )
 
     def test_query_providers_updated(self):
@@ -107,15 +87,9 @@ class TestProviders(TstFunction):
             event = json.load(f)
 
         event['pathParameters'] = {}
-        event['body'] = json.dumps({
-            'sorting': {
-                'key': 'dateOfUpdate'
-            },
-            'query': {
-                'compact': 'aslp',
-                'jurisdiction': 'co'
-            }
-        })
+        event['body'] = json.dumps(
+            {'sorting': {'key': 'dateOfUpdate'}, 'query': {'compact': 'aslp', 'jurisdiction': 'co'}}
+        )
 
         resp = query_providers(event, self.mock_context)
 
@@ -142,15 +116,9 @@ class TestProviders(TstFunction):
             event = json.load(f)
 
         event['pathParameters'] = {}
-        event['body'] = json.dumps({
-            'sorting': {
-                'key': 'familyName'
-            },
-            'query': {
-                'compact': 'aslp',
-                'jurisdiction': 'co'
-            }
-        })
+        event['body'] = json.dumps(
+            {'sorting': {'key': 'familyName'}, 'query': {'compact': 'aslp', 'jurisdiction': 'co'}}
+        )
 
         resp = query_providers(event, self.mock_context)
 
@@ -177,25 +145,14 @@ class TestProviders(TstFunction):
             event = json.load(f)
 
         event['pathParameters'] = {}
-        event['body'] = json.dumps({
-            'query': {
-                'compact': 'aslp',
-                'jurisdiction': 'co'
-            }
-        })
+        event['body'] = json.dumps({'query': {'compact': 'aslp', 'jurisdiction': 'co'}})
 
         resp = query_providers(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
         body = json.loads(resp['body'])
         # Should default to familyName
-        self.assertEqual(
-            {
-                'key': 'familyName',
-                'direction': 'ascending'
-            },
-            body['sorting']
-        )
+        self.assertEqual({'key': 'familyName', 'direction': 'ascending'}, body['sorting'])
         # Check we're actually sorted
         last_family_name = body['items'][0]['familyName']
         for item in body['items'][1:]:
@@ -208,15 +165,7 @@ class TestProviders(TstFunction):
             event = json.load(f)
 
         event['pathParameters'] = {}
-        event['body'] = json.dumps({
-            'sorting': {
-                'key': 'invalid'
-            },
-            'query': {
-                'compact': 'aslp',
-                'jurisdiction': 'co'
-            }
-        })
+        event['body'] = json.dumps({'sorting': {'key': 'invalid'}, 'query': {'compact': 'aslp', 'jurisdiction': 'co'}})
 
         resp = query_providers(event, self.mock_context)
 
@@ -236,9 +185,7 @@ class TestProviders(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['pathParameters'] = {
-            'providerId': provider_id
-        }
+        event['pathParameters'] = {'providerId': provider_id}
         event['queryStringParameters'] = {}
 
         with open('tests/resources/api/license-response.json') as f:

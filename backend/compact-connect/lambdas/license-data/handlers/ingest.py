@@ -21,11 +21,7 @@ def ingest_license_message(message: dict):
     # This should already have been validated at this point, before the data was ever sent for ingest,
     # but validation is cheap. We can do it again, just to protect ourselves from something unexpected
     # happening on the way here.
-    license_post = license_schema.load({
-        'compact': compact,
-        'jurisdiction': jurisdiction,
-        **detail
-    })
+    license_post = license_schema.load({'compact': compact, 'jurisdiction': jurisdiction, **detail})
 
     try:
         provider_id = config.data_client.get_provider_id(ssn=license_post['ssn'])  # pylint: disable=missing-kwoa
@@ -36,10 +32,7 @@ def ingest_license_message(message: dict):
 
     config.license_table.put_item(
         # We'll use the schema/serializer to populate index fields for us
-        Item=LicenseRecordSchema().dump({
-            'providerId': provider_id,
-            'compact': compact,
-            'jurisdiction': jurisdiction,
-            **license_post
-        })
+        Item=LicenseRecordSchema().dump(
+            {'providerId': provider_id, 'compact': compact, 'jurisdiction': jurisdiction, **license_post}
+        )
     )

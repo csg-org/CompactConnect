@@ -31,6 +31,7 @@ class TstFunction(TstLambdas):
         self.build_resources()
 
         import config
+
         config.config = config._Config()  # pylint: disable=protected-access
         self.config = config.config
 
@@ -40,85 +41,44 @@ class TstFunction(TstLambdas):
         self._bucket = boto3.resource('s3').create_bucket(Bucket=os.environ['BULK_BUCKET_NAME'])
         self.create_provider_table()
 
-        boto3.client('events').create_event_bus(
-            Name=os.environ['EVENT_BUS_NAME']
-        )
+        boto3.client('events').create_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
     def create_provider_table(self):
         self._provider_table = boto3.resource('dynamodb').create_table(
             AttributeDefinitions=[
-                {
-                    'AttributeName': 'pk',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'sk',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'providerFamGivMid',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'providerDateOfUpdate',
-                    'AttributeType': 'S'
-                },
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+                {'AttributeName': 'providerFamGivMid', 'AttributeType': 'S'},
+                {'AttributeName': 'providerDateOfUpdate', 'AttributeType': 'S'},
             ],
             TableName=os.environ['PROVIDER_TABLE_NAME'],
-            KeySchema=[
-                {
-                    'AttributeName': 'pk',
-                    'KeyType': 'HASH'
-                },
-                {
-                    'AttributeName': 'sk',
-                    'KeyType': 'RANGE'
-                }
-            ],
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
             BillingMode='PAY_PER_REQUEST',
             GlobalSecondaryIndexes=[
                 {
                     'IndexName': os.environ['PROV_FAM_GIV_MID_INDEX_NAME'],
                     'KeySchema': [
-                        {
-                            'AttributeName': 'sk',
-                            'KeyType': 'HASH'
-                        },
-                        {
-                            'AttributeName': 'providerFamGivMid',
-                            'KeyType': 'RANGE'
-                        },
+                        {'AttributeName': 'sk', 'KeyType': 'HASH'},
+                        {'AttributeName': 'providerFamGivMid', 'KeyType': 'RANGE'},
                     ],
-                    'Projection': {
-                        'ProjectionType': 'ALL'
-                    },
+                    'Projection': {'ProjectionType': 'ALL'},
                 },
                 {
                     'IndexName': os.environ['PROV_DATE_OF_UPDATE_INDEX_NAME'],
                     'KeySchema': [
-                        {
-                            'AttributeName': 'sk',
-                            'KeyType': 'HASH'
-                        },
-                        {
-                            'AttributeName': 'providerDateOfUpdate',
-                            'KeyType': 'RANGE'
-                        },
+                        {'AttributeName': 'sk', 'KeyType': 'HASH'},
+                        {'AttributeName': 'providerDateOfUpdate', 'KeyType': 'RANGE'},
                     ],
-                    'Projection': {
-                        'ProjectionType': 'ALL'
-                    },
-                }
-            ]
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+            ],
         )
 
     def delete_resources(self):
         self._bucket.objects.delete()
         self._bucket.delete()
         self._provider_table.delete()
-        boto3.client('events').delete_event_bus(
-            Name=os.environ['EVENT_BUS_NAME']
-        )
+        boto3.client('events').delete_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
     def _load_provider_data(self):
         """
@@ -136,10 +96,8 @@ class TstFunction(TstLambdas):
             with open(resource) as f:
                 record = json.load(f, object_hook=provider_jurisdictions_to_set, parse_float=Decimal)
 
-            logger.debug("Loading resource, %s: %s", resource, str(record))
-            self._provider_table.put_item(
-                Item=record
-            )
+            logger.debug('Loading resource, %s: %s', resource, str(record))
+            self._provider_table.put_item(Item=record)
 
     def _generate_providers(self, *, home: str, privilege: str, start_serial: int, names: tuple[tuple[str, str]] = ()):
         """
@@ -154,12 +112,11 @@ class TstFunction(TstLambdas):
         with open('tests/resources/ingest/message.json') as f:
             ingest_message = json.load(f)
 
-
         name_faker = Faker(['en_US', 'ja_JP', 'es_MX'])
         data_client = DataClient(self.config)
 
         # Generate 10 providers, each with a license and a privilege
-        for name_idx, ssn_serial in enumerate(range(start_serial, start_serial-10, -1)):
+        for name_idx, ssn_serial in enumerate(range(start_serial, start_serial - 10, -1)):
             # So we can mutate top-level fields without messing up subsequent iterations
             ingest_message_copy = json.loads(json.dumps(ingest_message))
 
@@ -175,11 +132,13 @@ class TstFunction(TstLambdas):
 
             ssn = f'{randint(100, 999)}-{randint(10, 99)}-{ssn_serial}'
 
-            ingest_message_copy['detail'].update({
-                'ssn': ssn,
-                'compact': 'aslp',
-                'jurisdiction': home,
-            })
+            ingest_message_copy['detail'].update(
+                {
+                    'ssn': ssn,
+                    'compact': 'aslp',
+                    'jurisdiction': home,
+                }
+            )
 
             # Create a new provider with a license
             now = datetime.now(tz=UTC)
@@ -190,15 +149,7 @@ class TstFunction(TstLambdas):
                 )
 
                 ingest_license_message(  # pylint: disable=too-many-function-args
-                    {
-                        'Records': [
-                            {
-                                'messageId': '123',
-                                'body': json.dumps(ingest_message_copy)
-                            }
-                        ]
-                    },
-                    self.mock_context
+                    {'Records': [{'messageId': '123', 'body': json.dumps(ingest_message_copy)}]}, self.mock_context
                 )
             # Add a privilege
             provider_id = data_client.get_provider_id(compact='aslp', ssn=ssn)  # pylint: disable=unexpected-keyword-arg

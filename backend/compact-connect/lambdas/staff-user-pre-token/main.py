@@ -1,4 +1,3 @@
-
 import logging
 import os
 
@@ -36,10 +35,6 @@ def customize_scopes(event: dict, context: LambdaContext):  # pylint: disable=un
         event['response']['claimsAndScopeOverrideDetails'] = None
         return event
 
-    event['response']['claimsAndScopeOverrideDetails'] = {
-        'accessTokenGeneration': {
-            'scopesToAdd': list(scopes_to_add)
-        }
-    }
+    event['response']['claimsAndScopeOverrideDetails'] = {'accessTokenGeneration': {'scopesToAdd': list(scopes_to_add)}}
 
     return event

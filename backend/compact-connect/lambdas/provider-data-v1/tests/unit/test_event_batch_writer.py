@@ -26,9 +26,7 @@ class TestEventBatchWriter(TstLambdas):
         with EventBatchWriter(client=mock_client) as writer:
             # Send a bunch of messages, make sure each is sent
             for _ in range(123):
-                writer.put_event(
-                    Entry=event
-                )
+                writer.put_event(Entry=event)
 
         # Make sure each message was eventually sent
         self.assertEqual(123, len(put_count))
@@ -56,9 +54,7 @@ class TestEventBatchWriter(TstLambdas):
         with EventBatchWriter(client=mock_client) as writer:
             # Send a bunch of messages, make sure each is sent
             for _ in range(3):
-                writer.put_event(
-                    Entry=event
-                )
+                writer.put_event(Entry=event)
 
         # Make sure each message was eventually sent
         self.assertEqual(3, len(put_count))
@@ -89,9 +85,7 @@ class TestEventBatchWriter(TstLambdas):
         with EventBatchWriter(client=mock_client) as writer:
             # Send a bunch of messages, make sure each is sent
             for _ in range(10):
-                writer.put_event(
-                    Entry=event
-                )
+                writer.put_event(Entry=event)
 
         # Make sure each message was eventually sent
         self.assertEqual(10, len(put_count))
@@ -117,9 +111,7 @@ class TestEventBatchWriter(TstLambdas):
             with EventBatchWriter(client=mock_client) as writer:
                 # Send a bunch of messages, make sure each is sent
                 for _ in range(3):
-                    writer.put_event(
-                        Entry=event
-                    )
+                    writer.put_event(Entry=event)
                 raise RuntimeError('Oh noes!')
 
         # Make sure the exception is not suppressed
@@ -153,18 +145,14 @@ class TestEventBatchWriter(TstLambdas):
             Fail every last entry
             """
             put_count.extend(Entries)
-            response = {
-                'FailedEntryCount': 1,
-                'Entries': [
-                    {'EventId': uuid4().hex}
-                    for entry in Entries[:-1]
-                ]
-            }
-            response['Entries'].append({
-                'EventId': uuid4().hex,
-                'ErrorCode': 'InternalFailure',
-                'ErrorMessage': 'Oh no, AWS is having problems!'
-            })
+            response = {'FailedEntryCount': 1, 'Entries': [{'EventId': uuid4().hex} for entry in Entries[:-1]]}
+            response['Entries'].append(
+                {
+                    'EventId': uuid4().hex,
+                    'ErrorCode': 'InternalFailure',
+                    'ErrorMessage': 'Oh no, AWS is having problems!',
+                }
+            )
             return response
 
         mock_client = MagicMock()
@@ -176,9 +164,7 @@ class TestEventBatchWriter(TstLambdas):
         with EventBatchWriter(client=mock_client) as writer:
             # Send a bunch of messages, make sure each is sent
             for _ in range(123):
-                writer.put_event(
-                    Entry=event
-                )
+                writer.put_event(Entry=event)
 
         self.assertEqual(123, len(put_count))
         # 13 batches, one failure each
@@ -206,9 +192,7 @@ class TestEventBatchWriter(TstLambdas):
         with EventBatchWriter(client=mock_client, batch_size=5) as writer:
             # Send a bunch of messages, make sure each is sent
             for _ in range(42):
-                writer.put_event(
-                    Entry=event
-                )
+                writer.put_event(Entry=event)
 
         # Make sure each message was eventually sent
         self.assertEqual(42, len(put_count))
