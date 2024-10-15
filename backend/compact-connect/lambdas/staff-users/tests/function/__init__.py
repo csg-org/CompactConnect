@@ -5,7 +5,6 @@ from typing import List
 
 import boto3
 from boto3.dynamodb.types import TypeDeserializer
-from botocore.exceptions import ClientError
 from faker import Faker
 from moto import mock_aws
 
