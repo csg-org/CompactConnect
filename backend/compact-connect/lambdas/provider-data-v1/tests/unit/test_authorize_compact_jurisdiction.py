@@ -11,9 +11,7 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
 
         @authorize_compact_jurisdiction(action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-            return {
-                'body': 'Hurray!'
-            }
+            return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -32,9 +30,7 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
 
         @authorize_compact_jurisdiction(action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-            return {
-                'body': 'Hurray!'
-            }
+            return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -50,9 +46,7 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
 
         @authorize_compact_jurisdiction(action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-            return {
-                'body': 'Hurray!'
-            }
+            return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -71,9 +65,7 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
 
         @authorize_compact_jurisdiction(action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-            return {
-                'body': 'Hurray!'
-            }
+            return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -93,9 +85,7 @@ class TestAuthorizeCompact(TstLambdas):
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-            return {
-                'body': 'Hurray!'
-            }
+            return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -113,9 +103,7 @@ class TestAuthorizeCompact(TstLambdas):
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-            return {
-                'body': 'Hurray!'
-            }
+            return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -131,16 +119,12 @@ class TestAuthorizeCompact(TstLambdas):
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-            return {
-                'body': 'Hurray!'
-            }
+            return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         del event['requestContext']['authorizer']
-        event['pathParameters'] = {
-            'compact': 'aslp'
-        }
+        event['pathParameters'] = {'compact': 'aslp'}
 
         with self.assertRaises(CCUnauthorizedException):
             example_entrypoint(event, self.mock_context)
@@ -151,16 +135,12 @@ class TestAuthorizeCompact(TstLambdas):
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-            return {
-                'body': 'Hurray!'
-            }
+            return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff'
-        event['pathParameters'] = {
-            'compact': 'aslp'
-        }
+        event['pathParameters'] = {'compact': 'aslp'}
 
         with self.assertRaises(CCAccessDeniedException):
             example_entrypoint(event, self.mock_context)

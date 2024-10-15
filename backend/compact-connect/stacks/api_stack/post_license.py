@@ -26,11 +26,7 @@ from . import cc_api
 
 class PostLicenses:
     def __init__(
-            self, *,
-            resource: Resource,
-            method_options: MethodOptions,
-            event_bus: EventBus,
-            mock_resource: bool = True
+        self, *, resource: Resource, method_options: MethodOptions, event_bus: EventBus, mock_resource: bool = True
     ):
         super().__init__()
 
@@ -41,77 +37,48 @@ class PostLicenses:
         if mock_resource:
             self._add_mock_post_license(method_options=method_options)
         else:
-            self._add_post_license(
-                method_options=method_options,
-                event_bus=event_bus
-            )
+            self._add_post_license(method_options=method_options, event_bus=event_bus)
         self.api.log_groups.extend(self.log_groups)
 
-    def _add_post_license(
-            self,
-            method_options: MethodOptions,
-            event_bus: EventBus
-    ):
+    def _add_post_license(self, method_options: MethodOptions, event_bus: EventBus):
         self.resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
-            request_models={
-                'application/json': self.post_license_model
-            },
+            request_models={'application/json': self.post_license_model},
             method_responses=[
-                MethodResponse(
-                    status_code='200',
-                    response_models={
-                        'application/json': self.api.message_response_model
-                    }
-                )
+                MethodResponse(status_code='200', response_models={'application/json': self.api.message_response_model})
             ],
             integration=LambdaIntegration(
-                handler=self._post_licenses_handler(event_bus=event_bus),
-                timeout=Duration.seconds(29)
+                handler=self._post_licenses_handler(event_bus=event_bus), timeout=Duration.seconds(29)
             ),
-            request_parameters={
-                'method.request.header.Authorization': True
-            } if method_options.authorization_type != AuthorizationType.NONE else {},
+            request_parameters={'method.request.header.Authorization': True}
+            if method_options.authorization_type != AuthorizationType.NONE
+            else {},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,
-            authorization_scopes=method_options.authorization_scopes
+            authorization_scopes=method_options.authorization_scopes,
         )
 
     def _add_mock_post_license(self, method_options: MethodOptions):
         self.resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
-            request_models={
-                'application/json': self.post_license_model
-            },
+            request_models={'application/json': self.post_license_model},
             method_responses=[
-                MethodResponse(
-                    status_code='200',
-                    response_models={
-                        'application/json': self.api.message_response_model
-                    }
-                )
+                MethodResponse(status_code='200', response_models={'application/json': self.api.message_response_model})
             ],
             integration=MockIntegration(
-                request_templates={
-                    'application/json': '{"statusCode": 200}'
-                },
+                request_templates={'application/json': '{"statusCode": 200}'},
                 integration_responses=[
-                    IntegrationResponse(
-                        status_code='200',
-                        response_templates={
-                            'application/json': '{"message": "OK"}'
-                        }
-                    )
-                ]
+                    IntegrationResponse(status_code='200', response_templates={'application/json': '{"message": "OK"}'})
+                ],
             ),
-            request_parameters={
-                'method.request.header.Authorization': True
-            } if method_options.authorization_type != AuthorizationType.NONE else {},
+            request_parameters={'method.request.header.Authorization': True}
+            if method_options.authorization_type != AuthorizationType.NONE
+            else {},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,
-            authorization_scopes=method_options.authorization_scopes
+            authorization_scopes=method_options.authorization_scopes,
         )
 
     @property
@@ -142,31 +109,26 @@ class PostLicenses:
                         'dateOfIssuance',
                         'dateOfRenewal',
                         'dateOfExpiration',
-                        'status'
+                        'status',
                     ],
                     additional_properties=False,
-                    properties=self.api.v0_common_license_properties
-                )
-            )
+                    properties=self.api.v0_common_license_properties,
+                ),
+            ),
         )
         return self.api._post_license_model  # pylint: disable=protected-access
 
-    def _post_licenses_handler(
-            self,
-            event_bus: EventBus
-    ) -> PythonFunction:
+    def _post_licenses_handler(self, event_bus: EventBus) -> PythonFunction:
         stack: Stack = Stack.of(self.resource)
         handler = PythonFunction(
-            self.api, 'PostLicensesHandler',
+            self.api,
+            'PostLicensesHandler',
             description='Post licenses handler',
             entry=os.path.join('lambdas', 'license-data'),
             index=os.path.join('handlers', 'licenses.py'),
             handler='post_licenses',
-            environment={
-                'EVENT_BUS_NAME': event_bus.event_bus_name,
-                **stack.common_env_vars
-            },
-            alarm_topic=self.api.alarm_topic
+            environment={'EVENT_BUS_NAME': event_bus.event_bus_name, **stack.common_env_vars},
+            alarm_topic=self.api.alarm_topic,
         )
         event_bus.grant_put_events_to(handler)
         self.log_groups.append(handler.log_group)
@@ -178,8 +140,8 @@ class PostLicenses:
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
-                              'and is scoped to one table and encryption key.'
+                    'and is scoped to one table and encryption key.',
                 }
-            ]
+            ],
         )
         return handler

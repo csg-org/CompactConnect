@@ -28,11 +28,12 @@ class TestApi(TestCase):
         app = CompactConnectApp(context=context)
 
         return app
+
     @staticmethod
     def _get_resource_properties_by_logical_id(logical_id: str, resources: Mapping[str, Mapping]) -> Mapping:
         """
         Helper function to retrieve a resource from a CloudFormation template by its logical ID.
-        """""
+        """ ''
         try:
             return resources[logical_id]['Properties']
         except KeyError as exc:
@@ -41,16 +42,14 @@ class TestApi(TestCase):
     @staticmethod
     def _generate_expected_integration_object(handler_logical_id: str) -> dict:
         return {
-            "Uri": {
-                "Fn::Join": [
-                    "",
+            'Uri': {
+                'Fn::Join': [
+                    '',
                     [
-                        "arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/",
-                        {
-                            "Fn::GetAtt": [handler_logical_id, "Arn"]
-                        },
-                        "/invocations"
-                    ]
+                        'arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/',
+                        {'Fn::GetAtt': [handler_logical_id, 'Arn']},
+                        '/invocations',
+                    ],
                 ]
             }
         }
@@ -74,6 +73,10 @@ class TestApi(TestCase):
                 json.dump(actual, f, indent=2)
             print(f"Snapshot '{snapshot_name}' has been overwritten.")
         else:
-            self.maxDiff = None #pylint: disable=invalid-name
-            self.assertEqual(snapshot, actual, f"Snapshot '{snapshot_name}' does not match the actual data. "
-                                               "To overwrite the snapshot, set overwrite_snapshot=True.")
+            self.maxDiff = None  # pylint: disable=invalid-name
+            self.assertEqual(
+                snapshot,
+                actual,
+                f"Snapshot '{snapshot_name}' does not match the actual data. "
+                'To overwrite the snapshot, set overwrite_snapshot=True.',
+            )

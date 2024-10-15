@@ -14,32 +14,18 @@ class TestIngest(TstFunction):
         with open('tests/resources/ingest/message.json') as f:
             message = f.read()
 
-        event = {
-            'Records': [
-                {
-                    'messageId': '123',
-                    'body': message
-                }
-            ]
-        }
+        event = {'Records': [{'messageId': '123', 'body': message}]}
 
         resp = ingest_license_message(event, self.mock_context)  # pylint: disable=too-many-function-args
 
-        self.assertEqual(
-            {'batchItemFailures': []},
-            resp
-        )
+        self.assertEqual({'batchItemFailures': []}, resp)
 
         # To test full internal consistency, we'll also pull this new license record out
         # via the API to make sure it shows up as expected.
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['body'] = json.dumps({
-            'query': {
-                'ssn': '123-12-1234'
-            }
-        })
+        event['body'] = json.dumps({'query': {'ssn': '123-12-1234'}})
         resp = query_providers(event, self.mock_context)
         self.assertEqual(resp['statusCode'], 200)
 
@@ -53,7 +39,4 @@ class TestIngest(TstFunction):
         del expected_license['dateOfUpdate']
         del license_data['dateOfUpdate']
 
-        self.assertEqual(
-            expected_license,
-            license_data
-        )
+        self.assertEqual(expected_license, license_data)

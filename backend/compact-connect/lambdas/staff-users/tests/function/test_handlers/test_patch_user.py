@@ -17,23 +17,8 @@ class TestPatchUser(TstFunction):
 
         # The user has admin permission for aslp/oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/oh.admin'
-        event['pathParameters'] = {
-            'compact': 'aslp',
-            'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'
-        }
-        event['body'] = json.dumps({
-            'permissions': {
-                'aslp': {
-                    'jurisdictions': {
-                        'oh': {
-                            'actions': {
-                                'admin': True
-                            }
-                        }
-                    }
-                }
-            }
-        })
+        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['body'] = json.dumps({'permissions': {'aslp': {'jurisdictions': {'oh': {'actions': {'admin': True}}}}}})
 
         resp = patch_user(event, self.mock_context)
 
@@ -41,31 +26,18 @@ class TestPatchUser(TstFunction):
         user = json.loads(resp['body'])
         self.assertEqual(
             {
-                'attributes': {
-                    'email': 'justin@example.org',
-                    'familyName': 'Williams',
-                    'givenName': 'Justin'
-                },
+                'attributes': {'email': 'justin@example.org', 'familyName': 'Williams', 'givenName': 'Justin'},
                 'dateOfUpdate': '2024-09-12',
                 'permissions': {
                     'aslp': {
-                        'actions': {
-                            'read': True
-                        },
-                        'jurisdictions': {
-                            'oh': {
-                                'actions': {
-                                    'admin': True,
-                                    'write': True
-                                }
-                            }
-                        }
+                        'actions': {'read': True},
+                        'jurisdictions': {'oh': {'actions': {'admin': True, 'write': True}}},
                     }
                 },
                 'type': 'user',
-                'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'
+                'userId': 'a4182428-d061-701c-82e5-a3d1d547d797',
             },
-            user
+            user,
         )
 
     def test_patch_user_forbidden(self):
@@ -78,23 +50,8 @@ class TestPatchUser(TstFunction):
 
         # The user has admin permission for aslp/oh not aslp/ne
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/oh.admin'
-        event['pathParameters'] = {
-            'compact': 'aslp',
-            'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'
-        }
-        event['body'] = json.dumps({
-            'permissions': {
-                'aslp': {
-                    'jurisdictions': {
-                        'ne': {
-                            'actions': {
-                                'admin': True
-                            }
-                        }
-                    }
-                }
-            }
-        })
+        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['body'] = json.dumps({'permissions': {'aslp': {'jurisdictions': {'ne': {'actions': {'admin': True}}}}}})
 
         resp = patch_user(event, self.mock_context)
 

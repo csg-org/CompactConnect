@@ -16,6 +16,7 @@ class LicensePublicSchema(LicenseCommonSchema):
     """
     Schema for license data that can be shared with the public
     """
+
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
 
 
@@ -23,6 +24,7 @@ class LicensePostSchema(LicensePublicSchema):
     """
     Schema for license data as posted by a board
     """
+
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     ssn = SocialSecurityNumber(required=True, allow_none=False)
@@ -46,7 +48,6 @@ class LicensePostSchema(LicensePublicSchema):
     emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
 
-
     @validates_schema
     def validate_license_type(self, data, **kwargs):  # pylint: disable=unused-argument
         license_types = config.license_types_for_compact(data['compact'])
@@ -59,6 +60,7 @@ class LicenseRecordSchema(BaseRecordSchema, LicensePostSchema):
     """
     Schema for license records in the license data table
     """
+
     _record_type = 'license'
 
     # Provided fields

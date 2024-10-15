@@ -14,7 +14,6 @@ from stacks.persistent_stack import PersistentStack
 
 
 class TestApp(TestCase):
-
     def _when_testing_pipeline_stack_context(self):
         with open('cdk.json') as f:
             context = json.load(f)['context']
@@ -27,7 +26,6 @@ class TestApp(TestCase):
         return context
 
     def _when_testing_sandbox_stack_context(self):
-
         with open('cdk.json') as f:
             context = json.load(f)['context']
         with open('cdk.context.sandbox-example.json') as f:
@@ -41,7 +39,7 @@ class TestApp(TestCase):
     def _get_resource_properties_by_logical_id(self, logical_id: str, resources: Mapping[str, Mapping]) -> Mapping:
         """
         Helper function to retrieve a resource from a CloudFormation template by its logical ID.
-        """""
+        """ ''
         try:
             return resources[logical_id]['Properties']
         except KeyError as exc:
@@ -66,10 +64,13 @@ class TestApp(TestCase):
                 json.dump(actual, f, indent=2)
             print(f"Snapshot '{snapshot_name}' has been overwritten.")
         else:
-            self.maxDiff = None #pylint: disable=invalid-name
-            self.assertEqual(snapshot, actual, f"Snapshot '{snapshot_name}' does not match the actual data. "
-                                               "To overwrite the snapshot, set overwrite_snapshot=True.")
-
+            self.maxDiff = None  # pylint: disable=invalid-name
+            self.assertEqual(
+                snapshot,
+                actual,
+                f"Snapshot '{snapshot_name}' does not match the actual data. "
+                'To overwrite the snapshot, set overwrite_snapshot=True.',
+            )
 
     def test_no_compact_jurisdiction_name_clash(self):
         """
@@ -90,10 +91,7 @@ class TestApp(TestCase):
             self.assertNotIn('#', compact, "'#' not allowed in compact abbreviations!")
         self.assertFalse(jurisdictions.intersection(compacts), 'Compact vs jurisdiction name clash!')
 
-    @patch.dict(os.environ, {
-        'CDK_DEFAULT_ACCOUNT': '000000000000',
-        'CDK_DEFAULT_REGION': 'us-east-1'
-    })
+    @patch.dict(os.environ, {'CDK_DEFAULT_ACCOUNT': '000000000000', 'CDK_DEFAULT_REGION': 'us-east-1'})
     def test_synth_pipeline(self):
         """
         Test infrastructure as deployed via the pipeline
@@ -104,32 +102,28 @@ class TestApp(TestCase):
 
         # Identify any findings from our AwsSolutions rule sets
         for stack in (
-                app.pipeline_stack,
-                app.pipeline_stack.test_stage.api_stack,
-                app.pipeline_stack.test_stage.ui_stack,
-                app.pipeline_stack.test_stage.ingest_stack,
-                app.pipeline_stack.test_stage.persistent_stack,
-                app.pipeline_stack.prod_stage.api_stack,
-                app.pipeline_stack.prod_stage.ui_stack,
-                app.pipeline_stack.prod_stage.persistent_stack,
-                app.pipeline_stack.prod_stage.ingest_stack
+            app.pipeline_stack,
+            app.pipeline_stack.test_stage.api_stack,
+            app.pipeline_stack.test_stage.ui_stack,
+            app.pipeline_stack.test_stage.ingest_stack,
+            app.pipeline_stack.test_stage.persistent_stack,
+            app.pipeline_stack.prod_stage.api_stack,
+            app.pipeline_stack.prod_stage.ui_stack,
+            app.pipeline_stack.prod_stage.persistent_stack,
+            app.pipeline_stack.prod_stage.ingest_stack,
         ):
             self._check_no_annotations(stack)
 
-        for api_stack in (
-            app.pipeline_stack.test_stage.api_stack,
-            app.pipeline_stack.prod_stage.api_stack
-        ):
+        for api_stack in (app.pipeline_stack.test_stage.api_stack, app.pipeline_stack.prod_stage.api_stack):
             self._inspect_api_stack(api_stack)
 
         self._inspect_persistent_stack(
             app.pipeline_stack.test_stage.persistent_stack,
             domain_name='app.test.compactconnect.org',
-            allow_local_ui=True
+            allow_local_ui=True,
         )
         self._inspect_persistent_stack(
-            app.pipeline_stack.prod_stage.persistent_stack,
-            domain_name='app.compactconnect.org'
+            app.pipeline_stack.prod_stage.persistent_stack, domain_name='app.compactconnect.org'
         )
 
     def test_synth_sandbox(self):
@@ -148,9 +142,7 @@ class TestApp(TestCase):
 
         self._inspect_api_stack(app.sandbox_stage.api_stack)
         self._inspect_persistent_stack(
-            app.sandbox_stage.persistent_stack,
-            domain_name='app.justin.compactconnect.org',
-            allow_local_ui=True
+            app.sandbox_stage.persistent_stack, domain_name='app.justin.compactconnect.org', allow_local_ui=True
         )
 
     def test_synth_sandbox_no_domain(self):
@@ -173,10 +165,7 @@ class TestApp(TestCase):
         self._check_no_annotations(app.sandbox_stage.ingest_stack)
 
         self._inspect_api_stack(app.sandbox_stage.api_stack)
-        self._inspect_persistent_stack(
-            app.sandbox_stage.persistent_stack,
-            allow_local_ui=True
-        )
+        self._inspect_persistent_stack(app.sandbox_stage.persistent_stack, allow_local_ui=True)
 
     def test_synth_no_ui_raises_value_error(self):
         """
@@ -208,11 +197,7 @@ class TestApp(TestCase):
         self._check_no_annotations(app.sandbox_stage.api_stack)
         self._check_no_annotations(app.sandbox_stage.ingest_stack)
 
-        self._inspect_persistent_stack(
-            app.sandbox_stage.persistent_stack,
-            allow_local_ui=True,
-            local_ui_port='5432'
-        )
+        self._inspect_persistent_stack(app.sandbox_stage.persistent_stack, allow_local_ui=True, local_ui_port='5432')
         self._inspect_api_stack(app.sandbox_stage.api_stack)
 
     def test_synth_generates_provider_user_pool_with_expected_custom_attributes(self):
@@ -228,19 +213,18 @@ class TestApp(TestCase):
         # Ensure our provider user pool is created with expected custom attributes
         provider_users_user_pool = self._get_resource_properties_by_logical_id(
             persistent_stack.get_logical_id(persistent_stack.provider_users.node.default_child),
-            persistent_stack_template.find_resources(CfnUserPool.CFN_RESOURCE_TYPE_NAME)
+            persistent_stack_template.find_resources(CfnUserPool.CFN_RESOURCE_TYPE_NAME),
         )
 
         # assert that both custom attributes are in schema
-        self.assertIn({'AttributeDataType': 'String', 'Mutable': False, 'Name': 'providerId'},
-                      provider_users_user_pool['Schema'])
-        self.assertIn({'AttributeDataType': 'String', 'Mutable': False, 'Name': 'compact'},
-                      provider_users_user_pool['Schema'])
+        self.assertIn(
+            {'AttributeDataType': 'String', 'Mutable': False, 'Name': 'providerId'}, provider_users_user_pool['Schema']
+        )
+        self.assertIn(
+            {'AttributeDataType': 'String', 'Mutable': False, 'Name': 'compact'}, provider_users_user_pool['Schema']
+        )
 
-    @patch.dict(os.environ, {
-        'CDK_DEFAULT_ACCOUNT': '000000000000',
-        'CDK_DEFAULT_REGION': 'us-east-1'
-    })
+    @patch.dict(os.environ, {'CDK_DEFAULT_ACCOUNT': '000000000000', 'CDK_DEFAULT_REGION': 'us-east-1'})
     def test_synth_generates_compact_configuration_upload_custom_resource_with_expected_configuration_data(self):
         context = self._when_testing_pipeline_stack_context()
 
@@ -251,21 +235,22 @@ class TestApp(TestCase):
         # Ensure our provider user pool is created with expected custom attributes
         compact_configuration_uploader_custom_resource = self._get_resource_properties_by_logical_id(
             persistent_stack.get_logical_id(
-                persistent_stack.compact_configuration_upload
-                .compact_configuration_uploader_custom_resource.node.default_child),
-            persistent_stack_template.find_resources("Custom::CompactConfigurationUpload")
+                persistent_stack.compact_configuration_upload.compact_configuration_uploader_custom_resource.node.default_child
+            ),
+            persistent_stack_template.find_resources('Custom::CompactConfigurationUpload'),
         )
         # we don't care about ordering of the jurisdictions, but the snapshot is sensitive to the order,
         # so we ensure to sort the jurisdictions before comparing
         sorted_compact_configuration = self._sort_compact_configuration_input(
-            json.loads(compact_configuration_uploader_custom_resource['compact_configuration']))
+            json.loads(compact_configuration_uploader_custom_resource['compact_configuration'])
+        )
 
         # Assert that the compact_configuration property is set to the expected values
         # If the configuration values for any jurisdiction changes, the snapshot will need to be updated.
         self.compare_snapshot(
             actual=sorted_compact_configuration,
             snapshot_name='COMPACT_CONFIGURATION_UPLOADER_INPUT',
-            overwrite_snapshot=False
+            overwrite_snapshot=False,
         )
 
     def _sort_compact_configuration_input(self, compact_configuration_input: dict) -> dict:
@@ -274,24 +259,22 @@ class TestApp(TestCase):
         This ensures the snapshot comparison is consistent.
         """
         compact_configuration_input['compacts'] = sorted(
-            compact_configuration_input['compacts'],
-            key=lambda compact: compact['compactName']
+            compact_configuration_input['compacts'], key=lambda compact: compact['compactName']
         )
         for compact_name, jurisdictions in compact_configuration_input['jurisdictions'].items():
             compact_configuration_input['jurisdictions'][compact_name] = sorted(
-                jurisdictions,
-                key=lambda jurisdiction: jurisdiction['postalAbbreviation']
+                jurisdictions, key=lambda jurisdiction: jurisdiction['postalAbbreviation']
             )
 
         return compact_configuration_input
 
-
     def _inspect_persistent_stack(
-            self,
-            persistent_stack: PersistentStack, *,
-            domain_name: str = None,
-            allow_local_ui: bool = False,
-            local_ui_port: str = None
+        self,
+        persistent_stack: PersistentStack,
+        *,
+        domain_name: str = None,
+        allow_local_ui: bool = False,
+        local_ui_port: str = None,
     ):
         # Make sure our local port ui setting overrides the default
         persistent_stack_template = Template.from_stack(persistent_stack)
@@ -310,32 +293,24 @@ class TestApp(TestCase):
         # Ensure our Staff user pool app client is configured with the expected callbacks and read/write attributes
         staff_users_user_pool_app_client = self._get_resource_properties_by_logical_id(
             persistent_stack.get_logical_id(persistent_stack.staff_users.ui_client.node.default_child),
-            persistent_stack_template.find_resources(CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME)
+            persistent_stack_template.find_resources(CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME),
         )
         self.assertEqual(staff_users_user_pool_app_client['CallbackURLs'], callbacks)
-        self.assertEqual(staff_users_user_pool_app_client['ReadAttributes'], ["email"])
-        self.assertEqual(staff_users_user_pool_app_client['WriteAttributes'], ["email"])
+        self.assertEqual(staff_users_user_pool_app_client['ReadAttributes'], ['email'])
+        self.assertEqual(staff_users_user_pool_app_client['WriteAttributes'], ['email'])
 
         # Ensure our Provider user pool app client is created with expected values
         provider_users_user_pool_app_client = self._get_resource_properties_by_logical_id(
             persistent_stack.get_logical_id(persistent_stack.provider_users.ui_client.node.default_child),
-            persistent_stack_template.find_resources(CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME)
+            persistent_stack_template.find_resources(CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME),
         )
 
         self.assertEqual(provider_users_user_pool_app_client['CallbackURLs'], callbacks)
-        self.assertEqual(provider_users_user_pool_app_client['ReadAttributes'], [
-                    "custom:compact",
-                    "custom:providerId",
-                    "email",
-                    "family_name",
-                    "given_name"
-                ])
-        self.assertEqual(provider_users_user_pool_app_client['WriteAttributes'], [
-                    "email",
-                    "family_name",
-                    "given_name"
-                ])
-
+        self.assertEqual(
+            provider_users_user_pool_app_client['ReadAttributes'],
+            ['custom:compact', 'custom:providerId', 'email', 'family_name', 'given_name'],
+        )
+        self.assertEqual(provider_users_user_pool_app_client['WriteAttributes'], ['email', 'family_name', 'given_name'])
 
     def _inspect_api_stack(self, api_stack: ApiStack):
         api_template = Template.from_stack(api_stack)
@@ -345,27 +320,12 @@ class TestApp(TestCase):
             # Not matching is desired in this case and raises a RuntimeError.
             api_template.has_resource(
                 type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
-                props={
-                    'Properties': {
-                        'AuthorizationScopes': Match.any_value(),
-                        'AuthorizationType': 'NONE'
-                    }
-                }
+                props={'Properties': {'AuthorizationScopes': Match.any_value(), 'AuthorizationType': 'NONE'}},
             )
 
     def _check_no_annotations(self, stack: Stack):
-        errors = Annotations.from_stack(stack).find_error(
-            '*',
-            Match.string_like_regexp('.*')
-        )
-        self.assertEqual(0,
-                         len(errors),
-                         msg='\n'.join(f'{err.id}: {err.entry.data.strip()}' for err in errors))
+        errors = Annotations.from_stack(stack).find_error('*', Match.string_like_regexp('.*'))
+        self.assertEqual(0, len(errors), msg='\n'.join(f'{err.id}: {err.entry.data.strip()}' for err in errors))
 
-        warnings = Annotations.from_stack(stack).find_warning(
-            '*',
-            Match.string_like_regexp('.*')
-        )
-        self.assertEqual(0,
-                         len(warnings),
-                         msg='\n'.join(f'{warn.id}: {warn.entry.data.strip()}' for warn in warnings))
+        warnings = Annotations.from_stack(stack).find_warning('*', Match.string_like_regexp('.*'))
+        self.assertEqual(0, len(warnings), msg='\n'.join(f'{warn.id}: {warn.entry.data.strip()}' for warn in warnings))

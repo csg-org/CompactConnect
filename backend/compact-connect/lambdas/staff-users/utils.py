@@ -23,6 +23,7 @@ class ResponseEncoder(JSONEncoder):
     """
     JSON Encoder to handle data types that come out of our schema
     """
+
     def default(self, o):
         if isinstance(o, Decimal):
             ratio = o.as_integer_ratio()
@@ -65,61 +66,49 @@ def api_handler(fn: Callable):
             path=event['requestContext']['resourcePath'],
             query_params=event['queryStringParameters'],
             username=event['requestContext'].get('authorizer', {}).get('claims', {}).get('cognito:username'),
-            context=context
+            context=context,
         )
 
         try:
             return {
-                'headers': {
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {'Access-Control-Allow-Origin': '*'},
                 'statusCode': 200,
-                'body': json.dumps(fn(event, context), cls=ResponseEncoder)
+                'body': json.dumps(fn(event, context), cls=ResponseEncoder),
             }
         except CCUnauthorizedException as e:
             logger.info('Unauthorized request', exc_msg=str(e), exc_info=e)
             return {
-                'headers': {
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {'Access-Control-Allow-Origin': '*'},
                 'statusCode': 401,
-                'body': json.dumps({'message': 'Unauthorized'})
+                'body': json.dumps({'message': 'Unauthorized'}),
             }
         except CCAccessDeniedException as e:
             logger.info('Forbidden request', exc_msg=str(e), exc_info=e)
             return {
-                'headers': {
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {'Access-Control-Allow-Origin': '*'},
                 'statusCode': 403,
-                'body': json.dumps({'message': 'Access denied'})
+                'body': json.dumps({'message': 'Access denied'}),
             }
         except CCNotFoundException as e:
             logger.info('Resource not found', exc_msg=str(e), exc_info=e)
             return {
-                'headers': {
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {'Access-Control-Allow-Origin': '*'},
                 'statusCode': 404,
-                'body': json.dumps({'message': e.message})
+                'body': json.dumps({'message': e.message}),
             }
         except CCConflictException as e:
             logger.info('Resource not found', exc_msg=str(e), exc_info=e)
             return {
-                'headers': {
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {'Access-Control-Allow-Origin': '*'},
                 'statusCode': 404,
-                'body': json.dumps({'message': e.message})
+                'body': json.dumps({'message': e.message}),
             }
         except CCInvalidRequestException as e:
             logger.info('Invalid request', exc_msg=str(e), exc_info=e)
             return {
-                'headers': {
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {'Access-Control-Allow-Origin': '*'},
                 'statusCode': 400,
-                'body': json.dumps({'message': e.message})
+                'body': json.dumps({'message': e.message}),
             }
         except ClientError as e:
             # Any boto3 ClientErrors we haven't already caught and transformed are probably on us
@@ -132,7 +121,7 @@ def api_handler(fn: Callable):
                 path=event['requestContext']['resourcePath'],
                 query_params=event['queryStringParameters'],
                 context=context,
-                exc_info=e
+                exc_info=e,
             )
             raise
 
@@ -143,6 +132,7 @@ class authorize_compact:  # pylint: disable=invalid-name
     """
     Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/read)
     """
+
     def __init__(self, action: str):
         super().__init__()
         self.action = action
@@ -157,10 +147,7 @@ class authorize_compact:  # pylint: disable=invalid-name
                 logger.error('Access attempt with missing path parameter!')
                 raise CCInvalidRequestException('Missing path parameter!') from e
 
-            logger.debug(
-                'Checking authorizer context',
-                request_context=event['requestContext']
-            )
+            logger.debug('Checking authorizer context', request_context=event['requestContext'])
             try:
                 scopes = get_event_scopes(event)
             except KeyError as e:
@@ -172,6 +159,7 @@ class authorize_compact:  # pylint: disable=invalid-name
                 logger.warning('Forbidden access attempt!')
                 raise CCAccessDeniedException('Forbidden access attempt!')
             return fn(event, context)
+
         return authorized
 
 
@@ -198,6 +186,7 @@ def get_allowed_jurisdictions(*, compact: str, scopes: set[str]) -> list[str] | 
 
 def get_event_scopes(event: dict):
     return set(event['requestContext']['authorizer']['claims']['scope'].split(' '))
+
 
 def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_changes: dict) -> dict:
     """
@@ -257,8 +246,9 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
         'compact_action_additions': compact_action_additions,
         'compact_action_removals': compact_action_removals,
         'jurisdiction_action_additions': jurisdiction_action_additions,
-        'jurisdiction_action_removals': jurisdiction_action_removals
+        'jurisdiction_action_removals': jurisdiction_action_removals,
     }
+
 
 def get_sub_from_user_attributes(attributes: list):
     for attribute in attributes:

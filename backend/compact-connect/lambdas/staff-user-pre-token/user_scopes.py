@@ -6,6 +6,7 @@ class UserScopes(set):
     """
     Custom Set that will populate itself based on the user's database record contents
     """
+
     def __init__(self, sub: str):
         super().__init__()
         self._get_scopes_from_db(sub)
@@ -21,7 +22,7 @@ class UserScopes(set):
         permissions = {
             compact_record['compact']: {
                 'actions': set(compact_record['permissions']['actions']),
-                'jurisdictions': compact_record['permissions']['jurisdictions']
+                'jurisdictions': compact_record['permissions']['jurisdictions'],
             }
             for compact_record in user_data
         }
@@ -36,9 +37,7 @@ class UserScopes(set):
 
     @staticmethod
     def _get_user_data(sub: str):
-        user_data = config.users_table.query(
-            KeyConditionExpression=Key('pk').eq(f'USER#{sub}')
-        ).get('Items', [])
+        user_data = config.users_table.query(KeyConditionExpression=Key('pk').eq(f'USER#{sub}')).get('Items', [])
         if not user_data:
             logger.error('Authenticated user not found!', sub=sub)
             raise RuntimeError('Authenticated user not found!')

@@ -10,10 +10,7 @@ from collections import OrderedDict
 def strip_sort_paths(oas30: dict) -> dict:
     paths = oas30['paths']
     new_paths = OrderedDict()
-    trimmed_path_keys = sorted([
-        key for key in paths.keys()
-        if key.startswith('/v1/')
-    ])
+    trimmed_path_keys = sorted([key for key in paths.keys() if key.startswith('/v1/')])
     for path_key in trimmed_path_keys:
         new_paths[path_key] = paths[path_key]
     oas30['paths'] = new_paths

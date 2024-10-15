@@ -18,11 +18,11 @@ from .api_model import ApiModel
 
 class Purchases:
     def __init__(
-            self,
-            resource: Resource,
-            data_encryption_key: IKey,
-            compact_configuration_table: CompactConfigurationTable,
-            api_model: ApiModel
+        self,
+        resource: Resource,
+        data_encryption_key: IKey,
+        compact_configuration_table: CompactConfigurationTable,
+        api_model: ApiModel,
     ):
         super().__init__()
         # /v1/purchases
@@ -35,29 +35,28 @@ class Purchases:
         # /v1/purchases/privileges/options
         self.purchases_privileges_options_resource = self.purchases_privileges_resource.add_resource('options')
 
-
         stack: Stack = Stack.of(resource)
         lambda_environment = {
             'COMPACT_CONFIGURATION_TABLE_NAME': compact_configuration_table.table_name,
-            **stack.common_env_vars
+            **stack.common_env_vars,
         }
 
         self._add_get_purchase_privileges_options(
             data_encryption_key=data_encryption_key,
             compact_configuration_table=compact_configuration_table,
-            lambda_environment=lambda_environment
+            lambda_environment=lambda_environment,
         )
 
     def _add_get_purchase_privileges_options(
-            self,
-            data_encryption_key: IKey,
-            compact_configuration_table: CompactConfigurationTable,
-            lambda_environment: dict
+        self,
+        data_encryption_key: IKey,
+        compact_configuration_table: CompactConfigurationTable,
+        lambda_environment: dict,
     ):
         self.get_purchase_privilege_options_handler = self._get_purchase_privilege_options_handler(
             data_encryption_key=data_encryption_key,
             compact_configuration_table=compact_configuration_table,
-            lambda_environment=lambda_environment
+            lambda_environment=lambda_environment,
         )
         self.api.log_groups.append(self.get_purchase_privilege_options_handler.log_group)
 
@@ -67,37 +66,30 @@ class Purchases:
             method_responses=[
                 MethodResponse(
                     status_code='200',
-                    response_models={
-                        'application/json': self.api_model.purchase_privilege_options_response_model
-                    }
+                    response_models={'application/json': self.api_model.purchase_privilege_options_response_model},
                 )
             ],
-            integration=LambdaIntegration(
-                self.get_purchase_privilege_options_handler,
-                timeout=Duration.seconds(29)
-            ),
-            request_parameters={
-                'method.request.header.Authorization': True
-            },
+            integration=LambdaIntegration(self.get_purchase_privilege_options_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
             authorizer=self.api.provider_users_authorizer,
         )
 
-
     def _get_purchase_privilege_options_handler(
-            self,
-            data_encryption_key: IKey,
-            compact_configuration_table: CompactConfigurationTable,
-            lambda_environment: dict
+        self,
+        data_encryption_key: IKey,
+        compact_configuration_table: CompactConfigurationTable,
+        lambda_environment: dict,
     ) -> PythonFunction:
         stack = Stack.of(self.purchases_resource)
         handler = PythonFunction(
-            self.purchases_resource, 'GetPurchasePrivilegeOptionsHandler',
+            self.purchases_resource,
+            'GetPurchasePrivilegeOptionsHandler',
             description='Get purchase privilege options handler',
             entry=os.path.join('lambdas', 'purchases'),
             index=os.path.join('handlers', 'privileges.py'),
             handler='get_purchase_privilege_options',
             environment=lambda_environment,
-            alarm_topic=self.api.alarm_topic
+            alarm_topic=self.api.alarm_topic,
         )
         data_encryption_key.grant_decrypt(handler)
         compact_configuration_table.grant_read_data(handler)
@@ -109,8 +101,8 @@ class Purchases:
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
-                              'and is scoped to one table and encryption key.'
+                    'and is scoped to one table and encryption key.',
                 }
-            ]
+            ],
         )
         return handler

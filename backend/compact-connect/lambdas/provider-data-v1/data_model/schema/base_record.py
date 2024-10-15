@@ -14,6 +14,7 @@ class StrictSchema(Schema):
     """
     Base Schema explicitly stating what we do if unknown fields are included - raise an error
     """
+
     class Meta:
         unknown = RAISE
 
@@ -22,23 +23,21 @@ class ForgivingSchema(Schema):
     """
     Base schema that will silently remove any unknown fields that are included
     """
+
     class Meta:
         unknown = EXCLUDE
 
 
 class SocialSecurityNumber(String):
     def __init__(self, *args, **kwargs):
-        super().__init__(
-            *args,
-            validate=Regexp('^[0-9]{3}-[0-9]{2}-[0-9]{4}$'),
-            **kwargs
-        )
+        super().__init__(*args, validate=Regexp('^[0-9]{3}-[0-9]{2}-[0-9]{4}$'), **kwargs)
 
 
 class Set(List):
     """
     A Field that de/serializes to a Set (not compatible with JSON)
     """
+
     def _serialize(self, *args, **kwargs):
         return set(super()._serialize(*args, **kwargs))
 
@@ -50,6 +49,7 @@ class BaseRecordSchema(StrictSchema, ABC):
     """
     Abstract base class, common to all records in the license data table
     """
+
     _record_type = None
     _registered_schema = {}
 
@@ -92,9 +92,11 @@ class BaseRecordSchema(StrictSchema, ABC):
         """
         Add the record type to the class map of schema, so we can look one up by type
         """
+
         def do_register(schema_cls: type[Schema]) -> type[Schema]:
             cls._registered_schema[record_type] = schema_cls()
             return schema_cls
+
         return do_register
 
     @classmethod
@@ -110,12 +112,9 @@ class ITUTE164PhoneNumber(String):
     Phone number format consistent with ITU-T E.164:
     https://www.itu.int/rec/T-REC-E.164-201011-I/en
     """
+
     def __init__(self, *args, **kwargs):
-        super().__init__(
-            *args,
-            validate=Regexp(r'^\+[0-9]{8,15}$'),
-            **kwargs
-        )
+        super().__init__(*args, validate=Regexp(r'^\+[0-9]{8,15}$'), **kwargs)
 
 
 class SSNIndexRecordSchema(StrictSchema):

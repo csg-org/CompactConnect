@@ -30,10 +30,7 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
         query = {'ssn': ssn}
         logger.info('Found provider id by SSN', provider_id=provider_id)
     if provider_id is not None:
-        resp = config.data_client.get_provider(
-            provider_id=provider_id,
-            pagination=body.get('pagination')
-        )
+        resp = config.data_client.get_provider(provider_id=provider_id, pagination=body.get('pagination'))
         resp['query'] = query
         return resp
 
@@ -41,10 +38,7 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
         sorting = body.get('sorting', {})
         compact = query['compact']
         jurisdiction = query['jurisdiction']
-        query = {
-            'compact': compact,
-            'jurisdiction': jurisdiction
-        }
+        query = {'compact': compact, 'jurisdiction': jurisdiction}
         logger.info('Querying by compact and jurisdiction')
     except KeyError as e:
         raise CCInvalidRequestException(f"{e} must be specified if 'ssn' or 'providerId' is not.") from e
@@ -57,30 +51,24 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
         case None | 'familyName':
             return {
                 'query': query,
-                'sorting': {
-                    'key': 'familyName',
-                    'direction': sort_direction
-                },
+                'sorting': {'key': 'familyName', 'direction': sort_direction},
                 **config.data_client.get_licenses_sorted_by_family_name(
                     compact=compact,
                     jurisdiction=jurisdiction,
                     scan_forward=scan_forward,
-                    pagination=body.get('pagination')
-                )
+                    pagination=body.get('pagination'),
+                ),
             }
         case 'dateOfUpdate':
             return {
                 'query': query,
-                'sorting': {
-                    'key': 'dateOfUpdate',
-                    'direction': sort_direction
-                },
+                'sorting': {'key': 'dateOfUpdate', 'direction': sort_direction},
                 **config.data_client.get_licenses_sorted_by_date_updated(
                     compact=compact,
                     jurisdiction=jurisdiction,
                     scan_forward=scan_forward,
-                    pagination=body.get('pagination')
-                )
+                    pagination=body.get('pagination'),
+                ),
             }
         case _:
             # This shouldn't happen unless our api validation gets misconfigured

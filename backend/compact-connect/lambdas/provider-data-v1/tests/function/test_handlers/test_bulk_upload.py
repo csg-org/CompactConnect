@@ -16,10 +16,7 @@ class TestBulkUpload(TstFunction):
             event = json.load(f)
 
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/oh.write'
-        event['pathParameters'] = {
-            'compact': 'aslp',
-            'jurisdiction': 'oh'
-        }
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
         resp = bulk_upload_url_handler(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
@@ -33,10 +30,7 @@ class TestBulkUpload(TstFunction):
             event = json.load(f)
         # User has permission in ne, not oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/ne.write'
-        event['pathParameters'] = {
-            'compact': 'aslp',
-            'jurisdiction': 'oh'
-        }
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
 
         resp = bulk_upload_url_handler(event, self.mock_context)
 
@@ -45,7 +39,6 @@ class TestBulkUpload(TstFunction):
 
 @mock_aws
 class TestProcessObjects(TstFunction):
-
     def test_uploaded_csv(self):
         from handlers.bulk_upload import parse_bulk_upload_file
 
@@ -60,9 +53,7 @@ class TestProcessObjects(TstFunction):
         event['Records'][0]['s3']['bucket'] = {
             'name': self._bucket.name,
             'arn': f'arn:aws:s3:::{self._bucket.name}',
-            'ownerIdentity': {
-                'principalId': 'ASDFG123'
-            }
+            'ownerIdentity': {'principalId': 'ASDFG123'},
         }
         event['Records'][0]['s3']['object']['key'] = object_key
 

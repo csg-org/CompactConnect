@@ -16,6 +16,7 @@ class ResponseEncoder(JSONEncoder):
     """
     JSON Encoder to handle data types that come out of our schema
     """
+
     def default(self, o):
         if isinstance(o, Decimal):
             ratio = o.as_integer_ratio()
@@ -51,25 +52,21 @@ def api_handler(fn: Callable):
             path=event['requestContext']['resourcePath'],
             query_params=event['queryStringParameters'],
             username=event['requestContext'].get('authorizer', {}).get('claims', {}).get('cognito:username'),
-            context=context
+            context=context,
         )
 
         try:
             return {
-                'headers': {
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {'Access-Control-Allow-Origin': '*'},
                 'statusCode': 200,
-                'body': json.dumps(fn(event, context), cls=ResponseEncoder)
+                'body': json.dumps(fn(event, context), cls=ResponseEncoder),
             }
         except CCInvalidRequestException as e:
             logger.info('Invalid request', exc_info=e)
             return {
-                'headers': {
-                    'Access-Control-Allow-Origin': '*'
-                },
+                'headers': {'Access-Control-Allow-Origin': '*'},
                 'statusCode': 400,
-                'body': json.dumps({'message': e.message})
+                'body': json.dumps({'message': e.message}),
             }
         except ClientError as e:
             # Any boto3 ClientErrors we haven't already caught and transformed are probably on us
@@ -82,7 +79,7 @@ def api_handler(fn: Callable):
                 path=event['requestContext']['resourcePath'],
                 query_params=event['queryStringParameters'],
                 context=context,
-                exc_info=e
+                exc_info=e,
             )
             raise
 
@@ -124,24 +121,17 @@ class scope_by_path:  # pylint: disable=invalid-name
                 logger.error('Access attempt with missing path parameters!')
                 return {
                     'statusCode': 401,
-                    'headers': {
-                        'Access-Control-Allow-Origin': '*'
-                    },
+                    'headers': {'Access-Control-Allow-Origin': '*'},
                 }
 
-            logger.debug(
-                'Checking authorizer context',
-                request_context=event['requestContext']
-            )
+            logger.debug('Checking authorizer context', request_context=event['requestContext'])
             try:
                 scopes = event['requestContext']['authorizer']['claims']['scope'].split(' ')
             except KeyError:
                 logger.error('Unauthorized access attempt!')
                 return {
                     'statusCode': 401,
-                    'headers': {
-                        'Access-Control-Allow-Origin': '*'
-                    },
+                    'headers': {'Access-Control-Allow-Origin': '*'},
                 }
 
             required_scope = f'{resource_value}/{scope_value}.{self.action}'
@@ -149,11 +139,10 @@ class scope_by_path:  # pylint: disable=invalid-name
                 logger.warning('Forbidden access attempt!')
                 return {
                     'statusCode': 403,
-                    'headers': {
-                        'Access-Control-Allow-Origin': '*'
-                    },
+                    'headers': {'Access-Control-Allow-Origin': '*'},
                 }
             return fn(event, context)
+
         return authorized
 
 
@@ -166,6 +155,7 @@ def sqs_handler(fn: Callable):
     This allows the queue to continue to scale under load, even if a number of the messages are failing. It
     also improves efficiency, as we don't have to throw away the entire batch for a single failure.
     """
+
     @wraps(fn)
     @logger.inject_lambda_context
     def process_messages(event, context: LambdaContext):  # pylint: disable=unused-argument
@@ -178,7 +168,7 @@ def sqs_handler(fn: Callable):
                 logger.info(
                     'Processing message',
                     message_id=record['messageId'],
-                    message_attributes=record.get('messageAttributes')
+                    message_attributes=record.get('messageAttributes'),
                 )
                 # No exception here means success
                 fn(message)
@@ -189,8 +179,6 @@ def sqs_handler(fn: Callable):
                 logger.error('Failed to process message', exc_info=e)
                 batch_failures.append({'itemIdentifier': record['messageId']})
         logger.info('Completed batch', batch_failures=len(batch_failures))
-        return {
-            'batchItemFailures': batch_failures
-        }
+        return {'batchItemFailures': batch_failures}
 
     return process_messages

@@ -12,19 +12,9 @@ class StandardTags(dict):
     """
     Enforces four required tags for all stacks
     """
-    def __init__(
-            self, *,
-            project: str,
-            service: str,
-            environment: str,
-            **kwargs
-    ):
-        super().__init__(
-            Project=project,
-            Service=service,
-            Environment=environment,
-            **kwargs
-        )
+
+    def __init__(self, *, project: str, service: str, environment: str, **kwargs):
+        super().__init__(Project=project, Service=service, Environment=environment, **kwargs)
 
 
 class Stack(CdkStack):
@@ -39,7 +29,7 @@ class Stack(CdkStack):
             suppressions=[
                 {
                     'id': 'HIPAA.Security-IAMNoInlinePolicy',
-                    'reason': dedent('''
+                    'reason': dedent("""
                     Prohibitions on inline policies are raised in favor of managed policies in order to support a
                     few goals:
                     - policy versioning
@@ -60,13 +50,13 @@ class Stack(CdkStack):
                     app, right here in this repository. Rolling back on failures is accomplished both through
                     CloudFormation as well as git again, as both have capabilities to perform much more cohesive
                     roll-backs than managed policies alone.
-                    ''')
+                    """),
                 },
                 {
                     'id': 'HIPAA.Security-LambdaConcurrency',
-                    'reason': 'The lambdas in this app will share account-wide concurrency limits'
-                }
-            ]
+                    'reason': 'The lambdas in this app will share account-wide concurrency limits',
+                },
+            ],
         )
 
     @cached_property
@@ -74,11 +64,7 @@ class Stack(CdkStack):
         """
         Flattened list of all license types across all compacts
         """
-        return [
-            typ
-            for comp in self.node.get_context('license_types').values()
-            for typ in comp
-        ]
+        return [typ for comp in self.node.get_context('license_types').values() for typ in comp]
 
     @cached_property
     def common_env_vars(self):
@@ -86,7 +72,7 @@ class Stack(CdkStack):
             'DEBUG': 'true',
             'COMPACTS': json.dumps(self.node.get_context('compacts')),
             'JURISDICTIONS': json.dumps(self.node.get_context('jurisdictions')),
-            'LICENSE_TYPES': json.dumps(self.node.get_context('license_types'))
+            'LICENSE_TYPES': json.dumps(self.node.get_context('license_types')),
         }
 
 
@@ -94,6 +80,7 @@ class AppStack(Stack):
     """
     A stack that is part of the main app deployment
     """
+
     def __init__(self, *args, environment_context: dict, **kwargs):
         super().__init__(*args, **kwargs)
         self.environment_context = environment_context
@@ -103,10 +90,7 @@ class AppStack(Stack):
         hosted_zone = None
         domain_name = self.environment_context.get('domain_name')
         if domain_name is not None:
-            hosted_zone = HostedZone.from_lookup(
-                self, 'HostedZone',
-                domain_name=domain_name
-            )
+            hosted_zone = HostedZone.from_lookup(self, 'HostedZone', domain_name=domain_name)
         return hosted_zone
 
     @property

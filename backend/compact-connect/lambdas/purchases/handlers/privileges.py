@@ -28,8 +28,7 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # pyli
         raise CCInvalidRequestException('Missing required user profile attribute') from e
 
     options_response = config.data_client.get_privilege_purchase_options(
-        compact=compact,
-        pagination=event.get('queryStringParameters', {})
+        compact=compact, pagination=event.get('queryStringParameters', {})
     )
 
     # we need to filter out contact information from the response, which is not needed by the client

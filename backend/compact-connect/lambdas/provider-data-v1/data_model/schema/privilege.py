@@ -12,6 +12,7 @@ class PrivilegeRecordSchema(BaseRecordSchema):
     """
     Schema for privilege records in the license data table
     """
+
     _record_type = 'privilege'
 
     # Provided fields

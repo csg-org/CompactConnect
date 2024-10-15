@@ -15,6 +15,7 @@ class StrictSchema(Schema):
     """
     Base Schema explicitly stating what we do if unknown fields are included - raise an error
     """
+
     class Meta:
         unknown = RAISE
 
@@ -23,23 +24,21 @@ class ForgivingSchema(Schema):
     """
     Base schema that will silently remove any unknown fields that are included
     """
+
     class Meta:
         unknown = EXCLUDE
 
 
 class SocialSecurityNumber(String):
     def __init__(self, *args, **kwargs):
-        super().__init__(
-            *args,
-            validate=Regexp('^[0-9]{3}-[0-9]{2}-[0-9]{4}$'),
-            **kwargs
-        )
+        super().__init__(*args, validate=Regexp('^[0-9]{3}-[0-9]{2}-[0-9]{4}$'), **kwargs)
 
 
 class BaseRecordSchema(StrictSchema, ABC):
     """
     Abstract base class, common to all records in the license data table
     """
+
     _record_type = None
     _registered_schema = {}
 
@@ -50,10 +49,7 @@ class BaseRecordSchema(StrictSchema, ABC):
     dateOfUpdate = Date(required=True, allow_none=False)
 
     # Provided fields
-    type = String(required=True, allow_none=False, validate=OneOf((
-        'license-home',
-        'license-privilege'
-    )))
+    type = String(required=True, allow_none=False, validate=OneOf(('license-home', 'license-privilege')))
     providerId = UUID(required=True, allow_none=False)
     ssn = String(required=True, allow_none=False, validate=Regexp('^[0-9]{3}-[0-9]{2}-[0-9]{4}$'))
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
@@ -79,16 +75,9 @@ class BaseRecordSchema(StrictSchema, ABC):
         jurisdiction = in_data['jurisdiction']
 
         in_data['pk'] = provider_id
-        in_data['sk'] = '/'.join((
-            compact,
-            jurisdiction,
-            self._record_type
-        ))
+        in_data['sk'] = '/'.join((compact, jurisdiction, self._record_type))
         in_data['type'] = self._record_type
-        in_data['compactJur'] = '/'.join((
-            compact,
-            jurisdiction
-        ))
+        in_data['compactJur'] = '/'.join((compact, jurisdiction))
         # YYYY-MM-DD
         in_data['dateOfUpdate'] = datetime.now(tz=UTC).date()
         return in_data
@@ -98,9 +87,11 @@ class BaseRecordSchema(StrictSchema, ABC):
         """
         Add the record type to the class map of schema, so we can look one up by type
         """
+
         def do_register(schema_cls: type[Schema]) -> type[Schema]:
             cls._registered_schema[record_type] = schema_cls()
             return schema_cls
+
         return do_register
 
     @classmethod

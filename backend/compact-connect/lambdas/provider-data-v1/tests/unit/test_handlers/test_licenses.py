@@ -11,10 +11,7 @@ class TestPostLicenses(TstLambdas):
     def test_post_licenses(self, mock_config):
         from handlers.licenses import post_licenses
 
-        mock_config.events_client.put_events.return_value = {
-            'FailedEntryCount': 0,
-            'Entries': [{'EventId': '123'}]
-        }
+        mock_config.events_client.put_events.return_value = {'FailedEntryCount': 0, 'Entries': [{'EventId': '123'}]}
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -22,10 +19,7 @@ class TestPostLicenses(TstLambdas):
         # The user has scopes for oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write aslp/oh.write'
 
-        event['pathParameters'] = {
-            'compact': 'aslp',
-            'jurisdiction': 'oh'
-        }
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
 
         with open('tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
@@ -38,9 +32,7 @@ class TestPostLicenses(TstLambdas):
         # Collect events put for inspection
         # There should be one successful ingest event
         entries = [
-            entry
-            for call in mock_config.events_client.put_events.call_args_list
-            for entry in call.kwargs['Entries']
+            entry for call in mock_config.events_client.put_events.call_args_list for entry in call.kwargs['Entries']
         ]
         self.assertEqual(1, len(entries))
         self.assertEqual('license-ingest-v1', entries[0]['DetailType'])
@@ -55,10 +47,7 @@ class TestPostLicenses(TstLambdas):
         # The user has scopes for aslp, not octp
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write aslp/oh.write'
 
-        event['pathParameters'] = {
-            'compact': 'octp',
-            'jurisdiction': 'oh'
-        }
+        event['pathParameters'] = {'compact': 'octp', 'jurisdiction': 'oh'}
 
         with open('tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
@@ -77,10 +66,7 @@ class TestPostLicenses(TstLambdas):
         # The user has scopes for oh, not ne
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write aslp/oh.write'
 
-        event['pathParameters'] = {
-            'compact': 'aslp',
-            'jurisdiction': 'ne'
-        }
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne'}
 
         with open('tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
@@ -103,9 +89,9 @@ class TestPostLicenses(TstLambdas):
                 {
                     'EventId': '123',
                     'ErrorCode': 'SomethingBad',
-                    'ErrorMessage': 'There is something wrong with this event'
+                    'ErrorMessage': 'There is something wrong with this event',
                 }
-            ]
+            ],
         }
 
         with open('tests/resources/api-event.json') as f:
@@ -114,10 +100,7 @@ class TestPostLicenses(TstLambdas):
         # The user has scopes for oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write aslp/oh.write'
 
-        event['pathParameters'] = {
-            'compact': 'aslp',
-            'jurisdiction': 'oh'
-        }
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
 
         with open('tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])

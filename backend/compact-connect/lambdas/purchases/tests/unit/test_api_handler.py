@@ -53,24 +53,14 @@ class TestApiHandler(TstLambdas):
 
         resp = lambda_handler(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
-        self.assertEqual(
-            {'message': "You can't do that"},
-            json.loads(resp['body'])
-        )
+        self.assertEqual({'message': "You can't do that"}, json.loads(resp['body']))
 
     def test_client_error(self):
         from handlers.utils import api_handler
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):
-            raise ClientError(
-                error_response={
-                    'Error': {
-                        'Code': "CantDoThatException"
-                    }
-                },
-                operation_name='DoAWSThing'
-            )
+            raise ClientError(error_response={'Error': {'Code': 'CantDoThatException'}}, operation_name='DoAWSThing')
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)

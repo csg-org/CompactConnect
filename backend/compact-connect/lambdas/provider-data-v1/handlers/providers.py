@@ -36,10 +36,7 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
         logger.info('Found provider id by SSN', provider_id=provider_id)
     if provider_id is not None:
         resp = config.data_client.get_provider(
-            compact=compact,
-            provider_id=provider_id,
-            pagination=body.get('pagination'),
-            detail=False
+            compact=compact, provider_id=provider_id, pagination=body.get('pagination'), detail=False
         )
         resp['query'] = query
 
@@ -62,17 +59,14 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
             case None | 'familyName':
                 resp = {
                     'query': query,
-                    'sorting': {
-                        'key': 'familyName',
-                        'direction': sort_direction
-                    },
+                    'sorting': {'key': 'familyName', 'direction': sort_direction},
                     **config.data_client.get_providers_sorted_by_family_name(
                         compact=compact,
                         jurisdiction=jurisdiction,
                         provider_name=provider_name,
                         scan_forward=scan_forward,
-                        pagination=body.get('pagination')
-                    )
+                        pagination=body.get('pagination'),
+                    ),
                 }
             case 'dateOfUpdate':
                 if provider_name is not None:
@@ -81,16 +75,13 @@ def query_providers(event: dict, context: LambdaContext):  # pylint: disable=unu
                     )
                 resp = {
                     'query': query,
-                    'sorting': {
-                        'key': 'dateOfUpdate',
-                        'direction': sort_direction
-                    },
+                    'sorting': {'key': 'dateOfUpdate', 'direction': sort_direction},
                     **config.data_client.get_providers_sorted_by_updated(
                         compact=compact,
                         jurisdiction=jurisdiction,
                         scan_forward=scan_forward,
-                        pagination=body.get('pagination')
-                    )
+                        pagination=body.get('pagination'),
+                    ),
                 }
             case _:
                 # This shouldn't happen unless our api validation gets misconfigured

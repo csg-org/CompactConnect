@@ -67,10 +67,7 @@ class TestApiHandler(TstLambdas):
 
         resp = lambda_handler(event, self.mock_context)
         self.assertEqual(404, resp['statusCode'])
-        self.assertEqual(
-            {'message': "I don't see it."},
-            json.loads(resp['body'])
-        )
+        self.assertEqual({'message': "I don't see it."}, json.loads(resp['body']))
 
     def test_invalid_request(self):
         from exceptions import CCInvalidRequestException
@@ -78,31 +75,21 @@ class TestApiHandler(TstLambdas):
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):
-            raise CCInvalidRequestException("Your request is wrong.")
+            raise CCInvalidRequestException('Your request is wrong.')
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         resp = lambda_handler(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
-        self.assertEqual(
-            {'message': "Your request is wrong."},
-            json.loads(resp['body'])
-        )
+        self.assertEqual({'message': 'Your request is wrong.'}, json.loads(resp['body']))
 
     def test_client_error(self):
         from utils import api_handler
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):
-            raise ClientError(
-                error_response={
-                    'Error': {
-                        'Code': "CantDoThatException"
-                    }
-                },
-                operation_name='DoAWSThing'
-            )
+            raise ClientError(error_response={'Error': {'Code': 'CantDoThatException'}}, operation_name='DoAWSThing')
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)

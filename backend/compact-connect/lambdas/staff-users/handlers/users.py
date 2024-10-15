@@ -59,16 +59,11 @@ def get_users(event: dict, context: LambdaContext):  # pylint: disable=unused-ar
     allowed_jurisdictions = get_allowed_jurisdictions(compact=compact, scopes=scopes)
 
     resp = user_client.get_users_sorted_by_family_name(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
-        compact=compact,
-        jurisdictions=allowed_jurisdictions,
-        pagination=pagination
+        compact=compact, jurisdictions=allowed_jurisdictions, pagination=pagination
     )
     # Convert to API-specific format
     users = resp.pop('items', [])
-    resp['users'] = [
-        user_api_schema.load(user)
-        for user in users
-    ]
+    resp['users'] = [user_api_schema.load(user) for user in users]
     return resp
 
 
@@ -108,15 +103,9 @@ def patch_user(event: dict, context: LambdaContext):  # pylint: disable=unused-a
     permission_changes = json.loads(event['body']).get('permissions', {}).get(compact, {})
     logger.debug('Requested changes', permission_changes=permission_changes)
     changes = collect_and_authorize_changes(
-        path_compact=path_compact,
-        scopes=scopes,
-        compact_changes=permission_changes
+        path_compact=path_compact, scopes=scopes, compact_changes=permission_changes
     )
-    user = user_client.update_user_permissions(
-        compact=compact,
-        user_id=user_id,
-        **changes
-    )
+    user = user_client.update_user_permissions(compact=compact, user_id=user_id, **changes)
     return user_api_schema.load(user)
 
 
@@ -134,8 +123,6 @@ def post_user(event: dict, context: LambdaContext):  # pylint: disable=unused-ar
 
     # Use the UserClient to create a new user
     user = user_api_schema.dump(body)
-    return user_api_schema.load(user_client.create_user(
-        compact=compact,
-        attributes=user['attributes'],
-        permissions=user['permissions']
-    ))
+    return user_api_schema.load(
+        user_client.create_user(compact=compact, attributes=user['attributes'], permissions=user['permissions'])
+    )

@@ -13,6 +13,7 @@ class StrictSchema(Schema):
     """
     Base Schema explicitly stating what we do if unknown fields are included - raise an error
     """
+
     class Meta:
         unknown = RAISE
 
@@ -21,13 +22,16 @@ class ForgivingSchema(Schema):
     """
     Base schema that will silently remove any unknown fields that are included
     """
+
     class Meta:
         unknown = EXCLUDE
+
 
 class BaseRecordSchema(StrictSchema, ABC):
     """
     Abstract base class, common to all records in the license data table
     """
+
     _record_type = None
     _registered_schema = {}
 
@@ -70,9 +74,11 @@ class BaseRecordSchema(StrictSchema, ABC):
         """
         Add the record type to the class map of schema, so we can look one up by type
         """
+
         def do_register(schema_cls: type[Schema]) -> type[Schema]:
             cls._registered_schema[record_type] = schema_cls()
             return schema_cls
+
         return do_register
 
     @classmethod

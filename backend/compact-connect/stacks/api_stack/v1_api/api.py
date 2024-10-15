@@ -18,6 +18,7 @@ class V1Api:
     """
     v1 of the Provider Data API
     """
+
     def __init__(self, root: IResource, persistent_stack: ps.PersistentStack):
         super().__init__()
         self.root = root
@@ -25,26 +26,23 @@ class V1Api:
         self.api: cc_api.CCApi = root.api
         self.api_model = ApiModel(api=self.api)
         read_scopes = [
-            f'{resource_server}/read'
-            for resource_server in persistent_stack.staff_users.resource_servers.keys()
+            f'{resource_server}/read' for resource_server in persistent_stack.staff_users.resource_servers.keys()
         ]
         write_scopes = [
-            f'{resource_server}/write'
-            for resource_server in persistent_stack.staff_users.resource_servers.keys()
+            f'{resource_server}/write' for resource_server in persistent_stack.staff_users.resource_servers.keys()
         ]
         admin_scopes = [
-            f'{resource_server}/admin'
-            for resource_server in persistent_stack.staff_users.resource_servers.keys()
+            f'{resource_server}/admin' for resource_server in persistent_stack.staff_users.resource_servers.keys()
         ]
         read_auth_method_options = MethodOptions(
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
-            authorization_scopes=read_scopes
+            authorization_scopes=read_scopes,
         )
         write_auth_method_options = MethodOptions(
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
-            authorization_scopes=write_scopes
+            authorization_scopes=write_scopes,
         )
 
         # /v1/provider-users
@@ -53,7 +51,7 @@ class V1Api:
             resource=self.provider_users_resource,
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
-            api_model=self.api_model
+            api_model=self.api_model,
         )
 
         # /v1/purchases
@@ -62,7 +60,7 @@ class V1Api:
             self.purchases_resource,
             data_encryption_key=persistent_stack.shared_encryption_key,
             compact_configuration_table=persistent_stack.compact_configuration_table,
-            api_model=self.api_model
+            api_model=self.api_model,
         )
 
         # /v1/compacts/{compact}
@@ -76,26 +74,25 @@ class V1Api:
             method_options=read_auth_method_options,
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
-            api_model=self.api_model
+            api_model=self.api_model,
         )
 
         # POST /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses
         # GET  /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload
-        licenses_resource = compact_resource \
-            .add_resource('jurisdictions') \
-            .add_resource('{jurisdiction}') \
-            .add_resource('licenses')
+        licenses_resource = (
+            compact_resource.add_resource('jurisdictions').add_resource('{jurisdiction}').add_resource('licenses')
+        )
         PostLicenses(
             resource=licenses_resource,
             method_options=write_auth_method_options,
             event_bus=persistent_stack.data_event_bus,
-            api_model=self.api_model
+            api_model=self.api_model,
         )
         BulkUploadUrl(
             resource=licenses_resource,
             method_options=write_auth_method_options,
             bulk_uploads_bucket=persistent_stack.bulk_uploads_bucket,
-            api_model=self.api_model
+            api_model=self.api_model,
         )
 
         # /v1/staff-users
@@ -111,5 +108,5 @@ class V1Api:
             admin_resource=staff_users_admin_resource,
             self_resource=staff_users_self_resource,
             admin_scopes=admin_scopes,
-            persistent_stack=persistent_stack
+            persistent_stack=persistent_stack,
         )

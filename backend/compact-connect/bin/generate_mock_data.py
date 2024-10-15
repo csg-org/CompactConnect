@@ -54,7 +54,7 @@ FIELDS = (
     'homeAddressPostalCode',
     'militaryWaiver',
     'emailAddress',
-    'phoneNumber'
+    'phoneNumber',
 )
 
 
@@ -96,7 +96,7 @@ def get_mock_license(i: int, *, compact: str, jurisdiction: str = None) -> dict:
         'homeAddressCity': faker.city(),
         # Some have email addresses, some don't
         'emailAddress': faker.email() if choice([True, False]) else None,
-        'phoneNumber': f'+1{randint(1_000_000_000, 9_999_999_999)}'
+        'phoneNumber': f'+1{randint(1_000_000_000, 9_999_999_999)}',
     }
     license_data = _set_address_state(license_data, jurisdiction)
     license_data = _set_dates(license_data)
@@ -108,18 +108,22 @@ def _set_address_state(license_data: dict, jurisdiction: str) -> dict:
     military = choice([False, False, False, False, True])
     if military:
         home_state = faker.state_abbr().lower()
-        license_data.update({
-            'homeAddressState': home_state,
-            'homeAddressPostalCode': faker.zipcode_in_state(state_abbr=home_state.upper()),
-            'militaryWaiver': military
-        })
+        license_data.update(
+            {
+                'homeAddressState': home_state,
+                'homeAddressPostalCode': faker.zipcode_in_state(state_abbr=home_state.upper()),
+                'militaryWaiver': military,
+            }
+        )
     else:
-        license_data.update({
-            'homeAddressState': jurisdiction,
-            'homeAddressPostalCode': faker.zipcode_in_state(state_abbr=jurisdiction.upper()),
-            # Explicitly set False for some, omit for others
-            'militaryWaiver': military if choice([True, False]) else None
-        })
+        license_data.update(
+            {
+                'homeAddressState': jurisdiction,
+                'homeAddressPostalCode': faker.zipcode_in_state(state_abbr=jurisdiction.upper()),
+                # Explicitly set False for some, omit for others
+                'militaryWaiver': military if choice([True, False]) else None,
+            }
+        )
     return license_data
 
 
@@ -127,39 +131,29 @@ def _set_dates(license_data: dict) -> dict:
     date_of_birth = faker.date_of_birth()
     # Issuance between when they were ~22 and ~40 years old, but still in the past
     now = datetime.now(tz=UTC).date()
-    date_of_issuance = min(
-        date_of_birth + timedelta(days=randint(22 * 365, 40 * 365)),
-        now - timedelta(days=1)
-    )
+    date_of_issuance = min(date_of_birth + timedelta(days=randint(22 * 365, 40 * 365)), now - timedelta(days=1))
     # For simplicity, we'll assume that under-70-year-olds are active, over are inactive.
-    if date_of_birth + 70*timedelta(days=365) > now:
+    if date_of_birth + 70 * timedelta(days=365) > now:
         active = True
         # We'll have renewal be within the last year, but on or after issuance.
-        date_of_renewal = max(
-            now - timedelta(days=randint(1, 365)),
-            date_of_issuance
-        )
+        date_of_renewal = max(now - timedelta(days=randint(1, 365)), date_of_issuance)
         # Expiry, one year from renewal
         date_of_expiry = date_of_renewal + timedelta(days=365)
     else:
         active = False
         # They renewed at some point in the last 20 years, but on or after their issuance date.
-        date_of_renewal = max(
-            date_of_issuance,
-            now - randint(1, 20)*timedelta(days=365)
-        )
+        date_of_renewal = max(date_of_issuance, now - randint(1, 20) * timedelta(days=365))
         # Their license expired a year after renewal, but no later than yesterday.
-        date_of_expiry = min(
-            date_of_renewal + timedelta(days=365),
-            now - timedelta(days=1)
-        )
-    license_data.update({
-        'status': 'active' if active else 'inactive',
-        'dateOfBirth': date_of_birth,
-        'dateOfIssuance': date_of_issuance,
-        'dateOfRenewal': date_of_renewal,
-        'dateOfExpiration': date_of_expiry
-    })
+        date_of_expiry = min(date_of_renewal + timedelta(days=365), now - timedelta(days=1))
+    license_data.update(
+        {
+            'status': 'active' if active else 'inactive',
+            'dateOfBirth': date_of_birth,
+            'dateOfIssuance': date_of_issuance,
+            'dateOfRenewal': date_of_renewal,
+            'dateOfExpiration': date_of_expiry,
+        }
+    )
     return license_data
 
 
@@ -169,26 +163,15 @@ if __name__ == '__main__':
 
     logging.basicConfig()
 
-    parser = ArgumentParser(
-        description='Generate mock license data for upload'
-    )
+    parser = ArgumentParser(description='Generate mock license data for upload')
+    parser.add_argument('--count', help='The count of licenses to generate', required=True, type=int)
+    parser.add_argument('--compact', help='The compact these licenses will be for', required=True, choices=COMPACTS)
     parser.add_argument(
-        '--count',
-        help="The count of licenses to generate",
-        required=True,
-        type=int
-    )
-    parser.add_argument(
-        '--compact',
-        help="The compact these licenses will be for",
-        required=True,
-        choices=COMPACTS
-    )
-    parser.add_argument(
-        '-j', '--jurisdiction',
-        help="The jurisdiction these licenses will be for",
+        '-j',
+        '--jurisdiction',
+        help='The jurisdiction these licenses will be for',
         required=False,
-        choices=JURISDICTIONS
+        choices=JURISDICTIONS,
     )
 
     args = parser.parse_args()

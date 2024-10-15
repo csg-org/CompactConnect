@@ -20,9 +20,7 @@ class TestPostUser(TstFunction):
 
         # The user has admin permission for aslp/oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/oh.admin'
-        event['pathParameters'] = {
-            'compact': 'aslp'
-        }
+        event['pathParameters'] = {'compact': 'aslp'}
 
         resp = post_user(event, self.mock_context)
 
@@ -48,9 +46,7 @@ class TestPostUser(TstFunction):
         # The user has admin permission for nebraska, not oh, which is where the user they are trying to create
         # has permission.
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/ne.admin'
-        event['pathParameters'] = {
-            'compact': 'aslp'
-        }
+        event['pathParameters'] = {'compact': 'aslp'}
 
         resp = post_user(event, self.mock_context)
 

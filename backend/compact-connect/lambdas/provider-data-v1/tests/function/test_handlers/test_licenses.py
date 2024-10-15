@@ -15,10 +15,7 @@ class TestLicenses(TstFunction):
 
         # The user has write permission for aslp/oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read aslp/write aslp/oh.write'
-        event['pathParameters'] = {
-            'compact': 'aslp',
-            'jurisdiction': 'oh'
-        }
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
         with open('tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
 
@@ -34,10 +31,7 @@ class TestLicenses(TstFunction):
 
         # The user has write permission for aslp/oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read aslp/write aslp/oh.write'
-        event['pathParameters'] = {
-            'compact': 'aslp',
-            'jurisdiction': 'oh'
-        }
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
         with open('tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
         license_data['licenseType'] = 'occupational therapist'

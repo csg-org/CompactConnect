@@ -9,10 +9,7 @@ class TestResponseEncoder(TstLambdas):
     def test_standard_fields(self):
         from handlers.utils import ResponseEncoder
 
-        start_data = {
-            'foo': 42,
-            'bar': 'baz'
-        }
+        start_data = {'foo': 42, 'bar': 'baz'}
 
         round_trip = json.loads(json.dumps(start_data, cls=ResponseEncoder))
         self.assertEqual(start_data, round_trip)
@@ -20,10 +17,7 @@ class TestResponseEncoder(TstLambdas):
     def test_decimal(self):
         from handlers.utils import ResponseEncoder
 
-        start_data = {
-            'decimal': Decimal('4.1'),
-            'integer': Decimal(4)
-        }
+        start_data = {'decimal': Decimal('4.1'), 'integer': Decimal(4)}
 
         dumped = json.dumps(start_data, cls=ResponseEncoder)
         self.assertIn('"integer": 4', dumped)
@@ -32,14 +26,7 @@ class TestResponseEncoder(TstLambdas):
     def test_date(self):
         from handlers.utils import ResponseEncoder
 
-        start_data = {
-            'date': date(2024, 7, 21),
-            'datetime': datetime(
-                2024, 7, 21,
-                17, 20, 12, 54321,
-                tzinfo=UTC
-            )
-        }
+        start_data = {'date': date(2024, 7, 21), 'datetime': datetime(2024, 7, 21, 17, 20, 12, 54321, tzinfo=UTC)}
         dumped = json.dumps(start_data, cls=ResponseEncoder)
 
         self.assertIn('"date": "2024-07-21"', dumped)
