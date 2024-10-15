@@ -9,5 +9,7 @@ if [ "$1" == "--check" ]; then
 # else we just run check
 else
     echo "Formatting Python files..."
+    # this step is required to sort the imports
+    ruff check --select I --fix $(git ls-files '*.py')
     ruff format $(git ls-files '*.py')
 fi
