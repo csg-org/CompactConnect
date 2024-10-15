@@ -4,7 +4,7 @@ from config import _Config, logger
 from data_model.query_paginator import paginated_query
 
 
-class DataClient():
+class DataClient:
     """
     Client interface for license data dynamodb queries
     """

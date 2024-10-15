@@ -17,7 +17,7 @@ from faker import Faker
 provider_data_path = os.path.join('lambdas', 'provider-data-v1')
 sys.path.append(provider_data_path)
 
-with open('cdk.json', 'r') as context_file:
+with open('cdk.json') as context_file:
     _context = json.load(context_file)['context']
 JURISDICTIONS = _context['jurisdictions']
 COMPACTS = _context['compacts']

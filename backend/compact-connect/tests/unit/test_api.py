@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Mapping
+from collections.abc import Mapping
 from unittest import TestCase
 
 from app import CompactConnectApp
@@ -17,9 +17,9 @@ class TestApi(TestCase):
 
     @classmethod
     def _when_testing_sandbox_stack_app(cls):
-        with open('cdk.json', 'r') as f:
+        with open('cdk.json') as f:
             context = json.load(f)['context']
-        with open('cdk.context.sandbox-example.json', 'r') as f:
+        with open('cdk.context.sandbox-example.json') as f:
             context.update(json.load(f))
 
         # Suppresses lambda bundling for tests
@@ -63,7 +63,7 @@ class TestApi(TestCase):
         snapshot_path = os.path.join('tests', 'resources', 'snapshots', f'{snapshot_name}.json')
 
         if os.path.exists(snapshot_path):
-            with open(snapshot_path, 'r') as f:
+            with open(snapshot_path) as f:
                 snapshot = json.load(f)
         else:
             print(f"Snapshot at path '{snapshot_path}' does not exist.")

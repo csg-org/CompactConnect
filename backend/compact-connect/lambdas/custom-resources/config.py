@@ -10,7 +10,7 @@ logger = Logger()
 logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false').lower() == 'true' else logging.INFO)
 
 
-class _Config():
+class _Config:
 
     @property
     def compact_configuration_table_name(self):

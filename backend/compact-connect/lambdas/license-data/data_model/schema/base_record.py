@@ -3,7 +3,6 @@
 # by convention, we use camelCase.
 from abc import ABC
 from datetime import UTC, datetime
-from typing import Type
 
 from config import config
 from exceptions import CCInternalException
@@ -99,7 +98,7 @@ class BaseRecordSchema(StrictSchema, ABC):
         """
         Add the record type to the class map of schema, so we can look one up by type
         """
-        def do_register(schema_cls: Type[Schema]) -> Type[Schema]:
+        def do_register(schema_cls: type[Schema]) -> type[Schema]:
             cls._registered_schema[record_type] = schema_cls()
             return schema_cls
         return do_register

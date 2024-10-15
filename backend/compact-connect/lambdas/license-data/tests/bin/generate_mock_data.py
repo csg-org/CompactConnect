@@ -21,7 +21,7 @@ from license_csv_reader import LicenseCSVReader
 def generate_csv_rows(count):
     i = 0
     while i < count:
-        with open(os.path.join('tests', 'resources', 'licenses.csv'), 'r') as f:
+        with open(os.path.join('tests', 'resources', 'licenses.csv')) as f:
             reader = LicenseCSVReader()
             for license_row in reader.licenses(f):
                 validated_license = reader.schema.load({

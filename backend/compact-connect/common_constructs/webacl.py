@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import List
 
 from aws_cdk import IResolvable, RemovalPolicy, Resource, Stack
 from aws_cdk.aws_apigateway import Stage
@@ -25,7 +24,7 @@ class WebACL(Resource):
         self, scope: Construct, construct_id: str, *,
         acl_scope: WebACLScope = WebACLScope.REGIONAL,
         enable_acl_logging: bool = True,
-        rules: List[IResolvable | CfnWebACL.RuleProperty] = None
+        rules: list[IResolvable | CfnWebACL.RuleProperty] = None
     ):
         super().__init__(scope, construct_id)
 
@@ -134,7 +133,7 @@ class WebACL(Resource):
         self.rules.append(rule)
 
 
-class WebACLRules():
+class WebACLRules:
     @staticmethod
     def rate_limit_rule(limit: int = 100):
         """

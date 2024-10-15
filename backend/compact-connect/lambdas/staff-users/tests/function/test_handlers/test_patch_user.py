@@ -12,7 +12,7 @@ class TestPatchUser(TstFunction):
 
         from handlers.users import patch_user
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has admin permission for aslp/oh
@@ -73,7 +73,7 @@ class TestPatchUser(TstFunction):
 
         from handlers.users import patch_user
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has admin permission for aslp/oh not aslp/ne

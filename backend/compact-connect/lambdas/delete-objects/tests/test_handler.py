@@ -8,7 +8,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 class TestHandler(TestCase):
     @patch('main.s3_client')
     def test_delete_objects(self, mock_s3_client):
-        with open('tests/resources/put-event.json', 'r') as f:
+        with open('tests/resources/put-event.json') as f:
             event = json.load(f)
         event['Records'][0]['s3']['object']['key'] = 'SomeUpperCase.json'
 

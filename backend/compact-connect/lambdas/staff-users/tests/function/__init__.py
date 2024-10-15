@@ -1,7 +1,6 @@
 import json
 import logging
 import os
-from typing import List
 
 import boto3
 from boto3.dynamodb.types import TypeDeserializer
@@ -106,7 +105,7 @@ class TstFunction(TstLambdas):
         )
 
     def _load_user_data(self) -> str:
-        with open('tests/resources/dynamo/user.json', 'r') as f:
+        with open('tests/resources/dynamo/user.json') as f:
             # This item is saved in its serialized form, so we have to deserialize it first
             item = TypeDeserializer().deserialize({'M': json.load(f)})
 
@@ -116,7 +115,7 @@ class TstFunction(TstLambdas):
         )
         return item['userId']
 
-    def _create_compact_staff_user(self, compacts: List[str]):
+    def _create_compact_staff_user(self, compacts: list[str]):
         """
         Create a compact-staff style user for each jurisdiction in the provided compact.
         """
@@ -146,7 +145,7 @@ class TstFunction(TstLambdas):
             )
         return sub
 
-    def _create_board_staff_users(self, compacts: List[str]):
+    def _create_board_staff_users(self, compacts: list[str]):
         """
         Create a board-staff style user for each jurisdiction in the provided compact.
         """

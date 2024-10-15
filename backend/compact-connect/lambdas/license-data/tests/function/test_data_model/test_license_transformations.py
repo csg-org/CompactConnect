@@ -16,12 +16,12 @@ class TestTransformations(TstFunction):
         all happen as expected.
         """
         # license data as it comes in from a board, in this case, as POSTed through the API
-        with open('tests/resources/api/license-post.json', 'r') as f:
+        with open('tests/resources/api/license-post.json') as f:
             license_post = json.load(f)
         license_ssn = license_post['ssn']
 
         # The API Gateway event, as it is presented to the API lambda
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # Pack an array of one license into the request body
@@ -52,7 +52,7 @@ class TestTransformations(TstFunction):
             )
 
         # A sample SQS message from EventBridge
-        with open('tests/resources/ingest/message.json', 'r') as f:
+        with open('tests/resources/ingest/message.json') as f:
             message = json.load(f)
 
         # Pack our license-ingest event into the sample message
@@ -86,7 +86,7 @@ class TestTransformations(TstFunction):
         db_license = resp['Items'][0]
 
         # Expected representation of the license in the database
-        with open('tests/resources/dynamo/license.json', 'r') as f:
+        with open('tests/resources/dynamo/license.json') as f:
             expected_license = json.load(f)
 
         # Force the provider id to match
@@ -103,7 +103,7 @@ class TestTransformations(TstFunction):
         from handlers.providers import get_provider
 
         # Get a fresh API Gateway event
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['pathParameters'] = {
@@ -118,7 +118,7 @@ class TestTransformations(TstFunction):
         license_data = json.loads(resp['body'])['items'][0]
 
         # Expected representation of our license coming _out_ via the API
-        with open('tests/resources/api/license-response.json', 'r') as f:
+        with open('tests/resources/api/license-response.json') as f:
             expected_license = json.load(f)
 
         # Force the provider id to match

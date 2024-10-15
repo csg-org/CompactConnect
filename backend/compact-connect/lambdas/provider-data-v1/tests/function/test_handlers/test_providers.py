@@ -13,7 +13,7 @@ class TestQueryProviders(TstFunction):
 
         from handlers.providers import query_providers
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has read permission for aslp
@@ -31,7 +31,7 @@ class TestQueryProviders(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
 
-        with open('tests/resources/api/provider-response.json', 'r') as f:
+        with open('tests/resources/api/provider-response.json') as f:
             expected_provider = json.load(f)
 
         body = json.loads(resp['body'])
@@ -56,7 +56,7 @@ class TestQueryProviders(TstFunction):
 
         from handlers.providers import query_providers
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has read permission for aslp
@@ -74,7 +74,7 @@ class TestQueryProviders(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
 
-        with open('tests/resources/api/provider-response.json', 'r') as f:
+        with open('tests/resources/api/provider-response.json') as f:
             expected_provider = json.load(f)
 
         body = json.loads(resp['body'])
@@ -100,7 +100,7 @@ class TestQueryProviders(TstFunction):
         self._generate_providers(home='ne', privilege='oh', start_serial=9999)
         self._generate_providers(home='oh', privilege='ne', start_serial=9899)
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has read permission for aslp
@@ -139,7 +139,7 @@ class TestQueryProviders(TstFunction):
         self._generate_providers(home='ne', privilege='oh', start_serial=9999)
         self._generate_providers(home='oh', privilege='ne', start_serial=9899)
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has read permission for aslp
@@ -192,7 +192,7 @@ class TestQueryProviders(TstFunction):
             )
         )
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has read permission for aslp
@@ -234,7 +234,7 @@ class TestQueryProviders(TstFunction):
             )
         )
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has read permission for aslp
@@ -269,7 +269,7 @@ class TestQueryProviders(TstFunction):
         self._generate_providers(home='ne', privilege='oh', start_serial=9999)
         self._generate_providers(home='oh', privilege='ne', start_serial=9899)
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has read permission for aslp
@@ -307,7 +307,7 @@ class TestQueryProviders(TstFunction):
         self._generate_providers(home='ne', privilege='oh', start_serial=9999)
         self._generate_providers(home='oh', privilege='ne', start_serial=9899)
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has read permission for aslp
@@ -341,7 +341,7 @@ class TestGetProvider(TstFunction):
 
         from handlers.providers import get_provider
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has read permission for aslp
@@ -352,7 +352,7 @@ class TestGetProvider(TstFunction):
         }
         event['queryStringParameters'] = None
 
-        with open('tests/resources/api/provider-detail-response.json', 'r') as f:
+        with open('tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
 
         resp = get_provider(event, self.mock_context)
@@ -369,7 +369,7 @@ class TestGetProvider(TstFunction):
 
         from handlers.providers import get_provider
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has read permission for aslp
@@ -387,7 +387,7 @@ class TestGetProvider(TstFunction):
     def test_get_provider_missing_provider_id(self):
         from handlers.providers import get_provider
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has read permission for aslp

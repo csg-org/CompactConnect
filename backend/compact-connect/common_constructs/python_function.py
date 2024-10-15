@@ -1,4 +1,3 @@
-from typing import List
 
 import jsii
 from aws_cdk import Duration, Stack
@@ -115,7 +114,7 @@ class TestingHooks:
     This command hook will temporarily install dev dependencies, then execute unittest-compatible
     tests expected to be in the `tests` directory.
     """
-    def after_bundling(self, input_dir: str, output_dir: str) -> List[str]:  # pylint: disable=unused-argument
+    def after_bundling(self, input_dir: str, output_dir: str) -> list[str]:  # pylint: disable=unused-argument
         return [
             'mkdir _tmp_dev_deps',
             'python -m pip install -r requirements-dev.txt -t _tmp_dev_deps',
@@ -124,5 +123,5 @@ class TestingHooks:
             'rm -rf tests'
         ]
 
-    def before_bundling(self, input_dir: str, output_dir: str) -> List[str]:  # pylint: disable=unused-argument
+    def before_bundling(self, input_dir: str, output_dir: str) -> list[str]:  # pylint: disable=unused-argument
         return []

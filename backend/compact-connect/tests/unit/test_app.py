@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Mapping
+from collections.abc import Mapping
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -16,9 +16,9 @@ from stacks.persistent_stack import PersistentStack
 class TestApp(TestCase):
 
     def _when_testing_pipeline_stack_context(self):
-        with open('cdk.json', 'r') as f:
+        with open('cdk.json') as f:
             context = json.load(f)['context']
-        with open('cdk.context.production-example.json', 'r') as f:
+        with open('cdk.context.production-example.json') as f:
             context['ssm_context'] = json.load(f)['ssm_context']
 
         # Suppresses lambda bundling for tests
@@ -28,9 +28,9 @@ class TestApp(TestCase):
 
     def _when_testing_sandbox_stack_context(self):
 
-        with open('cdk.json', 'r') as f:
+        with open('cdk.json') as f:
             context = json.load(f)['context']
-        with open('cdk.context.sandbox-example.json', 'r') as f:
+        with open('cdk.context.sandbox-example.json') as f:
             context.update(json.load(f))
 
         # Suppresses lambda bundling for tests
@@ -55,7 +55,7 @@ class TestApp(TestCase):
         snapshot_path = os.path.join('tests', 'resources', 'snapshots', f'{snapshot_name}.json')
 
         if os.path.exists(snapshot_path):
-            with open(snapshot_path, 'r') as f:
+            with open(snapshot_path) as f:
                 snapshot = json.load(f)
         else:
             print(f"Snapshot at path '{snapshot_path}' does not exist.")
@@ -76,7 +76,7 @@ class TestApp(TestCase):
         Because compact and jurisdiction abbreviations share space in access token scopes, we need to ensure that
         there are no naming clashes between the two.
         """
-        with open('cdk.json', 'r') as f:
+        with open('cdk.json') as f:
             context = json.load(f)['context']
         jurisdictions = set(context['jurisdictions'])
         compacts = set(context['compacts'])
@@ -360,7 +360,7 @@ class TestApp(TestCase):
         )
         self.assertEqual(0,
                          len(errors),
-                         msg='\n'.join((f'{err.id}: {err.entry.data.strip()}' for err in errors)))
+                         msg='\n'.join(f'{err.id}: {err.entry.data.strip()}' for err in errors))
 
         warnings = Annotations.from_stack(stack).find_warning(
             '*',
@@ -368,4 +368,4 @@ class TestApp(TestCase):
         )
         self.assertEqual(0,
                          len(warnings),
-                         msg='\n'.join((f'{warn.id}: {warn.entry.data.strip()}' for warn in warnings)))
+                         msg='\n'.join(f'{warn.id}: {warn.entry.data.strip()}' for warn in warnings))

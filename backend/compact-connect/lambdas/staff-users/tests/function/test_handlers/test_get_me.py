@@ -10,7 +10,7 @@ class TestGetMe(TstFunction):
     def test_get_me_access_denied(self):
         from handlers.me import get_me
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has admin permission for all of aslp
@@ -29,7 +29,7 @@ class TestGetMe(TstFunction):
 
         from handlers.me import get_me
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has admin permission for all of aslp

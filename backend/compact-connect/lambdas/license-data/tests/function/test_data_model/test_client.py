@@ -13,14 +13,14 @@ class TestClient(TstFunction):
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
         from data_model.schema.privilege import PrivilegePostSchema, PrivilegeRecordSchema
 
-        with open('tests/resources/api/license-post.json', 'r') as f:
+        with open('tests/resources/api/license-post.json') as f:
             license_data = LicensePostSchema().load({
                 'compact': 'aslp',
                 'jurisdiction': 'co',
                 **json.load(f)
             })
 
-        with open('tests/resources/dynamo/license.json', 'r') as f:
+        with open('tests/resources/dynamo/license.json') as f:
             provider_id = json.load(f)['providerId']
 
         self._table.put_item(
@@ -33,7 +33,7 @@ class TestClient(TstFunction):
             })
         )
 
-        with open('tests/resources/api/privilege.json', 'r') as f:
+        with open('tests/resources/api/privilege.json') as f:
             privilege = PrivilegePostSchema().loads(f.read())
 
         self._table.put_item(
@@ -72,14 +72,14 @@ class TestClient(TstFunction):
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
         from exceptions import CCInternalException
 
-        with open('tests/resources/api/license-post.json', 'r') as f:
+        with open('tests/resources/api/license-post.json') as f:
             license_data = LicensePostSchema().load({
                 'compact': 'aslp',
                 'jurisdiction': 'co',
                 **json.load(f)
             })
 
-        with open('tests/resources/dynamo/license.json', 'r') as f:
+        with open('tests/resources/dynamo/license.json') as f:
             provider_id = json.load(f)['providerId']
 
         self._table.put_item(
@@ -115,14 +115,14 @@ class TestClient(TstFunction):
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
         from data_model.schema.privilege import PrivilegePostSchema, PrivilegeRecordSchema
 
-        with open('tests/resources/api/license-post.json', 'r') as f:
+        with open('tests/resources/api/license-post.json') as f:
             license_data = LicensePostSchema().load({
                 'compact': 'aslp',
                 'jurisdiction': 'co',
                 **json.load(f)
             })
 
-        with open('tests/resources/dynamo/license.json', 'r') as f:
+        with open('tests/resources/dynamo/license.json') as f:
             provider_id = json.load(f)['providerId']
 
         self._table.put_item(
@@ -135,7 +135,7 @@ class TestClient(TstFunction):
             })
         )
 
-        with open('tests/resources/api/privilege.json', 'r') as f:
+        with open('tests/resources/api/privilege.json') as f:
             privilege = PrivilegePostSchema().loads(f.read())
 
         self._table.put_item(
@@ -162,14 +162,14 @@ class TestClient(TstFunction):
         from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
         from exceptions import CCInternalException
 
-        with open('tests/resources/api/license-post.json', 'r') as f:
+        with open('tests/resources/api/license-post.json') as f:
             license_data = LicensePostSchema().load({
                 'compact': 'aslp',
                 'jurisdiction': 'co',
                 **json.load(f)
             })
 
-        with open('tests/resources/dynamo/license.json', 'r') as f:
+        with open('tests/resources/dynamo/license.json') as f:
             provider_id = json.load(f)['providerId']
 
         self._table.put_item(

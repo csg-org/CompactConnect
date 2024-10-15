@@ -12,7 +12,7 @@ class TestCustomizeScopes(TstLambdas):
     def test_happy_path(self):
         from main import customize_scopes
 
-        with open('tests/resources/pre-token-event.json', 'r') as f:
+        with open('tests/resources/pre-token-event.json') as f:
             event = json.load(f)
         sub = event['request']['userAttributes']['sub']
 
@@ -46,7 +46,7 @@ class TestCustomizeScopes(TstLambdas):
         """
         from main import customize_scopes
 
-        with open('tests/resources/pre-token-event.json', 'r') as f:
+        with open('tests/resources/pre-token-event.json') as f:
             event = json.load(f)
 
         del event['request']['userAttributes']
@@ -67,7 +67,7 @@ class TestCustomizeScopes(TstLambdas):
 
         from main import customize_scopes
 
-        with open('tests/resources/pre-token-event.json', 'r') as f:
+        with open('tests/resources/pre-token-event.json') as f:
             event = json.load(f)
 
         resp = customize_scopes(event, self.mock_context)

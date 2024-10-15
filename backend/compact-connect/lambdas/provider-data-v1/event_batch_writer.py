@@ -24,11 +24,11 @@ class EventBatchWriter:
         failure_count = resp.get('FailedEntryCount', 0)
         if failure_count > 0:
             self.failed_entry_count += failure_count
-            self.failed_entries.extend((
+            self.failed_entries.extend(
                 entry
                 for entry in resp.get('Entries')
                 if entry.get('ErrorCode')
-            ))
+            )
         self._batch = []
         self._count = 0
 

@@ -10,7 +10,7 @@ class TestGetUser(TstFunction):
     def test_get_user_not_found(self):
         from handlers.users import get_one_user
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has admin permission for all of aslp
@@ -31,7 +31,7 @@ class TestGetUser(TstFunction):
 
         from handlers.users import get_one_user
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has admin permission for all of aslp
@@ -46,7 +46,7 @@ class TestGetUser(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
 
-        with open('tests/resources/api/user-response.json', 'r') as f:
+        with open('tests/resources/api/user-response.json') as f:
             expected_user = json.load(f)
 
         body = json.loads(resp['body'])
@@ -62,7 +62,7 @@ class TestGetUser(TstFunction):
 
         from handlers.users import get_one_user
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has admin permission for aslp/oh
@@ -77,7 +77,7 @@ class TestGetUser(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
 
-        with open('tests/resources/api/user-response.json', 'r') as f:
+        with open('tests/resources/api/user-response.json') as f:
             expected_user = json.load(f)
 
         body = json.loads(resp['body'])
@@ -92,7 +92,7 @@ class TestGetUser(TstFunction):
 
         from handlers.users import get_one_user
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has admin permission for aslp/ne, user does not have aslp/oh permissions

@@ -10,13 +10,13 @@ class TestRegistration(TstLambdas):
         from data_model.schema.privilege import PrivilegeRecordSchema
         from data_model.schema.provider import ProviderRecordSchema
 
-        with open('tests/resources/dynamo/privilege.json', 'r') as f:
+        with open('tests/resources/dynamo/privilege.json') as f:
             privilege_data = json.load(f)
 
-        with open('tests/resources/dynamo/license.json', 'r') as f:
+        with open('tests/resources/dynamo/license.json') as f:
             license_data = json.load(f)
 
-        with open('tests/resources/dynamo/provider.json', 'r') as f:
+        with open('tests/resources/dynamo/provider.json') as f:
             provider_data = json.load(f)
 
         privilege_schema = BaseRecordSchema.get_schema_by_type(privilege_data['type'])

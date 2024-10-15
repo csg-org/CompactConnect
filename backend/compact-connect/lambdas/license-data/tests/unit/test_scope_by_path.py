@@ -15,7 +15,7 @@ class TestScopeByPath(TstLambdas):
                 'body': 'Hurray!'
             }
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         self.assertEqual({'body': 'Hurray!'}, example_entrypoint(event, self.mock_context))
@@ -29,7 +29,7 @@ class TestScopeByPath(TstLambdas):
                 'body': 'Hurray!'
             }
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         event['pathParameters'] = {}
 
@@ -45,7 +45,7 @@ class TestScopeByPath(TstLambdas):
                 'body': 'Hurray!'
             }
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         del event['requestContext']['authorizer']
 
@@ -61,7 +61,7 @@ class TestScopeByPath(TstLambdas):
                 'body': 'Hurray!'
             }
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff'
 

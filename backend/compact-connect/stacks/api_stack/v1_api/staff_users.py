@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from functools import cached_property
-from typing import List
 
 from aws_cdk.aws_apigateway import (
     AuthorizationType,
@@ -29,7 +28,7 @@ class StaffUsers:
             self, *,
             admin_resource: Resource,
             self_resource: Resource,
-            admin_scopes: List[str],
+            admin_scopes: list[str],
             persistent_stack: ps.PersistentStack
     ):
         super().__init__()
@@ -199,7 +198,7 @@ class StaffUsers:
     def _add_get_users(
             self,
             users_resource: Resource,
-            scopes: List[str],
+            scopes: list[str],
             env_vars: dict,
             persistent_stack: ps.PersistentStack
     ):
@@ -259,7 +258,7 @@ class StaffUsers:
     def _add_get_user(
             self,
             user_id_resource: Resource,
-            scopes: List[str],
+            scopes: list[str],
             env_vars: dict,
             persistent_stack: ps.PersistentStack
     ):
@@ -320,7 +319,7 @@ class StaffUsers:
     def _add_patch_user(
             self,
             user_resource: Resource,
-            scopes: List[str],
+            scopes: list[str],
             env_vars: dict,
             persistent_stack: ps.PersistentStack
     ):
@@ -383,7 +382,7 @@ class StaffUsers:
     def _add_post_user(
             self,
             users_resource: Resource,
-            scopes: List[str],
+            scopes: list[str],
             env_vars: dict,
             persistent_stack: ps.PersistentStack
     ):

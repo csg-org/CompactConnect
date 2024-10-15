@@ -9,7 +9,7 @@ from tests.function import TstFunction
 class TestProviders(TstFunction):
     def test_query_one_ssn(self):
         # Pre-load our license into the db
-        with open('tests/resources/dynamo/license.json', 'r') as f:
+        with open('tests/resources/dynamo/license.json') as f:
             license_data = json.load(f)
 
         self._table.put_item(Item=license_data)
@@ -17,7 +17,7 @@ class TestProviders(TstFunction):
         # Run the API query
         from handlers.providers import query_providers
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['pathParameters'] = {}
@@ -31,7 +31,7 @@ class TestProviders(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
 
-        with open('tests/resources/api/license-response.json', 'r') as f:
+        with open('tests/resources/api/license-response.json') as f:
             expected_license = json.load(f)
 
         body = json.loads(resp['body'])
@@ -53,7 +53,7 @@ class TestProviders(TstFunction):
 
     def test_query_one_provider(self):
         # Pre-load our license into the db
-        with open('tests/resources/dynamo/license.json', 'r') as f:
+        with open('tests/resources/dynamo/license.json') as f:
             license_data = json.load(f)
         provider_id = license_data['providerId']
 
@@ -62,7 +62,7 @@ class TestProviders(TstFunction):
         # Run the API query
         from handlers.providers import query_providers
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['pathParameters'] = {}
@@ -76,7 +76,7 @@ class TestProviders(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
 
-        with open('tests/resources/api/license-response.json', 'r') as f:
+        with open('tests/resources/api/license-response.json') as f:
             expected_license = json.load(f)
 
         body = json.loads(resp['body'])
@@ -103,7 +103,7 @@ class TestProviders(TstFunction):
         # 100 licenses homed in al with privileges in co
         self._generate_licensees('al', 'co', 9899)
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['pathParameters'] = {}
@@ -138,7 +138,7 @@ class TestProviders(TstFunction):
         # 100 licenses homed in al with privileges in co
         self._generate_licensees('al', 'co', 9899)
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['pathParameters'] = {}
@@ -173,7 +173,7 @@ class TestProviders(TstFunction):
 
         from handlers.providers import query_providers
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['pathParameters'] = {}
@@ -204,7 +204,7 @@ class TestProviders(TstFunction):
     def test_query_providers_invalid_sorting(self):
         from handlers.providers import query_providers
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['pathParameters'] = {}
@@ -225,7 +225,7 @@ class TestProviders(TstFunction):
 
     def test_get_provider(self):
         # Pre-load our license into the db
-        with open('tests/resources/dynamo/license.json', 'r') as f:
+        with open('tests/resources/dynamo/license.json') as f:
             license_data = json.load(f)
         provider_id = license_data['providerId']
 
@@ -233,7 +233,7 @@ class TestProviders(TstFunction):
 
         from handlers.providers import get_provider
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['pathParameters'] = {
@@ -241,7 +241,7 @@ class TestProviders(TstFunction):
         }
         event['queryStringParameters'] = {}
 
-        with open('tests/resources/api/license-response.json', 'r') as f:
+        with open('tests/resources/api/license-response.json') as f:
             expected_license = json.load(f)
 
         resp = get_provider(event, self.mock_context)
@@ -254,14 +254,14 @@ class TestProviders(TstFunction):
 
     def test_get_provider_missing_provider_id(self):
         # Pre-load our license into the db
-        with open('tests/resources/dynamo/license.json', 'r') as f:
+        with open('tests/resources/dynamo/license.json') as f:
             license_data = json.load(f)
 
         self._table.put_item(Item=license_data)
 
         from handlers.providers import get_provider
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['pathParameters'] = {}

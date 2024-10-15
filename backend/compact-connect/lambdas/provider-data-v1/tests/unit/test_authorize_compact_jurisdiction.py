@@ -15,7 +15,7 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
                 'body': 'Hurray!'
             }
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/oh.write'
@@ -36,7 +36,7 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
                 'body': 'Hurray!'
             }
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/oh.write'
         event['pathParameters'] = {}
@@ -54,7 +54,7 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
                 'body': 'Hurray!'
             }
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         del event['requestContext']['authorizer']
         event['pathParameters'] = {
@@ -75,7 +75,7 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
                 'body': 'Hurray!'
             }
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff'
         event['pathParameters'] = {
@@ -97,7 +97,7 @@ class TestAuthorizeCompact(TstLambdas):
                 'body': 'Hurray!'
             }
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/read'
@@ -117,7 +117,7 @@ class TestAuthorizeCompact(TstLambdas):
                 'body': 'Hurray!'
             }
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/read'
         event['pathParameters'] = {}
@@ -135,7 +135,7 @@ class TestAuthorizeCompact(TstLambdas):
                 'body': 'Hurray!'
             }
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         del event['requestContext']['authorizer']
         event['pathParameters'] = {
@@ -155,7 +155,7 @@ class TestAuthorizeCompact(TstLambdas):
                 'body': 'Hurray!'
             }
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff'
         event['pathParameters'] = {

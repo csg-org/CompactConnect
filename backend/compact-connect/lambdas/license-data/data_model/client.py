@@ -1,7 +1,6 @@
 import json
 from base64 import b64decode, b64encode
 from functools import wraps
-from typing import List
 from urllib.parse import quote
 
 from boto3.dynamodb.conditions import Key
@@ -68,7 +67,7 @@ def paginated(fn):
     return process_pagination_parameters
 
 
-class DataClient():
+class DataClient:
     """
     Client interface for license data dynamodb queries
     """
@@ -159,7 +158,7 @@ class DataClient():
         return resp
 
     @staticmethod
-    def _load_records(records: List[dict]):
+    def _load_records(records: list[dict]):
         try:
             return [
                 BaseRecordSchema.get_schema_by_type(item['type']).load(item)

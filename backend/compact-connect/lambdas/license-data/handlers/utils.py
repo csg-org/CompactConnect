@@ -1,9 +1,9 @@
 import json
+from collections.abc import Callable
 from datetime import date
 from decimal import Decimal
 from functools import wraps
 from json import JSONEncoder
-from typing import Callable
 from uuid import UUID
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
