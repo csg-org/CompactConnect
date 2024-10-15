@@ -20,6 +20,6 @@ class TstLambdas(TestCase):
         # on the env vars we set above
         import config
 
-        cls.config = config._Config()  # pylint: disable=protected-access
+        cls.config = config._Config()  # noqa: SLF001 protected-access
         config.config = cls.config
         cls.mock_context = MagicMock(name='MockLambdaContext', spec=LambdaContext)

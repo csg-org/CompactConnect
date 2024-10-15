@@ -1,3 +1,4 @@
+# ruff: noqa: ARG001, SLF001 unused-function-argument private-access
 import json
 from base64 import b64encode
 
@@ -8,7 +9,7 @@ from tests import TstLambdas
 
 
 class TestPaginated(TstLambdas):
-    def setUp(self):  # pylint: disable=invalid-name
+    def setUp(self):  # noqa: N801 invalid-name
         with open('tests/resources/dynamo/user.json') as f:
             self._item = TypeDeserializer().deserialize({'M': json.load(f)})
 

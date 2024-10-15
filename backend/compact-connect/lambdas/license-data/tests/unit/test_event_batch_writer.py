@@ -13,7 +13,7 @@ class TestEventBatchWriter(TstLambdas):
 
         put_count = []
 
-        def mock_put_items(Entries: list[dict]):  # pylint: disable=invalid-name
+        def mock_put_items(Entries: list[dict]):  # noqa: N801 invalid-name
             put_count.extend(Entries)
             return {}
 
@@ -41,7 +41,7 @@ class TestEventBatchWriter(TstLambdas):
 
         put_count = []
 
-        def mock_put_items(Entries: list[dict]):  # pylint: disable=invalid-name
+        def mock_put_items(Entries: list[dict]):  # noqa: N801 invalid-name
             put_count.extend(Entries)
             return {}
 
@@ -69,7 +69,7 @@ class TestEventBatchWriter(TstLambdas):
 
         put_count = []
 
-        def mock_put_items(Entries: list[dict]):  # pylint: disable=invalid-name
+        def mock_put_items(Entries: list[dict]):  # noqa: N801 invalid-name
             if len(Entries) < 1:
                 raise ParamValidationError(report='Invalid length for parameter Entries, value: 0, valid min length: 1')
             put_count.extend(Entries)
@@ -96,7 +96,7 @@ class TestEventBatchWriter(TstLambdas):
 
         put_count = []
 
-        def mock_put_items(Entries: list[dict]):  # pylint: disable=invalid-name
+        def mock_put_items(Entries: list[dict]):  # noqa: N801 invalid-name
             put_count.extend(Entries)
             return {}
 
@@ -138,7 +138,7 @@ class TestEventBatchWriter(TstLambdas):
 
         put_count = []
 
-        def mock_put_items(Entries: list[dict]):  # pylint: disable=invalid-name
+        def mock_put_items(Entries: list[dict]):  # noqa: N801 invalid-name
             """Fail every last entry"""
             put_count.extend(Entries)
             response = {'FailedEntryCount': 1, 'Entries': [{'EventId': uuid4().hex} for entry in Entries[:-1]]}
@@ -173,7 +173,7 @@ class TestEventBatchWriter(TstLambdas):
 
         put_count = []
 
-        def mock_put_items(Entries: list[dict]):  # pylint: disable=invalid-name
+        def mock_put_items(Entries: list[dict]):  # noqa: N801 invalid-name
             put_count.extend(Entries)
             return {}
 

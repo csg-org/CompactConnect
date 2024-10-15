@@ -82,7 +82,7 @@ def api_handler(fn: Callable):
     return caught_handler
 
 
-class scope_by_path:  # pylint: disable=invalid-name
+class scope_by_path:  # noqa: N801 invalid-name
     def __init__(self, *, resource_parameter: str, scope_parameter: str, action: str):
         """Decorator to wrap scope-based authorization, for a scope like '{resource_server}/{scope}.{action}'.
 

@@ -1,4 +1,4 @@
-# pylint: disable=invalid-name
+# noqa: N801 invalid-name
 from config import config
 from marshmallow import Schema, pre_dump
 from marshmallow.fields import Boolean, Decimal, List, Nested, String

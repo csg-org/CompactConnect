@@ -1,4 +1,4 @@
-# pylint: disable=invalid-name
+# noqa: N801 invalid-name
 from urllib.parse import quote
 
 from marshmallow import post_load, pre_dump

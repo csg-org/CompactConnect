@@ -117,7 +117,7 @@ class BulkUploadsBucket(Bucket):
                 {
                     'id': 'AwsSolutions-IAM5',
                     'applies_to': ['Resource::*'],
-                    'reason': """The lambda policy is scoped specifically to the PutBucketNotification action, which 
+                    'reason': """The lambda policy is scoped specifically to the PutBucketNotification action, which
                     suits its purpose.""",
                 },
             ],
@@ -191,7 +191,7 @@ class BulkUploadsBucket(Bucket):
                     'id': 'AwsSolutions-IAM5',
                     'applies_to': ['Resource::*'],
                     'reason': """
-                    The lambda policy is scoped specifically to the PutBucketNotification action, which 
+                    The lambda policy is scoped specifically to the PutBucketNotification action, which
                     suits its purpose.
                     """,
                 },
