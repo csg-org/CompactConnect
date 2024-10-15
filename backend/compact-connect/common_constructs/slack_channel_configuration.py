@@ -1,8 +1,8 @@
 from typing import List
 
-from aws_cdk import Stack, ArnFormat
+from aws_cdk import ArnFormat, Stack
 from aws_cdk.aws_chatbot import SlackChannelConfiguration as CdkSlackChannelConfiguration
-from aws_cdk.aws_iam import ManagedPolicy, PolicyStatement, Effect
+from aws_cdk.aws_iam import Effect, ManagedPolicy, PolicyStatement
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
 from constructs import Construct

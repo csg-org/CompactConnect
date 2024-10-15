@@ -1,6 +1,6 @@
 from boto3.dynamodb.conditions import Key
-
 from config import _Config, logger
+
 from data_model.query_paginator import paginated_query
 
 

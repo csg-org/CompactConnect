@@ -1,12 +1,11 @@
 # pylint: disable=invalid-name
 import logging
 import os
-from tests import TstLambdas
 
 import boto3
 from moto import mock_aws
 
-
+from tests import TstLambdas
 
 logger = logging.getLogger(__name__)
 logging.basicConfig()

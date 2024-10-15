@@ -1,11 +1,11 @@
 # pylint: disable=invalid-name
 from urllib.parse import quote
 
-from marshmallow import pre_dump, post_load
-from marshmallow.fields import String, Date, UUID
-from marshmallow.validate import Regexp, Length, OneOf
+from marshmallow import post_load, pre_dump
+from marshmallow.fields import UUID, Date, String
+from marshmallow.validate import Length, OneOf, Regexp
 
-from data_model.schema.base_record import BaseRecordSchema, SocialSecurityNumber, ForgivingSchema
+from data_model.schema.base_record import BaseRecordSchema, ForgivingSchema, SocialSecurityNumber
 
 
 class PrivilegePostSchema(ForgivingSchema):

@@ -4,11 +4,11 @@ from types import MethodType
 from typing import Callable, List
 
 from botocore.exceptions import ClientError
+from config import config, logger
+from exceptions import CCInternalException, CCInvalidRequestException
 from marshmallow import ValidationError
 
-from config import config, logger
 from data_model.schema.base_record import BaseRecordSchema
-from exceptions import CCInvalidRequestException, CCInternalException
 
 
 # It's conventional to name a decorator in snake_case, even if it is implemented as a class

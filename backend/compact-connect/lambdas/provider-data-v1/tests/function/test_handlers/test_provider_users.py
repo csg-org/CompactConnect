@@ -1,8 +1,9 @@
 import json
 
-from moto import mock_aws
-from tests.function import TstFunction
 from exceptions import CCInternalException
+from moto import mock_aws
+
+from tests.function import TstFunction
 
 TEST_COMPACT = "aslp"
 MOCK_SSN = "123-12-1234"

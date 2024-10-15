@@ -1,7 +1,6 @@
-from aws_cdk import Stage, Environment
-from constructs import Construct
-
+from aws_cdk import Environment, Stage
 from common_constructs.stack import StandardTags
+from constructs import Construct
 from stacks.api_stack import ApiStack
 from stacks.ingest_stack import IngestStack
 from stacks.persistent_stack import PersistentStack

@@ -2,7 +2,8 @@ import json
 from functools import cached_property
 from textwrap import dedent
 
-from aws_cdk import Stack as CdkStack, Aspects
+from aws_cdk import Aspects
+from aws_cdk import Stack as CdkStack
 from aws_cdk.aws_route53 import HostedZone, IHostedZone
 from cdk_nag import AwsSolutionsChecks, HIPAASecurityChecks, NagSuppressions
 

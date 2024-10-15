@@ -1,8 +1,8 @@
 import json
 import logging
 import os
-from datetime import datetime, UTC, timedelta
-from random import randint, choice
+from datetime import UTC, datetime, timedelta
+from random import choice, randint
 from string import ascii_letters
 from uuid import uuid4
 
@@ -10,7 +10,6 @@ import boto3
 from moto import mock_aws
 
 from tests import TstLambdas
-
 
 logger = logging.getLogger(__name__)
 logging.basicConfig()

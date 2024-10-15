@@ -1,7 +1,16 @@
-from aws_cdk import Duration, Stack, CustomResourceProvider, RemovalPolicy
-from aws_cdk.aws_iam import PolicyStatement, Effect, StarPrincipal
-from aws_cdk.aws_s3 import Bucket as CdkBucket, BlockPublicAccess, BucketEncryption, ObjectOwnership, \
-    BucketAccessControl, IntelligentTieringConfiguration, LifecycleRule, Transition, StorageClass
+from aws_cdk import CustomResourceProvider, Duration, RemovalPolicy, Stack
+from aws_cdk.aws_iam import Effect, PolicyStatement, StarPrincipal
+from aws_cdk.aws_s3 import (
+    BlockPublicAccess,
+    BucketAccessControl,
+    BucketEncryption,
+    IntelligentTieringConfiguration,
+    LifecycleRule,
+    ObjectOwnership,
+    StorageClass,
+    Transition,
+)
+from aws_cdk.aws_s3 import Bucket as CdkBucket
 from cdk_nag import NagSuppressions
 from constructs import Construct
 

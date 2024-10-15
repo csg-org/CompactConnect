@@ -3,12 +3,12 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration
-from aws_cdk.aws_apigateway import Resource, MethodResponse, MethodOptions, LambdaIntegration
+from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodResponse, Resource
 from aws_cdk.aws_events import EventBus
 from cdk_nag import NagSuppressions
-
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
+
 # Importing module level to allow lazy loading for typing
 from .. import cc_api
 from .api_model import ApiModel

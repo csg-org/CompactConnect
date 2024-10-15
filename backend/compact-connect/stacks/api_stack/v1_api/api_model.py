@@ -3,6 +3,7 @@
 # so other classes won't modify it. This is a valid use case for protected access to work with cdk.
 from aws_cdk.aws_apigateway import JsonSchema, JsonSchemaType, Model
 from common_constructs.stack import AppStack
+
 # Importing module level to allow lazy loading for typing
 from stacks.api_stack import cc_api
 

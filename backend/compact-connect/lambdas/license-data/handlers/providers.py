@@ -4,10 +4,10 @@
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-
-from exceptions import CCInvalidRequestException
-from handlers.utils import api_handler
 from config import config, logger
+from exceptions import CCInvalidRequestException
+
+from handlers.utils import api_handler
 
 
 @api_handler

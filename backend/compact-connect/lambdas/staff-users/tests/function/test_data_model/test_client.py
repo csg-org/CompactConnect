@@ -2,6 +2,7 @@ import json
 from uuid import UUID
 
 from moto import mock_aws
+
 from tests.function import TstFunction
 
 

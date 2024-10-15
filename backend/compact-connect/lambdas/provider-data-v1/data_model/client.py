@@ -1,16 +1,16 @@
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from urllib.parse import quote
 from uuid import uuid4
 
-from boto3.dynamodb.conditions import Key, Attr
+from boto3.dynamodb.conditions import Attr, Key
 from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from botocore.exceptions import ClientError
+from config import _Config, config, logger
+from exceptions import CCNotFoundException
 
-from config import _Config, logger, config
 from data_model.query_paginator import paginated_query
 from data_model.schema import PrivilegeRecordSchema
 from data_model.schema.base_record import SSNIndexRecordSchema
-from exceptions import CCNotFoundException
 
 
 class DataClient():

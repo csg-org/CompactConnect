@@ -1,8 +1,8 @@
 import json
 
 from botocore.exceptions import ClientError
-
 from exceptions import CCInvalidRequestException
+
 from tests import TstLambdas
 
 

@@ -1,19 +1,29 @@
 import os
 
 from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
-from aws_cdk.aws_cloudfront import Distribution, BehaviorOptions, CachePolicy, OriginAccessIdentity, \
-    ViewerProtocolPolicy, SecurityPolicyProtocol, SSLMethod, ErrorResponse, AllowedMethods, EdgeLambda, \
-    LambdaEdgeEventType
+from aws_cdk.aws_cloudfront import (
+    AllowedMethods,
+    BehaviorOptions,
+    CachePolicy,
+    Distribution,
+    EdgeLambda,
+    ErrorResponse,
+    LambdaEdgeEventType,
+    OriginAccessIdentity,
+    SecurityPolicyProtocol,
+    SSLMethod,
+    ViewerProtocolPolicy,
+)
 from aws_cdk.aws_cloudfront_origins import S3Origin
-from aws_cdk.aws_lambda import Function, Code, Runtime
+from aws_cdk.aws_lambda import Code, Function, Runtime
 from aws_cdk.aws_route53 import ARecord, RecordTarget
 from aws_cdk.aws_route53_targets import CloudFrontTarget
 from aws_cdk.aws_s3 import IBucket
 from cdk_nag import NagSuppressions
-from constructs import Construct
-
 from common_constructs.stack import AppStack
 from common_constructs.webacl import WebACL, WebACLScope
+from constructs import Construct
+
 from stacks.persistent_stack import PersistentStack
 
 

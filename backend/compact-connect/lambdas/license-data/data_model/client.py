@@ -6,12 +6,12 @@ from urllib.parse import quote
 
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
+from config import _Config, config, logger
+from exceptions import CCInternalException, CCInvalidRequestException, CCNotFoundException
 from marshmallow import ValidationError
 
-from config import _Config, logger, config
 from data_model.schema.base_record import BaseRecordSchema
 from data_model.schema.license import SSNIndexRecordSchema
-from exceptions import CCInvalidRequestException, CCInternalException, CCNotFoundException
 
 
 def paginated(fn):

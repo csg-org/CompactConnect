@@ -1,13 +1,13 @@
 from typing import Iterable
 
-from boto3.dynamodb.conditions import Key, Attr
+from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError
-
 from config import _Config, logger
-from data_model.query_paginator import paginated_query
-from data_model.schema.user import UserRecordSchema, UserAttributesSchema, CompactPermissionsRecordSchema
-from exceptions import CCNotFoundException, CCInvalidRequestException
+from exceptions import CCInvalidRequestException, CCNotFoundException
 from utils import get_sub_from_user_attributes
+
+from data_model.query_paginator import paginated_query
+from data_model.schema.user import CompactPermissionsRecordSchema, UserAttributesSchema, UserRecordSchema
 
 
 class UserClient():

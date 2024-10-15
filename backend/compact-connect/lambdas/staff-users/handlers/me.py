@@ -1,11 +1,11 @@
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-
 from config import logger
 from exceptions import CCInternalException
-from handlers import user_client, user_api_schema
 from utils import api_handler
+
+from handlers import user_api_schema, user_client
 
 
 @api_handler

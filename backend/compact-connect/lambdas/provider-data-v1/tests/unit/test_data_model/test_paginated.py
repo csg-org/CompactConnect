@@ -79,8 +79,8 @@ class TestPaginated(TstLambdas):
         that match filter criteria, which can be fewer. In this case, paginated_query should automatically query
         multiple times to fill out the requested page size.
         """
-        from data_model.schema.provider import ProviderRecordSchema
         from data_model.query_paginator import paginated_query
+        from data_model.schema.provider import ProviderRecordSchema
 
         calls = []
 

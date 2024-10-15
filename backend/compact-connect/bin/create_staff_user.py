@@ -8,8 +8,8 @@ USER_TABLE_NAME=Sandbox-PersistentStack-StaffUsersUsersTableB4F6C7C8-example
 
 The CLI must also be configured with AWS credentials that have appropriate access to Cognito and DynamoDB
 """
-import os
 import json
+import os
 import sys
 
 import boto3
@@ -28,7 +28,6 @@ os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 
 # We have to import this after we've mucked with our path and environment
 from data_model.schema.user import UserRecordSchema  # noqa: E402
-
 
 USER_POOL_ID = os.environ['USER_POOL_ID']
 USER_TABLE_NAME = os.environ['USER_TABLE_NAME']

@@ -1,18 +1,18 @@
 import os
 
-from aws_cdk import Stack, RemovalPolicy
+from aws_cdk import RemovalPolicy, Stack
 from aws_cdk.aws_codebuild import BuildSpec
 from aws_cdk.aws_codestarnotifications import NotificationRule
 from aws_cdk.aws_iam import ServicePrincipal
 from aws_cdk.aws_kms import IKey
-from aws_cdk.aws_s3 import IBucket, BucketEncryption
+from aws_cdk.aws_s3 import BucketEncryption, IBucket
 from aws_cdk.aws_sns import ITopic
 from aws_cdk.aws_ssm import IParameter
-from aws_cdk.pipelines import CodePipeline as CdkCodePipeline, ShellStep, CodePipelineSource, CodeBuildOptions
+from aws_cdk.pipelines import CodeBuildOptions, CodePipelineSource, ShellStep
+from aws_cdk.pipelines import CodePipeline as CdkCodePipeline
 from cdk_nag import NagSuppressions
-from constructs import Construct
-
 from common_constructs.bucket import Bucket
+from constructs import Construct
 
 
 class BackendPipeline(CdkCodePipeline):

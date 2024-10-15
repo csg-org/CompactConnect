@@ -2,10 +2,10 @@
 # We diverge from PEP8 variable naming in schema because they map to our API JSON Schema in which,
 # by convention, we use camelCase.
 from abc import ABC
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
-from marshmallow import Schema, RAISE, EXCLUDE, post_load, pre_dump
-from marshmallow.fields import String, Date, List
+from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump
+from marshmallow.fields import Date, List, String
 
 
 class StrictSchema(Schema):

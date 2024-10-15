@@ -1,8 +1,8 @@
 from typing import List
 
-from aws_cdk import Stack, RemovalPolicy, ArnFormat
+from aws_cdk import ArnFormat, RemovalPolicy, Stack
 from aws_cdk.aws_controltower import CfnLandingZone
-from aws_cdk.aws_iam import PolicyStatement, Effect, ServicePrincipal, Role, ManagedPolicy
+from aws_cdk.aws_iam import Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal
 from aws_cdk.aws_kms import Key
 from constructs import Construct
 

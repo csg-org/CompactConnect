@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from aws_cdk.aws_cognito import UserPoolEmail, StandardAttributes, StandardAttribute, ClientAttributes, StringAttribute
+from aws_cdk.aws_cognito import ClientAttributes, StandardAttribute, StandardAttributes, StringAttribute, UserPoolEmail
 from aws_cdk.aws_kms import IKey
+from common_constructs.user_pool import UserPool
 from constructs import Construct
 
-from common_constructs.user_pool import UserPool
 from stacks import persistent_stack as ps
 
 

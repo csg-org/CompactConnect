@@ -4,23 +4,35 @@ import json
 from functools import cached_property
 
 import jsii
-from aws_cdk import CfnOutput, IAspect, Aspects, Duration
-from aws_cdk.aws_apigateway import RestApi, StageOptions, MethodLoggingLevel, LogGroupLogDestination, \
-    AccessLogFormat, JsonSchema, JsonSchemaType, ResponseType, CorsOptions, Cors, DomainNameOptions, Method, \
-    CognitoUserPoolsAuthorizer
+from aws_cdk import Aspects, CfnOutput, Duration, IAspect
+from aws_cdk.aws_apigateway import (
+    AccessLogFormat,
+    CognitoUserPoolsAuthorizer,
+    Cors,
+    CorsOptions,
+    DomainNameOptions,
+    JsonSchema,
+    JsonSchemaType,
+    LogGroupLogDestination,
+    Method,
+    MethodLoggingLevel,
+    ResponseType,
+    RestApi,
+    StageOptions,
+)
 from aws_cdk.aws_certificatemanager import Certificate, CertificateValidation
-from aws_cdk.aws_cloudwatch import Alarm, Stats, ComparisonOperator, TreatMissingData
+from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
-from aws_cdk.aws_logs import LogGroup, RetentionDays, QueryDefinition, QueryString
-from aws_cdk.aws_route53 import IHostedZone, ARecord, RecordTarget
+from aws_cdk.aws_logs import LogGroup, QueryDefinition, QueryString, RetentionDays
+from aws_cdk.aws_route53 import ARecord, IHostedZone, RecordTarget
 from aws_cdk.aws_route53_targets import ApiGateway
 from cdk_nag import NagSuppressions
-from constructs import Construct
-
 from common_constructs.stack import AppStack
 from common_constructs.webacl import WebACL, WebACLScope
-from stacks.api_stack.mock_api import MockApi
+from constructs import Construct
+
 from stacks import persistent_stack as ps
+from stacks.api_stack.mock_api import MockApi
 from stacks.api_stack.v0_api import V0Api
 from stacks.api_stack.v1_api import V1Api
 

@@ -3,18 +3,24 @@ from __future__ import annotations
 from functools import cached_property
 from typing import List
 
-from aws_cdk.aws_apigateway import Resource, MethodResponse, JsonSchema, JsonSchemaType, AuthorizationType, \
-    LambdaIntegration
+from aws_cdk.aws_apigateway import (
+    AuthorizationType,
+    JsonSchema,
+    JsonSchemaType,
+    LambdaIntegration,
+    MethodResponse,
+    Resource,
+)
 from aws_cdk.aws_cognito import IUserPool
 from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
-
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
 # Importing module level to allow lazy loading for typing
 from stacks import persistent_stack as ps
+
 from .. import cc_api
 
 

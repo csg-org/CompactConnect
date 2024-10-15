@@ -3,13 +3,12 @@
 #
 # Run from 'backend/compact-connect' like:
 # bin/generate_mock_data.py --count 100 --compact octp --jurisdiction ne
+import json
 import os
 import sys
-
-import json
 from csv import DictWriter
-from datetime import timedelta, UTC, datetime
-from random import randint, choice
+from datetime import UTC, datetime, timedelta
+from random import choice, randint
 
 from faker import Faker
 
@@ -28,7 +27,6 @@ os.environ['COMPACTS'] = json.dumps(COMPACTS)
 os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 
 from data_model.schema.license import LicensePostSchema  # noqa: E402
-
 
 # We'll grab three different localizations to provide a variety of names/characters
 name_faker = Faker(['en_US', 'ja_JP', 'es_MX'])

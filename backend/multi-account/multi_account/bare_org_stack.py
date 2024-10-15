@@ -1,5 +1,5 @@
 from aws_cdk import RemovalPolicy, Stack
-from aws_cdk.aws_organizations import CfnOrganization, CfnAccount
+from aws_cdk.aws_organizations import CfnAccount, CfnOrganization
 from constructs import Construct
 
 

@@ -1,9 +1,9 @@
 # pylint: disable=invalid-name
+from config import config
 from marshmallow import pre_dump
-from marshmallow.fields import String, Date, UUID
+from marshmallow.fields import UUID, Date, String
 from marshmallow.validate import Length, OneOf
 
-from config import config
 from data_model.schema.base_record import BaseRecordSchema
 
 

@@ -1,15 +1,14 @@
 import json
 import os
+from typing import Mapping
 from unittest import TestCase
 from unittest.mock import patch
-from typing import Mapping
 
+from app import CompactConnectApp
 from aws_cdk import Stack
 from aws_cdk.assertions import Annotations, Match, Template
 from aws_cdk.aws_apigateway import CfnMethod
-from aws_cdk.aws_cognito import CfnUserPoolClient, CfnUserPool
-
-from app import CompactConnectApp
+from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolClient
 from stacks.api_stack import ApiStack
 from stacks.persistent_stack import PersistentStack
 

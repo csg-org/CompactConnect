@@ -1,6 +1,7 @@
 import json
 
 from moto import mock_aws
+
 from tests.function import TstFunction
 
 

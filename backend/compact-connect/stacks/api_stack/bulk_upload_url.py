@@ -3,13 +3,21 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration
-from aws_cdk.aws_apigateway import Resource, MethodResponse, JsonSchema, \
-    JsonSchemaType, MethodOptions, LambdaIntegration, Model, AuthorizationType
+from aws_cdk.aws_apigateway import (
+    AuthorizationType,
+    JsonSchema,
+    JsonSchemaType,
+    LambdaIntegration,
+    MethodOptions,
+    MethodResponse,
+    Model,
+    Resource,
+)
 from aws_cdk.aws_s3 import IBucket
 from cdk_nag import NagSuppressions
-
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
+
 # Importing module level to allow lazy loading for typing
 from . import cc_api
 

@@ -1,14 +1,13 @@
-import os
 import json
-import yaml
+import os
 
-from aws_cdk import Duration, Stack, CustomResource
+import yaml
+from aws_cdk import CustomResource, Duration, Stack
+from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.custom_resources import Provider
-from aws_cdk.aws_kms import IKey
-from common_constructs.python_function import PythonFunction
 from cdk_nag import NagSuppressions
-
+from common_constructs.python_function import PythonFunction
 from constructs import Construct
 
 from .compact_configuration_table import CompactConfigurationTable

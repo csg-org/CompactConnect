@@ -1,14 +1,13 @@
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from marshmallow import ValidationError
-
+from config import config, logger
 from data_model.schema.license import LicensePostSchema
 from event_batch_writer import EventBatchWriter
-from exceptions import CCInvalidRequestException, CCInternalException
-from handlers.utils import api_handler, authorize_compact_jurisdiction
-from config import config, logger
+from exceptions import CCInternalException, CCInvalidRequestException
+from marshmallow import ValidationError
 
+from handlers.utils import api_handler, authorize_compact_jurisdiction
 
 schema = LicensePostSchema()
 

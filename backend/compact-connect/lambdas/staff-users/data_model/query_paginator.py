@@ -4,12 +4,11 @@ from types import MethodType
 from typing import Callable, List
 
 from botocore.exceptions import ClientError
+from config import config, logger
+from exceptions import CCInternalException, CCInvalidRequestException
 from marshmallow import ValidationError
 
-from config import config, logger
 from data_model.schema.user import UserRecordSchema
-from exceptions import CCInvalidRequestException, CCInternalException
-
 
 _user_record_schema = UserRecordSchema()
 
