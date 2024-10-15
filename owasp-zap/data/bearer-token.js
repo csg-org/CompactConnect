@@ -35,6 +35,7 @@ function responseReceived(msg, initiator, helper) {
     const statusCode = msg.getResponseHeader().getStatusCode();
     print('Response code: ', msg.getResponseHeader().getStatusCode());
     if ( statusCode === 401 || statusCode == 403 ) {
+        print('Request header: ', msg.getRequestHeader().getHeader('Authorization').substring(0, 16));
         print('Response body: ', msg.getResponseBody().toString());
     }
 }
