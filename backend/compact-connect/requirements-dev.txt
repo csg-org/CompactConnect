@@ -98,6 +98,8 @@ requests==2.32.3
     #   pip-audit
 rich==13.9.2
     # via pip-audit
+ruff==0.6.9
+    # via -r compact-connect/requirements-dev.in
 six==1.16.0
     # via
     #   html5lib

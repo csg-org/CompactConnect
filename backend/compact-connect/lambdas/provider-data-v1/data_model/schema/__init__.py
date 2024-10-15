@@ -1,4 +1,4 @@
-# pylint: disable=import-self
+# ruff: noqa: F401
 # We import all the record types with the package to ensure they are all registered
 from .provider import ProviderRecordSchema
 from .license import LicenseRecordSchema

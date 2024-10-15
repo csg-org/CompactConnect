@@ -27,7 +27,7 @@ os.environ['COMPACTS'] = json.dumps(COMPACTS)
 os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 
 # We have to import this after we've mucked with our path and environment
-from data_model.schema.user import UserRecordSchema  # pylint: disable=wrong-import-position
+from data_model.schema.user import UserRecordSchema  # noqa: E402
 
 
 USER_POOL_ID = os.environ['USER_POOL_ID']

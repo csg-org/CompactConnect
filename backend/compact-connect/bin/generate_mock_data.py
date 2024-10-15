@@ -27,7 +27,7 @@ LICENSE_TYPES = _context['license_types']
 os.environ['COMPACTS'] = json.dumps(COMPACTS)
 os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 
-from data_model.schema.license import LicensePostSchema  # pylint: disable=wrong-import-position
+from data_model.schema.license import LicensePostSchema  # noqa: E402
 
 
 # We'll grab three different localizations to provide a variety of names/characters
