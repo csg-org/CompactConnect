@@ -1,4 +1,4 @@
-# noqa: N801 invalid-name
+# ruff: noqa: N801, N815  invalid-name
 
 from config import config
 from marshmallow import Schema, post_dump, post_load, pre_dump, pre_load
@@ -38,22 +38,22 @@ class UserRecordSchema(BaseRecordSchema):
     famGiv = String(required=True, allow_none=False)
 
     @pre_dump
-    def generate_pk(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def generate_pk(self, in_data, **kwargs):  # noqa: ARG002 unused-kwargs
         in_data['pk'] = f'USER#{in_data['userId']}'
         return in_data
 
     @pre_dump
-    def generate_sk(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def generate_sk(self, in_data, **kwargs):  # noqa: ARG002 unused-kwargs
         in_data['sk'] = f'COMPACT#{in_data['compact']}'
         return in_data
 
     @pre_dump
-    def generate_fam_giv(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def generate_fam_giv(self, in_data, **kwargs):  # noqa: ARG002 unused-kwargs
         in_data['famGiv'] = '#'.join([in_data['attributes']['familyName'], in_data['attributes']['givenName']])
         return in_data
 
     @post_load
-    def drop_fam_giv(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def drop_fam_giv(self, in_data, **kwargs):  # noqa: ARG002 unused-kwargs
         del in_data['famGiv']
         return in_data
 
@@ -95,7 +95,7 @@ class UserAPISchema(Schema):
     )
 
     @pre_load
-    def transform_to_api_permissions(self, data, **kwargs):  # pylint: disable=unused-argument
+    def transform_to_api_permissions(self, data, **kwargs):  # noqa: ARG002 unused-kwargs
         """Transform compact permissions from database format into API format"""
         compact = data.pop('compact')
         compact_permissions = data['permissions']
@@ -120,7 +120,7 @@ class UserAPISchema(Schema):
         return data
 
     @post_dump  # Note _post_ dump, so after any type conversions happen, in this case
-    def transform_to_dynamo_permissions(self, data, **kwargs):  # pylint: disable=unused-argument
+    def transform_to_dynamo_permissions(self, data, **kwargs):  # noqa: ARG002 unused-kwargs
         # { "permissions": { "aslp": { ... } } } -> { "compact": "aslp", "permissions": { ... } }
         for compact, compact_permissions in data['permissions'].items():
             data['permissions'] = compact_permissions

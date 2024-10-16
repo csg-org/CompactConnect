@@ -14,9 +14,7 @@ class TestGetProvider(TstFunction):
     def _create_test_provider(self):
         from config import config
 
-        provider_id = config.data_client.get_or_create_provider_id(compact=TEST_COMPACT, ssn=MOCK_SSN)
-
-        return provider_id
+        return config.data_client.get_or_create_provider_id(compact=TEST_COMPACT, ssn=MOCK_SSN)
 
     def _when_testing_provider_user_event_with_custom_claims(self):
         self._load_provider_data()

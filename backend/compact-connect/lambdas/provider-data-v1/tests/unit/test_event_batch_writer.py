@@ -1,3 +1,4 @@
+# ruff: noqa: N803 invalid-name
 import json
 from unittest.mock import MagicMock
 from uuid import uuid4
@@ -173,7 +174,7 @@ class TestEventBatchWriter(TstLambdas):
 
         put_count = []
 
-        def mock_put_items(Entries: list[dict]):  # noqa: N801 invalid-name
+        def mock_put_items(Entries: list[dict]):  # noqa: N803 invalid-name
             put_count.extend(Entries)
             return {}
 

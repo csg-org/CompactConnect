@@ -1,3 +1,5 @@
+# ruff: noqa: N803 invalid-name
+
 import json
 from unittest.mock import MagicMock
 from uuid import uuid4

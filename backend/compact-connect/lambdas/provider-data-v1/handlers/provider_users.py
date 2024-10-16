@@ -8,7 +8,7 @@ from . import get_provider_information
 
 
 @api_handler
-def get_provider_user_me(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+def get_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Endpoint for a provider user to fetch their personal provider data.
 
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack

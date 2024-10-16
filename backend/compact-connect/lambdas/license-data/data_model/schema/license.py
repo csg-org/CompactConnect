@@ -1,4 +1,4 @@
-# noqa: N801 invalid-name
+# ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from urllib.parse import quote
 
 from config import config
@@ -30,7 +30,7 @@ class LicenseCommonSchema(ForgivingSchema):
     status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
 
     @validates_schema
-    def validate_license_type(self, data, **kwargs):  # pylint: disable=unused-argument
+    def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
         license_types = config.license_types_for_compact(data['compact'])
         if data['licenseType'] not in license_types:
             raise ValidationError({'licenseType': f"'licenseType' must be one of {license_types}"})
@@ -68,13 +68,13 @@ class LicenseRecordSchema(BaseRecordSchema, LicensePostSchema):
     licenseHomeProviderId = UUID(required=True, allow_none=False)
 
     @post_load
-    def drop_license_gen_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def drop_license_gen_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         del in_data['famGivMid']
         del in_data['licenseHomeProviderId']
         return in_data
 
     @pre_dump
-    def populate_license_generated_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def populate_license_generated_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['licenseHomeProviderId'] = in_data['providerId']
         in_data['birthMonthDay'] = in_data['dateOfBirth'].strftime('%m-%d')
         in_data['famGivMid'] = '/'.join(

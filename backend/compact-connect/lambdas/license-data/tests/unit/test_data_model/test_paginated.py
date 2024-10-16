@@ -91,7 +91,7 @@ class TestPaginated(TstLambdas):
         from exceptions import CCInvalidRequestException
 
         @paginated
-        def get_something(*args, **kwargs):  # pylint: disable=unused-argument
+        def get_something(*args, **kwargs):  # noqa: ARG001 unused-argument
             return {'Items': []}
 
         with self.assertRaises(CCInvalidRequestException):

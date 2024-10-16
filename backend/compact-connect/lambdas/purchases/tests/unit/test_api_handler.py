@@ -1,3 +1,4 @@
+# ruff: noqa: ARG001 unused-argument
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -13,7 +14,7 @@ class TestApiHandler(TstLambdas):
         from handlers.utils import api_handler
 
         @api_handler
-        def lambda_handler(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+        def lambda_handler(event: dict, context: LambdaContext):
             return {'message': 'OK'}
 
         with open('tests/resources/api-event.json') as f:
@@ -83,7 +84,7 @@ class TestApiHandler(TstLambdas):
         from handlers.utils import api_handler
 
         @api_handler
-        def lambda_handler(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+        def lambda_handler(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
             return {'message': 'OK'}
 
         with open('tests/resources/api-event.json') as f:

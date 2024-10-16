@@ -10,7 +10,7 @@ logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false').lower() == 'tr
 
 
 @logger.inject_lambda_context()
-def customize_scopes(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+def customize_scopes(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Customize the scopes in the access token before AWS generates and issues it"""
     logger.info('Received event', event=event)
 
@@ -28,7 +28,7 @@ def customize_scopes(event: dict, context: LambdaContext):  # pylint: disable=un
         scopes_to_add = UserScopes(sub)
         logger.debug('Adding scopes', scopes=scopes_to_add)
     # We want to catch almost any exception here, so we can gracefully return execution back to AWS
-    except Exception as e:  # pylint: disable=broad-exception-caught
+    except Exception as e:  # noqa: BLE001 broad-exception-caught
         logger.error('Error while getting user scopes!', exc_info=e)
         event['response']['claimsAndScopeOverrideDetails'] = None
         return event

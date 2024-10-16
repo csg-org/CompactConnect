@@ -8,7 +8,7 @@ from handlers.utils import api_handler
 
 
 @api_handler
-def get_purchase_privilege_options(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """This endpoint returns the available privilege options for a provider to purchase.
 
     The options are defined by the various jurisdictions that have opted into the compact.

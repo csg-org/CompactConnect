@@ -9,7 +9,7 @@ from handlers import user_api_schema, user_client
 
 
 @api_handler
-def get_me(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+def get_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Return a user by the sub in their token"""
     user_id = event['requestContext']['authorizer']['claims']['sub']
 
@@ -24,7 +24,7 @@ def get_me(event: dict, context: LambdaContext):  # pylint: disable=unused-argum
 
 
 @api_handler
-def patch_me(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+def patch_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Edit a user's own attributes"""
     user_id = event['requestContext']['authorizer']['claims']['sub']
 

@@ -11,9 +11,9 @@ from tests.function import TstFunction
 class TestTransformations(TstFunction):
     # Yes, this is an excessively long method. We're going with it for sake of a single illustrative test.
     def test_transformations(self):  # pylint: disable=too-many-statements,too-many-locals
-        """Provider data undergoes several transformations from when a license is first posted, stored into the database,
-        then returned via the API. We will specifically test that chain, end to end, to make sure the transformations
-        all happen as expected.
+        """Provider data undergoes several transformations from when a license is first posted, stored into the
+        database, then returned via the API. We will specifically test that chain, end to end, to make sure the
+        transformations all happen as expected.
         """
         # Before we get started, we'll pre-set the SSN/providerId association we expect
         with open('tests/resources/dynamo/provider-ssn.json') as f:

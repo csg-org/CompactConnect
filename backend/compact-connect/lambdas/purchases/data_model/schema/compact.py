@@ -1,4 +1,4 @@
-# noqa: N801 invalid-name
+# ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
 from config import config
 from marshmallow import Schema, pre_dump
 from marshmallow.fields import Decimal, List, Nested, String
@@ -40,7 +40,7 @@ class CompactRecordSchema(BaseRecordSchema):
     sk = String(required=True, allow_none=False, validate=Length(2, 100))
 
     @pre_dump
-    def generate_pk_sk(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         # the pk and sk are the same for the root compact record
         in_data['pk'] = f'{in_data['compact']}#CONFIGURATION'
         in_data['sk'] = f'{in_data['compact']}#CONFIGURATION'

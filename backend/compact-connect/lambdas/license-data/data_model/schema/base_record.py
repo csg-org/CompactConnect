@@ -1,4 +1,4 @@
-# noqa: N801 invalid-name
+# ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 # We diverge from PEP8 variable naming in schema because they map to our API JSON Schema in which,
 # by convention, we use camelCase.
 from abc import ABC
@@ -50,7 +50,7 @@ class BaseRecordSchema(StrictSchema, ABC):
     jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
 
     @post_load
-    def drop_base_gen_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def drop_base_gen_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         """Drop the db-specific pk and sk fields before returning loaded data"""
         del in_data['pk']
         del in_data['sk']
@@ -58,7 +58,7 @@ class BaseRecordSchema(StrictSchema, ABC):
         return in_data
 
     @pre_dump
-    def populate_generated_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def populate_generated_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         """Populate db-specific fields before dumping to the database"""
         provider_id = str(in_data['providerId'])
         compact = in_data['compact']

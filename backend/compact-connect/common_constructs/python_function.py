@@ -117,7 +117,7 @@ class TestingHooks:
     tests expected to be in the `tests` directory.
     """
 
-    def after_bundling(self, input_dir: str, output_dir: str) -> list[str]:  # pylint: disable=unused-argument
+    def after_bundling(self, input_dir: str, output_dir: str) -> list[str]:  # noqa: ARG002 unused-argument
         return [
             'mkdir _tmp_dev_deps',
             'python -m pip install -r requirements-dev.txt -t _tmp_dev_deps',
@@ -126,5 +126,5 @@ class TestingHooks:
             'rm -rf tests',
         ]
 
-    def before_bundling(self, input_dir: str, output_dir: str) -> list[str]:  # pylint: disable=unused-argument
+    def before_bundling(self, input_dir: str, output_dir: str) -> list[str]:  # noqa: ARG002 unused-argument
         return []

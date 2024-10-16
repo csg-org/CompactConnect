@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from boto3.dynamodb.conditions import Key
@@ -39,7 +39,7 @@ def generate_date_string():
     # yes, there is always a chance that the tests are run precisely at midnight
     # which will cause the test to fail and will need to be rerun,
     # but that's a risk we're willing to take.
-    return date.today().strftime('%Y-%m-%d')
+    return datetime.now(tz=UTC).strftime('%Y-%m-%d')
 
 
 def generate_mock_compact_configuration():
