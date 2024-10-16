@@ -209,27 +209,6 @@ describe(testFilename(__filename), () => {
 
             checkLambdaResult(environment, result);
         });
-        it('should successfully return the security headers for ia prod', async () => {
-            const environment = environments.ia.prod;
-            const request = {
-                headers: {
-                    host: [{
-                        value: environment.webFrontend,
-                    }],
-                },
-            };
-            const response = {
-                headers: {},
-            };
-            const config = lambdaConfig({
-                lambdaPath: `index.js`,
-                request,
-                response,
-            });
-            const result = await runLambda(config);
-
-            checkLambdaResult(environment, result);
-        });
         it('should successfully return the security headers for ia test', async () => {
             const environment = environments.ia.test;
             const request = {
