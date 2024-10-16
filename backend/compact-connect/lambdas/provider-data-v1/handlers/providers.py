@@ -1,5 +1,3 @@
-# Pylint really butchers these function signatures because they are modified via decorator
-# to cut down on noise level, we're disabling those rules for the whole module
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
