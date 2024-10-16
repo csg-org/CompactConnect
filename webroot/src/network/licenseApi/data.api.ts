@@ -109,7 +109,6 @@ export class LicenseDataApi implements DataApiInterface {
      */
     public prepRequestPostParams(params: RequestParamsInterfaceLocal = {}): RequestParamsInterfaceRemote {
         const {
-            compact,
             jurisdiction,
             licenseeId,
             licenseeFirstName,
@@ -122,10 +121,6 @@ export class LicenseDataApi implements DataApiInterface {
         } = params;
         const hasSearchTerms = Boolean(licenseeId || licenseeFirstName || licenseeLastName || licenseeSsn);
         const requestParams: RequestParamsInterfaceRemote = { query: {}};
-
-        if (params.compact) {
-            requestParams.query.compact = compact;
-        }
 
         if (jurisdiction) {
             requestParams.query.jurisdiction = jurisdiction;

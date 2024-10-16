@@ -12,9 +12,11 @@ from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.license_table import LicenseTable
 from stacks.persistent_stack.event_bus import EventBus
 from stacks.persistent_stack.provider_table import ProviderTable
+from stacks.persistent_stack.compact_configuration_table import CompactConfigurationTable
 from stacks.persistent_stack.staff_users import StaffUsers
 from stacks.persistent_stack.provider_users import ProviderUsers
 from stacks.persistent_stack.user_email_notifications import UserEmailNotifications
+from stacks.persistent_stack.compact_configuration_upload import CompactConfigurationUpload
 
 # cdk leverages instance attributes to make resource exports accessible to other stacks
 # pylint: disable=too-many-instance-attributes
@@ -65,6 +67,13 @@ class PersistentStack(AppStack):
         # The new data resources
         self._add_data_resources(removal_policy=removal_policy)
 
+        self.compact_configuration_upload = CompactConfigurationUpload(
+            self, 'CompactConfigurationUpload',
+            table=self.compact_configuration_table,
+            master_key=self.shared_encryption_key,
+            environment_name=environment_name
+        )
+
         if self.hosted_zone:
             self.user_email_notifications = UserEmailNotifications(
                 self, 'UserEmailNotifications',
@@ -110,8 +119,10 @@ class PersistentStack(AppStack):
             # The SES email identity needs to be created before the user pools
             # so that the domain address will be verified before being referenced
             # by the user pool email settings
-            self.staff_users.node.add_dependency(self.user_email_notifications)
-            self.provider_users.node.add_dependency(self.user_email_notifications)
+            self.staff_users.node.add_dependency(self.user_email_notifications.email_identity)
+            self.staff_users.node.add_dependency(self.user_email_notifications.dmarc_record)
+            self.provider_users.node.add_dependency(self.user_email_notifications.email_identity)
+            self.provider_users.node.add_dependency(self.user_email_notifications.dmarc_record)
 
     def _add_mock_data_resources(self):
         self.mock_bulk_uploads_bucket = BulkUploadsBucket(
@@ -149,6 +160,12 @@ class PersistentStack(AppStack):
 
         self.provider_table = ProviderTable(
             self, 'ProviderTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy
+        )
+
+        self.compact_configuration_table = CompactConfigurationTable(
+            self, 'CompactConfigurationTable',
             encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy
         )
