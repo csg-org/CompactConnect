@@ -1,4 +1,3 @@
-# pylint: disable=attribute-defined-outside-init
 import json
 import logging
 import os

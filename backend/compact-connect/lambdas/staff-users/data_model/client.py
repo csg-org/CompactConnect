@@ -45,7 +45,7 @@ class UserClient:
         dynamo_pagination: dict,
         jurisdictions: Iterable[str] = None,
         scan_forward: bool = True,
-    ):  # pylint: disable-redefined-outer-name
+    ):
         """Get users with permissions in the provided compact, sorted by family name
         :param compact: The compact to filter by
         :param dynamo_pagination: DynamoDB query pagination fields
@@ -80,7 +80,7 @@ class UserClient:
         compact_action_removals: set = None,
         jurisdiction_action_additions: dict = None,
         jurisdiction_action_removals: dict = None,
-    ):  # pylint: disable-redefined-outer-name
+    ):
         """Update the provided user's permissions
         :param str compact: The compact the user's permissions are within
         :param str user_id: The user to update
@@ -165,7 +165,7 @@ class UserClient:
         )
         return self.schema.load(resp['Attributes'])
 
-    def update_user_attributes(self, *, user_id: str, attributes: dict):  # pylint: disable-redefined-outer-name
+    def update_user_attributes(self, *, user_id: str, attributes: dict):
         """Update the provided user's attributes
         :param str user_id: The user to update
         :param dict attributes: Dict of user attributes to update.
@@ -193,7 +193,7 @@ class UserClient:
 
         update_expression = 'SET ' + ', '.join(update_expression_parts)
 
-        records = self.get_user(user_id=user_id)['items']  # pylint: disable=missing-kwoa
+        records = self.get_user(user_id=user_id)['items']
         compacts = {record['compact'] for record in records}
 
         # We'll just serially update each of the user's records, since we realistically only

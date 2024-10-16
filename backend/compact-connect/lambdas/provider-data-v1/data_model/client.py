@@ -16,7 +16,7 @@ from data_model.schema.base_record import SSNIndexRecordSchema
 class DataClient:
     """Client interface for license data dynamodb queries"""
 
-    def __init__(self, config: _Config):  # pylint: disable=redefined-outer-name
+    def __init__(self, config: _Config):
         self.config = config
         self.ssn_index_record_schema = SSNIndexRecordSchema()
 
@@ -94,7 +94,7 @@ class DataClient:
         provider_name: tuple[str, str] = None,  # (familyName, givenName)
         jurisdiction: str = None,
         scan_forward: bool = True,
-    ):  # pylint: disable-redefined-outer-name
+    ):
         logger.info('Getting providers by family name')
 
         # Create a name value to use in key condition if name fields are provided
@@ -135,7 +135,7 @@ class DataClient:
         dynamo_pagination: dict,
         jurisdiction: str = None,
         scan_forward: bool = True,
-    ):  # pylint: disable-redefined-outer-name
+    ):
         logger.info('Getting providers by date updated')
         if jurisdiction is not None:
             filter_expression = Attr('licenseJurisdiction').eq(jurisdiction) | Attr('privilegeJurisdictions').contains(
@@ -157,7 +157,7 @@ class DataClient:
         # extract the (only) provider type record out of the array with a quick comprehension that filters by `type`.
         provider_data = [
             record
-            for record in self.get_provider(  # pylint: disable=missing-kwoa
+            for record in self.get_provider(
                 compact=compact,
                 provider_id=provider_id,
                 detail=False,

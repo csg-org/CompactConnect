@@ -1,4 +1,3 @@
-# pylint: disable=attribute-defined-outside-init
 import json
 import logging
 import os
@@ -142,10 +141,10 @@ class TstFunction(TstLambdas):
                     days=randint(1, 365),
                 )
 
-                ingest_license_message(  # pylint: disable=too-many-function-args
+                ingest_license_message(
                     {'Records': [{'messageId': '123', 'body': json.dumps(ingest_message_copy)}]},
                     self.mock_context,
                 )
             # Add a privilege
-            provider_id = data_client.get_provider_id(compact='aslp', ssn=ssn)  # pylint: disable=unexpected-keyword-arg
+            provider_id = data_client.get_provider_id(compact='aslp', ssn=ssn)
             data_client.create_privilege(compact='aslp', jurisdiction=privilege, provider_id=provider_id)

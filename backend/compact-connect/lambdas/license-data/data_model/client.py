@@ -65,7 +65,7 @@ def paginated(fn):
 class DataClient:
     """Client interface for license data dynamodb queries"""
 
-    def __init__(self, config: _Config):  # pylint: disable=redefined-outer-name
+    def __init__(self, config: _Config):
         self.config = config
         self.ssn_index_record_schema = SSNIndexRecordSchema()
 
@@ -109,7 +109,7 @@ class DataClient:
         jurisdiction: str,
         dynamo_pagination: dict,
         scan_forward: bool = True,
-    ):  # pylint: disable-redefined-outer-name
+    ):
         logger.info('Getting licenses by family name')
         resp = self.config.license_table.query(
             IndexName=config.cj_name_index_name,
@@ -129,7 +129,7 @@ class DataClient:
         jurisdiction: str,
         dynamo_pagination: dict,
         scan_forward: bool = True,
-    ):  # pylint: disable-redefined-outer-name
+    ):
         compact = quote(compact, safe='')
         jurisdiction = quote(jurisdiction, safe='')
 

@@ -54,7 +54,7 @@ def get_users(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argum
     scopes = get_event_scopes(event)
     allowed_jurisdictions = get_allowed_jurisdictions(compact=compact, scopes=scopes)
 
-    resp = user_client.get_users_sorted_by_family_name(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
+    resp = user_client.get_users_sorted_by_family_name(
         compact=compact,
         jurisdictions=allowed_jurisdictions,
         pagination=pagination,

@@ -19,7 +19,8 @@ from stacks.persistent_stack.user_email_notifications import UserEmailNotificati
 from stacks.persistent_stack.compact_configuration_upload import CompactConfigurationUpload
 
 # cdk leverages instance attributes to make resource exports accessible to other stacks
-# pylint: disable=too-many-instance-attributes
+
+
 class PersistentStack(AppStack):
     """
     The stack that holds long-lived resources such as license data and other things that should probably never

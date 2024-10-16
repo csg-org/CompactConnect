@@ -15,7 +15,7 @@ class TestSQSHandler(TstLambdas):
 
         event = {'Records': [{'messageId': str(uuid4()), 'body': json.dumps({'foo': 'bar'})}]}
 
-        resp = message_handler(event, self.mock_context)  # pylint: disable=too-many-function-args
+        resp = message_handler(event, self.mock_context)
 
         self.assertEqual({'batchItemFailures': []}, resp)
 
@@ -41,6 +41,6 @@ class TestSQSHandler(TstLambdas):
             ],
         }
 
-        resp = message_handler(event, self.mock_context)  # pylint: disable=too-many-function-args
+        resp = message_handler(event, self.mock_context)
 
         self.assertEqual({'batchItemFailures': [{'itemIdentifier': '2'}, {'itemIdentifier': '5'}]}, resp)

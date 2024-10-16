@@ -41,7 +41,7 @@ def ingest_license_message(message: dict):
     ]
 
     try:
-        provider_data = config.data_client.get_provider(  # pylint: disable=missing-kwoa,unexpected-keyword-arg
+        provider_data = config.data_client.get_provider(
             compact=compact,
             provider_id=provider_id,
             detail=True,
