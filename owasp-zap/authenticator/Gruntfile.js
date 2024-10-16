@@ -1,10 +1,3 @@
-//
-//  Gruntfile.js
-//  CompactConnect
-//
-//  Created by InspiringApps on 7/22/2024.
-//
-
 module.exports = function (grunt) {
     require('jit-grunt')(grunt);
 
