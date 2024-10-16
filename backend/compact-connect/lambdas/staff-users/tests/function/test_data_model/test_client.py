@@ -48,7 +48,7 @@ class TestClient(TstFunction):
 
         client = UserClient(self.config)
 
-        resp = client.get_users_sorted_by_family_name(compact='aslp')  # pylint: disable=missing-kwoa
+        resp = client.get_users_sorted_by_family_name(compact='aslp')
 
         # We created two users that have aslp permissions in each jurisdiction and one aslp compact-staff user
         # so those are what we should get back
@@ -76,7 +76,7 @@ class TestClient(TstFunction):
         client = UserClient(self.config)
 
         # Provide a client filter that will filter out users without permissions in the jurisdiction we're looking for
-        resp = client.get_users_sorted_by_family_name(  # pylint: disable=missing-kwoa
+        resp = client.get_users_sorted_by_family_name(
             compact='aslp',
             # All three jurisdictions, this time
             jurisdictions=['oh', 'ne', 'ky'],
@@ -107,7 +107,7 @@ class TestClient(TstFunction):
 
         client = UserClient(self.config)
 
-        resp = client.get_users_sorted_by_family_name(  # pylint: disable=missing-kwoa
+        resp = client.get_users_sorted_by_family_name(
             compact='aslp',
             # Only oh this time
             jurisdictions=['oh'],

@@ -10,7 +10,7 @@ from tests.function import TstFunction
 @mock_aws
 class TestTransformations(TstFunction):
     # Yes, this is an excessively long method. We're going with it for sake of a single illustrative test.
-    def test_transformations(self):  # pylint: disable=too-many-statements,too-many-locals
+    def test_transformations(self):
         """Provider data undergoes several transformations from when a license is first posted, stored into the
         database, then returned via the API. We will specifically test that chain, end to end, to make sure the
         transformations all happen as expected.
@@ -67,13 +67,13 @@ class TestTransformations(TstFunction):
         from handlers.ingest import ingest_license_message
 
         # This should fully ingest the license, which will result in it being written to the DB
-        ingest_license_message(event, self.mock_context)  # pylint: disable=too-many-function-args
+        ingest_license_message(event, self.mock_context)
 
         from data_model.client import DataClient
 
         # We'll use the data client to get the resulting provider id
         client = DataClient(self.config)
-        provider_id = client.get_provider_id(  # pylint: disable=missing-kwoa,unexpected-keyword-arg
+        provider_id = client.get_provider_id(
             compact='aslp',
             ssn=license_ssn,
         )

@@ -23,7 +23,7 @@ class TestClient(TstFunction):
 
         client = DataClient(self.config)
 
-        resp = client.get_provider_id(compact='aslp', ssn=provider_ssn)  # pylint: disable=unexpected-keyword-arg
+        resp = client.get_provider_id(compact='aslp', ssn=provider_ssn)
         # Verify that we're getting the expected provider ID
         self.assertEqual(expected_provider_id, resp)
 
@@ -36,7 +36,7 @@ class TestClient(TstFunction):
 
         # This SSN isn't in the DB, so it should raise an exception
         with self.assertRaises(CCNotFoundException):
-            client.get_provider_id(compact='aslp', ssn='321-21-4321')  # pylint: disable=unexpected-keyword-arg
+            client.get_provider_id(compact='aslp', ssn='321-21-4321')
 
     def test_get_provider(self):
         from data_model.client import DataClient
@@ -45,7 +45,7 @@ class TestClient(TstFunction):
 
         client = DataClient(self.config)
 
-        resp = client.get_provider(  # pylint: disable=missing-kwoa,unexpected-keyword-arg
+        resp = client.get_provider(
             compact='aslp',
             provider_id=provider_id,
         )
@@ -78,7 +78,7 @@ class TestClient(TstFunction):
 
         # This record should not be allowed out via API
         with self.assertRaises(CCInternalException):
-            client.get_provider(  # pylint: disable=missing-kwoa,unexpected-keyword-arg
+            client.get_provider(
                 compact='aslp',
                 provider_id=provider_id,
             )
@@ -92,7 +92,7 @@ class TestClient(TstFunction):
         client = DataClient(self.config)
 
         # We expect to see 20 providers: 10 have privileges in oh, 10 have licenses in oh
-        resp = client.get_providers_sorted_by_family_name(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
+        resp = client.get_providers_sorted_by_family_name(
             compact='aslp',
             jurisdiction='oh',
             pagination={'pageSize': 10},
@@ -103,7 +103,7 @@ class TestClient(TstFunction):
         self.assertIsInstance(resp['pagination']['lastKey'], str)
 
         last_key = resp['pagination']['lastKey']
-        resp = client.get_providers_sorted_by_family_name(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
+        resp = client.get_providers_sorted_by_family_name(
             compact='aslp',
             jurisdiction='oh',
             pagination={'lastKey': last_key, 'pageSize': 100},
@@ -126,7 +126,7 @@ class TestClient(TstFunction):
         self._generate_providers(home='oh', privilege='ne', start_serial=9999)
         client = DataClient(self.config)
 
-        resp = client.get_providers_sorted_by_family_name(  # pylint: disable=missing-kwoa
+        resp = client.get_providers_sorted_by_family_name(
             compact='aslp',
             jurisdiction='oh',
             scan_forward=False,
@@ -152,7 +152,7 @@ class TestClient(TstFunction):
         )
         client = DataClient(self.config)
 
-        resp = client.get_providers_sorted_by_family_name(  # pylint: disable=missing-kwoa
+        resp = client.get_providers_sorted_by_family_name(
             compact='aslp',
             jurisdiction='oh',
             provider_name=('Testerly', None),
@@ -179,7 +179,7 @@ class TestClient(TstFunction):
         )
         client = DataClient(self.config)
 
-        resp = client.get_providers_sorted_by_family_name(  # pylint: disable=missing-kwoa
+        resp = client.get_providers_sorted_by_family_name(
             compact='aslp',
             jurisdiction='oh',
             # By providing given and family name, we can expect only one provider returned
@@ -201,7 +201,7 @@ class TestClient(TstFunction):
         client = DataClient(self.config)
 
         # We expect to see 20 providers: 10 have privileges in oh, 10 have licenses in oh
-        resp = client.get_providers_sorted_by_updated(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
+        resp = client.get_providers_sorted_by_updated(
             compact='aslp',
             jurisdiction='oh',
             pagination={'pageSize': 10},
@@ -212,7 +212,7 @@ class TestClient(TstFunction):
         self.assertIsInstance(resp['pagination']['lastKey'], str)
 
         last_key = resp['pagination']['lastKey']
-        resp = client.get_providers_sorted_by_updated(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
+        resp = client.get_providers_sorted_by_updated(
             compact='aslp',
             jurisdiction='oh',
             pagination={'lastKey': last_key, 'pageSize': 10},
@@ -235,7 +235,7 @@ class TestClient(TstFunction):
         self._generate_providers(home='oh', privilege='ne', start_serial=9999)
         client = DataClient(self.config)
 
-        resp = client.get_providers_sorted_by_updated(  # pylint: disable=missing-kwoa
+        resp = client.get_providers_sorted_by_updated(
             compact='aslp',
             jurisdiction='oh',
             scan_forward=False,

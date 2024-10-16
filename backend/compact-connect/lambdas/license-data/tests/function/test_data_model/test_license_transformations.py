@@ -59,13 +59,13 @@ class TestTransformations(TstFunction):
         from handlers.ingest import ingest_license_message
 
         # This should fully ingest the license, which will result in it being written to the DB
-        ingest_license_message(event, self.mock_context)  # pylint: disable=too-many-function-args
+        ingest_license_message(event, self.mock_context)
 
         from data_model.client import DataClient
 
         # We'll use the data client to get the resulting provider id
         client = DataClient(self.config)
-        provider_id = client.get_provider_id(ssn=license_ssn)  # pylint: disable=missing-kwoa
+        provider_id = client.get_provider_id(ssn=license_ssn)
 
         # Get the license straight from the table, to inspect it
         resp = self._table.query(Select='ALL_ATTRIBUTES', KeyConditionExpression=Key('pk').eq(provider_id))

@@ -32,7 +32,7 @@ class PythonFunction(CdkPythonFunction):
         }
         defaults.update(kwargs)
 
-        super().__init__(  # pylint: disable=missing-kwoa
+        super().__init__(
             scope,
             construct_id,
             bundling=BundlingOptions(command_hooks=TestingHooks()),

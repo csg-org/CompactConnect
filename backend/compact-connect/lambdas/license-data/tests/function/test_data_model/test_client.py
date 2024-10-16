@@ -37,7 +37,7 @@ class TestClient(TstFunction):
 
         client = DataClient(self.config)
 
-        resp = client.get_provider_id(ssn='123-12-1234')  # pylint: disable=missing-kwoa
+        resp = client.get_provider_id(ssn='123-12-1234')
         # Verify that we're getting the expected provider ID
         self.assertEqual(provider_id, resp)
 
@@ -50,7 +50,7 @@ class TestClient(TstFunction):
 
         # This SSN isn't in the DB, so it should raise an exception
         with self.assertRaises(CCNotFoundException):
-            client.get_provider_id(ssn='321-21-4321')  # pylint: disable=missing-kwoa
+            client.get_provider_id(ssn='321-21-4321')
 
     def test_get_provider_id_data_inconsistency(self):
         """Check behavior in the case of a data inconsistency in the DB"""
@@ -84,7 +84,7 @@ class TestClient(TstFunction):
         # This should detect that we have multiple provider ids associated with the same SSN
         # and should raise an exception.
         with self.assertRaises(CCInternalException):
-            client.get_provider_id(ssn='123-12-1234')  # pylint: disable=missing-kwoa
+            client.get_provider_id(ssn='123-12-1234')
 
     def test_get_provider(self):
         from data_model.client import DataClient
@@ -115,7 +115,7 @@ class TestClient(TstFunction):
 
         client = DataClient(self.config)
 
-        resp = client.get_provider(provider_id=provider_id)  # pylint: disable=missing-kwoa
+        resp = client.get_provider(provider_id=provider_id)
         self.assertEqual(2, len(resp['items']))
 
     def test_get_provider_garbage_in_db(self):
@@ -147,7 +147,7 @@ class TestClient(TstFunction):
 
         # This record should not be allowed out via API
         with self.assertRaises(CCInternalException):
-            client.get_provider(provider_id=provider_id)  # pylint: disable=missing-kwoa
+            client.get_provider(provider_id=provider_id)
 
     def test_get_licenses_sorted_by_family_name(self):
         from data_model.client import DataClient
@@ -159,7 +159,7 @@ class TestClient(TstFunction):
         client = DataClient(self.config)
 
         # We expect to see 100 co licenses, 100 co privileges, none of the al licenses/privileges
-        resp = client.get_licenses_sorted_by_family_name(  # pylint: disable=missing-kwoa
+        resp = client.get_licenses_sorted_by_family_name(
             compact='aslp',
             jurisdiction='co',
         )
@@ -169,7 +169,7 @@ class TestClient(TstFunction):
         self.assertIsInstance(resp['pagination']['lastKey'], str)
 
         last_key = resp['pagination']['lastKey']
-        resp = client.get_licenses_sorted_by_family_name(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
+        resp = client.get_licenses_sorted_by_family_name(
             compact='aslp',
             jurisdiction='co',
             pagination={'lastKey': last_key, 'pageSize': 500},
@@ -195,7 +195,7 @@ class TestClient(TstFunction):
         client = DataClient(self.config)
 
         # We expect to see 100 co licenses, 100 co privileges, none of the al licenses/privileges
-        resp = client.get_licenses_sorted_by_date_updated(  # pylint: disable=missing-kwoa
+        resp = client.get_licenses_sorted_by_date_updated(
             compact='aslp',
             jurisdiction='co',
         )
@@ -204,7 +204,7 @@ class TestClient(TstFunction):
 
         # The second should be the last 100 licenses, so no lastKey for a next page
         last_key = resp['pagination']['lastKey']
-        resp = client.get_licenses_sorted_by_date_updated(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
+        resp = client.get_licenses_sorted_by_date_updated(
             compact='aslp',
             jurisdiction='co',
             pagination={'lastKey': last_key},
@@ -218,7 +218,7 @@ class TestClient(TstFunction):
         # The first page sorted descending should be the same as the second page ascending, but reversed
         # Again, moto does not mimic dynamodb pagination correctly, so we cannot test item sorting, but
         # we _can_ at least test that we get the expected 100 items.
-        resp = client.get_licenses_sorted_by_date_updated(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
+        resp = client.get_licenses_sorted_by_date_updated(
             compact='aslp',
             jurisdiction='co',
             scan_forward=False,

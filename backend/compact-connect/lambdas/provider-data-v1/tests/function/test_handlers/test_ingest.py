@@ -16,7 +16,7 @@ class TestIngest(TstFunction):
 
         event = {'Records': [{'messageId': '123', 'body': message}]}
 
-        resp = ingest_license_message(event, self.mock_context)  # pylint: disable=too-many-function-args
+        resp = ingest_license_message(event, self.mock_context)
 
         self.assertEqual({'batchItemFailures': []}, resp)
 
@@ -61,7 +61,7 @@ class TestIngest(TstFunction):
 
         event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
 
-        resp = ingest_license_message(event, self.mock_context)  # pylint: disable=too-many-function-args
+        resp = ingest_license_message(event, self.mock_context)
 
         self.assertEqual({'batchItemFailures': []}, resp)
 
@@ -115,7 +115,7 @@ class TestIngest(TstFunction):
 
         event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
 
-        resp = ingest_license_message(event, self.mock_context)  # pylint: disable=too-many-function-args
+        resp = ingest_license_message(event, self.mock_context)
 
         self.assertEqual({'batchItemFailures': []}, resp)
 
@@ -170,7 +170,7 @@ class TestIngest(TstFunction):
 
         event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
 
-        resp = ingest_license_message(event, self.mock_context)  # pylint: disable=too-many-function-args
+        resp = ingest_license_message(event, self.mock_context)
 
         self.assertEqual({'batchItemFailures': []}, resp)
 

@@ -16,7 +16,7 @@ from constructs import Construct
 
 
 class BackendPipeline(CdkCodePipeline):
-    def __init__(  # pylint: disable=too-many-arguments
+    def __init__(
         self,
         scope: Construct,
         construct_id: str,

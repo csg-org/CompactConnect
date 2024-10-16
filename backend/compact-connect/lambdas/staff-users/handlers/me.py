@@ -13,7 +13,7 @@ def get_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Return a user by the sub in their token"""
     user_id = event['requestContext']['authorizer']['claims']['sub']
 
-    resp = user_client.get_user(user_id=user_id)  # pylint: disable=missing-kwoa
+    resp = user_client.get_user(user_id=user_id)
     # This is really unlikely, but will check anyway
     last_key = resp['pagination'].get('lastKey')
     if last_key is not None:
