@@ -1,4 +1,4 @@
-# noqa: N801 invalid-name
+# ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
 # We diverge from PEP8 variable naming in schema because they map to our API JSON Schema in which,
 # by convention, we use camelCase.
 from abc import ABC
@@ -47,25 +47,25 @@ class BaseRecordSchema(StrictSchema, ABC):
     dateOfUpdate = Date(required=True, allow_none=False)
 
     @post_load
-    def drop_pk_field(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def drop_pk_field(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         """Drop the db-specific pk field before returning loaded data"""
         del in_data['pk']
         return in_data
 
     @post_load
-    def drop_sk(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def drop_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         """Drop the db-specific pk field before returning loaded data"""
         del in_data['sk']
         return in_data
 
     @pre_dump
-    def populate_type(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def populate_type(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         """Populate db-specific fields before dumping to the database"""
         in_data['type'] = self._record_type
         return in_data
 
     @pre_dump
-    def populate_date_of_update(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def populate_date_of_update(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         """Populate db-specific fields before dumping to the database"""
         # YYYY-MM-DD
         in_data['dateOfUpdate'] = datetime.now(tz=UTC).date()

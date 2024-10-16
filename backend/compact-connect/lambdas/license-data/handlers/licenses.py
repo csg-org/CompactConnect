@@ -14,7 +14,7 @@ schema = LicensePostSchema()
 
 @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact', action='write')
 @api_handler
-def post_licenses(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Synchronously validate and submit an array of licenses
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:

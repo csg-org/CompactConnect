@@ -1,4 +1,4 @@
-# noqa: N801 invalid-name
+# ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 
 from config import config
 from marshmallow import ValidationError, pre_dump, validates_schema
@@ -45,7 +45,7 @@ class LicensePostSchema(LicensePublicSchema):
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
 
     @validates_schema
-    def validate_license_type(self, data, **kwargs):  # pylint: disable=unused-argument
+    def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
         license_types = config.license_types_for_compact(data['compact'])
         if data['licenseType'] not in license_types:
             raise ValidationError({'licenseType': f"'licenseType' must be one of {license_types}"})
@@ -61,7 +61,7 @@ class LicenseRecordSchema(BaseRecordSchema, LicensePostSchema):
     providerId = UUID(required=True, allow_none=False)
 
     @pre_dump
-    def generate_pk_sk(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
         in_data['sk'] = f'{in_data['compact']}#PROVIDER#license/{in_data['jurisdiction']}'
         return in_data

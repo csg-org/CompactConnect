@@ -10,7 +10,7 @@ class TestScopeByPath(TstLambdas):
         from handlers.utils import scope_by_path
 
         @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact', action='write')
-        def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+        def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
             return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
@@ -22,7 +22,7 @@ class TestScopeByPath(TstLambdas):
         from handlers.utils import scope_by_path
 
         @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact', action='write')
-        def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+        def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
             return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
@@ -36,7 +36,7 @@ class TestScopeByPath(TstLambdas):
         from handlers.utils import scope_by_path
 
         @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact', action='write')
-        def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+        def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
             return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
@@ -50,7 +50,7 @@ class TestScopeByPath(TstLambdas):
         from handlers.utils import scope_by_path
 
         @scope_by_path(scope_parameter='jurisdiction', resource_parameter='compact', action='write')
-        def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+        def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
             return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:

@@ -72,8 +72,8 @@ def generate_csv_rows(count, *, compact: str, jurisdiction: str = None) -> dict:
         yield get_mock_license(i, compact=compact, jurisdiction=jurisdiction)
         i += 1
         if i % 1000 == 0:
-            print(f'Generated {i} records')
-    print(f'Final record count: {i}')
+            sys.stdout.write(f'Generated {i} records')
+    sys.stdout.write(f'Final record count: {i}')
 
 
 def get_mock_license(i: int, *, compact: str, jurisdiction: str = None) -> dict:

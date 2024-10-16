@@ -11,7 +11,7 @@ s3_client = boto3.client('s3')
 
 
 @logger.inject_lambda_context()
-def delete_objects(event, context):  # pylint: disable=unused-argument
+def delete_objects(event, context):  # noqa: ARG001 unused-argument
     logger.info('Received event', event=event)
     for record in event['Records']:
         bucket_name = record['s3']['bucket']['name']

@@ -33,8 +33,7 @@ class paginated_query:  # noqa: N801 invalid-name
         self.fn = fn
 
     def __get__(self, instance, owner):
-        ret = MethodType(self, instance)
-        return ret
+        return MethodType(self, instance)
 
     def __call__(self, *args, pagination: dict = None, **kwargs):
         if pagination is None:

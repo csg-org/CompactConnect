@@ -1,3 +1,4 @@
+# ruff: noqa: ARG002 unused-argument
 import json
 from unittest.mock import patch
 
@@ -38,7 +39,7 @@ class TestPostLicenses(TstLambdas):
         self.assertEqual('license-ingest-v1', entries[0]['DetailType'])
 
     @patch('handlers.licenses.config', autospec=True)
-    def test_cross_compact(self, mock_config):  # pylint: disable=unused-argument
+    def test_cross_compact(self, mock_config):
         from handlers.licenses import post_licenses
 
         with open('tests/resources/api-event.json') as f:
@@ -57,7 +58,7 @@ class TestPostLicenses(TstLambdas):
         self.assertEqual(403, resp['statusCode'])
 
     @patch('handlers.licenses.config', autospec=True)
-    def test_wrong_jurisdiction(self, mock_config):  # pylint: disable=unused-argument
+    def test_wrong_jurisdiction(self, mock_config):  # noqa: ARG001 unused-argument
         from handlers.licenses import post_licenses
 
         with open('tests/resources/api-event.json') as f:

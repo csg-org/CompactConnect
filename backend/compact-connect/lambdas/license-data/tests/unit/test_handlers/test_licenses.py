@@ -1,3 +1,5 @@
+# ruff: noqa: ARG002 unused-argument
+
 import json
 from unittest.mock import patch
 
@@ -35,7 +37,7 @@ class TestPostLicenses(TstLambdas):
         self.assertEqual('license-ingest', entries[0]['DetailType'])
 
     @patch('handlers.licenses.config', autospec=True)
-    def test_not_authorized(self, mock_config):  # pylint: disable=unused-argument
+    def test_not_authorized(self, mock_config):  # noqa: ARG001 unused-argument
         from handlers.licenses import post_licenses
 
         # The sample event has scopes for aslp/al not aslp/co

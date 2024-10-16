@@ -1,4 +1,4 @@
-# noqa: N801 invalid-name
+# ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from urllib.parse import quote
 
 from marshmallow import post_load, pre_dump
@@ -38,12 +38,12 @@ class PrivilegeRecordSchema(BaseRecordSchema, PrivilegePostSchema):
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
 
     @post_load
-    def drop_index_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def drop_index_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         del in_data['famGivMid']
         return in_data
 
     @pre_dump
-    def populate_privilege_generated_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def populate_privilege_generated_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['birthMonthDay'] = in_data['dateOfBirth'].strftime('%m-%d')
         in_data['famGivMid'] = '/'.join(
             (

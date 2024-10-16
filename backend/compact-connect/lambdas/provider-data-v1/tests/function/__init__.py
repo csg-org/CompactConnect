@@ -30,7 +30,7 @@ class TstFunction(TstLambdas):
 
         import config
 
-        config.config = config._Config()
+        config.config = config._Config()  # noqa: SLF001 protected-access
         self.config = config.config
 
         self.addCleanup(self.delete_resources)
@@ -138,7 +138,7 @@ class TstFunction(TstLambdas):
             now = datetime.now(tz=UTC)
             with patch('data_model.schema.base_record.datetime') as mock:
                 # This gives us some variation in dateOfUpdate values to sort by
-                mock.now.side_effect = lambda tz: now - timedelta(  # noqa: B023
+                mock.now.side_effect = lambda tz: now - timedelta(  # noqa: ARG005, B023  unused-lambda-argument
                     days=randint(1, 365),
                 )
 

@@ -26,7 +26,7 @@ def bulk_upload_url_handler(event: dict, context: LambdaContext):
     return _bulk_upload_url_handler(event, context)
 
 
-def _bulk_upload_url_handler(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+def _bulk_upload_url_handler(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     compact = event['pathParameters']['compact'].lower()
     jurisdiction = event['pathParameters']['jurisdiction'].lower()
 
@@ -44,7 +44,7 @@ def _bulk_upload_url_handler(event: dict, context: LambdaContext):  # pylint: di
 
 
 @logger.inject_lambda_context
-def parse_bulk_upload_file(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+def parse_bulk_upload_file(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Receive an S3 put event, and parse/validate the new s3 file before deleting it
     :param event: Standard S3 ObjectCreated event
     :param LambdaContext context:
@@ -61,7 +61,7 @@ def parse_bulk_upload_file(event: dict, context: LambdaContext):  # pylint: disa
                 process_bulk_upload_file(body, key)
             except (ClientError, CCInternalException):
                 raise
-            except Exception as e:  # pylint: disable=broad-exception-caught
+            except Exception as e:  # noqa: BLE001 broad-exception-caught
                 # Most of the rest of the exception sources here will crop up with decoding
                 # of CSV data. We'll call that an ingest failure due to bad data and still
                 # proceed with deletion

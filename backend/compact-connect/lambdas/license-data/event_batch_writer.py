@@ -39,7 +39,7 @@ class EventBatchWriter:
         if exc_val is not None:
             raise exc_val
 
-    def put_event(self, Entry: dict):  # noqa: N801 invalid-name
+    def put_event(self, Entry: dict):  # noqa: N803 invalid-name
         if self._batch is None:
             # Protecting ourselves from accidental misuse
             raise RuntimeError('This object must be used as a context manager')

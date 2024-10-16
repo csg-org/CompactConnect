@@ -10,7 +10,7 @@ class TestAuthorizeCompact(TstLambdas):
         from utils import authorize_compact
 
         @authorize_compact(action='read')
-        def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+        def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
             return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
@@ -28,7 +28,7 @@ class TestAuthorizeCompact(TstLambdas):
         from utils import authorize_compact
 
         @authorize_compact(action='read')
-        def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+        def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
             return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
@@ -44,7 +44,7 @@ class TestAuthorizeCompact(TstLambdas):
         from utils import authorize_compact
 
         @authorize_compact(action='read')
-        def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+        def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
             return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
@@ -60,7 +60,7 @@ class TestAuthorizeCompact(TstLambdas):
         from utils import authorize_compact
 
         @authorize_compact(action='read')
-        def example_entrypoint(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+        def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
             return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:

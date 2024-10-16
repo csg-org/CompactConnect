@@ -152,7 +152,7 @@ def sqs_handler(fn: Callable):
 
     @wraps(fn)
     @logger.inject_lambda_context
-    def process_messages(event, context: LambdaContext):  # pylint: disable=unused-argument
+    def process_messages(event, context: LambdaContext):  # noqa: ARG001 unused-argument
         records = event['Records']
         logger.info('Starting batch', batch_count=len(records))
         batch_failures = []
@@ -169,7 +169,7 @@ def sqs_handler(fn: Callable):
             # When we receive a batch of messages from SQS, letting an exception escape all the way back to AWS is
             # really undesirable. Instead, we're going to catch _almost_ any exception raised, note what message we
             # were processing, and report those item failures back to AWS.
-            except Exception as e:  # pylint: disable=broad-exception-caught
+            except Exception as e:  # noqa: BLE001 broad-exception-caught
                 logger.error('Failed to process message', exc_info=e)
                 batch_failures.append({'itemIdentifier': record['messageId']})
         logger.info('Completed batch', batch_failures=len(batch_failures))

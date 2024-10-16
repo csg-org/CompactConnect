@@ -35,8 +35,7 @@ class paginated_query:  # noqa: N801 invalid-name
         self.fn = fn
 
     def __get__(self, instance, owner):
-        ret = MethodType(self, instance)
-        return ret
+        return MethodType(self, instance)
 
     def __call__(self, *args, pagination: dict = None, client_filter: Callable[[dict], bool] = None, **kwargs):
         if pagination is None:
@@ -134,7 +133,6 @@ class paginated_query:  # noqa: N801 invalid-name
     @staticmethod
     def _load_records(records: list[dict]):
         """Every record coming through this paginator should be de-serializable through our *RecordSchema"""
-        print(records)
         try:
             return [_user_record_schema.load(item) for item in records]
         except (KeyError, ValidationError) as e:

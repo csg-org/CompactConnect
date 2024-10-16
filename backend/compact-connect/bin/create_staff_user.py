@@ -39,7 +39,7 @@ schema = UserRecordSchema()
 
 
 def create_compact_ed_user(*, email: str, compact: str, user_attributes: dict):
-    print(f"Creating Compact ED user, '{email}', in {compact}")
+    sys.stdout.write(f"Creating Compact ED user, '{email}', in {compact}")
     sub = create_cognito_user(email=email)
     user_table.put_item(
         Item=schema.dump(
@@ -55,7 +55,7 @@ def create_compact_ed_user(*, email: str, compact: str, user_attributes: dict):
 
 
 def create_board_ed_user(*, email: str, compact: str, jurisdiction: str, user_attributes: dict):
-    print(f"Creating Board ED user, '{email}', in {compact}/{jurisdiction}")
+    sys.stdout.write(f"Creating Board ED user, '{email}', in {compact}/{jurisdiction}")
     sub = create_cognito_user(email=email)
     user_table.put_item(
         Item=schema.dump(
@@ -127,7 +127,7 @@ if __name__ == '__main__':
             create_compact_ed_user(email=args.email, compact=args.compact, user_attributes=_user_attributes)
         case 'board-ed':
             if not args.jurisdiction:
-                print('jurisdiction is required for board-ed users.')
+                sys.stdout.write('jurisdiction is required for board-ed users.')
                 sys.exit(2)
             create_board_ed_user(
                 email=args.email,
@@ -136,5 +136,5 @@ if __name__ == '__main__':
                 user_attributes=_user_attributes,
             )
         case _:
-            print(f'Unsupported user type: {args.type}')
+            sys.stdout.write(f'Unsupported user type: {args.type}')
             sys.exit(2)

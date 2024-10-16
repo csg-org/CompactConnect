@@ -10,7 +10,7 @@ class TestSQSHandler(TstLambdas):
         from handlers.utils import sqs_handler
 
         @sqs_handler
-        def message_handler(message: dict):  # pylint: disable=unused-argument
+        def message_handler(message: dict):  # noqa: ARG001 unused-argument
             return
 
         event = {'Records': [{'messageId': str(uuid4()), 'body': json.dumps({'foo': 'bar'})}]}
@@ -28,7 +28,7 @@ class TestSQSHandler(TstLambdas):
         )
 
         @sqs_handler
-        def message_handler(message: dict):  # pylint: disable=unused-argument
+        def message_handler(message: dict):  # noqa: ARG001 unused-argument
             return mock_partial_failures()
 
         event = {

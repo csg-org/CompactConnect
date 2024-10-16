@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 import json
-from datetime import date
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from config import config, logger
 
 
-def on_event(event: dict, context: LambdaContext):  # pylint: disable=inconsistent-return-statements,unused-argument
+def on_event(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """CloudFormation event handler using the CDK provider framework.
     See: https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.custom_resources/README.html
 
@@ -62,7 +62,7 @@ def _upload_compact_root_configuration(compact_configuration: dict) -> None:
                 'pk': f'{compact_name.lower()}#CONFIGURATION',
                 'sk': f'{compact_name.lower()}#CONFIGURATION',
                 'type': 'compact',
-                'dateOfUpdate': date.today().strftime('%Y-%m-%d'),
+                'dateOfUpdate': datetime.now(tz=UTC).strftime('%Y-%m-%d'),
             },
         )
         # remove the activeEnvironments field as it's an implementation detail
@@ -88,7 +88,7 @@ def _upload_jurisdiction_configuration(compact_configuration: dict) -> None:
                     'sk': f'{compact_name.lower()}#JURISDICTION#{jurisdiction_postal_abbreviation.lower()}',
                     'type': 'jurisdiction',
                     'compact': compact_name,
-                    'dateOfUpdate': date.today().strftime('%Y-%m-%d'),
+                    'dateOfUpdate': datetime.now(tz=UTC).strftime('%Y-%m-%d'),
                 },
             )
             # remove the activeEnvironments field as it's an implementation detail

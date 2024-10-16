@@ -144,5 +144,4 @@ class TstFunction(TstLambdas):
 
     @staticmethod
     def _create_write_permissions(jurisdiction: str):
-        permissions = {'actions': {'read'}, 'jurisdictions': {jurisdiction: {'write'}}}
-        return permissions
+        return {'actions': {'read'}, 'jurisdictions': {jurisdiction: {'write'}}}
