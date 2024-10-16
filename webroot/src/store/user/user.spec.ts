@@ -6,12 +6,13 @@
 //
 
 import { authStorage, tokens } from '@/app.config';
+import chaiMatchPattern from 'chai-match-pattern';
+import chai from 'chai';
 import mutations, { MutationTypes } from './user.mutations';
 import actions from './user.actions';
 import getters from './user.getters';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
+chai.use(chaiMatchPattern);
 const sinon = require('sinon');
 
 const { expect } = chai;

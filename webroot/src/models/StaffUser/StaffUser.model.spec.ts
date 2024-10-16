@@ -10,8 +10,10 @@ import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import i18n from '@/i18n';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
+import chaiMatchPattern from 'chai-match-pattern';
+import chai from 'chai';
+
+chai.use(chaiMatchPattern);
 
 const { expect } = chai;
 

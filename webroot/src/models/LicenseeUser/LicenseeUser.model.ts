@@ -14,7 +14,7 @@ import { User, InterfaceUserCreate } from '@models/User/User.model';
 // ========================================================
 // =                       Interface                      =
 // ========================================================
-export interface InterfaceLicenseeUserCreate extends InterfaceUserCreate{
+export interface InterfaceLicenseeUserCreate extends InterfaceUserCreate {
     licensee?: Licensee | null;
 }
 

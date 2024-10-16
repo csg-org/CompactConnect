@@ -6,7 +6,7 @@
 //
 
 /* eslint-disable max-classes-per-file */
-
+import { AuthTypes } from '@/app.config';
 import deleteUndefinedProperties from '@models/_helpers';
 
 // ========================================================
@@ -17,7 +17,7 @@ export interface InterfaceUserCreate {
     email?: string | null;
     firstName?: string | null;
     lastName?: string | null;
-    userType?: string | null;
+    userType?: AuthTypes | null;
     accountStatus?: string;
     serverPage?: number;
 }
