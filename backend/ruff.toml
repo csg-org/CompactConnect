@@ -1,0 +1,112 @@
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+
+line-length = 120
+indent-width = 4
+
+# Assume Python 3.12
+target-version = "py312"
+
+[lint]
+select = [
+    "A",  # flake8-builtins
+    "ARG", # flake8-unused-arguments
+    "B",  # flake8-bugbear
+    "BLE",  # flake8-blind-except
+    "DTZ",  # flake8-datetimez
+    "E",  # pycodestyle
+    "F",  # Pyflakes
+    "FIX",  # flake8-fixme
+    "FA",  # flake8-future-annotations
+    "G",  # flake8-logging-format
+    "I",  # isort
+    "N",  # pep8-naming
+    "PIE",  # flake8-pie
+    "SLF",  # flake8-self
+    "RET",  # flake8-return
+    "RSE",  # flake8-raise
+    "S",  # flake8-bandit
+    "T",  # flake8-print
+    "UP",  # pyupgrade
+    "W",  # warning
+]
+ignore = [
+    "S311",  # suspicious-non-cryptographic-random-usage
+    "N818",  # error-suffix-on-exception-name
+    # the following are ignored by recommendation of ruff documentation
+    # due to conflicts with the ruff formatter see https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+    "W191", # indentation contains tabs
+    "E111", # indentation-with-invalid-multiple
+    "E114", # indentation-with-invalid-multiple-comment
+    "E117", # over-indented
+    "D206", # indent-with-spaces
+    "D300", # triple-single-quotes
+    "Q000", # bad-quotes-inline-string
+    "Q001", # bad-quotes-multiline-string
+    "Q002", # bad-quotes-docstring
+    "Q003", # avoidable-escaped-quote
+    "COM812", # missing-trailing-comma
+    "COM819", # prohibited-trailing-comma
+    "ISC001", # single-line-implicit-string-concatenation
+    "ISC002", # multi-line-implicit-string-concatenation
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[format]
+quote-style = "single"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
+
+# Enable auto-formatting of code examples in docstrings. Markdown,
+# reStructuredText code/literal blocks and doctests are all supported.
+#
+# This is currently disabled by default, but it is planned for this
+# to be opt-out in the future.
+docstring-code-format = false
+
+# Set the line length limit used when formatting code snippets in
+# docstrings.
+#
+# This only has an effect when the `docstring-code-format` setting is
+# enabled.
+docstring-code-line-length = "dynamic"

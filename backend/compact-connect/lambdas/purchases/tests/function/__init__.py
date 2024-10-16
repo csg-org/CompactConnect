@@ -1,4 +1,3 @@
-# pylint: disable=attribute-defined-outside-init
 import json
 import logging
 import os
@@ -10,7 +9,6 @@ from moto import mock_aws
 
 from tests import TstLambdas
 
-
 logger = logging.getLogger(__name__)
 logging.basicConfig()
 logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false') == 'true' else logging.INFO)
@@ -18,17 +16,16 @@ logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false') == 'true' else
 
 @mock_aws
 class TstFunction(TstLambdas):
-    """
-    Base class to set up Moto mocking and create mock AWS resources for functional testing
-    """
+    """Base class to set up Moto mocking and create mock AWS resources for functional testing"""
 
-    def setUp(self):  # pylint: disable=invalid-name
+    def setUp(self):  # noqa: N801 invalid-name
         super().setUp()
 
         self.build_resources()
 
         import config
-        config.config = config._Config()  # pylint: disable=protected-access
+
+        config.config = config._Config()  # noqa: SLF001 protected-access
         self.config = config.config
 
         self.addCleanup(self.delete_resources)
@@ -36,49 +33,28 @@ class TstFunction(TstLambdas):
     def build_resources(self):
         self.create_compact_configuration_table()
 
-
     def create_compact_configuration_table(self):
         self._compact_configuration_table = boto3.resource('dynamodb').create_table(
             AttributeDefinitions=[
-                {
-                    'AttributeName': 'pk',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'sk',
-                    'AttributeType': 'S'
-                }
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
             ],
             TableName=os.environ['COMPACT_CONFIGURATION_TABLE_NAME'],
-            KeySchema=[
-                {
-                    'AttributeName': 'pk',
-                    'KeyType': 'HASH'
-                },
-                {
-                    'AttributeName': 'sk',
-                    'KeyType': 'RANGE'
-                }
-            ],
-            BillingMode='PAY_PER_REQUEST'
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
         )
 
     def delete_resources(self):
         self._compact_configuration_table.delete()
 
     def _load_compact_configuration_data(self):
-        """
-        Use the canned test resources to load compact and jurisdiction information into the DB
-        """
-
+        """Use the canned test resources to load compact and jurisdiction information into the DB"""
         test_resources = glob('tests/resources/dynamo/*.json')
 
         for resource in test_resources:
-            with open(resource, 'r') as f:
+            with open(resource) as f:
                 record = json.load(f, parse_float=Decimal)
 
-            logger.debug("Loading resource, %s: %s", resource, str(record))
+            logger.debug('Loading resource, %s: %s', resource, str(record))
             # compact and jurisdiction records go in the compact configuration table
-            self._compact_configuration_table.put_item(
-                Item=record
-            )
+            self._compact_configuration_table.put_item(Item=record)

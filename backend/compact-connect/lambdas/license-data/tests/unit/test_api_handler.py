@@ -1,8 +1,9 @@
+# ruff: noqa: ARG001 unused-argument
 import json
 
 from botocore.exceptions import ClientError
-
 from exceptions import CCInvalidRequestException
+
 from tests import TstLambdas
 
 
@@ -11,10 +12,10 @@ class TestApiHandler(TstLambdas):
         from handlers.utils import api_handler
 
         @api_handler
-        def lambda_handler(event, context):  # pylint: disable=unused-argument
+        def lambda_handler(event, context):
             return {'message': 'OK'}
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         resp = lambda_handler(event, self.mock_context)
@@ -29,31 +30,21 @@ class TestApiHandler(TstLambdas):
         def lambda_handler(event, context):
             raise CCInvalidRequestException("You can't do that")
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         resp = lambda_handler(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
-        self.assertEqual(
-            {'message': "You can't do that"},
-            json.loads(resp['body'])
-        )
+        self.assertEqual({'message': "You can't do that"}, json.loads(resp['body']))
 
     def test_client_error(self):
         from handlers.utils import api_handler
 
         @api_handler
         def lambda_handler(event, context):
-            raise ClientError(
-                error_response={
-                    'Error': {
-                        'Code': "CantDoThatException"
-                    }
-                },
-                operation_name='DoAWSThing'
-            )
+            raise ClientError(error_response={'Error': {'Code': 'CantDoThatException'}}, operation_name='DoAWSThing')
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         with self.assertRaises(ClientError):
@@ -66,7 +57,7 @@ class TestApiHandler(TstLambdas):
         def lambda_handler(event, context):
             raise RuntimeError('Egads!')
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         with self.assertRaises(RuntimeError):
@@ -76,10 +67,10 @@ class TestApiHandler(TstLambdas):
         from handlers.utils import api_handler
 
         @api_handler
-        def lambda_handler(event, context):  # pylint: disable=unused-argument
+        def lambda_handler(event, context):  # noqa: ARG001 unused-argument
             return {'message': 'OK'}
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
         event['headers'] = None
 

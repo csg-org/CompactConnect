@@ -1,19 +1,18 @@
-from typing import Iterable
+from collections.abc import Iterable
 
-from boto3.dynamodb.conditions import Key, Attr
+from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError
-
 from config import _Config, logger
-from data_model.query_paginator import paginated_query
-from data_model.schema.user import UserRecordSchema, UserAttributesSchema, CompactPermissionsRecordSchema
-from exceptions import CCNotFoundException, CCInvalidRequestException
+from exceptions import CCInvalidRequestException, CCNotFoundException
 from utils import get_sub_from_user_attributes
 
+from data_model.query_paginator import paginated_query
+from data_model.schema.user import CompactPermissionsRecordSchema, UserAttributesSchema, UserRecordSchema
 
-class UserClient():
-    """
-    Client interface for license data dynamodb queries
-    """
+
+class UserClient:
+    """Client interface for license data dynamodb queries"""
+
     def __init__(self, config: _Config):
         self.config = config
         self.schema = UserRecordSchema()
@@ -25,19 +24,14 @@ class UserClient():
         resp = self.config.users_table.query(
             KeyConditionExpression=Key('pk').eq(f'USER#{user_id}'),
             ScanIndexForward=scan_forward,
-            **dynamo_pagination
+            **dynamo_pagination,
         )
         if not resp.get('Items', []):
             raise CCNotFoundException('User not found')
         return resp
 
     def get_user_in_compact(self, *, compact: str, user_id: str):
-        user = self.config.users_table.get_item(
-            Key={
-                'pk':  f'USER#{user_id}',
-                'sk': f'COMPACT#{compact}'
-            }
-        ).get('Item')
+        user = self.config.users_table.get_item(Key={'pk': f'USER#{user_id}', 'sk': f'COMPACT#{compact}'}).get('Item')
 
         if user is None:
             raise CCNotFoundException('User not found')
@@ -45,14 +39,14 @@ class UserClient():
 
     @paginated_query
     def get_users_sorted_by_family_name(
-            self, *,
-            compact: str,
-            dynamo_pagination: dict,
-            jurisdictions: Iterable[str] = None,
-            scan_forward: bool = True
-    ):  # pylint: disable-redefined-outer-name
-        """
-        Get users with permissions in the provided compact, sorted by family name
+        self,
+        *,
+        compact: str,
+        dynamo_pagination: dict,
+        jurisdictions: Iterable[str] = None,
+        scan_forward: bool = True,
+    ):
+        """Get users with permissions in the provided compact, sorted by family name
         :param compact: The compact to filter by
         :param dynamo_pagination: DynamoDB query pagination fields
         :param jurisdictions: List of jurisdiction codes to filter by
@@ -74,20 +68,20 @@ class UserClient():
             KeyConditionExpression=Key('sk').eq(f'COMPACT#{compact}'),
             ScanIndexForward=scan_forward,
             **({'FilterExpression': filter_expression} if filter_expression is not None else {}),
-            **dynamo_pagination
+            **dynamo_pagination,
         )
 
     def update_user_permissions(
-            self, *,
-            compact: str,
-            user_id: str,
-            compact_action_additions: set = None,
-            compact_action_removals: set = None,
-            jurisdiction_action_additions: dict = None,
-            jurisdiction_action_removals: dict = None
-    ):  # pylint: disable-redefined-outer-name
-        """
-        Update the provided user's permissions
+        self,
+        *,
+        compact: str,
+        user_id: str,
+        compact_action_additions: set = None,
+        compact_action_removals: set = None,
+        jurisdiction_action_additions: dict = None,
+        jurisdiction_action_removals: dict = None,
+    ):
+        """Update the provided user's permissions
         :param str compact: The compact the user's permissions are within
         :param str user_id: The user to update
         :param set compact_action_additions: Set of compact actions to add to the user ('read' or 'admin')
@@ -114,10 +108,7 @@ class UserClient():
         """
         logger.info('Updating staff user permissions', user_id=user_id)
 
-        update_expression_parts = {
-            'add': [],
-            'delete': []
-        }
+        update_expression_parts = {'add': [], 'delete': []}
         expression_attribute_names = {}
         expression_attribute_values = {}
 
@@ -141,14 +132,14 @@ class UserClient():
 
                 # If this is not their first action, we simply add to the set
                 update_expression_parts['add'].append(
-                    f'#permissions.#jurisdictions.#{jurisdiction}  :{jurisdiction}AddActions'
+                    f'#permissions.#jurisdictions.#{jurisdiction}  :{jurisdiction}AddActions',
                 )
                 expression_attribute_values[f':{jurisdiction}AddActions'] = actions
 
         if jurisdiction_action_removals:
             for jurisdiction, actions in jurisdiction_action_removals.items():
                 update_expression_parts['delete'].append(
-                    f'#permissions.#jurisdictions.#{jurisdiction} :{jurisdiction}DeleteActions'
+                    f'#permissions.#jurisdictions.#{jurisdiction} :{jurisdiction}DeleteActions',
                 )
                 expression_attribute_names['#permissions'] = 'permissions'
                 expression_attribute_names['#jurisdictions'] = 'jurisdictions'
@@ -166,24 +157,16 @@ class UserClient():
             update_expression += ' DELETE ' + ', '.join(update_expression_parts['delete'])
 
         resp = self.config.users_table.update_item(
-            Key={
-                'pk': f'USER#{user_id}',
-                'sk': f'COMPACT#{compact}'
-            },
+            Key={'pk': f'USER#{user_id}', 'sk': f'COMPACT#{compact}'},
             UpdateExpression=update_expression,
             ExpressionAttributeNames=expression_attribute_names,
             ExpressionAttributeValues=expression_attribute_values,
-            ReturnValues='ALL_NEW'
+            ReturnValues='ALL_NEW',
         )
         return self.schema.load(resp['Attributes'])
 
-    def update_user_attributes(
-            self, *,
-            user_id: str,
-            attributes: dict
-    ):  # pylint: disable-redefined-outer-name
-        """
-        Update the provided user's attributes
+    def update_user_attributes(self, *, user_id: str, attributes: dict):
+        """Update the provided user's attributes
         :param str user_id: The user to update
         :param dict attributes: Dict of user attributes to update.
         Keys are the attribute names, values are the attribute values
@@ -210,29 +193,25 @@ class UserClient():
 
         update_expression = 'SET ' + ', '.join(update_expression_parts)
 
-        records = self.get_user(user_id=user_id)['items']  # pylint: disable=missing-kwoa
-        compacts =  {record['compact'] for record in records}
+        records = self.get_user(user_id=user_id)['items']
+        compacts = {record['compact'] for record in records}
 
         # We'll just serially update each of the user's records, since we realistically only
         # expect users to have two or three. If latency gets excessive, we can refactor.
         records = []
         for compact in compacts:
             resp = self.config.users_table.update_item(
-                Key={
-                    'pk': f'USER#{user_id}',
-                    'sk': f'COMPACT#{compact}'
-                },
+                Key={'pk': f'USER#{user_id}', 'sk': f'COMPACT#{compact}'},
                 UpdateExpression=update_expression,
                 ExpressionAttributeNames=expression_attribute_names,
                 ExpressionAttributeValues=expression_attribute_values,
-                ReturnValues='ALL_NEW'
+                ReturnValues='ALL_NEW',
             )
             records.append(resp['Attributes'])
         return self.schema.load(records, many=True)
 
     def create_user(self, compact: str, attributes: dict, permissions: dict):
-        """
-        Create a new Cognito user and DB record with the given attributes and permissions
+        """Create a new Cognito user and DB record with the given attributes and permissions
         :param str compact: The compact the user will have permissions in
         :param dict attributes: The user attributes
         :param dict permissions: The permissions for the user
@@ -247,12 +226,7 @@ class UserClient():
                 UserPoolId=self.config.user_pool_id,
                 Username=attributes['email'],
                 # Email will be the only attribute we actually manage in Cognito
-                UserAttributes=[
-                    {
-                        'Name': 'email',
-                        'Value': attributes['email']
-                    }
-                ]
+                UserAttributes=[{'Name': 'email', 'Value': attributes['email']}],
             )
             user_id = get_sub_from_user_attributes(resp['User']['Attributes'])
         except ClientError as e:
@@ -260,23 +234,20 @@ class UserClient():
                 # If the user already exists, look them up
                 resp = self.config.cognito_client.admin_get_user(
                     UserPoolId=self.config.user_pool_id,
-                    Username=attributes['email']
+                    Username=attributes['email'],
                 )
                 user_id = get_sub_from_user_attributes(resp['UserAttributes'])
             else:
                 raise
 
         try:
-            user = self.schema.dump({
-                'userId': user_id,
-                'compact': compact,
-                'attributes': attributes,
-                'permissions': permissions
-            })
+            user = self.schema.dump(
+                {'userId': user_id, 'compact': compact, 'attributes': attributes, 'permissions': permissions},
+            )
             # If the user doesn't already exist, add them
             self.config.users_table.put_item(
                 Item=user,
-                ConditionExpression=Attr('pk').not_exists() & Attr('sk').not_exists()
+                ConditionExpression=Attr('pk').not_exists() & Attr('sk').not_exists(),
             )
             user = self.schema.load(user)
         except ClientError as e:
@@ -288,7 +259,7 @@ class UserClient():
                     compact=compact,
                     user_id=user_id,
                     compact_action_additions=compact_permissions,
-                    jurisdiction_action_additions=jurisdiction_permissions
+                    jurisdiction_action_additions=jurisdiction_permissions,
                 )
             else:
                 raise

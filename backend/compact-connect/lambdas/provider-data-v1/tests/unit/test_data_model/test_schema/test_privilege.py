@@ -7,12 +7,10 @@ from tests import TstLambdas
 
 class TestPrivilegeRecordSchema(TstLambdas):
     def test_serde(self):
-        """
-        Test round-trip deserialization/serialization
-        """
+        """Test round-trip deserialization/serialization"""
         from data_model.schema.privilege import PrivilegeRecordSchema
 
-        with open('tests/resources/dynamo/privilege.json', 'r') as f:
+        with open('tests/resources/dynamo/privilege.json') as f:
             expected_privilege = json.load(f)
 
         schema = PrivilegeRecordSchema()
@@ -27,7 +25,7 @@ class TestPrivilegeRecordSchema(TstLambdas):
     def test_invalid(self):
         from data_model.schema.privilege import PrivilegeRecordSchema
 
-        with open('tests/resources/dynamo/privilege.json', 'r') as f:
+        with open('tests/resources/dynamo/privilege.json') as f:
             privilege_data = json.load(f)
         privilege_data.pop('providerId')
 

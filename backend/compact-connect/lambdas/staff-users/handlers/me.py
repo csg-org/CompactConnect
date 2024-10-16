@@ -1,21 +1,19 @@
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-
 from config import logger
 from exceptions import CCInternalException
-from handlers import user_client, user_api_schema
 from utils import api_handler
+
+from handlers import user_api_schema, user_client
 
 
 @api_handler
-def get_me(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    """
-    Return a user by the sub in their token
-    """
+def get_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """Return a user by the sub in their token"""
     user_id = event['requestContext']['authorizer']['claims']['sub']
 
-    resp = user_client.get_user(user_id=user_id)  # pylint: disable=missing-kwoa
+    resp = user_client.get_user(user_id=user_id)
     # This is really unlikely, but will check anyway
     last_key = resp['pagination'].get('lastKey')
     if last_key is not None:
@@ -26,18 +24,14 @@ def get_me(event: dict, context: LambdaContext):  # pylint: disable=unused-argum
 
 
 @api_handler
-def patch_me(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    """
-    Edit a user's own attributes
-    """
+def patch_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """Edit a user's own attributes"""
     user_id = event['requestContext']['authorizer']['claims']['sub']
 
     body = json.loads(event['body'])
-    user_records = user_client.update_user_attributes(
-        user_id=user_id,
-        attributes=body['attributes']
-    )
+    user_records = user_client.update_user_attributes(user_id=user_id, attributes=body['attributes'])
     return _merge_user_records(user_id, user_records)
+
 
 def _merge_user_records(user_id: str, records: list) -> dict:
     users_iter = iter(records)

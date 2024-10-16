@@ -10,19 +10,17 @@ class TestPostUser(TstFunction):
     def test_post_user(self):
         from handlers.users import post_user
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        with open('tests/resources/api/user-post.json', 'r') as f:
+        with open('tests/resources/api/user-post.json') as f:
             event['body'] = f.read()
             f.seek(0)
             api_user = json.load(f)
 
         # The user has admin permission for aslp/oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/oh.admin'
-        event['pathParameters'] = {
-            'compact': 'aslp'
-        }
+        event['pathParameters'] = {'compact': 'aslp'}
 
         resp = post_user(event, self.mock_context)
 
@@ -39,18 +37,16 @@ class TestPostUser(TstFunction):
     def test_post_user_unauthorized(self):
         from handlers.users import post_user
 
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        with open('tests/resources/api/user-post.json', 'r') as f:
+        with open('tests/resources/api/user-post.json') as f:
             event['body'] = f.read()
 
         # The user has admin permission for nebraska, not oh, which is where the user they are trying to create
         # has permission.
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/ne.admin'
-        event['pathParameters'] = {
-            'compact': 'aslp'
-        }
+        event['pathParameters'] = {'compact': 'aslp'}
 
         resp = post_user(event, self.mock_context)
 

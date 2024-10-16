@@ -1,10 +1,8 @@
-from typing import List
-
-from aws_cdk import Stack, ArnFormat
-from aws_cdk.aws_iam import ServicePrincipal, PolicyStatement, Effect
+from aws_cdk import ArnFormat, Stack
+from aws_cdk.aws_iam import Effect, PolicyStatement, ServicePrincipal
 from aws_cdk.aws_kms import IKey
-from aws_cdk.aws_sns_subscriptions import EmailSubscription
 from aws_cdk.aws_sns import Topic
+from aws_cdk.aws_sns_subscriptions import EmailSubscription
 from constructs import Construct
 
 from common_constructs.slack_channel_configuration import SlackChannelConfiguration
@@ -12,18 +10,16 @@ from common_constructs.slack_channel_configuration import SlackChannelConfigurat
 
 class AlarmTopic(Topic):
     def __init__(
-            self, scope: Construct, construct_id: str, *,
-            master_key: IKey,
-            email_subscriptions: List[str] = tuple(),
-            slack_subscriptions: List[dict] = tuple(),
-            **kwargs
+        self,
+        scope: Construct,
+        construct_id: str,
+        *,
+        master_key: IKey,
+        email_subscriptions: list[str] = tuple(),
+        slack_subscriptions: list[dict] = tuple(),
+        **kwargs,
     ):
-        super().__init__(
-            scope, construct_id,
-            master_key=master_key,
-            enforce_ssl=True,
-            **kwargs
-        )
+        super().__init__(scope, construct_id, master_key=master_key, enforce_ssl=True, **kwargs)
 
         self._configure_cloudwatch_principal(master_key)
         self._configure_s3_principal(master_key)
@@ -34,10 +30,11 @@ class AlarmTopic(Topic):
         self.slack_channel_integrations = {}
         for config in slack_subscriptions:
             self.slack_channel_integrations[config['channel_name']] = SlackChannelConfiguration(
-                self, f'{config['channel_name']}-SlackChannelConfiguration',
+                self,
+                f'{config['channel_name']}-SlackChannelConfiguration',
                 notification_topics=[self],
                 workspace_id=config['workspace_id'],
-                channel_id=config['channel_id']
+                channel_id=config['channel_id'],
             )
 
     def _configure_cloudwatch_principal(self, master_key: IKey):
@@ -63,14 +60,12 @@ class AlarmTopic(Topic):
                             account=stack.account,
                             resource='alarm',
                             resource_name='*',
-                            arn_format=ArnFormat.COLON_RESOURCE_NAME
-                        )
+                            arn_format=ArnFormat.COLON_RESOURCE_NAME,
+                        ),
                     },
-                    'StringEquals': {
-                        'aws:SourceAccount': stack.account
-                    }
-                }
-            )
+                    'StringEquals': {'aws:SourceAccount': stack.account},
+                },
+            ),
         )
 
     def _configure_s3_principal(self, master_key: IKey):
@@ -94,12 +89,10 @@ class AlarmTopic(Topic):
                             service='s3',
                             region='*',
                             account='*',
-                            resource='*'
-                        )
+                            resource='*',
+                        ),
                     },
-                    'StringEquals': {
-                        'aws:SourceAccount': stack.account
-                    }
-                }
-            )
+                    'StringEquals': {'aws:SourceAccount': stack.account},
+                },
+            ),
         )

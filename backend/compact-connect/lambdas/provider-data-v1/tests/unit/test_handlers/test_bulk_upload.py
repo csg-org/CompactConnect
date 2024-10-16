@@ -14,13 +14,11 @@ class TestProcessS3Event(TstLambdas):
     def test_process_s3_event(self, mock_config, mock_process):
         from handlers.bulk_upload import parse_bulk_upload_file
 
-        mock_config.s3_client.get_object.response = {
-            'Body': StreamingBody(b'foo', '3')
-        }
+        mock_config.s3_client.get_object.response = {'Body': StreamingBody(b'foo', '3')}
 
         mock_process.return_value = None
 
-        with open('tests/resources/put-event.json', 'r') as f:
+        with open('tests/resources/put-event.json') as f:
             event = json.load(f)
 
         bucket = event['Records'][0]['s3']['bucket']['name']
@@ -29,10 +27,7 @@ class TestProcessS3Event(TstLambdas):
         parse_bulk_upload_file(event, self.mock_context)
 
         # Happy-path execution should always end with the object being deleted
-        mock_config.s3_client.delete_object.assert_called_with(
-            Bucket=bucket,
-            Key=key
-        )
+        mock_config.s3_client.delete_object.assert_called_with(Bucket=bucket, Key=key)
 
         # Verify that we didn't go into exception handling and put a failure event
         mock_config.events_client.put_events.assert_not_called()
@@ -42,21 +37,15 @@ class TestProcessS3Event(TstLambdas):
     def test_internal_exception(self, mock_config, mock_process):
         from handlers.bulk_upload import parse_bulk_upload_file
 
-        mock_config.s3_client.get_object.response = {
-            'Body': StreamingBody(b'foo', '3')
-        }
+        mock_config.s3_client.get_object.response = {'Body': StreamingBody(b'foo', '3')}
 
         # What if we've misconfigured something, so we can't access an AWS resource?
         mock_process.side_effect = ClientError(
-            error_response={
-                'Error': {
-                    'Code': "AccessDeniedError"
-                }
-            },
-            operation_name='DoAWSThing'
+            error_response={'Error': {'Code': 'AccessDeniedError'}},
+            operation_name='DoAWSThing',
         )
 
-        with open('tests/resources/put-event.json', 'r') as f:
+        with open('tests/resources/put-event.json') as f:
             event = json.load(f)
 
         with self.assertRaises(ClientError):
@@ -74,13 +63,8 @@ class TestProcessS3Event(TstLambdas):
     def test_bad_data(self, mock_config, mock_process):
         from handlers.bulk_upload import parse_bulk_upload_file
 
-        mock_config.s3_client.get_object.response = {
-            'Body': StreamingBody(b'foo', '3')
-        }
-        mock_config.events_client.put_events.return_value = {
-            'FailedEntryCount': 0,
-            'Entries': [{'EventId': '123'}]
-        }
+        mock_config.s3_client.get_object.response = {'Body': StreamingBody(b'foo', '3')}
+        mock_config.events_client.put_events.return_value = {'FailedEntryCount': 0, 'Entries': [{'EventId': '123'}]}
 
         # Force a UnicodeDecodeError to reuse
         error = None
@@ -93,7 +77,7 @@ class TestProcessS3Event(TstLambdas):
         # What if the uploaded file is not properly utf-8 encoded?
         mock_process.side_effect = error
 
-        with open('tests/resources/put-event.json', 'r') as f:
+        with open('tests/resources/put-event.json') as f:
             event = json.load(f)
 
         bucket = event['Records'][0]['s3']['bucket']['name']
@@ -102,10 +86,7 @@ class TestProcessS3Event(TstLambdas):
         parse_bulk_upload_file(event, self.mock_context)
 
         # We should delete the object, as it contains invalid data
-        mock_config.s3_client.delete_object.assert_called_with(
-            Bucket=bucket,
-            Key=key
-        )
+        mock_config.s3_client.delete_object.assert_called_with(Bucket=bucket, Key=key)
 
         # Because this was a failure due to invalid data, we will fire a failure event
         mock_config.events_client.put_events.assert_called_once()
@@ -116,10 +97,7 @@ class TestProcessBulkUploadFile(TstLambdas):
     def test_good_data(self, mock_config):
         from handlers.bulk_upload import process_bulk_upload_file
 
-        mock_config.events_client.put_events.return_value = {
-            'FailedEntryCount': 0,
-            'Entries': [{'EventId': '123'}]
-        }
+        mock_config.events_client.put_events.return_value = {'FailedEntryCount': 0, 'Entries': [{'EventId': '123'}]}
 
         with open('tests/resources/licenses.csv', 'rb') as f:
             line_count = len(f.readlines())
@@ -140,30 +118,22 @@ class TestProcessBulkUploadFile(TstLambdas):
         # There should only be successful ingest events
         self.assertEqual({'license-ingest-v1'}, detail_types)
         entries = [
-            entry
-            for call in mock_config.events_client.put_events.call_args_list
-            for entry in call.kwargs['Entries']
+            entry for call in mock_config.events_client.put_events.call_args_list for entry in call.kwargs['Entries']
         ]
         # Make sure we published the right number of events
-        self.assertEqual(line_count-1, len(entries))
+        self.assertEqual(line_count - 1, len(entries))
 
     @patch('handlers.bulk_upload.config', autospec=True)
     def test_bad_data(self, mock_config):
         from handlers.bulk_upload import process_bulk_upload_file
 
-        mock_config.events_client.put_events.return_value = {
-            'FailedEntryCount': 0,
-            'Entries': [{'EventId': '123'}]
-        }
+        mock_config.events_client.put_events.return_value = {'FailedEntryCount': 0, 'Entries': [{'EventId': '123'}]}
 
         # We'll do a little processing to mangle our CSV data a bit
-        with open('tests/resources/licenses.csv', 'r') as f:
+        with open('tests/resources/licenses.csv') as f:
             line_count = len(f.readlines())
             f.seek(0)
-            csv_data = [
-                line.split(',')
-                for line in f
-            ]
+            csv_data = [line.split(',') for line in f]
         # SSN of line 3
         csv_data[2][8] = '1234'
         # License type of line 5
@@ -180,10 +150,11 @@ class TestProcessBulkUploadFile(TstLambdas):
         # Collect events put for inspection
         # There should be three successful ingest events and two failures
         entries = [
-            entry
-            for call in mock_config.events_client.put_events.call_args_list
-            for entry in call.kwargs['Entries']
+            entry for call in mock_config.events_client.put_events.call_args_list for entry in call.kwargs['Entries']
         ]
-        self.assertEqual(line_count-1, len(entries))
+        self.assertEqual(line_count - 1, len(entries))
         self.assertEqual(2, len([entry for entry in entries if entry['DetailType'] == 'license-ingest-failure']))
-        self.assertEqual(line_count-3, len([entry for entry in entries if entry['DetailType'] == 'license-ingest-v1']))
+        self.assertEqual(
+            line_count - 3,
+            len([entry for entry in entries if entry['DetailType'] == 'license-ingest-v1']),
+        )

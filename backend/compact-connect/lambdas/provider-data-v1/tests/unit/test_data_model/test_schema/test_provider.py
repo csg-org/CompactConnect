@@ -6,14 +6,11 @@ from tests import TstLambdas
 
 
 class TestProviderRecordSchema(TstLambdas):
-
     def test_serde(self):
-        """
-        Test round-trip deserialization/serialization
-        """
+        """Test round-trip deserialization/serialization"""
         from data_model.schema.provider import ProviderRecordSchema
 
-        with open('tests/resources/dynamo/provider.json', 'r') as f:
+        with open('tests/resources/dynamo/provider.json') as f:
             expected_provider_record = json.load(f)
         # Convert this to the expected type coming out of the DB
         expected_provider_record['privilegeJurisdictions'] = set(expected_provider_record['privilegeJurisdictions'])
@@ -32,7 +29,7 @@ class TestProviderRecordSchema(TstLambdas):
     def test_invalid(self):
         from data_model.schema.provider import ProviderRecordSchema
 
-        with open('tests/resources/dynamo/provider.json', 'r') as f:
+        with open('tests/resources/dynamo/provider.json') as f:
             license_data = json.load(f)
         license_data.pop('providerId')
 

@@ -1,23 +1,21 @@
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from marshmallow import ValidationError
-
+from config import config, logger
 from data_model.schema.license import LicensePostSchema
 from event_batch_writer import EventBatchWriter
-from exceptions import CCInvalidRequestException, CCInternalException
-from handlers.utils import api_handler, authorize_compact_jurisdiction
-from config import config, logger
+from exceptions import CCInternalException, CCInvalidRequestException
+from marshmallow import ValidationError
 
+from handlers.utils import api_handler, authorize_compact_jurisdiction
 
 schema = LicensePostSchema()
 
 
 @api_handler
 @authorize_compact_jurisdiction(action='write')
-def post_licenses(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    """
-    Synchronously validate and submit an array of licenses
+def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """Synchronously validate and submit an array of licenses
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
     """
@@ -25,11 +23,7 @@ def post_licenses(event: dict, context: LambdaContext):  # pylint: disable=unuse
     jurisdiction = event['pathParameters']['jurisdiction']
 
     body = [
-        {
-            'compact': compact,
-            'jurisdiction': jurisdiction,
-            **license_entry
-        }
+        {'compact': compact, 'jurisdiction': jurisdiction, **license_entry}
         for license_entry in json.loads(event['body'])
     ]
     try:
@@ -43,13 +37,11 @@ def post_licenses(event: dict, context: LambdaContext):  # pylint: disable=unuse
                 Entry={
                     'Source': 'org.compactconnect.licenses',
                     'DetailType': 'license-ingest-v1',
-                    'Detail': json.dumps({
-                        'compact': compact,
-                        'jurisdiction': jurisdiction,
-                        **schema.dump(license_data)
-                    }),
-                    'EventBusName': config.event_bus_name
-                }
+                    'Detail': json.dumps(
+                        {'compact': compact, 'jurisdiction': jurisdiction, **schema.dump(license_data)},
+                    ),
+                    'EventBusName': config.event_bus_name,
+                },
             )
 
     if event_writer.failed_entry_count > 0:

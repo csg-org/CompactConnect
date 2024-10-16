@@ -1,3 +1,4 @@
+# ruff: noqa: ARG001, SLF001 unused-function-argument private-access
 import json
 from base64 import b64encode
 
@@ -17,53 +18,38 @@ class TestPaginated(TstLambdas):
                     # Really, this would be actual db records, but we're just going
                     # to stash our args and kwargs here, so we can inspect what this
                     # function was called with
-                    {
-                        'args': args,
-                        'kwargs': kwargs
-                    }
+                    {'args': args, 'kwargs': kwargs},
                 ],
                 'LastEvaluatedKey': {
                     # Just to make sure we're handling non-ascii
                     'pk': 'gòrach',
-                    'sk': 'aslp/co/license-home'
+                    'sk': 'aslp/co/license-home',
                 },
             }
 
         last_key = b64encode(json.dumps({'pk': '안녕하세요', 'sk': '2'}).encode('utf-8'))
-        resp = get_something(
-            'arg1',
-            'arg2',
-            pagination={
-                'lastKey': last_key,
-                'pageSize': 5
-            },
-            kwarg1='baf'
-        )
+        resp = get_something('arg1', 'arg2', pagination={'lastKey': last_key, 'pageSize': 5}, kwarg1='baf')
 
         self.assertEqual(
             {
-                'items': [{
-                    'args': ('arg1', 'arg2'),
-                    'kwargs': {
-                        'kwarg1': 'baf',
-                        'dynamo_pagination': {
-                            'ExclusiveStartKey': {
-                                'pk': '안녕하세요',
-                                'sk': '2'
-                            },
-                            'Limit': 5
-                        }
-                    }
-                }],
+                'items': [
+                    {
+                        'args': ('arg1', 'arg2'),
+                        'kwargs': {
+                            'kwarg1': 'baf',
+                            'dynamo_pagination': {'ExclusiveStartKey': {'pk': '안녕하세요', 'sk': '2'}, 'Limit': 5},
+                        },
+                    },
+                ],
                 'pagination': {
                     'pageSize': 5,
                     'lastKey': b64encode(
-                        json.dumps({'pk': 'gòrach', 'sk': 'aslp/co/license-home'}).encode('utf-8')
+                        json.dumps({'pk': 'gòrach', 'sk': 'aslp/co/license-home'}).encode('utf-8'),
                     ).decode('ascii'),
-                    'prevLastKey': last_key
-                }
+                    'prevLastKey': last_key,
+                },
             },
-            resp
+            resp,
         )
 
     def test_no_pagination_parameters(self):
@@ -76,33 +62,28 @@ class TestPaginated(TstLambdas):
                     # Really, this would be actual db records, but we're just going
                     # to stash our args and kwargs here, so we can inspect what this
                     # function was called with
-                    {
-                        'args': args,
-                        'kwargs': kwargs
-                    }
-                ]
+                    {'args': args, 'kwargs': kwargs},
+                ],
             }
 
         resp = get_something()
 
         self.assertEqual(
             {
-                'items': [{
-                    'args': (),
-                    'kwargs': {
-                        'dynamo_pagination': {
-                            # Should fall back to default from config
-                            'Limit': 100
-                        }
-                    }
-                }],
-                'pagination': {
-                    'pageSize': 100,
-                    'lastKey': None,
-                    'prevLastKey': None
-                }
+                'items': [
+                    {
+                        'args': (),
+                        'kwargs': {
+                            'dynamo_pagination': {
+                                # Should fall back to default from config
+                                'Limit': 100,
+                            },
+                        },
+                    },
+                ],
+                'pagination': {'pageSize': 100, 'lastKey': None, 'prevLastKey': None},
             },
-            resp
+            resp,
         )
 
     def test_invalid_key(self):
@@ -110,10 +91,8 @@ class TestPaginated(TstLambdas):
         from exceptions import CCInvalidRequestException
 
         @paginated
-        def get_something(*args, **kwargs):  # pylint: disable=unused-argument
-            return {
-                'Items': []
-            }
+        def get_something(*args, **kwargs):  # noqa: ARG001 unused-argument
+            return {'Items': []}
 
         with self.assertRaises(CCInvalidRequestException):
             get_something(pagination={'lastKey': 'not-b64-string'})
@@ -127,10 +106,7 @@ class TestPaginated(TstLambdas):
             # This is what dynamodb rejecting the ExclusiveStartKey looks like for boto3
             raise ClientError(
                 error_response={
-                    'Error': {
-                        'Message': 'The provided starting key is invalid',
-                        "Code": "ValidationException"
-                    },
+                    'Error': {'Message': 'The provided starting key is invalid', 'Code': 'ValidationException'},
                     'ResponseMetadata': {
                         'RequestId': 'AQ43F939QGII7PJFDUT7K7K67RVV4KQNSO5AEMVJF66Q9ASUAAJG',
                         'HTTPStatusCode': 400,
@@ -141,12 +117,12 @@ class TestPaginated(TstLambdas):
                             'content-length': '107',
                             'connection': 'keep-alive',
                             'x-amzn-requestid': 'AQ43F939QGII7PJFDUT7K7K67RVV4KQNSO5AEMVJF66Q9ASUAAJG',
-                            'x-amz-crc32': '1281463594'
+                            'x-amz-crc32': '1281463594',
                         },
-                        'RetryAttempts': 0
-                    }
+                        'RetryAttempts': 0,
+                    },
                 },
-                operation_name='Query'
+                operation_name='Query',
             )
 
         with self.assertRaises(CCInvalidRequestException):
@@ -162,10 +138,10 @@ class TestPaginated(TstLambdas):
                 error_response={
                     'Error': {
                         'Message': 'User: arn:aws:sts::000011112222:assumed-role/SomeRole/session-id '
-                                   'is not authorized to perform: dynamodb:GetItem on resource: '
-                                   'arn:aws:dynamodb:us-east-1:000011112222:table/some-table with an explicit deny in'
-                                   ' a resource-based policy',
-                        'Code': 'AccessDeniedException'
+                        'is not authorized to perform: dynamodb:GetItem on resource: '
+                        'arn:aws:dynamodb:us-east-1:000011112222:table/some-table with an explicit deny in'
+                        ' a resource-based policy',
+                        'Code': 'AccessDeniedException',
                     },
                     'ResponseMetadata': {
                         'RequestId': 'EJFUNRLG2GF7OTHTFVO8P3ODBRVV4KQNSO5AEMVJF66Q9ASUAAJG',
@@ -177,12 +153,12 @@ class TestPaginated(TstLambdas):
                             'content-length': '379',
                             'connection': 'keep-alive',
                             'x-amzn-requestid': 'EJFUNRLG2GF7OTHTFVO8P3ODBRVV4KQNSO5AEMVJF66Q9ASUAAJG',
-                            'x-amz-crc32': '1682830636'
+                            'x-amz-crc32': '1682830636',
                         },
-                        'RetryAttempts': 0
-                    }
+                        'RetryAttempts': 0,
+                    },
                 },
-                operation_name='Query'
+                operation_name='Query',
             )
 
         with self.assertRaises(ClientError):
