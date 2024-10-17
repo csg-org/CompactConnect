@@ -6,9 +6,9 @@
 #
 aws-lambda-powertools==2.43.1
     # via -r compact-connect/lambdas/license-data/requirements.in
-boto3==1.35.29
+boto3==1.35.35
     # via -r compact-connect/lambdas/license-data/requirements.in
-botocore==1.35.29
+botocore==1.35.35
     # via
     #   boto3
     #   s3transfer

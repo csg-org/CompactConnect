@@ -33,7 +33,8 @@ class LicenseeList extends Vue {
     //
     // Data
     //
-    shouldShowSearch = false;
+    hasSearched = false;
+    shouldShowSearchModal = false;
     isInitialFetchCompleted = false;
     prevKey = '';
     nextKey = '';
@@ -44,7 +45,6 @@ class LicenseeList extends Vue {
     async mounted() {
         await this.setDefaultSort();
         await this.setDefaultPaging();
-        await this.initListDisplay();
     }
 
     //
@@ -96,19 +96,18 @@ class LicenseeList extends Vue {
     //
     // Methods
     //
-    initListDisplay(): void {
-        if (!this.licenseStore.model?.length) {
-            this.shouldShowSearch = true;
-        }
-    }
-
     toggleSearch(): void {
-        this.shouldShowSearch = !this.shouldShowSearch;
+        this.shouldShowSearchModal = !this.shouldShowSearchModal;
     }
 
     handleSearch(params: LicenseSearch): void {
-        this.toggleSearch();
         this.fetchListData(params);
+
+        if (!this.hasSearched) {
+            this.hasSearched = true;
+        } else {
+            this.toggleSearch();
+        }
     }
 
     async setDefaultSort() {

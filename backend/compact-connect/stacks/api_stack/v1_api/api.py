@@ -7,6 +7,7 @@ from stacks.api_stack import cc_api
 from stacks.api_stack.v1_api.bulk_upload_url import BulkUploadUrl
 from stacks.api_stack.v1_api.query_providers import QueryProviders
 from stacks.api_stack.v1_api.provider_users import ProviderUsers
+from stacks.api_stack.v1_api.purchases import Purchases
 
 from .post_licenses import PostLicenses
 from .staff_users import StaffUsers
@@ -52,6 +53,15 @@ class V1Api:
             resource=self.provider_users_resource,
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
+            api_model=self.api_model
+        )
+
+        # /v1/purchases
+        self.purchases_resource = self.resource.add_resource('purchases')
+        self.purchases = Purchases(
+            self.purchases_resource,
+            data_encryption_key=persistent_stack.shared_encryption_key,
+            compact_configuration_table=persistent_stack.compact_configuration_table,
             api_model=self.api_model
         )
 

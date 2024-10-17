@@ -66,7 +66,7 @@ class UserEmailNotifications(Construct):
         # Add DMARC record to Route 53 with policy set to 'reject'
         # this will cause email servers to reject emails that do not pass SPF and DKIM checks
         # see https://docs.aws.amazon.com/ses/latest/dg/send-email-authentication-dmarc.html
-        TxtRecord(self, "DMARCRecord",
+        self.dmarc_record = TxtRecord(self, "DMARCRecord",
                   zone=hosted_zone,
                   record_name=f"_dmarc.{domain_name}",
                   values=[f"v=DMARC1;p=reject;rua=mailto:{operation_email}"]

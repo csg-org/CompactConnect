@@ -3,6 +3,7 @@
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 4/12/2020.
+//
 import { User } from '@models/User/User.model';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
