@@ -5,7 +5,6 @@
  */
 
 var HttpSender = Java.type('org.parosproxy.paros.network.HttpSender');
-// var ScriptVars = Java.type('org.zaproxy.zap.extension.script.ScriptVars');
 const System = Java.type('java.lang.System');
 
 const token = System.getenv('ZAP_AUTH_HEADER_VALUE');
@@ -14,7 +13,6 @@ const token = System.getenv('ZAP_AUTH_HEADER_VALUE');
 function sendingRequest(msg, initiator, helper) {
     // add Authorization header to all request in scope except the authorization request itself
     if (initiator !== HttpSender.AUTHENTICATION_INITIATOR && msg.isInScope()) {
-        // const token = ScriptVars.getGlobalVar('accessToken');
         if (!token) {
             print('Token not defined');
             return

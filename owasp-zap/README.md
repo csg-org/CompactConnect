@@ -4,7 +4,7 @@
 
 # Authenticator
 
-The [authenticator](./authenticator) directory is a simple NodeJS script that leverages [aws-amplify](https://www.npmjs.com/package/aws-amplify) to quickly log a test user in and acquire an token for authentication. This script requires that the Cognito UserPool Client be configured to enable the SRP authentication flow as part of a 'VULNERABLE' security profile, which can only be activated in pre-production environments. See [Set up](#set-up) for discussion of the profile.
+The [authenticator](./authenticator) directory is a simple NodeJS script that leverages [aws-amplify](https://www.npmjs.com/package/aws-amplify) to quickly log a test user in and acquire an token for authentication. This script requires that the Cognito UserPool Client be configured to enable the [Secure Remote Pasword (SRP)](https://en.wikipedia.org/wiki/Secure_Remote_Password_protocol) authentication flow as part of a 'VULNERABLE' security profile, which can only be activated in pre-production environments. See [Set up](#set-up) for discussion of the profile.
 
 # Data
 
