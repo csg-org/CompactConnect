@@ -4,6 +4,7 @@ from constructs import Construct
 
 from common_constructs.bucket import Bucket
 from common_constructs.github_actions_access import GitHubActionsAccess
+from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from stacks.persistent_stack import PersistentStack
 from stacks.ui_stack.distribution import UIDistribution
@@ -13,10 +14,11 @@ class UIStack(AppStack):
     def __init__(
             self, scope: Construct, construct_id: str, *,
             github_repo_string: str,
+            environment_context: dict,
             persistent_stack: PersistentStack,
             **kwargs
     ):
-        super().__init__(scope, construct_id, **kwargs)
+        super().__init__(scope, construct_id, environment_context=environment_context, **kwargs)
 
         ui_bucket = Bucket(
             self, 'UIBucket',
@@ -45,9 +47,12 @@ class UIStack(AppStack):
             ]
         )
 
+        security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
+
         self.distribution = UIDistribution(
             self, 'UIDistribution',
             ui_bucket=ui_bucket,
+            security_profile=security_profile,
             persistent_stack=persistent_stack
         )
 

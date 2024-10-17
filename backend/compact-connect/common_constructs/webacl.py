@@ -9,6 +9,7 @@ from aws_cdk.aws_wafv2 import CfnLoggingConfiguration, CfnWebACL, CfnWebACLAssoc
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
+from common_constructs.security_profile import SecurityProfile
 from common_constructs.service_principal_name import ServicePrincipalName
 
 
@@ -24,6 +25,7 @@ class WebACL(Resource):
     def __init__(
         self, scope: Construct, construct_id: str, *,
         acl_scope: WebACLScope = WebACLScope.REGIONAL,
+        security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
         enable_acl_logging: bool = True,
         rules: List[IResolvable | CfnWebACL.RuleProperty] = None
     ):
@@ -32,6 +34,8 @@ class WebACL(Resource):
         if rules is None:
             self.rules = [
                 WebACLRules.rate_limit_rule(),
+                WebACLRules.common_rule()
+            ] if security_profile == SecurityProfile.RECOMMENDED else [
                 WebACLRules.common_rule()
             ]
         else:

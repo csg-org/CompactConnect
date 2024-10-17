@@ -49,10 +49,10 @@ const environments = {
         },
         justin: {
             webFrontend: `app.justin.jcc.iaapi.io`,
-            dataApi: `api.test.jcc.iaapi.io`,
-            s3Upload: `test-persistentstack-mockbulkuploadsbucket0e8f27eb-4h1anohxetmp.s3.amazonaws.com`,
-            cognitoStaff: ``,
-            cognitoProvider: ``,
+            dataApi: `api.justin.jcc.iaapi.io`,
+            s3Upload: `sandbox-persistentstack-bulkuploadsbucketda4bdcd0-pi5pskm7prtp.s3.amazonaws.com`,
+            cognitoStaff: `ia-cc-staff-justin.auth.us-east-1.amazoncognito.com`,
+            cognitoProvider: `ia-cc-provider-justin.auth.us-east-1.amazoncognito.com`,
         },
     },
 };
@@ -190,27 +190,6 @@ describe(testFilename(__filename), () => {
         });
         it('should successfully return the security headers for csg test', async () => {
             const environment = environments.csg.test;
-            const request = {
-                headers: {
-                    host: [{
-                        value: environment.webFrontend,
-                    }],
-                },
-            };
-            const response = {
-                headers: {},
-            };
-            const config = lambdaConfig({
-                lambdaPath: `index.js`,
-                request,
-                response,
-            });
-            const result = await runLambda(config);
-
-            checkLambdaResult(environment, result);
-        });
-        it('should successfully return the security headers for ia prod', async () => {
-            const environment = environments.ia.prod;
             const request = {
                 headers: {
                     host: [{

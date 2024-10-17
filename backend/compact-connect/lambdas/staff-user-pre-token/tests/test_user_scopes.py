@@ -31,7 +31,7 @@ class TestGetUserScopesFromDB(TstLambdas):
         scopes = UserScopes(self._user_sub)
 
         self.assertEqual(
-            {'aslp/read', 'aslp/admin', 'aslp/aslp.admin'},
+            {'profile', 'aslp/read', 'aslp/admin', 'aslp/aslp.admin'},
             scopes
         )
 
@@ -56,7 +56,7 @@ class TestGetUserScopesFromDB(TstLambdas):
         scopes = UserScopes(self._user_sub)
 
         self.assertEqual(
-            {'aslp/read', 'aslp/admin', 'aslp/write', 'aslp/al.admin', 'aslp/al.write'},
+            {'profile', 'aslp/read', 'aslp/admin', 'aslp/write', 'aslp/al.admin', 'aslp/al.write'},
             scopes
         )
 
@@ -99,6 +99,7 @@ class TestGetUserScopesFromDB(TstLambdas):
 
         self.assertEqual(
             {
+                'profile',
                 'aslp/read', 'aslp/admin', 'aslp/write', 'aslp/al.admin', 'aslp/al.write',
                 'octp/read', 'octp/admin', 'octp/write', 'octp/al.admin', 'octp/al.write'
             },
@@ -126,7 +127,7 @@ class TestGetUserScopesFromDB(TstLambdas):
         scopes = UserScopes(self._user_sub)
 
         self.assertEqual(
-            {'aslp/read', 'aslp/write', 'aslp/al.write'},
+            {'profile', 'aslp/read', 'aslp/write', 'aslp/al.write'},
             scopes
         )
 
