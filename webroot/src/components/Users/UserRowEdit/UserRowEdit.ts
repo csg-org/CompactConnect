@@ -27,6 +27,7 @@ import Joi from 'joi';
 interface PermissionOption {
     value: string | number;
     name: string | ComputedRef<string>;
+    isDisabled?: boolean;
 }
 
 enum Permission {
@@ -34,6 +35,12 @@ enum Permission {
     READ = 'read',
     WRITE = 'write',
     ADMIN = 'admin',
+}
+
+interface PermissionObject {
+    isRead?: boolean;
+    isWrite?: boolean;
+    isAdmin?: boolean;
 }
 
 @Component({
@@ -174,6 +181,7 @@ class UserRowEdit extends mixins(MixinForm) {
 
     addStateFormInput(statePermission?: StatePermission): void {
         const { state } = statePermission || {};
+        const stateOptions = this.filterStateOptions();
         const index = this.permissionStateInputs.length;
         const stateInput = new FormInput({
             id: `state-option-${index}`,
@@ -181,7 +189,7 @@ class UserRowEdit extends mixins(MixinForm) {
             label: computed(() => this.$t('account.state')),
             placeholder: computed(() => this.$t('account.state')),
             validation: (!statePermission) ? Joi.string().required().messages(this.joiMessages.string) : null,
-            valueOptions: this.userOptionsState,
+            valueOptions: stateOptions,
             value: state?.abbrev || '',
             isDisabled: Boolean(statePermission),
         });
@@ -201,8 +209,40 @@ class UserRowEdit extends mixins(MixinForm) {
         this.permissionStateInputs.push(permissionInput);
     }
 
+    filterStateOptions(): Array<PermissionOption> {
+        return this.userOptionsState.map((optionState) => {
+            const option = { ...optionState };
+
+            this.permissionStateInputs.forEach((permissionInput) => {
+                const stateInputId = permissionInput.id.split('-').pop();
+                const stateInput = this.formData[`state-option-${stateInputId}`];
+
+                if (stateInput.value && stateInput.value === optionState.value) {
+                    option.isDisabled = true;
+                }
+            });
+
+            return option;
+        });
+    }
+
+    lockInStateOptions(): void {
+        const { formData } = this;
+
+        Object.keys(this.formData).forEach((key) => {
+            if (key.startsWith('state-option')) {
+                formData[key].isDisabled = true;
+            }
+        });
+    }
+
     createNewStatePermission(): void {
-        this.addStateFormInput();
+        this.validateAll({ asTouched: true });
+
+        if (this.isFormValid) {
+            this.lockInStateOptions();
+            this.addStateFormInput();
+        }
     }
 
     getCompactPermission(compactPermission: CompactPermission | null): Permission {
@@ -219,6 +259,29 @@ class UserRowEdit extends mixins(MixinForm) {
         return permission;
     }
 
+    setCompactPermission(permission: Permission): PermissionObject {
+        const response: PermissionObject = {};
+
+        switch (permission) {
+        case Permission.NONE:
+            response.isRead = false;
+            response.isAdmin = false;
+            break;
+        case Permission.READ:
+            response.isRead = true;
+            response.isAdmin = false;
+            break;
+        case Permission.ADMIN:
+            response.isRead = true;
+            response.isAdmin = true;
+            break;
+        default:
+            break;
+        }
+
+        return response;
+    }
+
     getStatePermission(statePermission: StatePermission | null): Permission {
         let permission = Permission.NONE;
 
@@ -231,6 +294,29 @@ class UserRowEdit extends mixins(MixinForm) {
         }
 
         return permission;
+    }
+
+    setStatePermission(permission: Permission): PermissionObject {
+        const response: PermissionObject = {};
+
+        switch (permission) {
+        case Permission.NONE:
+            response.isWrite = false;
+            response.isAdmin = false;
+            break;
+        case Permission.WRITE:
+            response.isWrite = true;
+            response.isAdmin = false;
+            break;
+        case Permission.ADMIN:
+            response.isWrite = true;
+            response.isAdmin = true;
+            break;
+        default:
+            break;
+        }
+
+        return response;
     }
 
     handleCancel(): void {
@@ -249,6 +335,9 @@ class UserRowEdit extends mixins(MixinForm) {
 
             await new Promise((resolve) => setTimeout(() => resolve(true), 2000));
 
+            // @TODO: Make the store / network call
+            // @TODO: Make sure the user record is updated in the store
+
             // if (!this.isFormError) {
             //     this.isFormSuccessful = true;
             // }
@@ -262,9 +351,11 @@ class UserRowEdit extends mixins(MixinForm) {
     prepFormData(): object {
         const { formValues } = this;
         const compactData = {
-            [formValues.compact]: formValues.compactPermission,
+            [formValues.compact]: {
+                ...this.setCompactPermission(formValues.compactPermission),
+                states: {},
+            },
         };
-        const stateData = {};
         const stateKeys = Object.keys(formValues).filter((key) => key.startsWith('state-option'));
 
         stateKeys.forEach((stateKey) => {
@@ -272,15 +363,10 @@ class UserRowEdit extends mixins(MixinForm) {
             const stateAbbrev = formValues[`state-option-${keyNum}`];
             const statePermission = formValues[`state-permission-${keyNum}`];
 
-            stateData[stateAbbrev] = statePermission;
+            compactData[formValues.compact].states[stateAbbrev] = { ...this.setStatePermission(statePermission) };
         });
 
-        const formData = {
-            ...compactData,
-            ...stateData,
-        };
-
-        return formData;
+        return compactData;
     }
 }
 

@@ -29,11 +29,13 @@
                     <InputSelect :formInput="formInput" class="permission-select" />
                 </div>
             </TransitionGroup>
-            <button
-                class="add-state text-like"
-                @click.prevent="createNewStatePermission"
-                @keyup.enter.prevent="createNewStatePermission"
-            >{{ $t('common.add') }}</button>
+            <div class="edit-user-form-row">
+                <button
+                    class="add-state text-like"
+                    @click.prevent="createNewStatePermission"
+                    @keyup.enter.prevent="createNewStatePermission"
+                >+ {{ $t('account.addState') }}</button>
+            </div>
             <div class="edit-user-form-row">
                 <InputButton
                     class="edit-user-button"

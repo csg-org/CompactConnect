@@ -505,7 +505,8 @@
         "userSearchLabel": "Enter a name",
         "edit": "Edit",
         "editPermissions": "Edit permissions",
-        "editUserPermissions": "Edit user permissions"
+        "editUserPermissions": "Edit user permissions",
+        "addState": "Add state / jurisdiction"
     },
     "styleGuide": {
         "headerPlaceholder": "Header Content",
