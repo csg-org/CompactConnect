@@ -23,7 +23,7 @@ class PrivilegeCard extends Vue {
     //
     // Computed
     //
-    get statusDisplay():string {
+    get statusDisplay(): string {
         let licenseStatus = this.$t('licensing.statusOptions.inactive');
 
         if (this.isActive) {
@@ -37,7 +37,7 @@ class PrivilegeCard extends Vue {
         return Boolean(this.privilege && this.privilege.statusState === LicenseStatus.ACTIVE);
     }
 
-    get stateTitle():string {
+    get stateTitle(): string {
         return this.$t('licensing.state');
     }
 
@@ -45,35 +45,35 @@ class PrivilegeCard extends Vue {
         return this.privilege?.issueState || null;
     }
 
-    get stateContent():string {
+    get stateContent(): string {
         return this.state?.name() || '';
     }
 
-    get issuedTitle():string {
+    get issuedTitle(): string {
         return this.$t('licensing.issued');
     }
 
-    get issuedContent():string {
+    get issuedContent(): string {
         return this.privilege?.issueDateDisplay() || '';
     }
 
-    get expiresTitle():string {
+    get expiresTitle(): string {
         return this.$t('licensing.expires');
     }
 
-    get expiresContent():string {
+    get expiresContent(): string {
         return this.privilege?.expireDateDisplay() || '';
     }
 
-    get disciplineTitle():string {
+    get disciplineTitle(): string {
         return this.$t('licensing.disciplineStatus');
     }
 
-    get disciplineContent():string {
+    get disciplineContent(): string {
         return this.$t('licensing.noDiscipline');
     }
 
-    get isPastExiprationDate():boolean {
+    get isPastExiprationDate(): boolean {
         let isPastDate = false;
 
         const expireDate = this.privilege?.expireDate;

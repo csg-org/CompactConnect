@@ -230,14 +230,8 @@ export class LicenseeSerializer {
         };
 
         // In get-all responses, server only returns a license state, not the actual license objects
-        if (json.licenseJurisdiction && json.licenses && json.licenses.length < 2) {
+        if (json.licenseJurisdiction) {
             licenseeData.licenseStates.push(new State({ abbrev: json.licenseJurisdiction }));
-        } else if (json.licenses && json.licenses.length > 1) {
-            json.licenses.forEach((serverLicense) => {
-                if (serverLicense.status === 'active') {
-                    licenseeData.licenseStates.push(new State({ abbrev: serverLicense.jurisdiction }));
-                }
-            });
         }
 
         // In get-one responses, server returns actual license objects
