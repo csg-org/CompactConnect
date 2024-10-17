@@ -1,0 +1,66 @@
+//
+//  PrivilegeCard.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 10/8/2024.
+//
+.privilege-card-container {
+    width: 30rem;
+    border-radius: 2rem;
+    background-color: @white;
+
+    .privilege-title-row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        padding: 2rem 2rem 1rem 2rem;
+        border-top-left-radius: 2rem;
+        border-top-right-radius: 2rem;
+        color: @white;
+        background-color: @darkBlue;
+
+        .privilege-title {
+            font-size: @fontSizeLarge;
+        }
+
+        .privilege-status {
+            &.expired {
+                font-style: italic;
+            }
+        }
+    }
+
+    .privilege-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        padding: 1rem 2rem;
+        column-gap: 4rem;
+        row-gap: 3rem;
+
+        .info-item-container {
+            &.discipline-item {
+                width: 13rem;
+            }
+
+            .info-item-title {
+                font-weight: @fontWeightBold;
+                font-size: 1.4rem;
+                line-height: 2.1rem;
+            }
+
+            .info-item {
+                font-size: 1.4rem;
+                line-height: 2.1rem;
+            }
+        }
+    }
+}
+
+.italics {
+    font-style: italic;
+}
+
+.error {
+    color: @midRed;
+}

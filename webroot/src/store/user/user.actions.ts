@@ -68,6 +68,17 @@ export default {
             dispatch('getAccountFailure', error);
         });
     },
+    // GET LICENSEE ACCOUNT
+    getLicenseeAccountRequest: async ({ commit, dispatch }) => {
+        commit(MutationTypes.GET_ACCOUNT_REQUEST);
+        return dataApi.getAuthenticatedLicenseeUser().then((account) => {
+            dispatch('getAccountSuccess', account);
+
+            return account;
+        }).catch((error) => {
+            dispatch('getAccountFailure', error);
+        });
+    },
     // GET ACCOUNT SUCCESS / FAIL HANDLERS
     getAccountSuccess: ({ commit, dispatch }, account) => {
         commit(MutationTypes.GET_ACCOUNT_SUCCESS, account);

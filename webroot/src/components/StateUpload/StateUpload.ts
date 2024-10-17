@@ -22,7 +22,7 @@ import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import CheckCircle from '@components/Icons/CheckCircle/CheckCircle.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import { CompactType } from '@models/Compact/Compact.model';
-import { User } from '@models/User/User.model';
+import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import { dataApi } from '@network/data.api';
 import Joi from 'joi';
@@ -63,7 +63,7 @@ class StateUpload extends mixins(MixinForm) {
         return this.userStore.currentCompact?.type;
     }
 
-    get user(): User | null {
+    get user(): StaffUser | null {
         return this.userStore.model;
     }
 

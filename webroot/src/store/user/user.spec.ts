@@ -6,12 +6,13 @@
 //
 
 import { authStorage, tokens } from '@/app.config';
+import chaiMatchPattern from 'chai-match-pattern';
+import chai from 'chai';
 import mutations, { MutationTypes } from './user.mutations';
 import actions from './user.actions';
 import getters from './user.getters';
 
-const chaiMatchPattern = require('chai-match-pattern');
-const chai = require('chai').use(chaiMatchPattern);
+chai.use(chaiMatchPattern);
 const sinon = require('sinon');
 
 const { expect } = chai;
@@ -212,6 +213,16 @@ describe('User Store Actions', async () => {
         const dispatch = sinon.spy();
 
         await actions.getStaffAccountRequest({ commit, dispatch });
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_ACCOUNT_REQUEST]);
+        expect(dispatch.calledOnce, 'dispatch').to.equal(true);
+    });
+    it('should successfully start licensee account request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        await actions.getLicenseeAccountRequest({ commit, dispatch });
 
         expect(commit.calledOnce, 'commit').to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_ACCOUNT_REQUEST]);
