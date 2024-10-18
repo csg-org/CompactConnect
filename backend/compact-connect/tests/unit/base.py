@@ -54,7 +54,7 @@ class TstCompactConnectABC(ABC):
         self.assertFalse(jurisdictions.intersection(compacts), 'Compact vs jurisdiction name clash!')
 
     @staticmethod
-    def _get_resource_properties_by_logical_id(logical_id: str, resources: Mapping[str, Mapping]) -> Mapping:
+    def get_resource_properties_by_logical_id(logical_id: str, resources: Mapping[str, Mapping]) -> Mapping:
         """
         Helper function to retrieve a resource from a CloudFormation template by its logical ID.
         """
@@ -87,7 +87,7 @@ class TstCompactConnectABC(ABC):
             persistent_stack_template.resource_count_is(CfnUserPool.CFN_RESOURCE_TYPE_NAME, 2)
 
             # Ensure our provider user pool is created with expected custom attributes
-            provider_users_user_pool = self._get_resource_properties_by_logical_id(
+            provider_users_user_pool = self.get_resource_properties_by_logical_id(
                 persistent_stack.get_logical_id(persistent_stack.provider_users.node.default_child),
                 persistent_stack_template.find_resources(CfnUserPool.CFN_RESOURCE_TYPE_NAME),
             )
@@ -101,7 +101,7 @@ class TstCompactConnectABC(ABC):
                 {'AttributeDataType': 'String', 'Mutable': False, 'Name': 'compact'}, provider_users_user_pool['Schema']
             )
             # Ensure our Staff user pool app client is configured with the expected callbacks and read/write attributes
-            staff_users_user_pool_app_client = self._get_resource_properties_by_logical_id(
+            staff_users_user_pool_app_client = self.get_resource_properties_by_logical_id(
                 persistent_stack.get_logical_id(persistent_stack.staff_users.ui_client.node.default_child),
                 persistent_stack_template.find_resources(CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME),
             )
@@ -110,7 +110,7 @@ class TstCompactConnectABC(ABC):
             self.assertEqual(staff_users_user_pool_app_client['WriteAttributes'], ['email'])
 
             # Ensure our Provider user pool app client is created with expected values
-            provider_users_user_pool_app_client = self._get_resource_properties_by_logical_id(
+            provider_users_user_pool_app_client = self.get_resource_properties_by_logical_id(
                 persistent_stack.get_logical_id(persistent_stack.provider_users.ui_client.node.default_child),
                 persistent_stack_template.find_resources(CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME),
             )

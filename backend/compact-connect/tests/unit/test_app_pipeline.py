@@ -91,7 +91,7 @@ class TestPipeline(TstCompactConnectABC, TestCase):
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         # Ensure our provider user pool is created with expected custom attributes
-        compact_configuration_uploader_custom_resource = self._get_resource_properties_by_logical_id(
+        compact_configuration_uploader_custom_resource = self.get_resource_properties_by_logical_id(
             persistent_stack.get_logical_id(
                 persistent_stack.compact_configuration_upload.compact_configuration_uploader_custom_resource.node.default_child
             ),

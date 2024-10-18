@@ -21,7 +21,7 @@ class TestApi(TstCompactConnectABC, TestCase):
         return context
 
     @staticmethod
-    def _generate_expected_integration_object(handler_logical_id: str) -> dict:
+    def generate_expected_integration_object(handler_logical_id: str) -> dict:
         return {
             'Uri': {
                 'Fn::Join': [
