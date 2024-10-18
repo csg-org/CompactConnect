@@ -21,6 +21,7 @@ class _Config:
     @cached_property
     def data_client(self):
         from data_model.client import DataClient
+
         return DataClient(self)
 
     @cached_property

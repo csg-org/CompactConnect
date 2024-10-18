@@ -5,21 +5,20 @@ from uuid import uuid4
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
-from marshmallow import ValidationError
-
-from config import logger, config
+from config import config, logger
 from data_model.schema.license import LicensePostSchema, LicensePublicSchema
 from event_batch_writer import EventBatchWriter
 from exceptions import CCInternalException
-from handlers.utils import scope_by_path, api_handler, ResponseEncoder
 from license_csv_reader import LicenseCSVReader
+from marshmallow import ValidationError
+
+from handlers.utils import ResponseEncoder, api_handler, scope_by_path
 
 
 @scope_by_path(resource_parameter='compact', scope_parameter='jurisdiction', action='write')
 @api_handler
 def bulk_upload_url_handler(event: dict, context: LambdaContext):
-    """
-    Generate a pre-signed POST to the bulk-upload s3 bucket
+    """Generate a pre-signed POST to the bulk-upload s3 bucket
 
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
@@ -29,8 +28,7 @@ def bulk_upload_url_handler(event: dict, context: LambdaContext):
 
 @api_handler
 def no_auth_bulk_upload_url_handler(event: dict, context: LambdaContext):
-    """
-    For the mock API
+    """For the mock API
 
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
@@ -38,7 +36,7 @@ def no_auth_bulk_upload_url_handler(event: dict, context: LambdaContext):
     return _bulk_upload_url_handler(event, context)
 
 
-def _bulk_upload_url_handler(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+def _bulk_upload_url_handler(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     compact = event['pathParameters']['compact'].lower()
     jurisdiction = event['pathParameters']['jurisdiction'].lower()
 
@@ -49,18 +47,15 @@ def _bulk_upload_url_handler(event: dict, context: LambdaContext):  # pylint: di
         Key=f'{compact}/{jurisdiction}/{uuid4().hex}',
         ExpiresIn=config.presigned_post_ttl_seconds,
         # Limit content length to ~30MB, ~200k licenses
-        Conditions=[['content-length-range', 1, 30_000_000]]
+        Conditions=[['content-length-range', 1, 30_000_000]],
     )
     logger.info('Created pre-signed POST', url=upload['url'])
-    return {
-        'upload': upload
-    }
+    return {'upload': upload}
 
 
 @logger.inject_lambda_context
-def parse_bulk_upload_file(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    """
-    Receive an S3 put event, and parse/validate the new s3 file before deleting it
+def parse_bulk_upload_file(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """Receive an S3 put event, and parse/validate the new s3 file before deleting it
     :param event: Standard S3 ObjectCreated event
     :param LambdaContext context:
     """
@@ -71,15 +66,12 @@ def parse_bulk_upload_file(event: dict, context: LambdaContext):  # pylint: disa
             key = record['s3']['object']['key']
             size = record['s3']['object']['size']
             logger.info('Object', s3_url=f's3://{bucket_name}/{key}', size=size)
-            body: StreamingBody = config.s3_client.get_object(
-                Bucket=bucket_name,
-                Key=key
-            )['Body']
+            body: StreamingBody = config.s3_client.get_object(Bucket=bucket_name, Key=key)['Body']
             try:
                 process_bulk_upload_file(body, key)
             except (ClientError, CCInternalException):
                 raise
-            except Exception as e:  # pylint: disable=broad-exception-caught
+            except Exception as e:  # noqa: BLE001 broad-exception-caught
                 # Most of the rest of the exception sources here will crop up with decoding
                 # of CSV data. We'll call that an ingest failure due to bad data and still
                 # proceed with deletion
@@ -89,29 +81,22 @@ def parse_bulk_upload_file(event: dict, context: LambdaContext):  # pylint: disa
                         {
                             'Source': f'org.compactconnect.bulk-ingest.{key}',
                             'DetailType': 'license-ingest-failure',
-                            'Detail': json.dumps({
-                                'errors': [str(e)]
-                            }),
-                            'EventBusName': config.event_bus_name
-                        }
-                    ]
+                            'Detail': json.dumps({'errors': [str(e)]}),
+                            'EventBusName': config.event_bus_name,
+                        },
+                    ],
                 )
                 if resp.get('FailedEntryCount', 0) > 0:
                     logger.error('Failed to put failure event!')
             logger.info(f"Processing 's3://{bucket_name}/{key}' complete")
-            config.s3_client.delete_object(
-                Bucket=bucket_name,
-                Key=key
-            )
+            config.s3_client.delete_object(Bucket=bucket_name, Key=key)
     except Exception as e:
         logger.error('Failed to process s3 event!', exc_info=e)
         raise
 
 
 def process_bulk_upload_file(body: StreamingBody, object_key: str):
-    """
-    Stream each line of the new CSV file, validating it then publishing an ingest event for each line.
-    """
+    """Stream each line of the new CSV file, validating it then publishing an ingest event for each line."""
     public_schema = LicensePublicSchema()
     schema = LicensePostSchema()
     reader = LicenseCSVReader()
@@ -122,13 +107,9 @@ def process_bulk_upload_file(body: StreamingBody, object_key: str):
     stream = TextIOWrapper(body, encoding='utf-8')
     with EventBatchWriter(config.events_client) as event_writer:
         for i, raw_license in enumerate(reader.licenses(stream)):
-            logger.debug('Processing line %s', i+1)
+            logger.debug('Processing line %s', i + 1)
             try:
-                validated_license = schema.load({
-                    'compact': compact,
-                    'jurisdiction': jurisdiction,
-                    **raw_license
-                })
+                validated_license = schema.load({'compact': compact, 'jurisdiction': jurisdiction, **raw_license})
             except ValidationError as e:
                 # This CSV line has failed validation. We will carefully collect what information we can
                 # and publish it as a failure event. Because this data may eventually be sent back over
@@ -138,21 +119,22 @@ def process_bulk_upload_file(body: StreamingBody, object_key: str):
                 except ValidationError as exc_second_try:
                     public_license_data = exc_second_try.valid_data
                 logger.info(
-                    'Invalid license in line %s uploaded: %s', i+1, str(e),
+                    'Invalid license in line %s uploaded: %s',
+                    i + 1,
+                    str(e),
                     valid_data=public_license_data,
-                    exc_info=e
+                    exc_info=e,
                 )
                 event_writer.put_event(
                     Entry={
                         'Source': f'org.compactconnect.bulk-ingest.{object_key}',
                         'DetailType': 'license-ingest-failure',
-                        'Detail': json.dumps({
-                            'record_number': i+1,
-                            'valid_data': public_license_data,
-                            'errors': e.messages
-                        }, cls=ResponseEncoder),
-                        'EventBusName': config.event_bus_name
-                    }
+                        'Detail': json.dumps(
+                            {'record_number': i + 1, 'valid_data': public_license_data, 'errors': e.messages},
+                            cls=ResponseEncoder,
+                        ),
+                        'EventBusName': config.event_bus_name,
+                    },
                 )
                 continue
 
@@ -160,13 +142,11 @@ def process_bulk_upload_file(body: StreamingBody, object_key: str):
                 Entry={
                     'Source': f'org.compactconnect.bulk-ingest.{object_key}',
                     'DetailType': 'license-ingest',
-                    'Detail': json.dumps({
-                        'compact': compact,
-                        'jurisdiction': jurisdiction,
-                        **schema.dump(validated_license)
-                    }),
-                    'EventBusName': config.event_bus_name
-                }
+                    'Detail': json.dumps(
+                        {'compact': compact, 'jurisdiction': jurisdiction, **schema.dump(validated_license)},
+                    ),
+                    'EventBusName': config.event_bus_name,
+                },
             )
 
     if event_writer.failed_entry_count > 0:

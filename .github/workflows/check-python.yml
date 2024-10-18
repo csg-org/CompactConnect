@@ -28,7 +28,7 @@ jobs:
         run: "pip install -r backend/compact-connect/requirements-dev.txt"
 
       - name: Lint Code
-        run: "cd backend; pylint $(git ls-files '*.py')"
+        run: "cd backend; ruff check $(git ls-files '*.py')"
 
   TestPython:
     runs-on: ubuntu-latest

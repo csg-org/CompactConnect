@@ -1,0 +1,27 @@
+{
+  "license": "UNLICENSED",
+  "scripts": {
+    "grunt": "grunt",
+    "lint": "grunt check",
+    "audit:dependencies": "yarn audit --groups dependencies --level moderate"
+  },
+  "dependencies": {
+    "@aws-amplify/auth": "^6.5.1",
+    "aws-amplify": "^6.6.4",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "chai-match-pattern": "^1.1.0",
+    "chalk": "^4.1.2",
+    "eslint": "^9.12.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.3",
+    "grunt": "^1.5.3",
+    "grunt-contrib-watch": "^1.1.0",
+    "grunt-eslint": "^24.0.0",
+    "jit-grunt": "^0.10.0",
+    "lambda-local": "^2.2.0",
+    "mocha": "^10.0.0"
+  }
+}

@@ -30,13 +30,6 @@ const environments = {
         },
     },
     ia: {
-        prod: {
-            webFrontend: `app.jcc.iaapi.io`,
-            dataApi: `api.jcc.iaapi.io`,
-            s3Upload: ``, // Waiting for environment configuration.
-            cognitoStaff: ``, // Waiting for environment configuration.
-            cognitoProvider: ``, // Waiting for environment configuration.
-        },
         test: {
             webFrontend: `app.test.jcc.iaapi.io`,
             dataApi: `api.test.jcc.iaapi.io`,
@@ -46,10 +39,10 @@ const environments = {
         },
         justin: {
             webFrontend: `app.justin.jcc.iaapi.io`,
-            dataApi: `api.test.jcc.iaapi.io`,
-            s3Upload: `test-persistentstack-mockbulkuploadsbucket0e8f27eb-4h1anohxetmp.s3.amazonaws.com`,
-            cognitoStaff: ``, // Waiting for environment configuration.
-            cognitoProvider: ``, // Waiting for environment configuration.
+            dataApi: `api.justin.jcc.iaapi.io`,
+            s3Upload: `sandbox-persistentstack-bulkuploadsbucketda4bdcd0-pi5pskm7prtp.s3.amazonaws.com`,
+            cognitoStaff: `ia-cc-staff-justin.auth.us-east-1.amazoncognito.com`,
+            cognitoProvider: `ia-cc-provider-justin.auth.us-east-1.amazoncognito.com`,
         },
     },
 };
@@ -110,9 +103,6 @@ const getEnvironmentUrls = (requestDomain) => {
         break;
     case environments.csg.test.webFrontend:
         environment = environments.csg.test;
-        break;
-    case environments.ia.prod.webFrontend:
-        environment = environments.ia.prod;
         break;
     case environments.ia.test.webFrontend:
         environment = environments.ia.test;

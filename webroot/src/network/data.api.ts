@@ -127,6 +127,17 @@ export class DataApi {
     }
 
     // ========================================================================
+    //                              LICENSEE USER API
+    // ========================================================================
+    /**
+     * GET Authenticated Licensee User.
+     * @return {Promise<User>} A User model instance.
+     */
+    public getAuthenticatedLicenseeUser() {
+        return userDataApi.getAuthenticatedLicenseeUser();
+    }
+
+    // ========================================================================
     //                              EXAMPLE API
     // ========================================================================
     /**

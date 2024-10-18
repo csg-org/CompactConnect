@@ -7,7 +7,6 @@ from tests import TstLambdas
 
 @mock_aws
 class TestGetUserScopesFromDB(TstLambdas):
-
     def setUp(self):  # pylint: disable=invalid-name
         super().setUp()
         self._user_sub = str(uuid4())
@@ -21,19 +20,13 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'pk': f'USER#{self._user_sub}',
                 'sk': 'COMPACT#aslp',
                 'compact': 'aslp',
-                'permissions': {
-                    'actions': {'read', 'admin'},
-                    'jurisdictions': {}
-                }
+                'permissions': {'actions': {'read', 'admin'}, 'jurisdictions': {}},
             }
         )
 
         scopes = UserScopes(self._user_sub)
 
-        self.assertEqual(
-            {'aslp/read', 'aslp/admin', 'aslp/aslp.admin'},
-            scopes
-        )
+        self.assertEqual({'profile', 'aslp/read', 'aslp/admin', 'aslp/aslp.admin'}, scopes)
 
     def test_board_ed_user(self):
         from user_scopes import UserScopes
@@ -44,21 +37,13 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'pk': f'USER#{self._user_sub}',
                 'sk': 'COMPACT#aslp',
                 'compact': 'aslp',
-                'permissions': {
-                    'actions': {'read'},
-                    'jurisdictions': {
-                        'al': {'write', 'admin'}
-                    }
-                }
+                'permissions': {'actions': {'read'}, 'jurisdictions': {'al': {'write', 'admin'}}},
             }
         )
 
         scopes = UserScopes(self._user_sub)
 
-        self.assertEqual(
-            {'aslp/read', 'aslp/admin', 'aslp/write', 'aslp/al.admin', 'aslp/al.write'},
-            scopes
-        )
+        self.assertEqual({'profile', 'aslp/read', 'aslp/admin', 'aslp/write', 'aslp/al.admin', 'aslp/al.write'}, scopes)
 
     def test_board_ed_user_multi_compact(self):
         """
@@ -73,12 +58,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'pk': f'USER#{self._user_sub}',
                 'sk': 'COMPACT#aslp',
                 'compact': 'aslp',
-                'permissions': {
-                    'actions': {'read'},
-                    'jurisdictions': {
-                        'al': {'write', 'admin'}
-                    }
-                }
+                'permissions': {'actions': {'read'}, 'jurisdictions': {'al': {'write', 'admin'}}},
             }
         )
         self._table.put_item(
@@ -86,12 +66,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'pk': f'USER#{self._user_sub}',
                 'sk': 'COMPACT#octp',
                 'compact': 'octp',
-                'permissions': {
-                    'actions': {'read'},
-                    'jurisdictions': {
-                        'al': {'write', 'admin'}
-                    }
-                }
+                'permissions': {'actions': {'read'}, 'jurisdictions': {'al': {'write', 'admin'}}},
             }
         )
 
@@ -99,10 +74,19 @@ class TestGetUserScopesFromDB(TstLambdas):
 
         self.assertEqual(
             {
-                'aslp/read', 'aslp/admin', 'aslp/write', 'aslp/al.admin', 'aslp/al.write',
-                'octp/read', 'octp/admin', 'octp/write', 'octp/al.admin', 'octp/al.write'
+                'profile',
+                'aslp/read',
+                'aslp/admin',
+                'aslp/write',
+                'aslp/al.admin',
+                'aslp/al.write',
+                'octp/read',
+                'octp/admin',
+                'octp/write',
+                'octp/al.admin',
+                'octp/al.write',
             },
-            scopes
+            scopes,
         )
 
     def test_board_staff(self):
@@ -118,17 +102,14 @@ class TestGetUserScopesFromDB(TstLambdas):
                     'actions': {'read'},
                     'jurisdictions': {
                         'al': {'write'}  # should correspond to the 'aslp/al.write' scope
-                    }
-                }
+                    },
+                },
             }
         )
 
         scopes = UserScopes(self._user_sub)
 
-        self.assertEqual(
-            {'aslp/read', 'aslp/write', 'aslp/al.write'},
-            scopes
-        )
+        self.assertEqual({'profile', 'aslp/read', 'aslp/write', 'aslp/al.write'}, scopes)
 
     def test_missing_user(self):
         from user_scopes import UserScopes
@@ -150,12 +131,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'pk': f'USER#{self._user_sub}',
                 'sk': 'COMPACT#aslp',
                 'compact': 'aslp',
-                'permissions': {
-                    'actions': {'read'},
-                    'jurisdictions': {
-                        'al': {'write', 'admin'}
-                    }
-                }
+                'permissions': {'actions': {'read'}, 'jurisdictions': {'al': {'write', 'admin'}}},
             }
         )
         self._table.put_item(
@@ -163,12 +139,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'pk': f'USER#{self._user_sub}',
                 'sk': 'COMPACT#aslp',
                 'compact': 'abc',
-                'permissions': {
-                    'actions': {'read'},
-                    'jurisdictions': {
-                        'al': {'write', 'admin'}
-                    }
-                }
+                'permissions': {'actions': {'read'}, 'jurisdictions': {'al': {'write', 'admin'}}},
             }
         )
 
@@ -191,10 +162,8 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'permissions': {
                     # Write is jurisdiction-specific
                     'actions': {'read', 'write'},
-                    'jurisdictions': {
-                        'al': {'write', 'admin'}
-                    }
-                }
+                    'jurisdictions': {'al': {'write', 'admin'}},
+                },
             }
         )
 
@@ -214,12 +183,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'pk': f'USER#{self._user_sub}',
                 'sk': 'COMPACT#aslp',
                 'compact': 'aslp',
-                'permissions': {
-                    'actions': {'read'},
-                    'jurisdictions': {
-                        'ab': {'write', 'admin'}
-                    }
-                }
+                'permissions': {'actions': {'read'}, 'jurisdictions': {'ab': {'write', 'admin'}}},
             }
         )
 
@@ -239,12 +203,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'pk': f'USER#{self._user_sub}',
                 'sk': 'COMPACT#aslp',
                 'compact': 'aslp',
-                'permissions': {
-                    'actions': {'read'},
-                    'jurisdictions': {
-                        'al': {'write', 'hack'}
-                    }
-                }
+                'permissions': {'actions': {'read'}, 'jurisdictions': {'al': {'write', 'hack'}}},
             }
         )
 

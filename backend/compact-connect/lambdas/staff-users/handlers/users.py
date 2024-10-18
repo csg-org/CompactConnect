@@ -1,20 +1,23 @@
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-
 from config import logger
 from exceptions import CCNotFoundException
-from handlers import user_client, user_api_schema
-from utils import api_handler, authorize_compact, get_event_scopes, get_allowed_jurisdictions, \
-    collect_and_authorize_changes
+from utils import (
+    api_handler,
+    authorize_compact,
+    collect_and_authorize_changes,
+    get_allowed_jurisdictions,
+    get_event_scopes,
+)
+
+from handlers import user_api_schema, user_client
 
 
 @api_handler
 @authorize_compact(action='admin')
-def get_one_user(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    """
-    Return a user by userId
-    """
+def get_one_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """Return a user by userId"""
     compact = event['pathParameters']['compact']
     user_id = event['pathParameters']['userId']
     scopes = get_event_scopes(event)
@@ -37,10 +40,8 @@ def get_one_user(event: dict, context: LambdaContext):  # pylint: disable=unused
 
 @api_handler
 @authorize_compact(action='admin')
-def get_users(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    """
-    Return users
-    """
+def get_users(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """Return users"""
     compact = event['pathParameters']['compact']
     # If no query string parameters are provided, APIGW will set the value to None, which we need to handle here
     query_string_params = event.get('queryStringParameters') if event.get('queryStringParameters') is not None else {}
@@ -53,25 +54,21 @@ def get_users(event: dict, context: LambdaContext):  # pylint: disable=unused-ar
     scopes = get_event_scopes(event)
     allowed_jurisdictions = get_allowed_jurisdictions(compact=compact, scopes=scopes)
 
-    resp = user_client.get_users_sorted_by_family_name(  # pylint: disable=unexpected-keyword-arg,missing-kwoa
+    resp = user_client.get_users_sorted_by_family_name(
         compact=compact,
         jurisdictions=allowed_jurisdictions,
-        pagination=pagination
+        pagination=pagination,
     )
     # Convert to API-specific format
     users = resp.pop('items', [])
-    resp['users'] = [
-        user_api_schema.load(user)
-        for user in users
-    ]
+    resp['users'] = [user_api_schema.load(user) for user in users]
     return resp
 
 
 @api_handler
 @authorize_compact(action='admin')
-def patch_user(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    """
-    Admins update a user's data
+def patch_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """Admins update a user's data
 
     Example: This body would be requesting to:
       - add aslp/aslp admin permission
@@ -105,19 +102,15 @@ def patch_user(event: dict, context: LambdaContext):  # pylint: disable=unused-a
     changes = collect_and_authorize_changes(
         path_compact=path_compact,
         scopes=scopes,
-        compact_changes=permission_changes
+        compact_changes=permission_changes,
     )
-    user = user_client.update_user_permissions(
-        compact=compact,
-        user_id=user_id,
-        **changes
-    )
+    user = user_client.update_user_permissions(compact=compact, user_id=user_id, **changes)
     return user_api_schema.load(user)
 
 
 @api_handler
 @authorize_compact(action='admin')
-def post_user(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
+def post_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     scopes = get_event_scopes(event)
     compact = event['pathParameters']['compact']
     body = json.loads(event['body'])
@@ -129,8 +122,6 @@ def post_user(event: dict, context: LambdaContext):  # pylint: disable=unused-ar
 
     # Use the UserClient to create a new user
     user = user_api_schema.dump(body)
-    return user_api_schema.load(user_client.create_user(
-        compact=compact,
-        attributes=user['attributes'],
-        permissions=user['permissions']
-    ))
+    return user_api_schema.load(
+        user_client.create_user(compact=compact, attributes=user['attributes'], permissions=user['permissions']),
+    )

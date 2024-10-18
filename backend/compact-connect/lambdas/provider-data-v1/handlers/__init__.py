@@ -1,14 +1,9 @@
-# pylint: disable=unused-argument,unexpected-keyword-arg,missing-kwoa
-# Pylint really butchers these function signatures because they are modified via decorator
-# to cut down on noise level, we're disabling those rules for the whole module
 from config import config, logger
 from exceptions import CCInternalException
 
 
-
 def get_provider_information(compact: str, provider_id: str) -> dict:
-    """
-    Common method to get provider information by compact and provider id.
+    """Common method to get provider information by compact and provider id.
 
     Currently, this is used by both staff-users to get information for a specific provider,
     and provider-users to get their own information.

@@ -1,15 +1,15 @@
 from aws_lambda_powertools.utilities.typing import LambdaContext
-
-from exceptions import CCInvalidRequestException, CCNotFoundException, CCInternalException
-from handlers.utils import api_handler
 from config import logger
+from exceptions import CCInternalException, CCInvalidRequestException, CCNotFoundException
+
+from handlers.utils import api_handler
+
 from . import get_provider_information
 
 
 @api_handler
-def get_provider_user_me(event: dict, context: LambdaContext):  # pylint: disable=unused-argument
-    """
-    Endpoint for a provider user to fetch their personal provider data.
+def get_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """Endpoint for a provider user to fetch their personal provider data.
 
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
