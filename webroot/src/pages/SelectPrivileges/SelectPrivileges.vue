@@ -6,7 +6,11 @@
 -->
 
 <template>
-    <h3>SelectPrivileges</h3>
+    <div class="select-privileges-container">
+        <div class="button-row"></div>
+        <div class="select-privileges-core-container"></div>
+        <div class="button-row"></div>
+    </div>
 </template>
 
 <script lang="ts" src="./SelectPrivileges.ts"></script>

@@ -6,6 +6,8 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
+import { Compact } from '@models/Compact/Compact.model';
+import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 
 @Component({
     name: 'SelectPrivileges',
@@ -26,6 +28,17 @@ export default class SelectPrivileges extends Vue {
     //
     // Computed
     //
+    get unfilteredPuchaseList(): Array<PrivilegePurchaseOption> | null {
+        return this.currentCompact?.privilegePurchaseOptions || null;
+    }
+
+    get currentCompact(): Compact | null {
+        return this.userStore?.currentCompact || null;
+    }
+
+    get userStore(): any {
+        return this.$store.state.user || null;
+    }
 
     //
     // Methods
