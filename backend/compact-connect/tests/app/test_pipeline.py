@@ -9,10 +9,10 @@ from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolClient, CfnUserPoolRiskC
 from aws_cdk.aws_lambda import CfnFunction, CfnLayerVersion
 from aws_cdk.aws_ssm import CfnParameter
 
-from tests.unit.base import TstCompactConnectABC
+from tests.app.base import TstAppABC
 
 
-class TestPipeline(TstCompactConnectABC, TestCase):
+class TestPipeline(TstAppABC, TestCase):
     @classmethod
     def get_context(cls):
         with open('cdk.json') as f:

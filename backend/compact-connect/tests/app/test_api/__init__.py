@@ -1,10 +1,10 @@
 import json
 from unittest import TestCase
 
-from tests.unit.base import TstCompactConnectABC
+from tests.app.base import TstAppABC
 
 
-class TestApi(TstCompactConnectABC, TestCase):
+class TestApi(TstAppABC, TestCase):
     """
     Base API test class with common methods for Compact Connect API resources.
     """
