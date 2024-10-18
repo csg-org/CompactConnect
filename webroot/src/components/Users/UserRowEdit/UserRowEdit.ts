@@ -181,32 +181,37 @@ class UserRowEdit extends mixins(MixinForm) {
 
     addStateFormInput(statePermission?: StatePermission): void {
         const { state } = statePermission || {};
+        const stateAbbrev = state?.abbrev || '';
         const stateOptions = this.filterStateOptions();
+        const isStateInOptions = stateOptions.some((stateOption) => stateOption.value === stateAbbrev);
         const index = this.permissionStateInputs.length;
-        const stateInput = new FormInput({
-            id: `state-option-${index}`,
-            name: `state-option-${index}`,
-            label: computed(() => this.$t('account.state')),
-            placeholder: computed(() => this.$t('account.state')),
-            validation: (!statePermission) ? Joi.string().required().messages(this.joiMessages.string) : null,
-            valueOptions: stateOptions,
-            value: state?.abbrev || '',
-            isDisabled: Boolean(statePermission),
-        });
-        const permissionInput = new FormInput({
-            id: `state-permission-${index}`,
-            name: `state-permission-${index}`,
-            label: computed(() => this.$t('account.permission')),
-            placeholder: computed(() => this.$t('account.permission')),
-            validation: (!statePermission) ? Joi.string().required().messages(this.joiMessages.string) : null,
-            valueOptions: this.userPermissionOptionsState,
-            value: (statePermission) ? this.getStatePermission(statePermission) : Permission.NONE,
-        });
 
-        this.formData[`state-option-${index}`] = stateInput;
-        this.formData[`state-permission-${index}`] = permissionInput;
+        if (isStateInOptions) {
+            const stateInput = new FormInput({
+                id: `state-option-${index}`,
+                name: `state-option-${index}`,
+                label: computed(() => this.$t('account.state')),
+                placeholder: computed(() => this.$t('account.state')),
+                validation: (!statePermission) ? Joi.string().required().messages(this.joiMessages.string) : null,
+                valueOptions: stateOptions,
+                value: state?.abbrev || '',
+                isDisabled: Boolean(statePermission),
+            });
+            const permissionInput = new FormInput({
+                id: `state-permission-${index}`,
+                name: `state-permission-${index}`,
+                label: computed(() => this.$t('account.permission')),
+                placeholder: computed(() => this.$t('account.permission')),
+                validation: (!statePermission) ? Joi.string().required().messages(this.joiMessages.string) : null,
+                valueOptions: this.userPermissionOptionsState,
+                value: (statePermission) ? this.getStatePermission(statePermission) : Permission.NONE,
+            });
 
-        this.permissionStateInputs.push(permissionInput);
+            this.formData[`state-option-${index}`] = stateInput;
+            this.formData[`state-permission-${index}`] = permissionInput;
+
+            this.permissionStateInputs.push(permissionInput);
+        }
     }
 
     filterStateOptions(): Array<PermissionOption> {
@@ -351,10 +356,9 @@ class UserRowEdit extends mixins(MixinForm) {
     prepFormData(): object {
         const { formValues } = this;
         const compactData = {
-            [formValues.compact]: {
-                ...this.setCompactPermission(formValues.compactPermission),
-                states: {},
-            },
+            compact: formValues.compact,
+            ...this.setCompactPermission(formValues.compactPermission),
+            states: [] as Array<object>,
         };
         const stateKeys = Object.keys(formValues).filter((key) => key.startsWith('state-option'));
 
@@ -363,7 +367,10 @@ class UserRowEdit extends mixins(MixinForm) {
             const stateAbbrev = formValues[`state-option-${keyNum}`];
             const statePermission = formValues[`state-permission-${keyNum}`];
 
-            compactData[formValues.compact].states[stateAbbrev] = { ...this.setStatePermission(statePermission) };
+            compactData.states.push({
+                state: stateAbbrev,
+                ...this.setStatePermission(statePermission),
+            });
         });
 
         return compactData;
