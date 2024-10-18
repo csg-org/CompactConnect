@@ -115,16 +115,32 @@ class App extends Vue {
 
         if (authType === AuthTypes.STAFF) {
             await this.$store.dispatch('user/getStaffAccountRequest');
+        } else if (authType === AuthTypes.LICENSEE) {
+            await this.$store.dispatch('user/getLicenseeAccountRequest');
         }
     }
 
     async setCurrentCompact(): Promise<void> {
+        const { authType } = this.globalStore;
         const { currentCompact, model: user } = this.userStore;
-        const { permissions = [] } = user || {};
-        const userDefaultCompact = permissions?.[0]?.compact || null;
+        let userDefaultCompact;
+        let isCompactPartOfUserPermissions;
+
+        if (authType === AuthTypes.STAFF) {
+            const { permissions = [] } = user || {};
+
+            userDefaultCompact = permissions?.[0]?.compact || null;
+            isCompactPartOfUserPermissions = permissions.some((permission) =>
+                permission.compact.type === currentCompact?.type);
+        } else if (authType === AuthTypes.LICENSEE) {
+            const { licenses = [] } = user?.licensee || {};
+
+            userDefaultCompact = licenses?.[0]?.compact || null;
+            isCompactPartOfUserPermissions = licenses.some((license) => license.compact.type === currentCompact?.type);
+        }
 
         // If a current compact is not set or the current compact is not part of the user permissions
-        if (!currentCompact || !permissions.some((permission) => permission.compact.type === currentCompact.type)) {
+        if ((!currentCompact || !isCompactPartOfUserPermissions) && userDefaultCompact) {
             await this.$store.dispatch('user/setCurrentCompact', userDefaultCompact);
 
             // If the current route is not matching the newly set compact, then redirect

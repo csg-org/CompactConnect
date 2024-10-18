@@ -4,9 +4,9 @@
 //
 //  Created by InspiringApps on 4/12/20.
 //
-
-import { User } from '@models/User/User.model';
 import { Compact } from '@models/Compact/Compact.model';
+import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
+import { StaffUser } from '@/models/StaffUser/StaffUser.model';
 
 export enum MutationTypes {
     LOGIN_REQUEST = '[User] Login Request',
@@ -73,7 +73,7 @@ export default {
     [MutationTypes.STORE_UPDATE_CURRENT_COMPACT]: (state: any, compact: Compact | null) => {
         state.currentCompact = compact;
     },
-    [MutationTypes.STORE_UPDATE_USER]: (state: any, user: User|null) => {
+    [MutationTypes.STORE_UPDATE_USER]: (state: any, user: LicenseeUser|StaffUser|null) => {
         state.model = user;
     },
     [MutationTypes.STORE_RESET_USER]: (state: any) => {
@@ -81,6 +81,7 @@ export default {
         state.isLoggedIn = false;
         state.isLoading = false;
         state.refreshTokenTimeoutId = null;
+        state.userType = null;
         state.currentCompact = null;
         state.error = null;
     },

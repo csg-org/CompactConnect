@@ -14,9 +14,21 @@ import { authStorage, tokens } from '@/app.config';
  * @return {AxiosInterceptor} Function that amends the outgoing client API request.
  */
 export const requestSuccess = () => async (requestConfig) => {
-    const authToken = authStorage.getItem(tokens.staff.AUTH_TOKEN);
-    const authTokenType = authStorage.getItem(tokens.staff.AUTH_TOKEN_TYPE);
-    const { headers } = requestConfig;
+    // Endpoints in the below list are accessible to users who are logged in via the licensee userpool
+    // and as such require sending that token to authorize their use. All other endpoints are only accessible
+    // by users logged in via the staff user pool and will therefor send those tokens to authorize.
+    const licenseeUserEndPoints = ['/v1/provider-users/me'];
+    const { headers, url } = requestConfig;
+    let authToken;
+    let authTokenType;
+
+    if (licenseeUserEndPoints.includes(url)) {
+        authToken = authStorage.getItem(tokens.licensee.ID_TOKEN);
+        authTokenType = authStorage.getItem(tokens.licensee.AUTH_TOKEN_TYPE);
+    } else {
+        authToken = authStorage.getItem(tokens.staff.AUTH_TOKEN);
+        authTokenType = authStorage.getItem(tokens.staff.AUTH_TOKEN_TYPE);
+    }
 
     // Add auth token
     headers.Authorization = `${authTokenType} ${authToken}`;

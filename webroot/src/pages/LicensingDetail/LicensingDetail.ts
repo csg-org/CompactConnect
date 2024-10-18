@@ -15,10 +15,6 @@ import { License } from '@models/License/License.model';
 })
 export default class LicensingDetail extends Vue {
     //
-    // Data
-    //
-
-    //
     // Lifecycle
     //
     async mounted() {
