@@ -4,8 +4,6 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/requirements-dev.in
 #
-astroid==3.3.5
-    # via pylint
 boolean-py==4.0
     # via license-expression
 build==1.2.2.post1
@@ -28,8 +26,6 @@ cyclonedx-python-lib==7.6.2
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
-dill==0.3.9
-    # via pylint
 faker==28.4.1
     # via -r compact-connect/requirements-dev.in
 filelock==3.16.1
@@ -40,14 +36,10 @@ idna==3.10
     # via requests
 iniconfig==2.0.0
     # via pytest
-isort==5.13.2
-    # via pylint
 license-expression==30.3.1
     # via cyclonedx-python-lib
 markdown-it-py==3.0.0
     # via rich
-mccabe==0.7.0
-    # via pylint
 mdurl==0.1.2
     # via markdown-it-py
 msgpack==1.1.0
@@ -68,16 +60,12 @@ pip-requirements-parser==32.0.1
     # via pip-audit
 pip-tools==7.4.1
     # via -r compact-connect/requirements-dev.in
-platformdirs==4.3.6
-    # via pylint
 pluggy==1.5.0
     # via pytest
 py-serializable==1.1.2
     # via cyclonedx-python-lib
 pygments==2.18.0
     # via rich
-pylint==3.3.1
-    # via -r compact-connect/requirements-dev.in
 pyparsing==3.2.0
     # via pip-requirements-parser
 pyproject-hooks==1.2.0
@@ -98,6 +86,8 @@ requests==2.32.3
     #   pip-audit
 rich==13.9.2
     # via pip-audit
+ruff==0.6.9
+    # via -r compact-connect/requirements-dev.in
 six==1.16.0
     # via
     #   html5lib
@@ -106,8 +96,6 @@ sortedcontainers==2.4.0
     # via cyclonedx-python-lib
 toml==0.10.2
     # via pip-audit
-tomlkit==0.13.2
-    # via pylint
 urllib3==2.2.3
     # via requests
 webencodings==0.5.1

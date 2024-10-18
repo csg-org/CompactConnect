@@ -1,6 +1,6 @@
+from collections.abc import Generator
 from csv import DictReader
 from io import TextIOBase
-from typing import Generator
 
 from data_model.schema.license import LicensePostSchema
 

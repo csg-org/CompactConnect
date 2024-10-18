@@ -1,11 +1,11 @@
-# pylint: disable=invalid-name
-
-from marshmallow import validates_schema, ValidationError, pre_dump
-from marshmallow.fields import String, Date, UUID, Email, Boolean
-from marshmallow.validate import Regexp, Length, OneOf
+# ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 
 from config import config
-from data_model.schema.base_record import BaseRecordSchema, SocialSecurityNumber, ForgivingSchema, ITUTE164PhoneNumber
+from marshmallow import ValidationError, pre_dump, validates_schema
+from marshmallow.fields import UUID, Boolean, Date, Email, String
+from marshmallow.validate import Length, OneOf, Regexp
+
+from data_model.schema.base_record import BaseRecordSchema, ForgivingSchema, ITUTE164PhoneNumber, SocialSecurityNumber
 
 
 class LicenseCommonSchema(ForgivingSchema):
@@ -13,16 +13,14 @@ class LicenseCommonSchema(ForgivingSchema):
 
 
 class LicensePublicSchema(LicenseCommonSchema):
-    """
-    Schema for license data that can be shared with the public
-    """
+    """Schema for license data that can be shared with the public"""
+
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
 
 
 class LicensePostSchema(LicensePublicSchema):
-    """
-    Schema for license data as posted by a board
-    """
+    """Schema for license data as posted by a board"""
+
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     ssn = SocialSecurityNumber(required=True, allow_none=False)
@@ -46,9 +44,8 @@ class LicensePostSchema(LicensePublicSchema):
     emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
 
-
     @validates_schema
-    def validate_license_type(self, data, **kwargs):  # pylint: disable=unused-argument
+    def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
         license_types = config.license_types_for_compact(data['compact'])
         if data['licenseType'] not in license_types:
             raise ValidationError({'licenseType': f"'licenseType' must be one of {license_types}"})
@@ -56,16 +53,15 @@ class LicensePostSchema(LicensePublicSchema):
 
 @BaseRecordSchema.register_schema('license')
 class LicenseRecordSchema(BaseRecordSchema, LicensePostSchema):
-    """
-    Schema for license records in the license data table
-    """
+    """Schema for license records in the license data table"""
+
     _record_type = 'license'
 
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
 
     @pre_dump
-    def generate_pk_sk(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
         in_data['sk'] = f'{in_data['compact']}#PROVIDER#license/{in_data['jurisdiction']}'
         return in_data

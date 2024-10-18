@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import List
 
 from aws_cdk import IResolvable, RemovalPolicy, Resource, Stack
 from aws_cdk.aws_apigateway import Stage
@@ -22,37 +21,39 @@ class WebACL(Resource):
     """
     A WebACL to protect AWS Resources
     """
+
     def __init__(
-        self, scope: Construct, construct_id: str, *,
+        self,
+        scope: Construct,
+        construct_id: str,
+        *,
         acl_scope: WebACLScope = WebACLScope.REGIONAL,
         security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
         enable_acl_logging: bool = True,
-        rules: List[IResolvable | CfnWebACL.RuleProperty] = None
+        rules: list[IResolvable | CfnWebACL.RuleProperty] = None,
     ):
         super().__init__(scope, construct_id)
 
         if rules is None:
-            self.rules = [
-                WebACLRules.rate_limit_rule(),
-                WebACLRules.common_rule()
-            ] if security_profile == SecurityProfile.RECOMMENDED else [
-                WebACLRules.common_rule()
-            ]
+            self.rules = (
+                [WebACLRules.rate_limit_rule(), WebACLRules.common_rule()]
+                if security_profile == SecurityProfile.RECOMMENDED
+                else [WebACLRules.common_rule()]
+            )
         else:
             self.rules = rules
 
         resource = CfnWebACL(
-            self, 'Resource',
-            default_action={
-                'allow': {}
-            },
+            self,
+            'Resource',
+            default_action={'allow': {}},
             scope=acl_scope.value,
             visibility_config={
                 'cloudWatchMetricsEnabled': True,
                 'metricName': 'MetricForWebACLCDK-' + construct_id,
                 'sampledRequestsEnabled': True,
             },
-            rules=self.rules
+            rules=self.rules,
         )
         self.node.default_child = resource
         self.web_acl_id = resource.ref
@@ -67,23 +68,27 @@ class WebACL(Resource):
             # Global ACLs need a log group in us-east-1
             # Regional ACLs need a log group in the matching region
             if scope == WebACLScope.CLOUDFRONT and not stack.region == 'us-east-1':
-                raise RuntimeError('CLOUDFRONT scoped WebACLs must be in the "us-east-1" region to have'
-                                   ' logging enabled')
+                raise RuntimeError(
+                    'CLOUDFRONT scoped WebACLs must be in the "us-east-1" region to have' ' logging enabled'
+                )
 
             self.log_group = LogGroup(
-                self, 'LogGroup',
-                    retention=RetentionDays.ONE_MONTH,
-                    removal_policy=RemovalPolicy.DESTROY,
-                    log_group_name=f'{waf_group_prefix}{self.node.path}'
+                self,
+                'LogGroup',
+                retention=RetentionDays.ONE_MONTH,
+                removal_policy=RemovalPolicy.DESTROY,
+                log_group_name=f'{waf_group_prefix}{self.node.path}',
             )
             NagSuppressions.add_resource_suppressions(
                 self.log_group,
-                suppressions=[{
-                    'id': 'HIPAA.Security-CloudWatchLogGroupEncrypted',
-                    'reason': 'This group will contain no PII or PHI and should be accessible by anyone with access'
-                              ' to the AWS account for basic operational support visibility. Encrypting is not '
-                              ' appropriate here.'
-                }]
+                suppressions=[
+                    {
+                        'id': 'HIPAA.Security-CloudWatchLogGroupEncrypted',
+                        'reason': 'This group will contain no PII or PHI and should be accessible by anyone with access'
+                        ' to the AWS account for basic operational support visibility. Encrypting is not '
+                        ' appropriate here.',
+                    }
+                ],
             )
 
             self.log_group.add_to_resource_policy(
@@ -91,10 +96,7 @@ class WebACL(Resource):
                     sid='AWSLogDeliveryAclCheck',
                     effect=Effect.ALLOW,
                     principals=[logs_delivery_principal],
-                    actions=[
-                        'logs:CreateLogStream',
-                        'logs:PutLogEvents'
-                    ],
+                    actions=['logs:CreateLogStream', 'logs:PutLogEvents'],
                     resources=[
                         # arn:aws:logs:us-east-1:0123456789:log-group:my-log-group:log-stream:*
                         f'{self.log_group.log_group_arn}:log-stream:*'
@@ -109,36 +111,29 @@ class WebACL(Resource):
                                     service='logs',
                                     region=stack.region,
                                     account=stack.account,
-                                    resource='*'
+                                    resource='*',
                                 )
-                            ]
+                            ],
                         }
-                    }
+                    },
                 )
             )
             CfnLoggingConfiguration(
-                self, 'Logging',
+                self,
+                'Logging',
                 log_destination_configs=[self.log_group.log_group_arn],
                 resource_arn=resource.attr_arn,
-                redacted_fields=[
-                    {
-                        'singleHeader': {'Name': 'Authorization'}
-                    }
-                ]
+                redacted_fields=[{'singleHeader': {'Name': 'Authorization'}}],
             )
 
     def associate_stage(self, resource: Stage):
-        CfnWebACLAssociation(
-            self, 'WebACLAssociation',
-            resource_arn=resource.stage_arn,
-            web_acl_arn=self.web_acl_arn
-        )
+        CfnWebACLAssociation(self, 'WebACLAssociation', resource_arn=resource.stage_arn, web_acl_arn=self.web_acl_arn)
 
     def add_rule(self, rule: CfnWebACL.RuleProperty):
         self.rules.append(rule)
 
 
-class WebACLRules():
+class WebACLRules:
     @staticmethod
     def rate_limit_rule(limit: int = 100):
         """
@@ -150,17 +145,12 @@ class WebACLRules():
             name='RateLimit',
             priority=0,
             statement=CfnWebACL.StatementProperty(
-                rate_based_statement=CfnWebACL.RateBasedStatementProperty(
-                    aggregate_key_type='IP',
-                    limit=limit
-                )
+                rate_based_statement=CfnWebACL.RateBasedStatementProperty(aggregate_key_type='IP', limit=limit)
             ),
             visibility_config=CfnWebACL.VisibilityConfigProperty(
-                cloud_watch_metrics_enabled=True,
-                metric_name='MetricForWebACL-Rate',
-                sampled_requests_enabled=True
+                cloud_watch_metrics_enabled=True, metric_name='MetricForWebACL-Rate', sampled_requests_enabled=True
             ),
-            action=CfnWebACL.RuleActionProperty(block={})
+            action=CfnWebACL.RuleActionProperty(block={}),
         )
 
     @staticmethod
@@ -173,16 +163,11 @@ class WebACLRules():
             priority=2,
             statement=CfnWebACL.StatementProperty(
                 managed_rule_group_statement=CfnWebACL.ManagedRuleGroupStatementProperty(
-                    name='AWSManagedRulesCommonRuleSet',
-                    vendor_name='AWS'
+                    name='AWSManagedRulesCommonRuleSet', vendor_name='AWS'
                 )
             ),
             visibility_config=CfnWebACL.VisibilityConfigProperty(
-                cloud_watch_metrics_enabled=True,
-                metric_name='MetricForWebACL-CRS',
-                sampled_requests_enabled=True
+                cloud_watch_metrics_enabled=True, metric_name='MetricForWebACL-CRS', sampled_requests_enabled=True
             ),
-            override_action=CfnWebACL.OverrideActionProperty(
-                none={}
-            )
+            override_action=CfnWebACL.OverrideActionProperty(none={}),
         )

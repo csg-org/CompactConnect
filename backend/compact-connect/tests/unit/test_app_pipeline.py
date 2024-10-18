@@ -3,19 +3,19 @@ import os
 from unittest import TestCase
 from unittest.mock import patch
 
-from aws_cdk.assertions import Template, Match
-from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolRiskConfigurationAttachment, CfnUserPoolClient
-
 from app import CompactConnectApp
+from aws_cdk.assertions import Match, Template
+from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolClient, CfnUserPoolRiskConfigurationAttachment
+
 from tests.unit.base import TstCompactConnectABC
 
 
 class TestPipeline(TstCompactConnectABC, TestCase):
     @classmethod
     def get_context(cls):
-        with open('cdk.json', 'r') as f:
+        with open('cdk.json') as f:
             context = json.load(f)['context']
-        with open('cdk.context.production-example.json', 'r') as f:
+        with open('cdk.context.production-example.json') as f:
             context['ssm_context'] = json.load(f)['ssm_context']
 
         # Suppresses lambda bundling for tests
@@ -30,26 +30,22 @@ class TestPipeline(TstCompactConnectABC, TestCase):
         # Identify any findings from our AwsSolutions rule sets
         self._check_no_stack_annotations(self.app.pipeline_stack)
         for stage in (
-                self.app.pipeline_stack.test_stage,
-                self.app.pipeline_stack.prod_stage,
+            self.app.pipeline_stack.test_stage,
+            self.app.pipeline_stack.prod_stage,
         ):
             self._check_no_stage_annotations(stage)
 
-        for api_stack in (
-            self.app.pipeline_stack.test_stage.api_stack,
-            self.app.pipeline_stack.prod_stage.api_stack
-        ):
+        for api_stack in (self.app.pipeline_stack.test_stage.api_stack, self.app.pipeline_stack.prod_stage.api_stack):
             with self.subTest(api_stack.stack_name):
                 self._inspect_api_stack(api_stack)
 
         self._inspect_persistent_stack(
             self.app.pipeline_stack.test_stage.persistent_stack,
             domain_name='app.test.compactconnect.org',
-            allow_local_ui=True
+            allow_local_ui=True,
         )
         self._inspect_persistent_stack(
-            self.app.pipeline_stack.prod_stage.persistent_stack,
-            domain_name='app.compactconnect.org'
+            self.app.pipeline_stack.prod_stage.persistent_stack, domain_name='app.compactconnect.org'
         )
 
     def test_cognito_using_recommended_security_in_prod(self):
@@ -59,14 +55,7 @@ class TestPipeline(TstCompactConnectABC, TestCase):
         # Make sure both user pools match the security settings above
         user_pools = template.find_resources(
             CfnUserPool.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'UserPoolAddOns': {
-                        'AdvancedSecurityMode': 'ENFORCED'
-                    },
-                    'MfaConfiguration': 'ON'
-                }
-            }
+            props={'Properties': {'UserPoolAddOns': {'AdvancedSecurityMode': 'ENFORCED'}, 'MfaConfiguration': 'ON'}},
         )
         # Two user pools, we should find two matches
         self.assertEqual(2, len(user_pools))
@@ -78,27 +67,14 @@ class TestPipeline(TstCompactConnectABC, TestCase):
                 'Properties': {
                     'AccountTakeoverRiskConfiguration': {
                         'Actions': {
-                            'HighAction': {
-                                'EventAction': 'BLOCK',
-                                'Notify': True
-                            },
-                            'LowAction': {
-                                'EventAction': 'BLOCK',
-                                'Notify': True
-                            },
-                            'MediumAction': {
-                                'EventAction': 'BLOCK',
-                                'Notify': True
-                            }
+                            'HighAction': {'EventAction': 'BLOCK', 'Notify': True},
+                            'LowAction': {'EventAction': 'BLOCK', 'Notify': True},
+                            'MediumAction': {'EventAction': 'BLOCK', 'Notify': True},
                         }
                     },
-                    'CompromisedCredentialsRiskConfiguration': {
-                        'Actions': {
-                            'EventAction': 'BLOCK'
-                        }
-                    }
+                    'CompromisedCredentialsRiskConfiguration': {'Actions': {'EventAction': 'BLOCK'}},
                 }
-            }
+            },
         )
         # One for each of two user pools
         self.assertEqual(2, len(risk_configurations))
@@ -106,13 +82,7 @@ class TestPipeline(TstCompactConnectABC, TestCase):
         # Verify that we're not allowing the implicit grant flow in any of our clients
         implicit_grant_clients = template.find_resources(
             CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME,
-            props={
-                'Properties': {
-                    'AllowedOAuthFlows': Match.array_with([
-                        'implicit'
-                    ])
-                }
-            }
+            props={'Properties': {'AllowedOAuthFlows': Match.array_with(['implicit'])}},
         )
         self.assertEqual(0, len(implicit_grant_clients))
 
@@ -121,23 +91,24 @@ class TestPipeline(TstCompactConnectABC, TestCase):
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         # Ensure our provider user pool is created with expected custom attributes
-        compact_configuration_uploader_custom_resource = self._get_resource_properties_by_logical_id(
+        compact_configuration_uploader_custom_resource = self.get_resource_properties_by_logical_id(
             persistent_stack.get_logical_id(
-                persistent_stack.compact_configuration_upload
-                .compact_configuration_uploader_custom_resource.node.default_child),
-            persistent_stack_template.find_resources("Custom::CompactConfigurationUpload")
+                persistent_stack.compact_configuration_upload.compact_configuration_uploader_custom_resource.node.default_child
+            ),
+            persistent_stack_template.find_resources('Custom::CompactConfigurationUpload'),
         )
         # we don't care about ordering of the jurisdictions, but the snapshot is sensitive to the order,
         # so we ensure to sort the jurisdictions before comparing
         sorted_compact_configuration = self._sort_compact_configuration_input(
-            json.loads(compact_configuration_uploader_custom_resource['compact_configuration']))
+            json.loads(compact_configuration_uploader_custom_resource['compact_configuration'])
+        )
 
         # Assert that the compact_configuration property is set to the expected values
         # If the configuration values for any jurisdiction changes, the snapshot will need to be updated.
         self.compare_snapshot(
             actual=sorted_compact_configuration,
             snapshot_name='COMPACT_CONFIGURATION_UPLOADER_INPUT',
-            overwrite_snapshot=False
+            overwrite_snapshot=False,
         )
 
     @staticmethod
@@ -147,27 +118,22 @@ class TestPipeline(TstCompactConnectABC, TestCase):
         This ensures the snapshot comparison is consistent.
         """
         compact_configuration_input['compacts'] = sorted(
-            compact_configuration_input['compacts'],
-            key=lambda compact: compact['compactName']
+            compact_configuration_input['compacts'], key=lambda compact: compact['compactName']
         )
         for compact_name, jurisdictions in compact_configuration_input['jurisdictions'].items():
             compact_configuration_input['jurisdictions'][compact_name] = sorted(
-                jurisdictions,
-                key=lambda jurisdiction: jurisdiction['postalAbbreviation']
+                jurisdictions, key=lambda jurisdiction: jurisdiction['postalAbbreviation']
             )
 
         return compact_configuration_input
 
 
 class TestPipelineVulnerable(TestCase):
-    @patch.dict(os.environ, {
-        'CDK_DEFAULT_ACCOUNT': '000000000000',
-        'CDK_DEFAULT_REGION': 'us-east-1'
-    })
+    @patch.dict(os.environ, {'CDK_DEFAULT_ACCOUNT': '000000000000', 'CDK_DEFAULT_REGION': 'us-east-1'})
     def test_app_refuses_to_synth_with_prod_vulnerable(self):
-        with open('cdk.json', 'r') as f:
+        with open('cdk.json') as f:
             context = json.load(f)['context']
-        with open('cdk.context.production-example.json', 'r') as f:
+        with open('cdk.context.production-example.json') as f:
             ssm_context = json.load(f)['ssm_context']
 
         # Suppresses lambda bundling for tests
@@ -183,7 +149,8 @@ class TestPipelineVulnerable(TestCase):
         context[
             f'ssm:account={pipeline_context['account_id']}'
             ':parameterName=compact-connect-context'
-            f':region={pipeline_context['region']}'] = json.dumps(ssm_context)
+            f':region={pipeline_context['region']}'
+        ] = json.dumps(ssm_context)
 
         with self.assertRaises(ValueError):
             CompactConnectApp(context=context)

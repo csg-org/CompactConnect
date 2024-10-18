@@ -1,23 +1,21 @@
 import json
 from base64 import b64decode, b64encode
+from collections.abc import Callable
 from types import MethodType
-from typing import Callable, List
 
 from botocore.exceptions import ClientError
+from config import config, logger
+from exceptions import CCInternalException, CCInvalidRequestException
 from marshmallow import ValidationError
 
-from config import config, logger
 from data_model.schema.user import UserRecordSchema
-from exceptions import CCInvalidRequestException, CCInternalException
-
 
 _user_record_schema = UserRecordSchema()
 
 
 # It's conventional to name a decorator in snake_case, even if it is implemented as a class
-class paginated_query:  # pylint: disable=invalid-name
-    """
-    Decorator to handle converting API interface pagination to DynamoDB pagination.
+class paginated_query:  # noqa: N801 invalid-name
+    """Decorator to handle converting API interface pagination to DynamoDB pagination.
 
     This will process incoming pagination fields for passing to DynamoDB, then take the raw DynamoDB response and
     transform it into a dict that includes an encoded lastKey field.
@@ -31,13 +29,13 @@ class paginated_query:  # pylint: disable=invalid-name
     that we always return the full pageSize, when there are enough results, this decorator will also potentially repeat
     queries multiple times internally, until it has pageSize items to return.
     """
+
     def __init__(self, fn: Callable):
         super().__init__()
         self.fn = fn
 
     def __get__(self, instance, owner):
-        ret = MethodType(self, instance)
-        return ret
+        return MethodType(self, instance)
 
     def __call__(self, *args, pagination: dict = None, client_filter: Callable[[dict], bool] = None, **kwargs):
         if pagination is None:
@@ -54,11 +52,11 @@ class paginated_query:  # pylint: disable=invalid-name
         items = []
         raw_resp = {}
         for raw_resp in self._generate_pages(
-                last_key=last_key,
-                page_size=page_size,
-                client_filter=client_filter,
-                args=args,
-                kwargs=kwargs
+            last_key=last_key,
+            page_size=page_size,
+            client_filter=client_filter,
+            args=args,
+            kwargs=kwargs,
         ):
             items.extend(raw_resp.get('Items', []))
 
@@ -69,20 +67,14 @@ class paginated_query:  # pylint: disable=invalid-name
         resp = {
             # Deserializing everything that comes out of the database
             'items': self._load_records(items),
-            'pagination': {
-                'pageSize': page_size,
-                'prevLastKey': pagination.get('lastKey')
-            }
+            'pagination': {'pageSize': page_size, 'prevLastKey': pagination.get('lastKey')},
         }
 
         # Since we truncated our items, we need to recalculate the last key
         last_key = None
         if raw_last_key is not None:
             last_item = items[-1]
-            last_key = {
-                k: last_item[k]
-                for k in raw_last_key.keys()
-            }
+            last_key = {k: last_item[k] for k in raw_last_key.keys()}
 
         # Last key, if present, will be a dict like {'pk': 'some-pk', 'sk': 'aslp/PROVIDER'}
         if last_key is not None:
@@ -91,20 +83,16 @@ class paginated_query:  # pylint: disable=invalid-name
         return resp
 
     def _generate_pages(
-            self, *,
-            last_key: str | None,
-            page_size: int,
-            client_filter: Callable[[dict], bool] | None,
-            args,
-            kwargs
+        self,
+        *,
+        last_key: str | None,
+        page_size: int,
+        client_filter: Callable[[dict], bool] | None,
+        args,
+        kwargs,
     ):
-        """
-        Repeat the wrapped query until we get everything or the full page_size of items
-        """
-        dynamo_pagination = {
-            'Limit': page_size,
-            **({'ExclusiveStartKey': last_key} if last_key is not None else {})
-        }
+        """Repeat the wrapped query until we get everything or the full page_size of items"""
+        dynamo_pagination = {'Limit': page_size, **({'ExclusiveStartKey': last_key} if last_key is not None else {})}
 
         raw_resp = self._caught_query(client_filter, *args, dynamo_pagination=dynamo_pagination, **kwargs)
         count = raw_resp['Count']
@@ -114,7 +102,7 @@ class paginated_query:  # pylint: disable=invalid-name
         while last_key is not None and count < page_size:
             dynamo_pagination = {
                 'Limit': page_size,
-                **({'ExclusiveStartKey': last_key} if last_key is not None else {})
+                **({'ExclusiveStartKey': last_key} if last_key is not None else {}),
             }
 
             raw_resp = self._caught_query(client_filter, *args, dynamo_pagination=dynamo_pagination, **kwargs)
@@ -123,9 +111,7 @@ class paginated_query:  # pylint: disable=invalid-name
             yield raw_resp
 
     def _caught_query(self, client_filter: Callable[[dict], bool] | None, *args, **kwargs):
-        """
-        Uniformly convert our DynamoDB query validation errors to invalid request exceptions
-        """
+        """Uniformly convert our DynamoDB query validation errors to invalid request exceptions"""
         try:
             raw_resp = self.fn(*args, **kwargs)
         except ClientError as e:
@@ -138,26 +124,16 @@ class paginated_query:  # pylint: disable=invalid-name
 
         # Apply client filter if provided
         if client_filter is not None:
-            raw_resp['Items'] = [
-                item
-                for item in raw_resp['Items']
-                if client_filter(item)
-            ]
+            raw_resp['Items'] = [item for item in raw_resp['Items'] if client_filter(item)]
             count = len(raw_resp['Items'])
             raw_resp['Count'] = count
 
         return raw_resp
 
     @staticmethod
-    def _load_records(records: List[dict]):
-        """
-        Every record coming through this paginator should be de-serializable through our *RecordSchema
-        """
-        print(records)
+    def _load_records(records: list[dict]):
+        """Every record coming through this paginator should be de-serializable through our *RecordSchema"""
         try:
-            return [
-                _user_record_schema.load(item)
-                for item in records
-            ]
+            return [_user_record_schema.load(item) for item in records]
         except (KeyError, ValidationError) as e:
             raise CCInternalException('Data validation failure!') from e
