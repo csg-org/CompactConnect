@@ -1,14 +1,14 @@
 import json
 import os
+import sys
 from abc import ABC, abstractmethod
-from typing import Mapping
+from collections.abc import Mapping
 from unittest.mock import patch
 
-from aws_cdk.assertions import Template, Match, Annotations
+from app import CompactConnectApp
+from aws_cdk.assertions import Annotations, Match, Template
 from aws_cdk.aws_apigateway import CfnMethod
 from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolClient
-
-from app import CompactConnectApp
 from common_constructs.stack import Stack
 from pipeline import BackendStage
 from stacks.api_stack import ApiStack
@@ -21,16 +21,14 @@ class TstCompactConnectABC(ABC):
 
     Note: Concrete classes must also inherit from TestCase
     """
+
     @classmethod
     @abstractmethod
     def get_context(cls) -> Mapping:
         pass
 
     @classmethod
-    @patch.dict(os.environ, {
-        'CDK_DEFAULT_ACCOUNT': '000000000000',
-        'CDK_DEFAULT_REGION': 'us-east-1'
-    })
+    @patch.dict(os.environ, {'CDK_DEFAULT_ACCOUNT': '000000000000', 'CDK_DEFAULT_REGION': 'us-east-1'})
     def setUpClass(cls):  # pylint: disable=invalid-name
         """
         We build the app once per TestCase, to save compute time in the test suite
@@ -66,11 +64,12 @@ class TstCompactConnectABC(ABC):
             raise RuntimeError(f'{logical_id} not found in resources!') from exc
 
     def _inspect_persistent_stack(
-            self,
-            persistent_stack: PersistentStack, *,
-            domain_name: str = None,
-            allow_local_ui: bool = False,
-            local_ui_port: str = None
+        self,
+        persistent_stack: PersistentStack,
+        *,
+        domain_name: str = None,
+        allow_local_ui: bool = False,
+        local_ui_port: str = None,
     ):
         with self.subTest(persistent_stack.stack_name):
             # Make sure our local port ui setting overrides the default
@@ -90,42 +89,40 @@ class TstCompactConnectABC(ABC):
             # Ensure our provider user pool is created with expected custom attributes
             provider_users_user_pool = self._get_resource_properties_by_logical_id(
                 persistent_stack.get_logical_id(persistent_stack.provider_users.node.default_child),
-                persistent_stack_template.find_resources(CfnUserPool.CFN_RESOURCE_TYPE_NAME)
+                persistent_stack_template.find_resources(CfnUserPool.CFN_RESOURCE_TYPE_NAME),
             )
 
             # assert that both custom attributes are in schema
-            self.assertIn({'AttributeDataType': 'String', 'Mutable': False, 'Name': 'providerId'},
-                          provider_users_user_pool['Schema'])
-            self.assertIn({'AttributeDataType': 'String', 'Mutable': False, 'Name': 'compact'},
-                          provider_users_user_pool['Schema'])
+            self.assertIn(
+                {'AttributeDataType': 'String', 'Mutable': False, 'Name': 'providerId'},
+                provider_users_user_pool['Schema'],
+            )
+            self.assertIn(
+                {'AttributeDataType': 'String', 'Mutable': False, 'Name': 'compact'}, provider_users_user_pool['Schema']
+            )
             # Ensure our Staff user pool app client is configured with the expected callbacks and read/write attributes
             staff_users_user_pool_app_client = self._get_resource_properties_by_logical_id(
                 persistent_stack.get_logical_id(persistent_stack.staff_users.ui_client.node.default_child),
-                persistent_stack_template.find_resources(CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME)
+                persistent_stack_template.find_resources(CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME),
             )
             self.assertEqual(staff_users_user_pool_app_client['CallbackURLs'], callbacks)
-            self.assertEqual(staff_users_user_pool_app_client['ReadAttributes'], ["email"])
-            self.assertEqual(staff_users_user_pool_app_client['WriteAttributes'], ["email"])
+            self.assertEqual(staff_users_user_pool_app_client['ReadAttributes'], ['email'])
+            self.assertEqual(staff_users_user_pool_app_client['WriteAttributes'], ['email'])
 
             # Ensure our Provider user pool app client is created with expected values
             provider_users_user_pool_app_client = self._get_resource_properties_by_logical_id(
                 persistent_stack.get_logical_id(persistent_stack.provider_users.ui_client.node.default_child),
-                persistent_stack_template.find_resources(CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME)
+                persistent_stack_template.find_resources(CfnUserPoolClient.CFN_RESOURCE_TYPE_NAME),
             )
 
             self.assertEqual(provider_users_user_pool_app_client['CallbackURLs'], callbacks)
-            self.assertEqual(provider_users_user_pool_app_client['ReadAttributes'], [
-                "custom:compact",
-                "custom:providerId",
-                "email",
-                "family_name",
-                "given_name"
-            ])
-            self.assertEqual(provider_users_user_pool_app_client['WriteAttributes'], [
-                "email",
-                "family_name",
-                "given_name"
-            ])
+            self.assertEqual(
+                provider_users_user_pool_app_client['ReadAttributes'],
+                ['custom:compact', 'custom:providerId', 'email', 'family_name', 'given_name'],
+            )
+            self.assertEqual(
+                provider_users_user_pool_app_client['WriteAttributes'], ['email', 'family_name', 'given_name']
+            )
 
     def _inspect_api_stack(self, api_stack: ApiStack):
         with self.subTest(api_stack.stack_name):
@@ -136,32 +133,18 @@ class TstCompactConnectABC(ABC):
                 # Not matching is desired in this case and raises a RuntimeError.
                 api_template.has_resource(
                     type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
-                    props={
-                        'Properties': {
-                            'AuthorizationScopes': Match.any_value(),
-                            'AuthorizationType': 'NONE'
-                        }
-                    }
+                    props={'Properties': {'AuthorizationScopes': Match.any_value(), 'AuthorizationType': 'NONE'}},
                 )
 
     def _check_no_stack_annotations(self, stack: Stack):
         with self.subTest(f'Security Rules: {stack.stack_name}'):
-            errors = Annotations.from_stack(stack).find_error(
-                '*',
-                Match.string_like_regexp('.*')
-            )
-            self.assertEqual(0,
-                             len(errors),
-                             msg='\n'.join((f'{err.id}: {err.entry.data.strip()}' for err in errors)))
+            errors = Annotations.from_stack(stack).find_error('*', Match.string_like_regexp('.*'))
+            self.assertEqual(0, len(errors), msg='\n'.join(f'{err.id}: {err.entry.data.strip()}' for err in errors))
 
-            warnings = Annotations.from_stack(stack).find_warning(
-                '*',
-                Match.string_like_regexp('.*')
+            warnings = Annotations.from_stack(stack).find_warning('*', Match.string_like_regexp('.*'))
+            self.assertEqual(
+                0, len(warnings), msg='\n'.join(f'{warn.id}: {warn.entry.data.strip()}' for warn in warnings)
             )
-            self.assertEqual(0,
-                             len(warnings),
-                             msg='\n'.join((f'{warn.id}: {warn.entry.data.strip()}' for warn in warnings)))
-
 
     def _check_no_stage_annotations(self, stage: BackendStage):
         self._check_no_stack_annotations(stage.persistent_stack)
@@ -177,17 +160,21 @@ class TstCompactConnectABC(ABC):
         snapshot_path = os.path.join('tests', 'resources', 'snapshots', f'{snapshot_name}.json')
 
         if os.path.exists(snapshot_path):
-            with open(snapshot_path, 'r') as f:
+            with open(snapshot_path) as f:
                 snapshot = json.load(f)
         else:
-            print(f"Snapshot at path '{snapshot_path}' does not exist.")
+            sys.stdout.write(f"Snapshot at path '{snapshot_path}' does not exist.")
             snapshot = None
 
         if snapshot != actual and overwrite_snapshot:
             with open(snapshot_path, 'w') as f:
                 json.dump(actual, f, indent=2)
-            print(f"Snapshot '{snapshot_name}' has been overwritten.")
+            sys.stdout.write(f"Snapshot '{snapshot_name}' has been overwritten.")
         else:
-            self.maxDiff = None  #pylint: disable=invalid-name,attribute-defined-outside-init
-            self.assertEqual(snapshot, actual, f"Snapshot '{snapshot_name}' does not match the actual data. "
-                                               "To overwrite the snapshot, set overwrite_snapshot=True.")
+            self.maxDiff = None  # pylint: disable=invalid-name,attribute-defined-outside-init
+            self.assertEqual(
+                snapshot,
+                actual,
+                f"Snapshot '{snapshot_name}' does not match the actual data. "
+                'To overwrite the snapshot, set overwrite_snapshot=True.',
+            )

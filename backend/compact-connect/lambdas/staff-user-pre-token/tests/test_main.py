@@ -8,7 +8,6 @@ from tests import TstLambdas
 
 @mock_aws
 class TestCustomizeScopes(TstLambdas):
-
     def test_happy_path(self):
         from main import customize_scopes
 
@@ -27,8 +26,8 @@ class TestCustomizeScopes(TstLambdas):
                     'jurisdictions': {
                         # should correspond to the 'aslp/write' and 'aslp/al.write' scopes
                         'al': {'write'}
-                    }
-                }
+                    },
+                },
             }
         )
 
@@ -36,7 +35,7 @@ class TestCustomizeScopes(TstLambdas):
 
         self.assertEqual(
             sorted(['profile', 'aslp/read', 'aslp/write', 'aslp/al.write']),
-            sorted(resp['response']['claimsAndScopeOverrideDetails']['accessTokenGeneration']['scopesToAdd'])
+            sorted(resp['response']['claimsAndScopeOverrideDetails']['accessTokenGeneration']['scopesToAdd']),
         )
 
     def test_unauthenticated(self):
@@ -53,10 +52,7 @@ class TestCustomizeScopes(TstLambdas):
 
         resp = customize_scopes(event, self.mock_context)
 
-        self.assertEqual(
-            None,
-            resp['response']['claimsAndScopeOverrideDetails']
-        )
+        self.assertEqual(None, resp['response']['claimsAndScopeOverrideDetails'])
 
     @patch('main.UserScopes', autospec=True)
     def test_error_getting_scopes(self, mock_get_scopes):
@@ -72,7 +68,4 @@ class TestCustomizeScopes(TstLambdas):
 
         resp = customize_scopes(event, self.mock_context)
 
-        self.assertEqual(
-            None,
-            resp['response']['claimsAndScopeOverrideDetails']
-        )
+        self.assertEqual(None, resp['response']['claimsAndScopeOverrideDetails'])

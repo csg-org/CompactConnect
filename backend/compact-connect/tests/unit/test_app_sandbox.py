@@ -2,15 +2,16 @@ import json
 from unittest import TestCase
 
 from app import CompactConnectApp
+
 from tests.unit.base import TstCompactConnectABC
 
 
 class TstSandbox(TstCompactConnectABC, TestCase):
     @classmethod
     def get_context(cls):
-        with open('cdk.json', 'r') as f:
+        with open('cdk.json') as f:
             context = json.load(f)['context']
-        with open('cdk.context.sandbox-example.json', 'r') as f:
+        with open('cdk.context.sandbox-example.json') as f:
             context.update(json.load(f))
 
         # Suppresses lambda bundling for tests
@@ -31,9 +32,7 @@ class TestSandbox(TstSandbox):
         self._inspect_api_stack(self.app.sandbox_stage.api_stack)
 
         self._inspect_persistent_stack(
-            self.app.sandbox_stage.persistent_stack,
-            domain_name='app.justin.compactconnect.org',
-            allow_local_ui=True
+            self.app.sandbox_stage.persistent_stack, domain_name='app.justin.compactconnect.org', allow_local_ui=True
         )
 
 
@@ -57,16 +56,14 @@ class TestSandboxNoDomain(TstSandbox):
 
         self._inspect_api_stack(self.app.sandbox_stage.api_stack)
 
-        self._inspect_persistent_stack(
-            self.app.sandbox_stage.persistent_stack,
-            allow_local_ui=True
-        )
+        self._inspect_persistent_stack(self.app.sandbox_stage.persistent_stack, allow_local_ui=True)
 
 
 class TestSandboxLocalUiPortOverride(TstSandbox):
     """
     Test infrastructure as deployed in a developer's sandbox
     """
+
     @classmethod
     def get_context(cls):
         context = super().get_context()
@@ -83,9 +80,7 @@ class TestSandboxLocalUiPortOverride(TstSandbox):
         self._inspect_api_stack(self.app.sandbox_stage.api_stack)
 
         self._inspect_persistent_stack(
-            self.app.sandbox_stage.persistent_stack,
-            allow_local_ui=True,
-            local_ui_port='5432'
+            self.app.sandbox_stage.persistent_stack, allow_local_ui=True, local_ui_port='5432'
         )
 
 
@@ -96,9 +91,9 @@ class TestSandboxNoUi(TestCase):
     """
 
     def test_synth_no_ui_raises_value_error(self):
-        with open('cdk.json', 'r') as f:
+        with open('cdk.json') as f:
             context = json.load(f)['context']
-        with open('cdk.context.sandbox-example.json', 'r') as f:
+        with open('cdk.context.sandbox-example.json') as f:
             context.update(json.load(f))
 
         # Suppresses lambda bundling for tests
