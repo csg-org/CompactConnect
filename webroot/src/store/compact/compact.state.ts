@@ -7,7 +7,6 @@
 
 export interface State {
     compactMap: object;
-    
 }
 
 export const state: State = {

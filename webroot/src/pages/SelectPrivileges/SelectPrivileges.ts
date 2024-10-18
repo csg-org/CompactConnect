@@ -19,6 +19,9 @@ export default class SelectPrivileges extends Vue {
     //
     // Lifecycle
     //
+    mounted() {
+        this.$store.dispatch('user/getPrivilegePurchaseInformationRequest');
+    }
 
     //
     // Computed

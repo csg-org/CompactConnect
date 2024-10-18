@@ -190,27 +190,28 @@ export default {
     },
     getPrivilegePurchaseInformationRequest: ({ commit, dispatch }) => {
         commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST);
-        return dataApi.getAuthenticatedStaffUser().then((data) => {
-
-
-
+        return dataApi.getPrivilegePurchaseInformation().then((data) => {
             dispatch('getPrivilegePurchaseInformationSuccess', data);
-
             return data;
         }).catch((error) => {
             dispatch('getPrivilegePurchaseInformationFailure', error);
         });
     },
-    getPrivilegePurchaseInformationSuccess: ({ commit, dispatch, state }, data) => {
-        console.log('serializedData', data);
-    
-        // const newCompact = new Compact({...state.currentCompact, privilegePurchaseOptions: a, compactCommissionFee: a, compactCommissionFeeType: a});
-        // commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS, newCompact);
-        // if (newCompact) {
-        //     dispatch('setCurrentCompact', newCompact);
-        // }
+    getPrivilegePurchaseInformationSuccess: ({ dispatch, commit, state }, data) => {
+        if (data?.compactCommissionFee?.compact === state?.currentCompact?.type) {
+            const newCompact = new Compact({
+                ...state.currentCompact,
+                privilegePurchaseOptions: data.privilegePurchaseOptions,
+                compactCommissionFee: data?.compactCommissionFee?.feeType,
+                compactCommissionFeeType: data?.compactCommissionFee?.feeType
+            });
 
-        dispatch('setCurrentCompact', newCompact);
+            commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS, newCompact);
+            dispatch('setCurrentCompact', newCompact);
+        } else {
+            // TODO: make sure error case is all good
+            dispatch('getPrivilegePurchaseInformationFailure', 'Compact mismatch');
+        }
     },
     getPrivilegePurchaseInformationFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE, error);

@@ -194,9 +194,9 @@ export class UserDataApi implements DataApiInterface {
         const privilegePurchaseOptions = items.filter((serverItem) => (serverItem.type === 'jurisdiction')).map((serverPurchaseOption) => (PrivilegePurchaseOptionSerializer.fromServer(serverPurchaseOption)));
 
         const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => ({
-            compact: serverFeeObject?.compact,
+            compact: serverFeeObject?.compactName,
             feeType: serverFeeObject?.compactCommissionFee?.feeType,
-            fee: serverFeeObject?.compactCommissionFee.fee
+            fee: serverFeeObject?.compactCommissionFee?.feeAmount
         }))[0];
 
         return { privilegePurchaseOptions, compactCommissionFee };
