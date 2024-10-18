@@ -16,6 +16,7 @@
     "@vue/compat": "3.4.21",
     "@vuepic/vue-datepicker": "^8.7.0",
     "axios": "^0.28.1",
+    "caniuse-lite": "^1.0.30001669",
     "click-outside-vue3": "^4.0.1",
     "core-js": "^3.23.0",
     "country-codes-flags-phone-codes": "^1.0.4",
