@@ -15,6 +15,7 @@ from constructs import Construct
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.compact_configuration_table import CompactConfigurationTable
 from stacks.persistent_stack.compact_configuration_upload import CompactConfigurationUpload
+from stacks.persistent_stack.data_events_table import DataEventsTable
 from stacks.persistent_stack.event_bus import EventBus
 from stacks.persistent_stack.license_table import LicenseTable
 from stacks.persistent_stack.provider_table import ProviderTable
@@ -23,9 +24,8 @@ from stacks.persistent_stack.provider_users_bucket import ProviderUsersBucket
 from stacks.persistent_stack.staff_users import StaffUsers
 from stacks.persistent_stack.user_email_notifications import UserEmailNotifications
 
+
 # cdk leverages instance attributes to make resource exports accessible to other stacks
-
-
 class PersistentStack(AppStack):
     """
     The stack that holds long-lived resources such as license data and other things that should probably never
@@ -217,6 +217,13 @@ class PersistentStack(AppStack):
 
         self.provider_table = ProviderTable(
             self, 'ProviderTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
+        )
+
+        self.data_events_table = DataEventsTable(
+            self,
+            'DataEventsTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy,
         )
 
         self.compact_configuration_table = CompactConfigurationTable(

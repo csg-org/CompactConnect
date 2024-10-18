@@ -15,7 +15,7 @@ from stacks.api_stack import ApiStack
 from stacks.persistent_stack import PersistentStack
 
 
-class TstCompactConnectABC(ABC):
+class TstAppABC(ABC):
     """
     Base class for common test elements across configurations.
 

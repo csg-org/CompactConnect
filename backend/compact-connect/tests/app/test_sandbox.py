@@ -3,10 +3,10 @@ from unittest import TestCase
 
 from app import CompactConnectApp
 
-from tests.unit.base import TstCompactConnectABC
+from tests.app.base import TstAppABC
 
 
-class TstSandbox(TstCompactConnectABC, TestCase):
+class TstSandbox(TstAppABC, TestCase):
     @classmethod
     def get_context(cls):
         with open('cdk.json') as f:
