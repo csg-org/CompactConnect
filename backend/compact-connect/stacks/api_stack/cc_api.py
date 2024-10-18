@@ -17,6 +17,7 @@ from aws_cdk.aws_route53_targets import ApiGateway
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
+from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from common_constructs.webacl import WebACL, WebACLScope
 from stacks.api_stack.mock_api import MockApi
@@ -61,6 +62,7 @@ class CCApi(RestApi):
     def __init__(
             self, scope: Construct, construct_id: str, *,
             environment_name: str,
+            security_profile: SecurityProfile = SecurityProfile.RECOMMENDED,
             persistent_stack: ps.PersistentStack,
             **kwargs
     ):
@@ -150,7 +152,8 @@ class CCApi(RestApi):
 
         self.web_acl = WebACL(
             self, 'WebACL',
-            acl_scope=WebACLScope.REGIONAL
+            acl_scope=WebACLScope.REGIONAL,
+            security_profile=security_profile
         )
         self.web_acl.associate_stage(self.deployment_stage)
         self.log_groups = [access_log_group, self.web_acl.log_group]

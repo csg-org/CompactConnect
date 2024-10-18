@@ -7,6 +7,7 @@ from constructs import Construct
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.stack import AppStack
+from common_constructs.security_profile import SecurityProfile
 
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.license_table import LicenseTable
@@ -90,6 +91,7 @@ class PersistentStack(AppStack):
             # if domain name is not provided, use the default cognito email settings
             user_pool_email_settings = UserPoolEmail.with_cognito()
 
+        security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
         staff_prefix = f'{app_name}-staff'
 
         self.staff_users = StaffUsers(
@@ -100,6 +102,7 @@ class PersistentStack(AppStack):
             environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
             user_pool_email=user_pool_email_settings,
+            security_profile=security_profile,
             removal_policy=removal_policy
         )
 
@@ -112,6 +115,7 @@ class PersistentStack(AppStack):
             environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
             user_pool_email=user_pool_email_settings,
+            security_profile=security_profile,
             removal_policy=removal_policy
         )
 
