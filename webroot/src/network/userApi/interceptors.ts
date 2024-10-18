@@ -14,11 +14,19 @@ import { authStorage, tokens } from '@/app.config';
  * @return {AxiosInterceptor} Function that amends the outgoing client API request.
  */
 export const requestSuccess = () => async (requestConfig) => {
-    const authToken = authStorage.getItem(tokens.staff.AUTH_TOKEN);
-    const authTokenType = authStorage.getItem(tokens.staff.AUTH_TOKEN_TYPE);
-    const { headers } = requestConfig;
+    const licenseeUserEndPoints = ['/v1/provider-users/me', '/v1/purchases/privileges/options'];
+    const { headers, url } = requestConfig;
+    let authToken;
+    let authTokenType;
 
-    // Add auth token
+    if (licenseeUserEndPoints.includes(url)) {
+        authToken = authStorage.getItem(tokens.licensee.ID_TOKEN);
+        authTokenType = authStorage.getItem(tokens.licensee.AUTH_TOKEN_TYPE);
+    } else {
+        authToken = authStorage.getItem(tokens.staff.AUTH_TOKEN);
+        authTokenType = authStorage.getItem(tokens.staff.AUTH_TOKEN_TYPE);
+    }
+
     headers.Authorization = `${authTokenType} ${authToken}`;
 
     return requestConfig;

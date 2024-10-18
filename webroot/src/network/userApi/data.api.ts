@@ -13,6 +13,7 @@ import {
     responseError
 } from '@network/userApi/interceptors';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
+import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { UserSerializer } from '@models/User/User.model';
 
 export interface RequestParamsInterfaceLocal {
@@ -181,6 +182,24 @@ export class UserDataApi implements DataApiInterface {
         const response = UserSerializer.fromServer(serverResponse);
 
         return response;
+    }
+
+    /**
+     * GET Privilege purchase information for logged in licensee user.
+     * @return {Promise<User>} A User model instance.
+     */
+    public async getPrivilegePurchaseInformation() {
+        const serverResponse: any = await this.api.get(`/v1/purchases/privileges/options`);
+        const { items } = serverResponse;
+        const privilegePurchaseOptions = items.filter((serverItem) => (serverItem.type === 'jurisdiction')).map((serverPurchaseOption) => (PrivilegePurchaseOptionSerializer.fromServer(serverPurchaseOption)));
+
+        const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => ({
+            compact: serverFeeObject?.compact,
+            feeType: serverFeeObject?.compactCommissionFee?.feeType,
+            fee: serverFeeObject?.compactCommissionFee.fee
+        }))[0];
+
+        return { privilegePurchaseOptions, compactCommissionFee };
     }
 }
 

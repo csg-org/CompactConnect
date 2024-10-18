@@ -26,6 +26,10 @@ export enum MutationTypes {
     UPDATE_ACCOUNT_FAILURE = '[User] Update Account Failure',
     UPDATE_ACCOUNT_SUCCESS = '[User] Update Account Success',
     SET_REFRESH_TIMEOUT_ID = '[User] Set Refresh Timeout ID',
+    GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST = '',
+    GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS = '',
+    GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE = '',
+
 }
 
 export default {
@@ -98,5 +102,17 @@ export default {
     },
     [MutationTypes.SET_REFRESH_TIMEOUT_ID]: (state: any, timeoutId: number|null) => {
         state.refreshTokenTimeoutId = timeoutId;
+    },
+    [MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
+    [MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
     },
 };

@@ -188,4 +188,31 @@ export default {
             localStorage.removeItem(tokens[authType][key]); // Always remove localStorage to reduce edge cache states; e.g. from switching auth storage
         });
     },
+    getPrivilegePurchaseInformationRequest: ({ commit, dispatch }) => {
+        commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST);
+        return dataApi.getAuthenticatedStaffUser().then((data) => {
+
+
+
+            dispatch('getPrivilegePurchaseInformationSuccess', data);
+
+            return data;
+        }).catch((error) => {
+            dispatch('getPrivilegePurchaseInformationFailure', error);
+        });
+    },
+    getPrivilegePurchaseInformationSuccess: ({ commit, dispatch, state }, data) => {
+        console.log('serializedData', data);
+    
+        // const newCompact = new Compact({...state.currentCompact, privilegePurchaseOptions: a, compactCommissionFee: a, compactCommissionFeeType: a});
+        // commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS, newCompact);
+        // if (newCompact) {
+        //     dispatch('setCurrentCompact', newCompact);
+        // }
+
+        dispatch('setCurrentCompact', newCompact);
+    },
+    getPrivilegePurchaseInformationFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE, error);
+    },
 };
