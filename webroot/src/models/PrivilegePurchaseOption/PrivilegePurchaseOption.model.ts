@@ -12,7 +12,7 @@ import { State } from '@models/State/State.model';
 // =                       Interface                      =
 // ========================================================
 export interface InterfacePrivilegePurchaseOption {
-    jurisdiction?: State | null;
+    jurisdiction?: State;
     compact?: string | null;
     fee?: number | null;
     feeType?: FeeTypes | null;
@@ -27,7 +27,14 @@ export interface InterfacePrivilegePurchaseOption {
 // ========================================================
 export class PrivilegePurchaseOption implements InterfacePrivilegePurchaseOption {
     public $tm?: any = () => [];
-    public jurisdiction? = null;
+    public jurisdiction? = new State();
+    public compact? = null;
+    public fee? = null;
+    public feeType? = null;
+    public isMilitaryDiscountActive? = false;
+    public militaryDiscountType? = null;
+    public militaryDiscountAmount? = null;
+    public isJurisprudenceRequired? = false;
 
     constructor(data?: InterfacePrivilegePurchaseOption) {
         const cleanDataObject = deleteUndefinedProperties(data);
