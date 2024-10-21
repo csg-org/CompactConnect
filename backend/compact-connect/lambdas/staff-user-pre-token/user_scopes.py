@@ -1,19 +1,19 @@
 from boto3.dynamodb.conditions import Key
-
 from config import config, logger
 
 
 class UserScopes(set):
-    """
-    Custom Set that will populate itself based on the user's database record contents
-    """
+    """Custom Set that will populate itself based on the user's database record contents"""
+
     def __init__(self, sub: str):
-        super().__init__()
+        # Some auth flows (like Secure Remote Password) don't grant 'profile', so we'll make sure it's included by
+        # default
+        super().__init__(('profile',))
+
         self._get_scopes_from_db(sub)
 
     def _get_scopes_from_db(self, sub: str):
-        """
-        Parse the user's database record to calculate scopes.
+        """Parse the user's database record to calculate scopes.
 
         Note: See the accompanying unit tests for expected db record shape.
         :param sub: The `sub` field value from the Cognito Authorizer (which gets it from the JWT)
@@ -22,7 +22,7 @@ class UserScopes(set):
         permissions = {
             compact_record['compact']: {
                 'actions': set(compact_record['permissions']['actions']),
-                'jurisdictions': compact_record['permissions']['jurisdictions']
+                'jurisdictions': compact_record['permissions']['jurisdictions'],
             }
             for compact_record in user_data
         }
@@ -37,9 +37,7 @@ class UserScopes(set):
 
     @staticmethod
     def _get_user_data(sub: str):
-        user_data = config.users_table.query(
-            KeyConditionExpression=Key('pk').eq(f'USER#{sub}')
-        ).get('Items', [])
+        user_data = config.users_table.query(KeyConditionExpression=Key('pk').eq(f'USER#{sub}')).get('Items', [])
         if not user_data:
             logger.error('Authenticated user not found!', sub=sub)
             raise RuntimeError('Authenticated user not found!')
@@ -68,7 +66,7 @@ class UserScopes(set):
         disallowed_jurisdictions = jurisdictions.keys() - config.jurisdictions
         if disallowed_jurisdictions:
             raise ValueError(
-                f'User {compact_name} permissions include disallowed jurisdictions: {disallowed_jurisdictions}'
+                f'User {compact_name} permissions include disallowed jurisdictions: {disallowed_jurisdictions}',
             )
 
         for jurisdiction_name, jurisdiction_permissions in compact_permissions['jurisdictions'].items():
@@ -80,7 +78,7 @@ class UserScopes(set):
         if disallowed_actions:
             raise ValueError(
                 f'User {compact_name}/{jurisdiction_name} permissions include disallowed actions: '
-                f'{disallowed_actions}'
+                f'{disallowed_actions}',
             )
         for action in jurisdiction_actions:
             # Two levels of authz

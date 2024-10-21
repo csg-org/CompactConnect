@@ -3,44 +3,39 @@ from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
 from moto import mock_aws
+
 from tests.function import TstFunction
 
 
 @mock_aws
 class TestTransformations(TstFunction):
     # Yes, this is an excessively long method. We're going with it for sake of a single illustrative test.
-    def test_transformations(self):  # pylint: disable=too-many-statements,too-many-locals
-        """
-        Provider data undergoes several transformations from when a license is first posted, stored into the database,
-        then returned via the API. We will specifically test that chain, end to end, to make sure the transformations
-        all happen as expected.
+    def test_transformations(self):
+        """Provider data undergoes several transformations from when a license is first posted, stored into the
+        database, then returned via the API. We will specifically test that chain, end to end, to make sure the
+        transformations all happen as expected.
         """
         # Before we get started, we'll pre-set the SSN/providerId association we expect
-        with open('tests/resources/dynamo/provider-ssn.json', 'r') as f:
+        with open('tests/resources/dynamo/provider-ssn.json') as f:
             provider_ssn = json.load(f)
 
-        self._provider_table.put_item(
-            Item=provider_ssn
-        )
+        self._provider_table.put_item(Item=provider_ssn)
         expected_provider_id = provider_ssn['providerId']
 
         # license data as it comes in from a board, in this case, as POSTed through the API
-        with open('tests/resources/api/license-post.json', 'r') as f:
+        with open('tests/resources/api/license-post.json') as f:
             license_post = json.load(f)
         license_ssn = license_post['ssn']
 
         # The API Gateway event, as it is presented to the API lambda
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # Pack an array of one license into the request body
         event['body'] = json.dumps([license_post])
 
         # Compact and jurisdiction are provided via path parameters
-        event['pathParameters'] = {
-            'compact': 'aslp',
-            'jurisdiction': 'oh'
-        }
+        event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
         # Authorize ourselves to write the license
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write aslp/oh.write'
 
@@ -56,37 +51,31 @@ class TestTransformations(TstFunction):
 
             # Capture the event the API POST will produce
             event_bridge_event = json.loads(
-                mock_event_batch_writer.return_value.__enter__.return_value
-                .put_event.call_args.kwargs['Entry']['Detail']
+                mock_event_batch_writer.return_value.__enter__.return_value.put_event.call_args.kwargs['Entry'][
+                    'Detail'
+                ],
             )
 
         # A sample SQS message from EventBridge
-        with open('tests/resources/ingest/message.json', 'r') as f:
+        with open('tests/resources/ingest/message.json') as f:
             message = json.load(f)
 
         # Pack our license-ingest event into the sample message
         message['detail'] = event_bridge_event
-        event = {
-            'Records': [
-                {
-                    'messageId': '123',
-                    'body': json.dumps(message)
-                }
-            ]
-        }
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
 
         from handlers.ingest import ingest_license_message
 
         # This should fully ingest the license, which will result in it being written to the DB
-        ingest_license_message(event, self.mock_context)  # pylint: disable=too-many-function-args
+        ingest_license_message(event, self.mock_context)
 
         from data_model.client import DataClient
 
         # We'll use the data client to get the resulting provider id
         client = DataClient(self.config)
-        provider_id = client.get_provider_id(  # pylint: disable=missing-kwoa,unexpected-keyword-arg
+        provider_id = client.get_provider_id(
             compact='aslp',
-            ssn=license_ssn
+            ssn=license_ssn,
         )
         self.assertEqual(expected_provider_id, provider_id)
 
@@ -97,23 +86,21 @@ class TestTransformations(TstFunction):
         resp = self._provider_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with('aslp#PROVIDER')
+            & Key('sk').begins_with('aslp#PROVIDER'),
         )
         # One record for reach of: provider, license, privilege
         self.assertEqual(3, len(resp['Items']))
-        records = {
-            item['type']: item for item in resp['Items']
-        }
+        records = {item['type']: item for item in resp['Items']}
 
         # Expected representation of each record in the database
-        with open('tests/resources/dynamo/provider.json', 'r') as f:
+        with open('tests/resources/dynamo/provider.json') as f:
             expected_provider = json.load(f)
         # Convert this to the data type expected from DynamoDB
         expected_provider['privilegeJurisdictions'] = set(expected_provider['privilegeJurisdictions'])
 
-        with open('tests/resources/dynamo/license.json', 'r') as f:
+        with open('tests/resources/dynamo/license.json') as f:
             expected_license = json.load(f)
-        with open('tests/resources/dynamo/privilege.json', 'r') as f:
+        with open('tests/resources/dynamo/privilege.json') as f:
             expected_privilege = json.load(f)
 
         # Force the provider id to match
@@ -134,13 +121,10 @@ class TestTransformations(TstFunction):
         from handlers.providers import get_provider
 
         # Get a fresh API Gateway event
-        with open('tests/resources/api-event.json', 'r') as f:
+        with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['pathParameters'] = {
-            'compact': 'aslp',
-            'providerId': provider_id
-        }
+        event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
 
         resp = get_provider(event, self.mock_context)
@@ -151,7 +135,7 @@ class TestTransformations(TstFunction):
         provider_data = json.loads(resp['body'])
 
         # Expected representation of our provider coming _out_ via the API
-        with open('tests/resources/api/provider-detail-response.json', 'r') as f:
+        with open('tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
 
         # Force the provider id to match

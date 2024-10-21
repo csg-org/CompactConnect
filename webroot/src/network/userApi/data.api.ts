@@ -13,7 +13,8 @@ import {
     responseError
 } from '@network/userApi/interceptors';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
-import { UserSerializer } from '@models/User/User.model';
+import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
+import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 
 export interface RequestParamsInterfaceLocal {
     compact?: string;
@@ -126,7 +127,7 @@ export class UserDataApi implements DataApiInterface {
         const response = {
             prevLastKey,
             lastKey,
-            users: users.map((serverItem) => UserSerializer.fromServer(serverItem)),
+            users: users.map((serverItem) => StaffUserSerializer.fromServer(serverItem)),
         };
 
         return response;
@@ -140,7 +141,7 @@ export class UserDataApi implements DataApiInterface {
      */
     public async createUser(compact: string, data: any) {
         const serverResponse = await this.api.post(`/v1/compacts/${compact}/staff-users`, data);
-        const response = UserSerializer.fromServer(serverResponse);
+        const response = StaffUserSerializer.fromServer(serverResponse);
 
         return response;
     }
@@ -153,7 +154,7 @@ export class UserDataApi implements DataApiInterface {
      */
     public async getUser(compact: string, userId: string) {
         const serverResponse: any = await this.api.get(`/v1/compacts/${compact}/staff-users/${userId}`);
-        const response = UserSerializer.fromServer(serverResponse);
+        const response = StaffUserSerializer.fromServer(serverResponse);
 
         return response;
     }
@@ -167,7 +168,7 @@ export class UserDataApi implements DataApiInterface {
      */
     public async updateUser(compact: string, userId: string, data: any) {
         const serverResponse = await this.api.patch(`/v1/compacts/${compact}/staff-users/${userId}`, data);
-        const response = UserSerializer.fromServer(serverResponse);
+        const response = StaffUserSerializer.fromServer(serverResponse);
 
         return response;
     }
@@ -178,7 +179,19 @@ export class UserDataApi implements DataApiInterface {
      */
     public async getAuthenticatedStaffUser() {
         const serverResponse: any = await this.api.get(`/v1/staff-users/me`);
-        const response = UserSerializer.fromServer(serverResponse);
+        const response = StaffUserSerializer.fromServer(serverResponse);
+
+        return response;
+    }
+
+    /**
+     * GET Authenticated Licensee User.
+     * @return {Promise<User>} A User model instance.
+     */
+    public async getAuthenticatedLicenseeUser() {
+        const serverResponse: any = await this.api.get(`/v1/provider-users/me`);
+
+        const response = LicenseeUserSerializer.fromServer(serverResponse);
 
         return response;
     }
