@@ -20,7 +20,12 @@ import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
-import { User, CompactPermission, StatePermission } from '@models/User/User.model';
+import {
+    StaffUser,
+    StaffUserSerializer,
+    CompactPermission,
+    StatePermission
+} from '@models/StaffUser/StaffUser.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
 
@@ -55,7 +60,7 @@ interface PermissionObject {
     emits: [ 'cancel', 'saved' ],
 })
 class UserRowEdit extends mixins(MixinForm) {
-    @Prop({ required: true }) user!: User;
+    @Prop({ required: true }) user!: StaffUser;
 
     //
     // Data
@@ -76,11 +81,23 @@ class UserRowEdit extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
+    get currentUser(): StaffUser {
+        return this.userStore.model;
+    }
+
     get currentCompact(): Compact | null {
         return this.userStore.currentCompact;
     }
 
-    get userCompactPermission(): CompactPermission | null {
+    get currentUserCompactPermission(): CompactPermission | null {
+        const currentPermissions = this.currentUser?.permissions;
+        const compactPermission = currentPermissions?.find((currentPermission: CompactPermission) =>
+            currentPermission.compact.type === this.currentCompact?.type) || null;
+
+        return compactPermission;
+    }
+
+    get rowUserCompactPermission(): CompactPermission | null {
         const userPermissions = this.user.permissions;
         const compactPermission = userPermissions?.find((userPermission: CompactPermission) =>
             userPermission.compact.type === this.currentCompact?.type) || null;
@@ -88,8 +105,12 @@ class UserRowEdit extends mixins(MixinForm) {
         return compactPermission;
     }
 
+    get isCurrentUserCompactAdmin(): boolean {
+        return this.getCompactPermission(this.currentUserCompactPermission) === Permission.ADMIN;
+    }
+
     get userCompact(): Compact | null {
-        return this.userCompactPermission?.compact || null;
+        return this.rowUserCompactPermission?.compact || null;
     }
 
     get userCompactOptions(): Array<PermissionOption> {
@@ -117,7 +138,7 @@ class UserRowEdit extends mixins(MixinForm) {
     }
 
     get userStatePermissions(): Array<StatePermission> {
-        return this.userCompactPermission?.states || [];
+        return this.rowUserCompactPermission?.states || [];
     }
 
     get userPermissionOptionsState(): Array<PermissionOption> {
@@ -160,7 +181,7 @@ class UserRowEdit extends mixins(MixinForm) {
                 label: computed(() => this.$t('account.permission')),
                 placeholder: computed(() => this.$t('account.permission')),
                 valueOptions: this.userPermissionOptionsCompact,
-                value: this.getCompactPermission(this.userCompactPermission),
+                value: this.getCompactPermission(this.rowUserCompactPermission),
             }),
             submit: new FormInput({
                 isSubmitInput: true,
@@ -335,20 +356,28 @@ class UserRowEdit extends mixins(MixinForm) {
             this.startFormLoading();
 
             const formData = this.prepFormData();
+            const serverData = StaffUserSerializer.toServer({ permissions: [formData] });
 
-            console.log(formData);
+            console.log(serverData);
 
-            await new Promise((resolve) => setTimeout(() => resolve(true), 2000));
+            // await new Promise((resolve) => setTimeout(() => resolve(true), 2000));
+
+            await this.$store.dispatch(`users/updateUserRequest`, {
+                compact: this.userCompact?.type,
+                userId: this.user.id,
+                data: serverData,
+            }).catch((err) => {
+                this.setError(err.message);
+            });
 
             // @TODO: Make the store / network call
             // @TODO: Make sure the user record is updated in the store
 
-            // if (!this.isFormError) {
-            //     this.isFormSuccessful = true;
-            // }
+            if (!this.isFormError) {
+                this.isFormSuccessful = true;
+            }
 
             this.$emit('saved');
-
             this.endFormLoading();
         }
     }
@@ -368,7 +397,7 @@ class UserRowEdit extends mixins(MixinForm) {
             const statePermission = formValues[`state-permission-${keyNum}`];
 
             compactData.states.push({
-                state: stateAbbrev,
+                abbrev: stateAbbrev,
                 ...this.setStatePermission(statePermission),
             });
         });

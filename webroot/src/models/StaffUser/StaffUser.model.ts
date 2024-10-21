@@ -293,4 +293,66 @@ export class StaffUserSerializer {
 
         return new StaffUser(userData);
     }
+
+    static toServer(data) {
+        const serverData: any = {};
+        // Prepare state permissions for server request
+        const deserializeStatePermission = (statePermission, jurisdictions) => {
+            const hasStateWriteSetting = Object.prototype.hasOwnProperty.call(statePermission, 'isWrite');
+            const hasStateAdminSetting = Object.prototype.hasOwnProperty.call(statePermission, 'isAdmin');
+
+            if (hasStateWriteSetting || hasStateAdminSetting) {
+                const actions: any = {};
+
+                jurisdictions[statePermission.abbrev] = { actions };
+
+                if (hasStateWriteSetting) {
+                    actions.write = statePermission.isWrite;
+                }
+                if (hasStateAdminSetting) {
+                    actions.admin = statePermission.isAdmin;
+                }
+            }
+        };
+        // Prepare compact permissions for server request
+        const deserializeCompactPermission = (compactPermission) => {
+            const hasCompactReadSetting = Object.prototype.hasOwnProperty.call(compactPermission, 'isRead');
+            const hasCompactAdminSetting = Object.prototype.hasOwnProperty.call(compactPermission, 'isAdmin');
+            const hasStates = Boolean(compactPermission.states?.length);
+
+            if (hasCompactReadSetting || hasCompactAdminSetting) {
+                const actions: any = {};
+
+                serverData.permissions[compactPermission.compact] = { actions };
+
+                if (hasCompactReadSetting) {
+                    actions.read = compactPermission.isRead;
+                }
+                if (hasCompactAdminSetting) {
+                    actions.admin = compactPermission.isAdmin;
+                }
+            }
+
+            if (hasStates) {
+                const jurisdictions: any = {};
+
+                serverData.permissions[compactPermission.compact].jurisdictions = jurisdictions;
+
+                compactPermission.states.forEach((statePermission) => {
+                    deserializeStatePermission(statePermission, jurisdictions);
+                });
+            }
+        };
+
+        // Initiate server prep
+        if (data?.permissions) {
+            serverData.permissions = {};
+
+            data.permissions.forEach((compactPermission) => {
+                deserializeCompactPermission(compactPermission);
+            });
+        }
+
+        return serverData;
+    }
 }
