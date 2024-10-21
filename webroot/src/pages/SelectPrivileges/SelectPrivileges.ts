@@ -266,7 +266,12 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     handleCancelClicked() {
-        console.log('cancel');
+        if (this.currentCompact?.type) {
+            this.$router.push({
+                name: 'LicenseeDashboard',
+                params: { compact: this.currentCompact?.type }
+            });
+        }
     }
 
     handleBackClicked() {
