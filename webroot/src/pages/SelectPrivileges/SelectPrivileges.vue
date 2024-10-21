@@ -36,12 +36,38 @@
                 </div>
                 <div class="selected-state-list">
                     <div
-                        v-for="state in selectedStatePurchaseDataList"
+                        v-for="(state, i) in selectedStatePurchaseDataList"
                         :key="state.jurisdiction.abbrev"
                         class="selected-state-block"
                     >
+                        {{state}}
                         <div class="state-title info-row">{{state.jurisdiction.name()}}</div>
-                        <div class="info-row"><div class="info-row-label">{{expirationDateText}}</div></div>
+                        <div class="info-row">
+                            <div class="info-row-label">{{expirationDateText}}</div>
+                            <div class="expire-date-value">{{activeLicenseExpirationDate}}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-row-label">{{jurisdictionFeeText}}</div>
+                            <div class="expire-date-value">{{state.fee}}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-row-label">{{commissionFeeText}}</div>
+                            <div class="expire-date-value">${{currentCompactCommissionFee}}</div>
+                        </div>
+                        <div v-if="state.isMilitaryDiscountActive" class="info-row">
+                            <div class="info-row-label">{{militaryDiscountText}}</div>
+                            <div class="expire-date-value">-${{state.militaryDiscountAmount}}</div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-row-label">{{subtotalText}}</div>
+                            <div class="expire-date-value">${{subTotalList[i]}}</div>
+                        </div>
+                        <div v-if="state.isJurisprudenceRequired" class="jurisprudence-check-box">
+                            <InputCheckbox
+                                :formInput="formData.jurisprudenceConfirmations[state.jurisdiction.abbrev]"
+                                @change="handleJurisprudenceClicked"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

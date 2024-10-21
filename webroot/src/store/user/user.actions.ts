@@ -210,10 +210,12 @@ export default {
     },
     getPrivilegePurchaseInformationSuccess: ({ dispatch, commit, state }, data) => {
         if (data?.compactCommissionFee?.compact === state?.currentCompact?.type) {
+            console.log('data', data);
+
             const newCompact = new Compact({
                 ...state.currentCompact,
                 privilegePurchaseOptions: data.privilegePurchaseOptions,
-                compactCommissionFee: data?.compactCommissionFee?.feeType,
+                compactCommissionFee: data?.compactCommissionFee?.feeAmount,
                 compactCommissionFeeType: data?.compactCommissionFee?.feeType
             });
 

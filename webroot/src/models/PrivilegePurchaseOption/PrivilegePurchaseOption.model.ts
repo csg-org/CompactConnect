@@ -58,7 +58,7 @@ export class PrivilegePurchaseOptionSerializer {
             jurisdiction: new State({ abbrev: json.postalAbbreviation }),
             compact: json.compact,
             fee: json.jurisdictionFee,
-            isMilitaryDiscountActive: json?.militaryDiscount?.acvtive === true || false,
+            isMilitaryDiscountActive: json?.militaryDiscount?.active === true || false,
             militaryDiscountType: json?.militaryDiscount?.discountType || null,
             militaryDiscountAmount: json?.militaryDiscount?.discountAmount || null,
             isJurisprudenceRequired: json?.jurisprudenceRequirements?.required || false,

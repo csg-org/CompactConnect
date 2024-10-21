@@ -209,7 +209,7 @@ export class UserDataApi implements DataApiInterface {
         const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => ({
             compact: serverFeeObject?.compactName,
             feeType: serverFeeObject?.compactCommissionFee?.feeType,
-            fee: serverFeeObject?.compactCommissionFee?.feeAmount
+            feeAmount: serverFeeObject?.compactCommissionFee?.feeAmount
         }))[0];
 
         return { privilegePurchaseOptions, compactCommissionFee };

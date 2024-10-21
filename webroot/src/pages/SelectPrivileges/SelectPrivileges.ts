@@ -13,7 +13,7 @@ import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
-import { License } from '@models/License/License.model';
+import { License, LicenseStatus } from '@/models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
@@ -49,6 +49,12 @@ export default class SelectPrivileges extends mixins(MixinForm) {
 
     get currentCompact(): Compact | null {
         return this.userStore?.currentCompact || null;
+    }
+
+    get currentCompactCommissionFee(): number | null {
+        console.log('currentCompact', this.currentCompact);
+
+        return this.currentCompact?.compactCommissionFee || null;
     }
 
     get userStore(): any {
@@ -135,12 +141,71 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         return 'expirationDateText';
     }
 
+    get jurisdictionFeeText(): string {
+        return 'Jurisdiction Fee';
+    }
+
+    get commissionFeeText(): string {
+        return 'Commission Fee';
+    }
+
+    get subtotalText(): string {
+        return 'Subtotal';
+    }
+
+    get jurisprudenceExplanationText(): string {
+        return 'I attest I have completed the required jurisprudence exam.';
+    }
+
+    get militaryDiscountText(): string {
+        return 'Military Discount';
+    }
+
+    get activeLicense(): License | null {
+        return this.licenseList?.find((license) => license.statusState === LicenseStatus.ACTIVE) || null;
+    }
+
+    get activeLicenseExpirationDate(): any { // TODO fix type here
+        return this.activeLicense?.expireDate;
+    }
+
+    get subTotalList(): Array<number> {
+        return this.selectedStatePurchaseDataList?.map((purchaseInfo) =>
+            (purchaseInfo.fee + this.currentCompactCommissionFee - purchaseInfo.militaryDiscountAmount)) || [];
+    }
+
+    get jurisprudenceInputs(): any {
+        const jurisprudenceInputs: any = {};
+
+        this.selectedStatePurchaseDataList.forEach((purchaseItem) => {
+            if (purchaseItem.isJurisprudenceRequired) {
+                const { jurisdiction = new State() } = purchaseItem;
+
+                if (jurisdiction) {
+                    const { abbrev } = jurisdiction;
+
+                    if (typeof abbrev === 'string' && abbrev) {
+                        jurisprudenceInputs[abbrev] = new FormInput({
+                            id: `${abbrev}-jurisprudence`,
+                            name: `${abbrev}-jurisprudence`,
+                            label: `${this.jurisprudenceExplanationText}`,
+                            value: false
+                        });
+                    }
+                }
+            }
+        });
+
+        return jurisprudenceInputs;
+    }
+
     //
     // Methods
     //
     initFormInputs(): void {
         const initFormData: any = {
             stateCheckList: [],
+            jurisprudenceConfirmations: {},
             submit: new FormInput({
                 isSubmitInput: true,
                 id: 'submit',
@@ -176,8 +241,27 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         }
     }
 
-    handleStateClicked() {
-        // console.log('we handlin', eh.target._modelValue);
-        // console.log('we handlin', eh.target._modelValue);
+    handleStateClicked(e) {
+        console.log(this.formData);
+        /* eslint no-underscore-dangle: 0 */
+        const newValue = e.target._modelValue;
+        const stateAbbrev = e.target.id;
+
+        if (newValue === true) {
+            if (typeof stateAbbrev === 'string' && stateAbbrev) {
+                this.formData.jurisprudenceConfirmations[stateAbbrev] = new FormInput({
+                    id: `${stateAbbrev}-jurisprudence`,
+                    name: `${stateAbbrev}-jurisprudence`,
+                    label: `${this.jurisprudenceExplanationText}`,
+                    value: false
+                });
+            }
+        } else {
+            delete this.formData.jurisprudenceConfirmations[stateAbbrev];
+        }
+    }
+
+    handleJurisprudenceClicked() {
+        console.log('jury prudy');
     }
 }
