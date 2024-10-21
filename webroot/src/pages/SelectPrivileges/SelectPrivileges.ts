@@ -138,7 +138,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     get expirationDateText(): string {
-        return 'expirationDateText';
+        return 'Expiration date';
     }
 
     get jurisdictionFeeText(): string {
@@ -275,6 +275,15 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     handleBackClicked() {
-        console.log('back');
+        if (this.currentCompact?.type) {
+            this.$router.push({
+                name: 'LicenseeDashboard',
+                params: { compact: this.currentCompact?.type }
+            });
+        }
+    }
+
+    deselectState(state) {
+        console.log('state', state);
     }
 }

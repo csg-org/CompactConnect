@@ -42,21 +42,28 @@
                         :key="state.jurisdiction.abbrev"
                         class="selected-state-block"
                     >
-                        {{state}}
-                        <div class="state-title info-row">{{state.jurisdiction.name()}}</div>
                         <div class="info-row">
+                            <div class="state-title">{{state.jurisdiction.name()}}</div>
+                            <InputButton
+                                label="X"
+                                :isTextLike="true"
+                                aria-label="deselect state"
+                                @click="deselectState(state)"
+                            />
+                        </div>
+                        <div class="info-row sub-row">
                             <div class="info-row-label">{{expirationDateText}}</div>
                             <div class="expire-date-value">{{activeLicenseExpirationDate}}</div>
                         </div>
-                        <div class="info-row">
+                        <div class="info-row sub-row">
                             <div class="info-row-label">{{jurisdictionFeeText}}</div>
                             <div class="expire-date-value">${{state.fee}}</div>
                         </div>
-                        <div class="info-row">
+                        <div class="info-row sub-row">
                             <div class="info-row-label">{{commissionFeeText}}</div>
                             <div class="expire-date-value">${{currentCompactCommissionFee}}</div>
                         </div>
-                        <div v-if="state.isMilitaryDiscountActive" class="info-row">
+                        <div v-if="state.isMilitaryDiscountActive" class="info-row sub-row">
                             <div class="info-row-label">{{militaryDiscountText}}</div>
                             <div class="expire-date-value">-${{state.militaryDiscountAmount}}</div>
                         </div>

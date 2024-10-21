@@ -20,4 +20,32 @@
             justify-content: space-between;
         }
     }
+
+    .select-privileges-core-container {
+        .selected-state-list {
+            .selected-state-block {
+                padding: 2rem;
+                border-radius: 20px;
+                color: white;
+                background-color: @darkBlue;
+
+                .info-row {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: space-between;
+                    margin: 1rem 0;
+
+                    :deep(.input-button-container) {
+                        input {
+                            color: white;
+                        }
+                    }
+
+                    &.sub-row {
+                        color: rgba(255, 255, 255, 0.5);
+                    }
+                }
+            }
+        }
+    }
 }
