@@ -7,6 +7,13 @@ from exceptions import CCInvalidRequestException
 from handlers.utils import api_handler
 
 
+def _get_caller_compact_custom_attribute(event: dict):
+    try:
+        return event['requestContext']['authorizer']['claims']['custom:compact']
+    except KeyError as e:
+        logger.error(f'Missing custom provider attribute: {e}')
+        raise CCInvalidRequestException('Missing required user profile attribute') from e
+
 @api_handler
 def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """This endpoint returns the available privilege options for a provider to purchase.
@@ -17,14 +24,7 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
     """
-    try:
-        # get the compact the user is associated with from their cognito claims
-        compact = event['requestContext']['authorizer']['claims']['custom:compact']
-    except KeyError as e:
-        # This shouldn't happen unless a provider user was created without the required custom attributes,
-        # but we'll handle it, anyway
-        logger.error(f'Missing custom provider attribute: {e}')
-        raise CCInvalidRequestException('Missing required user profile attribute') from e
+    compact = _get_caller_compact_custom_attribute(event)
 
     options_response = config.data_client.get_privilege_purchase_options(
         compact=compact,
@@ -42,3 +42,18 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa
     options_response['items'] = serlialized_options
 
     return options_response
+
+@api_handler
+def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    """This endpoint allows a provider to purchase privileges.
+
+    The request body should include the jurisdiction and privilege to purchase.
+
+    :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
+    :param LambdaContext context:
+    """
+    compact = _get_caller_compact_custom_attribute(event)
+
+
+
+

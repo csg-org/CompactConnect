@@ -28,6 +28,14 @@ class _Config:
     def compact_configuration_table(self):
         return boto3.resource('dynamodb').Table(self.compact_configuration_table_name)
 
+    @cached_property
+    def secrets_manager_client(self):
+        return boto3.resource('secretsmanager')
+
+    @cached_property
+    def purchase_utils(self):
+        return boto3.resource('secretsmanager')
+
     @property
     def compacts(self):
         return json.loads(os.environ['COMPACTS'])
@@ -39,6 +47,10 @@ class _Config:
     @property
     def compact_configuration_table_name(self):
         return os.environ['COMPACT_CONFIGURATION_TABLE_NAME']
+
+    @property
+    def environment_name(self):
+        return os.environ['ENVIRONMENT_NAME']
 
 
 config = _Config()
