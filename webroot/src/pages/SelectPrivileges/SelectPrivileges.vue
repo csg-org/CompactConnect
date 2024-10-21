@@ -14,19 +14,21 @@
                     :isTextLike="true"
                     aria-label="close modal"
                     class="icon icon-close-modal"
-                    @click="closeModal"
+                    @click="handleCancelClicked"
                 />
-                <InputButton
-                    :label="backText"
-                    aria-label="close modal"
-                    class="icon icon-close-modal"
-                    @click="closeModal"
-                />
-                <InputSubmit
-                    :formInput="formData.submit"
-                    :label="submitLabel"
-                    :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen"
-                />
+                <div class="right-cell">
+                    <InputButton
+                        :label="backText"
+                        aria-label="close modal"
+                        class="icon icon-close-modal"
+                        @click="handleBackClicked"
+                    />
+                    <InputSubmit
+                        :formInput="formData.submit"
+                        :label="submitLabel"
+                        :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen"
+                    />
+                </div>
             </div>
             <div class="select-privileges-core-container">
                 <div class="state-select-list">
@@ -48,7 +50,7 @@
                         </div>
                         <div class="info-row">
                             <div class="info-row-label">{{jurisdictionFeeText}}</div>
-                            <div class="expire-date-value">{{state.fee}}</div>
+                            <div class="expire-date-value">${{state.fee}}</div>
                         </div>
                         <div class="info-row">
                             <div class="info-row-label">{{commissionFeeText}}</div>
@@ -77,19 +79,21 @@
                     :isTextLike="true"
                     aria-label="close modal"
                     class="icon icon-close-modal"
-                    @click="closeModal"
+                    @click="handleCancelClicked"
                 />
-                <InputButton
-                    :label="backText"
-                    aria-label="close modal"
-                    class="icon icon-close-modal"
-                    @click="closeModal"
-                />
-                <InputSubmit
-                    :formInput="formData.submit"
-                    :label="submitLabel"
-                    :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen"
-                />
+                <div class="right-cell">
+                    <InputButton
+                        :label="backText"
+                        aria-label="close modal"
+                        class="icon icon-close-modal"
+                        @click="handleBackClicked"
+                    />
+                    <InputSubmit
+                        :formInput="formData.submit"
+                        :label="submitLabel"
+                        :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen"
+                    />
+                </div>
             </div>
         </form>
     </div>

@@ -264,4 +264,12 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     handleJurisprudenceClicked() {
         console.log('jury prudy');
     }
+
+    handleCancelClicked() {
+        console.log('cancel');
+    }
+
+    handleBackClicked() {
+        console.log('back');
+    }
 }
