@@ -7,7 +7,7 @@
 
 <template>
     <div class="select-privileges-container">
-        <form @submit.prevent="handleSubmit">
+        <form class="privilege-form" @submit.prevent="handleSubmit">
             <div v-if="isMobile" class="button-row">
                 <InputButton
                     :label="cancelText"
@@ -30,7 +30,10 @@
                     />
                 </div>
             </div>
-            <div class="select-privileges-core-container" :class="{ 'visible-core': isMobile }">
+            <div class="select-privileges-core-container">
+                <div class="select-privileges-title">
+                    {{selectPrivilegesTitleText}}
+                </div>
                 <div class="state-select-list">
                     <div
                         v-for="state in stateCheckList"

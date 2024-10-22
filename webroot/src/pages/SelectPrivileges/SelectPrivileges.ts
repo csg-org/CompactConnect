@@ -33,7 +33,10 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     //
     async created() {
         await this.$store.dispatch('user/getPrivilegePurchaseInformationRequest');
-        this.initFormInputs();
+
+        if (this.alreadyObtainedPrivilegeStates.length) {
+            this.initFormInputs();
+        }
     }
 
     //
@@ -190,6 +193,10 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         });
 
         return jurisprudenceInputs;
+    }
+
+    get selectPrivilegesTitleText(): string {
+        return 'Select Privileges';
     }
 
     //
