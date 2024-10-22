@@ -22,3 +22,7 @@ class CCNotFoundException(CCInvalidRequestException):
 
 class CCInternalException(CCBaseException):
     """Internal error in the request, corresponds to a 500 response"""
+
+
+class CCFailedTransactionException(CCBaseException):
+    """Authorize.Net transaction failed due to user input, corresponds to a 400 response"""

@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
-from config import config
+from enum import Enum
 from marshmallow import Schema, pre_dump
 from marshmallow.fields import Decimal, List, Nested, String
 from marshmallow.validate import Length, OneOf
@@ -9,8 +9,15 @@ from data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 COMPACT_TYPE = 'compact'
 
 
+class CompactFeeType(Enum):
+    FLAT_RATE = 'FLAT_RATE'
+
+    @staticmethod
+    def from_str(label: str) -> 'CompactFeeType':
+        return CompactFeeType[label]
+
 class CompactCommissionFeeSchema(Schema):
-    feeType = String(required=True, allow_none=False, validate=OneOf(['FLAT_RATE']))
+    feeType = String(required=True, allow_none=False, validate=OneOf([e.value for e in CompactFeeType]))
     feeAmount = Decimal(required=True, allow_none=False)
 
 
@@ -53,3 +60,28 @@ class CompactOptionsApiResponseSchema(ForgivingSchema):
     compactName = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
     type = String(required=True, allow_none=False, validate=OneOf([COMPACT_TYPE]))
+
+
+class Compact:
+    """
+    Compact configuration data model. Used to access variables without needing to know the underlying key structure.
+    """
+
+    def __init__(self, compact_configuration: dict):
+        self.compactName: str = compact_configuration['compactName']
+        self.compactCommissionFee = CompactCommissionFee(
+            fee_type=CompactFeeType.from_str(compact_configuration['compactCommissionFee']['feeType']),
+            fee_amount=compact_configuration['compactCommissionFee']['feeAmount'])
+        self.compactOperationsTeamEmails = compact_configuration.get('compactOperationsTeamEmails')
+        self.compactAdverseActionsNotificationEmails = compact_configuration.get('compactAdverseActionsNotificationEmails')
+        self.compactSummaryReportNotificationEmails = compact_configuration.get('compactSummaryReportNotificationEmails')
+
+
+class CompactCommissionFee:
+    """
+    Compact commission fee data model. Used to access variables without needing to know the underlying key structure.
+    """
+
+    def __init__(self, fee_type: CompactFeeType, fee_amount: Decimal):
+        self.feeType = fee_type
+        self.feeAmount = fee_amount

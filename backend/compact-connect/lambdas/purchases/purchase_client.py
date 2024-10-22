@@ -3,9 +3,64 @@ from abc import ABC, abstractmethod
 
 from authorizenet import apicontractsv1
 from authorizenet.apicontrollers import createTransactionController
+from authorizenet.constants import constants
+
 from config import config, logger
+from data_model.schema.compact import Compact, CompactFeeType
+from data_model.schema.jurisdiction import Jurisdiction, JurisdictionMilitaryDiscountType
+from exceptions import CCFailedTransactionException, CCInternalException
 
 AUTHORIZE_DOT_NET_CLIENT_TYPE = "authorize.net"
+
+
+def _calculate_jurisdiction_fee(jurisdiction: Jurisdiction, user_active_military: bool) -> float:
+    """
+    Calculate the total cost of a single jurisdiction privilege
+    """
+    if user_active_military and jurisdiction.militaryDiscount.active:
+        if jurisdiction.militaryDiscount.discountType == JurisdictionMilitaryDiscountType.FLAT_RATE:
+            total_jurisdiction_fee = jurisdiction.jurisdictionFee - jurisdiction.militaryDiscount.discountAmount
+        else:
+            raise ValueError(f"Unsupported military discount type: {jurisdiction.militaryDiscount.discountType.value}")
+    else:
+        total_jurisdiction_fee = jurisdiction.jurisdictionFee
+
+    return total_jurisdiction_fee
+
+def _calculate_total_compact_fee(compact: Compact, selected_jurisdictions: list[Jurisdiction]) -> float:
+    """
+    Calculate the total compact fee for all selected jurisdictions
+
+    There is potential that the compact fee may change depending on the jurisdiction, but for now we are assuming
+    that the fee is the same for all jurisdictions.
+    """
+    return _calculate_compact_fee_for_single_jurisdiction(compact) * len(selected_jurisdictions)
+
+
+def _calculate_compact_fee_for_single_jurisdiction(compact: Compact) -> float:
+    total_compact_fee = 0.0
+    if compact.compactCommissionFee.feeType == CompactFeeType.FLAT_RATE:
+        total_compact_fee += compact.compactCommissionFee.feeAmount
+    else:
+        raise ValueError(f"Unsupported compact fee type: {compact.compactCommissionFee.feeType.value}")
+
+    return total_compact_fee
+
+
+def _get_total_privilege_cost(compact: Compact, selected_jurisdictions: list[Jurisdiction],
+                              user_active_military: bool) -> float:
+    """
+    Calculate the total cost of all privileges.
+
+    This cost includes the jurisdiction fee for each jurisdiction, as well as the compact fee.
+    """
+    total_cost = 0.0
+    for jurisdiction in selected_jurisdictions:
+        total_cost += _calculate_jurisdiction_fee(jurisdiction, user_active_military)
+
+    total_cost += _calculate_total_compact_fee(compact, selected_jurisdictions)
+
+    return total_cost
 
 
 class PaymentProcessorClient(ABC):
@@ -13,7 +68,18 @@ class PaymentProcessorClient(ABC):
         self.processor_type = processor_type
 
     @abstractmethod
-    def process_charge_on_credit_card_for_privilege_purchase(self, order_information: dict, amount: float):
+    def process_charge_on_credit_card_for_privilege_purchase(self, order_information: dict,
+                                                             compact_configuration: Compact,
+                                                             selected_jurisdictions: list[Jurisdiction],
+                                                             user_active_military: bool) -> dict:
+        """
+        Process a charge on a credit card for a list of privileges within a compact.
+
+        :param order_information: A dictionary containing the order information (billing, card, etc.)
+        :param compact_configuration: The compact configuration.
+        :param selected_jurisdictions: A list of selected jurisdictions to purchase privileges for.
+        :param user_active_military: Whether the user is active military.
+        """
         pass
 
 
@@ -24,7 +90,10 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         self.api_login_id = api_login_id
         self.transaction_key = transaction_key
 
-    def process_charge_on_credit_card_for_privilege_purchase(self, order_information: dict, amount: float):
+    def process_charge_on_credit_card_for_privilege_purchase(self, order_information: dict,
+                                                             compact_configuration: Compact,
+                                                             selected_jurisdictions: list[Jurisdiction],
+                                                             user_active_military: bool) -> dict:
         # Create a merchantAuthenticationType object with authentication details
         merchantAuth = apicontractsv1.merchantAuthenticationType()
         merchantAuth.name = self.api_login_id
@@ -40,25 +109,35 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         payment = apicontractsv1.paymentType()
         payment.creditCard = creditCard
 
-        # Create order information
-        # TODO - do we need to track invoice numbers? If so, we need to store this information
-        # order = apicontractsv1.orderType()
-        # order.invoiceNumber = "10101"
-        # order.description = "Golf Shirts"
+        line_items = apicontractsv1.ArrayOfLineItem()
+        for jurisdiction in selected_jurisdictions:
+            jurisdiction_name_title_case = jurisdiction.jurisdictionName.title()
+            privilege_line_item = apicontractsv1.lineItemType()
+            privilege_line_item.itemId = f"{compact_configuration.compactName}-{jurisdiction.postalAbbreviation}"
+            privilege_line_item.name = f"{jurisdiction_name_title_case} Compact Privilege"
+            privilege_line_item.description = f"Compact Privilege for {jurisdiction_name_title_case}"
+            privilege_line_item.quantity = "1"
+            privilege_line_item.unitPrice = _calculate_jurisdiction_fee(jurisdiction, user_active_military)
+
+            line_items.lineItem.append(privilege_line_item)
+
+        # Add the compact fee to the line items
+        compact_fee_line_item = apicontractsv1.lineItemType()
+        compact_fee_line_item.itemId = f"{compact_configuration.compactName}-fee"
+        compact_fee_line_item.name = f"{compact_configuration.compactName.upper()} Compact Fee"
+        compact_fee_line_item.description = "Compact fee applied for each privilege purchased"
+        compact_fee_line_item.quantity = len(selected_jurisdictions)
+        compact_fee_line_item.unitPrice = _calculate_compact_fee_for_single_jurisdiction(compact_configuration)
+        line_items.lineItem.append(compact_fee_line_item)
 
         # Set the customer's Bill To address
         customerAddress = apicontractsv1.customerAddressType()
         customerAddress.firstName = order_information['billing']['first_name']
         customerAddress.lastName = order_information['billing']['last_name']
-        customerAddress.address = order_information['billing']['address']
+        customerAddress.address = \
+            f"{order_information['billing']['address']} {order_information['billing'].get('address2', '')}"
         customerAddress.state = order_information['billing']['state']
         customerAddress.zip = order_information['billing']['zip']
-
-        # Set the customer's identifying information
-        # TODO - Do we need to track customers in authorize.net?
-        # customerData = apicontractsv1.customerDataType()
-        # customerData.type = "individual"
-        # customerData.id = "99999456654"
 
         # Add values for transaction settings
         duplicateWindowSetting = apicontractsv1.settingType()
@@ -70,13 +149,15 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         # Create a transactionRequestType object and add the previous objects to it.
         transactionrequest = apicontractsv1.transactionRequestType()
         transactionrequest.transactionType = "authCaptureTransaction"
-        transactionrequest.amount = amount
+        transactionrequest.amount = _get_total_privilege_cost(compact=compact_configuration,
+                                                              selected_jurisdictions=selected_jurisdictions,
+                                                              user_active_military=user_active_military)
         transactionrequest.currencyCode = "USD"
         transactionrequest.payment = payment
         transactionrequest.billTo = customerAddress
         transactionrequest.transactionSettings = settings
-        # transactionrequest.order = order
-        # transactionrequest.customer = customerData
+        transactionrequest.lineItems = line_items
+        transactionrequest.taxExempt = "true"
 
         # Assemble the complete transaction request
         createtransactionrequest = apicontractsv1.createTransactionRequest()
@@ -85,8 +166,14 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         # Create the controller
         transactionController = createTransactionController(
             createtransactionrequest)
-        transactionController.execute()
 
+        # set the environment based on the environment we are running in
+        if config.environment_name != "prod":
+            transactionController.setenvironment(constants.SANDBOX)
+        else:
+            transactionController.setenvironment(constants.PRODUCTION)
+
+        transactionController.execute()
         response = transactionController.getresponse()
 
         if response is not None:
@@ -94,7 +181,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
             if response.messages.resultCode == "Ok":
                 # Since the API request was successful, look for a transaction response
                 # and parse it to display the results of authorizing the card
-                if hasattr(response.transactionResponse, 'messages') is True:
+                if hasattr(response.transactionResponse, 'messages'):
                     logger.info('Successfully created transaction',
                                 transaction_id=response.transactionResponse.transId,
                                 response_code=response.transactionResponse.responseCode,
@@ -103,31 +190,40 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                                 )
                 else:
                     logger.warning('Failed Transaction.')
-                    if hasattr(response.transactionResponse, 'errors') is True:
-                        print('Error Code:  %s' % str(response.transactionResponse.
-                                                      errors.error[0].errorCode))
-                        print(
-                            'Error message: %s' %
-                            response.transactionResponse.errors.error[0].errorText)
-            # Or, print errors if the API request wasn't successful
+                    if hasattr(response.transactionResponse, 'errors'):
+                        # Although their API presents this as a list, it seems to only ever have one element
+                        # so we only access the first one
+                        error_code = response.transactionResponse.errors.error[0].errorCode
+                        error_message = response.transactionResponse.errors.error[0].errorText
+                        # logging this as a warning, as the transaction itself was likely invalid, but if it occurs
+                        # frequently, we may want to investigate further.
+                        logger.warning('Authorize.net failed to process transaction.',
+                                        error_code=error_code,
+                                       error_message=error_message)
+                        raise CCFailedTransactionException(
+                            f"Failed to process transaction. Error code: {error_code}, Error message: {error_message}")
+            # API request wasn't successful
             else:
-                logger.error('Failed Transaction API Call')
-                if hasattr(response, 'transactionResponse') is True and hasattr(
-                        response.transactionResponse, 'errors') is True:
-                    print('Error Code: %s' % str(
-                        response.transactionResponse.errors.error[0].errorCode))
-                    print('Error message: %s' %
-                          response.transactionResponse.errors.error[0].errorText)
+                if hasattr(response, 'transactionResponse') and hasattr(response.transactionResponse, 'errors'):
+                    error_code = response.transactionResponse.errors.error[0].errorCode
+                    error_message = response.transactionResponse.errors.error[0].errorText
+                    logger.error('API call to authorize.net Failed.',
+                                    error_code=error_code,
+                                    error_message=error_message)
+
                 else:
-                    print('Error Code: %s' %
-                          response.messages.message[0]['code'].text)
-                    print('Error message: %s' %
-                          response.messages.message[0]['text'].text)
+                    error_code = response.messages.message[0]['code'].text
+                    error_message = response.messages.message[0]['text'].text
+                    logger.error('API call to authorize.net Failed.',
+                                    error_code=error_code,
+                                    error_message=error_message)
+
+                raise CCInternalException("API call to authorize.net failed.")
         else:
             logger.error('No response returned')
-            raise ValueError('No response returned')
+            raise CCInternalException("Authorize.net API call failed to return a response.")
 
-        return response
+        return {"message": "Successfully processed charge"}
 
 
 class PaymentProcessorClientFactory:
@@ -182,16 +278,22 @@ class PurchaseClient:
         return PaymentProcessorClientFactory.create_payment_processor_client(json.loads(secret['SecretString']))
 
 
-    def process_charge_for_licensee_privileges(self, user_compact: str, order_information: dict):
+    def process_charge_for_licensee_privileges(self, order_information: dict,
+                                               compact_configuration: Compact,
+                                               selected_jurisdictions: list[Jurisdiction],
+                                               user_active_military: bool) -> dict:
         """
         Charge a credit card
         """
         # get the credentials from secrets_manager for the compact
-        payment_processor_client: PaymentProcessorClient = self._get_compact_payment_processor_client(user_compact)
+        payment_processor_client: PaymentProcessorClient = self._get_compact_payment_processor_client(
+            compact_configuration.compactName)
 
-        payment_processor_client.process_charge_on_credit_card_for_privilege_purchase(
+        response = payment_processor_client.process_charge_on_credit_card_for_privilege_purchase(
             order_information=order_information,
-            amount=order_information['amount'])
+            compact_configuration=compact_configuration,
+            selected_jurisdictions=selected_jurisdictions,
+            user_active_military=user_active_military
+        )
 
-
-
+        return response
