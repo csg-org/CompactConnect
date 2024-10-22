@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 10/15/2024.
 //
 
-import { Component, mixins } from 'vue-facing-decorator';
+import { Component, Watch, mixins } from 'vue-facing-decorator';
 import { reactive } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
@@ -28,10 +28,6 @@ import { State } from '@/models/State/State.model';
     }
 })
 export default class SelectPrivileges extends mixins(MixinForm) {
-    //
-    // Data
-    //
-
     //
     // Lifecycle
     //
@@ -102,7 +98,8 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     get isAtLeastOnePrivilegeChosen(): boolean {
-        return true;
+        return this.formData.stateCheckList?.filter((formInput) =>
+            (formInput.value === true)).length > 0;
     }
 
     get submitLabel(): string {
@@ -215,9 +212,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
                 const { abbrev } = jurisdiction;
                 const shouldDisable = this.alreadyObtainedPrivilegeStates.includes(abbrev);
 
-                console.log('this.alreadyObtainedPrivilegeStates', this.alreadyObtainedPrivilegeStates);
-                console.log('shouldDisable', shouldDisable);
-
                 if (typeof abbrev === 'string' && abbrev) {
                     initFormData.stateCheckList.push(new FormInput({
                         id: `${abbrev}`,
@@ -236,14 +230,12 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     handleSubmit() {
         if (this.isAtLeastOnePrivilegeChosen) {
             this.startFormLoading();
-
-            console.log('Form data submitted', this.formData);
+            console.log(this.formData);
             this.endFormLoading();
         }
     }
 
     handleStateClicked(e) {
-        console.log(this.formData);
         /* eslint no-underscore-dangle: 0 */
         const newValue = e.target._modelValue;
         const stateAbbrev = e.target.id;
@@ -286,5 +278,9 @@ export default class SelectPrivileges extends mixins(MixinForm) {
 
     deselectState(state) {
         this.formData.stateCheckList.find((checkBox) => (checkBox.id === state?.jurisdiction?.abbrev)).value = false;
+    }
+
+    @Watch('alreadyObtainedPrivilegeStates.length') reInitForm() {
+        this.initFormInputs();
     }
 }
