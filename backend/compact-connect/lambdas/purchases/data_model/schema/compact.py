@@ -3,6 +3,7 @@ from enum import Enum
 from marshmallow import Schema, pre_dump
 from marshmallow.fields import Decimal, List, Nested, String
 from marshmallow.validate import Length, OneOf
+from config import config
 
 from data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 

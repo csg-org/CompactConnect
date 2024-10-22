@@ -65,6 +65,10 @@ def _generate_selected_jurisdictions():
     with open('tests/resources/dynamo/jurisdiction.json') as f:
         jurisdiction = json.load(f)
         jurisdiction['jurisdictionFee'] = 100.00
+        # set military discount to fixed amount for tests
+        jurisdiction['militaryDiscount']['discountAmount'] = 25.00
+        jurisdiction['militaryDiscount']['active'] = True
+        jurisdiction['militaryDiscount']['discountType'] = "FLAT_RATE"
 
         return [Jurisdiction(jurisdiction)]
 
@@ -191,7 +195,7 @@ class TestPurchaseClient(TstLambdas):
         self.assertEqual("duplicateWindow",
                          api_contract_v1_obj.transactionRequest.transactionSettings.setting[0].settingName)
         # ensure tax exempt is set to true
-        self.assertEqual("true", api_contract_v1_obj.transactionRequest.taxExempt)
+        self.assertEqual(True, api_contract_v1_obj.transactionRequest.taxExempt)
 
     @patch('purchase_client.createTransactionController')
     def test_purchase_client_sends_expected_line_items_when_purchasing_privileges_with_authorize_net_processor(self,
@@ -232,6 +236,39 @@ class TestPurchaseClient(TstLambdas):
 
         # ensure the total amount is the sum of the two line items
         self.assertEqual(150.50, api_contract_v1_obj.transactionRequest.amount)
+
+    @patch('purchase_client.createTransactionController')
+    def test_purchase_client_sends_expected_line_items_when_purchasing_privileges_with_military_discount(self,
+                                                                                    mock_create_transaction_controller):
+        from purchase_client import PurchaseClient
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_transaction_is_successful(
+            mock_create_transaction_controller=mock_create_transaction_controller)
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        test_purchase_client.process_charge_for_licensee_privileges(
+            order_information=_generate_default_order_information(),
+            compact_configuration=_generate_aslp_compact_configuration(),
+            selected_jurisdictions=_generate_selected_jurisdictions(),
+            user_active_military=True
+        )
+
+        call_args = mock_create_transaction_controller.call_args.args
+        api_contract_v1_obj = call_args[0]
+        # we check every line item of the object to ensure that the correct values are being set
+        self.assertEqual(2, len(api_contract_v1_obj.transactionRequest.lineItems.lineItem))
+        # verify jurisdiction fee line item with military discount
+        self.assertEqual("aslp-oh", api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
+        self.assertEqual("Ohio Compact Privilege",
+                         api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].name)
+        self.assertEqual(75.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].unitPrice)
+        self.assertEqual(1, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].quantity)
+        self.assertEqual("Compact Privilege for Ohio (Military Discount)",
+                         api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].description)
+
+        # ensure the total amount is the sum of the two line items
+        self.assertEqual(125.50, api_contract_v1_obj.transactionRequest.amount)
 
 
 

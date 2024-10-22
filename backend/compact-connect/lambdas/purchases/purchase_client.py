@@ -31,8 +31,8 @@ def _calculate_total_compact_fee(compact: Compact, selected_jurisdictions: list[
     """
     Calculate the total compact fee for all selected jurisdictions
 
-    There is potential that the compact fee may change depending on the jurisdiction, but for now we are assuming
-    that the fee is the same for all jurisdictions.
+    There is potential that the compact fee may change depending on the jurisdiction (ie percentage based fees),
+    but for now we are assuming that the fee is the same for all jurisdictions.
     """
     return _calculate_compact_fee_for_single_jurisdiction(compact) * len(selected_jurisdictions)
 
@@ -115,9 +115,13 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
             privilege_line_item = apicontractsv1.lineItemType()
             privilege_line_item.itemId = f"{compact_configuration.compactName}-{jurisdiction.postalAbbreviation}"
             privilege_line_item.name = f"{jurisdiction_name_title_case} Compact Privilege"
-            privilege_line_item.description = f"Compact Privilege for {jurisdiction_name_title_case}"
             privilege_line_item.quantity = "1"
             privilege_line_item.unitPrice = _calculate_jurisdiction_fee(jurisdiction, user_active_military)
+            if user_active_military and jurisdiction.militaryDiscount.active:
+                privilege_line_item.description = (
+                        f"Compact Privilege for {jurisdiction_name_title_case} (Military Discount)")
+            else:
+                privilege_line_item.description = f"Compact Privilege for {jurisdiction_name_title_case}"
 
             line_items.lineItem.append(privilege_line_item)
 
@@ -135,7 +139,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         customerAddress.firstName = order_information['billing']['first_name']
         customerAddress.lastName = order_information['billing']['last_name']
         customerAddress.address = \
-            f"{order_information['billing']['address']} {order_information['billing'].get('address2', '')}"
+            f"{order_information['billing']['address']} {order_information['billing'].get('address2', '')}".strip()
         customerAddress.state = order_information['billing']['state']
         customerAddress.zip = order_information['billing']['zip']
 
@@ -157,7 +161,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         transactionrequest.billTo = customerAddress
         transactionrequest.transactionSettings = settings
         transactionrequest.lineItems = line_items
-        transactionrequest.taxExempt = "true"
+        transactionrequest.taxExempt = True
 
         # Assemble the complete transaction request
         createtransactionrequest = apicontractsv1.createTransactionRequest()
@@ -283,7 +287,12 @@ class PurchaseClient:
                                                selected_jurisdictions: list[Jurisdiction],
                                                user_active_military: bool) -> dict:
         """
-        Charge a credit card
+        Process a charge on a credit card for a list of privileges within a compact.
+
+        :param order_information: A dictionary containing the order information (billing, card, etc.)
+        :param compact_configuration: The compact configuration.
+        :param selected_jurisdictions: A list of selected jurisdictions to purchase privileges for.
+        :param user_active_military: Whether the user is active military.
         """
         # get the credentials from secrets_manager for the compact
         payment_processor_client: PaymentProcessorClient = self._get_compact_payment_processor_client(
