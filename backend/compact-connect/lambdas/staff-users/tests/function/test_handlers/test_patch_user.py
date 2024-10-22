@@ -1,6 +1,5 @@
 import json
 
-from boto3.dynamodb.types import TypeSerializer
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -53,11 +52,9 @@ class TestPatchUser(TstFunction):
             'compact': 'octp',
             'dateOfUpdate': '2024-10-21',
             'famGiv': 'User#Test',
-            'permissions': {
-                'actions': {'read'}, 'jurisdictions': {'co': ['admin', 'write']}
-            },
+            'permissions': {'actions': {'read'}, 'jurisdictions': {'oh': {'admin', 'write'}}},
             'type': 'user',
-            'userId': '648864f8-10f1-702f-e666-2e0ff3482502',
+            'userId': '648864e8-10f1-702f-e666-2e0ff3482502',
         }
         self._table.put_item(Item=user)
 
@@ -66,24 +63,16 @@ class TestPatchUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email octp/admin octp/octp.admin octp/co.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = (
+            'openid email octp/admin octp/octp.admin octp/oh.admin'
+        )
         event['pathParameters'] = {'compact': 'octp', 'userId': '648864e8-10f1-702f-e666-2e0ff3482502'}
         event['body'] = json.dumps(
             {
-                "permissions": {
-                    "octp": {
-                        "actions": {
-                            "read": True,
-                            "admin": False
-                        },
-                        "jurisdictions": {
-                            "co": {
-                                "actions": {
-                                    "write": True,
-                                    "admin": False
-                                }
-                            }
-                        }
+                'permissions': {
+                    'octp': {
+                        'actions': {'read': True, 'admin': False},
+                        'jurisdictions': {'oh': {'actions': {'write': True, 'admin': False}}},
                     }
                 }
             }
@@ -93,6 +82,10 @@ class TestPatchUser(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
         user = json.loads(resp['body'])
+
+        # Don't compare the dateOfUpdate in comparison, since its value is dynamic
+        del user['dateOfUpdate']
+
         self.assertEqual(
             {
                 'attributes': {
@@ -100,11 +93,10 @@ class TestPatchUser(TstFunction):
                     'familyName': 'User',
                     'givenName': 'Test',
                 },
-                'dateOfUpdate': '2024-09-12',
                 'permissions': {
-                    'aslp': {
+                    'octp': {
                         'actions': {'read': True},
-                        'jurisdictions': {'oh': {'actions': {'admin': True, 'write': True}}},
+                        'jurisdictions': {'oh': {'actions': {'write': True}}},
                     },
                 },
                 'type': 'user',

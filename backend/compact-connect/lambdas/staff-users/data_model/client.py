@@ -109,20 +109,50 @@ class UserClient:
         logger.info('Updating staff user permissions', user_id=user_id)
 
         update_expression_parts = {'add': [], 'delete': []}
+
+        # DynamoDB does not support both ADD and DELETE on the same String Set in a single UpdateItem call, so we will
+        # split additions and removals into two calls to prevent a conflict.
+        resp = self._handle_user_permission_additions(
+            user_id=user_id,
+            compact=compact,
+            update_expression_parts=update_expression_parts['add'],
+            compact_action_additions=compact_action_additions,
+            jurisdiction_action_additions=jurisdiction_action_additions,
+        )
+        resp = (
+            self._handle_user_permission_removals(
+                user_id=user_id,
+                compact=compact,
+                update_expression_parts=update_expression_parts['delete'],
+                compact_action_removals=compact_action_removals,
+                jurisdiction_action_removals=jurisdiction_action_removals,
+            )
+            or resp
+        )
+
+        if not (update_expression_parts['add'] or update_expression_parts['delete']):
+            logger.warning('No changes provided for update_user_permissions')
+            raise CCInvalidRequestException('No changes requested')
+
+        return self.schema.load(resp['Attributes'])
+
+    def _handle_user_permission_additions(
+        self,
+        *,
+        user_id: str,
+        compact: str,
+        update_expression_parts: list,
+        compact_action_additions: set,
+        jurisdiction_action_additions: dict,
+    ) -> dict | None:
         expression_attribute_names = {}
         expression_attribute_values = {}
 
         if compact_action_additions:
-            update_expression_parts['add'].append('#permissions.#actions :addActions')
+            update_expression_parts.append('#permissions.#actions :addActions')
             expression_attribute_names['#permissions'] = 'permissions'
             expression_attribute_names['#actions'] = 'actions'
             expression_attribute_values[':addActions'] = compact_action_additions
-
-        if compact_action_removals:
-            update_expression_parts['delete'].append('#permissions.#actions :deleteActions')
-            expression_attribute_names['#permissions'] = 'permissions'
-            expression_attribute_names['#actions'] = 'actions'
-            expression_attribute_values[':deleteActions'] = compact_action_removals
 
         if jurisdiction_action_additions:
             for jurisdiction, actions in jurisdiction_action_additions.items():
@@ -131,14 +161,45 @@ class UserClient:
                 expression_attribute_names[f'#{jurisdiction}'] = jurisdiction
 
                 # If this is not their first action, we simply add to the set
-                update_expression_parts['add'].append(
+                update_expression_parts.append(
                     f'#permissions.#jurisdictions.#{jurisdiction}  :{jurisdiction}AddActions',
                 )
                 expression_attribute_values[f':{jurisdiction}AddActions'] = actions
 
+        if update_expression_parts:
+            update_expression = 'ADD ' + ', '.join(update_expression_parts)
+
+            return self.config.users_table.update_item(
+                Key={'pk': f'USER#{user_id}', 'sk': f'COMPACT#{compact}'},
+                UpdateExpression=update_expression,
+                ExpressionAttributeNames=expression_attribute_names,
+                ExpressionAttributeValues=expression_attribute_values,
+                ReturnValues='ALL_NEW',
+            )
+
+        return None
+
+    def _handle_user_permission_removals(
+        self,
+        *,
+        user_id: str,
+        compact: str,
+        update_expression_parts: list,
+        compact_action_removals: set,
+        jurisdiction_action_removals: dict,
+    ) -> dict | None:
+        expression_attribute_names = {}
+        expression_attribute_values = {}
+
+        if compact_action_removals:
+            update_expression_parts.append('#permissions.#actions :deleteActions')
+            expression_attribute_names['#permissions'] = 'permissions'
+            expression_attribute_names['#actions'] = 'actions'
+            expression_attribute_values[':deleteActions'] = compact_action_removals
+
         if jurisdiction_action_removals:
             for jurisdiction, actions in jurisdiction_action_removals.items():
-                update_expression_parts['delete'].append(
+                update_expression_parts.append(
                     f'#permissions.#jurisdictions.#{jurisdiction} :{jurisdiction}DeleteActions',
                 )
                 expression_attribute_names['#permissions'] = 'permissions'
@@ -146,24 +207,18 @@ class UserClient:
                 expression_attribute_names[f'#{jurisdiction}'] = jurisdiction
                 expression_attribute_values[f':{jurisdiction}DeleteActions'] = actions
 
-        if not (update_expression_parts['add'] or update_expression_parts['delete']):
-            logger.warning('No changes provided for update_user_permissions')
-            raise CCInvalidRequestException('No changes requested')
+        if update_expression_parts:
+            update_expression = 'DELETE ' + ', '.join(update_expression_parts)
 
-        update_expression = ''
-        if update_expression_parts['add']:
-            update_expression += ' ADD ' + ', '.join(update_expression_parts['add'])
-        if update_expression_parts['delete']:
-            update_expression += ' DELETE ' + ', '.join(update_expression_parts['delete'])
+            return self.config.users_table.update_item(
+                Key={'pk': f'USER#{user_id}', 'sk': f'COMPACT#{compact}'},
+                UpdateExpression=update_expression,
+                ExpressionAttributeNames=expression_attribute_names,
+                ExpressionAttributeValues=expression_attribute_values,
+                ReturnValues='ALL_NEW',
+            )
 
-        resp = self.config.users_table.update_item(
-            Key={'pk': f'USER#{user_id}', 'sk': f'COMPACT#{compact}'},
-            UpdateExpression=update_expression,
-            ExpressionAttributeNames=expression_attribute_names,
-            ExpressionAttributeValues=expression_attribute_values,
-            ReturnValues='ALL_NEW',
-        )
-        return self.schema.load(resp['Attributes'])
+        return None
 
     def update_user_attributes(self, *, user_id: str, attributes: dict):
         """Update the provided user's attributes
