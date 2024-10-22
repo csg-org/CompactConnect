@@ -38,7 +38,11 @@
                         class="state-select-unit"
                     >
                         <div v-if="state.isDisabled" class="disabled-state-overlay" />
-                        <InputCheckbox :formInput="state" :isDisabled="state.isDisabled" @change="handleStateClicked" />
+                        <InputCheckbox
+                            :formInput="state"
+                            :isDisabled="state.isDisabled"
+                            @change="handleStateClicked"
+                        />
                     </div>
                 </div>
                 <div class="selected-state-list">
