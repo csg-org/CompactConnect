@@ -16,6 +16,10 @@
         align-items: center;
         max-width: 72rem;
 
+        @media @desktopWidth {
+            max-width: unset;
+        }
+
         .button-row {
             display: flex;
             flex-direction: row;
@@ -45,6 +49,12 @@
                 width: 72rem;
             }
 
+            @media @desktopWidth {
+                width: unset;
+                min-width: 72rem;
+                margin-top: 8rem;
+            }
+
             .select-privileges-title {
                 margin: 0 1rem 2rem 1rem;
                 font-size: @fontSizeLarger;
@@ -62,6 +72,13 @@
                 }
 
                 .state-select-list {
+                    display: flex;
+                    flex-flow: column wrap;
+
+                    @media @desktopWidth {
+                        max-height: 65vh;
+                    }
+
                     .state-select-unit {
                         width: 27rem;
                         margin: 1rem;
@@ -71,7 +88,7 @@
 
                         :deep(.checkbox-container) {
                             label {
-                                padding: 0 13rem 0 0.4rem;
+                                padding: 0 5rem 0 0.4rem;
                                 font-weight: @fontWeight;
                             }
                         }
@@ -101,6 +118,10 @@
                         border-radius: 20px;
                         color: white;
                         background-color: @darkBlue;
+
+                        @media @desktopWidth {
+                            margin: 1rem 1rem;
+                        }
 
                         .info-row {
                             display: flex;

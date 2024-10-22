@@ -36,7 +36,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     async created() {
         await this.$store.dispatch('user/getPrivilegePurchaseInformationRequest');
 
-        if (this.alreadyObtainedPrivilegeStates.length) {
+        if (this.alreadyObtainedPrivilegeStates?.length) {
             this.initFormInputs();
         }
     }
@@ -178,8 +178,13 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     get subTotalList(): Array<number> {
-        return this.selectedStatePurchaseDataList?.map((purchaseInfo) =>
-            (purchaseInfo.fee + this.currentCompactCommissionFee - purchaseInfo.militaryDiscountAmount)) || [];
+        console.log('this.selectedStatePurchaseDataList', this.selectedStatePurchaseDataList);
+
+        return this.selectedStatePurchaseDataList?.map((purchaseInfo) => {
+            const militaryDiscount = purchaseInfo.isMilitaryDiscountActive ? purchaseInfo.militaryDiscountAmount : 0;
+
+            return (purchaseInfo.fee + this.currentCompactCommissionFee - (militaryDiscount));
+        });
     }
 
     get jurisprudenceInputs(): Array<FormInput> {

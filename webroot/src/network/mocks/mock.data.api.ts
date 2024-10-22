@@ -6,17 +6,19 @@
 //
 
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
+import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
+import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import {
     userData,
     staffAccount,
     stateUploadRequestData,
     licensees,
     users,
-    pets
+    pets,
+    privilegePurchaseOptionsResponse
 } from '@network/mocks/mock.data';
-import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 
 let mockStore: any = null;
 
@@ -136,6 +138,22 @@ export class DataApi {
     // Get Authenticated Licensee User
     public getAuthenticatedLicenseeUser() {
         return this.wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.items[0]));
+    }
+
+    // Get Authenticated Licensee User
+    public getPrivilegePurchaseInformation() {
+        return this.wait(500).then(() => {
+            const { items } = privilegePurchaseOptionsResponse;
+            const privilegePurchaseOptions = items.filter((serverItem) => (serverItem.type === 'jurisdiction')).map((serverPurchaseOption) => (PrivilegePurchaseOptionSerializer.fromServer(serverPurchaseOption)));
+
+            const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => ({
+                compact: serverFeeObject?.compactName,
+                feeType: serverFeeObject?.compactCommissionFee?.feeType,
+                feeAmount: serverFeeObject?.compactCommissionFee?.feeAmount
+            }))[0];
+
+            return { privilegePurchaseOptions, compactCommissionFee };
+        });
     }
 
     // ========================================================================
