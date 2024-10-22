@@ -19,11 +19,6 @@ export enum CompactType { // Temp server definition until server returns via end
     COUNSILING = 'coun',
 }
 
-// export interface CompactCommissionFee {
-//     feeType?: FeeTypes | null,
-//     feeAmount?: number | null,
-// }
-
 export interface InterfaceCompactCreate {
     id?: string | null;
     type?: CompactType | null;
