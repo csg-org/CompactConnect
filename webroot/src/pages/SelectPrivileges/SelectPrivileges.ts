@@ -7,6 +7,7 @@
 
 import { Component, Watch, mixins } from 'vue-facing-decorator';
 import { reactive } from 'vue';
+import { displayDateFormat } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
@@ -18,6 +19,7 @@ import { Licensee } from '@models/Licensee/Licensee.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { State } from '@/models/State/State.model';
+import moment from 'moment';
 
 @Component({
     name: 'SelectPrivileges',
@@ -161,8 +163,18 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         return this.licenseList?.find((license) => license.statusState === LicenseStatus.ACTIVE) || null;
     }
 
-    get activeLicenseExpirationDate(): any { // TODO fix type here
-        return this.activeLicense?.expireDate;
+    get activeLicenseExpirationDate(): string {
+        let date = '';
+
+        if (this.activeLicense) {
+            const { expireDate } = this.activeLicense;
+
+            if (expireDate) {
+                date = moment(expireDate).format(displayDateFormat);
+            }
+        }
+
+        return date;
     }
 
     get subTotalList(): Array<number> {

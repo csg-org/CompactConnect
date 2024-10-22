@@ -34,60 +34,62 @@
                 <div class="select-privileges-title">
                     {{selectPrivilegesTitleText}}
                 </div>
-                <div class="state-select-list">
-                    <div
-                        v-for="state in stateCheckList"
-                        :key="state.label"
-                        class="state-select-unit"
-                    >
-                        <div v-if="state.isDisabled" class="disabled-state-overlay" />
-                        <InputCheckbox
-                            :formInput="state"
-                            :isDisabled="state.isDisabled"
-                            @change="handleStateClicked"
-                        />
-                    </div>
-                </div>
-                <div class="selected-state-list">
-                    <div
-                        v-for="(state, i) in selectedStatePurchaseDataList"
-                        :key="state.jurisdiction.abbrev"
-                        class="selected-state-block"
-                    >
-                        <div class="info-row">
-                            <div class="state-title">{{state.jurisdiction.name()}}</div>
-                            <InputButton
-                                label="X"
-                                :isTextLike="true"
-                                aria-label="deselect state"
-                                @click="deselectState(state)"
-                            />
-                        </div>
-                        <div class="info-row sub-row">
-                            <div class="info-row-label">{{expirationDateText}}</div>
-                            <div class="expire-date-value">{{activeLicenseExpirationDate}}</div>
-                        </div>
-                        <div class="info-row sub-row">
-                            <div class="info-row-label">{{jurisdictionFeeText}}</div>
-                            <div class="expire-date-value">${{state.fee}}</div>
-                        </div>
-                        <div class="info-row sub-row">
-                            <div class="info-row-label">{{commissionFeeText}}</div>
-                            <div class="expire-date-value">${{currentCompactCommissionFee}}</div>
-                        </div>
-                        <div v-if="state.isMilitaryDiscountActive" class="info-row sub-row">
-                            <div class="info-row-label">{{militaryDiscountText}}</div>
-                            <div class="expire-date-value">-${{state.militaryDiscountAmount}}</div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-row-label">{{subtotalText}}</div>
-                            <div class="expire-date-value">${{subTotalList[i]}}</div>
-                        </div>
-                        <div v-if="state.isJurisprudenceRequired" class="jurisprudence-check-box">
+                <div class="lists-container">
+                    <div class="state-select-list">
+                        <div
+                            v-for="state in stateCheckList"
+                            :key="state.label"
+                            class="state-select-unit"
+                        >
+                            <div v-if="state.isDisabled" class="disabled-state-overlay" />
                             <InputCheckbox
-                                :formInput="formData.jurisprudenceConfirmations[state.jurisdiction.abbrev]"
-                                @change="handleJurisprudenceClicked"
+                                :formInput="state"
+                                :isDisabled="state.isDisabled"
+                                @change="handleStateClicked"
                             />
+                        </div>
+                    </div>
+                    <div class="selected-state-list">
+                        <div
+                            v-for="(state, i) in selectedStatePurchaseDataList"
+                            :key="state.jurisdiction.abbrev"
+                            class="selected-state-block"
+                        >
+                            <div class="info-row">
+                                <div class="state-title">{{state.jurisdiction.name()}}</div>
+                                <InputButton
+                                    label="X"
+                                    :isTextLike="true"
+                                    aria-label="deselect state"
+                                    @click="deselectState(state)"
+                                />
+                            </div>
+                            <div class="info-row sub-row">
+                                <div class="info-row-label">{{expirationDateText}}</div>
+                                <div class="expire-date-value">{{activeLicenseExpirationDate}}</div>
+                            </div>
+                            <div class="info-row sub-row">
+                                <div class="info-row-label">{{jurisdictionFeeText}}</div>
+                                <div class="expire-date-value">${{state.fee.toFixed(2)}}</div>
+                            </div>
+                            <div class="info-row sub-row">
+                                <div class="info-row-label">{{commissionFeeText}}</div>
+                                <div class="expire-date-value">${{currentCompactCommissionFee.toFixed(2)}}</div>
+                            </div>
+                            <div v-if="state.isMilitaryDiscountActive" class="info-row sub-row">
+                                <div class="info-row-label">{{militaryDiscountText}}</div>
+                                <div class="expire-date-value">-${{state.militaryDiscountAmount.toFixed(2)}}</div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-row-label">{{subtotalText}}</div>
+                                <div class="expire-date-value">${{subTotalList[i].toFixed(2)}}</div>
+                            </div>
+                            <div v-if="state.isJurisprudenceRequired" class="jurisprudence-check-box">
+                                <InputCheckbox
+                                    :formInput="formData.jurisprudenceConfirmations[state.jurisdiction.abbrev]"
+                                    @change="handleJurisprudenceClicked"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
