@@ -43,7 +43,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     //
     // Computed
     //
-    get unalteredPurchaseList(): Array<PrivilegePurchaseOption> {
+    get purchaseDataList(): Array<PrivilegePurchaseOption> {
         return this.currentCompact?.privilegePurchaseOptions || [];
     }
 
@@ -52,8 +52,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     get currentCompactCommissionFee(): number | null {
-        console.log('currentCompact', this.currentCompact);
-
         return this.currentCompact?.compactCommissionFee || null;
     }
 
@@ -87,7 +85,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         return this.licensee?.licenses || [];
     }
 
-    get alreadyObtainedPrivilegeStates(): Array<any> {
+    get alreadyObtainedPrivilegeStates(): any {
         return this.licenseList.concat(this.privilegeList).map((license) => license?.issueState?.abbrev);
     }
 
@@ -131,9 +129,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     get selectedStatePurchaseDataList(): Array <any> {
-        console.log('statesSelected', this.statesSelected);
-        console.log('unalteredPurchaseList', this.unalteredPurchaseList);
-        return this.unalteredPurchaseList.filter((option) =>
+        return this.purchaseDataList.filter((option) =>
             (this.statesSelected?.includes(option?.jurisdiction?.abbrev)));
     }
 
@@ -174,7 +170,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
             (purchaseInfo.fee + this.currentCompactCommissionFee - purchaseInfo.militaryDiscountAmount)) || [];
     }
 
-    get jurisprudenceInputs(): any {
+    get jurisprudenceInputs(): Array<FormInput> {
         const jurisprudenceInputs: any = {};
 
         this.selectedStatePurchaseDataList.forEach((purchaseItem) => {
@@ -212,18 +208,23 @@ export default class SelectPrivileges extends mixins(MixinForm) {
             }),
         };
 
-        this.unalteredPurchaseList?.forEach((purchaseOption) => {
+        this.purchaseDataList?.forEach((purchaseOption) => {
             const { jurisdiction = new State() } = purchaseOption;
 
             if (jurisdiction) {
                 const { abbrev } = jurisdiction;
+                const shouldDisable = this.alreadyObtainedPrivilegeStates.includes(abbrev);
+
+                console.log('this.alreadyObtainedPrivilegeStates', this.alreadyObtainedPrivilegeStates);
+                console.log('shouldDisable', shouldDisable);
 
                 if (typeof abbrev === 'string' && abbrev) {
                     initFormData.stateCheckList.push(new FormInput({
                         id: `${abbrev}`,
                         name: `${abbrev}-check`,
                         label: `${jurisdiction.name()}`,
-                        value: false
+                        value: false,
+                        isDisabled: shouldDisable
                     }));
                 }
             }

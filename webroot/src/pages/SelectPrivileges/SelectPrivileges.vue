@@ -32,8 +32,13 @@
             </div>
             <div class="select-privileges-core-container" :class="{ 'visible-core': isMobile }">
                 <div class="state-select-list">
-                    <div v-for="state in stateCheckList" :key="state.label" class="state-select-unit">
-                        <InputCheckbox :formInput="state" @change="handleStateClicked" />
+                    <div
+                        v-for="state in stateCheckList"
+                        :key="state.label"
+                        class="state-select-unit"
+                    >
+                        <div v-if="state.isDisabled" class="disabled-state-overlay" />
+                        <InputCheckbox :formInput="state" :isDisabled="state.isDisabled" @change="handleStateClicked" />
                     </div>
                 </div>
                 <div class="selected-state-list">

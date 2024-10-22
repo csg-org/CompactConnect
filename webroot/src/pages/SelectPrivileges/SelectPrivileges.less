@@ -30,6 +30,26 @@
         border-radius: 20px;
         background-color: white;
 
+        .state-select-list {
+            .state-select-unit {
+                margin: 1rem;
+                padding: 0 1rem;
+                border: 1px solid @lightGrey;
+                border-radius: 10px;
+
+                .disabled-state-overlay {
+                    position: absolute;
+                    z-index: 2;
+                    width: 100%;
+                    height: 100%;
+                    margin: 0 -1rem;
+                    border-radius: 10px;
+                    background-color: @lightGrey;
+                    opacity: 0.5;
+                }
+            }
+        }
+
         .selected-state-list {
             .selected-state-block {
                 margin: 2rem 0;

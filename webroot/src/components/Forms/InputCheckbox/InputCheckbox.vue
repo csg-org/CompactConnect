@@ -13,6 +13,7 @@
                 :id="formInput.id"
                 :name="formInput.name"
                 v-model="formInput.value"
+                :disabled="formInput.isDisabled"
                 :aria-label="formInput.label"
                 @blur="blur(formInput)"
                 @change="input(formInput)"
