@@ -32,6 +32,7 @@ class TstFunction(TstLambdas):
 
     def build_resources(self):
         self.create_compact_configuration_table()
+        self.create_provider_table()
 
     def create_compact_configuration_table(self):
         self._compact_configuration_table = boto3.resource('dynamodb').create_table(
@@ -44,12 +45,44 @@ class TstFunction(TstLambdas):
             BillingMode='PAY_PER_REQUEST',
         )
 
+    def create_provider_table(self):
+        self._provider_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+                {'AttributeName': 'providerFamGivMid', 'AttributeType': 'S'},
+                {'AttributeName': 'providerDateOfUpdate', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['PROVIDER_TABLE_NAME'],
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+            GlobalSecondaryIndexes=[
+                {
+                    'IndexName': os.environ['PROV_FAM_GIV_MID_INDEX_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'sk', 'KeyType': 'HASH'},
+                        {'AttributeName': 'providerFamGivMid', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+                {
+                    'IndexName': os.environ['PROV_DATE_OF_UPDATE_INDEX_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'sk', 'KeyType': 'HASH'},
+                        {'AttributeName': 'providerDateOfUpdate', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+            ],
+        )
+
     def delete_resources(self):
         self._compact_configuration_table.delete()
+        self._provider_table.delete()
 
     def _load_compact_configuration_data(self):
         """Use the canned test resources to load compact and jurisdiction information into the DB"""
-        test_resources = glob('tests/resources/dynamo/*.json')
+        test_resources = ['tests/resources/dynamo/compact.json', 'tests/resources/dynamo/jurisdiction.json']
 
         for resource in test_resources:
             with open(resource) as f:
@@ -58,3 +91,20 @@ class TstFunction(TstLambdas):
             logger.debug('Loading resource, %s: %s', resource, str(record))
             # compact and jurisdiction records go in the compact configuration table
             self._compact_configuration_table.put_item(Item=record)
+
+    def _load_provider_data(self):
+        """Use the canned test resources to load a basic provider to the DB"""
+        provider_test_resources = ['tests/resources/dynamo/provider.json']
+
+        def provider_jurisdictions_to_set(obj: dict):
+            if obj.get('type') == 'provider' and 'providerJurisdictions' in obj:
+                obj['providerJurisdictions'] = set(obj['providerJurisdictions'])
+            return obj
+
+        for resource in provider_test_resources:
+            with open(resource) as f:
+                record = json.load(f, object_hook=provider_jurisdictions_to_set, parse_float=Decimal)
+                # set
+
+            logger.debug('Loading resource, %s: %s', resource, str(record))
+            self._provider_table.put_item(Item=record)

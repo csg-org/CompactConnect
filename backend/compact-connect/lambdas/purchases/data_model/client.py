@@ -1,5 +1,6 @@
 from boto3.dynamodb.conditions import Key
 from config import _Config, logger
+from exceptions import CCNotFoundException
 
 from data_model.query_paginator import paginated_query
 
@@ -19,3 +20,30 @@ class DataClient:
             KeyConditionExpression=Key('pk').eq(f'{compact}#CONFIGURATION'),
             **dynamo_pagination,
         )
+
+    @paginated_query
+    def get_provider(
+            self,
+            *,
+            compact: str,
+            provider_id: str,
+            dynamo_pagination: dict,
+            detail: bool = True,
+            consistent_read: bool = False,
+    ):
+        logger.info('Getting provider', provider_id=provider_id)
+        if detail:
+            sk_condition = Key('sk').begins_with(f'{compact}#PROVIDER')
+        else:
+            sk_condition = Key('sk').eq(f'{compact}#PROVIDER')
+
+        resp = self.config.provider_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}') & sk_condition,
+            ConsistentRead=consistent_read,
+            **dynamo_pagination,
+        )
+        if not resp['Items']:
+            raise CCNotFoundException('Provider not found')
+
+        return resp

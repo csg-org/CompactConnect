@@ -52,5 +52,20 @@ class _Config:
     def environment_name(self):
         return os.environ['ENVIRONMENT_NAME']
 
+    @cached_property
+    def provider_table(self):
+        return boto3.resource('dynamodb').Table(self.provider_table_name)
+
+    @property
+    def provider_table_name(self):
+        return os.environ['PROVIDER_TABLE_NAME']
+
+    @property
+    def license_types(self):
+        return json.loads(os.environ['LICENSE_TYPES'])
+
+    def license_types_for_compact(self, compact):
+        return self.license_types[compact]
+
 
 config = _Config()
