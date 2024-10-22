@@ -13,6 +13,8 @@ MOCK_ASLP_SECRET = {
     "transaction_key": MOCK_TRANSACTION_KEY
 }
 
+MOCK_TRANSACTION_ID = "123456"
+
 EXPECTED_TOTAL_FEE_AMOUNT = 150.50
 
 
@@ -105,7 +107,7 @@ class TestPurchaseClient(TstLambdas):
                 "resultCode": "Ok",
             },
             "transactionResponse": {
-                "transId": "123456",
+                "transId": MOCK_TRANSACTION_ID,
                 "responseCode": "1",
                 "messages": {
                     "message": [
@@ -127,7 +129,7 @@ class TestPurchaseClient(TstLambdas):
             "resultCode": "Ok"
         },
         "transactionResponse": {
-            "transId": "123456",
+            "transId": MOCK_TRANSACTION_ID,
             "responseCode": "1",
             "errors": {
                 "error": [ {
@@ -154,6 +156,26 @@ class TestPurchaseClient(TstLambdas):
                 }
             }
         return self._setup_mock_transaction_controller(mock_create_transaction_controller, mock_response)
+
+    @patch('purchase_client.createTransactionController')
+    def test_purchase_client_returns_transaction_id_in_response(self,
+                                                                                        mock_create_transaction_controller):
+        from purchase_client import PurchaseClient
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_transaction_is_successful(
+            mock_create_transaction_controller=mock_create_transaction_controller)
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        response = test_purchase_client.process_charge_for_licensee_privileges(
+            order_information=_generate_default_order_information(),
+            compact_configuration=_generate_aslp_compact_configuration(),
+            selected_jurisdictions=_generate_selected_jurisdictions(),
+            user_active_military=False)
+
+        self.assertEqual(MOCK_TRANSACTION_ID, response['transactionId'])
+
+
 
     @patch('purchase_client.createTransactionController')
     def test_purchase_client_makes_successful_transaction_using_authorize_net_processor(self,

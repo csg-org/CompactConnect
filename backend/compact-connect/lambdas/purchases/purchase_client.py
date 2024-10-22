@@ -192,6 +192,8 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                                 message_code=response.transactionResponse.messages.message[0].code,
                                 description=response.transactionResponse.messages.message[0].description
                                 )
+                    return {"message": "Successfully processed charge",
+                            "transactionId": response.transactionResponse.transId}
                 else:
                     logger.warning('Failed Transaction.')
                     if hasattr(response.transactionResponse, 'errors'):
@@ -226,8 +228,6 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         else:
             logger.error('No response returned')
             raise CCInternalException("Authorize.net API call failed to return a response.")
-
-        return {"message": "Successfully processed charge"}
 
 
 class PaymentProcessorClientFactory:

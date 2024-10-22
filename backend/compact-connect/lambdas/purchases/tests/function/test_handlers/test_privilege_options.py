@@ -12,6 +12,7 @@ TEST_PROVIDER_ID = 'some-provider-id'
 class TestGetPurchasePrivilegeOptions(TstFunction):
     def _when_testing_provider_user_event_with_custom_claims(self, test_compact=TEST_COMPACT):
         self._load_compact_configuration_data()
+        self._load_provider_data()
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
             event['requestContext']['authorizer']['claims']['custom:providerId'] = TEST_PROVIDER_ID
