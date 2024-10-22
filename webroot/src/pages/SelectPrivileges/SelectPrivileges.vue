@@ -20,7 +20,7 @@
                     <InputButton
                         :label="backText"
                         aria-label="close modal"
-                        class="icon icon-close-modal"
+                        class="back-button"
                         @click="handleBackClicked"
                     />
                     <InputSubmit
@@ -30,7 +30,7 @@
                     />
                 </div>
             </div>
-            <div class="select-privileges-core-container">
+            <div class="select-privileges-core-container" :class="{ 'visible-core': isMobile }">
                 <div class="state-select-list">
                     <div v-for="state in stateCheckList" :key="state.label" class="state-select-unit">
                         <InputCheckbox :formInput="state" @change="handleStateClicked" />
@@ -92,7 +92,7 @@
                     <InputButton
                         :label="backText"
                         aria-label="close modal"
-                        class="icon icon-close-modal"
+                        class="back-button"
                         @click="handleBackClicked"
                     />
                     <InputSubmit

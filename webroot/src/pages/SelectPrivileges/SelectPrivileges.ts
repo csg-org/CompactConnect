@@ -284,6 +284,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     deselectState(state) {
-        console.log('state', state);
+        this.formData.stateCheckList.find((checkBox) => (checkBox.id === state?.jurisdiction?.abbrev)).value = false;
     }
 }

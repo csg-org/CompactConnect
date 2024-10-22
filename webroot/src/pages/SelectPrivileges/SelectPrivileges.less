@@ -18,13 +18,22 @@
             flex-direction: row;
             align-items: flex-end;
             justify-content: space-between;
+
+            .back-button {
+                margin-right: 1rem;
+            }
         }
     }
 
     .select-privileges-core-container {
+        padding: 2rem;
+        border-radius: 20px;
+        background-color: white;
+
         .selected-state-list {
             .selected-state-block {
-                padding: 2rem;
+                margin: 2rem 0;
+                padding: 1rem 1.6rem;
                 border-radius: 20px;
                 color: white;
                 background-color: @darkBlue;
@@ -36,13 +45,36 @@
                     margin: 1rem 0;
 
                     :deep(.input-button-container) {
-                        input {
-                            color: white;
+                        &.input-container {
+                            margin: 0;
+
+                            input {
+                                width: 4rem;
+                                height: 4rem;
+                                margin: 0 -1.2rem 0 0;
+                                padding: 0;
+                                color: white;
+                            }
                         }
                     }
 
                     &.sub-row {
                         color: rgba(255, 255, 255, 0.5);
+                    }
+
+                    .state-title {
+                        font-size: @fontSizeLarger;
+                    }
+                }
+
+                .jurisprudence-check-box {
+                    :deep(.checkbox-container) {
+                        label {
+                            margin-left: 1rem;
+                            color: white;
+                            font-weight: @fontWeight;
+                            font-size: 1.5rem;
+                        }
                     }
                 }
             }
