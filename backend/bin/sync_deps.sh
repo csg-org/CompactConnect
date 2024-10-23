@@ -12,4 +12,8 @@ pip-sync \
   compact-connect/lambdas/staff-users/requirements.txt \
   compact-connect/lambdas/staff-users/requirements-dev.txt \
   compact-connect/lambdas/delete-objects/requirements.txt \
-  compact-connect/lambdas/delete-objects/requirements-dev.txt
+  compact-connect/lambdas/delete-objects/requirements-dev.txt \
+  compact-connect/lambdas/custom-resources/requirements.txt \
+  compact-connect/lambdas/custom-resources/requirements-dev.txt \
+  compact-connect/lambdas/purchases/requirements.txt \
+  compact-connect/lambdas/purchases/requirements-dev.txt
