@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 import json
 import os
 
@@ -57,7 +58,6 @@ class Purchases:
             lambda_environment=lambda_environment,
         )
 
-
     def _get_secrets_manager_compact_arns(self):
         # for each compact currently in the system, get the secret arn following this pattern:
         # /compact-connect/env/{environment_name}/compact/{compact_name}/credentials/payment-processor
@@ -65,8 +65,10 @@ class Purchases:
         environment_name = stack.common_env_vars['ENVIRONMENT_NAME']
         compacts = json.loads(stack.common_env_vars['COMPACTS'])
         return [
-            (f'arn:aws:secretsmanager:{stack.region}:{stack.account}:secret:compact-connect/env/{environment_name}'
-             f'/compact/{compact}/credentials/payment-processor')
+            (
+                f'arn:aws:secretsmanager:{stack.region}:{stack.account}:secret:compact-connect/env/{environment_name}'
+                f'/compact/{compact}/credentials/payment-processor'
+            )
             for compact in compacts
         ]
 
@@ -127,12 +129,12 @@ class Purchases:
         # /compact-connect/env/{environment_name}/compact/{compact_name}/credentials/payment-processor
         handler.add_to_role_policy(
             PolicyStatement(
-            effect=Effect.ALLOW,
-            actions=[
-                'secretsmanager:GetSecretValue',
-            ],
-            resources=self._get_secrets_manager_compact_arns(),
-        )
+                effect=Effect.ALLOW,
+                actions=[
+                    'secretsmanager:GetSecretValue',
+                ],
+                resources=self._get_secrets_manager_compact_arns(),
+            )
         )
 
         NagSuppressions.add_resource_suppressions_by_path(

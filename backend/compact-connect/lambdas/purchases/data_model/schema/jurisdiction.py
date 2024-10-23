@@ -1,9 +1,10 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
 from enum import Enum
+
+from config import config
 from marshmallow import Schema, pre_dump
 from marshmallow.fields import Boolean, Decimal, List, Nested, String
 from marshmallow.validate import Length, OneOf
-from config import config
 
 from data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 
@@ -20,8 +21,9 @@ class JurisdictionMilitaryDiscountType(Enum):
 
 class JurisdictionMilitaryDiscountSchema(Schema):
     active = Boolean(required=True, allow_none=False)
-    discountType = String(required=True, allow_none=False, validate=OneOf([e.value for e
-                                                                           in JurisdictionMilitaryDiscountType]))
+    discountType = String(
+        required=True, allow_none=False, validate=OneOf([e.value for e in JurisdictionMilitaryDiscountType])
+    )
     discountAmount = Decimal(required=True, allow_none=False)
 
 
@@ -85,6 +87,7 @@ class Jurisdiction:
     Jurisdiction configuration data model. Used to access variables without needing to know
      the underlying key structure.
     """
+
     def __init__(self, jurisdiction_configuration: dict):
         self.jurisdictionName: str = jurisdiction_configuration['jurisdictionName']
         self.postalAbbreviation: str = jurisdiction_configuration['postalAbbreviation']
@@ -95,30 +98,39 @@ class Jurisdiction:
             self.militaryDiscount = JurisdictionMilitaryDiscount(
                 active=jurisdiction_configuration['militaryDiscount']['active'],
                 discount_type=JurisdictionMilitaryDiscountType.from_str(
-                    jurisdiction_configuration['militaryDiscount']['discountType']),
-                discount_amount=jurisdiction_configuration['militaryDiscount']['discountAmount']
+                    jurisdiction_configuration['militaryDiscount']['discountType']
+                ),
+                discount_amount=jurisdiction_configuration['militaryDiscount']['discountAmount'],
             )
         self.jurisdictionOperationsTeamEmails = jurisdiction_configuration['jurisdictionOperationsTeamEmails']
-        self.jurisdictionAdverseActionsNotificationEmails = jurisdiction_configuration['jurisdictionAdverseActionsNotificationEmails']
-        self.jurisdictionSummaryReportNotificationEmails = jurisdiction_configuration['jurisdictionSummaryReportNotificationEmails']
+        self.jurisdictionAdverseActionsNotificationEmails = jurisdiction_configuration[
+            'jurisdictionAdverseActionsNotificationEmails'
+        ]
+        self.jurisdictionSummaryReportNotificationEmails = jurisdiction_configuration[
+            'jurisdictionSummaryReportNotificationEmails'
+        ]
         self.jurisprudenceRequirements = JurisdictionJurisprudenceRequirements(
             required=jurisdiction_configuration['jurisprudenceRequirements']['required']
         )
+
 
 class JurisdictionMilitaryDiscount:
     """
     Jurisdiction military discount data model. Used to access variables without needing to know
     the underlying key structure.
     """
+
     def __init__(self, active: bool, discount_type: JurisdictionMilitaryDiscountType, discount_amount: Decimal):
         self.active = active
         self.discountType = discount_type
         self.discountAmount = discount_amount
+
 
 class JurisdictionJurisprudenceRequirements:
     """
     Jurisdiction jurisprudence requirements data model. Used to access variables without needing to know
     the underlying key structure.
     """
+
     def __init__(self, required: bool):
         self.required = required

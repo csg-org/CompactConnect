@@ -240,7 +240,12 @@ class ApiModel:
                                         description='The zip code for the card',
                                     ),
                                 },
-                            )})}))
+                            ),
+                        },
+                    ),
+                },
+            ),
+        )
         return self.api._v1_post_purchase_privileges_request_model
 
     @property
@@ -252,19 +257,19 @@ class ApiModel:
             'V1PostPurchasePrivilegesResponseModel',
             description='Post purchase privileges response model',
             schema=JsonSchema(
-            type=JsonSchemaType.OBJECT,
-            required=['transactionId'],
-            properties={
-                'transactionId': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    description='The transaction id for the purchase',
-                ),
-                'message': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    description='A message about the transaction',
-                ),
-            },
-          ),
+                type=JsonSchemaType.OBJECT,
+                required=['transactionId'],
+                properties={
+                    'transactionId': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The transaction id for the purchase',
+                    ),
+                    'message': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='A message about the transaction',
+                    ),
+                },
+            ),
         )
         return self.api._v1_post_purchase_privileges_response_model
 

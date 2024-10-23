@@ -1,9 +1,10 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
 from enum import Enum
+
+from config import config
 from marshmallow import Schema, pre_dump
 from marshmallow.fields import Decimal, List, Nested, String
 from marshmallow.validate import Length, OneOf
-from config import config
 
 from data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 
@@ -16,6 +17,7 @@ class CompactFeeType(Enum):
     @staticmethod
     def from_str(label: str) -> 'CompactFeeType':
         return CompactFeeType[label]
+
 
 class CompactCommissionFeeSchema(Schema):
     feeType = String(required=True, allow_none=False, validate=OneOf([e.value for e in CompactFeeType]))
@@ -72,10 +74,15 @@ class Compact:
         self.compactName: str = compact_configuration['compactName']
         self.compactCommissionFee = CompactCommissionFee(
             fee_type=CompactFeeType.from_str(compact_configuration['compactCommissionFee']['feeType']),
-            fee_amount=compact_configuration['compactCommissionFee']['feeAmount'])
+            fee_amount=compact_configuration['compactCommissionFee']['feeAmount'],
+        )
         self.compactOperationsTeamEmails = compact_configuration.get('compactOperationsTeamEmails')
-        self.compactAdverseActionsNotificationEmails = compact_configuration.get('compactAdverseActionsNotificationEmails')
-        self.compactSummaryReportNotificationEmails = compact_configuration.get('compactSummaryReportNotificationEmails')
+        self.compactAdverseActionsNotificationEmails = compact_configuration.get(
+            'compactAdverseActionsNotificationEmails'
+        )
+        self.compactSummaryReportNotificationEmails = compact_configuration.get(
+            'compactSummaryReportNotificationEmails'
+        )
 
 
 class CompactCommissionFee:

@@ -140,8 +140,8 @@ class TestPurchasesApi(TestApi):
 
         self.compare_snapshot(
             actual=post_purchase_privilege_options_request_model['Schema'],
-            snapshot_name="PURCHASE_PRIVILEGE_REQUEST_SCHEMA",
-            overwrite_snapshot=False
+            snapshot_name='PURCHASE_PRIVILEGE_REQUEST_SCHEMA',
+            overwrite_snapshot=False,
         )
 
         # now check the response matches expected contract

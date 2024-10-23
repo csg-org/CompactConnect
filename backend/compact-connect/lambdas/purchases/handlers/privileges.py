@@ -1,12 +1,13 @@
 import json
+
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from config import config, logger
 from data_model.schema.compact import COMPACT_TYPE, Compact, CompactOptionsApiResponseSchema
 from data_model.schema.jurisdiction import JURISDICTION_TYPE, Jurisdiction, JurisdictionOptionsApiResponseSchema
-from exceptions import CCInvalidRequestException, CCFailedTransactionException, CCNotFoundException
+from exceptions import CCFailedTransactionException, CCInvalidRequestException, CCNotFoundException
+from purchase_client import PurchaseClient
 
 from handlers.utils import api_handler
-from purchase_client import PurchaseClient
 
 
 def _get_caller_compact_custom_attribute(event: dict) -> str:
@@ -16,12 +17,14 @@ def _get_caller_compact_custom_attribute(event: dict) -> str:
         logger.error(f'Missing custom provider attribute: {e}')
         raise CCInvalidRequestException('Missing required user profile attribute') from e
 
+
 def _get_caller_provider_id_custom_attribute(event: dict) -> str:
     try:
         return event['requestContext']['authorizer']['claims']['custom:providerId']
     except KeyError as e:
         logger.error(f'Missing custom provider attribute: {e}')
         raise CCInvalidRequestException('Missing required user profile attribute') from e
+
 
 @api_handler
 def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -51,6 +54,7 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa
     options_response['items'] = serlialized_options
 
     return options_response
+
 
 @api_handler
 def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -95,9 +99,12 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     # ensure the postal codes are all lowercase for string comparison
     selected_jurisdictions_postal_codes = [postal_code.lower() for postal_code in body['selectedJurisdictions']]
     # load the jurisdiction information into a list of Jurisdiction objects
-    selected_jurisdictions = [Jurisdiction(item) for item in privilege_purchase_options['items']
-                     if item['type'] == JURISDICTION_TYPE and item['postalAbbreviation'].lower()
-                     in selected_jurisdictions_postal_codes]
+    selected_jurisdictions = [
+        Jurisdiction(item)
+        for item in privilege_purchase_options['items']
+        if item['type'] == JURISDICTION_TYPE
+        and item['postalAbbreviation'].lower() in selected_jurisdictions_postal_codes
+    ]
 
     # get the user's profile information to determine if they are active military
     provider_id = _get_caller_provider_id_custom_attribute(event)
@@ -106,7 +113,6 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     if provider_record is None:
         raise CCNotFoundException('Provider record not found for this user')
 
-
     user_active_military = bool(provider_record.get('militaryWaiver', False))
 
     try:
@@ -114,15 +120,9 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             order_information=body['orderInformation'],
             compact_configuration=compact,
             selected_jurisdictions=selected_jurisdictions,
-            user_active_military=user_active_military
+            user_active_military=user_active_military,
         )
 
     except CCFailedTransactionException as e:
-        logger.warning(f"Failed transaction: {e}.")
+        logger.warning(f'Failed transaction: {e}.')
         raise CCInvalidRequestException('Unable to complete transaction') from e
-
-
-
-
-
-

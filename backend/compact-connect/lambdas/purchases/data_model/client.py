@@ -23,13 +23,13 @@ class DataClient:
 
     @paginated_query
     def get_provider(
-            self,
-            *,
-            compact: str,
-            provider_id: str,
-            dynamo_pagination: dict,
-            detail: bool = True,
-            consistent_read: bool = False,
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        dynamo_pagination: dict,
+        detail: bool = True,
+        consistent_read: bool = False,
     ):
         logger.info('Getting provider', provider_id=provider_id)
         if detail:
