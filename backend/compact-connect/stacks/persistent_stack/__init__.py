@@ -15,7 +15,7 @@ from constructs import Construct
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.compact_configuration_table import CompactConfigurationTable
 from stacks.persistent_stack.compact_configuration_upload import CompactConfigurationUpload
-from stacks.persistent_stack.data_events_table import DataEventsTable
+from stacks.persistent_stack.data_event_table import DataEventTable
 from stacks.persistent_stack.event_bus import EventBus
 from stacks.persistent_stack.license_table import LicenseTable
 from stacks.persistent_stack.provider_table import ProviderTable
@@ -203,10 +203,12 @@ class PersistentStack(AppStack):
             self, 'ProviderTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
         )
 
-        self.data_events_table = DataEventsTable(
+        self.data_event_table = DataEventTable(
             self,
-            'DataEventsTable',
+            'DataEventTable',
             encryption_key=self.shared_encryption_key,
+            event_bus=self.data_event_bus,
+            alarm_topic=self.alarm_topic,
             removal_policy=removal_policy,
         )
 
