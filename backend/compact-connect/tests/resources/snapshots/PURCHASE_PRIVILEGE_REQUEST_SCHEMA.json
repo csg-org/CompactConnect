@@ -1,0 +1,84 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "properties": {
+        "orderInformation": {
+            "properties": {
+                "billing": {
+                    "properties": {
+                        "firstName": {
+                            "description": "The first name on the card",
+                            "type": "string"
+                        },
+                        "lastName": {
+                            "description": "The last name on the card",
+                            "type": "string"
+                        },
+                        "state": {
+                            "description": "The state for the card",
+                            "type": "string"
+                        },
+                        "streetAddress": {
+                            "description": "The street address for the card",
+                            "type": "string"
+                        },
+                        "streetAddress2": {
+                            "description": "The second street address for the card",
+                            "type": "string"
+                        },
+                        "zip": {
+                            "description": "The zip code for the card",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "firstName",
+                        "lastName",
+                        "streetAddress",
+                        "state",
+                        "zip"
+                    ],
+                    "type": "object"
+                },
+                "card": {
+                    "properties": {
+                        "cvv": {
+                            "description": "The card cvv",
+                            "type": "string"
+                        },
+                        "expiration": {
+                            "description": "The card expiration date",
+                            "type": "string"
+                        },
+                        "number": {
+                            "description": "The card number",
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "number",
+                        "expiration",
+                        "cvv"
+                    ],
+                    "type": "object"
+                }
+            },
+            "required": [
+                "card",
+                "billing"
+            ],
+            "type": "object"
+        },
+        "selectedJurisdictions": {
+            "items": {
+                "description": "The postal codes of the jurisdictions to purchase",
+                "type": "string"
+            },
+            "type": "array"
+        }
+    },
+    "required": [
+        "selectedJurisdictions",
+        "orderInformation"
+    ],
+    "type": "object"
+}

@@ -58,6 +58,7 @@ class V1Api:
             self.purchases_resource,
             data_encryption_key=persistent_stack.shared_encryption_key,
             compact_configuration_table=persistent_stack.compact_configuration_table,
+            provider_data_table=persistent_stack.provider_table,
             api_model=self.api_model,
         )
 
