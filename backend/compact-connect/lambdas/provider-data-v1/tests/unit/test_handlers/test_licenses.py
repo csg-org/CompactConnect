@@ -36,7 +36,7 @@ class TestPostLicenses(TstLambdas):
             entry for call in mock_config.events_client.put_events.call_args_list for entry in call.kwargs['Entries']
         ]
         self.assertEqual(1, len(entries))
-        self.assertEqual('license-ingest-v1', entries[0]['DetailType'])
+        self.assertEqual('license.ingest', entries[0]['DetailType'])
 
     @patch('handlers.licenses.config', autospec=True)
     def test_cross_compact(self, mock_config):

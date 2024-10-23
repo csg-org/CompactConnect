@@ -1,4 +1,5 @@
 import json
+from datetime import UTC, datetime
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
@@ -30,17 +31,23 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
     except ValidationError as e:
         raise CCInvalidRequestException(e.messages) from e
 
+    event_time = datetime.now(tz=UTC)
     with EventBatchWriter(config.events_client) as event_writer:
         for license_data in licenses:
             event_writer.put_event(
                 Entry={
                     'Source': 'org.compactconnect.licenses',
-                    'DetailType': 'license-ingest-v1',
+                    'DetailType': 'license.ingest',
                     'Detail': json.dumps(
-                        {'compact': compact, 'jurisdiction': jurisdiction, **schema.dump(license_data)},
+                        {
+                            'ingestTime': event_time.isoformat(),
+                            'compact': compact,
+                            'jurisdiction': jurisdiction,
+                            **schema.dump(license_data),
+                        }
                     ),
                     'EventBusName': config.event_bus_name,
-                },
+                }
             )
 
     if event_writer.failed_entry_count > 0:

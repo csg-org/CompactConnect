@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from io import TextIOWrapper
 from uuid import uuid4
 
@@ -51,13 +52,24 @@ def parse_bulk_upload_file(event: dict, context: LambdaContext):  # noqa: ARG001
     logger.info('Received event', event=event)
     try:
         for record in event['Records']:
+            event_time = datetime.fromisoformat(record['eventTime'])
             bucket_name = record['s3']['bucket']['name']
             key = record['s3']['object']['key']
             size = record['s3']['object']['size']
             logger.info('Object', s3_url=f's3://{bucket_name}/{key}', size=size)
+
+            # Extract the compact and jurisdiction from the object upload path
+            compact, jurisdiction = (i.lower() for i in key.split('/')[:2])
+
             body: StreamingBody = config.s3_client.get_object(Bucket=bucket_name, Key=key)['Body']
             try:
-                process_bulk_upload_file(body, key)
+                process_bulk_upload_file(
+                    event_time=event_time,
+                    body=body,
+                    object_key=key,
+                    compact=compact,
+                    jurisdiction=jurisdiction,
+                )
             except (ClientError, CCInternalException):
                 raise
             except Exception as e:  # noqa: BLE001 broad-exception-caught
@@ -69,11 +81,18 @@ def parse_bulk_upload_file(event: dict, context: LambdaContext):  # noqa: ARG001
                     Entries=[
                         {
                             'Source': f'org.compactconnect.bulk-ingest.{key}',
-                            'DetailType': 'license-ingest-failure',
-                            'Detail': json.dumps({'errors': [str(e)]}),
+                            'DetailType': 'license.ingest-failure',
+                            'Detail': json.dumps(
+                                {
+                                    'ingestTime': event_time.isoformat(),
+                                    'compact': compact,
+                                    'jurisdiction': jurisdiction,
+                                    'errors': [str(e)],
+                                }
+                            ),
                             'EventBusName': config.event_bus_name,
-                        },
-                    ],
+                        }
+                    ]
                 )
                 if resp.get('FailedEntryCount', 0) > 0:
                     logger.error('Failed to put failure event!')
@@ -84,14 +103,20 @@ def parse_bulk_upload_file(event: dict, context: LambdaContext):  # noqa: ARG001
         raise
 
 
-def process_bulk_upload_file(body: StreamingBody, object_key: str):
-    """Stream each line of the new CSV file, validating it then publishing an ingest event for each line."""
+def process_bulk_upload_file(
+    *,
+    event_time: datetime,
+    body: StreamingBody,
+    object_key: str,
+    compact: str,
+    jurisdiction: str,
+):
+    """
+    Stream each line of the new CSV file, validating it then publishing an ingest event for each line.
+    """
     public_schema = LicensePublicSchema()
     schema = LicensePostSchema()
     reader = LicenseCSVReader()
-
-    # Extract the compact and jurisdiction from the object upload path
-    compact, jurisdiction = (i.lower() for i in object_key.split('/')[:2])
 
     stream = TextIOWrapper(body, encoding='utf-8')
     with EventBatchWriter(config.events_client) as event_writer:
@@ -117,25 +142,37 @@ def process_bulk_upload_file(body: StreamingBody, object_key: str):
                 event_writer.put_event(
                     Entry={
                         'Source': f'org.compactconnect.bulk-ingest.{object_key}',
-                        'DetailType': 'license-ingest-failure',
+                        'DetailType': 'license.validation-error',
                         'Detail': json.dumps(
-                            {'record_number': i + 1, 'valid_data': public_license_data, 'errors': e.messages},
+                            {
+                                'ingestTime': event_time.isoformat(),
+                                'compact': compact,
+                                'jurisdiction': jurisdiction,
+                                'record_number': i + 1,
+                                'valid_data': public_license_data,
+                                'errors': e.messages,
+                            },
                             cls=ResponseEncoder,
                         ),
                         'EventBusName': config.event_bus_name,
-                    },
+                    }
                 )
                 continue
 
             event_writer.put_event(
                 Entry={
                     'Source': f'org.compactconnect.bulk-ingest.{object_key}',
-                    'DetailType': 'license-ingest-v1',
+                    'DetailType': 'license.ingest',
                     'Detail': json.dumps(
-                        {'compact': compact, 'jurisdiction': jurisdiction, **schema.dump(validated_license)},
+                        {
+                            'ingestTime': event_time.isoformat(),
+                            'compact': compact,
+                            'jurisdiction': jurisdiction,
+                            **schema.dump(validated_license),
+                        }
                     ),
                     'EventBusName': config.event_bus_name,
-                },
+                }
             )
 
     if event_writer.failed_entry_count > 0:
