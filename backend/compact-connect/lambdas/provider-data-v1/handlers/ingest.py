@@ -13,10 +13,14 @@ license_schema = LicensePostSchema()
 @sqs_handler
 def ingest_license_message(message: dict):
     """For each message, validate the license data and persist it in the database"""
+    # We're not using the ingest time here, currently, so we'll discard it
+    message['detail'].pop('ingestTime')
+
     # This should already have been validated at this point, before the data was ever sent for ingest,
     # but validation is cheap. We can do it again, just to protect ourselves from something unexpected
     # happening on the way here.
     license_post = license_schema.load(message['detail'])
+
     compact = license_post['compact']
     jurisdiction = license_post['jurisdiction']
 

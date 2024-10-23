@@ -1,4 +1,5 @@
 import json
+from datetime import UTC, datetime
 from io import BytesIO
 from unittest.mock import patch
 
@@ -107,7 +108,13 @@ class TestProcessBulkUploadFile(TstLambdas):
 
             stream = StreamingBody(f, content_length)
 
-            process_bulk_upload_file(stream, 'aslp/oh/1234')
+            process_bulk_upload_file(
+                event_time=datetime.now(tz=UTC),
+                body=stream,
+                object_key='aslp/oh/1234',
+                compact='aslp',
+                jurisdiction='oh',
+            )
 
         # Collect events put for inspection
         detail_types = {
@@ -116,7 +123,7 @@ class TestProcessBulkUploadFile(TstLambdas):
             for entry in call.kwargs['Entries']
         }
         # There should only be successful ingest events
-        self.assertEqual({'license-ingest-v1'}, detail_types)
+        self.assertEqual({'license.ingest'}, detail_types)
         entries = [
             entry for call in mock_config.events_client.put_events.call_args_list for entry in call.kwargs['Entries']
         ]
@@ -145,7 +152,13 @@ class TestProcessBulkUploadFile(TstLambdas):
 
         stream = StreamingBody(BytesIO(mangled_data), content_length)
 
-        process_bulk_upload_file(stream, 'aslp/oh/1234')
+        process_bulk_upload_file(
+            event_time=datetime.now(tz=UTC),
+            body=stream,
+            object_key='aslp/oh/1234',
+            compact='aslp',
+            jurisdiction='oh',
+        )
 
         # Collect events put for inspection
         # There should be three successful ingest events and two failures
@@ -153,8 +166,5 @@ class TestProcessBulkUploadFile(TstLambdas):
             entry for call in mock_config.events_client.put_events.call_args_list for entry in call.kwargs['Entries']
         ]
         self.assertEqual(line_count - 1, len(entries))
-        self.assertEqual(2, len([entry for entry in entries if entry['DetailType'] == 'license-ingest-failure']))
-        self.assertEqual(
-            line_count - 3,
-            len([entry for entry in entries if entry['DetailType'] == 'license-ingest-v1']),
-        )
+        self.assertEqual(2, len([entry for entry in entries if entry['DetailType'] == 'license.validation-error']))
+        self.assertEqual(line_count - 3, len([entry for entry in entries if entry['DetailType'] == 'license.ingest']))
