@@ -6,7 +6,6 @@ from exceptions import CCFailedTransactionException, CCInternalException
 
 from tests import TstLambdas
 
-EXPECTED_ASLP_SECRET_ID = '/compact-connect/env/test/compact/aslp/credentials/payment-processor'
 MOCK_LOGIN_ID = 'mock_login_id'
 MOCK_TRANSACTION_KEY = 'R2d237rZu59q123'
 MOCK_ASLP_SECRET = {
@@ -33,10 +32,9 @@ def json_to_magic_mock(json_obj):
         for key, value in json_obj.items():
             setattr(mock, key, json_to_magic_mock(value))
         return mock
-    elif isinstance(json_obj, list):
+    if isinstance(json_obj, list):
         return [json_to_magic_mock(item) for item in json_obj]
-    else:
-        return json_obj
+    return json_obj
 
 
 def _generate_default_order_information():
@@ -81,11 +79,10 @@ class TestPurchaseClient(TstLambdas):
     """Testing that the api_handler decorator is working as expected."""
 
     def _generate_mock_secrets_manager_client(self):
-        def get_secret_value_side_effect(SecretId):
-            if SecretId == EXPECTED_ASLP_SECRET_ID:
+        def get_secret_value_side_effect(SecretId):  # noqa: N803 invalid-name
+            if SecretId == '/compact-connect/env/test/compact/aslp/credentials/payment-processor':
                 return {'SecretString': json.dumps(MOCK_ASLP_SECRET)}
-            else:
-                raise ValueError(f'Unknown SecretId: {SecretId}')
+            raise ValueError(f'Unknown SecretId: {SecretId}')
 
         mock_secrets_manager_client = MagicMock()
         mock_secrets_manager_client.get_secret_value.side_effect = get_secret_value_side_effect
@@ -303,7 +300,7 @@ class TestPurchaseClient(TstLambdas):
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
-        with self.assertRaises(CCFailedTransactionException) as context:
+        with self.assertRaises(CCFailedTransactionException):
             test_purchase_client.process_charge_for_licensee_privileges(
                 order_information=_generate_default_order_information(),
                 compact_configuration=_generate_aslp_compact_configuration(),
@@ -322,7 +319,7 @@ class TestPurchaseClient(TstLambdas):
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
-        with self.assertRaises(CCInternalException) as context:
+        with self.assertRaises(CCInternalException):
             test_purchase_client.process_charge_for_licensee_privileges(
                 order_information=_generate_default_order_information(),
                 compact_configuration=_generate_aslp_compact_configuration(),

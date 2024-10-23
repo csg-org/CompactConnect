@@ -84,7 +84,6 @@ class PaymentProcessorClient(ABC):
         :param selected_jurisdictions: A list of selected jurisdictions to purchase privileges for.
         :param user_active_military: Whether the user is active military.
         """
-        pass
 
 
 class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
@@ -101,19 +100,19 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         user_active_military: bool,
     ) -> dict:
         # Create a merchantAuthenticationType object with authentication details
-        merchantAuth = apicontractsv1.merchantAuthenticationType()
-        merchantAuth.name = self.api_login_id
-        merchantAuth.transactionKey = self.transaction_key
+        merchant_auth = apicontractsv1.merchantAuthenticationType()
+        merchant_auth.name = self.api_login_id
+        merchant_auth.transactionKey = self.transaction_key
 
         # Create the payment data for a credit card
-        creditCard = apicontractsv1.creditCardType()
-        creditCard.cardNumber = order_information['card']['number']
-        creditCard.expirationDate = order_information['card']['expiration']
-        creditCard.cardCode = order_information['card']['cvv']
+        credit_card = apicontractsv1.creditCardType()
+        credit_card.cardNumber = order_information['card']['number']
+        credit_card.expirationDate = order_information['card']['expiration']
+        credit_card.cardCode = order_information['card']['cvv']
 
         # Add the payment data to a paymentType object
         payment = apicontractsv1.paymentType()
-        payment.creditCard = creditCard
+        payment.creditCard = credit_card
 
         line_items = apicontractsv1.ArrayOfLineItem()
         for jurisdiction in selected_jurisdictions:
@@ -142,50 +141,53 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         line_items.lineItem.append(compact_fee_line_item)
 
         # Set the customer's Bill To address
-        customerAddress = apicontractsv1.customerAddressType()
-        customerAddress.firstName = order_information['billing']['firstName']
-        customerAddress.lastName = order_information['billing']['lastName']
-        customerAddress.address = f"{order_information['billing']['streetAddress']} {order_information['billing'].get('streetAddress2', '')}".strip()
-        customerAddress.state = order_information['billing']['state']
-        customerAddress.zip = order_information['billing']['zip']
+        customer_address = apicontractsv1.customerAddressType()
+        customer_address.firstName = order_information['billing']['firstName']
+        customer_address.lastName = order_information['billing']['lastName']
+        customer_address.address = (
+            f"{order_information['billing']['streetAddress']}"
+            f" {order_information['billing'].get('streetAddress2', '')}"
+        ).strip()
+        customer_address.state = order_information['billing']['state']
+        customer_address.zip = order_information['billing']['zip']
 
         # Add values for transaction settings
-        duplicateWindowSetting = apicontractsv1.settingType()
-        duplicateWindowSetting.settingName = 'duplicateWindow'
-        duplicateWindowSetting.settingValue = '180'
+        duplicate_window_setting = apicontractsv1.settingType()
+        duplicate_window_setting.settingName = 'duplicateWindow'
+        duplicate_window_setting.settingValue = '180'
         settings = apicontractsv1.ArrayOfSetting()
-        settings.setting.append(duplicateWindowSetting)
+        settings.setting.append(duplicate_window_setting)
 
         # Create a transactionRequestType object and add the previous objects to it.
-        transactionrequest = apicontractsv1.transactionRequestType()
-        transactionrequest.transactionType = 'authCaptureTransaction'
-        transactionrequest.amount = _get_total_privilege_cost(
+        transaction_request = apicontractsv1.transactionRequestType()
+        transaction_request.transactionType = 'authCaptureTransaction'
+        transaction_request.amount = _get_total_privilege_cost(
             compact=compact_configuration,
             selected_jurisdictions=selected_jurisdictions,
             user_active_military=user_active_military,
         )
-        transactionrequest.currencyCode = 'USD'
-        transactionrequest.payment = payment
-        transactionrequest.billTo = customerAddress
-        transactionrequest.transactionSettings = settings
-        transactionrequest.lineItems = line_items
-        transactionrequest.taxExempt = True
+        transaction_request.currencyCode = 'USD'
+        transaction_request.payment = payment
+        transaction_request.billTo = customer_address
+        transaction_request.transactionSettings = settings
+        transaction_request.lineItems = line_items
+        transaction_request.taxExempt = True
 
         # Assemble the complete transaction request
-        createtransactionrequest = apicontractsv1.createTransactionRequest()
-        createtransactionrequest.merchantAuthentication = merchantAuth
-        createtransactionrequest.transactionRequest = transactionrequest
+        create_transaction_request = apicontractsv1.createTransactionRequest()
+        create_transaction_request.merchantAuthentication = merchant_auth
+        create_transaction_request.transactionRequest = transaction_request
         # Create the controller
-        transactionController = createTransactionController(createtransactionrequest)
+        transaction_controller = createTransactionController(create_transaction_request)
 
         # set the environment based on the environment we are running in
         if config.environment_name != 'prod':
-            transactionController.setenvironment(constants.SANDBOX)
+            transaction_controller.setenvironment(constants.SANDBOX)
         else:
-            transactionController.setenvironment(constants.PRODUCTION)
+            transaction_controller.setenvironment(constants.PRODUCTION)
 
-        transactionController.execute()
-        response = transactionController.getresponse()
+        transaction_controller.execute()
+        response = transaction_controller.getresponse()
 
         if response is not None:
             # Check to see if the API request was successfully received and acted upon
@@ -204,23 +206,22 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                         'message': 'Successfully processed charge',
                         'transactionId': response.transactionResponse.transId,
                     }
-                else:
-                    logger.warning('Failed Transaction.')
-                    if hasattr(response.transactionResponse, 'errors'):
-                        # Although their API presents this as a list, it seems to only ever have one element
-                        # so we only access the first one
-                        error_code = response.transactionResponse.errors.error[0].errorCode
-                        error_message = response.transactionResponse.errors.error[0].errorText
-                        # logging this as a warning, as the transaction itself was likely invalid, but if it occurs
-                        # frequently, we may want to investigate further.
-                        logger.warning(
-                            'Authorize.net failed to process transaction.',
-                            error_code=error_code,
-                            error_message=error_message,
-                        )
-                        raise CCFailedTransactionException(
-                            f'Failed to process transaction. Error code: {error_code}, Error message: {error_message}'
-                        )
+                logger.warning('Failed Transaction.')
+                if hasattr(response.transactionResponse, 'errors'):  # noqa: RET503 this branch raises an exception
+                    # Although their API presents this as a list, it seems to only ever have one element
+                    # so we only access the first one
+                    error_code = response.transactionResponse.errors.error[0].errorCode
+                    error_message = response.transactionResponse.errors.error[0].errorText
+                    # logging this as a warning, as the transaction itself was likely invalid, but if it occurs
+                    # frequently, we may want to investigate further.
+                    logger.warning(
+                        'Authorize.net failed to process transaction.',
+                        error_code=error_code,
+                        error_message=error_message,
+                    )
+                    raise CCFailedTransactionException(
+                        f'Failed to process transaction. Error code: {error_code}, Error message: {error_message}'
+                    )
             # API request wasn't successful
             else:
                 if hasattr(response, 'transactionResponse') and hasattr(response.transactionResponse, 'errors'):
@@ -251,8 +252,7 @@ class PaymentProcessorClientFactory:
             return AuthorizeNetPaymentProcessorClient(
                 api_login_id=credentials.get('api_login_id'), transaction_key=credentials.get('transaction_key')
             )
-        else:
-            raise ValueError(f'Unsupported payment processor type: {processor_type}')
+        raise ValueError(f'Unsupported payment processor type: {processor_type}')
 
 
 class PurchaseClient:
@@ -314,11 +314,9 @@ class PurchaseClient:
             compact_configuration.compactName
         )
 
-        response = payment_processor_client.process_charge_on_credit_card_for_privilege_purchase(
+        return payment_processor_client.process_charge_on_credit_card_for_privilege_purchase(
             order_information=order_information,
             compact_configuration=compact_configuration,
             selected_jurisdictions=selected_jurisdictions,
             user_active_military=user_active_military,
         )
-
-        return response
