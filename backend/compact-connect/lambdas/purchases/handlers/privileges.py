@@ -92,10 +92,11 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     compact = Compact(compact_configuration[0])
 
     body = json.loads(event['body'])
-    selected_jurisdictions_postal_codes = body['selectedJurisdictions']
+    # ensure the postal codes are all lowercase for string comparison
+    selected_jurisdictions_postal_codes = [postal_code.lower() for postal_code in body['selectedJurisdictions']]
     # load the jurisdiction information into a list of Jurisdiction objects
     selected_jurisdictions = [Jurisdiction(item) for item in privilege_purchase_options['items']
-                     if item['type'] == JURISDICTION_TYPE and item['postalAbbreviation']
+                     if item['type'] == JURISDICTION_TYPE and item['postalAbbreviation'].lower()
                      in selected_jurisdictions_postal_codes]
 
     # get the user's profile information to determine if they are active military

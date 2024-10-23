@@ -41,12 +41,12 @@ def _generate_default_order_information():
         'card': {
             'number': "4111111111111112",
             'expiration': "2035-10",
-            'code': "125"
+            'cvv': "125"
         },
         'billing': {
-            'first_name': "testFirstName",
-            'last_name': "testLastName",
-            'address': "123 Test St",
+            'firstName': "testFirstName",
+            'lastName': "testLastName",
+            'streetAddress': "123 Test St",
             'state': "OH",
             'zip': "12345",
         }

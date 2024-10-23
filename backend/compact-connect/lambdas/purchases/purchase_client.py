@@ -103,7 +103,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         creditCard = apicontractsv1.creditCardType()
         creditCard.cardNumber = order_information['card']['number']
         creditCard.expirationDate = order_information['card']['expiration']
-        creditCard.cardCode = order_information['card']['code']
+        creditCard.cardCode = order_information['card']['cvv']
 
         # Add the payment data to a paymentType object
         payment = apicontractsv1.paymentType()
@@ -136,10 +136,10 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
 
         # Set the customer's Bill To address
         customerAddress = apicontractsv1.customerAddressType()
-        customerAddress.firstName = order_information['billing']['first_name']
-        customerAddress.lastName = order_information['billing']['last_name']
+        customerAddress.firstName = order_information['billing']['firstName']
+        customerAddress.lastName = order_information['billing']['lastName']
         customerAddress.address = \
-            f"{order_information['billing']['address']} {order_information['billing'].get('address2', '')}".strip()
+            f"{order_information['billing']['streetAddress']} {order_information['billing'].get('streetAddress2', '')}".strip()
         customerAddress.state = order_information['billing']['state']
         customerAddress.zip = order_information['billing']['zip']
 
