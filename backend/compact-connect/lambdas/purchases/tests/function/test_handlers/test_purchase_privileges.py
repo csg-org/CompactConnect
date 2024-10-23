@@ -1,9 +1,9 @@
 import json
 from unittest.mock import MagicMock, patch
 
+from exceptions import CCFailedTransactionException
 from moto import mock_aws
 
-from exceptions import CCFailedTransactionException
 from tests.function import TstFunction
 
 TEST_COMPACT = 'aslp'
@@ -52,8 +52,9 @@ class TestPostPurchasePrivileges(TstFunction):
     def _when_purchase_client_raises_transaction_exception(self, mock_purchase_client_constructor):
         mock_purchase_client = MagicMock()
         mock_purchase_client_constructor.return_value = mock_purchase_client
-        mock_purchase_client.process_charge_for_licensee_privileges.side_effect = (
-            CCFailedTransactionException('cvv invalid'))
+        mock_purchase_client.process_charge_for_licensee_privileges.side_effect = CCFailedTransactionException(
+            'cvv invalid'
+        )
 
         return mock_purchase_client
 
@@ -100,8 +101,9 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual({'transactionId': '1234'}, response_body)
 
     @patch('handlers.privileges.PurchaseClient')
-    def test_post_purchase_privileges_returns_error_message_if_transaction_failure(self,
-                                                                                   mock_purchase_client_constructor):
+    def test_post_purchase_privileges_returns_error_message_if_transaction_failure(
+        self, mock_purchase_client_constructor
+    ):
         from handlers.privileges import post_purchase_privileges
 
         self._when_purchase_client_raises_transaction_exception(mock_purchase_client_constructor)
