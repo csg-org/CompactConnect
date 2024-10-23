@@ -69,7 +69,6 @@ class Stack(CdkStack):
             'COMPACTS': json.dumps(self.node.get_context('compacts')),
             'JURISDICTIONS': json.dumps(self.node.get_context('jurisdictions')),
             'LICENSE_TYPES': json.dumps(self.node.get_context('license_types')),
-            'ENVIRONMENT_NAME': self.node.get_context('environment_name'),
         }
 
 
