@@ -62,7 +62,7 @@ class TestTransformations(TstFunction):
         with open('../common-python/tests/resources/ingest/message.json') as f:
             message = json.load(f)
 
-        # Pack our license-ingest event into the sample message
+        # Pack our license.ingest event into the sample message
         message['detail'] = event_bridge_event
         event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
 
