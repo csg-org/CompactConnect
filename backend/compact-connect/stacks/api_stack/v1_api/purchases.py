@@ -10,11 +10,10 @@ from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
-from persistent_stack import ProviderTable
 
 # Importing module level to allow lazy loading for typing
 from stacks.api_stack import cc_api
-from stacks.persistent_stack import CompactConfigurationTable
+from stacks.persistent_stack import CompactConfigurationTable, ProviderTable
 
 from .api_model import ApiModel
 
