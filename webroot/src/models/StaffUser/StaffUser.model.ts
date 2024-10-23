@@ -266,7 +266,7 @@ export class StaffUserSerializer {
             lastName: json.attributes?.familyName,
             userType: AuthTypes.STAFF,
             permissions: [],
-            accountStatus: json.status || 'inactive',
+            accountStatus: json.status || 'active', // Temp 'active' fallback until server responses include this field, per team discussion
             serverPage: (fetchConfig && fetchConfig.pageNum) ? fetchConfig.pageNum : 0,
         };
 

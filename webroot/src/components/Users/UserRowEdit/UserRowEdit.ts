@@ -358,10 +358,6 @@ class UserRowEdit extends mixins(MixinForm) {
             const formData = this.prepFormData();
             const serverData = StaffUserSerializer.toServer({ permissions: [formData] });
 
-            console.log(serverData);
-
-            // await new Promise((resolve) => setTimeout(() => resolve(true), 2000));
-
             await this.$store.dispatch(`users/updateUserRequest`, {
                 compact: this.userCompact?.type,
                 userId: this.user.id,
@@ -369,9 +365,6 @@ class UserRowEdit extends mixins(MixinForm) {
             }).catch((err) => {
                 this.setError(err.message);
             });
-
-            // @TODO: Make the store / network call
-            // @TODO: Make sure the user record is updated in the store
 
             if (!this.isFormError) {
                 this.isFormSuccessful = true;
