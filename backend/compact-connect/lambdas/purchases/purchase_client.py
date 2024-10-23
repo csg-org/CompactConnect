@@ -240,8 +240,8 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
 
                 raise CCInternalException('API call to authorize.net failed.')
         else:
-            logger.error('No response returned')
-            raise CCInternalException('Authorize.net API call failed to return a response.')
+            logger.error('Authorize.net API call failed to return a response.')
+            raise CCInternalException('Failed to return a response.')
 
 
 class PaymentProcessorClientFactory:

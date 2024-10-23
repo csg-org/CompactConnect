@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 
 from moto import mock_aws
 
+from exceptions import CCFailedTransactionException
 from tests.function import TstFunction
 
 TEST_COMPACT = 'aslp'
@@ -48,6 +49,14 @@ class TestPostPurchasePrivileges(TstFunction):
 
         return mock_purchase_client
 
+    def _when_purchase_client_raises_transaction_exception(self, mock_purchase_client_constructor):
+        mock_purchase_client = MagicMock()
+        mock_purchase_client_constructor.return_value = mock_purchase_client
+        mock_purchase_client.process_charge_for_licensee_privileges.side_effect = (
+            CCFailedTransactionException('cvv invalid'))
+
+        return mock_purchase_client
+
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_calls_purchase_client_with_expected_parameters(
         self, mock_purchase_client_constructor
@@ -89,3 +98,19 @@ class TestPostPurchasePrivileges(TstFunction):
         response_body = json.loads(resp['body'])
 
         self.assertEqual({'transactionId': '1234'}, response_body)
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_returns_error_message_if_transaction_failure(self,
+                                                                                   mock_purchase_client_constructor):
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_raises_transaction_exception(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body()
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual({'message': 'Error: cvv invalid'}, response_body)

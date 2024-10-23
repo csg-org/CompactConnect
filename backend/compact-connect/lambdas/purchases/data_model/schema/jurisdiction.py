@@ -85,7 +85,7 @@ class JurisdictionOptionsApiResponseSchema(ForgivingSchema):
 class Jurisdiction:
     """
     Jurisdiction configuration data model. Used to access variables without needing to know
-     the underlying key structure.
+    the underlying key structure.
     """
 
     def __init__(self, jurisdiction_configuration: dict):
@@ -102,15 +102,15 @@ class Jurisdiction:
                 ),
                 discount_amount=jurisdiction_configuration['militaryDiscount']['discountAmount'],
             )
-        self.jurisdictionOperationsTeamEmails = jurisdiction_configuration['jurisdictionOperationsTeamEmails']
-        self.jurisdictionAdverseActionsNotificationEmails = jurisdiction_configuration[
-            'jurisdictionAdverseActionsNotificationEmails'
-        ]
-        self.jurisdictionSummaryReportNotificationEmails = jurisdiction_configuration[
-            'jurisdictionSummaryReportNotificationEmails'
-        ]
         self.jurisprudenceRequirements = JurisdictionJurisprudenceRequirements(
             required=jurisdiction_configuration['jurisprudenceRequirements']['required']
+        )
+        self.jurisdictionOperationsTeamEmails = jurisdiction_configuration.get('jurisdictionOperationsTeamEmails')
+        self.jurisdictionAdverseActionsNotificationEmails = jurisdiction_configuration.get(
+            'jurisdictionAdverseActionsNotificationEmails'
+        )
+        self.jurisdictionSummaryReportNotificationEmails = jurisdiction_configuration.get(
+            'jurisdictionSummaryReportNotificationEmails'
         )
 
 

@@ -125,4 +125,4 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
     except CCFailedTransactionException as e:
         logger.warning(f'Failed transaction: {e}.')
-        raise CCInvalidRequestException('Unable to complete transaction') from e
+        raise CCInvalidRequestException(f'Error: {e.message}') from e
