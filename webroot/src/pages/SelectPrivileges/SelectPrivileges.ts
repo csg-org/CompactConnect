@@ -136,27 +136,27 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     get expirationDateText(): string {
-        return 'Expiration date';
+        return this.$t('licensing.expirationDate');
     }
 
     get jurisdictionFeeText(): string {
-        return 'Jurisdiction Fee';
+        return this.$t('licensing.jurisdictionFee');
     }
 
     get commissionFeeText(): string {
-        return 'Commission Fee';
+        return this.$t('licensing.commissionFee');
     }
 
     get subtotalText(): string {
-        return 'Subtotal';
+        return this.$t('common.subtotal');
     }
 
     get jurisprudenceExplanationText(): string {
-        return 'I attest I have completed the required jurisprudence exam.';
+        return this.$t('licensing.jurisprudenceExplanationText');
     }
 
     get militaryDiscountText(): string {
-        return 'Military Discount';
+        return this.$t('licensing.militaryDiscountText');
     }
 
     get activeLicense(): License | null {
