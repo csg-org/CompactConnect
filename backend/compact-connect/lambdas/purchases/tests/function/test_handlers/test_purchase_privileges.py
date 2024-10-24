@@ -1,4 +1,5 @@
 import json
+from datetime import UTC, date, datetime
 from unittest.mock import MagicMock, patch
 
 from exceptions import CCFailedTransactionException
@@ -10,11 +11,16 @@ TEST_COMPACT = 'aslp'
 # this value is defined in the provider.json file
 TEST_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
 
+MOCK_TRANSACTION_ID = '1234'
 
-def _generate_test_request_body():
+
+def _generate_test_request_body(selected_jurisdictions: list[str] = None):
+    if not selected_jurisdictions:
+        selected_jurisdictions = ['oh']
+
     return json.dumps(
         {
-            'selectedJurisdictions': ['oh'],
+            'selectedJurisdictions': selected_jurisdictions,
             'orderInformation': {
                 'card': {'number': '<card number>', 'expiration': '<expiration date>', 'cvv': '<cvv>'},
                 'billing': {
@@ -32,9 +38,11 @@ def _generate_test_request_body():
 
 @mock_aws
 class TestPostPurchasePrivileges(TstFunction):
-    def _when_testing_provider_user_event_with_custom_claims(self, test_compact=TEST_COMPACT):
+    def _when_testing_provider_user_event_with_custom_claims(self, test_compact=TEST_COMPACT, load_license=True):
         self._load_compact_configuration_data()
         self._load_provider_data()
+        if load_license:
+            self._load_license_data()
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
             event['requestContext']['authorizer']['claims']['custom:providerId'] = TEST_PROVIDER_ID
@@ -45,7 +53,9 @@ class TestPostPurchasePrivileges(TstFunction):
     def _when_purchase_client_successfully_processes_request(self, mock_purchase_client_constructor):
         mock_purchase_client = MagicMock()
         mock_purchase_client_constructor.return_value = mock_purchase_client
-        mock_purchase_client.process_charge_for_licensee_privileges.return_value = {'transactionId': '1234'}
+        mock_purchase_client.process_charge_for_licensee_privileges.return_value = {
+            'transactionId': MOCK_TRANSACTION_ID
+        }
 
         return mock_purchase_client
 
@@ -98,7 +108,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'transactionId': '1234'}, response_body)
+        self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_error_message_if_transaction_failure(
@@ -116,3 +126,86 @@ class TestPostPurchasePrivileges(TstFunction):
         response_body = json.loads(resp['body'])
 
         self.assertEqual({'message': 'Error: cvv invalid'}, response_body)
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_returns_400_if_selected_jurisdiction_invalid(
+        self, mock_purchase_client_constructor
+    ):
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body(['oh', 'foobar'])
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual({'message': 'Invalid jurisdiction postal code'}, response_body)
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_returns_404_if_provider_not_found(self, mock_purchase_client_constructor):
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['requestContext']['authorizer']['claims']['custom:providerId'] = 'foobar'
+        event['body'] = _generate_test_request_body()
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(404, resp['statusCode'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual({'message': 'Provider not found'}, response_body)
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_returns_404_if_license_not_found(self, mock_purchase_client_constructor):
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims(load_license=False)
+        event['body'] = _generate_test_request_body()
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(404, resp['statusCode'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual({'message': 'License record not found for this user'}, response_body)
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_adds_privilege_record_if_transaction_successful(
+        self, mock_purchase_client_constructor
+    ):
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body()
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+
+        # check that the privilege record for oh was created
+        provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
+
+        privilege_record = next(record for record in provider_records['items'] if record['type'] == 'privilege')
+        license_record = next(record for record in provider_records['items'] if record['type'] == 'license')
+
+        # make sure the expiration on the license matches the expiration on the privilege
+        expected_expiration_date = date(2024, 6, 6)
+        self.assertEqual(expected_expiration_date, license_record['dateOfExpiration'])
+        self.assertEqual(expected_expiration_date, privilege_record['dateOfExpiration'])
+        # the date of issuance should be today
+        self.assertEqual(datetime.now(tz=UTC).date(), privilege_record['dateOfIssuance'])
+        self.assertEqual(datetime.now(tz=UTC).date(), privilege_record['dateOfUpdate'])
+        self.assertEqual(TEST_COMPACT, privilege_record['compact'])
+        self.assertEqual('oh', privilege_record['jurisdiction'])
+        self.assertEqual(TEST_PROVIDER_ID, str(privilege_record['providerId']))
+        self.assertEqual('active', privilege_record['status'])
+        self.assertEqual('privilege', privilege_record['type'])
+        # make sure we are tracking the transaction id
+        self.assertEqual(MOCK_TRANSACTION_ID, privilege_record['compactTransactionId'])

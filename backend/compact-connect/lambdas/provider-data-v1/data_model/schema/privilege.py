@@ -20,6 +20,7 @@ class PrivilegeRecordSchema(BaseRecordSchema):
     status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
     dateOfIssuance = Date(required=True, allow_none=False)
     dateOfExpiration = Date(required=True, allow_none=False)
+    compactTransactionId = String(required=False, allow_none=False)
 
     # Generated fields
     pk = String(required=True, allow_none=False)

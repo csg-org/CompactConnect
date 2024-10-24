@@ -85,12 +85,99 @@ class PaymentProcessorClient(ABC):
         :param user_active_military: Whether the user is active military.
         """
 
+    @abstractmethod
+    def void_unsettled_charge_on_credit_card(
+        self,
+        order_information: dict,
+    ) -> dict:
+        """
+        Void a charge on a credit card for an unsettled transaction.
+
+        :param order_information: A dictionary containing the order information (transactionId, etc.)
+        """
+
 
 class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
     def __init__(self, api_login_id: str, transaction_key: str):
         super().__init__(AUTHORIZE_DOT_NET_CLIENT_TYPE)
         self.api_login_id = api_login_id
         self.transaction_key = transaction_key
+
+    def void_unsettled_charge_on_credit_card(
+        self,
+        order_information: dict,
+    ) -> dict:
+        merchant_auth = apicontractsv1.merchantAuthenticationType()
+        merchant_auth.name = self.api_login_id
+        merchant_auth.transactionKey = self.transaction_key
+
+        transaction_request = apicontractsv1.transactionRequestType()
+        transaction_request.transactionType = 'voidTransaction'
+        # set refTransId to transId of an unsettled transaction
+        transaction_request.refTransId = order_information['transactionId']
+
+        create_transaction_request = apicontractsv1.createTransactionRequest()
+        create_transaction_request.merchantAuthentication = merchant_auth
+
+        create_transaction_request.transactionRequest = transaction_request
+        transaction_controller = createTransactionController(create_transaction_request)
+
+        # set the environment based on the environment we are running in
+        if config.environment_name != 'prod':
+            transaction_controller.setenvironment(constants.SANDBOX)
+        else:
+            transaction_controller.setenvironment(constants.PRODUCTION)
+
+        transaction_controller.execute()
+        response = transaction_controller.getresponse()
+
+        if response is not None:
+            if response.messages.resultCode == 'Ok':
+                if hasattr(response.transactionResponse, 'messages'):
+                    logger.info(
+                        'Successfully voided transaction',
+                        transaction_id=response.transactionResponse.transId,
+                        response_code=response.transactionResponse.responseCode,
+                        message_code=response.transactionResponse.messages.message[0].code,
+                        description=response.transactionResponse.messages.message[0].description,
+                    )
+                    return {
+                        'message': 'Successfully voided transaction',
+                        'transactionId': response.transactionResponse.transId,
+                    }
+                error_code = response.transactionResponse.errors.error[0].errorCode
+                error_message = response.transactionResponse.errors.error[0].errorText
+                # logging this as a error, since we control the transaction id that is passed in, so this should
+                # raise an alert if it occurs.
+                logger.error(
+                    'Failed to void transaction.',
+                    transaction_id=order_information['transactionId'],
+                    error_code=error_code,
+                    error_message=error_message,
+                )
+
+                raise CCFailedTransactionException(
+                    f'Failed to void transaction. Error code: {error_code}, Error message: {error_message}'
+                )
+            if hasattr(response, 'transactionResponse') and hasattr(response.transactionResponse, 'errors'):
+                error_code = response.transactionResponse.errors.error[0].errorCode
+                error_message = response.transactionResponse.errors.error[0].errorText
+            else:
+                error_code = response.messages.message[0]['code'].text
+                error_message = response.messages.message[0]['text'].text
+
+            logger.error(
+                'API call to authorize.net Failed. Unable to void transaction.',
+                transaction_id=order_information['transactionId'],
+                error_code=error_code,
+                error_message=error_message,
+            )
+            raise CCInternalException('Failed to return a response.')
+        logger.error(
+            'API call to authorize.net failed to return response.', transaction_id=order_information['transactionId']
+        )
+
+        raise CCInternalException('Failed to void transaction.')
 
     def process_charge_on_credit_card_for_privilege_purchase(
         self,
@@ -282,6 +369,8 @@ class PurchaseClient:
         self.secrets_manager_client = (
             secrets_manager_client if secrets_manager_client else config.secrets_manager_client
         )
+        # this will be initialized when a transaction is processed
+        self.payment_processor_client = None
 
     def _get_compact_payment_processor_client(self, compact_name: str) -> PaymentProcessorClient:
         """
@@ -309,14 +398,30 @@ class PurchaseClient:
         :param selected_jurisdictions: A list of selected jurisdictions to purchase privileges for.
         :param user_active_military: Whether the user is active military.
         """
-        # get the credentials from secrets_manager for the compact
-        payment_processor_client: PaymentProcessorClient = self._get_compact_payment_processor_client(
-            compact_configuration.compactName
-        )
+        if not self.payment_processor_client:
+            # get the credentials from secrets_manager for the compact
+            self.payment_processor_client: PaymentProcessorClient = self._get_compact_payment_processor_client(
+                compact_configuration.compactName
+            )
 
-        return payment_processor_client.process_charge_on_credit_card_for_privilege_purchase(
+        return self.payment_processor_client.process_charge_on_credit_card_for_privilege_purchase(
             order_information=order_information,
             compact_configuration=compact_configuration,
             selected_jurisdictions=selected_jurisdictions,
             user_active_military=user_active_military,
         )
+
+    def void_privilege_purchase_transaction(self, compact_name: str, order_information: dict) -> dict:
+        """
+        Void a charge on an unsettled credit card.
+
+        :param compact_name: The name of the compact
+        :param order_information: A dictionary containing the order information (billing, card, etc.)
+        """
+        if not self.payment_processor_client:
+            # get the credentials from secrets_manager for the compact
+            self.payment_processor_client: PaymentProcessorClient = self._get_compact_payment_processor_client(
+                compact_name
+            )
+
+        return self.payment_processor_client.void_unsettled_charge_on_credit_card(order_information=order_information)

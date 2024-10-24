@@ -1,10 +1,17 @@
 import json
+from datetime import date
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from config import config, logger
 from data_model.schema.compact import COMPACT_TYPE, Compact, CompactOptionsApiResponseSchema
 from data_model.schema.jurisdiction import JURISDICTION_TYPE, Jurisdiction, JurisdictionOptionsApiResponseSchema
-from exceptions import CCFailedTransactionException, CCInvalidRequestException, CCNotFoundException
+from exceptions import (
+    CCAwsServiceException,
+    CCFailedTransactionException,
+    CCInternalException,
+    CCInvalidRequestException,
+    CCNotFoundException,
+)
 from purchase_client import PurchaseClient
 
 from handlers.utils import api_handler
@@ -86,6 +93,11 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     :param LambdaContext context:
     """
     compact_name = _get_caller_compact_custom_attribute(event)
+    body = json.loads(event['body'])
+    selected_jurisdictions_postal_codes = [postal_code.lower() for postal_code in body['selectedJurisdictions']]
+    # confirm that the selected jurisdictions are valid
+    if any(postal_code not in config.jurisdictions for postal_code in selected_jurisdictions_postal_codes):
+        raise CCInvalidRequestException('Invalid jurisdiction postal code')
 
     # load the compact information
     privilege_purchase_options = config.data_client.get_privilege_purchase_options(compact=compact_name)
@@ -95,9 +107,6 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         raise CCInvalidRequestException(f"Compact configuration not found for this caller's compact: {compact_name}")
     compact = Compact(compact_configuration[0])
 
-    body = json.loads(event['body'])
-    # ensure the postal codes are all lowercase for string comparison
-    selected_jurisdictions_postal_codes = [postal_code.lower() for postal_code in body['selectedJurisdictions']]
     # load the jurisdiction information into a list of Jurisdiction objects
     selected_jurisdictions = [
         Jurisdiction(item)
@@ -105,24 +114,61 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         if item['type'] == JURISDICTION_TYPE
         and item['postalAbbreviation'].lower() in selected_jurisdictions_postal_codes
     ]
+    # assert the selected jurisdictions map to the expected number of jurisdictions
+    if len(selected_jurisdictions) != len(selected_jurisdictions_postal_codes):
+        # this could only happen if the jurisdiction configuration was not uploaded or was deleted somehow
+        logger.error(
+            'Jurisdiction configuration missing. Requested jurisdiction not found.',
+            existing_jurisdiction_configuration=[
+                selected_jurisdiction.postalAbbreviation for selected_jurisdiction in selected_jurisdictions
+            ],
+            selected_jurisdictions_postal_codes=selected_jurisdictions_postal_codes,
+        )
+        raise CCInvalidRequestException('Invalid jurisdiction postal code')
 
     # get the user's profile information to determine if they are active military
     provider_id = _get_caller_provider_id_custom_attribute(event)
     user_provider_data = config.data_client.get_provider(compact=compact_name, provider_id=provider_id)
     provider_record = next((record for record in user_provider_data['items'] if record['type'] == 'provider'), None)
+    license_record = next((record for record in user_provider_data['items'] if record['type'] == 'license'), None)
+    # this should never happen, but we check just in case
     if provider_record is None:
-        raise CCNotFoundException('Provider record not found for this user')
+        raise CCNotFoundException('Provider not found')
+    if license_record is None:
+        raise CCNotFoundException('License record not found for this user')
 
+    license_expiration_date: date = license_record['dateOfExpiration']
     user_active_military = bool(provider_record.get('militaryWaiver', False))
 
+    purchase_client = PurchaseClient()
+    transaction_response = None
     try:
-        return PurchaseClient().process_charge_for_licensee_privileges(
+        transaction_response = purchase_client.process_charge_for_licensee_privileges(
             order_information=body['orderInformation'],
             compact_configuration=compact,
             selected_jurisdictions=selected_jurisdictions,
             user_active_military=user_active_military,
         )
 
+        # transaction was successful, now we create privilege records for the selected jurisdictions
+        config.data_client.create_provider_privileges(
+            compact_name=compact_name,
+            provider_id=provider_id,
+            jurisdiction_postal_codes=selected_jurisdictions_postal_codes,
+            license_expiration_date=license_expiration_date,
+            compact_transaction_id=transaction_response['transactionId'],
+        )
+
+        return transaction_response
+
     except CCFailedTransactionException as e:
         logger.warning(f'Failed transaction: {e}.')
         raise CCInvalidRequestException(f'Error: {e.message}') from e
+    except CCAwsServiceException as e:
+        logger.error(f'Error creating privilege records: {e.message}. Voiding transaction.')
+        if transaction_response:
+            # void the transaction if it was successful
+            purchase_client.void_privilege_purchase_transaction(
+                compact_name=compact_name, order_information=transaction_response
+            )
+            raise CCInternalException('Internal Server Error') from e

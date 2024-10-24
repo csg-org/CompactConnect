@@ -84,7 +84,7 @@ def api_handler(fn: Callable):
             return {
                 'headers': {'Access-Control-Allow-Origin': '*'},
                 'statusCode': 404,
-                'body': json.dumps({'message': 'Resource not found'}),
+                'body': json.dumps({'message': f'{e.message}'}),
             }
         except CCInvalidRequestException as e:
             logger.info('Invalid request', exc_info=e)
