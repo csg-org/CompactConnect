@@ -8,10 +8,7 @@
 import { compacts as compactConfigs, FeeTypes } from '@/app.config';
 import { expect } from 'chai';
 import { Compact, CompactSerializer, CompactType } from '@models/Compact/Compact.model';
-import {
-    PrivilegePurchaseOption,
-    PrivilegePurchaseOptionSerializer
-} from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
+import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { State } from '@models/State/State.model';
 import i18n from '@/i18n';
 

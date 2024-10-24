@@ -1,5 +1,5 @@
 //
-//  License.ts
+//  PrivilegePurchaseOption.ts
 //  CompactConnect
 //
 //  Created by InspiringApps on 7/2/2024.

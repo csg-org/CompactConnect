@@ -46,7 +46,7 @@ const routes: Array<RouteConfig> = [
     },
     {
         path: '/:compact/Privileges/SelectPrivileges',
-        name: 'Licensing',
+        name: 'SelectPrivileges',
         component: () => import(/* webpackChunkName: "selectPrivileges" */ '@pages/SelectPrivileges/SelectPrivileges.vue'),
         meta: { requiresAuth: true },
     },

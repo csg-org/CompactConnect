@@ -198,8 +198,8 @@ export class UserDataApi implements DataApiInterface {
     }
 
     /**
-     * GET Privilege purchase information for logged in licensee user.
-     * @return {Promise<User>} A User model instance.
+     * GET Privilege Purchase Information for Authenticated Licensee user.
+     * @return {Promise<object>} List of privilege purchase options and compact purchase info.
      */
     public async getPrivilegePurchaseInformation() {
         const serverResponse: any = await this.api.get(`/v1/purchases/privileges/options`);

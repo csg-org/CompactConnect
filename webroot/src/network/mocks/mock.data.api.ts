@@ -140,7 +140,7 @@ export class DataApi {
         return this.wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.items[0]));
     }
 
-    // Get Authenticated Licensee User
+    // Get Privilege Purchase Information for Licensee User
     public getPrivilegePurchaseInformation() {
         return this.wait(500).then(() => {
             const { items } = privilegePurchaseOptionsResponse;

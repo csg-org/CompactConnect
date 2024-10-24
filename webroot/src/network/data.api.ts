@@ -119,8 +119,8 @@ export class DataApi {
     }
 
     /**
-     * GET Authenticated Staff User.
-     * @return {Promise<User>} A User model instance.
+     * GET Privilege Purchase Information for Authenticated Licensee user.
+     * @return {Promise<object>} List of privilege purchase options and compact purchase info.
      */
     public getPrivilegePurchaseInformation() {
         return userDataApi.getPrivilegePurchaseInformation();
