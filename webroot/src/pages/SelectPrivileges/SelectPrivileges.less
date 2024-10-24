@@ -10,6 +10,32 @@
     align-items: center;
     padding: 2rem;
 
+    .jurisprudence-modal {
+        :deep(.modal-container) {
+            padding: 2rem;
+
+            @media @tabletWidth {
+                padding: 4rem;
+            }
+
+            .jurisprudence-modal-content {
+                padding-top: 1rem;
+
+                .action-button-row {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: flex-end;
+                    margin-top: 4rem;
+                    margin-bottom: -3rem;
+
+                    .understand-button {
+                        margin-left: 1rem;
+                    }
+                }
+            }
+        }
+    }
+
     .privilege-form {
         display: flex;
         flex-direction: column;

@@ -112,11 +112,38 @@
                     <InputSubmit
                         :formInput="formData.submit"
                         :label="submitLabel"
-                        :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen"
+                        :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen && areAllJurisprudenceConfirmed"
                     />
                 </div>
             </div>
         </form>
+        <Modal
+            v-if="shouldShowJurisprudenceModal"
+            class="jurisprudence-modal"
+            :closeOnBackgroundClick="true"
+            :showActions="false"
+            :title="jurisprudenceModalTitle"
+            @close-modal="closeAndInvalidateCheckbox"
+        >
+            <template v-slot:content>
+                <div class="jurisprudence-modal-content">
+                    {{jurisprudenceModalContent}}
+                    <div class="action-button-row">
+                        <InputButton
+                            class="back-button"
+                            :label="backText"
+                            :isTransparent="true"
+                            :onClick="closeAndInvalidateCheckbox"
+                        />
+                        <InputButton
+                            class="understand-button"
+                            :label="iUnderstandText"
+                            :onClick="submitUnderstanding"
+                        />
+                    </div>
+                </div>
+            </template>
+        </Modal>
     </div>
 </template>
 

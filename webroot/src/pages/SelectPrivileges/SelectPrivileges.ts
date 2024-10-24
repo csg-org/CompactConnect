@@ -12,6 +12,7 @@ import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import Modal from '@components/Modal/Modal.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import { License, LicenseStatus } from '@/models/License/License.model';
@@ -26,10 +27,16 @@ import moment from 'moment';
     components: {
         InputCheckbox,
         InputSubmit,
-        InputButton
+        InputButton,
+        Modal
     }
 })
 export default class SelectPrivileges extends mixins(MixinForm) {
+    //
+    // Data
+    //
+    jurisprudenceInLimbo = '';
+
     //
     // Lifecycle
     //
@@ -168,6 +175,18 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         return this.$t('licensing.militaryDiscountText');
     }
 
+    get jurisprudenceModalTitle(): string {
+        return this.$t('licensing.jurisprudenceConfirmation');
+    }
+
+    get jurisprudenceModalContent(): string {
+        return this.$t('licensing.jurisprudenceUnderstandParagraph');
+    }
+
+    get iUnderstandText(): string {
+        return this.$t('licensing.iUnderstand');
+    }
+
     get activeLicense(): License | null {
         return this.licenseList?.find((license) => license.statusState === LicenseStatus.ACTIVE) || null;
     }
@@ -222,6 +241,26 @@ export default class SelectPrivileges extends mixins(MixinForm) {
 
     get selectPrivilegesTitleText(): string {
         return 'Select Privileges';
+    }
+
+    get shouldShowJurisprudenceModal(): boolean {
+        return !!this.jurisprudenceInLimbo;
+    }
+
+    get areAllJurisprudenceConfirmed(): boolean {
+        let allConfirmed = true;
+
+        if (this.formData?.jurisprudenceConfirmations) {
+            const jurisprudenceConfirmations = Object.keys(this.formData.jurisprudenceConfirmations);
+
+            jurisprudenceConfirmations.forEach((state) => {
+                if (!this.formData.jurisprudenceConfirmations[state].value) {
+                    allConfirmed = false;
+                }
+            });
+        }
+
+        return allConfirmed;
     }
 
     //
@@ -287,8 +326,16 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         }
     }
 
-    handleJurisprudenceClicked() {
-        console.log('Open Jurisprudence modal');
+    handleJurisprudenceClicked(e) {
+        /* eslint no-underscore-dangle: 0 */
+        const newValue = e.target._modelValue;
+        const stateAbbrev = e.target.id.split('-')[0];
+
+        if (newValue === true) {
+            if (typeof stateAbbrev === 'string' && stateAbbrev) {
+                this.jurisprudenceInLimbo = stateAbbrev;
+            }
+        }
     }
 
     handleCancelClicked() {
@@ -311,6 +358,24 @@ export default class SelectPrivileges extends mixins(MixinForm) {
 
     deselectState(state) {
         this.formData.stateCheckList.find((checkBox) => (checkBox.id === state?.jurisdiction?.abbrev)).value = false;
+    }
+
+    submitUnderstanding() {
+        const { jurisprudenceInLimbo } = this;
+
+        if (jurisprudenceInLimbo) {
+            this.closeAndInvalidateCheckbox();
+            this.formData.jurisprudenceConfirmations[jurisprudenceInLimbo].value = true;
+        }
+    }
+
+    closeAndInvalidateCheckbox() {
+        const { jurisprudenceInLimbo } = this;
+
+        if (jurisprudenceInLimbo) {
+            this.jurisprudenceInLimbo = '';
+            this.formData.jurisprudenceConfirmations[jurisprudenceInLimbo].value = false;
+        }
     }
 
     @Watch('alreadyObtainedPrivilegeStates.length') reInitForm() {
