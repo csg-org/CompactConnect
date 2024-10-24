@@ -111,7 +111,10 @@ class TestTransformations(TstFunction):
         del expected_provider['providerDateOfUpdate']
         del records['provider']['providerDateOfUpdate']
         del expected_privilege['dateOfIssuance']
+        # removing optional field which is set by the purchase privilege endpoint
+        del expected_privilege['compactTransactionId']
         del records['privilege']['dateOfIssuance']
+
 
         # Make sure each is represented the way we expect, in the db
         self.assertEqual(expected_provider, records['provider'])
@@ -150,6 +153,8 @@ class TestTransformations(TstFunction):
         del expected_provider['licenses'][0]['dateOfUpdate']
         del expected_provider['privileges'][0]['dateOfUpdate']
         del expected_provider['privileges'][0]['dateOfIssuance']
+        # removing optional field which is set by the purchase privilege endpoint
+        del expected_provider['privileges'][0]['compactTransactionId']
 
         # Phew! We've loaded the data all the way in via the ingest chain and back out via the API!
         self.assertEqual(expected_provider, provider_data)

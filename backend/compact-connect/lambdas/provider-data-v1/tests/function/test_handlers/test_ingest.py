@@ -84,6 +84,9 @@ class TestIngest(TstFunction):
         # be captured in the relevant feature work - this is just to help us remember, since it's pretty important.
         # expected_provider['privileges'][0]['status'] = 'inactive'
 
+        # add expected compactTransactionId to the expected provider
+        expected_provider['privileges'][0]['compactTransactionId'] = '1234567890'
+
         provider_data = json.loads(resp['body'])
         # Removing dynamic fields from comparison
         del expected_provider['providerId']
@@ -143,6 +146,8 @@ class TestIngest(TstFunction):
         # We will look at the licenses separately
         del expected_provider['licenses']
         licenses = provider_data.pop('licenses')
+        # add expected compactTransactionId to the expected provider
+        expected_provider['privileges'][0]['compactTransactionId'] = '1234567890'
 
         # The original provider data is preferred over the posted license data in our test case
         self.assertEqual(expected_provider, provider_data)
