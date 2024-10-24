@@ -131,8 +131,17 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     get selectedStatePurchaseDataList(): Array<PrivilegePurchaseOption> {
-        return this.purchaseDataList.filter((option) =>
-            (this.statesSelected?.includes(option?.jurisdiction?.abbrev)));
+        return this.purchaseDataList.filter((option) => {
+            let includes = false;
+
+            const stateAbbrev = option?.jurisdiction?.abbrev;
+
+            if (stateAbbrev) {
+                includes = this.statesSelected?.includes(stateAbbrev);
+            }
+
+            return includes;
+        });
     }
 
     get expirationDateText(): string {
@@ -179,9 +188,10 @@ export default class SelectPrivileges extends mixins(MixinForm) {
 
     get subTotalList(): Array<number> {
         return this.selectedStatePurchaseDataList?.map((purchaseInfo) => {
-            const militaryDiscount = purchaseInfo.isMilitaryDiscountActive ? purchaseInfo.militaryDiscountAmount : 0;
+            const militaryDiscount = purchaseInfo.isMilitaryDiscountActive && purchaseInfo.militaryDiscountAmount
+                ? purchaseInfo.militaryDiscountAmount : 0;
 
-            return (purchaseInfo.fee + this.currentCompactCommissionFee - (militaryDiscount));
+            return ((purchaseInfo?.fee || 0) + (this.currentCompactCommissionFee || 0) - (militaryDiscount));
         });
     }
 
@@ -232,9 +242,10 @@ export default class SelectPrivileges extends mixins(MixinForm) {
 
             if (jurisdiction) {
                 const { abbrev } = jurisdiction;
-                const shouldDisable = this.alreadyObtainedPrivilegeStates.includes(abbrev);
 
                 if (typeof abbrev === 'string' && abbrev) {
+                    const shouldDisable = this.alreadyObtainedPrivilegeStates.includes(abbrev);
+
                     initFormData.stateCheckList.push(new FormInput({
                         id: `${abbrev}`,
                         name: `${abbrev}-check`,

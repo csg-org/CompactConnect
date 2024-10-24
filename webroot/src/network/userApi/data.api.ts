@@ -212,8 +212,6 @@ export class UserDataApi implements DataApiInterface {
             feeAmount: serverFeeObject?.compactCommissionFee?.feeAmount
         }))[0];
 
-        console.log('here', { privilegePurchaseOptions, compactCommissionFee });
-
         return { privilegePurchaseOptions, compactCommissionFee };
     }
 }
