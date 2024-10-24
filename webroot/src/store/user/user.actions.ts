@@ -220,8 +220,7 @@ export default {
             dispatch('setCurrentCompact', newCompact);
             commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS);
         } else {
-            // TODO: make sure error case is all good
-            dispatch('getPrivilegePurchaseInformationFailure', 'Compact mismatch');
+            dispatch('getPrivilegePurchaseInformationFailure', new Error('Compact mismatch'));
         }
     },
     getPrivilegePurchaseInformationFailure: ({ commit }, error: Error) => {

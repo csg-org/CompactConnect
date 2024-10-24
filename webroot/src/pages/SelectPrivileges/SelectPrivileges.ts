@@ -86,8 +86,8 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         return this.licensee?.licenses || [];
     }
 
-    get alreadyObtainedPrivilegeStates(): any {
-        return this.licenseList.concat(this.privilegeList).map((license) => license?.issueState?.abbrev);
+    get alreadyObtainedPrivilegeStates(): Array<string | null> {
+        return this.licenseList.concat(this.privilegeList).map((license) => license?.issueState?.abbrev || null);
     }
 
     get backText(): string {
@@ -125,12 +125,12 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         return !this.isDesktop;
     }
 
-    get statesSelected(): Array <any> {
+    get statesSelected(): Array <string> {
         return this.formData.stateCheckList?.filter((formInput) =>
             (formInput.value === true)).map((input) => input.id);
     }
 
-    get selectedStatePurchaseDataList(): Array <any> {
+    get selectedStatePurchaseDataList(): Array<PrivilegePurchaseOption> {
         return this.purchaseDataList.filter((option) =>
             (this.statesSelected?.includes(option?.jurisdiction?.abbrev)));
     }
@@ -277,7 +277,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     handleJurisprudenceClicked() {
-        console.log('jury prudy');
+        console.log('Open Jurisprudence modal');
     }
 
     handleCancelClicked() {
