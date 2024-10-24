@@ -15,7 +15,6 @@ export interface InterfacePrivilegePurchaseOption {
     jurisdiction?: State;
     compact?: string | null;
     fee?: number | null;
-    feeType?: FeeTypes | null;
     isMilitaryDiscountActive?: boolean;
     militaryDiscountType?: FeeTypes | null;
     militaryDiscountAmount?: number | null;
@@ -30,7 +29,6 @@ export class PrivilegePurchaseOption implements InterfacePrivilegePurchaseOption
     public jurisdiction? = new State();
     public compact? = null;
     public fee? = null;
-    public feeType? = null;
     public isMilitaryDiscountActive? = false;
     public militaryDiscountType? = null;
     public militaryDiscountAmount? = null;

@@ -23,7 +23,7 @@ export interface InterfaceCompactCreate {
     id?: string | null;
     type?: CompactType | null;
     memberStates?: Array<State>;
-    privilegePurchaseOptions?: Array <PrivilegePurchaseOption> | null;
+    privilegePurchaseOptions?: Array <PrivilegePurchaseOption>;
     compactCommissionFee?: number | null;
     compactCommissionFeeType?: FeeTypes | null;
 }

@@ -201,26 +201,24 @@ export default {
     },
     getPrivilegePurchaseInformationRequest: ({ commit, dispatch }) => {
         commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST);
-        return dataApi.getPrivilegePurchaseInformation().then((data) => {
-            dispatch('getPrivilegePurchaseInformationSuccess', data);
-            return data;
+        return dataApi.getPrivilegePurchaseInformation().then((privilegePurchaseData) => {
+            dispatch('getPrivilegePurchaseInformationSuccess', privilegePurchaseData);
+            return privilegePurchaseData;
         }).catch((error) => {
             dispatch('getPrivilegePurchaseInformationFailure', error);
         });
     },
-    getPrivilegePurchaseInformationSuccess: ({ dispatch, commit, state }, data) => {
-        if (data?.compactCommissionFee?.compact === state?.currentCompact?.type) {
-            console.log('data', data);
-
+    getPrivilegePurchaseInformationSuccess: ({ dispatch, commit, state }, privilegePurchaseData) => {
+        if (privilegePurchaseData?.compactCommissionFee?.compact === state?.currentCompact?.type) {
             const newCompact = new Compact({
                 ...state.currentCompact,
-                privilegePurchaseOptions: data.privilegePurchaseOptions,
-                compactCommissionFee: data?.compactCommissionFee?.feeAmount,
-                compactCommissionFeeType: data?.compactCommissionFee?.feeType
+                privilegePurchaseOptions: privilegePurchaseData.privilegePurchaseOptions,
+                compactCommissionFee: privilegePurchaseData?.compactCommissionFee?.feeAmount,
+                compactCommissionFeeType: privilegePurchaseData?.compactCommissionFee?.feeType
             });
 
-            commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS, newCompact);
             dispatch('setCurrentCompact', newCompact);
+            commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS);
         } else {
             // TODO: make sure error case is all good
             dispatch('getPrivilegePurchaseInformationFailure', 'Compact mismatch');

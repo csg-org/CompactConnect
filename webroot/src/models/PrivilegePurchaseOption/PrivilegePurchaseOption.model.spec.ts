@@ -1,24 +1,20 @@
 //
-//  License.model.spec.ts
+//  PrivilegePurchaseOption.model.spec.ts
 //  CompactConnect
 //
 //  Created by InspiringApps on 7/8/2024.
 //
 
 import { expect } from 'chai';
-import { serverDateFormat, displayDateFormat } from '@/app.config';
+import { FeeTypes } from '@/app.config';
 import {
-    License,
-    LicenseOccupation,
-    LicenseStatus,
-    LicenseSerializer
-} from '@models/License/License.model';
-import { Compact, CompactType } from '@models/Compact/Compact.model';
+    PrivilegePurchaseOption,
+    PrivilegePurchaseOptionSerializer
+} from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { State } from '@models/State/State.model';
 import i18n from '@/i18n';
-import moment from 'moment';
 
-describe('License model', () => {
+describe('PrivilegePurchaseOption model', () => {
     before(() => {
         const { tm: $tm } = i18n.global;
 
@@ -31,107 +27,69 @@ describe('License model', () => {
         };
         i18n.global.locale = 'en';
     });
-    it('should create a License with expected defaults', () => {
-        const license = new License();
+    it('should create a PrivilegePurchaseOption with expected defaults', () => {
+        const privilegePurchaseOption = new PrivilegePurchaseOption();
 
         // Test field values
-        expect(license).to.be.an.instanceof(License);
-        expect(license.id).to.equal(null);
-        expect(license.compact).to.equal(null);
-        expect(license.isPrivilege).to.equal(false);
-        expect(license.issueState).to.be.an.instanceof(State);
-        expect(license.isHomeState).to.equal(false);
-        expect(license.issueDate).to.equal(null);
-        expect(license.renewalDate).to.equal(null);
-        expect(license.expireDate).to.equal(null);
-        expect(license.occupation).to.equal(null);
-        expect(license.statusState).to.equal(LicenseStatus.INACTIVE);
-        expect(license.statusCompact).to.equal(LicenseStatus.INACTIVE);
-
-        // Test methods
-        expect(license.issueDateDisplay()).to.equal('');
-        expect(license.renewalDateDisplay()).to.equal('');
-        expect(license.expireDateDisplay()).to.equal('');
-        expect(license.isExpired()).to.equal(false);
-        expect(license.occupationName()).to.equal('');
+        expect(privilegePurchaseOption).to.be.an.instanceof(PrivilegePurchaseOption);
+        expect(privilegePurchaseOption.jurisdiction).to.be.an.instanceof(State);
+        expect(privilegePurchaseOption.compact).to.equal(null);
+        expect(privilegePurchaseOption.fee).to.equal(null);
+        expect(privilegePurchaseOption.isMilitaryDiscountActive).to.equal(false);
+        expect(privilegePurchaseOption.militaryDiscountType).to.equal(null);
+        expect(privilegePurchaseOption.militaryDiscountAmount).to.equal(null);
+        expect(privilegePurchaseOption.isJurisprudenceRequired).to.equal(false);
     });
-    it('should create a License with specific values', () => {
+    it('should create a PrivilegePurchaseOption with specific values', () => {
         const data = {
-            id: 'test-id',
-            compact: new Compact(),
-            isPrivilege: true,
-            issueState: new State(),
-            isHomeState: true,
-            issueDate: 'test-issueDate',
-            renewalDate: 'test-renewalDate',
-            expireDate: 'test-expireDate',
-            occupation: LicenseOccupation.AUDIOLOGIST,
-            statusState: LicenseStatus.ACTIVE,
-            statusCompact: LicenseStatus.ACTIVE,
+            jurisdiction: new State({ abbrev: 'ca' }),
+            compact: 'aslp',
+            fee: 5,
+            isMilitaryDiscountActive: true,
+            militaryDiscountType: FeeTypes.FLAT_RATE,
+            militaryDiscountAmount: 10,
+            isJurisprudenceRequired: true,
         };
-        const license = new License(data);
+        const privilegePurchaseOption = new PrivilegePurchaseOption(data);
 
-        // Test field values
-        expect(license).to.be.an.instanceof(License);
-        expect(license.id).to.equal(data.id);
-        expect(license.compact).to.be.an.instanceof(Compact);
-        expect(license.isPrivilege).to.equal(data.isPrivilege);
-        expect(license.issueState).to.be.an.instanceof(State);
-        expect(license.isHomeState).to.equal(data.isHomeState);
-        expect(license.issueDate).to.equal(data.issueDate);
-        expect(license.renewalDate).to.equal(data.renewalDate);
-        expect(license.expireDate).to.equal(data.expireDate);
-        expect(license.occupation).to.equal(data.occupation);
-        expect(license.statusState).to.equal(data.statusState);
-        expect(license.statusCompact).to.equal(data.statusCompact);
-
-        // Test methods
-        expect(license.issueDateDisplay()).to.equal('Invalid date');
-        expect(license.renewalDateDisplay()).to.equal('Invalid date');
-        expect(license.expireDateDisplay()).to.equal('Invalid date');
-        expect(license.isExpired()).to.equal(false);
-        expect(license.occupationName()).to.equal('Audiologist');
+        expect(privilegePurchaseOption).to.be.an.instanceof(PrivilegePurchaseOption);
+        expect(privilegePurchaseOption.jurisdiction).to.be.an.instanceof(State);
+        expect(privilegePurchaseOption.jurisdiction.abbrev).to.equal('ca');
+        expect(privilegePurchaseOption.compact).to.equal(data.compact);
+        expect(privilegePurchaseOption.fee).to.equal(5);
+        expect(privilegePurchaseOption.isMilitaryDiscountActive).to.equal(true);
+        expect(privilegePurchaseOption.militaryDiscountType).to.equal(FeeTypes.FLAT_RATE);
+        expect(privilegePurchaseOption.militaryDiscountAmount).to.equal(10);
+        expect(privilegePurchaseOption.isJurisprudenceRequired).to.equal(true);
     });
-    it('should create a License with specific values through serializer', () => {
+    it('should create a PrivilegePurchaseOption with specific values through serializer', () => {
         const data = {
-            id: 'test-id',
-            compact: CompactType.ASLP,
-            type: 'privilege',
-            jurisdiction: 'al',
-            dateOfIssuance: moment().format(serverDateFormat),
-            dateOfRenewal: moment().format(serverDateFormat),
-            dateOfExpiration: moment().subtract(1, 'day').format(serverDateFormat),
-            licenseType: LicenseOccupation.AUDIOLOGIST,
-            status: LicenseStatus.ACTIVE,
+            jurisdictionName: 'kentucky',
+            postalAbbreviation: 'ky',
+            compact: 'aslp',
+            jurisdictionFee: 100,
+            militaryDiscount: {
+                active: true,
+                discountType: 'FLAT_RATE',
+                discountAmount: 10
+            },
+            jurisprudenceRequirements: {
+                required: true
+            },
+            type: 'jurisdiction'
         };
-        const license = LicenseSerializer.fromServer(data);
+
+        const privilegePurchaseOption = PrivilegePurchaseOptionSerializer.fromServer(data);
 
         // Test field values
-        expect(license).to.be.an.instanceof(License);
-        expect(license.id).to.equal(data.id);
-        expect(license.compact).to.be.an.instanceof(Compact);
-        expect(license.isPrivilege).to.equal(true);
-        expect(license.issueState).to.be.an.instanceof(State);
-        expect(license.isHomeState).to.equal(false);
-        expect(license.issueState.abbrev).to.equal(data.jurisdiction);
-        expect(license.issueDate).to.equal(data.dateOfIssuance);
-        expect(license.renewalDate).to.equal(data.dateOfRenewal);
-        expect(license.expireDate).to.equal(data.dateOfExpiration);
-        expect(license.occupation).to.equal(data.licenseType);
-        expect(license.statusState).to.equal(data.status);
-        expect(license.statusCompact).to.equal(data.status);
-
-        // Test methods
-        expect(license.issueDateDisplay()).to.equal(
-            moment(data.dateOfIssuance, serverDateFormat).format(displayDateFormat)
-        );
-        expect(license.renewalDateDisplay()).to.equal(
-            moment(data.dateOfRenewal, serverDateFormat).format(displayDateFormat)
-        );
-        expect(license.expireDateDisplay()).to.equal(
-            moment(data.dateOfExpiration, serverDateFormat).format(displayDateFormat)
-        );
-        expect(license.isExpired()).to.equal(true);
-        expect(license.occupationName()).to.equal('Audiologist');
+        expect(privilegePurchaseOption).to.be.an.instanceof(PrivilegePurchaseOption);
+        expect(privilegePurchaseOption.jurisdiction).to.be.an.instanceof(State);
+        expect(privilegePurchaseOption.jurisdiction.abbrev).to.equal('ky');
+        expect(privilegePurchaseOption.compact).to.equal('aslp');
+        expect(privilegePurchaseOption.fee).to.equal(100);
+        expect(privilegePurchaseOption.isMilitaryDiscountActive).to.equal(true);
+        expect(privilegePurchaseOption.militaryDiscountType).to.equal(FeeTypes.FLAT_RATE);
+        expect(privilegePurchaseOption.militaryDiscountAmount).to.equal(10);
+        expect(privilegePurchaseOption.isJurisprudenceRequired).to.equal(true);
     });
 });

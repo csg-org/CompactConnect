@@ -178,8 +178,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     get subTotalList(): Array<number> {
-        console.log('this.selectedStatePurchaseDataList', this.selectedStatePurchaseDataList);
-
         return this.selectedStatePurchaseDataList?.map((purchaseInfo) => {
             const militaryDiscount = purchaseInfo.isMilitaryDiscountActive ? purchaseInfo.militaryDiscountAmount : 0;
 
