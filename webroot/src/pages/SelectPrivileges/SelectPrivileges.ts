@@ -229,7 +229,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     get selectPrivilegesTitleText(): string {
-        return 'Select Privileges';
+        return this.$t('licensing.selectPrivileges');
     }
 
     get shouldShowJurisprudenceModal(): boolean {
