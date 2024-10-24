@@ -151,6 +151,20 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         });
     }
 
+    get selectedStatesWithJurisprudenceRequired(): Array<string> {
+        const selectedStatesWithJurisprudenceRequired: Array<string> = [];
+        const privPurchaseStatesRequiringJurisprudence = this.selectedStatePurchaseDataList
+            .filter((state) => state.isJurisprudenceRequired);
+
+        privPurchaseStatesRequiringJurisprudence.forEach((state) => {
+            if (state?.jurisdiction?.abbrev) {
+                selectedStatesWithJurisprudenceRequired.push(state.jurisdiction.abbrev);
+            }
+        });
+
+        return selectedStatesWithJurisprudenceRequired;
+    }
+
     get expirationDateText(): string {
         return this.$t('licensing.expirationDate');
     }
@@ -212,31 +226,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
 
             return ((purchaseInfo?.fee || 0) + (this.currentCompactCommissionFee || 0) - (militaryDiscount));
         });
-    }
-
-    get jurisprudenceInputs(): Array<FormInput> {
-        const jurisprudenceInputs: any = {};
-
-        this.selectedStatePurchaseDataList.forEach((purchaseItem) => {
-            if (purchaseItem.isJurisprudenceRequired) {
-                const { jurisdiction = new State() } = purchaseItem;
-
-                if (jurisdiction) {
-                    const { abbrev } = jurisdiction;
-
-                    if (typeof abbrev === 'string' && abbrev) {
-                        jurisprudenceInputs[abbrev] = new FormInput({
-                            id: `${abbrev}-jurisprudence`,
-                            name: `${abbrev}-jurisprudence`,
-                            label: `${this.jurisprudenceExplanationText}`,
-                            value: false
-                        });
-                    }
-                }
-            }
-        });
-
-        return jurisprudenceInputs;
     }
 
     get selectPrivilegesTitleText(): string {
@@ -313,7 +302,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         const stateAbbrev = e.target.id;
 
         if (newValue === true) {
-            if (typeof stateAbbrev === 'string' && stateAbbrev) {
+            if (typeof stateAbbrev === 'string' && stateAbbrev && this.selectedStatesWithJurisprudenceRequired.includes(stateAbbrev)) {
                 this.formData.jurisprudenceConfirmations[stateAbbrev] = new FormInput({
                     id: `${stateAbbrev}-jurisprudence`,
                     name: `${stateAbbrev}-jurisprudence`,
