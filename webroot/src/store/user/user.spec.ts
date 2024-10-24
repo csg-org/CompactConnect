@@ -5,10 +5,12 @@
 //  Created by InspiringApps on 6/12/24.
 //
 
-import { authStorage, tokens } from '@/app.config';
+import { authStorage, tokens, FeeTypes } from '@/app.config';
 import chaiMatchPattern from 'chai-match-pattern';
 import chai from 'chai';
 import { Compact } from '@models/Compact/Compact.model';
+import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
+import { State } from '@models/State/State.model';
 import mutations, { MutationTypes } from './user.mutations';
 import actions from './user.actions';
 import getters from './user.getters';
@@ -409,7 +411,7 @@ describe('User Store Actions', async () => {
     it('should successfully start get privilege purchase information success', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
-        const state = { currentCompact: new Compact({ type: 'aslp' })}
+        const state = { currentCompact: new Compact({ type: 'aslp' }) };
 
         const data = {
             jurisdiction: new State({ abbrev: 'ca' }),
@@ -430,17 +432,19 @@ describe('User Store Actions', async () => {
         await actions.getPrivilegePurchaseInformationSuccess({ commit, dispatch, state }, privilegePurchaseData);
 
         expect(commit.calledOnce).to.equal(true);
-        expect(commit.firstCall.args).to.matchPattern([MutationTypes.LOGIN_SUCCESS]);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS]);
         expect(dispatch.calledOnce).to.equal(true);
-        expect(dispatch.firstCall.args).to.matchPattern(['setCurrentCompact', 'licensee']);
+        expect([dispatch.firstCall.args[0]]).to.matchPattern(['setCurrentCompact']);
     });
-    // it('should successfully start login failure', () => {
-    //     const commit = sinon.spy();
-    //     const error = new Error();
+    it('should successfully start login failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
 
-    //     actions.loginFailure({ commit }, error);
+        actions.getPrivilegePurchaseInformationFailure({ commit }, error);
 
-    //     expect(commit.calledOnce).to.equal(true);
-    //     expect(commit.firstCall.args).to.matchPattern([MutationTypes.LOGIN_FAILURE, error]);
-    // });
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern(
+            [MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE, error]
+        );
+    });
 });

@@ -92,4 +92,30 @@ describe('PrivilegePurchaseOption model', () => {
         expect(privilegePurchaseOption.militaryDiscountAmount).to.equal(10);
         expect(privilegePurchaseOption.isJurisprudenceRequired).to.equal(true);
     });
+    it('should create a PrivilegePurchaseOption with specific values and null military discount object through serializer', () => {
+        const data = {
+            jurisdictionName: 'kentucky',
+            postalAbbreviation: 'ky',
+            compact: 'aslp',
+            jurisdictionFee: 100,
+            militaryDiscount: null,
+            jurisprudenceRequirements: {
+                required: true
+            },
+            type: 'jurisdiction'
+        };
+
+        const privilegePurchaseOption = PrivilegePurchaseOptionSerializer.fromServer(data);
+
+        // Test field values
+        expect(privilegePurchaseOption).to.be.an.instanceof(PrivilegePurchaseOption);
+        expect(privilegePurchaseOption.jurisdiction).to.be.an.instanceof(State);
+        expect(privilegePurchaseOption.jurisdiction.abbrev).to.equal('ky');
+        expect(privilegePurchaseOption.compact).to.equal('aslp');
+        expect(privilegePurchaseOption.fee).to.equal(100);
+        expect(privilegePurchaseOption.isMilitaryDiscountActive).to.equal(false);
+        expect(privilegePurchaseOption.militaryDiscountType).to.equal(null);
+        expect(privilegePurchaseOption.militaryDiscountAmount).to.equal(null);
+        expect(privilegePurchaseOption.isJurisprudenceRequired).to.equal(true);
+    });
 });
