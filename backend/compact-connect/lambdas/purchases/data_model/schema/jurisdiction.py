@@ -1,4 +1,5 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
+from collections import UserDict
 from enum import Enum
 
 from config import config
@@ -82,55 +83,78 @@ class JurisdictionOptionsApiResponseSchema(ForgivingSchema):
     type = String(required=True, allow_none=False, validate=OneOf([JURISDICTION_TYPE]))
 
 
-class Jurisdiction:
-    """
-    Jurisdiction configuration data model. Used to access variables without needing to know
-    the underlying key structure.
-    """
-
-    def __init__(self, jurisdiction_configuration: dict):
-        self.jurisdictionName: str = jurisdiction_configuration['jurisdictionName']
-        self.postalAbbreviation: str = jurisdiction_configuration['postalAbbreviation']
-        self.compact: str = jurisdiction_configuration['compact']
-        self.jurisdictionFee: int = jurisdiction_configuration['jurisdictionFee']
-        self.militaryDiscount = None
-        if 'militaryDiscount' in jurisdiction_configuration:
-            self.militaryDiscount = JurisdictionMilitaryDiscount(
-                active=jurisdiction_configuration['militaryDiscount']['active'],
-                discount_type=JurisdictionMilitaryDiscountType.from_str(
-                    jurisdiction_configuration['militaryDiscount']['discountType']
-                ),
-                discount_amount=jurisdiction_configuration['militaryDiscount']['discountAmount'],
-            )
-        self.jurisprudenceRequirements = JurisdictionJurisprudenceRequirements(
-            required=jurisdiction_configuration['jurisprudenceRequirements']['required']
-        )
-        self.jurisdictionOperationsTeamEmails = jurisdiction_configuration.get('jurisdictionOperationsTeamEmails')
-        self.jurisdictionAdverseActionsNotificationEmails = jurisdiction_configuration.get(
-            'jurisdictionAdverseActionsNotificationEmails'
-        )
-        self.jurisdictionSummaryReportNotificationEmails = jurisdiction_configuration.get(
-            'jurisdictionSummaryReportNotificationEmails'
-        )
-
-
-class JurisdictionMilitaryDiscount:
+class JurisdictionMilitaryDiscount(UserDict):
     """
     Jurisdiction military discount data model. Used to access variables without needing to know
     the underlying key structure.
     """
 
-    def __init__(self, active: bool, discount_type: JurisdictionMilitaryDiscountType, discount_amount: Decimal):
-        self.active = active
-        self.discountType = discount_type
-        self.discountAmount = discount_amount
+    @property
+    def active(self) -> bool:
+        return self['active']
+
+    @property
+    def discount_type(self) -> 'JurisdictionMilitaryDiscountType':
+        return JurisdictionMilitaryDiscountType.from_str(self['discountType'])
+
+    @property
+    def discount_amount(self) -> Decimal:
+        return self['discountAmount']
 
 
-class JurisdictionJurisprudenceRequirements:
+class JurisdictionJurisprudenceRequirements(UserDict):
     """
     Jurisdiction jurisprudence requirements data model. Used to access variables without needing to know
     the underlying key structure.
     """
 
-    def __init__(self, required: bool):
-        self.required = required
+    @property
+    def required(self) -> bool:
+        return self['required']
+
+
+class Jurisdiction(UserDict):
+    """
+    Jurisdiction configuration data model. Used to access variables without needing to know
+    the underlying key structure.
+    """
+
+    @property
+    def jurisdiction_name(self) -> str:
+        return self['jurisdictionName']
+
+    @property
+    def postal_abbreviation(self) -> str:
+        return self['postalAbbreviation']
+
+    @property
+    def compact(self) -> str:
+        return self['compact']
+
+    @property
+    def jurisdiction_fee(self) -> int:
+        return self['jurisdictionFee']
+
+    @property
+    def military_discount(self) -> JurisdictionMilitaryDiscount | None:
+        if 'militaryDiscount' in self.data:
+            return JurisdictionMilitaryDiscount(self.data['militaryDiscount'])
+        return None
+
+    @property
+    def jurisprudence_requirements(self) -> JurisdictionJurisprudenceRequirements:
+        return JurisdictionJurisprudenceRequirements(self.data['jurisprudenceRequirements'])
+
+    @property
+    def jurisdiction_operations_team_emails(self) -> list[str] | None:
+        return self.get('jurisdictionOperationsTeamEmails')
+
+    @property
+    def jurisdiction_adverse_actions_notification_emails(self) -> list[str] | None:
+        return self.get('jurisdictionAdverseActionsNotificationEmails')
+
+    @property
+    def jurisdiction_summary_report_notification_emails(self) -> list[str] | None:
+        return self.get('jurisdictionSummaryReportNotificationEmails')
+
+

@@ -16,13 +16,13 @@ def _calculate_jurisdiction_fee(jurisdiction: Jurisdiction, user_active_military
     """
     Calculate the total cost of a single jurisdiction privilege
     """
-    if user_active_military and jurisdiction.militaryDiscount.active:
-        if jurisdiction.militaryDiscount.discountType == JurisdictionMilitaryDiscountType.FLAT_RATE:
-            total_jurisdiction_fee = jurisdiction.jurisdictionFee - jurisdiction.militaryDiscount.discountAmount
+    if user_active_military and jurisdiction.military_discount.active:
+        if jurisdiction.military_discount.discount_type == JurisdictionMilitaryDiscountType.FLAT_RATE:
+            total_jurisdiction_fee = jurisdiction.jurisdiction_fee - jurisdiction.military_discount.discount_amount
         else:
-            raise ValueError(f'Unsupported military discount type: {jurisdiction.militaryDiscount.discountType.value}')
+            raise ValueError(f'Unsupported military discount type: {jurisdiction.military_discount.discount_type.value}')
     else:
-        total_jurisdiction_fee = jurisdiction.jurisdictionFee
+        total_jurisdiction_fee = jurisdiction.jurisdiction_fee
 
     return total_jurisdiction_fee
 
@@ -39,10 +39,10 @@ def _calculate_total_compact_fee(compact: Compact, selected_jurisdictions: list[
 
 def _calculate_compact_fee_for_single_jurisdiction(compact: Compact) -> float:
     total_compact_fee = 0.0
-    if compact.compactCommissionFee.feeType == CompactFeeType.FLAT_RATE:
-        total_compact_fee += compact.compactCommissionFee.feeAmount
+    if compact.compact_commission_fee.fee_type == CompactFeeType.FLAT_RATE:
+        total_compact_fee += compact.compact_commission_fee.fee_amount
     else:
-        raise ValueError(f'Unsupported compact fee type: {compact.compactCommissionFee.feeType.value}')
+        raise ValueError(f'Unsupported compact fee type: {compact.compact_commission_fee.fee_type.value}')
 
     return total_compact_fee
 
@@ -203,13 +203,13 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
 
         line_items = apicontractsv1.ArrayOfLineItem()
         for jurisdiction in selected_jurisdictions:
-            jurisdiction_name_title_case = jurisdiction.jurisdictionName.title()
+            jurisdiction_name_title_case = jurisdiction.jurisdiction_name.title()
             privilege_line_item = apicontractsv1.lineItemType()
-            privilege_line_item.itemId = f'{compact_configuration.compactName}-{jurisdiction.postalAbbreviation}'
+            privilege_line_item.itemId = f'{compact_configuration.compact_name}-{jurisdiction.postal_abbreviation}'
             privilege_line_item.name = f'{jurisdiction_name_title_case} Compact Privilege'
             privilege_line_item.quantity = '1'
             privilege_line_item.unitPrice = _calculate_jurisdiction_fee(jurisdiction, user_active_military)
-            if user_active_military and jurisdiction.militaryDiscount.active:
+            if user_active_military and jurisdiction.military_discount.active:
                 privilege_line_item.description = (
                     f'Compact Privilege for {jurisdiction_name_title_case} (Military Discount)'
                 )
@@ -220,8 +220,8 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
 
         # Add the compact fee to the line items
         compact_fee_line_item = apicontractsv1.lineItemType()
-        compact_fee_line_item.itemId = f'{compact_configuration.compactName}-fee'
-        compact_fee_line_item.name = f'{compact_configuration.compactName.upper()} Compact Fee'
+        compact_fee_line_item.itemId = f'{compact_configuration.compact_name}-fee'
+        compact_fee_line_item.name = f'{compact_configuration.compact_name.upper()} Compact Fee'
         compact_fee_line_item.description = 'Compact fee applied for each privilege purchased'
         compact_fee_line_item.quantity = len(selected_jurisdictions)
         compact_fee_line_item.unitPrice = _calculate_compact_fee_for_single_jurisdiction(compact_configuration)
@@ -401,7 +401,7 @@ class PurchaseClient:
         if not self.payment_processor_client:
             # get the credentials from secrets_manager for the compact
             self.payment_processor_client: PaymentProcessorClient = self._get_compact_payment_processor_client(
-                compact_configuration.compactName
+                compact_configuration.compact_name
             )
 
         return self.payment_processor_client.process_charge_on_credit_card_for_privilege_purchase(

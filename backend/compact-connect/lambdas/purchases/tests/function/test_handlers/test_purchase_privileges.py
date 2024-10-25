@@ -88,10 +88,10 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(
             json.loads(event['body'])['orderInformation'], purchase_client_call_kwargs['order_information']
         )
-        self.assertEqual(TEST_COMPACT, purchase_client_call_kwargs['compact_configuration'].compactName)
+        self.assertEqual(TEST_COMPACT, purchase_client_call_kwargs['compact_configuration'].compact_name)
         self.assertEqual(
             ['oh'],
-            [jurisdiction.postalAbbreviation for jurisdiction in purchase_client_call_kwargs['selected_jurisdictions']],
+            [jurisdiction.postal_abbreviation for jurisdiction in purchase_client_call_kwargs['selected_jurisdictions']],
         )
         self.assertEqual(False, purchase_client_call_kwargs['user_active_military'])
 

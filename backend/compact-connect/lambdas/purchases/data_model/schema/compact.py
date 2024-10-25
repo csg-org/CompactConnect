@@ -1,4 +1,5 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
+from collections import UserDict
 from enum import Enum
 
 from config import config
@@ -65,31 +66,40 @@ class CompactOptionsApiResponseSchema(ForgivingSchema):
     type = String(required=True, allow_none=False, validate=OneOf([COMPACT_TYPE]))
 
 
-class Compact:
-    """
-    Compact configuration data model. Used to access variables without needing to know the underlying key structure.
-    """
-
-    def __init__(self, compact_configuration: dict):
-        self.compactName: str = compact_configuration['compactName']
-        self.compactCommissionFee = CompactCommissionFee(
-            fee_type=CompactFeeType.from_str(compact_configuration['compactCommissionFee']['feeType']),
-            fee_amount=compact_configuration['compactCommissionFee']['feeAmount'],
-        )
-        self.compactOperationsTeamEmails = compact_configuration.get('compactOperationsTeamEmails')
-        self.compactAdverseActionsNotificationEmails = compact_configuration.get(
-            'compactAdverseActionsNotificationEmails'
-        )
-        self.compactSummaryReportNotificationEmails = compact_configuration.get(
-            'compactSummaryReportNotificationEmails'
-        )
-
-
-class CompactCommissionFee:
+class CompactCommissionFee(UserDict):
     """
     Compact commission fee data model. Used to access variables without needing to know the underlying key structure.
     """
 
-    def __init__(self, fee_type: CompactFeeType, fee_amount: Decimal):
-        self.feeType = fee_type
-        self.feeAmount = fee_amount
+    @property
+    def fee_type(self) -> CompactFeeType:
+        return CompactFeeType.from_str(self['feeType'])
+
+    @property
+    def fee_amount(self) -> Decimal:
+        return self['feeAmount']
+
+class Compact(UserDict):
+    """
+    Compact configuration data model. Used to access variables without needing to know the underlying key structure.
+    """
+
+    @property
+    def compact_name(self) -> str:
+        return self['compactName']
+
+    @property
+    def compact_commission_fee(self) -> CompactCommissionFee:
+        return CompactCommissionFee(self['compactCommissionFee'])
+
+    @property
+    def compact_operations_team_emails(self) -> list[str] | None:
+        return self.get('compactOperationsTeamEmails')
+
+    @property
+    def compact_adverse_actions_notification_emails(self) -> list[str] | None:
+        return self.get('compactAdverseActionsNotificationEmails')
+
+    @property
+    def compact_summary_report_notification_emails(self) -> list[str] | None:
+        return self.get('compactSummaryReportNotificationEmails')
