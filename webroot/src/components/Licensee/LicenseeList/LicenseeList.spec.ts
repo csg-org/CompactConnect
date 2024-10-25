@@ -7,7 +7,7 @@
 
 import chaiMatchPattern from 'chai-match-pattern';
 import chai from 'chai';
-import { mountShallow } from '@tests/helpers/setup';
+import { mountShallow, mountFull } from '@tests/helpers/setup';
 import LicenseeList from '@components/Licensee/LicenseeList/LicenseeList.vue';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import sinon from 'sinon';
@@ -27,7 +27,7 @@ describe('LicenseeList component', async () => {
         global.requestAnimationFrame = (cb) => cb(); // JSDOM omits this global method, so we need to mock it ourselves
     });
     it('should mount the component', async () => {
-        const wrapper = await mountShallow(LicenseeList);
+        const wrapper = await mountFull(LicenseeList);
 
         expect(wrapper.exists()).to.equal(true);
         expect(wrapper.findComponent(LicenseeList).exists()).to.equal(true);

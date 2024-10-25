@@ -56,7 +56,7 @@ describe('Compact model', () => {
         expect(compact.name()).to.equal('Audio and Speech Language Pathology');
         expect(compact.abbrev()).to.equal('ASLP');
     });
-    it('should create a Compact with specific values through serializer', () => {
+    it('should create a Compact with specific values through serializer (happy path)', () => {
         const data = {
             id: 'test-id',
             type: CompactType.ASLP,
@@ -78,5 +78,21 @@ describe('Compact model', () => {
         // Test methods
         expect(compact.name()).to.equal('Audio and Speech Language Pathology');
         expect(compact.abbrev()).to.equal('ASLP');
+    });
+    it('should create a Compact with specific values through serializer (missing compact type)', () => {
+        const data = {
+            id: 'test-id',
+        };
+        const compact = CompactSerializer.fromServer(data);
+
+        // Test field values
+        expect(compact).to.be.an.instanceof(Compact);
+        expect(compact.id).to.equal(data.id);
+        expect(compact.type).to.equal(null);
+        expect(compact.memberStates).to.be.an('array').with.length(0);
+
+        // Test methods
+        expect(compact.name()).to.equal('');
+        expect(compact.abbrev()).to.equal('');
     });
 });
