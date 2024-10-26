@@ -12,6 +12,7 @@
 
     .jurisprudence-modal {
         :deep(.modal-container) {
+            max-width: 60rem;
             padding: 2rem;
 
             @media @tabletWidth {
@@ -20,6 +21,7 @@
 
             .jurisprudence-modal-content {
                 padding-top: 1rem;
+                overflow-y: hidden;
 
                 .action-button-row {
                     display: flex;

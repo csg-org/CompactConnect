@@ -35,22 +35,33 @@
                     {{selectPrivilegesTitleText}}
                 </div>
                 <div class="lists-container">
-                    <div class="state-select-list">
-                        <div
+                    <ul class="state-select-list">
+                        <li
                             v-for="state in stateCheckList"
                             :key="state.label"
-                            class="state-select-unit"
                         >
-                            <div v-if="state.isDisabled" class="disabled-state-overlay" />
-                            <InputCheckbox
-                                :formInput="state"
-                                :isDisabled="state.isDisabled"
-                                @change="handleStateClicked"
-                            />
-                        </div>
-                    </div>
-                    <div class="selected-state-list">
-                        <div
+                            <div v-if="checkIfStateSelectIsDisabled(state)" class="state-select-unit">
+                                <div class="disabled-state-overlay" />
+                                <InputCheckbox
+                                    :formInput="state"
+                                />
+                            </div>
+                            <div
+                                v-else
+                                class="state-select-unit"
+                                @click.stop="checkState(state)"
+                                @keyup.enter="checkState(state)"
+                                tabindex="0"
+                            >
+                                <InputCheckbox
+                                    :formInput="state"
+                                    @change="handleStateClicked(state)"
+                                />
+                            </div>
+                        </li>
+                    </ul>
+                    <ul class="selected-state-list">
+                        <li
                             v-for="(state, i) in selectedStatePurchaseDataList"
                             :key="state.jurisdiction.abbrev"
                             class="selected-state-block"
@@ -87,11 +98,11 @@
                             <div v-if="state.isJurisprudenceRequired" class="jurisprudence-check-box">
                                 <InputCheckbox
                                     :formInput="formData.jurisprudenceConfirmations[state.jurisdiction.abbrev]"
-                                    @change="handleJurisprudenceClicked"
+                                    @change="handleJurisprudenceClicked(state)"
                                 />
                             </div>
-                        </div>
-                    </div>
+                        </li>
+                    </ul>
                 </div>
             </div>
             <div class="button-row">

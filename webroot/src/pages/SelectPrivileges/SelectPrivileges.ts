@@ -35,7 +35,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     //
     // Data
     //
-    jurisprudenceInLimbo = '';
+    jurisprudencePendingConfirmation = '';
 
     //
     // Lifecycle
@@ -233,7 +233,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     get shouldShowJurisprudenceModal(): boolean {
-        return !!this.jurisprudenceInLimbo;
+        return !!this.jurisprudencePendingConfirmation;
     }
 
     get areAllJurisprudenceConfirmed(): boolean {
@@ -271,15 +271,15 @@ export default class SelectPrivileges extends mixins(MixinForm) {
             if (jurisdiction) {
                 const { abbrev } = jurisdiction;
 
-                if (typeof abbrev === 'string' && abbrev) {
-                    const shouldDisable = this.alreadyObtainedPrivilegeStates.includes(abbrev);
+                if (abbrev) {
+                    // const shouldDisable = this.alreadyObtainedPrivilegeStates.includes(abbrev);
 
                     initFormData.stateCheckList.push(new FormInput({
-                        id: `${abbrev}`,
+                        id: abbrev,
                         name: `${abbrev}-check`,
-                        label: `${jurisdiction.name()}`,
+                        label: jurisdiction.name(),
                         value: false,
-                        isDisabled: shouldDisable
+                        isDisabled: true
                     }));
                 }
             }
@@ -289,24 +289,24 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     handleSubmit() {
-        if (this.isAtLeastOnePrivilegeChosen) {
+        // This function is just a stub as it is the boundary to the next feature to be developed
+        if (this.isAtLeastOnePrivilegeChosen && this.areAllJurisprudenceConfirmed) {
             this.startFormLoading();
             console.log(this.formData);
             this.endFormLoading();
         }
     }
 
-    handleStateClicked(e) {
-        /* eslint no-underscore-dangle: 0 */
-        const newValue = e.target._modelValue;
-        const stateAbbrev = e.target.id;
+    handleStateClicked(state) {
+        const newValue = state.value;
+        const stateAbbrev = state.id;
 
         if (newValue === true) {
-            if (typeof stateAbbrev === 'string' && stateAbbrev && this.selectedStatesWithJurisprudenceRequired.includes(stateAbbrev)) {
+            if (stateAbbrev && this.selectedStatesWithJurisprudenceRequired.includes(stateAbbrev)) {
                 this.formData.jurisprudenceConfirmations[stateAbbrev] = new FormInput({
                     id: `${stateAbbrev}-jurisprudence`,
                     name: `${stateAbbrev}-jurisprudence`,
-                    label: `${this.jurisprudenceExplanationText}`,
+                    label: this.jurisprudenceExplanationText,
                     value: false
                 });
             }
@@ -315,14 +315,13 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         }
     }
 
-    handleJurisprudenceClicked(e) {
-        /* eslint no-underscore-dangle: 0 */
-        const newValue = e.target._modelValue;
-        const stateAbbrev = e.target.id.split('-')[0];
+    handleJurisprudenceClicked(privilegePurchaseInformation) {
+        const stateAbbrev = privilegePurchaseInformation.jurisdiction.abbrev;
+        const newValue = this.formData.jurisprudenceConfirmations[stateAbbrev].value;
 
         if (newValue === true) {
-            if (typeof stateAbbrev === 'string' && stateAbbrev) {
-                this.jurisprudenceInLimbo = stateAbbrev;
+            if (stateAbbrev) {
+                this.jurisprudencePendingConfirmation = stateAbbrev;
             }
         }
     }
@@ -350,21 +349,29 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     submitUnderstanding() {
-        const { jurisprudenceInLimbo } = this;
+        const { jurisprudencePendingConfirmation } = this;
 
-        if (jurisprudenceInLimbo) {
+        if (jurisprudencePendingConfirmation) {
             this.closeAndInvalidateCheckbox();
-            this.formData.jurisprudenceConfirmations[jurisprudenceInLimbo].value = true;
+            this.formData.jurisprudenceConfirmations[jurisprudencePendingConfirmation].value = true;
         }
     }
 
     closeAndInvalidateCheckbox() {
-        const { jurisprudenceInLimbo } = this;
+        const { jurisprudencePendingConfirmation } = this;
 
-        if (jurisprudenceInLimbo) {
-            this.jurisprudenceInLimbo = '';
-            this.formData.jurisprudenceConfirmations[jurisprudenceInLimbo].value = false;
+        if (jurisprudencePendingConfirmation) {
+            this.jurisprudencePendingConfirmation = '';
+            this.formData.jurisprudenceConfirmations[jurisprudencePendingConfirmation].value = false;
         }
+    }
+
+    checkState(stateFormInput) {
+        stateFormInput.value = !stateFormInput.value;
+    }
+
+    checkIfStateSelectIsDisabled(state): boolean {
+        return this.alreadyObtainedPrivilegeStates.includes(state.id);
     }
 
     @Watch('alreadyObtainedPrivilegeStates.length') reInitForm() {
