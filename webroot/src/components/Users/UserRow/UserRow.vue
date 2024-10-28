@@ -9,6 +9,7 @@
     <li
         class="user-row is-wrap"
         :class="{ 'is-header': isHeaderRow }"
+        role="row"
     >
         <div class="cell-content main-content">
         <div
@@ -30,6 +31,7 @@
             @click="isSortOptionEnabled('firstName') && handleSortSelect('firstName')"
             @keyup.enter="isSortOptionEnabled('firstName') && handleSortSelect('firstName')"
             :tabindex="(isHeaderRow && isSortOptionEnabled('firstName')) ? 0 : -1"
+            :role="(isHeaderRow) ? 'columnheader' : 'cell'"
         >
             <span v-if="$matches.phone.only" class="cell-title">{{ $t('common.firstName') }}:</span>
             {{ item.firstName }}
@@ -45,6 +47,7 @@
             @click="isSortOptionEnabled('lastName') && handleSortSelect('lastName')"
             @keyup.enter="isSortOptionEnabled('lastName') && handleSortSelect('lastName')"
             :tabindex="(isHeaderRow && isSortOptionEnabled('lastName')) ? 0 : -1"
+            :role="(isHeaderRow) ? 'columnheader' : 'cell'"
         >
             <span v-if="$matches.phone.only" class="cell-title">{{ $t('common.lastName') }}:</span>
             {{ item.lastName }}
@@ -60,6 +63,7 @@
             @click="isSortOptionEnabled('permissions') && handleSortSelect('permissions')"
             @keyup.enter="isSortOptionEnabled('permissions') && handleSortSelect('permissions')"
             :tabindex="(isHeaderRow && isSortOptionEnabled('permissions')) ? 0 : -1"
+            :role="(isHeaderRow) ? 'columnheader' : 'cell'"
         >
             <span v-if="$matches.phone.only" class="cell-title">{{ $t('account.permissions') }}:</span>
             {{ item.permissionsShortDisplay(currentCompactType) }}
@@ -75,6 +79,7 @@
             @click="isSortOptionEnabled('affiliation') && handleSortSelect('affiliation')"
             @keyup.enter="isSortOptionEnabled('affiliation') && handleSortSelect('affiliation')"
             :tabindex="(isHeaderRow && isSortOptionEnabled('affiliation')) ? 0 : -1"
+            :role="(isHeaderRow) ? 'columnheader' : 'cell'"
         >
             <span v-if="$matches.phone.only" class="cell-title">{{ $t('account.affiliation') }}:</span>
             {{ item.affiliationDisplay(currentCompactType) }}
@@ -90,6 +95,7 @@
             @click="isSortOptionEnabled('states') && handleSortSelect('states')"
             @keyup.enter="isSortOptionEnabled('states') && handleSortSelect('states')"
             :tabindex="(isHeaderRow && isSortOptionEnabled('states')) ? 0 : -1"
+            :role="(isHeaderRow) ? 'columnheader' : 'cell'"
         >
             <span v-if="$matches.phone.only" class="cell-title">{{ $t('account.states') }}:</span>
             {{ item.statesDisplay(currentCompactType) }}
@@ -108,6 +114,7 @@
             @click="isSortOptionEnabled('accountStatus') && handleSortSelect('accountStatus')"
             @keyup.enter="isSortOptionEnabled('accountStatus') && handleSortSelect('accountStatus')"
             :tabindex="(isHeaderRow && isSortOptionEnabled('accountStatus')) ? 0 : -1"
+            :role="(isHeaderRow) ? 'columnheader' : 'cell'"
         >
             <span v-if="$matches.phone.only" class="cell-title">{{ $t('account.accountStatus') }}:</span>
             <span class="account-status">{{ item.accountStatusDisplay() }}</span>
@@ -127,11 +134,12 @@
             v-if="!isHeaderRow && $matches.desktop.min"
             class="cell-content expanded-content"
             :class="{ 'active': isRowExpanded }"
+            :role="(isRowExpanded) ? 'row' : ''"
         >
             <div v-if="$matches.desktop.min" class="cell expand-collapse"></div>
             <div class="cell first-name"></div>
             <div class="cell last-name"></div>
-            <div class="cell permissions">
+            <div class="cell permissions" role="cell">
                 <div class="permissions-label">Permission details</div>
                 <ul class="permissions-full good-wrap">
                     <li

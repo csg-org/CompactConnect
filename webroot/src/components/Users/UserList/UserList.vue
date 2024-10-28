@@ -37,6 +37,7 @@
             :isLoading="$store.state.users.isLoading"
             :loadingError="$store.state.users.error"
             :emptyListMessage="emptyMessage"
+            role="table"
         >
             <template v-slot:headers>
                 <UserRow

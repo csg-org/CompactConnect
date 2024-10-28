@@ -40,6 +40,7 @@
                     :pagingNextKey="$store.state.license.lastKey"
                     :isLoading="$store.state.license.isLoading"
                     :loadingError="$store.state.license.error"
+                    role="table"
                 >
                     <template v-slot:headers>
                         <LicenseeRow
