@@ -26,7 +26,7 @@
                     <InputSubmit
                         :formInput="formData.submit"
                         :label="submitLabel"
-                        :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen"
+                        :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen && areAllJurisprudenceConfirmed"
                     />
                 </div>
             </div>
