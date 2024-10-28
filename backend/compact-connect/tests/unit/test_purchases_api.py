@@ -8,7 +8,7 @@ from tests.unit.test_api import TestApi
 def _generate_expected_secret_arn(compact: str) -> str:
     return (
         f'arn:aws:secretsmanager:us-east-1:111122223333:secret:compact-connect/env'
-        f'/justin/compact/{compact}/credentials/payment-processor'
+        f'/justin/compact/{compact}/credentials/payment-processor*'
     )
 
 
@@ -145,7 +145,7 @@ class TestPurchasesApi(TestApi):
         )
 
         # now check the response matches expected contract
-        post_purchase_privilege_options_response_model = TestApi.get_resource_properties_by_logical_id(
+        post_purchase_privilege_options_response_model = self.get_resource_properties_by_logical_id(
             method_response_model_logical_id_capture.as_string(),
             api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
         )

@@ -155,7 +155,7 @@ class ApiModel:
         """Return the purchase privilege request model, which should only be created once per API
         create a schema that defines the following object example:
             {
-                "selectedJurisdictions": ["<jurisdiction postal code>"],
+                "selectedJurisdictions": ["<jurisdiction postal abbreviations>"],
                 "orderInformation": {
                 "card": {
                     "number": "<card number>",
@@ -184,10 +184,13 @@ class ApiModel:
                 properties={
                     'selectedJurisdictions': JsonSchema(
                         type=JsonSchemaType.ARRAY,
+                        # setting a max length to prevent abuse
+                        max_length=100,
                         items=JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            description='The postal codes of the jurisdictions to purchase',
-                        ),
+                                type=JsonSchemaType.STRING,
+                                description='Jurisdictions a provider has selected to purchase privileges in.',
+                                enum=self.api.node.get_context('jurisdictions'),
+                            ),
                     ),
                     'orderInformation': JsonSchema(
                         type=JsonSchemaType.OBJECT,
@@ -200,14 +203,20 @@ class ApiModel:
                                     'number': JsonSchema(
                                         type=JsonSchemaType.STRING,
                                         description='The card number',
+                                        max_length=19,
+                                        min_length=15,
                                     ),
                                     'expiration': JsonSchema(
                                         type=JsonSchemaType.STRING,
                                         description='The card expiration date',
+                                        max_length=7,
+                                        min_length=7,
                                     ),
                                     'cvv': JsonSchema(
                                         type=JsonSchemaType.STRING,
                                         description='The card cvv',
+                                        max_length=4,
+                                        min_length=3,
                                     ),
                                 },
                             ),
@@ -218,26 +227,39 @@ class ApiModel:
                                     'firstName': JsonSchema(
                                         type=JsonSchemaType.STRING,
                                         description='The first name on the card',
+                                        max_length=100,
+                                        min_length=1,
                                     ),
                                     'lastName': JsonSchema(
                                         type=JsonSchemaType.STRING,
                                         description='The last name on the card',
+                                        max_length=100,
+                                        min_length=1,
                                     ),
                                     'streetAddress': JsonSchema(
                                         type=JsonSchemaType.STRING,
                                         description='The street address for the card',
+                                        max_length=150,
+                                        # just make sure the value is not empty
+                                        min_length=2,
                                     ),
                                     'streetAddress2': JsonSchema(
                                         type=JsonSchemaType.STRING,
                                         description='The second street address for the card',
+                                        max_length=150,
                                     ),
                                     'state': JsonSchema(
                                         type=JsonSchemaType.STRING,
-                                        description='The state for the card',
+                                        description='The state postal abbreviation for the card',
+                                        max_length=2,
+                                        min_length=2,
                                     ),
                                     'zip': JsonSchema(
                                         type=JsonSchemaType.STRING,
                                         description='The zip code for the card',
+                                        # account for extended zip codes with possible dash
+                                        max_length=10,
+                                        min_length=5,
                                     ),
                                 },
                             ),

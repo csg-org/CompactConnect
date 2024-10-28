@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 
-from aws_cdk import Duration
+from aws_cdk import Duration, ArnFormat
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource
 from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import IKey
@@ -64,9 +64,14 @@ class Purchases:
         environment_name = stack.common_env_vars['ENVIRONMENT_NAME']
         compacts = json.loads(stack.common_env_vars['COMPACTS'])
         return [
-            (
-                f'arn:aws:secretsmanager:{stack.region}:{stack.account}:secret:compact-connect/env/{environment_name}'
-                f'/compact/{compact}/credentials/payment-processor'
+            stack.format_arn(
+                service='secretsmanager',
+                arn_format=ArnFormat.COLON_RESOURCE_NAME,
+                resource='secret',
+                resource_name=(
+                    # add wildcard to account for random version uuid suffix appended to secret name by secrets manager
+                    f'compact-connect/env/{environment_name}/compact/{compact}/credentials/payment-processor*'
+                ),
             )
             for compact in compacts
         ]
@@ -143,7 +148,7 @@ class Purchases:
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
-                    'and is scoped to two tables and encryption key.',
+                    'and is scoped to two tables, am encryption key, and some secrets in secrets manager.',
                 },
             ],
         )

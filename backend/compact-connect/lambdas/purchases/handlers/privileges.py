@@ -63,6 +63,24 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa
     return options_response
 
 
+
+def _find_best_license(all_licenses: list[dict]) -> dict | None:
+    if len(all_licenses) == 0:
+        return None
+
+    # Last issued active license, if there are any active licenses
+    latest_active_licenses = sorted(
+        [license_data for license_data in all_licenses if license_data['status'] == 'active'],
+        key=lambda x: x['dateOfIssuance'],
+        reverse=True,
+    )
+    if latest_active_licenses:
+        return latest_active_licenses[0]
+    # Last issued inactive license, otherwise
+    latest_licenses = sorted(all_licenses, key=lambda x: x['dateOfIssuance'], reverse=True)
+    return latest_licenses[0]
+
+
 @api_handler
 def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
@@ -95,16 +113,15 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     compact_name = _get_caller_compact_custom_attribute(event)
     body = json.loads(event['body'])
     selected_jurisdictions_postal_codes = [postal_code.lower() for postal_code in body['selectedJurisdictions']]
-    # confirm that the selected jurisdictions are valid
-    if any(postal_code not in config.jurisdictions for postal_code in selected_jurisdictions_postal_codes):
-        raise CCInvalidRequestException('Invalid jurisdiction postal code')
 
     # load the compact information
     privilege_purchase_options = config.data_client.get_privilege_purchase_options(compact=compact_name)
 
     compact_configuration = [item for item in privilege_purchase_options['items'] if item['type'] == COMPACT_TYPE]
     if not compact_configuration:
-        raise CCInvalidRequestException(f"Compact configuration not found for this caller's compact: {compact_name}")
+        message = f'Compact configuration not found for this caller\'s compact: {compact_name}'
+        logger.error(message)
+        raise CCInternalException(message)
     compact = Compact(compact_configuration[0])
 
     # load the jurisdiction information into a list of Jurisdiction objects
@@ -120,7 +137,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         logger.error(
             'Jurisdiction configuration missing. Requested jurisdiction not found.',
             existing_jurisdiction_configuration=[
-                selected_jurisdiction.postalAbbreviation for selected_jurisdiction in selected_jurisdictions
+                selected_jurisdiction.postal_abbreviation for selected_jurisdiction in selected_jurisdictions
             ],
             selected_jurisdictions_postal_codes=selected_jurisdictions_postal_codes,
         )
@@ -130,7 +147,8 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     provider_id = _get_caller_provider_id_custom_attribute(event)
     user_provider_data = config.data_client.get_provider(compact=compact_name, provider_id=provider_id)
     provider_record = next((record for record in user_provider_data['items'] if record['type'] == 'provider'), None)
-    license_record = next((record for record in user_provider_data['items'] if record['type'] == 'license'), None)
+    license_record = _find_best_license([record for record in
+                                         user_provider_data['items'] if record['type'] == 'license'])
     # this should never happen, but we check just in case
     if provider_record is None:
         raise CCNotFoundException('Provider not found')
@@ -154,7 +172,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         config.data_client.create_provider_privileges(
             compact_name=compact_name,
             provider_id=provider_id,
-            jurisdiction_postal_codes=selected_jurisdictions_postal_codes,
+            jurisdiction_postal_abbreviations=selected_jurisdictions_postal_codes,
             license_expiration_date=license_expiration_date,
             compact_transaction_id=transaction_response['transactionId'],
         )

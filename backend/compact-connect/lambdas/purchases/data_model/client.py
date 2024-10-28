@@ -76,7 +76,7 @@ class DataClient:
         self,
         compact_name: str,
         provider_id: str,
-        jurisdiction_postal_codes: list[str],
+        jurisdiction_postal_abbreviations: list[str],
         license_expiration_date: date,
         compact_transaction_id: str,
     ):
@@ -89,21 +89,21 @@ class DataClient:
 
         :param compact_name: The compact name
         :param provider_id: The provider id
-        :param jurisdiction_postal_codes: The list of jurisdiction postal codes
+        :param jurisdiction_postal_abbreviations: The list of jurisdiction postal codes
         :param license_expiration_date: The license expiration date
         :param compact_transaction_id: The compact transaction id
         """
         logger.info(
             'Creating provider privileges',
             provider_id=provider_id,
-            privlige_jurisdictions=jurisdiction_postal_codes,
+            privlige_jurisdictions=jurisdiction_postal_abbreviations,
             compact_transaction_id=compact_transaction_id,
         )
 
         try:
             # the batch writer handles retries and sending the requests in batches
             with self.config.provider_table.batch_writer() as batch:
-                for postal_code in jurisdiction_postal_codes:
+                for postal_code in jurisdiction_postal_abbreviations:
                     privilege_record = self._generate_privilege_record(
                         compact_name, provider_id, postal_code, license_expiration_date, compact_transaction_id
                     )
@@ -113,7 +113,7 @@ class DataClient:
             logger.info(message, error=str(e))
             # we must rollback and delete the records that were created
             with self.config.provider_table.batch_writer() as delete_batch:
-                for postal_code in jurisdiction_postal_codes:
+                for postal_code in jurisdiction_postal_abbreviations:
                     privilege_record = self._generate_privilege_record(
                         compact_name, provider_id, postal_code, license_expiration_date, compact_transaction_id
                     )
