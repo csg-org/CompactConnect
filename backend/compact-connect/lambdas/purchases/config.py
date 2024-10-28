@@ -30,7 +30,7 @@ class _Config:
 
     @cached_property
     def secrets_manager_client(self):
-        return boto3.resource('secretsmanager')
+        return boto3.client('secretsmanager')
 
     @cached_property
     def purchase_utils(self):
