@@ -1,5 +1,6 @@
 # ruff: noqa: ARG001 unused-argument
 import json
+from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 from exceptions import CCFailedTransactionException, CCInternalException
@@ -56,7 +57,8 @@ def _generate_aslp_compact_configuration():
     with open('tests/resources/dynamo/compact.json') as f:
         # setting fixed fee amount for tests
         compact = json.load(f)
-        compact['compactCommissionFee']['feeAmount'] = 50.50
+        # DynamoDB loads this as a Decimal
+        compact['compactCommissionFee']['feeAmount'] = Decimal(50.50)
 
         return Compact(compact)
 
@@ -66,9 +68,9 @@ def _generate_selected_jurisdictions():
 
     with open('tests/resources/dynamo/jurisdiction.json') as f:
         jurisdiction = json.load(f)
-        jurisdiction['jurisdictionFee'] = 100.00
+        jurisdiction['jurisdictionFee'] = Decimal(100.00)
         # set military discount to fixed amount for tests
-        jurisdiction['militaryDiscount']['discountAmount'] = 25.00
+        jurisdiction['militaryDiscount']['discountAmount'] = Decimal(25.00)
         jurisdiction['militaryDiscount']['active'] = True
         jurisdiction['militaryDiscount']['discountType'] = 'FLAT_RATE'
 

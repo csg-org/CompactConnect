@@ -94,8 +94,8 @@ class JurisdictionMilitaryDiscount(UserDict):
         return JurisdictionMilitaryDiscountType.from_str(self['discountType'])
 
     @property
-    def discount_amount(self) -> Decimal:
-        return self['discountAmount']
+    def discount_amount(self) -> float:
+        return float(self['discountAmount'])
 
 
 class JurisdictionJurisprudenceRequirements(UserDict):
@@ -128,8 +128,8 @@ class Jurisdiction(UserDict):
         return self['compact']
 
     @property
-    def jurisdiction_fee(self) -> int:
-        return self['jurisdictionFee']
+    def jurisdiction_fee(self) -> float:
+        return float(self['jurisdictionFee'])
 
     @property
     def military_discount(self) -> JurisdictionMilitaryDiscount | None:

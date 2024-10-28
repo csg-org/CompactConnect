@@ -72,8 +72,8 @@ class CompactCommissionFee(UserDict):
         return CompactFeeType.from_str(self['feeType'])
 
     @property
-    def fee_amount(self) -> Decimal:
-        return self['feeAmount']
+    def fee_amount(self) -> float:
+        return float(self['feeAmount'])
 
 
 class Compact(UserDict):
