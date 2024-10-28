@@ -80,7 +80,7 @@ class TestPurchaseClient(TstLambdas):
 
     def _generate_mock_secrets_manager_client(self):
         def get_secret_value_side_effect(SecretId):  # noqa: N803 invalid-name
-            if SecretId == '/compact-connect/env/test/compact/aslp/credentials/payment-processor':
+            if SecretId == 'compact-connect/env/test/compact/aslp/credentials/payment-processor':
                 return {'SecretString': json.dumps(MOCK_ASLP_SECRET)}
             raise ValueError(f'Unknown SecretId: {SecretId}')
 

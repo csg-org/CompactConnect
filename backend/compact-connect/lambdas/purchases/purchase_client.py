@@ -379,7 +379,7 @@ class PurchaseClient:
         Get the payment processor credentials for a compact
         """
         secret_name = (
-            f'/compact-connect/env/{config.environment_name}' f'/compact/{compact_name}/credentials/payment-processor'
+            f'compact-connect/env/{config.environment_name}' f'/compact/{compact_name}/credentials/payment-processor'
         )
         secret = self.secrets_manager_client.get_secret_value(SecretId=secret_name)
 
