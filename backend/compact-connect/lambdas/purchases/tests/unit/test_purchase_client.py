@@ -327,11 +327,8 @@ class TestPurchaseClient(TstLambdas):
                 user_active_military=False,
             )
 
-
     @patch('purchase_client.createTransactionController')
-    def test_purchase_client_voids_transaction_using_authorize_net_processor(
-        self, mock_create_transaction_controller
-    ):
+    def test_purchase_client_voids_transaction_using_authorize_net_processor(self, mock_create_transaction_controller):
         from purchase_client import PurchaseClient
 
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
@@ -346,8 +343,7 @@ class TestPurchaseClient(TstLambdas):
             order_information={'transactionId': MOCK_TRANSACTION_ID},
         )
 
-        self.assertEqual({'message': 'Successfully voided transaction', 'transactionId': MOCK_TRANSACTION_ID},
-                         result)
+        self.assertEqual({'message': 'Successfully voided transaction', 'transactionId': MOCK_TRANSACTION_ID}, result)
 
         call_args = mock_create_transaction_controller.call_args.args
         api_contract_v1_obj = call_args[0]
@@ -360,8 +356,9 @@ class TestPurchaseClient(TstLambdas):
         self.assertEqual(MOCK_TRANSACTION_ID, api_contract_v1_obj.transactionRequest.refTransId)
 
     @patch('purchase_client.createTransactionController')
-    def test_purchase_client_raises_internal_exception_when_void_transction_api_fails(self,
-                                                                                    mock_create_transaction_controller):
+    def test_purchase_client_raises_internal_exception_when_void_transction_api_fails(
+        self, mock_create_transaction_controller
+    ):
         from purchase_client import PurchaseClient
 
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
@@ -373,9 +370,9 @@ class TestPurchaseClient(TstLambdas):
 
         with self.assertRaises(CCInternalException):
             test_purchase_client.void_privilege_purchase_transaction(
-            compact_name='aslp',
-            order_information={'transactionId': MOCK_TRANSACTION_ID},
-        )
+                compact_name='aslp',
+                order_information={'transactionId': MOCK_TRANSACTION_ID},
+            )
 
     @patch('purchase_client.createTransactionController')
     def test_purchase_client_raises_failed_transaction_exception_when_void_transaction_fails(
@@ -392,6 +389,6 @@ class TestPurchaseClient(TstLambdas):
 
         with self.assertRaises(CCFailedTransactionException):
             test_purchase_client.void_privilege_purchase_transaction(
-            compact_name='aslp',
-            order_information={'transactionId': MOCK_TRANSACTION_ID},
-        )
+                compact_name='aslp',
+                order_information={'transactionId': MOCK_TRANSACTION_ID},
+            )

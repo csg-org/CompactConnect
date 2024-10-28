@@ -3,7 +3,7 @@ from datetime import UTC, date, datetime
 from unittest.mock import MagicMock, patch
 
 from config import config
-from exceptions import CCFailedTransactionException, CCAwsServiceException, CCInternalException
+from exceptions import CCAwsServiceException, CCFailedTransactionException, CCInternalException
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -214,7 +214,6 @@ class TestPostPurchasePrivileges(TstFunction):
         # make sure we are tracking the transaction id
         self.assertEqual(MOCK_TRANSACTION_ID, privilege_record['compactTransactionId'])
 
-
     @patch('handlers.privileges.PurchaseClient')
     @patch('handlers.privileges.config.data_client')
     def test_post_purchase_privileges_voids_transaction_if_aws_error_occurs(
@@ -222,8 +221,9 @@ class TestPostPurchasePrivileges(TstFunction):
     ):
         from handlers.privileges import post_purchase_privileges
 
-        mock_purchase_client = (
-            self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor))
+        mock_purchase_client = self._when_purchase_client_successfully_processes_request(
+            mock_purchase_client_constructor
+        )
         # set the first two api calls to call the actual implementation
         mock_data_client.get_privilege_purchase_options = config.data_client.get_privilege_purchase_options
         mock_data_client.get_provider = config.data_client.get_provider
