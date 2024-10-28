@@ -6,8 +6,8 @@ from marshmallow import Schema, pre_dump
 from marshmallow.fields import Decimal, List, Nested, String
 from marshmallow.validate import Length, OneOf
 
-from data_model.schema.common import CCEnum
 from data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
+from data_model.schema.common import CCEnum
 
 COMPACT_TYPE = 'compact'
 
