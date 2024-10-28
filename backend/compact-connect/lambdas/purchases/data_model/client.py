@@ -56,14 +56,14 @@ class DataClient:
         self,
         compact_name: str,
         provider_id: str,
-        jurisdiction_postal_code: str,
+        jurisdiction_postal_abbreviation: str,
         license_expiration_date: date,
         compact_transaction_id: str,
     ):
         privilege_object = {
             'providerId': provider_id,
             'compact': compact_name,
-            'jurisdiction': jurisdiction_postal_code.lower(),
+            'jurisdiction': jurisdiction_postal_abbreviation.lower(),
             'status': 'active',
             'dateOfIssuance': datetime.now(tz=UTC).date(),
             'dateOfExpiration': license_expiration_date,
@@ -103,9 +103,9 @@ class DataClient:
         try:
             # the batch writer handles retries and sending the requests in batches
             with self.config.provider_table.batch_writer() as batch:
-                for postal_code in jurisdiction_postal_abbreviations:
+                for postal_abbreviation in jurisdiction_postal_abbreviations:
                     privilege_record = self._generate_privilege_record(
-                        compact_name, provider_id, postal_code, license_expiration_date, compact_transaction_id
+                        compact_name, provider_id, postal_abbreviation, license_expiration_date, compact_transaction_id
                     )
                     batch.put_item(Item=privilege_record)
         except ClientError as e:
@@ -113,9 +113,9 @@ class DataClient:
             logger.info(message, error=str(e))
             # we must rollback and delete the records that were created
             with self.config.provider_table.batch_writer() as delete_batch:
-                for postal_code in jurisdiction_postal_abbreviations:
+                for postal_abbreviation in jurisdiction_postal_abbreviations:
                     privilege_record = self._generate_privilege_record(
-                        compact_name, provider_id, postal_code, license_expiration_date, compact_transaction_id
+                        compact_name, provider_id, postal_abbreviation, license_expiration_date, compact_transaction_id
                     )
                     # this transaction is idempotent, so we can safely delete the records even if they weren't created
                     delete_batch.delete_item(Key={'pk': privilege_record['pk'], 'sk': privilege_record['sk']})

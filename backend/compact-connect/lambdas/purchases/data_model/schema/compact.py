@@ -15,10 +15,6 @@ COMPACT_TYPE = 'compact'
 class CompactFeeType(CCEnum):
     FLAT_RATE = 'FLAT_RATE'
 
-    @staticmethod
-    def from_str(label: str) -> 'CompactFeeType':
-        return CompactFeeType[label]
-
 
 class CompactCommissionFeeSchema(Schema):
     feeType = String(required=True, allow_none=False, validate=OneOf([e.value for e in CompactFeeType]))

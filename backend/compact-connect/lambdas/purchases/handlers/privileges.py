@@ -111,7 +111,8 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     """
     compact_name = _get_caller_compact_custom_attribute(event)
     body = json.loads(event['body'])
-    selected_jurisdictions_postal_codes = [postal_code.lower() for postal_code in body['selectedJurisdictions']]
+    selected_jurisdictions_postal_abbreviations = [postal_abbreviation.lower()
+                                                   for postal_abbreviation in body['selectedJurisdictions']]
 
     # load the compact information
     privilege_purchase_options = config.data_client.get_privilege_purchase_options(compact=compact_name)
@@ -128,17 +129,17 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         Jurisdiction(item)
         for item in privilege_purchase_options['items']
         if item['type'] == JURISDICTION_TYPE
-        and item['postalAbbreviation'].lower() in selected_jurisdictions_postal_codes
+        and item['postalAbbreviation'].lower() in selected_jurisdictions_postal_abbreviations
     ]
     # assert the selected jurisdictions map to the expected number of jurisdictions
-    if len(selected_jurisdictions) != len(selected_jurisdictions_postal_codes):
+    if len(selected_jurisdictions) != len(selected_jurisdictions_postal_abbreviations):
         # this could only happen if the jurisdiction configuration was not uploaded or was deleted somehow
         logger.error(
             'Jurisdiction configuration missing. Requested jurisdiction not found.',
             existing_jurisdiction_configuration=[
                 selected_jurisdiction.postal_abbreviation for selected_jurisdiction in selected_jurisdictions
             ],
-            selected_jurisdictions_postal_codes=selected_jurisdictions_postal_codes,
+            selected_jurisdictions_postal_abbreviations=selected_jurisdictions_postal_abbreviations,
         )
         raise CCInvalidRequestException('Invalid jurisdiction postal code')
 
@@ -172,7 +173,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         config.data_client.create_provider_privileges(
             compact_name=compact_name,
             provider_id=provider_id,
-            jurisdiction_postal_abbreviations=selected_jurisdictions_postal_codes,
+            jurisdiction_postal_abbreviations=selected_jurisdictions_postal_abbreviations,
             license_expiration_date=license_expiration_date,
             compact_transaction_id=transaction_response['transactionId'],
         )

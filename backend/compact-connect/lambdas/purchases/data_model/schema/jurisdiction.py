@@ -15,10 +15,6 @@ JURISDICTION_TYPE = 'jurisdiction'
 class JurisdictionMilitaryDiscountType(CCEnum):
     FLAT_RATE = 'FLAT_RATE'
 
-    @staticmethod
-    def from_str(label: str) -> 'JurisdictionMilitaryDiscountType':
-        return JurisdictionMilitaryDiscountType[label]
-
 
 class JurisdictionMilitaryDiscountSchema(Schema):
     active = Boolean(required=True, allow_none=False)

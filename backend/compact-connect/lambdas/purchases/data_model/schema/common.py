@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from enum import Enum
 
 
@@ -10,7 +9,6 @@ class CCEnum(Enum):
     This pattern gives us flexibility to add additional mapping logic in the future if needed.
     """
 
-    @staticmethod
-    @abstractmethod
-    def from_str(label: str) -> 'CCEnum':
-        pass
+    @classmethod
+    def from_str(cls, label: str) -> 'CCEnum':
+        return cls[label]
