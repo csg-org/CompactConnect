@@ -436,7 +436,7 @@ describe('User Store Actions', async () => {
         expect(dispatch.calledOnce).to.equal(true);
         expect([dispatch.firstCall.args[0]]).to.matchPattern(['setCurrentCompact']);
     });
-    it('should successfully start login failure', () => {
+    it('should successfully start start get privilege purchase information failure', () => {
         const commit = sinon.spy();
         const error = new Error();
 
@@ -446,5 +446,30 @@ describe('User Store Actions', async () => {
         expect(commit.firstCall.args).to.matchPattern(
             [MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE, error]
         );
+    });
+    it('should successfully get privilege purchase information request', () => {
+        const state = {};
+
+        mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST](state);
+
+        expect(state.isLoading).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully get privilege purchase information failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE](state, error);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully get privilege purchase information success', () => {
+        const state = {};
+
+        mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
     });
 });
