@@ -2,7 +2,8 @@ import json
 from datetime import UTC, date, datetime
 from unittest.mock import MagicMock, patch
 
-from exceptions import CCFailedTransactionException
+from config import config
+from exceptions import CCFailedTransactionException, CCAwsServiceException, CCInternalException
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -212,3 +213,30 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual('privilege', privilege_record['type'])
         # make sure we are tracking the transaction id
         self.assertEqual(MOCK_TRANSACTION_ID, privilege_record['compactTransactionId'])
+
+
+    @patch('handlers.privileges.PurchaseClient')
+    @patch('handlers.privileges.config.data_client')
+    def test_post_purchase_privileges_voids_transaction_if_aws_error_occurs(
+        self, mock_data_client, mock_purchase_client_constructor
+    ):
+        from handlers.privileges import post_purchase_privileges
+
+        mock_purchase_client = (
+            self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor))
+        # set the first two api calls to call the actual implementation
+        mock_data_client.get_privilege_purchase_options = config.data_client.get_privilege_purchase_options
+        mock_data_client.get_provider = config.data_client.get_provider
+        # raise an exception when creating the privilege record
+        mock_data_client.create_provider_privileges.side_effect = CCAwsServiceException('dynamo down')
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body()
+
+        with self.assertRaises(CCInternalException):
+            post_purchase_privileges(event, self.mock_context)
+
+        # verify that the transaction was voided
+        mock_purchase_client.void_privilege_purchase_transaction.assert_called_once_with(
+            compact_name=TEST_COMPACT, order_information={'transactionId': MOCK_TRANSACTION_ID}
+        )

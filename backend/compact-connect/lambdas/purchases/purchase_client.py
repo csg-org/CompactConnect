@@ -149,7 +149,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                     }
                 error_code = response.transactionResponse.errors.error[0].errorCode
                 error_message = response.transactionResponse.errors.error[0].errorText
-                # logging this as a error, since we control the transaction id that is passed in, so this should
+                # logging this as an error, since we control the transaction id that is passed in, so this should
                 # raise an alert if it occurs.
                 logger.error(
                     'Failed to void transaction.',

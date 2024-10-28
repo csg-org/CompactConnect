@@ -326,3 +326,72 @@ class TestPurchaseClient(TstLambdas):
                 selected_jurisdictions=_generate_selected_jurisdictions(),
                 user_active_military=False,
             )
+
+
+    @patch('purchase_client.createTransactionController')
+    def test_purchase_client_voids_transaction_using_authorize_net_processor(
+        self, mock_create_transaction_controller
+    ):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_transaction_is_successful(
+            mock_create_transaction_controller=mock_create_transaction_controller
+        )
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        result = test_purchase_client.void_privilege_purchase_transaction(
+            compact_name='aslp',
+            order_information={'transactionId': MOCK_TRANSACTION_ID},
+        )
+
+        self.assertEqual({'message': 'Successfully voided transaction', 'transactionId': MOCK_TRANSACTION_ID},
+                         result)
+
+        call_args = mock_create_transaction_controller.call_args.args
+        api_contract_v1_obj = call_args[0]
+        # we check every line of the object to ensure that the correct values are being passed to the authorize.net SDK
+        self.assertEqual('voidTransaction', api_contract_v1_obj.transactionRequest.transactionType)
+        # authentication fields
+        self.assertEqual(MOCK_LOGIN_ID, api_contract_v1_obj.merchantAuthentication.name)
+        self.assertEqual(MOCK_TRANSACTION_KEY, api_contract_v1_obj.merchantAuthentication.transactionKey)
+        # transaction billing fields
+        self.assertEqual(MOCK_TRANSACTION_ID, api_contract_v1_obj.transactionRequest.refTransId)
+
+    @patch('purchase_client.createTransactionController')
+    def test_purchase_client_raises_internal_exception_when_void_transction_api_fails(self,
+                                                                                    mock_create_transaction_controller):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_api_call_fails(
+            mock_create_transaction_controller=mock_create_transaction_controller
+        )
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        with self.assertRaises(CCInternalException):
+            test_purchase_client.void_privilege_purchase_transaction(
+            compact_name='aslp',
+            order_information={'transactionId': MOCK_TRANSACTION_ID},
+        )
+
+    @patch('purchase_client.createTransactionController')
+    def test_purchase_client_raises_failed_transaction_exception_when_void_transaction_fails(
+        self, mock_create_transaction_controller
+    ):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_transaction_fails(
+            mock_create_transaction_controller=mock_create_transaction_controller
+        )
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        with self.assertRaises(CCFailedTransactionException):
+            test_purchase_client.void_privilege_purchase_transaction(
+            compact_name='aslp',
+            order_information={'transactionId': MOCK_TRANSACTION_ID},
+        )
