@@ -367,7 +367,23 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     checkState(stateFormInput) {
-        stateFormInput.value = !stateFormInput.value;
+        const newValue = !stateFormInput.value;
+        const stateAbbrev = stateFormInput.id;
+
+        stateFormInput.value = newValue;
+
+        if (newValue === true) {
+            if (stateAbbrev && this.selectedStatesWithJurisprudenceRequired.includes(stateAbbrev)) {
+                this.formData.jurisprudenceConfirmations[stateAbbrev] = new FormInput({
+                    id: `${stateAbbrev}-jurisprudence`,
+                    name: `${stateAbbrev}-jurisprudence`,
+                    label: this.jurisprudenceExplanationText,
+                    value: false
+                });
+            }
+        } else {
+            delete this.formData.jurisprudenceConfirmations[stateAbbrev];
+        }
     }
 
     checkIfStateSelectIsDisabled(state): boolean {
