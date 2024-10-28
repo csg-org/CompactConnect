@@ -4,3 +4,168 @@
 //
 //  Created by InspiringApps on 10/28/2024.
 //
+.finalize-privilege-purchase-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+
+    .complete-purchase-form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        max-width: 72rem;
+
+        @media @desktopWidth {
+            max-width: unset;
+        }
+
+        .button-row {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-end;
+            justify-content: space-between;
+            width: 100%;
+
+            .right-cell {
+                display: flex;
+                flex-direction: row;
+                align-items: flex-end;
+                justify-content: space-between;
+
+                .back-button {
+                    margin-right: 1rem;
+                }
+            }
+        }
+
+        .select-privileges-core-container {
+            margin-top: -1rem;
+            padding: 2rem;
+            border-radius: 20px;
+            background-color: white;
+
+            @media @tabletWidth {
+                width: 72rem;
+            }
+
+            @media @desktopWidth {
+                width: unset;
+                min-width: 72rem;
+                margin-top: 8rem;
+            }
+
+            .finalize-purchase-title {
+                margin: 0 1rem 2rem 1rem;
+                font-size: @fontSizeLarger;
+            }
+
+            .lists-container {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+
+                @media @tabletWidth {
+                    flex-direction: row;
+                    align-items: flex-start;
+                    justify-content: space-between;
+                }
+
+                .state-select-list {
+                    display: flex;
+                    flex-flow: column wrap;
+
+                    @media @desktopWidth {
+                        max-height: 65vh;
+                    }
+
+                    .state-select-unit {
+                        width: 27rem;
+                        margin: 1rem;
+                        padding: 0 1rem;
+                        border: 1px solid @lightGrey;
+                        border-radius: 10px;
+                        cursor: pointer;
+
+                        :deep(.checkbox-container) {
+                            label {
+                                padding: 0 5rem 0 0.4rem;
+                                font-weight: @fontWeight;
+                            }
+                        }
+
+                        .disabled-state-overlay {
+                            position: absolute;
+                            z-index: 2;
+                            width: 100%;
+                            height: 100%;
+                            margin: 0 -1rem;
+                            border-radius: 10px;
+                            background-color: @lightGrey;
+                            opacity: 0.5;
+                        }
+                    }
+                }
+
+                .selected-state-list {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+
+                    .selected-state-block {
+                        width: 27rem;
+                        margin: 1rem 0;
+                        padding: 1rem 1.6rem;
+                        border-radius: 20px;
+                        color: white;
+                        background-color: @primaryColor;
+
+                        @media @desktopWidth {
+                            margin: 1rem 1rem;
+                        }
+
+                        .info-row {
+                            display: flex;
+                            flex-direction: row;
+                            justify-content: space-between;
+                            margin: 1rem 0;
+
+                            :deep(.input-button-container) {
+                                &.input-container {
+                                    margin: 0;
+
+                                    input {
+                                        width: 4rem;
+                                        height: 4rem;
+                                        margin: 0 -1.2rem 0 0;
+                                        padding: 0;
+                                        color: white;
+                                    }
+                                }
+                            }
+
+                            &.sub-row {
+                                color: rgba(255, 255, 255, 0.5);
+                            }
+
+                            .state-title {
+                                font-size: @fontSizeLarger;
+                            }
+                        }
+
+                        .jurisprudence-check-box {
+                            :deep(.checkbox-container) {
+                                label {
+                                    margin-left: 1rem;
+                                    color: white;
+                                    font-weight: @fontWeight;
+                                    font-size: 1.5rem;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

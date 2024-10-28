@@ -30,8 +30,8 @@
                     />
                 </div>
             </div>
-            <div class="select-privileges-core-container">
-                <div class="select-privileges-title">
+            <div class="finalize-purchase-core-container">
+                <div class="finalize-purchase-title">
                     {{selectPrivilegesTitleText}}
                 </div>
                 <div class="lists-container">
