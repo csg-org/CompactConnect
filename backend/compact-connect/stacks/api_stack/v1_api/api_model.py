@@ -187,10 +187,10 @@ class ApiModel:
                         # setting a max length to prevent abuse
                         max_length=100,
                         items=JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                description='Jurisdictions a provider has selected to purchase privileges in.',
-                                enum=self.api.node.get_context('jurisdictions'),
-                            ),
+                            type=JsonSchemaType.STRING,
+                            description='Jurisdictions a provider has selected to purchase privileges in.',
+                            enum=self.api.node.get_context('jurisdictions'),
+                        ),
                     ),
                     'orderInformation': JsonSchema(
                         type=JsonSchemaType.OBJECT,

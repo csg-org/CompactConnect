@@ -79,6 +79,7 @@ class CompactCommissionFee(UserDict):
     def fee_amount(self) -> Decimal:
         return self['feeAmount']
 
+
 class Compact(UserDict):
     """
     Compact configuration data model. Used to access variables without needing to know the underlying key structure.

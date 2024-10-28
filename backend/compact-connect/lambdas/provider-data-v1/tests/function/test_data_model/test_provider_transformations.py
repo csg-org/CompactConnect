@@ -115,7 +115,6 @@ class TestTransformations(TstFunction):
         del expected_privilege['compactTransactionId']
         del records['privilege']['dateOfIssuance']
 
-
         # Make sure each is represented the way we expect, in the db
         self.assertEqual(expected_provider, records['provider'])
         self.assertEqual(expected_license, records['license'])

@@ -63,7 +63,6 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa
     return options_response
 
 
-
 def _find_best_license(all_licenses: list[dict]) -> dict | None:
     if len(all_licenses) == 0:
         return None
@@ -119,7 +118,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
     compact_configuration = [item for item in privilege_purchase_options['items'] if item['type'] == COMPACT_TYPE]
     if not compact_configuration:
-        message = f'Compact configuration not found for this caller\'s compact: {compact_name}'
+        message = f"Compact configuration not found for this caller's compact: {compact_name}"
         logger.error(message)
         raise CCInternalException(message)
     compact = Compact(compact_configuration[0])
@@ -147,8 +146,9 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     provider_id = _get_caller_provider_id_custom_attribute(event)
     user_provider_data = config.data_client.get_provider(compact=compact_name, provider_id=provider_id)
     provider_record = next((record for record in user_provider_data['items'] if record['type'] == 'provider'), None)
-    license_record = _find_best_license([record for record in
-                                         user_provider_data['items'] if record['type'] == 'license'])
+    license_record = _find_best_license(
+        [record for record in user_provider_data['items'] if record['type'] == 'license']
+    )
     # this should never happen, but we check just in case
     if provider_record is None:
         raise CCNotFoundException('Provider not found')

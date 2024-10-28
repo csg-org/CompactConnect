@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 
-from aws_cdk import Duration, ArnFormat
+from aws_cdk import ArnFormat, Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource
 from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import IKey

@@ -156,5 +156,3 @@ class Jurisdiction(UserDict):
     @property
     def jurisdiction_summary_report_notification_emails(self) -> list[str] | None:
         return self.get('jurisdictionSummaryReportNotificationEmails')
-
-

@@ -20,8 +20,9 @@ def _calculate_jurisdiction_fee(jurisdiction: Jurisdiction, user_active_military
         if jurisdiction.military_discount.discount_type == JurisdictionMilitaryDiscountType.FLAT_RATE:
             total_jurisdiction_fee = jurisdiction.jurisdiction_fee - jurisdiction.military_discount.discount_amount
         else:
-            raise ValueError('Unsupported military discount type: '
-                             f'{jurisdiction.military_discount.discount_type.value}')
+            raise ValueError(
+                'Unsupported military discount type: ' f'{jurisdiction.military_discount.discount_type.value}'
+            )
     else:
         total_jurisdiction_fee = jurisdiction.jurisdiction_fee
 
