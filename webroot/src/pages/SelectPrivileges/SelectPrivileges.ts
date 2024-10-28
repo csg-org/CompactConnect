@@ -297,24 +297,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         }
     }
 
-    handleStateClicked(state) {
-        const newValue = state.value;
-        const stateAbbrev = state.id;
-
-        if (newValue === true) {
-            if (stateAbbrev && this.selectedStatesWithJurisprudenceRequired.includes(stateAbbrev)) {
-                this.formData.jurisprudenceConfirmations[stateAbbrev] = new FormInput({
-                    id: `${stateAbbrev}-jurisprudence`,
-                    name: `${stateAbbrev}-jurisprudence`,
-                    label: this.jurisprudenceExplanationText,
-                    value: false
-                });
-            }
-        } else {
-            delete this.formData.jurisprudenceConfirmations[stateAbbrev];
-        }
-    }
-
     handleJurisprudenceClicked(privilegePurchaseInformation) {
         const stateAbbrev = privilegePurchaseInformation.jurisdiction.abbrev;
         const newValue = this.formData.jurisprudenceConfirmations[stateAbbrev].value;
