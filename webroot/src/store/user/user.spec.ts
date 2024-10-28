@@ -26,7 +26,7 @@ describe('Use Store Mutations', () => {
 
         mutations[MutationTypes.LOGIN_REQUEST](state);
 
-        expect(state.isLoading).to.equal(true);
+        expect(state.isLoadingAccount).to.equal(true);
         expect(state.error).to.equal(null);
     });
     it('should successfully get login failure', () => {
@@ -35,7 +35,7 @@ describe('Use Store Mutations', () => {
 
         mutations[MutationTypes.LOGIN_FAILURE](state, error);
 
-        expect(state.isLoading).to.equal(false);
+        expect(state.isLoadingAccount).to.equal(false);
         expect(state.error).to.equal(error);
     });
     it('should successfully get login success', () => {
@@ -43,7 +43,7 @@ describe('Use Store Mutations', () => {
 
         mutations[MutationTypes.LOGIN_SUCCESS](state);
 
-        expect(state.isLoading).to.equal(false);
+        expect(state.isLoadingAccount).to.equal(false);
         expect(state.isLoggedIn).to.equal(true);
         expect(state.error).to.equal(null);
     });
@@ -59,7 +59,7 @@ describe('Use Store Mutations', () => {
 
         mutations[MutationTypes.LOGOUT_REQUEST](state);
 
-        expect(state.isLoading).to.equal(true);
+        expect(state.isLoadingAccount).to.equal(true);
     });
     it('should successfully get logout failure', () => {
         const state = {};
@@ -67,7 +67,7 @@ describe('Use Store Mutations', () => {
 
         mutations[MutationTypes.LOGOUT_FAILURE](state, error);
 
-        expect(state.isLoading).to.equal(false);
+        expect(state.isLoadingAccount).to.equal(false);
         expect(state.error).to.equal(error);
     });
     it('should successfully get logout success', () => {
@@ -76,7 +76,7 @@ describe('Use Store Mutations', () => {
         mutations[MutationTypes.LOGOUT_SUCCESS](state);
 
         expect(state.model).to.equal(null);
-        expect(state.isLoading).to.equal(false);
+        expect(state.isLoadingAccount).to.equal(false);
         expect(state.isLoggedIn).to.equal(false);
         expect(state.error).to.equal(null);
     });
@@ -85,7 +85,7 @@ describe('Use Store Mutations', () => {
 
         mutations[MutationTypes.GET_ACCOUNT_REQUEST](state);
 
-        expect(state.isLoading).to.equal(true);
+        expect(state.isLoadingAccount).to.equal(true);
         expect(state.error).to.equal(null);
     });
     it('should successfully get account failure', () => {
@@ -94,7 +94,7 @@ describe('Use Store Mutations', () => {
 
         mutations[MutationTypes.GET_ACCOUNT_FAILURE](state, error);
 
-        expect(state.isLoading).to.equal(false);
+        expect(state.isLoadingAccount).to.equal(false);
         expect(state.error).to.equal(error);
     });
     it('should successfully get account success', () => {
@@ -102,7 +102,7 @@ describe('Use Store Mutations', () => {
 
         mutations[MutationTypes.GET_ACCOUNT_SUCCESS](state);
 
-        expect(state.isLoading).to.equal(false);
+        expect(state.isLoadingAccount).to.equal(false);
         expect(state.error).to.equal(null);
     });
     it('should successfully update user', () => {
@@ -119,7 +119,7 @@ describe('Use Store Mutations', () => {
         mutations[MutationTypes.STORE_RESET_USER](state);
 
         expect(state.model).to.equal(null);
-        expect(state.isLoading).to.equal(false);
+        expect(state.isLoadingAccount).to.equal(false);
         expect(state.error).to.equal(null);
     });
     it('should successfully update account request', () => {
@@ -127,7 +127,7 @@ describe('Use Store Mutations', () => {
 
         mutations[MutationTypes.UPDATE_ACCOUNT_REQUEST](state);
 
-        expect(state.isLoading).to.equal(true);
+        expect(state.isLoadingAccount).to.equal(true);
         expect(state.error).to.equal(null);
     });
     it('should successfully update account failure', () => {
@@ -136,7 +136,7 @@ describe('Use Store Mutations', () => {
 
         mutations[MutationTypes.UPDATE_ACCOUNT_FAILURE](state, error);
 
-        expect(state.isLoading).to.equal(false);
+        expect(state.isLoadingAccount).to.equal(false);
         expect(state.error).to.equal(error);
     });
     it('should successfully update account success', () => {
@@ -144,7 +144,7 @@ describe('Use Store Mutations', () => {
 
         mutations[MutationTypes.UPDATE_ACCOUNT_SUCCESS](state);
 
-        expect(state.isLoading).to.equal(false);
+        expect(state.isLoadingAccount).to.equal(false);
         expect(state.error).to.equal(null);
     });
     it('should successfully set refresh token timeout id', () => {
@@ -452,7 +452,7 @@ describe('User Store Actions', async () => {
 
         mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST](state);
 
-        expect(state.isLoading).to.equal(true);
+        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(true);
         expect(state.error).to.equal(null);
     });
     it('should successfully get privilege purchase information failure', () => {
@@ -461,7 +461,7 @@ describe('User Store Actions', async () => {
 
         mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE](state, error);
 
-        expect(state.isLoading).to.equal(false);
+        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
         expect(state.error).to.equal(error);
     });
     it('should successfully get privilege purchase information success', () => {
@@ -469,7 +469,7 @@ describe('User Store Actions', async () => {
 
         mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS](state);
 
-        expect(state.isLoading).to.equal(false);
+        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
         expect(state.error).to.equal(null);
     });
 });

@@ -20,4 +20,5 @@ export default {
 
         return loggedInAsType;
     },
+    // isLoading: (state: any) => (state.isLoadingPrivilegePurchaseOptions || state.isLoadingAccount),
 };
