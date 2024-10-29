@@ -6,7 +6,7 @@
 -->
 
 <template>
-    <li
+    <div
         class="licensee-row"
         :class="{ 'is-header': isHeaderRow }"
         @click="!isHeaderRow && navigateToDetail(item.id)"
@@ -110,7 +110,7 @@
                 'desc': isSortOptionDescending('status'),
             }"></span>
         </div>
-    </li>
+    </div>
 </template>
 
 <script lang="ts" src="./LicenseeRow.ts"></script>

@@ -6,7 +6,7 @@
 -->
 
 <template>
-    <li
+    <div
         class="user-row is-wrap"
         :class="{ 'is-header': isHeaderRow }"
         role="row"
@@ -15,6 +15,7 @@
             <div
                 v-if="$matches.desktop.min"
                 class="cell expand-collapse"
+                :role="(isHeaderRow) ? 'columnheader' : 'cell'"
             >
                 <RightCaretIcon
                     v-if="!isHeaderRow"
@@ -134,6 +135,7 @@
                     <div
                         class="row-menu-toggle"
                         role="button"
+                        :aria-label="$t('account.userActions')"
                         @click="toggleRowActionMenu"
                         @keyup.enter="toggleRowActionMenu"
                         tabindex="0"
@@ -194,7 +196,7 @@
                 </div>
             </div>
         </transition>
-    </li>
+    </div>
 </template>
 
 <script lang="ts" src="./UserRow.ts"></script>
