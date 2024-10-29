@@ -27,7 +27,7 @@ describe('LicenseeList component', async () => {
         global.requestAnimationFrame = (cb) => cb(); // JSDOM omits this global method, so we need to mock it ourselves
     });
     it('should mount the component', async () => {
-        const wrapper = await mountFull(LicenseeList);
+        const wrapper = await mountFull(LicenseeList); // mounting full here to get ahead of some vue-test-utils oddities in fast local environments
 
         expect(wrapper.exists()).to.equal(true);
         expect(wrapper.findComponent(LicenseeList).exists()).to.equal(true);
