@@ -105,6 +105,20 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         self.api_login_id = api_login_id
         self.transaction_key = transaction_key
 
+    def _handle_api_error(self, response: apicontractsv1.transactionResponse) -> None:
+        logger_message = 'API call to authorize.net Failed.'
+        if hasattr(response, 'transactionResponse') and hasattr(response.transactionResponse, 'errors'):
+            error_code = response.transactionResponse.errors.error[0].errorCode
+            error_message = response.transactionResponse.errors.error[0].errorText
+            logger.error(logger_message, error_code=error_code, error_message=error_message)
+
+        else:
+            error_code = response.messages.message[0]['code'].text
+            error_message = response.messages.message[0]['text'].text
+            logger.error(logger_message, error_code=error_code, error_message=error_message)
+
+        raise CCInternalException(logger_message)
+
     def void_unsettled_charge_on_credit_card(
         self,
         order_information: dict,
@@ -163,25 +177,8 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                 raise CCFailedTransactionException(
                     f'Failed to void transaction. Error code: {error_code}, Error message: {error_message}'
                 )
-            if hasattr(response, 'transactionResponse') and hasattr(response.transactionResponse, 'errors'):
-                error_code = response.transactionResponse.errors.error[0].errorCode
-                error_message = response.transactionResponse.errors.error[0].errorText
-            else:
-                error_code = response.messages.message[0]['code'].text
-                error_message = response.messages.message[0]['text'].text
 
-            logger.error(
-                'API call to authorize.net Failed. Unable to void transaction.',
-                transaction_id=order_information['transactionId'],
-                error_code=error_code,
-                error_message=error_message,
-            )
-            raise CCInternalException('Failed to return a response.')
-        logger.error(
-            'API call to authorize.net failed to return response.', transaction_id=order_information['transactionId']
-        )
-
-        raise CCInternalException('Failed to void transaction.')
+        self._handle_api_error(response)  # noqa: RET503 this branch raises an exception
 
     def process_charge_on_credit_card_for_privilege_purchase(
         self,
@@ -315,26 +312,8 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                     raise CCFailedTransactionException(
                         f'Failed to process transaction. Error code: {error_code}, Error message: {error_message}'
                     )
-            # API request wasn't successful
-            else:
-                if hasattr(response, 'transactionResponse') and hasattr(response.transactionResponse, 'errors'):
-                    error_code = response.transactionResponse.errors.error[0].errorCode
-                    error_message = response.transactionResponse.errors.error[0].errorText
-                    logger.error(
-                        'API call to authorize.net Failed.', error_code=error_code, error_message=error_message
-                    )
-
-                else:
-                    error_code = response.messages.message[0]['code'].text
-                    error_message = response.messages.message[0]['text'].text
-                    logger.error(
-                        'API call to authorize.net Failed.', error_code=error_code, error_message=error_message
-                    )
-
-                raise CCInternalException('API call to authorize.net failed.')
-        else:
-            logger.error('Authorize.net API call failed to return a response.')
-            raise CCInternalException('Failed to return a response.')
+        # API request wasn't successful
+        self._handle_api_error(response)  # noqa: RET503 this branch raises an exception
 
 
 class PaymentProcessorClientFactory:

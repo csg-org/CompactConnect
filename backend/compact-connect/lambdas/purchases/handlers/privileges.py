@@ -88,7 +88,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     The request body should include the selected jurisdiction privileges to purchase and billing information
     in the following format:
     {
-        "selectedJurisdictions": ["<jurisdiction postal code>"],
+        "selectedJurisdictions": ["<jurisdiction postal abbreviations>"],
         "orderInformation": {
         "card": {
             "number": "<card number>",
@@ -111,8 +111,9 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     """
     compact_name = _get_caller_compact_custom_attribute(event)
     body = json.loads(event['body'])
-    selected_jurisdictions_postal_abbreviations = [postal_abbreviation.lower()
-                                                   for postal_abbreviation in body['selectedJurisdictions']]
+    selected_jurisdictions_postal_abbreviations = [
+        postal_abbreviation.lower() for postal_abbreviation in body['selectedJurisdictions']
+    ]
 
     # load the compact information
     privilege_purchase_options = config.data_client.get_privilege_purchase_options(compact=compact_name)
@@ -141,7 +142,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             ],
             selected_jurisdictions_postal_abbreviations=selected_jurisdictions_postal_abbreviations,
         )
-        raise CCInvalidRequestException('Invalid jurisdiction postal code')
+        raise CCInvalidRequestException('Invalid jurisdiction postal abbreviation')
 
     # get the user's profile information to determine if they are active military
     provider_id = _get_caller_provider_id_custom_attribute(event)

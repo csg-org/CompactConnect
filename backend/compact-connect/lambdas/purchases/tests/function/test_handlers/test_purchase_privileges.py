@@ -146,7 +146,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(400, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'message': 'Invalid jurisdiction postal code'}, response_body)
+        self.assertEqual({'message': 'Invalid jurisdiction postal abbreviation'}, response_body)
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_404_if_provider_not_found(self, mock_purchase_client_constructor):

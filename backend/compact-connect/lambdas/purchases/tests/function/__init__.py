@@ -103,7 +103,6 @@ class TstFunction(TstLambdas):
         for resource in provider_test_resources:
             with open(resource) as f:
                 record = json.load(f, object_hook=provider_jurisdictions_to_set, parse_float=Decimal)
-                # set
 
             logger.debug('Loading resource, %s: %s', resource, str(record))
             self._provider_table.put_item(Item=record)
