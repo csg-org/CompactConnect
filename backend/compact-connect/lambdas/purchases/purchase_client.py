@@ -145,7 +145,9 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                     )
                     return {
                         'message': 'Successfully voided transaction',
-                        'transactionId': response.transactionResponse.transId,
+                        # their SDK returns the transaction id as an internal IntElement type, so we need to cast it
+                        # or this will cause an error when we try to serialize it to JSON
+                        'transactionId': str(response.transactionResponse.transId),
                     }
                 error_code = response.transactionResponse.errors.error[0].errorCode
                 error_message = response.transactionResponse.errors.error[0].errorText
@@ -293,7 +295,9 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                     )
                     return {
                         'message': 'Successfully processed charge',
-                        'transactionId': response.transactionResponse.transId,
+                        # their SDK returns the transaction id as an internal IntElement type, so we need to cast it
+                        # or this will cause an error when we try to serialize it to JSON
+                        'transactionId': str(response.transactionResponse.transId),
                     }
                 logger.warning('Failed Transaction.')
                 if hasattr(response.transactionResponse, 'errors'):  # noqa: RET503 this branch raises an exception
