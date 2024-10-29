@@ -129,7 +129,7 @@
                     'desc': isSortOptionDescending('accountStatus'),
                 }"></span>
             </div>
-            <div class="cell row-actions">
+            <div class="cell row-actions" :role="(isHeaderRow) ? 'columnheader' : 'cell'">
                 <div v-if="!isHeaderRow">
                     <div
                         class="row-menu-toggle"
@@ -137,7 +137,6 @@
                         @click="toggleRowActionMenu"
                         @keyup.enter="toggleRowActionMenu"
                         tabindex="0"
-                        role="cell"
                     >
                         <span class="dot" /><span class="dot" /><span class="dot" />
                     </div>
