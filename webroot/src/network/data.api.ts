@@ -110,6 +110,25 @@ export class DataApi {
         return userDataApi.updateUser(compact, userId, data);
     }
 
+    /**
+     * GET Authenticated Staff User.
+     * @return {Promise<User>} A User model instance.
+     */
+    public getAuthenticatedStaffUser() {
+        return userDataApi.getAuthenticatedStaffUser();
+    }
+
+    // ========================================================================
+    //                              LICENSEE USER API
+    // ========================================================================
+    /**
+     * GET Authenticated Licensee User.
+     * @return {Promise<User>} A User model instance.
+     */
+    public getAuthenticatedLicenseeUser() {
+        return userDataApi.getAuthenticatedLicenseeUser();
+    }
+
     // ========================================================================
     //                              EXAMPLE API
     // ========================================================================

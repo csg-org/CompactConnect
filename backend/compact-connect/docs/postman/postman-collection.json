@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "837ac2a9-af62-452b-9a36-8751bab26f58",
-		"name": "LicenseApi",
+		"name": "CompactConnect API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "31543764"
 	},
@@ -44,7 +44,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{boardUserPoolUrl}}/oauth2/token?grant_type=client_credentials&client_id={{clientId}}&client_secret={{clientSecret}}&scope=license-data/{{jurisdiction}}",
+							"raw": "{{boardUserPoolUrl}}/oauth2/token?grant_type=client_credentials&client_id={{clientId}}&client_secret={{clientSecret}}&scope={{compact}}/{{jurisdiction}}",
 							"host": [
 								"{{boardUserPoolUrl}}"
 							],
@@ -67,7 +67,7 @@
 								},
 								{
 									"key": "scope",
-									"value": "license-data/{{jurisdiction}}"
+									"value": "{{compact}}/{{jurisdiction}}"
 								}
 							]
 						}
@@ -123,7 +123,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{boardUserPoolUrl}}/oauth2/token?grant_type=authorization_code&code=66192abc-03aa-4564-b3ee-dc88c72d5e69&client_id={{clientId}}&scope=openid&redirect_uri=http://localhost:3018/auth/callback",
+							"raw": "{{boardUserPoolUrl}}/oauth2/token?grant_type=authorization_code&code=f50f8482-d18f-49e1-82d2-078b84aba11c&client_id={{clientId}}&scope=openid&redirect_uri=http://localhost:3018/auth/callback",
 							"host": [
 								"{{boardUserPoolUrl}}"
 							],
@@ -138,7 +138,7 @@
 								},
 								{
 									"key": "code",
-									"value": "66192abc-03aa-4564-b3ee-dc88c72d5e69"
+									"value": "f50f8482-d18f-49e1-82d2-078b84aba11c"
 								},
 								{
 									"key": "client_id",
@@ -281,26 +281,6 @@
 																		}
 																	],
 																	"request": {
-																		"auth": {
-																			"type": "apikey",
-																			"apikey": [
-																				{
-																					"key": "key",
-																					"value": "Authorization",
-																					"type": "string"
-																				},
-																				{
-																					"key": "value",
-																					"value": "{{apiKey}}",
-																					"type": "string"
-																				},
-																				{
-																					"key": "in",
-																					"value": "header",
-																					"type": "string"
-																				}
-																			]
-																		},
 																		"method": "GET",
 																		"header": [
 																			{
@@ -325,12 +305,12 @@
 																			"variable": [
 																				{
 																					"key": "compact",
-																					"value": "<string>",
+																					"value": "aslp",
 																					"description": "(Required) "
 																				},
 																				{
 																					"key": "jurisdiction",
-																					"value": "<string>",
+																					"value": "oh",
 																					"description": "(Required) "
 																				}
 																			]
@@ -395,26 +375,6 @@
 														{
 															"name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses",
 															"request": {
-																"auth": {
-																	"type": "apikey",
-																	"apikey": [
-																		{
-																			"key": "key",
-																			"value": "Authorization",
-																			"type": "string"
-																		},
-																		{
-																			"key": "value",
-																			"value": "{{apiKey}}",
-																			"type": "string"
-																		},
-																		{
-																			"key": "in",
-																			"value": "header",
-																			"type": "string"
-																		}
-																	]
-																},
 																"method": "POST",
 																"header": [
 																	{
@@ -452,12 +412,12 @@
 																	"variable": [
 																		{
 																			"key": "compact",
-																			"value": "<string>",
+																			"value": "octp",
 																			"description": "(Required) "
 																		},
 																		{
 																			"key": "jurisdiction",
-																			"value": "<string>",
+																			"value": "oh",
 																			"description": "(Required) "
 																		}
 																	]
@@ -581,7 +541,7 @@
 															"variable": [
 																{
 																	"key": "compact",
-																	"value": "aslp",
+																	"value": "octp",
 																	"description": "(Required) "
 																}
 															]
@@ -658,26 +618,6 @@
 												{
 													"name": "/v1/compacts/:compact/providers/:providerId",
 													"request": {
-														"auth": {
-															"type": "apikey",
-															"apikey": [
-																{
-																	"key": "key",
-																	"value": "Authorization",
-																	"type": "string"
-																},
-																{
-																	"key": "value",
-																	"value": "{{apiKey}}",
-																	"type": "string"
-																},
-																{
-																	"key": "in",
-																	"value": "header",
-																	"type": "string"
-																}
-															]
-														},
 														"method": "GET",
 														"header": [
 															{
@@ -700,12 +640,12 @@
 															"variable": [
 																{
 																	"key": "compact",
-																	"value": "<string>",
+																	"value": "aslp",
 																	"description": "(Required) "
 																},
 																{
 																	"key": "providerId",
-																	"value": "<string>",
+																	"value": "f2222756-be0a-4b60-94be-ed41f2596426",
 																	"description": "(Required) "
 																}
 															]
@@ -766,6 +706,539 @@
 											]
 										}
 									]
+								},
+								{
+									"name": "staff-users",
+									"item": [
+										{
+											"name": "{userId}",
+											"item": [
+												{
+													"name": "/v1/compacts/:compact/staff-users/:userId",
+													"request": {
+														"method": "GET",
+														"header": [
+															{
+																"key": "Accept",
+																"value": "application/json"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/staff-users/:userId",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"staff-users",
+																":userId"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "octp",
+																	"description": "(Required) "
+																},
+																{
+																	"key": "userId",
+																	"value": "a458f488-10f1-702d-3f31-bf1e2ecd8a01"
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "200 response",
+															"originalRequest": {
+																"method": "GET",
+																"header": [
+																	{
+																		"key": "Accept",
+																		"value": "application/json"
+																	},
+																	{
+																		"key": "Authorization",
+																		"value": "<API Key>",
+																		"description": "Added as a part of security scheme: apikey"
+																	}
+																],
+																"url": {
+																	"raw": "{{baseUrl}}/v1/compacts/:compact/providers/:providerId",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v1",
+																		"compacts",
+																		":compact",
+																		"providers",
+																		":providerId"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		},
+																		{
+																			"key": "providerId"
+																		}
+																	]
+																}
+															},
+															"status": "OK",
+															"code": 200,
+															"_postman_previewlanguage": "json",
+															"header": [
+																{
+																	"key": "Content-Type",
+																	"value": "application/json"
+																}
+															],
+															"cookie": [],
+															"body": "{\n  \"birthMonthDay\": \"<date>\",\n  \"compact\": \"aslp\",\n  \"dateOfBirth\": \"<date>\",\n  \"dateOfExpiration\": \"<date>\",\n  \"dateOfUpdate\": \"<date>\",\n  \"familyName\": \"<string>\",\n  \"givenName\": \"<string>\",\n  \"homeAddressCity\": \"<string>\",\n  \"homeAddressPostalCode\": \"<string>\",\n  \"homeAddressState\": \"<string>\",\n  \"homeAddressStreet1\": \"<string>\",\n  \"licenseJurisdiction\": \"ct\",\n  \"licenseType\": \"licensed professional counselor\",\n  \"licenses\": [\n    {\n      \"compact\": \"aslp\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"5379023477\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"jurisdiction\": \"sd\",\n      \"givenName\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"dateOfBirth\": \"<date>\",\n      \"type\": \"license-home\",\n      \"dateOfIssuance\": \"<date>\",\n      \"ssn\": \"687-65-6371\",\n      \"licenseType\": \"licensed clinical mental health counselor\",\n      \"dateOfExpiration\": \"<date>\",\n      \"homeAddressState\": \"<string>\",\n      \"providerId\": \"01f0e4b9-9356-4043-b8be-faf5f4377318\",\n      \"dateOfRenewal\": \"<date>\",\n      \"familyName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"middleName\": \"<string>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    },\n    {\n      \"compact\": \"aslp\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"7457842116\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"jurisdiction\": \"ky\",\n      \"givenName\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"dateOfBirth\": \"<date>\",\n      \"type\": \"license-home\",\n      \"dateOfIssuance\": \"<date>\",\n      \"ssn\": \"122-13-5882\",\n      \"licenseType\": \"licensed clinical mental health counselor\",\n      \"dateOfExpiration\": \"<date>\",\n      \"homeAddressState\": \"<string>\",\n      \"providerId\": \"5d132506-d13a-472a-be47-c5fde42deb1d\",\n      \"dateOfRenewal\": \"<date>\",\n      \"familyName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"middleName\": \"<string>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    }\n  ],\n  \"privilegeJurisdictions\": [\n    \"ok\",\n    \"ok\"\n  ],\n  \"privileges\": [\n    {\n      \"licenseJurisdiction\": \"mi\",\n      \"dateOfExpiration\": \"<date>\",\n      \"compact\": \"aslp\",\n      \"providerId\": \"42ac3726-b81a-466f-b7ad-f9d0974ebe4f\",\n      \"type\": \"privilege\",\n      \"dateOfIssuance\": \"<date>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"inactive\"\n    },\n    {\n      \"licenseJurisdiction\": \"hi\",\n      \"dateOfExpiration\": \"<date>\",\n      \"compact\": \"coun\",\n      \"providerId\": \"bab44873-e09e-40ec-86eb-0d1c983c6e8d\",\n      \"type\": \"privilege\",\n      \"dateOfIssuance\": \"<date>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    }\n  ],\n  \"providerId\": \"b461a1f5-8a5f-4665-9030-0953edfbe2d7\",\n  \"ssn\": \"217-46-5795\",\n  \"status\": \"active\",\n  \"type\": \"provider\",\n  \"homeAddressStreet2\": \"<string>\",\n  \"npi\": \"4851189695\",\n  \"militaryWaiver\": \"<boolean>\",\n  \"middleName\": \"<string>\"\n}"
+														}
+													]
+												},
+												{
+													"name": "/v1/compacts/:compact/staff-users/:userId",
+													"request": {
+														"method": "PATCH",
+														"header": [
+															{
+																"key": "Accept",
+																"value": "application/json"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n    \"permissions\": {\n        \"octp\": {\n            \"jurisdictions\": {\n                \"oh\": {\n                    \"actions\": {\n                        \"write\": true\n                    }\n                }\n            }\n        }\n    }\n}",
+															"options": {
+																"raw": {
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/staff-users/:userId",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"staff-users",
+																":userId"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "octp",
+																	"description": "(Required) "
+																},
+																{
+																	"key": "userId",
+																	"value": "a458f488-10f1-702d-3f31-bf1e2ecd8a01"
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "200 response",
+															"originalRequest": {
+																"method": "GET",
+																"header": [
+																	{
+																		"key": "Accept",
+																		"value": "application/json"
+																	},
+																	{
+																		"key": "Authorization",
+																		"value": "<API Key>",
+																		"description": "Added as a part of security scheme: apikey"
+																	}
+																],
+																"url": {
+																	"raw": "{{baseUrl}}/v1/compacts/:compact/providers/:providerId",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v1",
+																		"compacts",
+																		":compact",
+																		"providers",
+																		":providerId"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		},
+																		{
+																			"key": "providerId"
+																		}
+																	]
+																}
+															},
+															"status": "OK",
+															"code": 200,
+															"_postman_previewlanguage": "json",
+															"header": [
+																{
+																	"key": "Content-Type",
+																	"value": "application/json"
+																}
+															],
+															"cookie": [],
+															"body": "{\n  \"birthMonthDay\": \"<date>\",\n  \"compact\": \"aslp\",\n  \"dateOfBirth\": \"<date>\",\n  \"dateOfExpiration\": \"<date>\",\n  \"dateOfUpdate\": \"<date>\",\n  \"familyName\": \"<string>\",\n  \"givenName\": \"<string>\",\n  \"homeAddressCity\": \"<string>\",\n  \"homeAddressPostalCode\": \"<string>\",\n  \"homeAddressState\": \"<string>\",\n  \"homeAddressStreet1\": \"<string>\",\n  \"licenseJurisdiction\": \"ct\",\n  \"licenseType\": \"licensed professional counselor\",\n  \"licenses\": [\n    {\n      \"compact\": \"aslp\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"5379023477\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"jurisdiction\": \"sd\",\n      \"givenName\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"dateOfBirth\": \"<date>\",\n      \"type\": \"license-home\",\n      \"dateOfIssuance\": \"<date>\",\n      \"ssn\": \"687-65-6371\",\n      \"licenseType\": \"licensed clinical mental health counselor\",\n      \"dateOfExpiration\": \"<date>\",\n      \"homeAddressState\": \"<string>\",\n      \"providerId\": \"01f0e4b9-9356-4043-b8be-faf5f4377318\",\n      \"dateOfRenewal\": \"<date>\",\n      \"familyName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"middleName\": \"<string>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    },\n    {\n      \"compact\": \"aslp\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"7457842116\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"jurisdiction\": \"ky\",\n      \"givenName\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"dateOfBirth\": \"<date>\",\n      \"type\": \"license-home\",\n      \"dateOfIssuance\": \"<date>\",\n      \"ssn\": \"122-13-5882\",\n      \"licenseType\": \"licensed clinical mental health counselor\",\n      \"dateOfExpiration\": \"<date>\",\n      \"homeAddressState\": \"<string>\",\n      \"providerId\": \"5d132506-d13a-472a-be47-c5fde42deb1d\",\n      \"dateOfRenewal\": \"<date>\",\n      \"familyName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"middleName\": \"<string>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    }\n  ],\n  \"privilegeJurisdictions\": [\n    \"ok\",\n    \"ok\"\n  ],\n  \"privileges\": [\n    {\n      \"licenseJurisdiction\": \"mi\",\n      \"dateOfExpiration\": \"<date>\",\n      \"compact\": \"aslp\",\n      \"providerId\": \"42ac3726-b81a-466f-b7ad-f9d0974ebe4f\",\n      \"type\": \"privilege\",\n      \"dateOfIssuance\": \"<date>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"inactive\"\n    },\n    {\n      \"licenseJurisdiction\": \"hi\",\n      \"dateOfExpiration\": \"<date>\",\n      \"compact\": \"coun\",\n      \"providerId\": \"bab44873-e09e-40ec-86eb-0d1c983c6e8d\",\n      \"type\": \"privilege\",\n      \"dateOfIssuance\": \"<date>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    }\n  ],\n  \"providerId\": \"b461a1f5-8a5f-4665-9030-0953edfbe2d7\",\n  \"ssn\": \"217-46-5795\",\n  \"status\": \"active\",\n  \"type\": \"provider\",\n  \"homeAddressStreet2\": \"<string>\",\n  \"npi\": \"4851189695\",\n  \"militaryWaiver\": \"<boolean>\",\n  \"middleName\": \"<string>\"\n}"
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "/v1/compacts/:compact/staff-users",
+											"request": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/v1/compacts/:compact/staff-users",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"compacts",
+														":compact",
+														"staff-users"
+													],
+													"variable": [
+														{
+															"key": "compact",
+															"value": "octp",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "200 response",
+													"originalRequest": {
+														"method": "GET",
+														"header": [
+															{
+																"key": "Accept",
+																"value": "application/json"
+															},
+															{
+																"key": "Authorization",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/providers/:providerId",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"providers",
+																":providerId"
+															],
+															"variable": [
+																{
+																	"key": "compact"
+																},
+																{
+																	"key": "providerId"
+																}
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "json",
+													"header": [
+														{
+															"key": "Content-Type",
+															"value": "application/json"
+														}
+													],
+													"cookie": [],
+													"body": "{\n  \"birthMonthDay\": \"<date>\",\n  \"compact\": \"aslp\",\n  \"dateOfBirth\": \"<date>\",\n  \"dateOfExpiration\": \"<date>\",\n  \"dateOfUpdate\": \"<date>\",\n  \"familyName\": \"<string>\",\n  \"givenName\": \"<string>\",\n  \"homeAddressCity\": \"<string>\",\n  \"homeAddressPostalCode\": \"<string>\",\n  \"homeAddressState\": \"<string>\",\n  \"homeAddressStreet1\": \"<string>\",\n  \"licenseJurisdiction\": \"ct\",\n  \"licenseType\": \"licensed professional counselor\",\n  \"licenses\": [\n    {\n      \"compact\": \"aslp\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"5379023477\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"jurisdiction\": \"sd\",\n      \"givenName\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"dateOfBirth\": \"<date>\",\n      \"type\": \"license-home\",\n      \"dateOfIssuance\": \"<date>\",\n      \"ssn\": \"687-65-6371\",\n      \"licenseType\": \"licensed clinical mental health counselor\",\n      \"dateOfExpiration\": \"<date>\",\n      \"homeAddressState\": \"<string>\",\n      \"providerId\": \"01f0e4b9-9356-4043-b8be-faf5f4377318\",\n      \"dateOfRenewal\": \"<date>\",\n      \"familyName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"middleName\": \"<string>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    },\n    {\n      \"compact\": \"aslp\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"7457842116\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"jurisdiction\": \"ky\",\n      \"givenName\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"dateOfBirth\": \"<date>\",\n      \"type\": \"license-home\",\n      \"dateOfIssuance\": \"<date>\",\n      \"ssn\": \"122-13-5882\",\n      \"licenseType\": \"licensed clinical mental health counselor\",\n      \"dateOfExpiration\": \"<date>\",\n      \"homeAddressState\": \"<string>\",\n      \"providerId\": \"5d132506-d13a-472a-be47-c5fde42deb1d\",\n      \"dateOfRenewal\": \"<date>\",\n      \"familyName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"middleName\": \"<string>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    }\n  ],\n  \"privilegeJurisdictions\": [\n    \"ok\",\n    \"ok\"\n  ],\n  \"privileges\": [\n    {\n      \"licenseJurisdiction\": \"mi\",\n      \"dateOfExpiration\": \"<date>\",\n      \"compact\": \"aslp\",\n      \"providerId\": \"42ac3726-b81a-466f-b7ad-f9d0974ebe4f\",\n      \"type\": \"privilege\",\n      \"dateOfIssuance\": \"<date>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"inactive\"\n    },\n    {\n      \"licenseJurisdiction\": \"hi\",\n      \"dateOfExpiration\": \"<date>\",\n      \"compact\": \"coun\",\n      \"providerId\": \"bab44873-e09e-40ec-86eb-0d1c983c6e8d\",\n      \"type\": \"privilege\",\n      \"dateOfIssuance\": \"<date>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    }\n  ],\n  \"providerId\": \"b461a1f5-8a5f-4665-9030-0953edfbe2d7\",\n  \"ssn\": \"217-46-5795\",\n  \"status\": \"active\",\n  \"type\": \"provider\",\n  \"homeAddressStreet2\": \"<string>\",\n  \"npi\": \"4851189695\",\n  \"militaryWaiver\": \"<boolean>\",\n  \"middleName\": \"<string>\"\n}"
+												}
+											]
+										},
+										{
+											"name": "/v1/compacts/:compact/staff-users",
+											"request": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n    \"attributes\": {\n        \"email\": \"justin+board-staff@inspiringapps.com\",\n        \"givenName\": \"Justin\",\n        \"familyName\": \"Frahm\"\n    },\n    \"permissions\": {\n        \"octp\": {\n            \"actions\": {\n                \"read\": true\n            },\n            \"jurisdictions\": {\n                \"oh\": {\n                    \"actions\": {\n                        \"write\": true\n                    }\n                }\n            }\n        }\n    }\n}",
+													"options": {
+														"raw": {
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/v1/compacts/:compact/staff-users",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"compacts",
+														":compact",
+														"staff-users"
+													],
+													"variable": [
+														{
+															"key": "compact",
+															"value": "octp",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "200 response",
+													"originalRequest": {
+														"method": "GET",
+														"header": [
+															{
+																"key": "Accept",
+																"value": "application/json"
+															},
+															{
+																"key": "Authorization",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/providers/:providerId",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"providers",
+																":providerId"
+															],
+															"variable": [
+																{
+																	"key": "compact"
+																},
+																{
+																	"key": "providerId"
+																}
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "json",
+													"header": [
+														{
+															"key": "Content-Type",
+															"value": "application/json"
+														}
+													],
+													"cookie": [],
+													"body": "{\n  \"birthMonthDay\": \"<date>\",\n  \"compact\": \"aslp\",\n  \"dateOfBirth\": \"<date>\",\n  \"dateOfExpiration\": \"<date>\",\n  \"dateOfUpdate\": \"<date>\",\n  \"familyName\": \"<string>\",\n  \"givenName\": \"<string>\",\n  \"homeAddressCity\": \"<string>\",\n  \"homeAddressPostalCode\": \"<string>\",\n  \"homeAddressState\": \"<string>\",\n  \"homeAddressStreet1\": \"<string>\",\n  \"licenseJurisdiction\": \"ct\",\n  \"licenseType\": \"licensed professional counselor\",\n  \"licenses\": [\n    {\n      \"compact\": \"aslp\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"5379023477\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"jurisdiction\": \"sd\",\n      \"givenName\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"dateOfBirth\": \"<date>\",\n      \"type\": \"license-home\",\n      \"dateOfIssuance\": \"<date>\",\n      \"ssn\": \"687-65-6371\",\n      \"licenseType\": \"licensed clinical mental health counselor\",\n      \"dateOfExpiration\": \"<date>\",\n      \"homeAddressState\": \"<string>\",\n      \"providerId\": \"01f0e4b9-9356-4043-b8be-faf5f4377318\",\n      \"dateOfRenewal\": \"<date>\",\n      \"familyName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"middleName\": \"<string>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    },\n    {\n      \"compact\": \"aslp\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"7457842116\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"jurisdiction\": \"ky\",\n      \"givenName\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"dateOfBirth\": \"<date>\",\n      \"type\": \"license-home\",\n      \"dateOfIssuance\": \"<date>\",\n      \"ssn\": \"122-13-5882\",\n      \"licenseType\": \"licensed clinical mental health counselor\",\n      \"dateOfExpiration\": \"<date>\",\n      \"homeAddressState\": \"<string>\",\n      \"providerId\": \"5d132506-d13a-472a-be47-c5fde42deb1d\",\n      \"dateOfRenewal\": \"<date>\",\n      \"familyName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"middleName\": \"<string>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    }\n  ],\n  \"privilegeJurisdictions\": [\n    \"ok\",\n    \"ok\"\n  ],\n  \"privileges\": [\n    {\n      \"licenseJurisdiction\": \"mi\",\n      \"dateOfExpiration\": \"<date>\",\n      \"compact\": \"aslp\",\n      \"providerId\": \"42ac3726-b81a-466f-b7ad-f9d0974ebe4f\",\n      \"type\": \"privilege\",\n      \"dateOfIssuance\": \"<date>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"inactive\"\n    },\n    {\n      \"licenseJurisdiction\": \"hi\",\n      \"dateOfExpiration\": \"<date>\",\n      \"compact\": \"coun\",\n      \"providerId\": \"bab44873-e09e-40ec-86eb-0d1c983c6e8d\",\n      \"type\": \"privilege\",\n      \"dateOfIssuance\": \"<date>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    }\n  ],\n  \"providerId\": \"b461a1f5-8a5f-4665-9030-0953edfbe2d7\",\n  \"ssn\": \"217-46-5795\",\n  \"status\": \"active\",\n  \"type\": \"provider\",\n  \"homeAddressStreet2\": \"<string>\",\n  \"npi\": \"4851189695\",\n  \"militaryWaiver\": \"<boolean>\",\n  \"middleName\": \"<string>\"\n}"
+												}
+											]
+										}
+									]
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "staff-users",
+					"item": [
+						{
+							"name": "me",
+							"item": [
+								{
+									"name": "/v1/staff-users/me",
+									"request": {
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/v1/staff-users/me",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"staff-users",
+												"me"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "200 response",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "<API Key>",
+														"description": "Added as a part of security scheme: apikey"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/v1/compacts/:compact/providers/:providerId",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"compacts",
+														":compact",
+														"providers",
+														":providerId"
+													],
+													"variable": [
+														{
+															"key": "compact"
+														},
+														{
+															"key": "providerId"
+														}
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"birthMonthDay\": \"<date>\",\n  \"compact\": \"aslp\",\n  \"dateOfBirth\": \"<date>\",\n  \"dateOfExpiration\": \"<date>\",\n  \"dateOfUpdate\": \"<date>\",\n  \"familyName\": \"<string>\",\n  \"givenName\": \"<string>\",\n  \"homeAddressCity\": \"<string>\",\n  \"homeAddressPostalCode\": \"<string>\",\n  \"homeAddressState\": \"<string>\",\n  \"homeAddressStreet1\": \"<string>\",\n  \"licenseJurisdiction\": \"ct\",\n  \"licenseType\": \"licensed professional counselor\",\n  \"licenses\": [\n    {\n      \"compact\": \"aslp\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"5379023477\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"jurisdiction\": \"sd\",\n      \"givenName\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"dateOfBirth\": \"<date>\",\n      \"type\": \"license-home\",\n      \"dateOfIssuance\": \"<date>\",\n      \"ssn\": \"687-65-6371\",\n      \"licenseType\": \"licensed clinical mental health counselor\",\n      \"dateOfExpiration\": \"<date>\",\n      \"homeAddressState\": \"<string>\",\n      \"providerId\": \"01f0e4b9-9356-4043-b8be-faf5f4377318\",\n      \"dateOfRenewal\": \"<date>\",\n      \"familyName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"middleName\": \"<string>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    },\n    {\n      \"compact\": \"aslp\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"7457842116\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"jurisdiction\": \"ky\",\n      \"givenName\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"dateOfBirth\": \"<date>\",\n      \"type\": \"license-home\",\n      \"dateOfIssuance\": \"<date>\",\n      \"ssn\": \"122-13-5882\",\n      \"licenseType\": \"licensed clinical mental health counselor\",\n      \"dateOfExpiration\": \"<date>\",\n      \"homeAddressState\": \"<string>\",\n      \"providerId\": \"5d132506-d13a-472a-be47-c5fde42deb1d\",\n      \"dateOfRenewal\": \"<date>\",\n      \"familyName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"middleName\": \"<string>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    }\n  ],\n  \"privilegeJurisdictions\": [\n    \"ok\",\n    \"ok\"\n  ],\n  \"privileges\": [\n    {\n      \"licenseJurisdiction\": \"mi\",\n      \"dateOfExpiration\": \"<date>\",\n      \"compact\": \"aslp\",\n      \"providerId\": \"42ac3726-b81a-466f-b7ad-f9d0974ebe4f\",\n      \"type\": \"privilege\",\n      \"dateOfIssuance\": \"<date>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"inactive\"\n    },\n    {\n      \"licenseJurisdiction\": \"hi\",\n      \"dateOfExpiration\": \"<date>\",\n      \"compact\": \"coun\",\n      \"providerId\": \"bab44873-e09e-40ec-86eb-0d1c983c6e8d\",\n      \"type\": \"privilege\",\n      \"dateOfIssuance\": \"<date>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    }\n  ],\n  \"providerId\": \"b461a1f5-8a5f-4665-9030-0953edfbe2d7\",\n  \"ssn\": \"217-46-5795\",\n  \"status\": \"active\",\n  \"type\": \"provider\",\n  \"homeAddressStreet2\": \"<string>\",\n  \"npi\": \"4851189695\",\n  \"militaryWaiver\": \"<boolean>\",\n  \"middleName\": \"<string>\"\n}"
+										}
+									]
+								},
+								{
+									"name": "/v1/staff-users/me",
+									"request": {
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n    \"attributes\": {\n        \"givenName\": \"Justin\",\n        \"familyName\": \"Frahm\"\n    }\n}",
+											"options": {
+												"raw": {
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/v1/staff-users/me",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"staff-users",
+												"me"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "200 response",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "<API Key>",
+														"description": "Added as a part of security scheme: apikey"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/v1/compacts/:compact/providers/:providerId",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"compacts",
+														":compact",
+														"providers",
+														":providerId"
+													],
+													"variable": [
+														{
+															"key": "compact"
+														},
+														{
+															"key": "providerId"
+														}
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"birthMonthDay\": \"<date>\",\n  \"compact\": \"aslp\",\n  \"dateOfBirth\": \"<date>\",\n  \"dateOfExpiration\": \"<date>\",\n  \"dateOfUpdate\": \"<date>\",\n  \"familyName\": \"<string>\",\n  \"givenName\": \"<string>\",\n  \"homeAddressCity\": \"<string>\",\n  \"homeAddressPostalCode\": \"<string>\",\n  \"homeAddressState\": \"<string>\",\n  \"homeAddressStreet1\": \"<string>\",\n  \"licenseJurisdiction\": \"ct\",\n  \"licenseType\": \"licensed professional counselor\",\n  \"licenses\": [\n    {\n      \"compact\": \"aslp\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"5379023477\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"jurisdiction\": \"sd\",\n      \"givenName\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"dateOfBirth\": \"<date>\",\n      \"type\": \"license-home\",\n      \"dateOfIssuance\": \"<date>\",\n      \"ssn\": \"687-65-6371\",\n      \"licenseType\": \"licensed clinical mental health counselor\",\n      \"dateOfExpiration\": \"<date>\",\n      \"homeAddressState\": \"<string>\",\n      \"providerId\": \"01f0e4b9-9356-4043-b8be-faf5f4377318\",\n      \"dateOfRenewal\": \"<date>\",\n      \"familyName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"middleName\": \"<string>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    },\n    {\n      \"compact\": \"aslp\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"7457842116\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"jurisdiction\": \"ky\",\n      \"givenName\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"dateOfBirth\": \"<date>\",\n      \"type\": \"license-home\",\n      \"dateOfIssuance\": \"<date>\",\n      \"ssn\": \"122-13-5882\",\n      \"licenseType\": \"licensed clinical mental health counselor\",\n      \"dateOfExpiration\": \"<date>\",\n      \"homeAddressState\": \"<string>\",\n      \"providerId\": \"5d132506-d13a-472a-be47-c5fde42deb1d\",\n      \"dateOfRenewal\": \"<date>\",\n      \"familyName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"middleName\": \"<string>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    }\n  ],\n  \"privilegeJurisdictions\": [\n    \"ok\",\n    \"ok\"\n  ],\n  \"privileges\": [\n    {\n      \"licenseJurisdiction\": \"mi\",\n      \"dateOfExpiration\": \"<date>\",\n      \"compact\": \"aslp\",\n      \"providerId\": \"42ac3726-b81a-466f-b7ad-f9d0974ebe4f\",\n      \"type\": \"privilege\",\n      \"dateOfIssuance\": \"<date>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"inactive\"\n    },\n    {\n      \"licenseJurisdiction\": \"hi\",\n      \"dateOfExpiration\": \"<date>\",\n      \"compact\": \"coun\",\n      \"providerId\": \"bab44873-e09e-40ec-86eb-0d1c983c6e8d\",\n      \"type\": \"privilege\",\n      \"dateOfIssuance\": \"<date>\",\n      \"dateOfUpdate\": \"<date>\",\n      \"status\": \"active\"\n    }\n  ],\n  \"providerId\": \"b461a1f5-8a5f-4665-9030-0953edfbe2d7\",\n  \"ssn\": \"217-46-5795\",\n  \"status\": \"active\",\n  \"type\": \"provider\",\n  \"homeAddressStreet2\": \"<string>\",\n  \"npi\": \"4851189695\",\n  \"militaryWaiver\": \"<boolean>\",\n  \"middleName\": \"<string>\"\n}"
+										}
+									]
 								}
 							]
 						}
@@ -822,7 +1295,7 @@
 						{
 							"key": "file",
 							"type": "file",
-							"src": "s1m0lfnA4/licenses.csv"
+							"src": "zpHru3cww/licenses.csv"
 						}
 					]
 				},

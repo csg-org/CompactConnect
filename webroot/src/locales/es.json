@@ -35,6 +35,7 @@
         "emailAddress": "Dirección de correo electrónico",
         "phoneNumber": "Número de teléfono",
         "address": "Dirección",
+        "welcome": "Bienvenido",
         "city": "Ciudad",
         "state": "Estado o Jurisdicción",
         "zipCode": "Código postal",
@@ -370,7 +371,9 @@
         "oneOrMoreFilesTooLarge": "Uno o más archivos son demasiado grandes",
         "fileMaxSize": "El tamaño máximo del archivo es",
         "tooManyFiles": "Demasiados archivos, solo se permite 1",
-        "fileWrongType": "Tipo de archivo incorrecto"
+        "fileWrongType": "Tipo de archivo incorrecto",
+        "lastNameRequired": "Obligatorio cuando se proporciona el nombre",
+        "ssnFormat": "Debe estar en formato ###-##-####"
     },
     "serverErrors": {
         "networkError": "Error de red",
@@ -413,13 +416,17 @@
     ],
     "stateUpload": {
         "formTitle": "Carga de datos compacta",
-        "formSubtext": "No subas datos reales",
+        "formSubtext": "Las cargas actuales son para fines de prueba y los datos no se guardarán de forma permanente.",
         "uploadHint": "Sólo 1 archivo CSV",
         "successTitle": "Su documento ha sido subido exitosamente",
         "successSubtext": "Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet"
     },
     "licensing": {
         "licensingListTitle": "Datos de licencia",
+        "searchTitle": "Iniciar una búsqueda",
+        "searchSubtext": "Introduzca al menos un campo para buscar datos de licencia.",
+        "searchLabel": "Buscar",
+        "searchPlaceholderName": "Introducir nombre",
         "homeState": "Estado de origen",
         "residenceLocation": "Ubicación de la residencia",
         "privileges": "Privilegios",
@@ -429,7 +436,17 @@
         "issueDate": "Fecha de asunto",
         "expireDate": "Fecha de caducidad",
         "lastUpdate": "Última carga",
-        "status": {
+        "license": "Licencia",
+        "licenseExpiredMessage": "Su licencia ha caducado.",
+        "obtainPrivileges": "Obtener privilegios",
+        "expired": "Caducada",
+        "issued": "Emitida",
+        "expires": "Caduca",
+        "disciplineStatus": "Estado de disciplina",
+        "noDiscipline": "No disciplina",
+        "twoHomeStateErrorMessage": "Dos estados lo tienen incluido como residente. Actualice su información con esos estados para reflejar su estado de residencia actual.",
+        "state": "Estado",
+        "statusOptions": {
             "active": "Activo",
             "inactive": "Inactivo"
         },

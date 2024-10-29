@@ -14,7 +14,8 @@
     @buttonHoverTextColor: @white;
     @buttonTransparentBGColor: transparent;
     @buttonTransparentTextColor: @primaryColor;
-    @buttonTransparentHoverTextColor: darken(@primaryColor, 8%);
+    @buttonTransparentHoverBGColor: @primaryColor;
+    @buttonTransparentHoverTextColor: @buttonEnabledTextColor;
     @transition: 0.2s ease-out;
 
     padding: 0.4rem 2.4rem;
@@ -64,6 +65,7 @@
 
         &:hover {
             color: @buttonTransparentHoverTextColor;
+            background-color: @buttonTransparentHoverBGColor;
 
             .icon {
                 fill: @buttonTransparentHoverTextColor;

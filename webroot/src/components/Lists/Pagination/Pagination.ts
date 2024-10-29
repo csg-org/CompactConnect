@@ -187,7 +187,7 @@ export default class Pagination extends mixins(MixinForm) {
         });
     }
 
-    setPage(newPage: number, increment = 0) {
+    setPage(newPage: number, increment?: number) {
         const { pageSize } = this;
         const zeroBasedIndex = (newPage - 1) * pageSize;
 

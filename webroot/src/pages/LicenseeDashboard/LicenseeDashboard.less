@@ -1,0 +1,131 @@
+//
+//  LicenseeDashboard.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 9/23/2024.
+//
+.licensee-dashboard-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 4rem;
+
+    @media @tabletWidth {
+        padding: 0 8rem;
+    }
+
+    @media @desktopWidth {
+        padding: 0 12rem;
+    }
+
+    .top-block {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        @media @tabletWidth {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .welcome-user {
+            font-weight: @fontWeightBold;
+            font-size: @h2FontSize;
+            text-align: center;
+        }
+
+        .obtain-priv-btn {
+            margin-top: 2rem;
+        }
+    }
+
+    .license-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        @media @tabletWidth {
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: flex-start;
+            width: 100%;
+        }
+
+        .license-chunk {
+            .license-expired-message {
+                margin-top: 1rem;
+                color: @midRed;
+            }
+        }
+
+        .home-state-section {
+            display: flex;
+            flex-direction: column;
+
+            .home-state-list {
+                display: flex;
+                flex-direction: column;
+
+                @media @tabletWidth {
+                    flex-direction: row;
+                }
+            }
+
+            .homestate-error-text {
+                max-width: 20rem;
+                padding: 0 1rem;
+                color: @midRed;
+                text-overflow: wrap;
+
+                @media @tabletWidth {
+                    max-width: 40rem;
+                }
+            }
+        }
+    }
+
+    .privilege-section {
+        width: 100%;
+        margin-top: 3rem;
+        padding: 3rem 4rem;
+        border-top: 1px solid @lightGrey;
+
+        @media @tabletWidth {
+            padding: 3rem 0;
+        }
+
+        .privilege-section-title-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-bottom: 1rem;
+
+            .privilege-title {
+                padding-left: 1rem;
+                font-size: @fontSizeLarger;
+            }
+        }
+
+        .privilege-card-list-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            @media @tabletWidth {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+        }
+    }
+}
+
+.no-touch-item {
+    margin: 1rem;
+}

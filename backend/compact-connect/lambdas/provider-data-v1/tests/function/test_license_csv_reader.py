@@ -2,6 +2,7 @@ from io import TextIOWrapper
 from uuid import uuid4
 
 from moto import mock_aws
+
 from tests.function import TstFunction
 
 
@@ -9,7 +10,6 @@ from tests.function import TstFunction
 class TestCSVParser(TstFunction):
     def test_csv_parser(self):
         from config import logger
-
         from data_model.schema.license import LicensePostSchema
         from license_csv_reader import LicenseCSVReader
 
@@ -22,9 +22,5 @@ class TestCSVParser(TstFunction):
         schema = LicensePostSchema()
         reader = LicenseCSVReader()
         for license_row in reader.licenses(stream):
-            validated = schema.load({
-                'compact': 'aslp',
-                'jurisdiction': 'oh',
-                **license_row
-            })
+            validated = schema.load({'compact': 'aslp', 'jurisdiction': 'oh', **license_row})
             logger.debug('Read validated license', license=reader.schema.dump(validated))

@@ -1,0 +1,107 @@
+env:
+  contexts:
+  - name: test
+    urls:
+    - https://app.test.compactconnect.org
+    - https://api.test.compactconnect.org
+    includePaths:
+    - https://app.test.compactconnect.org.*
+    - https://api.test.compactconnect.org.*
+    authentication:
+      verification:
+        method: response
+        pollFrequency: 60
+        pollUnits: requests
+        pollUrl: ""
+        pollPostData: ""
+    sessionManagement:
+      method: cookie
+    technology: {}
+    structure: {}
+  parameters: {}
+jobs:
+- type: script
+  parameters:
+    name: Bearer token
+    type: httpsender
+    action: add
+    engine: "ECMAScript : Graal.js"
+    source: bearer-token.js
+    target: ""
+    inline: ""
+- type: script
+  parameters:
+    name: Bearer token
+    type: httpsender
+    action: enable
+    engine: ""
+    target: ""
+    inline: ""
+- type: openapi
+  parameters:
+    apiFile: /zap/wrk/backend/compact-connect/docs/api-specification/latest-oas30.json
+    apiUrl: ""
+    targetUrl: ""
+    context: test
+    user: ""
+- type: passiveScan-config
+  parameters: {}
+- type: spider
+  parameters: {}
+  tests:
+  - name: At least 50 URLs found
+    type: stats
+    onFail: INFO
+    statistic: automation.spider.urls.added
+    operator: '>='
+    value: 50
+- type: spiderAjax
+  parameters: {}
+  tests:
+  - name: At least 50 URLs found
+    type: stats
+    onFail: INFO
+    statistic: spiderAjax.urls.added
+    operator: '>='
+    value: 50
+- type: passiveScan-wait
+  parameters: {}
+- type: activeScan
+  parameters: {}
+  policyDefinition: {}
+- type: report
+  parameters:
+    template: risk-confidence-html
+    theme: original
+    reportDir: /zap/wrk/report
+    reportFile: ""
+    reportTitle: ZAP by Checkmarx Scanning Report
+    reportDescription: Test environment ZAP report
+    displayReport: false
+  risks:
+  - info
+  - low
+  - medium
+  - high
+  confidences:
+  - falsepositive
+  - low
+  - medium
+  - high
+  - confirmed
+  sections:
+  - siteRiskCounts
+  - responseBody
+  - appendix
+  - alertTypes
+  - responseHeader
+  - alertTypeCounts
+  - riskConfidenceCounts
+  - alerts
+  - aboutThisReport
+  - contents
+  - requestBody
+  - reportDescription
+  - reportParameters
+  - requestHeader
+  - summaries

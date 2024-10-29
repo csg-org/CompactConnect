@@ -1,0 +1,54 @@
+{
+  "pk": {
+    "S": "USER#a4182428-d061-701c-82e5-a3d1d547d797"
+  },
+  "sk": {
+    "S": "COMPACT#aslp"
+  },
+  "famGiv": {
+    "S": "Williams#Justin"
+  },
+  "compact": {
+    "S": "aslp"
+  },
+  "dateOfUpdate": {
+    "S": "2024-09-12"
+  },
+  "type": {
+    "S": "user"
+  },
+  "userId": {
+    "S": "a4182428-d061-701c-82e5-a3d1d547d797"
+  },
+  "attributes": {
+    "M": {
+      "email": {
+        "S": "justin@example.org"
+      },
+      "givenName": {
+        "S": "Justin"
+      },
+      "familyName": {
+        "S": "Williams"
+      }
+    }
+  },
+  "permissions": {
+    "M": {
+      "actions": {
+        "SS": [
+          "read"
+        ]
+      },
+      "jurisdictions": {
+        "M": {
+          "oh": {
+            "SS": [
+              "write"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

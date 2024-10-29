@@ -1,0 +1,68 @@
+//
+//  LicenseeSearch.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 9/12/2024.
+//
+
+.licensee-search-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 60vh;
+    border: 1px solid @lightGrey;
+    border-radius: 8px;
+    background-color: @white;
+
+    .search-icon {
+        width: 4.8rem;
+        margin: 1.6rem 0;
+        fill: @fontColor;
+    }
+
+    .search-title {
+        font-weight: @fontWeightBold;
+        font-size: @fontSizeExtraLarge;
+    }
+
+    .search-subtext {
+        text-align: center;
+    }
+
+    .search-form {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: wrap;
+        width: 100%;
+        max-width: 64rem;
+        padding: 2.4rem;
+    }
+
+    .search-form-row {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: space-between;
+        width: 100%;
+
+        @media @tabletWidth {
+            flex-direction: row;
+        }
+    }
+
+    .search-input {
+        width: 100%;
+
+        @media @tabletWidth {
+            &:not(.search-submit) {
+                width: 48%;
+            }
+        }
+
+        &.search-submit:deep(.input-submit) {
+            width: 100%;
+        }
+    }
+}

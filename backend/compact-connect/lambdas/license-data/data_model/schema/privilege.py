@@ -1,17 +1,16 @@
-# pylint: disable=invalid-name
+# ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from urllib.parse import quote
 
-from marshmallow import pre_dump, post_load
-from marshmallow.fields import String, Date, UUID
-from marshmallow.validate import Regexp, Length, OneOf
+from marshmallow import post_load, pre_dump
+from marshmallow.fields import UUID, Date, String
+from marshmallow.validate import Length, OneOf, Regexp
 
-from data_model.schema.base_record import BaseRecordSchema, SocialSecurityNumber, ForgivingSchema
+from data_model.schema.base_record import BaseRecordSchema, ForgivingSchema, SocialSecurityNumber
 
 
 class PrivilegePostSchema(ForgivingSchema):
-    """
-    Schema for privilege data as it may be posted by a board
-    """
+    """Schema for privilege data as it may be posted by a board"""
+
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -27,9 +26,8 @@ class PrivilegePostSchema(ForgivingSchema):
 
 @BaseRecordSchema.register_schema('license-privilege')
 class PrivilegeRecordSchema(BaseRecordSchema, PrivilegePostSchema):
-    """
-    Schema for privilege records in the license data table
-    """
+    """Schema for privilege records in the license data table"""
+
     _record_type = 'license-privilege'
 
     # Provided fields
@@ -40,16 +38,18 @@ class PrivilegeRecordSchema(BaseRecordSchema, PrivilegePostSchema):
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
 
     @post_load
-    def drop_index_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def drop_index_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         del in_data['famGivMid']
         return in_data
 
     @pre_dump
-    def populate_privilege_generated_fields(self, in_data, **kwargs):  # pylint: disable=unused-argument
+    def populate_privilege_generated_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['birthMonthDay'] = in_data['dateOfBirth'].strftime('%m-%d')
-        in_data['famGivMid'] = '/'.join((
-            quote(in_data['familyName'], safe=''),
-            quote(in_data['givenName'], safe=''),
-            quote(in_data.get('middleName', ''), safe='')
-        ))
+        in_data['famGivMid'] = '/'.join(
+            (
+                quote(in_data['familyName'], safe=''),
+                quote(in_data['givenName'], safe=''),
+                quote(in_data.get('middleName', ''), safe=''),
+            ),
+        )
         return in_data

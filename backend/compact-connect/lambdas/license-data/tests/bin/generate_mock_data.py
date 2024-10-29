@@ -14,21 +14,17 @@ from random import randint
 from uuid import uuid4
 
 from config import config, logger
-from license_csv_reader import LicenseCSVReader
 from data_model.schema.license import LicenseRecordSchema
+from license_csv_reader import LicenseCSVReader
 
 
 def generate_csv_rows(count):
     i = 0
     while i < count:
-        with open(os.path.join('tests', 'resources', 'licenses.csv'), 'r') as f:
+        with open(os.path.join('tests', 'resources', 'licenses.csv')) as f:
             reader = LicenseCSVReader()
             for license_row in reader.licenses(f):
-                validated_license = reader.schema.load({
-                    'compact': 'aslp',
-                    'jurisdiction': 'co',
-                    **license_row
-                })
+                validated_license = reader.schema.load({'compact': 'aslp', 'jurisdiction': 'co', **license_row})
                 logger.debug('Read validated license', license_data=reader.schema.dump(validated_license))
                 yield i, validated_license
                 i += 1
@@ -39,18 +35,14 @@ def put_licenses(jurisdiction: str, count: int = 100):
     for i, license_data in generate_csv_rows(count):
         ssn = f'{randint(100, 999)}-{randint(10, 99)}-{9999-i}'
         provider_id = uuid4()
-        license_data.update({
-            'providerId': provider_id,
-            'ssn': ssn,
-            'compact': 'aslp',
-            'jurisdiction': jurisdiction
-        })
+        license_data.update({'providerId': provider_id, 'ssn': ssn, 'compact': 'aslp', 'jurisdiction': jurisdiction})
         logger.info('Put license', license_data=license_data)
         config.license_table.put_item(Item=schema.dump(license_data))
 
 
 if __name__ == '__main__':
     import logging
+
     logging.basicConfig()
 
     put_licenses('co', 100)

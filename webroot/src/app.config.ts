@@ -6,6 +6,15 @@
 //
 import sessionStorage from '@store/session.storage';
 
+// =========================
+// =  Authorization Types  =
+// =========================
+export enum AuthTypes {
+    STAFF = 'staff',
+    LICENSEE = 'licensee',
+    PUBLIC = 'public',
+}
+
 // ====================
 // =   Auth storage   =
 // ====================
@@ -18,6 +27,14 @@ export const tokens = {
         AUTH_TOKEN_EXPIRY: 'auth_token_expiry_staff',
         ID_TOKEN: 'id_token_staff',
         REFRESH_TOKEN: 'refresh_token_staff',
+    },
+    licensee: {
+        AUTH_TYPE: 'auth_type',
+        AUTH_TOKEN: 'auth_token_licensee',
+        AUTH_TOKEN_TYPE: 'auth_token_type_licensee',
+        AUTH_TOKEN_EXPIRY: 'auth_token_expiry_licensee',
+        ID_TOKEN: 'id_token_licensee',
+        REFRESH_TOKEN: 'refresh_token_licensee',
     },
 };
 export const AUTH_LOGIN_GOTO_PATH = 'login_goto';

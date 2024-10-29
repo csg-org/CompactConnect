@@ -8,36 +8,34 @@ from tests import TstLambdas
 
 @mock_aws
 class TestCustomizeScopes(TstLambdas):
-
     def test_happy_path(self):
         from main import customize_scopes
 
-        with open('tests/resources/pre-token-event.json', 'r') as f:
+        with open('tests/resources/pre-token-event.json') as f:
             event = json.load(f)
         sub = event['request']['userAttributes']['sub']
 
         # Create a DB record for this user's permissions
         self._table.put_item(
             Item={
-                'pk': sub,
-                'createdCompactJurisdiction': 'aslp/al',
+                'pk': f'USER#{sub}',
+                'sk': 'COMPACT#aslp',
+                'compact': 'aslp',
                 'permissions': {
-                    'aslp': {
-                        'actions': {'read'},
-                        'jurisdictions': {
-                            # should correspond to the 'aslp/write' and 'aslp/al.write' scopes
-                            'al': {'actions': {'write'}}
-                        }
-                    }
-                }
+                    'actions': {'read'},
+                    'jurisdictions': {
+                        # should correspond to the 'aslp/write' and 'aslp/al.write' scopes
+                        'al': {'write'}
+                    },
+                },
             }
         )
 
         resp = customize_scopes(event, self.mock_context)
 
         self.assertEqual(
-            sorted(['aslp/read', 'aslp/write', 'aslp/al.write']),
-            sorted(resp['response']['claimsAndScopeOverrideDetails']['accessTokenGeneration']['scopesToAdd'])
+            sorted(['profile', 'aslp/read', 'aslp/write', 'aslp/al.write']),
+            sorted(resp['response']['claimsAndScopeOverrideDetails']['accessTokenGeneration']['scopesToAdd']),
         )
 
     def test_unauthenticated(self):
@@ -47,17 +45,14 @@ class TestCustomizeScopes(TstLambdas):
         """
         from main import customize_scopes
 
-        with open('tests/resources/pre-token-event.json', 'r') as f:
+        with open('tests/resources/pre-token-event.json') as f:
             event = json.load(f)
 
         del event['request']['userAttributes']
 
         resp = customize_scopes(event, self.mock_context)
 
-        self.assertEqual(
-            None,
-            resp['response']['claimsAndScopeOverrideDetails']
-        )
+        self.assertEqual(None, resp['response']['claimsAndScopeOverrideDetails'])
 
     @patch('main.UserScopes', autospec=True)
     def test_error_getting_scopes(self, mock_get_scopes):
@@ -68,12 +63,9 @@ class TestCustomizeScopes(TstLambdas):
 
         from main import customize_scopes
 
-        with open('tests/resources/pre-token-event.json', 'r') as f:
+        with open('tests/resources/pre-token-event.json') as f:
             event = json.load(f)
 
         resp = customize_scopes(event, self.mock_context)
 
-        self.assertEqual(
-            None,
-            resp['response']['claimsAndScopeOverrideDetails']
-        )
+        self.assertEqual(None, resp['response']['claimsAndScopeOverrideDetails'])

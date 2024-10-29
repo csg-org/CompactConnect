@@ -12,6 +12,95 @@ export const userData = {
     lastName: 'Doe',
 };
 
+export const staffAccount = {
+    userId: '1',
+    attributes: {
+        givenName: 'Jane',
+        familyName: 'Doe',
+        email: 'test@example.com',
+    },
+    permissions: {
+        aslp: {
+            actions: {
+                read: true,
+                admin: true,
+            },
+            jurisdictions: {
+                al: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+                co: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+                ky: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+            },
+        },
+        octp: {
+            actions: {
+                read: true,
+                admin: true,
+            },
+            jurisdictions: {
+                ak: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+                ar: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+                co: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+            },
+        },
+        coun: {
+            actions: {
+                read: true,
+                admin: true,
+            },
+            jurisdictions: {
+                al: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+                co: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+                ky: {
+                    actions: {
+                        admin: true,
+                        write: true,
+                    },
+                },
+            },
+        },
+    },
+};
+
 export const stateUploadRequestData = {
     upload: {
         url: `https://example.com`,
@@ -27,6 +116,159 @@ export const licensees = {
     prevLastKey: 'xyz',
     lastKey: 'abc',
     items: [
+        {
+            privileges: [
+                {
+                    licenseJurisdiction: 'al',
+                    dateOfExpiration: '2024-08-29',
+                    compact: 'aslp',
+                    providerId: '1',
+                    type: 'privilege',
+                    dateOfIssuance: '2024-08-29',
+                    dateOfUpdate: '2024-08-29',
+                    status: 'inactive'
+                },
+                {
+                    licenseJurisdiction: 'ak',
+                    dateOfExpiration: '2025-08-29',
+                    compact: 'aslp',
+                    providerId: '1',
+                    type: 'privilege',
+                    dateOfIssuance: '2024-08-29',
+                    dateOfUpdate: '2024-08-29',
+                    status: 'active'
+                },
+                {
+                    licenseJurisdiction: 'ar',
+                    dateOfExpiration: '2025-08-29',
+                    compact: 'aslp',
+                    providerId: '1',
+                    type: 'privilege',
+                    dateOfIssuance: '2024-08-29',
+                    dateOfUpdate: '2024-08-29',
+                    status: 'active'
+                },
+                {
+                    licenseJurisdiction: 'ma',
+                    dateOfExpiration: '2025-08-29',
+                    compact: 'aslp',
+                    providerId: '1',
+                    type: 'privilege',
+                    dateOfIssuance: '2024-08-29',
+                    dateOfUpdate: '2024-08-29',
+                    status: 'active'
+                },
+                {
+                    licenseJurisdiction: 'me',
+                    dateOfExpiration: '2020-08-29',
+                    compact: 'aslp',
+                    providerId: '1',
+                    type: 'privilege',
+                    dateOfIssuance: '2019-08-29',
+                    dateOfUpdate: '2024-08-29',
+                    status: 'in'
+                }
+            ],
+            licenseJurisdiction: 'co',
+            compact: 'aslp',
+            homeAddressStreet2: '',
+            npi: '6944447281',
+            homeAddressPostalCode: '',
+            givenName: 'Janet',
+            homeAddressStreet1: '1640 Riverside Drive',
+            militaryWaiver: true,
+            emailAddress: 'test@test.com',
+            dateOfBirth: '1990-08-29',
+            privilegeJurisdictions: [
+                'al'
+            ],
+            type: 'provider',
+            ssn: '085-32-1496',
+            licenseType: 'audiologist',
+            licenses: [
+                {
+                    compact: 'aslp',
+                    homeAddressStreet2: '',
+                    npi: '6944447281',
+                    homeAddressPostalCode: '',
+                    jurisdiction: 'co',
+                    givenName: 'Jane',
+                    homeAddressStreet1: '1640 Riverside Drive',
+                    militaryWaiver: true,
+                    dateOfBirth: '1990-08-29',
+                    type: 'license-home',
+                    dateOfIssuance: '2024-08-29',
+                    ssn: '085-32-1496',
+                    licenseType: 'audiologist',
+                    dateOfExpiration: '2024-08-29',
+                    homeAddressState: 'co',
+                    providerId: '1',
+                    dateOfRenewal: '2024-08-29',
+                    familyName: 'Doe',
+                    homeAddressCity: 'Riverside',
+                    middleName: '',
+                    dateOfUpdate: '2024-08-29',
+                    status: 'active'
+                },
+                {
+                    compact: 'aslp',
+                    homeAddressStreet2: '',
+                    npi: '6944447281',
+                    homeAddressPostalCode: '',
+                    jurisdiction: 'ca',
+                    givenName: 'Jane',
+                    homeAddressStreet1: '1640 Riverside Drive',
+                    militaryWaiver: true,
+                    dateOfBirth: '1990-08-29',
+                    type: 'license-home',
+                    dateOfIssuance: '2024-08-29',
+                    ssn: '085-32-1496',
+                    licenseType: 'audiologist',
+                    dateOfExpiration: '2024-08-29',
+                    homeAddressState: 'co',
+                    providerId: '1',
+                    dateOfRenewal: '2024-08-29',
+                    familyName: 'Doe',
+                    homeAddressCity: 'Riverside',
+                    middleName: '',
+                    dateOfUpdate: '2024-08-29',
+                    status: 'active'
+                },
+                {
+                    compact: 'aslp',
+                    homeAddressStreet2: '',
+                    npi: '6944447281',
+                    homeAddressPostalCode: '',
+                    jurisdiction: 'nv',
+                    givenName: 'Jane',
+                    homeAddressStreet1: '1640 Riverside Drive',
+                    militaryWaiver: true,
+                    dateOfBirth: '1990-08-29',
+                    type: 'license-home',
+                    dateOfIssuance: '2024-08-29',
+                    ssn: '085-32-1496',
+                    licenseType: 'audiologist',
+                    dateOfExpiration: '2024-08-29',
+                    homeAddressState: 'co',
+                    providerId: '1',
+                    dateOfRenewal: '2024-08-29',
+                    familyName: 'Doe',
+                    homeAddressCity: 'Riverside',
+                    middleName: '',
+                    dateOfUpdate: '2024-08-29',
+                    status: 'inactive'
+                }
+            ],
+            dateOfExpiration: '2024-08-29',
+            homeAddressState: 'co',
+            providerId: '1',
+            familyName: 'Doe',
+            homeAddressCity: 'Riverside',
+            middleName: '',
+            birthMonthDay: '1990-08-29',
+            dateOfUpdate: '2024-08-29',
+            status: 'active'
+        },
         {
             privileges: [
                 {

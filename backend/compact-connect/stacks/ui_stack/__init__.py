@@ -1,28 +1,34 @@
 from aws_cdk import RemovalPolicy
 from cdk_nag import NagSuppressions
-from constructs import Construct
-
 from common_constructs.bucket import Bucket
 from common_constructs.github_actions_access import GitHubActionsAccess
+from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
+from constructs import Construct
+
 from stacks.persistent_stack import PersistentStack
 from stacks.ui_stack.distribution import UIDistribution
 
 
 class UIStack(AppStack):
     def __init__(
-            self, scope: Construct, construct_id: str, *,
-            github_repo_string: str,
-            persistent_stack: PersistentStack,
-            **kwargs
+        self,
+        scope: Construct,
+        construct_id: str,
+        *,
+        github_repo_string: str,
+        environment_context: dict,
+        persistent_stack: PersistentStack,
+        **kwargs,
     ):
-        super().__init__(scope, construct_id, **kwargs)
+        super().__init__(scope, construct_id, environment_context=environment_context, **kwargs)
 
         ui_bucket = Bucket(
-            self, 'UIBucket',
+            self,
+            'UIBucket',
             removal_policy=RemovalPolicy.DESTROY,
             auto_delete_objects=True,
-            server_access_logs_bucket=persistent_stack.access_logs_bucket
+            server_access_logs_bucket=persistent_stack.access_logs_bucket,
         )
         NagSuppressions.add_resource_suppressions(
             ui_bucket,
@@ -30,32 +36,46 @@ class UIStack(AppStack):
                 {
                     'id': 'HIPAA.Security-S3BucketReplicationEnabled',
                     'reason': 'This bucket contains built files that are replaced each deploy of the UI. We have no'
-                    ' desire for the resilience of bucket replication for this data.'
+                    ' desire for the resilience of bucket replication for this data.',
                 },
                 {
                     'id': 'HIPAA.Security-S3DefaultEncryptionKMS',
                     'reason': 'The data in this bucket is public web app static files. Default S3 encryption is'
-                    ' more than enough for protecting this data.'
+                    ' more than enough for protecting this data.',
                 },
                 {
                     'id': 'HIPAA.Security-S3BucketVersioningEnabled',
                     'reason': 'This bucket contains built files that are replaced each deploy. We have no '
-                    'desire for the resilience of versioning'
-                }
-            ]
+                    'desire for the resilience of versioning',
+                },
+            ],
         )
 
+        security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
+
         self.distribution = UIDistribution(
-            self, 'UIDistribution',
+            self,
+            'UIDistribution',
             ui_bucket=ui_bucket,
-            persistent_stack=persistent_stack
+            security_profile=security_profile,
+            persistent_stack=persistent_stack,
+        )
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            path=f'{self.distribution.node.path}/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-CFR7',
+                    'reason': 'We will upgrade to an Origin Access Control as part of this issue in our backlog:'
+                    'https://github.com/csg-org/CompactConnect/issues/238',
+                }
+            ],
         )
 
         # Configure permission for GitHub Actions to deploy the UI
         github_actions = GitHubActionsAccess(
-            self, 'GitHubActionsAccess',
-            github_repo_string=github_repo_string,
-            role_name='github_ui_push'
+            self, 'GitHubActionsAccess', github_repo_string=github_repo_string, role_name='github_ui_push'
         )
         self.distribution.grant_create_invalidation(github_actions)
         self.distribution.grant(github_actions, 'cloudfront:GetInvalidation')
@@ -63,9 +83,11 @@ class UIStack(AppStack):
         NagSuppressions.add_resource_suppressions_by_path(
             self,
             path=f'{github_actions.node.path}/Role/DefaultPolicy',
-            suppressions=[{
-                'id': 'AwsSolutions-IAM5',
-                'reason': 'The wild-carded actions and resources in this policy are still scoped specifically to the'
-                ' bucket and actions needed for this principal to deploy the UI to this infrastructure'
-            }]
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': """The wild-carded actions and resources in this policy are still scoped specifically
+                     to the bucket and actions needed for this principal to deploy the UI to this infrastructure""",
+                }
+            ],
         )
