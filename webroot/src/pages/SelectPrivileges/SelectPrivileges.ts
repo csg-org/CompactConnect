@@ -334,8 +334,9 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         const { jurisprudencePendingConfirmation } = this;
 
         if (jurisprudencePendingConfirmation) {
-            this.closeAndInvalidateCheckbox();
             this.formData.jurisprudenceConfirmations[jurisprudencePendingConfirmation].value = true;
+            this.$store.dispatch('setModalIsOpen', false);
+            this.jurisprudencePendingConfirmation = '';
         }
     }
 
@@ -343,8 +344,9 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         const { jurisprudencePendingConfirmation } = this;
 
         if (jurisprudencePendingConfirmation) {
-            this.jurisprudencePendingConfirmation = '';
             this.formData.jurisprudenceConfirmations[jurisprudencePendingConfirmation].value = false;
+            this.$store.dispatch('setModalIsOpen', false);
+            this.jurisprudencePendingConfirmation = '';
         }
     }
 
