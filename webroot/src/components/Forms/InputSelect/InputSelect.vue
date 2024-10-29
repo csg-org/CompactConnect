@@ -39,6 +39,7 @@
                 v-for="(option, index) in formInput.valueOptions"
                 :key="index"
                 :value="option.value"
+                :disabled="option.isDisabled"
             >
                 {{ option.name }}
             </option>
