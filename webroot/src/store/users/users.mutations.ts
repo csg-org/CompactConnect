@@ -92,10 +92,10 @@ export default {
         if (user.id) { // Don't put objects with NULL IDs in the store
             if (state.model && state.model.length) {
                 const userToUpdateIndex = state.model
-                    .findIndex((p: any) => Number(p.id) === Number(user.id));
+                    .findIndex((p: any) => p.id === user.id);
 
                 if (userToUpdateIndex !== -1) {
-                    state.model.splice(userToUpdateIndex, 1, user);
+                    state.model[userToUpdateIndex] = user;
                 } else {
                     state.model.push(user);
                 }
@@ -111,7 +111,7 @@ export default {
         if (userId) { // Can't remove user with NULL IDs from the store
             if (state.model && state.model.length) {
                 const userToRemoveIndex = state.model
-                    .findIndex((p: any) => Number(p.id) === Number(userId));
+                    .findIndex((p: any) => p.id === userId);
 
                 if (userToRemoveIndex !== -1) {
                     state.model.splice(userToRemoveIndex, 1);
