@@ -93,8 +93,17 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         return this.licensee?.licenses || [];
     }
 
-    get alreadyObtainedPrivilegeStates(): Array<string | null> {
-        return this.licenseList.concat(this.privilegeList).map((license) => license?.issueState?.abbrev || null);
+    get alreadyObtainedPrivilegeStates(): Array<string> {
+        const licenseList = this.licenseList.concat(this.privilegeList);
+        const stateList: Array<string> = [];
+
+        licenseList.forEach((license) => {
+            if (license?.issueState?.abbrev) {
+                stateList.push(license?.issueState?.abbrev);
+            }
+        });
+
+        return stateList;
     }
 
     get backText(): string {
@@ -272,8 +281,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
                 const { abbrev } = jurisdiction;
 
                 if (abbrev) {
-                    // const shouldDisable = this.alreadyObtainedPrivilegeStates.includes(abbrev);
-
                     initFormData.stateCheckList.push(new FormInput({
                         id: abbrev,
                         name: `${abbrev}-check`,
@@ -351,12 +358,12 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     checkState(stateFormInput) {
-        const newValue = !stateFormInput.value;
+        const newStateFormInputValue = !stateFormInput.value;
         const stateAbbrev = stateFormInput.id;
 
-        stateFormInput.value = newValue;
+        stateFormInput.value = newStateFormInputValue;
 
-        if (newValue === true) {
+        if (newStateFormInputValue) {
             if (stateAbbrev && this.selectedStatesWithJurisprudenceRequired.includes(stateAbbrev)) {
                 this.formData.jurisprudenceConfirmations[stateAbbrev] = new FormInput({
                     id: `${stateAbbrev}-jurisprudence`,

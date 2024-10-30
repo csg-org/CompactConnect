@@ -13,7 +13,7 @@ import { State } from '@models/State/State.model';
 // ========================================================
 export interface InterfacePrivilegePurchaseOption {
     jurisdiction?: State;
-    compact?: string | null;
+    compactType?: string | null;
     fee?: number | null;
     isMilitaryDiscountActive?: boolean;
     militaryDiscountType?: FeeTypes | null;
@@ -27,7 +27,7 @@ export interface InterfacePrivilegePurchaseOption {
 export class PrivilegePurchaseOption implements InterfacePrivilegePurchaseOption {
     public $tm?: any = () => [];
     public jurisdiction? = new State();
-    public compact? = null;
+    public compactType? = null;
     public fee? = null;
     public isMilitaryDiscountActive? = false;
     public militaryDiscountType? = null;
@@ -54,7 +54,7 @@ export class PrivilegePurchaseOptionSerializer {
     static fromServer(json: any): PrivilegePurchaseOption {
         const purchaseOptionData = {
             jurisdiction: new State({ abbrev: json.postalAbbreviation }),
-            compact: json.compact,
+            compactType: json.compact,
             fee: json.jurisdictionFee,
             isMilitaryDiscountActive: json?.militaryDiscount?.active === true || false,
             militaryDiscountType: json?.militaryDiscount?.discountType || null,

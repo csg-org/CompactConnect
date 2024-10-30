@@ -7,7 +7,7 @@
 
 import chaiMatchPattern from 'chai-match-pattern';
 import chai from 'chai';
-import { mountShallow } from '@tests/helpers/setup';
+import { mountShallow, mountFull } from '@tests/helpers/setup';
 import LicenseeList from '@components/Licensee/LicenseeList/LicenseeList.vue';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import sinon from 'sinon';
@@ -108,7 +108,7 @@ describe('LicenseeList component', async () => {
         expect(fetchListData.notCalled).to.equal(true);
     });
     it('should successfully fetch data with expected search params (no params)', async () => {
-        const wrapper = await mountShallow(LicenseeList);
+        const wrapper = await mountFull(LicenseeList);
         const component = wrapper.vm;
         const requestConfig = await component.fetchListData();
 

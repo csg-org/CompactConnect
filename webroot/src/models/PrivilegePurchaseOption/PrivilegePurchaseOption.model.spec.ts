@@ -33,7 +33,9 @@ describe('PrivilegePurchaseOption model', () => {
         // Test field values
         expect(privilegePurchaseOption).to.be.an.instanceof(PrivilegePurchaseOption);
         expect(privilegePurchaseOption.jurisdiction).to.be.an.instanceof(State);
-        expect(privilegePurchaseOption.compact).to.equal(null);
+        expect(privilegePurchaseOption.jurisdiction.id).to.equal(null);
+        expect(privilegePurchaseOption.jurisdiction.abbrev).to.equal(null);
+        expect(privilegePurchaseOption.compactType).to.equal(null);
         expect(privilegePurchaseOption.fee).to.equal(null);
         expect(privilegePurchaseOption.isMilitaryDiscountActive).to.equal(false);
         expect(privilegePurchaseOption.militaryDiscountType).to.equal(null);
@@ -43,7 +45,7 @@ describe('PrivilegePurchaseOption model', () => {
     it('should create a PrivilegePurchaseOption with specific values', () => {
         const data = {
             jurisdiction: new State({ abbrev: 'ca' }),
-            compact: 'aslp',
+            compactType: 'aslp',
             fee: 5,
             isMilitaryDiscountActive: true,
             militaryDiscountType: FeeTypes.FLAT_RATE,
@@ -55,7 +57,7 @@ describe('PrivilegePurchaseOption model', () => {
         expect(privilegePurchaseOption).to.be.an.instanceof(PrivilegePurchaseOption);
         expect(privilegePurchaseOption.jurisdiction).to.be.an.instanceof(State);
         expect(privilegePurchaseOption.jurisdiction.abbrev).to.equal('ca');
-        expect(privilegePurchaseOption.compact).to.equal(data.compact);
+        expect(privilegePurchaseOption.compactType).to.equal(data.compactType);
         expect(privilegePurchaseOption.fee).to.equal(5);
         expect(privilegePurchaseOption.isMilitaryDiscountActive).to.equal(true);
         expect(privilegePurchaseOption.militaryDiscountType).to.equal(FeeTypes.FLAT_RATE);
@@ -85,7 +87,7 @@ describe('PrivilegePurchaseOption model', () => {
         expect(privilegePurchaseOption).to.be.an.instanceof(PrivilegePurchaseOption);
         expect(privilegePurchaseOption.jurisdiction).to.be.an.instanceof(State);
         expect(privilegePurchaseOption.jurisdiction.abbrev).to.equal('ky');
-        expect(privilegePurchaseOption.compact).to.equal('aslp');
+        expect(privilegePurchaseOption.compactType).to.equal('aslp');
         expect(privilegePurchaseOption.fee).to.equal(100);
         expect(privilegePurchaseOption.isMilitaryDiscountActive).to.equal(true);
         expect(privilegePurchaseOption.militaryDiscountType).to.equal(FeeTypes.FLAT_RATE);
@@ -111,7 +113,7 @@ describe('PrivilegePurchaseOption model', () => {
         expect(privilegePurchaseOption).to.be.an.instanceof(PrivilegePurchaseOption);
         expect(privilegePurchaseOption.jurisdiction).to.be.an.instanceof(State);
         expect(privilegePurchaseOption.jurisdiction.abbrev).to.equal('ky');
-        expect(privilegePurchaseOption.compact).to.equal('aslp');
+        expect(privilegePurchaseOption.compactType).to.equal('aslp');
         expect(privilegePurchaseOption.fee).to.equal(100);
         expect(privilegePurchaseOption.isMilitaryDiscountActive).to.equal(false);
         expect(privilegePurchaseOption.militaryDiscountType).to.equal(null);

@@ -415,7 +415,7 @@ describe('User Store Actions', async () => {
 
         const data = {
             jurisdiction: new State({ abbrev: 'ca' }),
-            compact: 'aslp',
+            compactType: 'aslp',
             fee: 5,
             isMilitaryDiscountActive: true,
             militaryDiscountType: FeeTypes.FLAT_RATE,
@@ -426,7 +426,7 @@ describe('User Store Actions', async () => {
 
         const privilegePurchaseData = {
             privilegePurchaseOptions: [ privilegePurchaseOption ],
-            compactCommissionFee: { compact: 'aslp', feeType: 'FLAT_RATE', feeAmount: 3.5 }
+            compactCommissionFee: { compactType: 'aslp', feeType: 'FLAT_RATE', feeAmount: 3.5 }
         };
 
         await actions.getPrivilegePurchaseInformationSuccess({ commit, dispatch, state }, privilegePurchaseData);
@@ -436,7 +436,7 @@ describe('User Store Actions', async () => {
         expect(dispatch.calledOnce).to.equal(true);
         expect([dispatch.firstCall.args[0]]).to.matchPattern(['setCurrentCompact']);
     });
-    it('should successfully start start get privilege purchase information failure', () => {
+    it('should successfully start get privilege purchase information failure', () => {
         const commit = sinon.spy();
         const error = new Error();
 

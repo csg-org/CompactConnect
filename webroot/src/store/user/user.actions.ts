@@ -209,7 +209,7 @@ export default {
         });
     },
     getPrivilegePurchaseInformationSuccess: ({ dispatch, commit, state }, privilegePurchaseData) => {
-        if (privilegePurchaseData?.compactCommissionFee?.compact === state?.currentCompact?.type) {
+        if (privilegePurchaseData?.compactCommissionFee?.compactType === state?.currentCompact?.type) {
             const newCompact = new Compact({
                 ...state.currentCompact,
                 privilegePurchaseOptions: privilegePurchaseData.privilegePurchaseOptions,
