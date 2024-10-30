@@ -52,6 +52,12 @@ class StateUpload extends mixins(MixinForm) {
         this.initFormInputs();
     }
 
+    mounted() {
+        if (this.compactType && this.user) {
+            this.updateStateInput();
+        }
+    }
+
     //
     // Computed
     //
@@ -93,13 +99,9 @@ class StateUpload extends mixins(MixinForm) {
         let stateOptions: Array<StateOption> = [];
 
         if (compactPermissions) {
-            if (compactPermissions.isAdmin) {
-                stateOptions = this.compactStateOptions;
-            } else {
-                stateOptions = compactPermissions.states.map((statePermissions) => ({
-                    value: statePermissions?.state?.abbrev, name: statePermissions?.state?.name()
-                }));
-            }
+            stateOptions = compactPermissions.states.map((statePermissions) => ({
+                value: statePermissions?.state?.abbrev, name: statePermissions?.state?.name()
+            }));
         }
 
         if (!stateOptions.length) {
@@ -237,7 +239,11 @@ class StateUpload extends mixins(MixinForm) {
     }
 
     async mockPopulate(): Promise<void> {
-        this.populateFormInput(this.formData.state, this.stateOptions[1].value);
+        if (this.stateOptions.length === 1) {
+            this.populateFormInput(this.formData.state, this.stateOptions[0].value);
+        } else if (this.stateOptions.length > 1) {
+            this.populateFormInput(this.formData.state, this.stateOptions[1].value);
+        }
         this.populateFormInput(this.formData.files, new File([`a,b,c`], `test-file.csv`, { type: `text/csv` }));
     }
 
