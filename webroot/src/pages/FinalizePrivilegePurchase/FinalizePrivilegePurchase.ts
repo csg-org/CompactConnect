@@ -41,11 +41,11 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     //
     // Computed
     //
-    get nameInputLabel(): string {
+    get firstNameInputLabel(): string {
         return this.$t('common.compact');
     }
 
-    get namePlaceHolderText(): string {
+    get firstNamePlaceHolderText(): string {
         return this.$t('common.compact');
     }
 
@@ -73,6 +73,10 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         return this.$t('licensing.payment');
     }
 
+    get noRefundsAcknowledgement(): string {
+        return this.$t('licensing.noRefundsMessage');
+    }
+
     //
     // Methods
     //
@@ -82,14 +86,30 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
 
     initFormInputs() {
         this.formData = reactive({
-            compact: new FormInput({
-                id: 'name',
-                name: 'name',
-                label: this.nameInputLabel,
+            firstName: new FormInput({
+                id: 'first-name',
+                name: 'first-name',
+                label: this.firstNameInputLabel,
                 shouldHideLabel: false,
                 shouldHideMargin: true,
-                placeholder: this.namePlaceHolderText,
+                placeholder: this.firstNamePlaceHolderText,
                 value: '',
+            }),
+            lastName: new FormInput({
+                id: 'last-name',
+                name: 'last-name',
+                label: this.firstNameInputLabel,
+                shouldHideLabel: false,
+                shouldHideMargin: true,
+                placeholder: this.firstNamePlaceHolderText,
+                value: '',
+            }),
+            noRefunds: new FormInput({
+                id: 'no-refunds-check',
+                name: 'no-refunds-check',
+                label: this.noRefundsAcknowledgement,
+                value: false,
+                isDisabled: false
             }),
             submit: new FormInput({
                 isSubmitInput: true,

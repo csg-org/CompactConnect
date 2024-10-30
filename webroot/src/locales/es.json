@@ -432,6 +432,7 @@
         "privileges": "Privilegios",
         "payment": "Pago",
         "ssn": "SSN",
+        "noRefundsMessage": "Todas las compras de privilegios compactos son definitivas. No se emitirán reembolsos.",
         "adverseActions": "Acciones adversas",
         "status": "Estado",
         "issueDate": "Fecha de asunto",

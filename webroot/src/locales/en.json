@@ -434,6 +434,7 @@
         "obtainPrivileges": "Obtain Privileges",
         "privileges": "Privileges",
         "payment": "Payment",
+        "noRefundsMessage": "All compact privilege purchases are final. Refunds will not be issued.",
         "ssn": "SSN",
         "adverseActions": "Adverse actions",
         "status": "Status",

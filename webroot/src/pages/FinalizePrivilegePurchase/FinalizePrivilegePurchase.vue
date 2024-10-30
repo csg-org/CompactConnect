@@ -30,9 +30,25 @@
                     />
                 </div>
             </div>
-            <div class="finalize-purchase-core-container">
-                <div class="finalize-purchase-title">
-                    {{paymentTitleText}}
+            <div class="finalize-purchase-container">
+                <div class="finalize-purchase-core-container">
+                    <div class="finalize-purchase-title">
+                        {{paymentTitleText}}
+                    </div>
+                    <div class="payment-core-form">
+                        <InputText
+                            :formInput="formData.firstName"
+                        />
+                        <InputText
+                            :formInput="formData.lastName"
+                        />
+                    </div>
+                </div>
+                <div class="cost-breakdown-container">
+                    <div class="cost-listing-block">
+                        Cost breakdown
+                    </div>
+                    <InputCheckbox :formInput="formData.noRefunds" />
                 </div>
             </div>
             <div class="button-row">
