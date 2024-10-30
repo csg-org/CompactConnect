@@ -134,6 +134,11 @@ class StateUpload extends mixins(MixinForm) {
         return Boolean(this.$envConfig.isDevelopment);
     }
 
+    get elementTransitionMode(): string {
+        // Test utils have a bug with transition modes; this only includes the mode in non-test contexts.
+        return (this.$envConfig.isTest) ? '' : 'out-in';
+    }
+
     //
     // Methods
     //
@@ -218,6 +223,17 @@ class StateUpload extends mixins(MixinForm) {
         });
 
         return upload;
+    }
+
+    resetForm(): void {
+        this.formData.state.value = '';
+        this.formData.files.value = [];
+        this.updateStateInput();
+        this.isFormLoading = false;
+        this.isFormSuccessful = false;
+        this.isFormError = false;
+        this.updateFormSubmitSuccess('');
+        this.updateFormSubmitError('');
     }
 
     async mockPopulate(): Promise<void> {

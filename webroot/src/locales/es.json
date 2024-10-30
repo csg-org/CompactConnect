@@ -421,8 +421,7 @@
         "formTitle": "Carga de datos compacta",
         "formSubtext": "Las cargas actuales son para fines de prueba y los datos no se guardarán de forma permanente.",
         "uploadHint": "Sólo 1 archivo CSV",
-        "successTitle": "Su documento ha sido subido exitosamente",
-        "successSubtext": "Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet"
+        "successTitle": "Su documento ha sido subido exitosamente"
     },
     "licensing": {
         "licensingListTitle": "Datos de licencia",
