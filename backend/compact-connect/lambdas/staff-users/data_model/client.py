@@ -108,6 +108,7 @@ class UserClient:
         """
         logger.info('Updating staff user permissions', user_id=user_id)
 
+        # Creating a mutable collection so the handlers can add their collected changes
         update_expression_parts = {'add': [], 'delete': []}
 
         # DynamoDB does not support both ADD and DELETE on the same String Set in a single UpdateItem call, so we will
