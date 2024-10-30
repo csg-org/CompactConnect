@@ -514,6 +514,7 @@
         },
         "resendInvite": "Resend invite",
         "userSearchLabel": "Enter a name",
+        "userActions": "User actions",
         "edit": "Edit",
         "editPermissions": "Edit permissions",
         "editUserPermissions": "Edit user permissions",

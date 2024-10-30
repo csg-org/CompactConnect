@@ -32,23 +32,25 @@
                 :pageSizeConfig="pageSizeConfig"
             ></Pagination>
         </div>
-        <ul class="headers">
-            <slot name="headers"></slot>
-        </ul>
-        <div v-if="isLoading" class="list-loading">
-            <div class="loading-text">{{ $t('common.loading') }}</div>
-            <div class="ellipsis-container">
-                <div class="ellipsis"></div>
-                <div class="ellipsis"></div>
-                <div class="ellipsis"></div>
-                <div class="ellipsis"></div>
+        <div class="table-container" role="table">
+            <slot name="headers" v-if="$matches.tablet.min"></slot>
+            <div v-if="isLoading" class="list-loading" role="row" tabindex="0">
+                <div class="loading-text" role="cell">{{ $t('common.loading') }}</div>
+                <div class="ellipsis-container" role="cell" aria-label="loading-spinner">
+                    <div class="ellipsis"></div>
+                    <div class="ellipsis"></div>
+                    <div class="ellipsis"></div>
+                    <div class="ellipsis"></div>
+                </div>
             </div>
+            <div v-else-if="loadingError" class="loading-error" role="row" tabindex="0">
+                <span role="cell">{{ loadingErrorDisplay }}</span>
+            </div>
+            <template v-else-if="hasRecords">
+                <slot name="list"></slot>
+            </template>
+            <div v-else class="no-records" role="row" tabindex="0"><span role="cell">{{ emptyMessage }}</span></div>
         </div>
-        <div v-else-if="loadingError" class="loading-error">{{ loadingErrorDisplay }}</div>
-        <ul v-else-if="hasRecords" class="list">
-            <slot name="list"></slot>
-        </ul>
-        <div v-else class="no-records">{{ emptyMessage }}</div>
         <div class="filter-bar">
             <Pagination
                 ariaLabel="Bottom Pagination"
