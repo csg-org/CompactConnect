@@ -1,4 +1,4 @@
-# ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
+# ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 # We diverge from PEP8 variable naming in schema because they map to our API JSON Schema in which,
 # by convention, we use camelCase.
 from abc import ABC
@@ -6,7 +6,8 @@ from datetime import UTC, datetime
 
 from exceptions import CCInternalException
 from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump
-from marshmallow.fields import Date, String
+from marshmallow.fields import UUID, Date, List, String
+from marshmallow.validate import Regexp
 
 
 class StrictSchema(Schema):
@@ -21,6 +22,21 @@ class ForgivingSchema(Schema):
 
     class Meta:
         unknown = EXCLUDE
+
+
+class SocialSecurityNumber(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=Regexp('^[0-9]{3}-[0-9]{2}-[0-9]{4}$'), **kwargs)
+
+
+class Set(List):
+    """A Field that de/serializes to a Set (not compatible with JSON)"""
+
+    def _serialize(self, *args, **kwargs):
+        return set(super()._serialize(*args, **kwargs))
+
+    def _deserialize(self, *args, **kwargs):
+        return set(super()._deserialize(*args, **kwargs))
 
 
 class BaseRecordSchema(StrictSchema, ABC):
@@ -73,3 +89,19 @@ class BaseRecordSchema(StrictSchema, ABC):
             return cls._registered_schema[record_type]
         except KeyError as e:
             raise CCInternalException(f'Unsupported record type, "{record_type}"') from e
+
+
+class ITUTE164PhoneNumber(String):
+    """Phone number format consistent with ITU-T E.164:
+    https://www.itu.int/rec/T-REC-E.164-201011-I/en
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=Regexp(r'^\+[0-9]{8,15}$'), **kwargs)
+
+
+class SSNIndexRecordSchema(StrictSchema):
+    pk = String(required=True, allow_none=False)
+    sk = String(required=True, allow_none=False)
+    ssn = SocialSecurityNumber(required=True, allow_none=False)
+    providerId = UUID(required=True, allow_none=False)

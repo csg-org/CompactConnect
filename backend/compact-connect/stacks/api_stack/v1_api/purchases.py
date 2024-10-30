@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
 import os
 
-from aws_cdk import Duration
+from aws_cdk import ArnFormat, Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource
+from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
@@ -11,7 +13,7 @@ from common_constructs.stack import Stack
 
 # Importing module level to allow lazy loading for typing
 from stacks.api_stack import cc_api
-from stacks.persistent_stack import CompactConfigurationTable
+from stacks.persistent_stack import CompactConfigurationTable, ProviderTable
 
 from .api_model import ApiModel
 
@@ -22,6 +24,7 @@ class Purchases:
         resource: Resource,
         data_encryption_key: IKey,
         compact_configuration_table: CompactConfigurationTable,
+        provider_data_table: ProviderTable,
         api_model: ApiModel,
     ):
         super().__init__()
@@ -30,22 +33,126 @@ class Purchases:
         self.api_model = api_model
         self.api: cc_api.CCApi = resource.api
 
-        # /v1/purchases/privileges
-        self.purchases_privileges_resource = self.purchases_resource.add_resource('privileges')
-        # /v1/purchases/privileges/options
-        self.purchases_privileges_options_resource = self.purchases_privileges_resource.add_resource('options')
-
         stack: Stack = Stack.of(resource)
         lambda_environment = {
             'COMPACT_CONFIGURATION_TABLE_NAME': compact_configuration_table.table_name,
+            'PROVIDER_TABLE_NAME': provider_data_table.table_name,
             **stack.common_env_vars,
         }
+
+        # /v1/purchases/privileges
+        self.purchases_privileges_resource = self.purchases_resource.add_resource('privileges')
+        self._add_post_purchase_privileges(
+            data_encryption_key=data_encryption_key,
+            compact_configuration_table=compact_configuration_table,
+            provider_data_table=provider_data_table,
+            lambda_environment=lambda_environment,
+        )
+        # /v1/purchases/privileges/options
+        self.purchases_privileges_options_resource = self.purchases_privileges_resource.add_resource('options')
 
         self._add_get_purchase_privileges_options(
             data_encryption_key=data_encryption_key,
             compact_configuration_table=compact_configuration_table,
             lambda_environment=lambda_environment,
         )
+
+    def _get_secrets_manager_compact_arns(self):
+        # for each compact currently in the system, get the secret arn following this pattern:
+        # /compact-connect/env/{environment_name}/compact/{compact_name}/credentials/payment-processor
+        stack = Stack.of(self.purchases_resource)
+        environment_name = stack.common_env_vars['ENVIRONMENT_NAME']
+        compacts = json.loads(stack.common_env_vars['COMPACTS'])
+        return [
+            stack.format_arn(
+                service='secretsmanager',
+                arn_format=ArnFormat.COLON_RESOURCE_NAME,
+                resource='secret',
+                resource_name=(
+                    # add wildcard to account for random version uuid suffix appended to secret name by secrets manager
+                    f'compact-connect/env/{environment_name}/compact/{compact}/credentials/payment-processor*'
+                ),
+            )
+            for compact in compacts
+        ]
+
+    def _add_post_purchase_privileges(
+        self,
+        data_encryption_key: IKey,
+        compact_configuration_table: CompactConfigurationTable,
+        provider_data_table: ProviderTable,
+        lambda_environment: dict,
+    ):
+        self.post_purchase_privilege_handler = self._post_purchase_privileges_handler(
+            data_encryption_key=data_encryption_key,
+            compact_configuration_table=compact_configuration_table,
+            provider_data_table=provider_data_table,
+            lambda_environment=lambda_environment,
+        )
+        self.api.log_groups.append(self.post_purchase_privilege_handler.log_group)
+
+        self.purchases_privileges_resource.add_method(
+            'POST',
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.post_purchase_privileges_request_model},
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.post_purchase_privileges_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(self.post_purchase_privilege_handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorizer=self.api.provider_users_authorizer,
+        )
+
+    def _post_purchase_privileges_handler(
+        self,
+        data_encryption_key: IKey,
+        compact_configuration_table: CompactConfigurationTable,
+        provider_data_table: ProviderTable,
+        lambda_environment: dict,
+    ) -> PythonFunction:
+        stack = Stack.of(self.purchases_resource)
+        handler = PythonFunction(
+            self.purchases_resource,
+            'PostPurchasePrivilegesHandler',
+            description='Post purchase privileges handler',
+            entry=os.path.join('lambdas', 'purchases'),
+            index=os.path.join('handlers', 'privileges.py'),
+            handler='post_purchase_privileges',
+            environment=lambda_environment,
+            alarm_topic=self.api.alarm_topic,
+        )
+        data_encryption_key.grant_decrypt(handler)
+        compact_configuration_table.grant_read_data(handler)
+        # This lambda is responsible for adding privilege records to a provider after they have purchased them.
+        provider_data_table.grant_read_write_data(handler)
+
+        # grant access to secrets manager secrets following this namespace pattern
+        # /compact-connect/env/{environment_name}/compact/{compact_name}/credentials/payment-processor
+        handler.add_to_role_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                actions=[
+                    'secretsmanager:GetSecretValue',
+                ],
+                resources=self._get_secrets_manager_compact_arns(),
+            )
+        )
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
+                    'and is scoped to two tables, am encryption key, and some secrets in secrets manager.',
+                },
+            ],
+        )
+        return handler
 
     def _add_get_purchase_privileges_options(
         self,
