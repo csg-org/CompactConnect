@@ -7,7 +7,7 @@ from authorizenet.constants import constants
 from config import config, logger
 from data_model.schema.compact import Compact, CompactFeeType
 from data_model.schema.jurisdiction import Jurisdiction, JurisdictionMilitaryDiscountType
-from exceptions import CCFailedTransactionException, CCInternalException
+from exceptions import CCFailedTransactionException, CCInternalException, CCInvalidRequestException
 
 AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
 
@@ -96,6 +96,12 @@ class PaymentProcessorClient(ABC):
         Void a charge on a credit card for an unsettled transaction.
 
         :param order_information: A dictionary containing the order information (transactionId, etc.)
+        """
+
+    @abstractmethod
+    def validate_credentials(self) -> dict:
+        """
+        Verify that the provided credentials are valid.
         """
 
 
@@ -315,6 +321,57 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         # API request wasn't successful
         self._handle_api_error(response)  # noqa: RET503 this branch raises an exception
 
+    def validate_credentials(self) -> dict:
+        """
+        Verify that the credentials the client was constructed with are valid.
+
+        :raises CCInvalidRequestException: If the credentials are invalid.
+        """
+        merchant_auth = apicontractsv1.merchantAuthenticationType()
+        merchant_auth.name = self.api_login_id
+        merchant_auth.transactionKey = self.transaction_key
+
+        transaction_request = apicontractsv1.transactionRequestType()
+        transaction_request.transactionType = 'authenticateTestRequest'
+
+        # Assemble the complete transaction request
+        create_transaction_request = apicontractsv1.createTransactionRequest()
+        create_transaction_request.merchantAuthentication = merchant_auth
+        create_transaction_request.transactionRequest = transaction_request
+
+        # Create the controller
+        transaction_controller = createTransactionController(create_transaction_request)
+
+        # set the environment based on the environment we are running in
+        if config.environment_name != 'prod':
+            transaction_controller.setenvironment(constants.SANDBOX)
+        else:
+            transaction_controller.setenvironment(constants.PRODUCTION)
+
+        transaction_controller.execute()
+        response = transaction_controller.getresponse()
+
+        if response is None:
+            raise CCInvalidRequestException('Failed to verify credentials')
+
+        if response.messages.resultCode == 'Ok' and hasattr(response.messages, 'message'):
+            logger.info(
+                'Successfully verified credentials',
+                message_code=response.messages.message[0].code,
+                message_text=response.messages.message[0].text,
+            )
+            return {'message': 'Successfully verified credentials'}
+
+        else:
+            logger_message = 'Failed to verify credentials.'
+            error_code = response.messages.message[0]['code'].text
+            error_message = response.messages.message[0]['text'].text
+            # logging this as a warning, as the credentials were likely invalid, but if it occurs
+            # frequently, we may want to investigate further.
+            logger.warning(logger_message, error_code=error_code, error_message=error_message)
+
+        raise CCInvalidRequestException(f'{logger_message} Error code: {error_code}, Error message: {error_message}')
+
 
 class PaymentProcessorClientFactory:
     @staticmethod
@@ -357,13 +414,16 @@ class PurchaseClient:
         # this will be initialized when a transaction is processed
         self.payment_processor_client = None
 
+    def _get_payment_processor_secret_name_for_compact(self, compact_name: str) -> str:
+        return (
+            f'compact-connect/env/{config.environment_name}' f'/compact/{compact_name}/credentials/payment-processor'
+        )
+
     def _get_compact_payment_processor_client(self, compact_name: str) -> PaymentProcessorClient:
         """
         Get the payment processor credentials for a compact
         """
-        secret_name = (
-            f'compact-connect/env/{config.environment_name}' f'/compact/{compact_name}/credentials/payment-processor'
-        )
+        secret_name = self._get_payment_processor_secret_name_for_compact(compact_name)
         secret = self.secrets_manager_client.get_secret_value(SecretId=secret_name)
 
         return PaymentProcessorClientFactory.create_payment_processor_client(json.loads(secret['SecretString']))
@@ -410,3 +470,34 @@ class PurchaseClient:
             )
 
         return self.payment_processor_client.void_unsettled_charge_on_credit_card(order_information=order_information)
+
+    def validate_and_store_credentials(self, compact_name: str, credentials: dict) -> dict:
+        """
+        Validate the provided payment credentials and store them in secrets manager.
+
+        :param compact_name: The name of the compact
+        :param credentials: The payment processor credentials
+        :return: A response indicating the credentials were validated and stored successfully
+        :raises CCInvalidRequestException: If the credentials are invalid
+        """
+        if credentials['processor'] != AUTHORIZE_DOT_NET_CLIENT_TYPE:
+            raise CCInvalidRequestException('Invalid payment processor')
+
+        # call payment processor test endpoint to validate the credentials
+        # if the credentials are invalid, authorize.net will return an error response
+        secret_value = {
+            'processor': credentials['processor'],
+            'api_login_id': credentials['apiLoginId'],
+            'transaction_key': credentials['transactionKey'],
+        }
+        # this will raise an exception if the credentials are invalid
+        response = PaymentProcessorClientFactory().create_payment_processor_client(secret_value).validate_credentials()
+
+        # no exceptions were raised, so the credentials are valid
+        # store the credentials in secrets manager
+        self.secrets_manager_client.put_secret_value(
+            SecretId=self._get_payment_processor_secret_name_for_compact(compact_name),
+            SecretString=json.dumps(secret_value),
+        )
+
+        return response
