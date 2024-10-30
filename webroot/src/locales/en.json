@@ -433,6 +433,7 @@
         "residenceLocation": "Residence location",
         "obtainPrivileges": "Obtain Privileges",
         "privileges": "Privileges",
+        "payment": "Payment",
         "ssn": "SSN",
         "adverseActions": "Adverse actions",
         "status": "Status",
@@ -444,6 +445,7 @@
         "lastUpdate": "Latest upload",
         "disciplineStatus": "Discipline status",
         "noDiscipline": "No discipline",
+        "completePurchase": "Complete Purchase",
         "twoHomeStateErrorMessage": "Two states have you listed as a resident. Please update your information with those states to reflect your current residency status.",
         "state": "State",
         "statusOptions": {

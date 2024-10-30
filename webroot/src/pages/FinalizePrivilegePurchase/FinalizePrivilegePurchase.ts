@@ -5,8 +5,8 @@
 //  Created by InspiringApps on 10/28/2024.
 //
 
-import { Component, mixins, Vue } from 'vue-facing-decorator';
-import { reactive, computed } from 'vue';
+import { Component, mixins } from 'vue-facing-decorator';
+import { reactive } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
@@ -14,6 +14,7 @@ import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 // import InputDate from '@components/Forms/InputDate/InputDate.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import { FormInput } from '@models/FormInput/FormInput.model';
 
 @Component({
     name: 'FinalizePrivilegePurchase',
@@ -40,6 +41,37 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     //
     // Computed
     //
+    get nameInputLabel(): string {
+        return this.$t('common.compact');
+    }
+
+    get namePlaceHolderText(): string {
+        return this.$t('common.compact');
+    }
+
+    get isDesktop(): boolean {
+        return this.$matches.desktop.min;
+    }
+
+    get isMobile(): boolean {
+        return !this.isDesktop;
+    }
+
+    get cancelText(): string {
+        return this.$t('common.cancel');
+    }
+
+    get backText(): string {
+        return this.$t('common.back');
+    }
+
+    get submitLabel(): string {
+        return this.$t('licensing.completePurchase');
+    }
+
+    get paymentTitleText(): string {
+        return this.$t('licensing.payment');
+    }
 
     //
     // Methods
@@ -51,15 +83,26 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     initFormInputs() {
         this.formData = reactive({
             compact: new FormInput({
-                id: 'compact',
-                name: 'compact',
-                label: computed(() => this.$t('common.compact')),
-                shouldHideLabel: true,
+                id: 'name',
+                name: 'name',
+                label: this.nameInputLabel,
+                shouldHideLabel: false,
                 shouldHideMargin: true,
-                placeholder: computed(() => this.$t('common.compact')),
-                value: this.currentCompact?.type,
-                valueOptions: this.compactOptions,
+                placeholder: this.namePlaceHolderText,
+                value: '',
+            }),
+            submit: new FormInput({
+                isSubmitInput: true,
+                id: 'submit',
             }),
         });
+    }
+
+    handleCancelClicked() {
+        console.log('cancel');
+    }
+
+    handleBackClicked() {
+        console.log('back');
     }
 }

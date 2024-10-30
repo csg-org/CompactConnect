@@ -32,7 +32,7 @@
             </div>
             <div class="finalize-purchase-core-container">
                 <div class="finalize-purchase-title">
-                    {{selectPrivilegesTitleText}}
+                    {{paymentTitleText}}
                 </div>
             </div>
             <div class="button-row">
@@ -53,7 +53,7 @@
                     <InputSubmit
                         :formInput="formData.submit"
                         :label="submitLabel"
-                        :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen && areAllJurisprudenceConfirmed"
+                        :isEnabled="!isFormLoading"
                     />
                 </div>
             </div>
