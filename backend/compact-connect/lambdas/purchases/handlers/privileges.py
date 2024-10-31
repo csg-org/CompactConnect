@@ -152,7 +152,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         [record for record in user_provider_data['items'] if record['type'] == 'license']
     )
     existing_privilege_jurisdictions = [
-        record["jurisdiction"] for record in user_provider_data['items'] if record['type'] == 'privilege'
+        record['jurisdiction'] for record in user_provider_data['items'] if record['type'] == 'privilege'
     ]
     # this should never happen, but we check just in case
     if provider_record is None:
@@ -162,13 +162,16 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
     license_jurisdiction = license_record['jurisdiction']
     if license_jurisdiction.lower() in selected_jurisdictions_postal_abbreviations:
-        raise CCInvalidRequestException(f'Selected privilege jurisdiction \'{license_jurisdiction}\''
-                                        f' matches license jurisdiction')
-    
+        raise CCInvalidRequestException(
+            f"Selected privilege jurisdiction '{license_jurisdiction}'" f' matches license jurisdiction'
+        )
+
     for privilege_jurisdiction in existing_privilege_jurisdictions:
         if privilege_jurisdiction.lower() in selected_jurisdictions_postal_abbreviations:
-            raise CCInvalidRequestException(f'Selected privilege jurisdiction \'{privilege_jurisdiction}\''
-                                            f' matches existing privilege jurisdiction')
+            raise CCInvalidRequestException(
+                f"Selected privilege jurisdiction '{privilege_jurisdiction}'"
+                f' matches existing privilege jurisdiction'
+            )
 
     license_expiration_date: date = license_record['dateOfExpiration']
     user_active_military = bool(provider_record.get('militaryWaiver', False))

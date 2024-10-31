@@ -29,7 +29,7 @@ class TestCompactsApi(TestApi):
         api_stack = self.app.sandbox_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
-        #/v1/compacts
+        # /v1/compacts
         api_stack_template.has_resource_properties(
             type=CfnResource.CFN_RESOURCE_TYPE_NAME,
             props={
@@ -74,13 +74,16 @@ class TestCompactsApi(TestApi):
 
         # Ensure the resource is created with expected path
         post_credentials_payment_processor_handler = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.credentials
-                                     .post_credentials_payment_processor_handler.node.default_child),
+            api_stack.get_logical_id(
+                api_stack.api.v1_api.credentials.post_credentials_payment_processor_handler.node.default_child
+            ),
             api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
 
-        self.assertEqual(post_credentials_payment_processor_handler['Handler'],
-                         'handlers.credentials.post_payment_processor_credentials')
+        self.assertEqual(
+            post_credentials_payment_processor_handler['Handler'],
+            'handlers.credentials.post_payment_processor_credentials',
+        )
 
         handler_role_logical_id = api_stack.get_logical_id(
             api_stack.api.v1_api.credentials.post_credentials_payment_processor_handler.role.node.default_child

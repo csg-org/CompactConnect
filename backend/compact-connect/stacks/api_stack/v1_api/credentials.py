@@ -59,12 +59,14 @@ class Credentials:
             method_responses=[
                 MethodResponse(
                     status_code='200',
-                    response_models={'application/json':
-                                         self.api_model.post_credentials_payment_processor_response_model},
+                    response_models={
+                        'application/json': self.api_model.post_credentials_payment_processor_response_model
+                    },
                 ),
             ],
-            integration=LambdaIntegration(self.post_credentials_payment_processor_handler,
-                                          timeout=Duration.seconds(29)),
+            integration=LambdaIntegration(
+                self.post_credentials_payment_processor_handler, timeout=Duration.seconds(29)
+            ),
             request_parameters={'method.request.header.Authorization': True},
             authorization_type=method_options.authorization_type,
             authorizer=method_options.authorizer,

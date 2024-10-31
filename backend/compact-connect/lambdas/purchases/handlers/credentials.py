@@ -1,7 +1,10 @@
 import json
+
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from handlers.utils import api_handler, authorize_compact
 from purchase_client import PurchaseClient
+
+from handlers.utils import api_handler, authorize_compact
+
 
 @api_handler
 @authorize_compact(action='write')
@@ -14,6 +17,4 @@ def post_payment_processor_credentials(event: dict, context: LambdaContext):  # 
     body = json.loads(event['body'])
 
     # this will raise an exception if the credentials are invalid
-    response = PurchaseClient().validate_and_store_credentials(compact_name=compact, credentials=body)
-
-    return response
+    return PurchaseClient().validate_and_store_credentials(compact_name=compact, credentials=body)

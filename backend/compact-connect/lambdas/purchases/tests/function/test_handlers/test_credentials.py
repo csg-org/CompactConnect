@@ -23,27 +23,25 @@ def _generate_test_request_body():
         }
     )
 
+
 @mock_aws
 class TestPostPaymentProcessorCredentials(TstFunction):
     def _when_testing_compact_admin_uploads_creds(self):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
-            event['pathParameters'] = {
-                'compact': TEST_COMPACT
-            }
+            event['pathParameters'] = {'compact': TEST_COMPACT}
             # user is a compact admin with write permissions
             event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write'
             event['body'] = _generate_test_request_body()
 
         return event
 
-
     def _when_purchase_client_successfully_verifies_credentials(self, mock_purchase_client_constructor):
         mock_purchase_client = MagicMock()
         mock_purchase_client_constructor.return_value = mock_purchase_client
         mock_purchase_client.validate_and_store_credentials.return_value = {
-                'message': 'Successfully verified credentials'
-            }
+            'message': 'Successfully verified credentials'
+        }
 
         return mock_purchase_client
 
@@ -52,8 +50,7 @@ class TestPostPaymentProcessorCredentials(TstFunction):
         mock_purchase_client_constructor.return_value = mock_purchase_client
         mock_purchase_client.validate_and_store_credentials.side_effect = CCInvalidRequestException(
             # actual error code and error message from the authorize.net client
-            'Failed to verify credentials. Error code: E00124, Error message: '
-            'The provided access token is invalid'
+            'Failed to verify credentials. Error code: E00124, Error message: ' 'The provided access token is invalid'
         )
 
         return mock_purchase_client
@@ -78,8 +75,9 @@ class TestPostPaymentProcessorCredentials(TstFunction):
         self.assertEqual(json.loads(event['body']), purchase_client_call_kwargs['credentials'])
 
     @patch('handlers.credentials.PurchaseClient')
-    def test_post_payment_processor_credentials_returns_exception_message_if_credentials_invalid(self,
-                                                                                    mock_purchase_client_constructor):
+    def test_post_payment_processor_credentials_returns_exception_message_if_credentials_invalid(
+        self, mock_purchase_client_constructor
+    ):
         from handlers.credentials import post_payment_processor_credentials
 
         self._when_purchase_client_raises_exception(mock_purchase_client_constructor)
@@ -90,5 +88,10 @@ class TestPostPaymentProcessorCredentials(TstFunction):
         self.assertEqual(400, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'message': 'Failed to verify credentials. Error code: E00124, Error message: '
-            'The provided access token is invalid'}, response_body)
+        self.assertEqual(
+            {
+                'message': 'Failed to verify credentials. Error code: E00124, Error message: '
+                'The provided access token is invalid'
+            },
+            response_body,
+        )

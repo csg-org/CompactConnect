@@ -362,13 +362,12 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
             )
             return {'message': 'Successfully verified credentials'}
 
-        else:
-            logger_message = 'Failed to verify credentials.'
-            error_code = response.messages.message[0]['code'].text
-            error_message = response.messages.message[0]['text'].text
-            # logging this as a warning, as the credentials were likely invalid, but if it occurs
-            # frequently, we may want to investigate further.
-            logger.warning(logger_message, error_code=error_code, error_message=error_message)
+        logger_message = 'Failed to verify credentials.'
+        error_code = response.messages.message[0]['code'].text
+        error_message = response.messages.message[0]['text'].text
+        # logging this as a warning, as the credentials were likely invalid, but if it occurs
+        # frequently, we may want to investigate further.
+        logger.warning(logger_message, error_code=error_code, error_message=error_message)
 
         raise CCInvalidRequestException(f'{logger_message} Error code: {error_code}, Error message: {error_message}')
 
@@ -415,9 +414,7 @@ class PurchaseClient:
         self.payment_processor_client = None
 
     def _get_payment_processor_secret_name_for_compact(self, compact_name: str) -> str:
-        return (
-            f'compact-connect/env/{config.environment_name}' f'/compact/{compact_name}/credentials/payment-processor'
-        )
+        return f'compact-connect/env/{config.environment_name}' f'/compact/{compact_name}/credentials/payment-processor'
 
     def _get_compact_payment_processor_client(self, compact_name: str) -> PaymentProcessorClient:
         """

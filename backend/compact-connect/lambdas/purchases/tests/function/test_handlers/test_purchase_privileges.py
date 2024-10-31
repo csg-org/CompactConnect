@@ -42,11 +42,11 @@ class TestPostPurchasePrivileges(TstFunction):
     def _load_test_jurisdiction(self):
         with open('tests/resources/dynamo/jurisdiction.json') as f:
             jurisdiction = json.load(f)
-            #swap out the jurisdiction postal abbreviation for ky
+            # swap out the jurisdiction postal abbreviation for ky
             jurisdiction['postalAbbreviation'] = 'ky'
             jurisdiction['jurisdictionName'] = 'Kentucky'
-            jurisdiction['pk'] = "aslp#CONFIGURATION"
-            jurisdiction['sk'] = "aslp#JURISDICTION#ky"
+            jurisdiction['pk'] = 'aslp#CONFIGURATION'
+            jurisdiction['sk'] = 'aslp#JURISDICTION#ky'
             self.config.compact_configuration_table.put_item(Item=jurisdiction)
 
     def _when_testing_provider_user_event_with_custom_claims(self, test_compact=TEST_COMPACT, load_license=True):
@@ -161,7 +161,7 @@ class TestPostPurchasePrivileges(TstFunction):
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_400_if_selected_jurisdiction_matches_existing_license(
-            self, mock_purchase_client_constructor
+        self, mock_purchase_client_constructor
     ):
         from handlers.privileges import post_purchase_privileges
 
@@ -174,12 +174,13 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(400, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'message': 'Selected privilege jurisdiction \'oh\' matches license jurisdiction'},
-                         response_body)
+        self.assertEqual(
+            {'message': "Selected privilege jurisdiction 'oh' matches license jurisdiction"}, response_body
+        )
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_400_if_selected_jurisdiction_matches_existing_privilege(
-            self, mock_purchase_client_constructor
+        self, mock_purchase_client_constructor
     ):
         from handlers.privileges import post_purchase_privileges
 
@@ -196,8 +197,9 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(400, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'message': 'Selected privilege jurisdiction \'ky\' matches existing privilege jurisdiction'},
-                            response_body)
+        self.assertEqual(
+            {'message': "Selected privilege jurisdiction 'ky' matches existing privilege jurisdiction"}, response_body
+        )
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_404_if_provider_not_found(self, mock_purchase_client_constructor):

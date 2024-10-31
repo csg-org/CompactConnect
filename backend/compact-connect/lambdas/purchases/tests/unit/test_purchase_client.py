@@ -398,43 +398,32 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
     @staticmethod
     def _generate_test_credentials_object():
         return {
-                'processor': 'authorize.net',
-                'apiLoginId': MOCK_LOGIN_ID,
-                'transactionKey': MOCK_TRANSACTION_KEY,
-            }
+            'processor': 'authorize.net',
+            'apiLoginId': MOCK_LOGIN_ID,
+            'transactionKey': MOCK_TRANSACTION_KEY,
+        }
 
     def _when_authorize_dot_net_credentials_are_valid(self, mock_create_transaction_controller):
         mock_success_response = {
-            "messages": {
-                "resultCode": "Ok",
-                "message": [
-                    {
-                        "code": "I00001",
-                        "text": "Successful."
-                    }
-                ]
-            }
+            'messages': {'resultCode': 'Ok', 'message': [{'code': 'I00001', 'text': 'Successful.'}]}
         }
 
         return self._setup_mock_transaction_controller(mock_create_transaction_controller, mock_success_response)
 
     def _when_authorize_dot_net_credentials_are_not_valid(self, mock_create_transaction_controller):
         mock_success_response = {
-            "messages": {
-                "resultCode": "Error",
-                "message": [
-                    {
-                        "code": "E00124",
-                        "text": "The provided access token is invalid"
-                    }
-                ]
+            'messages': {
+                'resultCode': 'Error',
+                'message': [{'code': 'E00124', 'text': 'The provided access token is invalid'}],
             }
         }
 
         return self._setup_mock_transaction_controller(mock_create_transaction_controller, mock_success_response)
 
     @patch('purchase_client.createTransactionController')
-    def test_purchase_client_validates_credentials_using_authorize_net_processor(self, mock_create_transaction_controller):
+    def test_purchase_client_validates_credentials_using_authorize_net_processor(
+        self, mock_create_transaction_controller
+    ):
         from purchase_client import PurchaseClient
 
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
@@ -445,8 +434,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
         result = test_purchase_client.validate_and_store_credentials(
-            compact_name='aslp',
-            credentials=self._generate_test_credentials_object()
+            compact_name='aslp', credentials=self._generate_test_credentials_object()
         )
 
         self.assertEqual({'message': 'Successfully verified credentials'}, result)
@@ -471,19 +459,20 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
         result = test_purchase_client.validate_and_store_credentials(
-            compact_name='aslp',
-            credentials=self._generate_test_credentials_object()
+            compact_name='aslp', credentials=self._generate_test_credentials_object()
         )
 
         self.assertEqual({'message': 'Successfully verified credentials'}, result)
 
         mock_secrets_manager_client.put_secret_value.assert_called_once_with(
             SecretId='compact-connect/env/test/compact/aslp/credentials/payment-processor',
-            SecretString=json.dumps({
-                'processor': 'authorize.net',
-                'api_login_id': MOCK_LOGIN_ID,
-                'transaction_key': MOCK_TRANSACTION_KEY,
-            })
+            SecretString=json.dumps(
+                {
+                    'processor': 'authorize.net',
+                    'api_login_id': MOCK_LOGIN_ID,
+                    'transaction_key': MOCK_TRANSACTION_KEY,
+                }
+            ),
         )
 
     @patch('purchase_client.createTransactionController')
@@ -503,8 +492,8 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                 credentials={
                     'processor': 'stripe',
                     'apiLoginId': 'mock_login_id',
-                    'transactionKey': MOCK_TRANSACTION_KEY
-                             }
+                    'transactionKey': MOCK_TRANSACTION_KEY,
+                },
             )
 
     @patch('purchase_client.createTransactionController')
@@ -520,8 +509,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         with self.assertRaises(CCInvalidRequestException) as context:
             test_purchase_client.validate_and_store_credentials(
-                compact_name='aslp',
-                credentials=self._generate_test_credentials_object()
+                compact_name='aslp', credentials=self._generate_test_credentials_object()
             )
 
         self.assertIn('Failed to verify credentials', str(context.exception.message))

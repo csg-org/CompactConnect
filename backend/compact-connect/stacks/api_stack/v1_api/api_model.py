@@ -337,7 +337,6 @@ class ApiModel:
         )
         return self.api._v1_post_purchase_privileges_response_model
 
-
     @property
     def post_credentials_payment_processor_response_model(self) -> Model:
         """Return the purchase privilege response model, which should only be created once per API"""
