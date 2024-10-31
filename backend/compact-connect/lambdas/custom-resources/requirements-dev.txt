@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/lambdas/custom-resources/requirements-dev.in
 #
-boto3==1.35.49
+boto3==1.35.52
     # via moto
-botocore==1.35.49
+botocore==1.35.52
     # via
     #   boto3
     #   moto
