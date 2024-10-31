@@ -112,6 +112,234 @@ export const stateUploadRequestData = {
     },
 };
 
+export const privilegePurchaseOptionsResponse = {
+    items: [
+        {
+            compactName: 'aslp',
+            compactCommissionFee: {
+                feeType: 'FLAT_RATE',
+                feeAmount: 3.5
+            },
+            type: 'compact'
+        },
+        {
+            jurisdictionName: 'kentucky',
+            postalAbbreviation: 'ky',
+            compact: 'aslp',
+            jurisdictionFee: 100,
+            militaryDiscount: {
+                active: true,
+                discountType: 'FLAT_RATE',
+                discountAmount: 10
+            },
+            jurisprudenceRequirements: {
+                required: true
+            },
+            type: 'jurisdiction'
+        },
+        {
+            jurisdictionName: 'nebraska',
+            postalAbbreviation: 'ne',
+            compact: 'aslp',
+            jurisdictionFee: 100,
+            militaryDiscount: {
+                active: true,
+                discountType: 'FLAT_RATE',
+                discountAmount: 10
+            },
+            jurisprudenceRequirements: {
+                required: true
+            },
+            type: 'jurisdiction'
+        },
+        {
+            jurisdictionName: 'ohio',
+            postalAbbreviation: 'oh',
+            compact: 'aslp',
+            jurisdictionFee: 100,
+            militaryDiscount: {
+                active: true,
+                discountType: 'FLAT_RATE',
+                discountAmount: 10
+            },
+            jurisprudenceRequirements: {
+                required: true
+            },
+            type: 'jurisdiction'
+        },
+        {
+            jurisdictionName: 'massachusetts',
+            postalAbbreviation: 'ma',
+            compact: 'aslp',
+            jurisdictionFee: 100,
+            militaryDiscount: {
+                active: false,
+                discountType: 'FLAT_RATE',
+                discountAmount: 10
+            },
+            jurisprudenceRequirements: {
+                required: true
+            },
+            type: 'jurisdiction'
+        },
+        {
+            jurisdictionName: 'vermont',
+            postalAbbreviation: 'vt',
+            compact: 'aslp',
+            jurisdictionFee: 100,
+            militaryDiscount: {
+                active: false,
+                discountType: 'FLAT_RATE',
+                discountAmount: 10
+            },
+            jurisprudenceRequirements: {
+                required: true
+            },
+            type: 'jurisdiction'
+        },
+        {
+            jurisdictionName: 'virginia',
+            postalAbbreviation: 'va',
+            compact: 'aslp',
+            jurisdictionFee: 100,
+            militaryDiscount: {
+                active: false,
+                discountType: 'FLAT_RATE',
+                discountAmount: 10
+            },
+            jurisprudenceRequirements: {
+                required: false
+            },
+            type: 'jurisdiction'
+        },
+        {
+            jurisdictionName: 'colorado',
+            postalAbbreviation: 'co',
+            compact: 'aslp',
+            jurisdictionFee: 100,
+            militaryDiscount: {
+                active: false,
+                discountType: 'FLAT_RATE',
+                discountAmount: 10
+            },
+            jurisprudenceRequirements: {
+                required: true
+            },
+            type: 'jurisdiction'
+        },
+        {
+            jurisdictionName: 'maine',
+            postalAbbreviation: 'me',
+            compact: 'aslp',
+            jurisdictionFee: 100,
+            militaryDiscount: {
+                active: false,
+                discountType: 'FLAT_RATE',
+                discountAmount: 10
+            },
+            jurisprudenceRequirements: {
+                required: true
+            },
+            type: 'jurisdiction'
+        },
+        {
+            jurisdictionName: 'connecticut',
+            postalAbbreviation: 'ct',
+            compact: 'aslp',
+            jurisdictionFee: 100,
+            militaryDiscount: {
+                active: false,
+                discountType: 'FLAT_RATE',
+                discountAmount: 10
+            },
+            jurisprudenceRequirements: {
+                required: false
+            },
+            type: 'jurisdiction'
+        },
+        {
+            jurisdictionName: 'rhode island',
+            postalAbbreviation: 'ri',
+            compact: 'aslp',
+            jurisdictionFee: 100,
+            militaryDiscount: {
+                active: false,
+                discountType: 'FLAT_RATE',
+                discountAmount: 10
+            },
+            jurisprudenceRequirements: {
+                required: true
+            },
+            type: 'jurisdiction'
+        },
+        {
+            jurisdictionName: 'nevada',
+            postalAbbreviation: 'nv',
+            compact: 'aslp',
+            jurisdictionFee: 100,
+            militaryDiscount: {
+                active: false,
+                discountType: 'FLAT_RATE',
+                discountAmount: 10
+            },
+            jurisprudenceRequirements: {
+                required: true
+            },
+            type: 'jurisdiction'
+        },
+        {
+            jurisdictionName: 'kansas',
+            postalAbbreviation: 'ks',
+            compact: 'aslp',
+            jurisdictionFee: 100,
+            militaryDiscount: {
+                active: false,
+                discountType: 'FLAT_RATE',
+                discountAmount: 10
+            },
+            jurisprudenceRequirements: {
+                required: false
+            },
+            type: 'jurisdiction'
+        },
+        {
+            jurisdictionName: 'alaska',
+            postalAbbreviation: 'ak',
+            compact: 'aslp',
+            jurisdictionFee: 100,
+            militaryDiscount: {
+                active: false,
+                discountType: 'FLAT_RATE',
+                discountAmount: 10
+            },
+            jurisprudenceRequirements: {
+                required: true
+            },
+            type: 'jurisdiction'
+        },
+        {
+            jurisdictionName: 'arkansas',
+            postalAbbreviation: 'ar',
+            compact: 'aslp',
+            jurisdictionFee: 100,
+            militaryDiscount: {
+                active: false,
+                discountType: 'FLAT_RATE',
+                discountAmount: 10
+            },
+            jurisprudenceRequirements: {
+                required: true
+            },
+            type: 'jurisdiction'
+        }
+    ],
+    pagination: {
+        pageSize: 100,
+        prevLastKey: null,
+        lastKey: null
+    }
+};
+
 export const licensees = {
     prevLastKey: 'xyz',
     lastKey: 'abc',

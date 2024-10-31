@@ -13,7 +13,8 @@ import { authStorage, tokens } from '@/app.config';
 export interface State {
     model: StaffUser | LicenseeUser | null;
     isLoggedIn: boolean;
-    isLoading: boolean;
+    isLoadingAccount: boolean;
+    isLoadingPrivilegePurchaseOptions: boolean;
     refreshTokenTimeoutId: number | null;
     currentCompact: Compact | null;
     error: any | null;
@@ -22,7 +23,8 @@ export interface State {
 export const state: State = {
     model: null,
     isLoggedIn: (!!authStorage.getItem(tokens.staff.AUTH_TOKEN) || !!authStorage.getItem(tokens.licensee.AUTH_TOKEN)),
-    isLoading: false,
+    isLoadingAccount: false,
+    isLoadingPrivilegePurchaseOptions: false,
     refreshTokenTimeoutId: null,
     currentCompact: null,
     error: null,

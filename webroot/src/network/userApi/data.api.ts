@@ -13,6 +13,7 @@ import {
     responseError
 } from '@network/userApi/interceptors';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
+import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 
@@ -194,6 +195,24 @@ export class UserDataApi implements DataApiInterface {
         const response = LicenseeUserSerializer.fromServer(serverResponse);
 
         return response;
+    }
+
+    /**
+     * GET Privilege Purchase Information for Authenticated Licensee user.
+     * @return {Promise<object>} List of privilege purchase options and compact purchase info.
+     */
+    public async getPrivilegePurchaseInformation() {
+        const serverResponse: any = await this.api.get(`/v1/purchases/privileges/options`);
+        const { items } = serverResponse;
+        const privilegePurchaseOptions = items.filter((serverItem) => (serverItem.type === 'jurisdiction')).map((serverPurchaseOption) => (PrivilegePurchaseOptionSerializer.fromServer(serverPurchaseOption)));
+
+        const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => ({
+            compactType: serverFeeObject?.compactName,
+            feeType: serverFeeObject?.compactCommissionFee?.feeType,
+            feeAmount: serverFeeObject?.compactCommissionFee?.feeAmount
+        }))[0];
+
+        return { privilegePurchaseOptions, compactCommissionFee };
     }
 }
 

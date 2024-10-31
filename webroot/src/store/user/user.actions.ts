@@ -199,4 +199,31 @@ export default {
             localStorage.removeItem(tokens[authType][key]); // Always remove localStorage to reduce edge cache states; e.g. from switching auth storage
         });
     },
+    getPrivilegePurchaseInformationRequest: ({ commit, dispatch }) => {
+        commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST);
+        return dataApi.getPrivilegePurchaseInformation().then((privilegePurchaseData) => {
+            dispatch('getPrivilegePurchaseInformationSuccess', privilegePurchaseData);
+            return privilegePurchaseData;
+        }).catch((error) => {
+            dispatch('getPrivilegePurchaseInformationFailure', error);
+        });
+    },
+    getPrivilegePurchaseInformationSuccess: ({ dispatch, commit, state }, privilegePurchaseData) => {
+        if (privilegePurchaseData?.compactCommissionFee?.compactType === state?.currentCompact?.type) {
+            const newCompact = new Compact({
+                ...state.currentCompact,
+                privilegePurchaseOptions: privilegePurchaseData.privilegePurchaseOptions,
+                compactCommissionFee: privilegePurchaseData?.compactCommissionFee?.feeAmount,
+                compactCommissionFeeType: privilegePurchaseData?.compactCommissionFee?.feeType
+            });
+
+            dispatch('setCurrentCompact', newCompact);
+            commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS);
+        } else {
+            dispatch('getPrivilegePurchaseInformationFailure', new Error('Compact mismatch'));
+        }
+    },
+    getPrivilegePurchaseInformationFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE, error);
+    },
 };

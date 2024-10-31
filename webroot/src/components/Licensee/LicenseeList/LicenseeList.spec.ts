@@ -108,7 +108,7 @@ describe('LicenseeList component', async () => {
         expect(fetchListData.notCalled).to.equal(true);
     });
     it('should successfully fetch data with expected search params (no params)', async () => {
-        const wrapper = await mountShallow(LicenseeList);
+        const wrapper = await mountFull(LicenseeList);
         const component = wrapper.vm;
         const requestConfig = await component.fetchListData();
 
