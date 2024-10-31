@@ -42,11 +42,19 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     // Computed
     //
     get firstNameInputLabel(): string {
-        return this.$t('common.compact');
+        return this.$t('common.firstname');
     }
 
     get firstNamePlaceHolderText(): string {
-        return this.$t('common.compact');
+        return this.$t('licensing.firstNameOnCard');
+    }
+
+    get lastNameInputLabel(): string {
+        return this.$t('common.lastname');
+    }
+
+    get lastNamePlaceHolderText(): string {
+        return this.$t('licensing.lastNameOnCard');
     }
 
     get isDesktop(): boolean {
@@ -77,6 +85,34 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         return this.$t('licensing.noRefundsMessage');
     }
 
+    get cardNumberText(): string {
+        return this.$t('licensing.noRefundsMessage');
+    }
+
+    get streetAddress1Label(): string {
+        return this.$t('licensing.completePurchase');
+    }
+
+    get streetAddress1PlaceHolderText(): string {
+        return this.$t('licensing.payment');
+    }
+
+    get streetAddress2Label(): string {
+        return this.$t('licensing.noRefundsMessage');
+    }
+
+    get streetAddress2PlaceHolderText(): string {
+        return this.$t('licensing.noRefundsMessage');
+    }
+
+    get creditCardTitleText(): string {
+        return 'as';
+    }
+
+    get billingAddressTitleText(): string {
+        return 'as';
+    }
+
     //
     // Methods
     //
@@ -98,10 +134,28 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
             lastName: new FormInput({
                 id: 'last-name',
                 name: 'last-name',
-                label: this.firstNameInputLabel,
+                label: this.lastNameInputLabel,
                 shouldHideLabel: false,
                 shouldHideMargin: true,
-                placeholder: this.firstNamePlaceHolderText,
+                placeholder: this.lastNamePlaceHolderText,
+                value: '',
+            }),
+            streetAddress1: new FormInput({
+                id: 'street-address-1',
+                name: 'street-address-1',
+                label: this.streetAddress1Label,
+                shouldHideLabel: false,
+                shouldHideMargin: true,
+                placeholder: this.streetAddress1PlaceHolderText,
+                value: '',
+            }),
+            streetAddress2: new FormInput({
+                id: 'street-address-2',
+                name: 'street-address-2',
+                label: this.streetAddress2Label,
+                shouldHideLabel: false,
+                shouldHideMargin: true,
+                placeholder: this.streetAddress2PlaceHolderText,
                 value: '',
             }),
             noRefunds: new FormInput({

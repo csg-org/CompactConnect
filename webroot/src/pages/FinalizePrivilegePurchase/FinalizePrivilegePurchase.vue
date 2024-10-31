@@ -36,12 +36,28 @@
                         {{paymentTitleText}}
                     </div>
                     <div class="payment-core-form">
-                        <InputText
-                            :formInput="formData.firstName"
-                        />
-                        <InputText
-                            :formInput="formData.lastName"
-                        />
+                        <div class="credit-card-section">
+                            <div class="credit-card-title">
+                                {{creditCardTitleText}}
+                            </div>
+                            <InputText
+                                :formInput="formData.firstName"
+                            />
+                            <InputText
+                                :formInput="formData.lastName"
+                            />
+                        </div>
+                         <div class="billing-address-section">
+                            <div class="billing-address-title">
+                                {{billingAddressTitleText}}
+                            </div>
+                            <InputText
+                                :formInput="formData.firstName"
+                            />
+                            <InputText
+                                :formInput="formData.lastName"
+                            />
+                        </div>
                     </div>
                 </div>
                 <div class="cost-breakdown-container">
