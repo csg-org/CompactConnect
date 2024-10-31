@@ -106,11 +106,11 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     }
 
     get creditCardTitleText(): string {
-        return 'as';
+        return this.$t('licensing.creditCardTitle');
     }
 
     get billingAddressTitleText(): string {
-        return 'as';
+        return this.$t('licensing.billingAddressTitle');
     }
 
     //

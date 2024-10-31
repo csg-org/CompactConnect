@@ -440,6 +440,8 @@
         "payment": "Payment",
         "noRefundsMessage": "All compact privilege purchases are final. Refunds will not be issued.",
         "ssn": "SSN",
+        "creditCardTitle": "Credit Card",
+        "billingAddressTitle": "Billing Address",
         "adverseActions": "Adverse actions",
         "status": "Status",
         "expired": "Expired",

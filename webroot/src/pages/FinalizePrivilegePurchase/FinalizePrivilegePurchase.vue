@@ -57,6 +57,14 @@
                             <InputText
                                 :formInput="formData.lastName"
                             />
+                            <div class="state-zip-line">
+                            <InputText
+                                :formInput="formData.firstName"
+                            />
+                            <InputText
+                                :formInput="formData.lastName"
+                            />
+                            </div>
                         </div>
                     </div>
                 </div>

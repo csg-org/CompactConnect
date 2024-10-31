@@ -444,6 +444,8 @@
         "firstNameOnCard": "Introduzca el nombre en la tarjeta",
         "lastNameOnCard": "Introduzca el apellido en la tarjeta",
         "licenseExpiredMessage": "Su licencia ha caducado.",
+        "billingAddressTitle": "Dirección de Envio",
+        "creditCardTitle": "Tarjeta de Crédito",
         "obtainPrivileges": "Obtener privilegios",
         "expired": "Caducada",
         "issued": "Emitida",
