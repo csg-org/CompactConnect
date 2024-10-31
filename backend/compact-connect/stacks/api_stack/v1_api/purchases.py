@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import json
 import os
 
-from aws_cdk import ArnFormat, Duration
+from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource
 from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import IKey
@@ -56,25 +55,6 @@ class Purchases:
             compact_configuration_table=compact_configuration_table,
             lambda_environment=lambda_environment,
         )
-
-    def _get_secrets_manager_compact_arns(self):
-        # for each compact currently in the system, get the secret arn following this pattern:
-        # /compact-connect/env/{environment_name}/compact/{compact_name}/credentials/payment-processor
-        stack = Stack.of(self.purchases_resource)
-        environment_name = stack.common_env_vars['ENVIRONMENT_NAME']
-        compacts = json.loads(stack.common_env_vars['COMPACTS'])
-        return [
-            stack.format_arn(
-                service='secretsmanager',
-                arn_format=ArnFormat.COLON_RESOURCE_NAME,
-                resource='secret',
-                resource_name=(
-                    # add wildcard to account for random version uuid suffix appended to secret name by secrets manager
-                    f'compact-connect/env/{environment_name}/compact/{compact}/credentials/payment-processor*'
-                ),
-            )
-            for compact in compacts
-        ]
 
     def _add_post_purchase_privileges(
         self,
@@ -130,14 +110,14 @@ class Purchases:
         provider_data_table.grant_read_write_data(handler)
 
         # grant access to secrets manager secrets following this namespace pattern
-        # /compact-connect/env/{environment_name}/compact/{compact_name}/credentials/payment-processor
+        # compact-connect/env/{environment_name}/compact/{compact_name}/credentials/payment-processor
         handler.add_to_role_policy(
             PolicyStatement(
                 effect=Effect.ALLOW,
                 actions=[
                     'secretsmanager:GetSecretValue',
                 ],
-                resources=self._get_secrets_manager_compact_arns(),
+                resources=self.api.get_secrets_manager_compact_payment_processor_arns(),
             )
         )
 
