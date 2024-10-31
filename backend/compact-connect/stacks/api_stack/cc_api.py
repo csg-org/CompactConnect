@@ -77,6 +77,8 @@ class CCApi(RestApi):
         **kwargs,
     ):
         stack: AppStack = AppStack.of(scope)
+        # add the ENVIRONMENT_NAME to the common lambda environment variables
+        stack.common_env_vars['ENVIRONMENT_NAME'] = environment_name
         # For developer convenience, we will allow for the case where there is no domain name configured
         domain_kwargs = {}
         if stack.hosted_zone is not None:

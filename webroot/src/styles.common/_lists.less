@@ -25,6 +25,12 @@
     border-bottom-right-radius: @listBorderRadius;
     border-bottom-left-radius: @listBorderRadius;
 
+    &:not(:nth-child(1)) {
+        border-top: 0;
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+    }
+
     @media @tabletWidth {
         border-top: 0;
         border-top-left-radius: 0;
@@ -38,7 +44,6 @@
     padding: 0.8rem 0;
     border: @listBorder;
     border-top: 0;
-    overflow: hidden;
 
     @media @tabletWidth {
         flex-direction: row;

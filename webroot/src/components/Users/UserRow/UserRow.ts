@@ -13,12 +13,14 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import RightCaretIcon from '@components/Icons/RightCaretIcon/RightCaretIcon.vue';
+import UserRowEdit from '@components/Users/UserRowEdit/UserRowEdit.vue';
 import { SortDirection } from '@store/sorting/sorting.state';
 
 @Component({
     name: 'UserRow',
     components: {
         RightCaretIcon,
+        UserRowEdit,
     },
 })
 class UserRow extends Vue {
@@ -34,6 +36,8 @@ class UserRow extends Vue {
     lastSortSelectOption = '';
     lastSortSelectDirection = '';
     isRowExpanded = false;
+    isRowActionMenuDisplayed = false;
+    isModalDisplayed = false;
 
     //
     // Computed
@@ -163,6 +167,22 @@ class UserRow extends Vue {
 
     expandRowToggle(): void {
         this.isRowExpanded = !this.isRowExpanded;
+    }
+
+    toggleRowActionMenu(): void {
+        this.isRowActionMenuDisplayed = !this.isRowActionMenuDisplayed;
+    }
+
+    closeRowActionMenu(): void {
+        this.isRowActionMenuDisplayed = false;
+    }
+
+    toggleEditUserModal(): void {
+        this.isModalDisplayed = !this.isModalDisplayed;
+    }
+
+    closeEditUserModal(): void {
+        this.isModalDisplayed = false;
     }
 
     //

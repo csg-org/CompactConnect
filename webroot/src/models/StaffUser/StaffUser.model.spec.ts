@@ -274,4 +274,42 @@ describe('User model', () => {
         expect(user.statesDisplay()).to.equal('Colorado');
         expect(user.accountStatusDisplay()).to.equal('Active');
     });
+    it('should prepare a Staff User for server request through serializer', () => {
+        const data = {
+            permissions: [
+                {
+                    compact: CompactType.ASLP,
+                    isRead: true,
+                    isAdmin: true,
+                    states: [
+                        {
+                            abbrev: 'co',
+                            isWrite: true,
+                            isAdmin: true,
+                        },
+                    ],
+                },
+            ],
+        };
+        const requestData = StaffUserSerializer.toServer(data);
+
+        expect(requestData).to.matchPattern({
+            permissions: {
+                [CompactType.ASLP]: {
+                    actions: {
+                        read: true,
+                        admin: true,
+                    },
+                    jurisdictions: {
+                        co: {
+                            actions: {
+                                write: true,
+                                admin: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    });
 });

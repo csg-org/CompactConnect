@@ -16,8 +16,11 @@
         "replaceFile": "Reemplazar el archivo",
         "replaceFiles": "Reemplazar archivos",
         "change": "Cambiar",
+        "add": "Agregar",
+        "remove": "Eliminar",
         "reset": "Restablecer",
         "save": "Guardar",
+        "saveChanges": "Guardar cambios",
         "submit": "Enviar",
         "clear": "Borrar",
         "success": "Correcto",
@@ -502,10 +505,13 @@
         "usersListTitle": "Usuarios",
         "usersListEmpty": "Invita a los usuarios con el botón de arriba",
         "permissions": "Permisos",
+        "permission": "Permiso",
         "affiliation": "Afiliación",
-        "states": "Estado/Jurisdicción",
+        "state": "Estado / Jurisdiccion",
+        "states": "Estado / Jurisdicciónes",
         "accountStatus": "Estado de la cuenta",
         "accessLevel": {
+            "none": "Ninguno",
             "read": "Lectura",
             "write": "Escritura",
             "admin": "Administración"
@@ -516,7 +522,12 @@
             "pending": "Pendiente"
         },
         "resendInvite": "Reenviar invitación",
-        "userSearchLabel": "Introduzca un nombre"
+        "userSearchLabel": "Introduzca un nombre",
+        "userActions": "Acciones del usuario",
+        "edit": "Editar",
+        "editPermissions": "Editar permisos",
+        "editUserPermissions": "Editar permisos de usuario",
+        "addState": "Agregar estado / jurisdiccion"
     },
     "styleGuide": {
         "headerPlaceholder": "Contenido del encabezado",

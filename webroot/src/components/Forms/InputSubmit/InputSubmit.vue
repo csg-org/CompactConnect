@@ -6,8 +6,8 @@
 -->
 
 <template>
-    <div class="input-container input-submit-container">
-        <div class="response-message">
+    <div class="input-container input-submit-container" :class="{ 'no-margin': formInput.shouldHideMargin }">
+        <div v-if="formInput.successMessage || formInput.errorMessage" class="response-message">
             <span v-if="formInput.successMessage" class="success">{{ formInput.successMessage }}</span>
             <span v-if="formInput.errorMessage" class="error">{{ formInput.errorMessage }}</span>
         </div>

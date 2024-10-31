@@ -60,7 +60,8 @@
       "status": "active",
       "dateOfIssuance": "2024-06-06",
       "dateOfUpdate": "2024-07-01",
-      "dateOfExpiration": "2024-06-06"
+      "dateOfExpiration": "2024-06-06",
+      "compactTransactionId": "1234567890"
     }
   ]
 }
