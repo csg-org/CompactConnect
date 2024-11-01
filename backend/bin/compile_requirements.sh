@@ -14,6 +14,8 @@ pip-compile --no-emit-index-url --upgrade compact-connect/lambdas/provider-data-
 pip-compile --no-emit-index-url --upgrade compact-connect/lambdas/provider-data-v1/requirements-dev.in
 pip-compile --no-emit-index-url --upgrade compact-connect/lambdas/purchases/requirements.in
 pip-compile --no-emit-index-url --upgrade compact-connect/lambdas/purchases/requirements-dev.in
+pip-compile --no-emit-index-url --upgrade compact-connect/lambdas/data-events/requirements.in
+pip-compile --no-emit-index-url --upgrade compact-connect/lambdas/data-events/requirements-dev.in
 pip-compile --no-emit-index-url --upgrade compact-connect/lambdas/staff-user-pre-token/requirements.in
 pip-compile --no-emit-index-url --upgrade compact-connect/lambdas/staff-user-pre-token/requirements-dev.in
 pip-compile --no-emit-index-url --upgrade compact-connect/lambdas/staff-users/requirements.in

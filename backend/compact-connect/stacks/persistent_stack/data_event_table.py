@@ -6,7 +6,7 @@ from aws_cdk import Duration, RemovalPolicy
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_dynamodb import Attribute, AttributeType, BillingMode, Table, TableEncryption
-from aws_cdk.aws_events import EventPattern, IEventBus, Rule
+from aws_cdk.aws_events import EventPattern, IEventBus, Match, Rule
 from aws_cdk.aws_events_targets import SqsQueue
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_sns import ITopic
@@ -55,10 +55,10 @@ class DataEventTable(Table):
             entry=os.path.join('lambdas', 'data-events'),
             index=os.path.join('handlers.py'),
             handler='handle_data_events',
-            environment={'EVENT_TABLE_NAME': self.table_name, **stack.common_env_vars},
+            environment={'DATA_EVENT_TABLE_NAME': self.table_name, **stack.common_env_vars},
             alarm_topic=alarm_topic,
         )
-        stack.provider_table.grant_read_write_data(self.event_handler)
+        self.grant_read_write_data(self.event_handler)
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
             f'{self.event_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
@@ -102,7 +102,8 @@ class DataEventTable(Table):
             self,
             'EventReceiverRule',
             event_bus=event_bus,
-            event_pattern=EventPattern(account=[stack.account]),  # We want to match everything in this bus
+            # We will ignore ingest events, since they have sensitive data, but will store everything else
+            event_pattern=EventPattern(detail_type=Match.anything_but('license.ingest')),
             targets=[SqsQueue(self.event_processor.queue, dead_letter_queue=self.event_processor.dlq)],
         )
         NagSuppressions.add_resource_suppressions(

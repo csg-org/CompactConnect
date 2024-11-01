@@ -13,6 +13,7 @@ for dir in \
   compact-connect/lambdas/staff-user-pre-token \
   compact-connect/lambdas/staff-users \
   compact-connect/lambdas/delete-objects \
+  compact-connect/lambdas/data-events \
   compact-connect/lambdas/custom-resources \
   compact-connect/lambdas/purchases \
   multi-account
@@ -26,6 +27,11 @@ for dir in \
     pytest --cov=. --cov-config=.coveragerc --cov-append tests
   ) || exit "$?"
 done
+
+(
+  cd compact-connect/lambdas/data-validation-events
+  npm run test || exit "$?"
+)
 
 # Run a coverage report with the combined data
 coverage html --fail-under=90

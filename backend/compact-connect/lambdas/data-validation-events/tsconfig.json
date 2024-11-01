@@ -1,0 +1,33 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "esnext",
+        "strict": true,
+        "jsx": "preserve",
+        "importHelpers": true,
+        "moduleResolution": "node",
+        "experimentalDecorators": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "sourceMap": true,
+        "baseUrl": ".",
+        "noImplicitAny": false,
+        "lib": [
+            "esnext",
+            "scripthost"
+        ],
+        "typeRoots": [
+          "./node_modules/@types"
+        ]
+    },
+    "include": [
+        "bin/**/*.ts",
+        "bin/**/*.tsx",
+        "lib/**/*.ts",
+        "lib/**/*.tsx"
+    ],
+    "exclude": [
+        "cdk.out",
+        "node_modules"
+    ]
+}

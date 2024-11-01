@@ -1,0 +1,36 @@
+{
+  "name": "data-validation-events",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Collect license data validation events and report them back to admins",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest",
+    "lint": "eslint '**/*.ts'",
+    "lint-fix": "eslint --fix"
+  },
+  "author": "Inspiring Apps",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/aws-lambda": "8.10.145",
+    "@types/jest": "^29.5.12",
+    "@types/node": "22.5.4",
+    "@typescript-eslint/eslint-plugin": "^8.12.2",
+    "@typescript-eslint/parser": "^8.12.2",
+    "esbuild": "0.24.0",
+    "eslint": "^9.13.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.8.0",
+    "tsx": "^4.19.2",
+    "typescript": "5.6.3"
+  },
+  "dependencies": {
+    "@aws-lambda-powertools/logger": "^2.10.0",
+    "@aws-sdk/client-dynamodb": "^3.682.0",
+    "@aws-sdk/client-s3": "^3.682.0",
+    "@aws-sdk/util-dynamodb": "^3.682.0",
+    "aws-lambda": "1.0.7"
+  }
+}
