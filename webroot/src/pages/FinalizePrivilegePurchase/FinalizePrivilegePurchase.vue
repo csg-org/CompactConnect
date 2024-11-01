@@ -46,6 +46,23 @@
                             <InputText
                                 :formInput="formData.lastName"
                             />
+                            <div class="cc-dets-row">
+                                <div class="exp-chunk">
+                                    <div class="exp-chunk-title"></div>
+                                    <div class="exp-chunk-input">
+                                        <InputNumber
+                                            :formInput="formData.expMonth"
+                                        />
+                                        /
+                                        <InputNumber
+                                            :formInput="formData.expYear"
+                                        />
+                                    </div>
+                                </div>
+                                <InputNumber
+                                    :formInput="formData.cvv"
+                                />
+                            </div>
                         </div>
                          <div class="billing-address-section">
                             <div class="billing-address-title">
