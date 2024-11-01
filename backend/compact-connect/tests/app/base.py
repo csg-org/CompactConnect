@@ -127,81 +127,73 @@ class TstAppABC(ABC):
             self.assertEqual(
                 provider_users_user_pool_app_client['WriteAttributes'], ['email', 'family_name', 'given_name']
             )
+            self._inspect_data_events_table(persistent_stack, persistent_stack_template)
 
-            # Ensure our DataEventTable and queues are created
-            self.get_resource_properties_by_logical_id(
-                persistent_stack.get_logical_id(persistent_stack.data_event_table.node.default_child),
-                persistent_stack_template.find_resources(CfnTable.CFN_RESOURCE_TYPE_NAME),
-            )
-            self.get_resource_properties_by_logical_id(
-                persistent_stack.get_logical_id(
-                    persistent_stack.data_event_table.event_processor.queue.node.default_child
-                ),
-                persistent_stack_template.find_resources(CfnQueue.CFN_RESOURCE_TYPE_NAME),
-            )
-            self.get_resource_properties_by_logical_id(
-                persistent_stack.get_logical_id(
-                    persistent_stack.data_event_table.event_processor.dlq.node.default_child
-                ),
-                persistent_stack_template.find_resources(CfnQueue.CFN_RESOURCE_TYPE_NAME),
-            )
-            # Events from bus to queue
-            persistent_stack_template.has_resource(
-                type=CfnRule.CFN_RESOURCE_TYPE_NAME,
-                props={
-                    'Properties': {
-                        'EventBusName': {
-                            'Ref': persistent_stack.get_logical_id(persistent_stack.data_event_bus.node.default_child)
-                        },
-                        'EventPattern': {'account': [persistent_stack.account]},
-                        'State': 'ENABLED',
-                        'Targets': [
-                            {
-                                'Arn': {
-                                    'Fn::GetAtt': [
-                                        persistent_stack.get_logical_id(
-                                            persistent_stack.data_event_table.event_processor.queue.node.default_child
-                                        ),
-                                        'Arn',
-                                    ]
-                                },
-                                'DeadLetterConfig': {
-                                    'Arn': {
-                                        'Fn::GetAtt': [
-                                            persistent_stack.get_logical_id(
-                                                persistent_stack.data_event_table.event_processor.dlq.node.default_child
-                                            ),
-                                            'Arn',
-                                        ]
-                                    }
-                                },
-                            },
-                        ],
+    def _inspect_data_events_table(self, persistent_stack: PersistentStack, persistent_stack_template: Template):
+        # Ensure our DataEventTable and queues are created
+        event_bus_logical_id = persistent_stack.get_logical_id(persistent_stack.data_event_bus.node.default_child)
+        queue_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.data_event_table.event_processor.queue.node.default_child
+        )
+        dlq_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.data_event_table.event_processor.dlq.node.default_child
+        )
+
+        self.get_resource_properties_by_logical_id(
+            persistent_stack.get_logical_id(persistent_stack.data_event_table.node.default_child),
+            persistent_stack_template.find_resources(CfnTable.CFN_RESOURCE_TYPE_NAME),
+        )
+        self.get_resource_properties_by_logical_id(
+            queue_logical_id,
+            persistent_stack_template.find_resources(CfnQueue.CFN_RESOURCE_TYPE_NAME),
+        )
+        self.get_resource_properties_by_logical_id(
+            dlq_logical_id,
+            persistent_stack_template.find_resources(CfnQueue.CFN_RESOURCE_TYPE_NAME),
+        )
+        # Events from bus to queue
+        rules = persistent_stack_template.find_resources(
+            type=CfnRule.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'EventBusName': {'Ref': event_bus_logical_id},
+                    'Targets': [
+                        {
+                            'Arn': {
+                                'Fn::GetAtt': [
+                                    queue_logical_id,
+                                    'Arn',
+                                ]
+                            }
+                        }
+                    ],
+                }
+            },
+        )
+        self.assertEqual(1, len(rules))
+        rule = [rule for rule in rules.values()][0]
+        self.compare_snapshot(rule, 'DATA_EVENT_RULE', overwrite_snapshot=False)
+
+        # Events from queue to lambda
+        persistent_stack_template.has_resource(
+            type=CfnEventSourceMapping.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'EventSourceArn': {
+                        'Fn::GetAtt': [
+                            queue_logical_id,
+                            'Arn',
+                        ]
                     },
-                },
-            )
-            # Events from queue to lambda
-            persistent_stack_template.has_resource(
-                type=CfnEventSourceMapping.CFN_RESOURCE_TYPE_NAME,
-                props={
-                    'Properties': {
-                        'EventSourceArn': {
-                            'Fn::GetAtt': [
-                                persistent_stack.get_logical_id(
-                                    persistent_stack.data_event_table.event_processor.queue.node.default_child
-                                ),
-                                'Arn',
-                            ]
-                        },
-                        'FunctionName': {
-                            'Ref': persistent_stack.get_logical_id(
-                                persistent_stack.data_event_table.event_handler.node.default_child
-                            )
-                        },
-                        'FunctionResponseTypes': ['ReportBatchItemFailures'],
+                    'FunctionName': {
+                        'Ref': persistent_stack.get_logical_id(
+                            persistent_stack.data_event_table.event_handler.node.default_child
+                        )
                     },
+                    'FunctionResponseTypes': ['ReportBatchItemFailures'],
                 },
-            )
+            },
+        )
 
     def _inspect_api_stack(self, api_stack: ApiStack):
         with self.subTest(api_stack.stack_name):
