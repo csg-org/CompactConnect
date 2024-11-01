@@ -206,7 +206,6 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 shouldHideLabel: false,
                 shouldHideMargin: true,
                 placeholder: '00000',
-                // eslint-disable-next-line
                 validation: Joi.string().regex(new RegExp('(^[0-9]{5}$)|(^[0-9]{5}-[0-9]{4}$)')),
                 value: '',
             }),
