@@ -142,8 +142,8 @@ class StateUpload extends mixins(MixinForm) {
             state: new FormInput({
                 id: 'state',
                 name: 'state',
-                label: computed(() => this.$t('common.state')),
-                placeholder: computed(() => this.$t('common.state')),
+                label: computed(() => this.$t('common.stateJurisdiction')),
+                placeholder: computed(() => this.$t('common.stateJurisdiction')),
                 validation: Joi.string().required().messages(this.joiMessages.string),
                 valueOptions: this.stateOptions,
                 isDisabled: !this.isStateSelectEnabled,

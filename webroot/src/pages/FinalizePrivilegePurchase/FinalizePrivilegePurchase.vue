@@ -52,18 +52,18 @@
                                 {{billingAddressTitleText}}
                             </div>
                             <InputText
-                                :formInput="formData.firstName"
+                                :formInput="formData.streetAddress1"
                             />
                             <InputText
-                                :formInput="formData.lastName"
+                                :formInput="formData.streetAddress2"
                             />
                             <div class="state-zip-line">
-                            <InputText
-                                :formInput="formData.firstName"
-                            />
-                            <InputText
-                                :formInput="formData.lastName"
-                            />
+                                <InputSelect
+                                    :formInput="formData.stateSelect"
+                                />
+                                <InputNumber
+                                    :formInput="formData.zip"
+                                />
                             </div>
                         </div>
                     </div>
