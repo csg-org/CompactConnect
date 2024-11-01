@@ -1,0 +1,27 @@
+import logging
+import os
+from functools import cached_property
+
+import boto3
+from aws_lambda_powertools.logging import Logger
+
+logging.basicConfig()
+logger = Logger()
+logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false').lower() == 'true' else logging.INFO)
+
+
+class _Config:
+    @cached_property
+    def dynamodb_client(self):
+        return boto3.client('dynamodb')
+
+    @cached_property
+    def data_events_table(self):
+        return boto3.resource('dynamodb').Table(self.data_events_table_name)
+
+    @property
+    def data_events_table_name(self):
+        return os.environ['DATA_EVENT_TABLE_NAME']
+
+
+config = _Config()
