@@ -44,6 +44,12 @@ class V1Api:
             authorization_scopes=write_scopes,
         )
 
+        admin_auth_method_options = MethodOptions(
+            authorization_type=AuthorizationType.COGNITO,
+            authorizer=self.api.staff_users_authorizer,
+            authorization_scopes=admin_scopes,
+        )
+
         # /v1/provider-users
         self.provider_users_resource = self.resource.add_resource('provider-users')
         self.provider_users = ProviderUsers(
@@ -72,7 +78,7 @@ class V1Api:
         credentials_resource = self.compact_resource.add_resource('credentials')
         self.credentials = Credentials(
             resource=credentials_resource,
-            method_options=write_auth_method_options,
+            method_options=admin_auth_method_options,
             api_model=self.api_model,
         )
 

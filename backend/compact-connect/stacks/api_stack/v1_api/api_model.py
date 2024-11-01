@@ -283,10 +283,6 @@ class ApiModel:
                 additional_properties=False,
                 required=['processor', 'apiLoginId', 'transactionKey'],
                 properties={
-                    'query': JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        description='payment processor credentials',
-                        properties={
                             'processor': JsonSchema(
                                 type=JsonSchemaType.STRING,
                                 description='The type of payment processor',
@@ -306,8 +302,6 @@ class ApiModel:
                                 max_length=100,
                             ),
                         },
-                    ),
-                },
             ),
         )
         return self.api._v1_post_credentials_payment_processor_request_model
