@@ -11,6 +11,7 @@ import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputNumber from '@components/Forms/InputNumber/InputNumber.vue';
+import InputCreditCard from '@components/Forms/InputCreditCard/InputCreditCard.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 // import InputDate from '@components/Forms/InputDate/InputDate.vue';
@@ -26,7 +27,8 @@ import Joi from 'joi';
         InputCheckbox,
         InputSubmit,
         InputNumber,
-        InputButton
+        InputButton,
+        InputCreditCard
     }
 })
 export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
@@ -45,7 +47,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     }
 
     get firstNamePlaceHolderText(): string {
-        return this.$t('licensing.firstNameOnCard');
+        return this.$t('payment.firstNameOnCard');
     }
 
     get lastNameInputLabel(): string {
@@ -53,7 +55,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     }
 
     get lastNamePlaceHolderText(): string {
-        return this.$t('licensing.lastNameOnCard');
+        return this.$t('payment.lastNameOnCard');
     }
 
     get isDesktop(): boolean {
@@ -73,47 +75,47 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     }
 
     get submitLabel(): string {
-        return this.$t('licensing.completePurchase');
+        return this.$t('payment.completePurchase');
     }
 
     get paymentTitleText(): string {
-        return this.$t('licensing.payment');
+        return this.$t('payment.payment');
     }
 
     get noRefundsAcknowledgement(): string {
         return this.$t('licensing.noRefundsMessage');
     }
 
-    get cardNumberText(): string {
-        return this.$t('licensing.noRefundsMessage');
-    }
-
     get streetAddress1Label(): string {
-        return this.$t('licensing.streetAddress');
+        return this.$t('payment.streetAddress');
     }
 
     get streetAddress1PlaceHolderText(): string {
-        return this.$t('licensing.enterStreetAddress');
+        return this.$t('payment.enterStreetAddress');
     }
 
     get streetAddress2Label(): string {
-        return this.$t('licensing.streetAddress2');
+        return this.$t('payment.streetAddress2');
     }
 
     get streetAddress2PlaceHolderText(): string {
-        return this.$t('licensing.apptUnitNumber');
+        return this.$t('payment.apptUnitNumber');
     }
 
     get creditCardTitleText(): string {
-        return this.$t('licensing.creditCardTitle');
+        return this.$t('payment.creditCardTitle');
     }
 
     get billingAddressTitleText(): string {
-        return this.$t('licensing.billingAddressTitle');
+        return this.$t('payment.billingAddressTitle');
     }
 
     get stateText(): string {
         return this.$t('common.state');
+    }
+
+    get cardNumberLabel(): string {
+        return this.$t('payment.cardNumber');
     }
 
     get stateOptions() {
@@ -139,6 +141,10 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
 
     get cvvLabel(): string {
         return 'CVV';
+    }
+
+    get expirationDateText(): string {
+        return this.$t('payment.expirationDate');
     }
 
     //
@@ -201,6 +207,17 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 shouldHideLabel: false,
                 shouldHideMargin: true,
                 placeholder: '000',
+                autocomplete: 'cc-csc',
+                validation: Joi.string().required().regex(new RegExp('(^[0-9]{3,4}$)')),
+                value: '',
+            }),
+            creditCard: new FormInput({
+                id: 'card',
+                name: 'card',
+                label: this.cardNumberLabel,
+                shouldHideLabel: false,
+                shouldHideMargin: true,
+                placeholder: '0000 0000 0000 0000',
                 autocomplete: 'cc-csc',
                 validation: Joi.string().required().regex(new RegExp('(^[0-9]{3,4}$)')),
                 value: '',
@@ -269,5 +286,27 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
 
     handleBackClicked() {
         console.log('back');
+    }
+
+    formatCreditCard(): void {
+        const { ssn } = this.formData;
+        const format = (ssnInputVal) => {
+            // Remove all non-dash and non-numerals
+            let formatted = ssnInputVal.replace(/[^\d-]/g, '');
+
+            // Add the first dash if a number from the second group appears
+            formatted = formatted.replace(/^(\d{3})-?(\d{1,2})/, '$1-$2');
+
+            // Add the second dash if a number from the third group appears
+            formatted = formatted.replace(/^(\d{3})-?(\d{2})-?(\d{1,4})/, '$1-$2-$3');
+
+            // Remove misplaced dashes
+            formatted = formatted.split('').filter((val, idx) => val !== '-' || idx === 3 || idx === 6).join('');
+
+            // Enforce max length
+            return formatted.substring(0, 11);
+        };
+
+        ssn.value = format(ssn.value);
     }
 }

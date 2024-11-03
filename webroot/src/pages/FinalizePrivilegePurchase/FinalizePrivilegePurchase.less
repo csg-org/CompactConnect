@@ -40,6 +40,22 @@
         }
 
         .finalize-purchase-container {
+            .cost-breakdown-container {
+                padding: 2rem;
+                border-radius: 20px;
+                color: white;
+                background-color: @primaryColor;
+
+                :deep(.checkbox-container) {
+                    label {
+                        margin-left: 1rem;
+                        color: white;
+                        font-weight: @fontWeight;
+                        font-size: 1.5rem;
+                    }
+                }
+            }
+
             .finalize-purchase-core-container {
                 margin-top: -1rem;
                 padding: 2rem;
@@ -60,20 +76,52 @@
                     margin: 0 1rem 2rem 1rem;
                     font-size: @fontSizeLarger;
                 }
-            }
 
-            .cost-breakdown-container {
-                padding: 2rem;
-                border-radius: 20px;
-                color: white;
-                background-color: @primaryColor;
+                .payment-core-form {
+                    .credit-card-section {
+                        .credit-card-title {
+                            font-weight: @fontWeightBold;
+                            font-size: @fontSizeLarge;
+                        }
 
-                :deep(.checkbox-container) {
-                    label {
-                        margin-left: 1rem;
-                        color: white;
-                        font-weight: @fontWeight;
-                        font-size: 1.5rem;
+                        .cc-dets-row {
+                            display: flex;
+                            flex-direction: row;
+
+                            :deep(.input-container) {
+                                &.no-margin {
+                                    input {
+                                        width: 4rem;
+                                    }
+                                }
+                            }
+
+                            .exp-chunk {
+                                .exp-chunk-title {
+                                    margin-bottom: 0.6rem;
+                                    font-weight: @fontWeightBold;
+                                    font-size: 1.8rem;
+                                }
+
+                                .exp-chunk-input {
+                                    display: flex;
+                                    flex-direction: row;
+                                    align-items: center;
+
+                                    .slash {
+                                        margin: 0 0.6rem;
+                                    }
+
+                                    :deep(.input-container) {
+                                        &.no-margin {
+                                            input {
+                                                width: 3rem;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

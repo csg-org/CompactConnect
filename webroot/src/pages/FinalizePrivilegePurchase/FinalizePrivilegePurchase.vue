@@ -46,14 +46,21 @@
                             <InputText
                                 :formInput="formData.lastName"
                             />
+                            <InputCreditCard
+                                :formInput="formData.creditCard"
+                            />
                             <div class="cc-dets-row">
                                 <div class="exp-chunk">
-                                    <div class="exp-chunk-title"></div>
+                                    <div class="exp-chunk-title">
+                                        {{expirationDateText}} *
+                                    </div>
                                     <div class="exp-chunk-input">
                                         <InputNumber
                                             :formInput="formData.expMonth"
                                         />
-                                        /
+                                        <div class="slash">
+                                            /
+                                        </div>
                                         <InputNumber
                                             :formInput="formData.expYear"
                                         />
