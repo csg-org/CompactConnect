@@ -110,7 +110,7 @@ def api_handler(fn: Callable):
 
     return caught_handler
 
-def _authorize_compact_with_scope(event: dict, resource_parameter: str, scope_parameter: str, action: str):
+def _authorize_compact_with_scope(event: dict, resource_parameter: str, scope_parameter: str, action: str) -> None:
     """
     Check the authorization of the user attempting to access the endpoint.
 
@@ -161,8 +161,6 @@ def _authorize_compact_with_scope(event: dict, resource_parameter: str, scope_pa
     if required_scope not in scopes:
         logger.warning('Forbidden access attempt!')
         raise CCAccessDeniedException('Forbidden access attempt!')
-
-    return None
 
 
 class authorize_compact_jurisdiction:  # noqa: N801 invalid-name
