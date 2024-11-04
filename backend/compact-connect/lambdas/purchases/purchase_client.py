@@ -414,7 +414,7 @@ class PurchaseClient:
         self.payment_processor_client = None
 
     def _get_payment_processor_secret_name_for_compact(self, compact_name: str) -> str:
-        return f'compact-connect/env/{config.environment_name}' f'/compact/{compact_name}/credentials/payment-processor'
+        return f'compact-connect/env/{config.environment_name}/compact/{compact_name}/credentials/payment-processor'
 
     def _get_compact_payment_processor_client(self, compact_name: str) -> PaymentProcessorClient:
         """

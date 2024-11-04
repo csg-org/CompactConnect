@@ -110,35 +110,100 @@ def api_handler(fn: Callable):
 
     return caught_handler
 
+def _authorize_compact_with_scope(event: dict, resource_parameter: str, scope_parameter: str, action: str):
+    """
+    Check the authorization of the user attempting to access the endpoint.
 
-class authorize_compact:  # noqa: N801 invalid-name
-    """Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/read)"""
+    There are three types of action level permissions which can be granted to a user:
+
+    1. read: Allows the user to read data from the compact.
+    2. write: Allows the user to write data to the compact.
+    3. admin: Allows the user to perform administrative actions on the compact.
+
+    For each of these actions, specific rules apply to the scope required to perform the action, which are
+    as follows:
+
+    Read - granted at compact level, allows read access to all jurisdictions within the compact.
+    i.e. aslp/read would allow read access to all jurisdictions within the aslp compact.
+
+    Write - granted at jurisdiction level, allows write access to a specific jurisdiction within the compact.
+    i.e. aslp/oh.write would allow write access to the ohio jurisdiction within the aslp compact.
+
+    Admin - granted at compact level and jurisdiction level, allows administrative access to either a specific
+    compact or a specific jurisdiction within the compact.
+    i.e. 'aslp/aslp.admin' would allow administrative access to the aslp compact. 'aslp/oh.admin' would allow
+    administrative access to the ohio jurisdiction within the aslp compact.
+
+    :param dict event: The event object passed to the lambda function.
+    :param str resource_parameter: The value of the resource parameter in the path.
+    :param str scope_parameter: The value of the scope parameter in the path.
+    :param str action: The action we want to ensure the user has permissions for.
+    :raises CCUnauthorizedException: If the user is missing scope claims.
+    :raises CCAccessDeniedException: If the user does not have the necessary access.
+    """
+    try:
+        resource_value = event['pathParameters'][resource_parameter]
+        if scope_parameter != resource_parameter:
+            scope_value = event['pathParameters'][scope_parameter]
+        else:
+            scope_value = resource_value
+    except KeyError as e:
+        logger.error('Access attempt with missing path parameters!')
+        raise CCInvalidRequestException('Missing path parameter!') from e
+
+    try:
+        scopes = event['requestContext']['authorizer']['claims']['scope'].split(' ')
+    except KeyError as e:
+        logger.error('Unauthorized access attempt!', exc_info=e)
+        raise CCUnauthorizedException('Unauthorized access attempt!') from e
+
+    required_scope = f'{resource_value}/{scope_value}.{action}'
+    if required_scope not in scopes:
+        logger.warning('Forbidden access attempt!')
+        raise CCAccessDeniedException('Forbidden access attempt!')
+
+    return None
+
+
+class authorize_compact_jurisdiction:  # noqa: N801 invalid-name
+    """
+    Authorize endpoint by matching path parameters compact and jurisdiction to the expected scope.
+    (i.e. aslp/oh.write)
+    """
 
     def __init__(self, action: str):
         super().__init__()
+        self.resource_parameter = 'compact'
+        self.scope_parameter = 'jurisdiction'
         self.action = action
 
     def __call__(self, fn: Callable):
         @wraps(fn)
         @logger.inject_lambda_context
         def authorized(event: dict, context: LambdaContext):
-            try:
-                resource_value = event['pathParameters']['compact']
-            except KeyError as e:
-                logger.error('Access attempt with missing path parameter!')
-                raise CCInvalidRequestException('Missing path parameter!') from e
+            _authorize_compact_with_scope(event, self.resource_parameter, self.scope_parameter, self.action)
+            return fn(event, context)
 
-            logger.debug('Checking authorizer context', request_context=event['requestContext'])
-            try:
-                scopes = event['requestContext']['authorizer']['claims']['scope'].split(' ')
-            except KeyError as e:
-                logger.error('Unauthorized access attempt!', exc_info=e)
-                raise CCUnauthorizedException('Unauthorized access attempt!') from e
+        return authorized
 
-            required_scope = f'{resource_value}/{self.action}'
-            if required_scope not in scopes:
-                logger.warning('Forbidden access attempt!')
-                raise CCAccessDeniedException('Forbidden access attempt!')
+
+class authorize_compact_scoped_action:  # noqa: N801 invalid-name
+    """
+    Authorize endpoint by matching compact path parameter to the expected scope.
+    (i.e. aslp/aslp.admin)
+    """
+
+    def __init__(self, action: str):
+        super().__init__()
+        self.resource_parameter = 'compact'
+        self.scope_parameter = 'compact'
+        self.action = action
+
+    def __call__(self, fn: Callable):
+        @wraps(fn)
+        @logger.inject_lambda_context
+        def authorized(event: dict, context: LambdaContext):
+            _authorize_compact_with_scope(event, self.resource_parameter, self.scope_parameter, self.action)
             return fn(event, context)
 
         return authorized

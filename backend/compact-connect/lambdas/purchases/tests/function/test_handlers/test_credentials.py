@@ -26,12 +26,23 @@ def _generate_test_request_body():
 
 @mock_aws
 class TestPostPaymentProcessorCredentials(TstFunction):
-    def _when_testing_compact_admin_uploads_creds(self):
+    def _when_testing_compact_admin_user(self):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
             event['pathParameters'] = {'compact': TEST_COMPACT}
-            # user is a compact admin with write permissions
-            event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write'
+            # user is a compact admin with admin scoped permissions
+            event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/aslp.admin'
+            event['body'] = _generate_test_request_body()
+
+        return event
+
+
+    def _when_testing_jurisdiction_admin_user(self):
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+            event['pathParameters'] = {'compact': TEST_COMPACT}
+            # user is an admin with jurisdiction scoped permissions
+            event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/oh.admin'
             event['body'] = _generate_test_request_body()
 
         return event
@@ -64,7 +75,7 @@ class TestPostPaymentProcessorCredentials(TstFunction):
         )
         from handlers.credentials import post_payment_processor_credentials
 
-        event = self._when_testing_compact_admin_uploads_creds()
+        event = self._when_testing_compact_admin_user()
 
         resp = post_payment_processor_credentials(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'])
@@ -82,7 +93,7 @@ class TestPostPaymentProcessorCredentials(TstFunction):
 
         self._when_purchase_client_raises_exception(mock_purchase_client_constructor)
 
-        event = self._when_testing_compact_admin_uploads_creds()
+        event = self._when_testing_compact_admin_user()
 
         resp = post_payment_processor_credentials(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
@@ -94,4 +105,21 @@ class TestPostPaymentProcessorCredentials(TstFunction):
                 'The provided access token is invalid'
             },
             response_body,
+        )
+
+    @patch('handlers.credentials.PurchaseClient')
+    def test_post_payment_processor_credentials_returns_unauthorized_for_jurisdiction_admins(
+        self, mock_purchase_client_constructor
+    ):
+        from handlers.credentials import post_payment_processor_credentials
+
+        self._when_purchase_client_raises_exception(mock_purchase_client_constructor)
+
+        event = self._when_testing_jurisdiction_admin_user()
+
+        resp = post_payment_processor_credentials(event, self.mock_context)
+        self.assertEqual(403, resp['statusCode'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual({'message': 'Access denied'}, response_body,
         )

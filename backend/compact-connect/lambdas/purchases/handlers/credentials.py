@@ -3,11 +3,11 @@ import json
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from purchase_client import PurchaseClient
 
-from handlers.utils import api_handler, authorize_compact
+from handlers.utils import api_handler, authorize_compact_scoped_action
 
 
 @api_handler
-@authorize_compact(action='write')
+@authorize_compact_scoped_action(action='admin')
 def post_payment_processor_credentials(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Stores payment processor credentials for a compact in secrets manager.
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
