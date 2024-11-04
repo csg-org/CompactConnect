@@ -310,9 +310,10 @@
             "text": "Mensaje de texto"
         },
         "password": "Contraseña",
+        "changePassword": "Cambiar la contraseña",
         "currentPassword": "Contraseña actual",
         "newPassword": "Nueva contraseña",
-        "changePasswordFormTitle": "Cambiar la contraseña",
+        "confirmNewPassword": "Confirmar nueva contraseña",
         "passwordCreationInstruction": "Para crear una nueva contraseña, debe cumplir todos los siguientes requisitos",
         "passwordRules": [
             "Mínimo 8 caracteres",
@@ -321,6 +322,8 @@
             "1 número",
             "1 símbolo"
         ],
+        "passwordsMustMatch": "Las contraseñas deben coincidir",
+        "togglePasswordVisibility": "Activar o desactivar la visibilidad de la contraseña",
         "lastLogin": "Último inicio de sesión",
         "description": "Descripción",
         "copyright": "Copyright",
@@ -504,6 +507,7 @@
         ]
     },
     "account": {
+        "accountTitle": "Cuenta",
         "usersListTitle": "Usuarios",
         "usersListEmpty": "Invita a los usuarios con el botón de arriba",
         "permissions": "Permisos",

@@ -68,6 +68,13 @@ class PageMainNav extends Vue {
                 isExternal: false,
                 isExactActive: true,
             },
+            {
+                to: 'Account',
+                label: computed(() => this.$t('navigation.account')),
+                isEnabled: this.isLoggedIn,
+                isExternal: false,
+                isExactActive: false,
+            },
             // { // @NOTE: Disable user-list nav while the user management feature is WIP
             //     to: 'Users',
             //     params: { compact: this.currentCompact?.type },
