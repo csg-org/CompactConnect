@@ -104,7 +104,8 @@ class TestCompactsApi(TestApi):
         # We need to ensure the lambda can read these secrets, else all transactions will fail
         self.assertIn(
             {
-                'Action': 'secretsmanager:PutSecretValue',
+                'Action': ['secretsmanager:CreateSecret', 'secretsmanager:DescribeSecret',
+                           'secretsmanager:PutSecretValue'],
                 'Effect': 'Allow',
                 'Resource': [
                     _generate_expected_secret_arn('aslp'),
