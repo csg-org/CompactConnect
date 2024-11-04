@@ -226,4 +226,10 @@ export default {
     getPrivilegePurchaseInformationFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE, error);
     },
+    savePrivilegePurchaseChoicesToStore: ({ commit }, privilegePurchaseChoices: Array<string>) => {
+        commit(MutationTypes.SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE, privilegePurchaseChoices);
+    },
+    setAttestationsAccepted: ({ commit }, areAttestationsAccepted: boolean) => {
+        commit(MutationTypes.SET_ATTESTATIONS_ACCEPTED, areAttestationsAccepted);
+    },
 };

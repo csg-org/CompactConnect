@@ -7,7 +7,7 @@
 
 import { expect } from 'chai';
 import { mountShallow } from '@tests/helpers/setup';
-import InputNumber from '@components/InputNumber/InputNumber.vue';
+import InputNumber from '@components/Forms/InputNumber/InputNumber.vue';
 
 describe('InputNumber component', async () => {
     it('should mount the component', async () => {

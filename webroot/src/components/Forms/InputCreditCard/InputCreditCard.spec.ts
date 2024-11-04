@@ -7,7 +7,7 @@
 
 import { expect } from 'chai';
 import { mountShallow } from '@tests/helpers/setup';
-import InputCreditCard from '@components/InputCreditCard/InputCreditCard.vue';
+import InputCreditCard from '@components/Forms/InputCreditCard/InputCreditCard.vue';
 
 describe('InputCreditCard component', async () => {
     it('should mount the component', async () => {

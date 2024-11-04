@@ -81,6 +81,12 @@ const routes: Array<RouteConfig> = [
         meta: { requiresAuth: true },
     },
     {
+        path: '/:compact/Privileges/Attestation',
+        name: 'PrivilegePurchaseAttestation',
+        component: () => import(/* webpackChunkName: "privilegePurchaseAttestation" */ '@pages/PrivilegePurchaseAttestation/PrivilegePurchaseAttestation.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
         path: '/styleguide',
         name: 'StyleGuide',
         component: () => import(/* webpackChunkName: "styleGuide" */ '@pages/StyleGuide/StyleGuide.vue'),

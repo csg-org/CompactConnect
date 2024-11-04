@@ -298,9 +298,14 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     handleSubmit() {
         // This function is just a stub as it is the boundary to the next feature to be developed
         if (this.isAtLeastOnePrivilegeChosen && this.areAllJurisprudenceConfirmed) {
-            this.startFormLoading();
-            console.log(this.formData);
-            this.endFormLoading();
+            console.log('formData', this.formData);
+
+            const selectedStates = this.formData.stateCheckList.filter((input) => input.value).map((input) => input.id);
+
+            console.log('selectedStates', selectedStates);
+
+            // savePrivilegeSelectionToStore
+            // router go to attestations
         }
     }
 
