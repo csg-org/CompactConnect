@@ -103,6 +103,8 @@ class Purchases:
             handler='post_purchase_privileges',
             environment=lambda_environment,
             alarm_topic=self.api.alarm_topic,
+            # required as this lambda is bundled with the authorize.net SDK which is large
+            memory_size=256,
         )
         data_encryption_key.grant_decrypt(handler)
         compact_configuration_table.grant_read_data(handler)
@@ -177,6 +179,8 @@ class Purchases:
             handler='get_purchase_privilege_options',
             environment=lambda_environment,
             alarm_topic=self.api.alarm_topic,
+            # required as this lambda is bundled with the authorize.net SDK which is large
+            memory_size=256,
         )
         data_encryption_key.grant_decrypt(handler)
         compact_configuration_table.grant_read_data(handler)

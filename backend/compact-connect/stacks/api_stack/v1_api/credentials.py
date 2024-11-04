@@ -87,6 +87,8 @@ class Credentials:
             handler='post_payment_processor_credentials',
             environment=lambda_environment,
             alarm_topic=self.api.alarm_topic,
+            # required as this lambda is bundled with the authorize.net SDK which is large
+            memory_size=256,
         )
 
         # grant handler access to post secrets for supported compacts
