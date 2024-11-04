@@ -5,8 +5,9 @@
 //  Created by InspiringApps on 8/27/2024.
 //
 
-import { compacts as compactConfigs } from '@/app.config';
+import { compacts as compactConfigs, FeeTypes } from '@/app.config';
 import deleteUndefinedProperties from '@models/_helpers';
+import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { State } from '@models/State/State.model';
 
 // ========================================================
@@ -22,6 +23,9 @@ export interface InterfaceCompactCreate {
     id?: string | null;
     type?: CompactType | null;
     memberStates?: Array<State>;
+    privilegePurchaseOptions?: Array <PrivilegePurchaseOption>;
+    compactCommissionFee?: number | null;
+    compactCommissionFeeType?: FeeTypes | null;
 }
 
 // ========================================================
@@ -32,6 +36,9 @@ export class Compact implements InterfaceCompactCreate {
     public id? = null;
     public type? = null;
     public memberStates? = [];
+    public privilegePurchaseOptions? = [];
+    public compactCommissionFee? = null;
+    public compactCommissionFeeType? = null;
 
     constructor(data?: InterfaceCompactCreate) {
         const cleanDataObject = deleteUndefinedProperties(data);

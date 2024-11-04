@@ -118,6 +118,14 @@ export class DataApi {
         return userDataApi.getAuthenticatedStaffUser();
     }
 
+    /**
+     * GET Privilege Purchase Information for Authenticated Licensee user.
+     * @return {Promise<object>} List of privilege purchase options and compact purchase info.
+     */
+    public getPrivilegePurchaseInformation() {
+        return userDataApi.getPrivilegePurchaseInformation();
+    }
+
     // ========================================================================
     //                              LICENSEE USER API
     // ========================================================================
