@@ -8,7 +8,7 @@ from tests.unit.test_api import TestApi
 def _generate_expected_secret_arn(compact: str) -> str:
     return (
         f'arn:aws:secretsmanager:us-east-1:111122223333:secret:compact-connect/env'
-        f'/justin/compact/{compact}/credentials/payment-processor*'
+        f'/justin/compact/{compact}/credentials/payment-processor-??????'
     )
 
 

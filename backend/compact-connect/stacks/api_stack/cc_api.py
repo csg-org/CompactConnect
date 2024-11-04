@@ -352,8 +352,9 @@ class CCApi(RestApi):
                 arn_format=ArnFormat.COLON_RESOURCE_NAME,
                 resource='secret',
                 resource_name=(
-                    # add wildcard to account for random version uuid suffix appended to secret name by secrets manager
-                    f'compact-connect/env/{environment_name}/compact/{compact}/credentials/payment-processor*'
+                    # add wildcard characters to account for 6-character
+                    # random version suffix appended to secret name by secrets manager
+                    f'compact-connect/env/{environment_name}/compact/{compact}/credentials/payment-processor-??????'
                 ),
             )
             for compact in compacts
