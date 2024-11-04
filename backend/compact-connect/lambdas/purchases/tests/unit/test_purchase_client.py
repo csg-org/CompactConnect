@@ -420,15 +420,15 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         return self._setup_mock_transaction_controller(mock_create_transaction_controller, mock_success_response)
 
-    @patch('purchase_client.createTransactionController')
+    @patch('purchase_client.getMerchantDetailsController')
     def test_purchase_client_validates_credentials_using_authorize_net_processor(
-        self, mock_create_transaction_controller
+        self, mock_get_merchant_details_controller
     ):
         from purchase_client import PurchaseClient
 
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
         self._when_authorize_dot_net_credentials_are_valid(
-            mock_create_transaction_controller=mock_create_transaction_controller
+            mock_create_transaction_controller=mock_get_merchant_details_controller
         )
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
@@ -439,21 +439,19 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         self.assertEqual({'message': 'Successfully verified credentials'}, result)
 
-        call_args = mock_create_transaction_controller.call_args.args
+        call_args = mock_get_merchant_details_controller.call_args.args
         api_contract_v1_obj = call_args[0]
-        # we check every line of the object to ensure that the correct values are being passed to the authorize.net SDK
-        self.assertEqual('authenticateTestRequest', api_contract_v1_obj.transactionRequest.transactionType)
         # authentication fields
         self.assertEqual(MOCK_LOGIN_ID, api_contract_v1_obj.merchantAuthentication.name)
         self.assertEqual(MOCK_TRANSACTION_KEY, api_contract_v1_obj.merchantAuthentication.transactionKey)
 
-    @patch('purchase_client.createTransactionController')
-    def test_purchase_client_store_valid_credentials(self, mock_create_transaction_controller):
+    @patch('purchase_client.getMerchantDetailsController')
+    def test_purchase_client_store_valid_credentials(self, mock_get_merchant_details_controller):
         from purchase_client import PurchaseClient
 
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
         self._when_authorize_dot_net_credentials_are_valid(
-            mock_create_transaction_controller=mock_create_transaction_controller
+            mock_create_transaction_controller=mock_get_merchant_details_controller
         )
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
@@ -475,13 +473,13 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             ),
         )
 
-    @patch('purchase_client.createTransactionController')
-    def test_purchase_client_raises_exception_if_invalid_processor(self, mock_create_transaction_controller):
+    @patch('purchase_client.getMerchantDetailsController')
+    def test_purchase_client_raises_exception_if_invalid_processor(self, mock_get_merchant_details_controller):
         from purchase_client import PurchaseClient
 
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
         self._when_authorize_dot_net_credentials_are_valid(
-            mock_create_transaction_controller=mock_create_transaction_controller
+            mock_create_transaction_controller=mock_get_merchant_details_controller
         )
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
@@ -496,13 +494,13 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                 },
             )
 
-    @patch('purchase_client.createTransactionController')
-    def test_purchase_client_raises_exception_if_invalid_credentials(self, mock_create_transaction_controller):
+    @patch('purchase_client.getMerchantDetailsController')
+    def test_purchase_client_raises_exception_if_invalid_credentials(self, mock_get_merchant_details_controller):
         from purchase_client import PurchaseClient
 
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
         self._when_authorize_dot_net_credentials_are_not_valid(
-            mock_create_transaction_controller=mock_create_transaction_controller
+            mock_create_transaction_controller=mock_get_merchant_details_controller
         )
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)

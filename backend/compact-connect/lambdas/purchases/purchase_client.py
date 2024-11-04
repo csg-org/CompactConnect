@@ -2,7 +2,7 @@ import json
 from abc import ABC, abstractmethod
 
 from authorizenet import apicontractsv1
-from authorizenet.apicontrollers import createTransactionController
+from authorizenet.apicontrollers import createTransactionController, getMerchantDetailsController
 from authorizenet.constants import constants
 from config import config, logger
 from data_model.schema.compact import Compact, CompactFeeType
@@ -331,25 +331,21 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         merchant_auth.name = self.api_login_id
         merchant_auth.transactionKey = self.transaction_key
 
-        transaction_request = apicontractsv1.transactionRequestType()
-        transaction_request.transactionType = 'authenticateTestRequest'
-
-        # Assemble the complete transaction request
-        create_transaction_request = apicontractsv1.createTransactionRequest()
-        create_transaction_request.merchantAuthentication = merchant_auth
-        create_transaction_request.transactionRequest = transaction_request
+        # Assemble the get merchant details request
+        get_merchant_detail_request = apicontractsv1.getMerchantDetailsRequest()
+        get_merchant_detail_request.merchantAuthentication = merchant_auth
 
         # Create the controller
-        transaction_controller = createTransactionController(create_transaction_request)
+        get_merchant_details_controller = getMerchantDetailsController(get_merchant_detail_request)
 
         # set the environment based on the environment we are running in
         if config.environment_name != 'prod':
-            transaction_controller.setenvironment(constants.SANDBOX)
+            get_merchant_details_controller.setenvironment(constants.SANDBOX)
         else:
-            transaction_controller.setenvironment(constants.PRODUCTION)
+            get_merchant_details_controller.setenvironment(constants.PRODUCTION)
 
-        transaction_controller.execute()
-        response = transaction_controller.getresponse()
+        get_merchant_details_controller.execute()
+        response = get_merchant_details_controller.getresponse()
 
         if response is None:
             raise CCInvalidRequestException('Failed to verify credentials')
@@ -498,3 +494,8 @@ class PurchaseClient:
         )
 
         return response
+
+
+if __name__ == '__main__':
+    authorize_net = AuthorizeNetPaymentProcessorClient('24xMHMr4L5TX', '2e732TCu3hm8Q2FF')
+    authorize_net.validate_credentials()
