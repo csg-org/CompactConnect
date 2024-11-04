@@ -487,15 +487,32 @@ class PurchaseClient:
         response = PaymentProcessorClientFactory().create_payment_processor_client(secret_value).validate_credentials()
 
         # no exceptions were raised, so the credentials are valid
-        # store the credentials in secrets manager
-        self.secrets_manager_client.put_secret_value(
-            SecretId=self._get_payment_processor_secret_name_for_compact(compact_name),
-            SecretString=json.dumps(secret_value),
-        )
+        # first check to see if secret already exists
+        try:
+            self.secrets_manager_client.describe_secret(
+                SecretId=self._get_payment_processor_secret_name_for_compact(compact_name))
+
+            # secret exists, update its value to whatever the admin sent us
+            logger.info('Existing secret found, updating secret for compact', compact_name=compact_name)
+            self.secrets_manager_client.put_secret_value(
+                SecretId=self._get_payment_processor_secret_name_for_compact(compact_name),
+                SecretString=json.dumps(secret_value)
+            )
+        except self.secrets_manager_client.exceptions.ResourceNotFoundException:
+            # secret does not exist, so we can create it
+            logger.info('Existing secret not found, creating new secret for compact', compact_name=compact_name)
+            self.secrets_manager_client.create_secret(
+                Name=self._get_payment_processor_secret_name_for_compact(compact_name),
+                SecretString=json.dumps(secret_value)
+            )
 
         return response
 
 
 if __name__ == '__main__':
-    authorize_net = AuthorizeNetPaymentProcessorClient('24xMHMr4L5TX', '2e732TCu3hm8Q2FF')
-    authorize_net.validate_credentials()
+    purchase_client = PurchaseClient()
+    purchase_client.validate_and_store_credentials("count", {
+        "processor": "authorize.net",
+        "apiLoginId": "24xMHMr4L5TX",
+        "transactionKey": "2e732TCu3hm8Q2FF"
+    })

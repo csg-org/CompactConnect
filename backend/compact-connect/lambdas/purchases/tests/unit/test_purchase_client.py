@@ -3,6 +3,7 @@ import json
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
+from config import config
 from exceptions import CCFailedTransactionException, CCInternalException, CCInvalidRequestException
 
 from tests import TstLambdas
@@ -79,15 +80,28 @@ def _generate_selected_jurisdictions():
 
 class TestAuthorizeDotNetPurchaseClient(TstLambdas):
     """Testing that the purchase client works with authorize.net SDK as expected."""
-
     def _generate_mock_secrets_manager_client(self):
+        mock_secrets_manager_client = MagicMock()
+        mock_secrets_manager_client.exceptions.ResourceNotFoundException = config.secrets_manager_client.exceptions.ResourceNotFoundException
         def get_secret_value_side_effect(SecretId):  # noqa: N803 invalid-name
             if SecretId == 'compact-connect/env/test/compact/aslp/credentials/payment-processor':
                 return {'SecretString': json.dumps(MOCK_ASLP_SECRET)}
-            raise ValueError(f'Unknown SecretId: {SecretId}')
+            raise config.secrets_manager_client.exceptions.ResourceNotFoundException(
+                {'Error': {'Code': 'ResourceNotFoundException'}},
+                operation_name='get_secret_value',
+            )
 
-        mock_secrets_manager_client = MagicMock()
+        def describe_secret_side_effect(SecretId):
+            if SecretId == 'compact-connect/env/test/compact/aslp/credentials/payment-processor':
+                # add other fields here if needed
+                return {'Name': 'compact-connect/env/test/compact/aslp/credentials/payment-processor'}
+            raise config.secrets_manager_client.exceptions.ResourceNotFoundException(
+                {'Error': {'Code': 'ResourceNotFoundException'}},
+                operation_name='describe_secret',
+            )
+
         mock_secrets_manager_client.get_secret_value.side_effect = get_secret_value_side_effect
+        mock_secrets_manager_client.describe_secret.side_effect = describe_secret_side_effect
 
         return mock_secrets_manager_client
 
@@ -446,7 +460,35 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self.assertEqual(MOCK_TRANSACTION_KEY, api_contract_v1_obj.merchantAuthentication.transactionKey)
 
     @patch('purchase_client.getMerchantDetailsController')
-    def test_purchase_client_store_valid_credentials(self, mock_get_merchant_details_controller):
+    def test_purchase_client_creates_secret_when_secret_does_not_exist(self, mock_get_merchant_details_controller):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_credentials_are_valid(
+            mock_create_transaction_controller=mock_get_merchant_details_controller
+        )
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        result = test_purchase_client.validate_and_store_credentials(
+            compact_name='octp', credentials=self._generate_test_credentials_object()
+        )
+
+        self.assertEqual({'message': 'Successfully verified credentials'}, result)
+
+        mock_secrets_manager_client.create_secret.assert_called_once_with(
+            Name='compact-connect/env/test/compact/octp/credentials/payment-processor',
+            SecretString=json.dumps(
+                {
+                    'processor': 'authorize.net',
+                    'api_login_id': MOCK_LOGIN_ID,
+                    'transaction_key': MOCK_TRANSACTION_KEY,
+                }
+            )
+        )
+
+    @patch('purchase_client.getMerchantDetailsController')
+    def test_purchase_client_updates_secret_when_secret_exists(self, mock_get_merchant_details_controller):
         from purchase_client import PurchaseClient
 
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
@@ -470,7 +512,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                     'api_login_id': MOCK_LOGIN_ID,
                     'transaction_key': MOCK_TRANSACTION_KEY,
                 }
-            ),
+            )
         )
 
     @patch('purchase_client.getMerchantDetailsController')

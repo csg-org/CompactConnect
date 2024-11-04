@@ -97,7 +97,11 @@ class Credentials:
             PolicyStatement(
                 effect=Effect.ALLOW,
                 actions=[
+                    # this lambda needs to be able to Describe the secret to check if it exists, create it if it doesn't
+                    # and update it if it does
                     'secretsmanager:PutSecretValue',
+                    'secretsmanager:CreateSecret',
+                    'secretsmanager:DescribeSecret',
                 ],
                 resources=self.api.get_secrets_manager_compact_payment_processor_arns(),
             )
