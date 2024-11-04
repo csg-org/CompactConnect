@@ -437,7 +437,6 @@
         "streetAddress": "Dirección",
         "streetAddress2": "Dirección 2",
         "completePurchase": "Finalizar compra",
-        "state": "Estado",
         "expirattionDate": "Fecha de vencimiento",
         "firstNameOnCard": "Introduzca el nombre en la tarjeta",
         "lastNameOnCard": "Introduzca el apellido en la tarjeta"

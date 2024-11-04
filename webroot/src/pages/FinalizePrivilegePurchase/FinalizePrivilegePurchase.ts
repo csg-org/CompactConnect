@@ -219,7 +219,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 shouldHideMargin: true,
                 placeholder: '0000 0000 0000 0000',
                 autocomplete: 'cc-csc',
-                validation: Joi.string().required().regex(new RegExp('(^[0-9]{3,4}$)')),
+                // validation: Joi.string().required().regex(new RegExp('(^[0-9]{3,4}$)')),
                 value: '',
             }),
             streetAddress1: new FormInput({

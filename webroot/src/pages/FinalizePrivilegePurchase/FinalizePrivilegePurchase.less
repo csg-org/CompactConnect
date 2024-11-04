@@ -73,18 +73,44 @@
                 }
 
                 .finalize-purchase-title {
-                    margin: 0 1rem 2rem 1rem;
-                    font-size: @fontSizeLarger;
+                    margin-bottom: 2rem;
+                    font-size: @fontSizeExtraLarge;
                 }
 
                 .payment-core-form {
+                    .billing-address-section {
+                        .billing-address-title {
+                            margin-top: 4rem;
+                            font-weight: @fontWeightBold;
+                            font-size: @fontSizeLarger;
+                        }
+
+                        .state-zip-line {
+                            display: flex;
+                            flex-direction: row;
+                            justify-content: space-between;
+
+                            :deep(.input-container) {
+                                &.no-margin {
+                                    input {
+                                        width: 15rem;
+                                    }
+
+                                    select {
+                                        width: 15rem;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     .credit-card-section {
                         .credit-card-title {
                             font-weight: @fontWeightBold;
-                            font-size: @fontSizeLarge;
+                            font-size: @fontSizeLarger;
                         }
 
-                        .cc-dets-row {
+                        .cc-dets {
                             display: flex;
                             flex-direction: row;
 
@@ -121,10 +147,18 @@
                                     }
                                 }
                             }
+
+                            .cvv-container {
+                                margin-left: 8rem;
+                            }
                         }
                     }
                 }
             }
         }
+    }
+
+    .form-row {
+        margin: 2rem 0;
     }
 }

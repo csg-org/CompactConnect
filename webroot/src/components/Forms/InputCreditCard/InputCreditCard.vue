@@ -26,12 +26,13 @@
             inputmode="numeric"
             :id="formInput.id"
             :name="formInput.name"
+            data-inputmask="'mask': '9999 9999 9999 9999'"
             :placeholder="formInput.placeholder"
             v-model="formInput.value"
             :autocomplete="formInput.autocomplete"
             :aria-label="formInput.label"
             @blur="blur(formInput)"
-            @input="input(formInput)"
+            @input="inputCreditCardOverride(formInput)"
             :class="{ 'has-error': !!formInput.errorMessage }"
         />
         <span

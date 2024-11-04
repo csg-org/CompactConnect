@@ -40,16 +40,22 @@
                             <div class="credit-card-title">
                                 {{creditCardTitleText}}
                             </div>
-                            <InputText
-                                :formInput="formData.firstName"
-                            />
-                            <InputText
-                                :formInput="formData.lastName"
-                            />
-                            <InputCreditCard
-                                :formInput="formData.creditCard"
-                            />
-                            <div class="cc-dets-row">
+                            <div class="form-row">
+                                <InputText
+                                    :formInput="formData.firstName"
+                                />
+                            </div>
+                            <div class="form-row">
+                                <InputText
+                                    :formInput="formData.lastName"
+                                />
+                            </div>
+                            <div class="form-row">
+                                <InputCreditCard
+                                    :formInput="formData.creditCard"
+                                />
+                            </div>
+                            <div class="cc-dets form-row">
                                 <div class="exp-chunk">
                                     <div class="exp-chunk-title">
                                         {{expirationDateText}} *
@@ -66,22 +72,28 @@
                                         />
                                     </div>
                                 </div>
-                                <InputNumber
-                                    :formInput="formData.cvv"
-                                />
+                                <div class="cvv-container">
+                                    <InputNumber
+                                        :formInput="formData.cvv"
+                                    />
+                                </div>
                             </div>
                         </div>
-                         <div class="billing-address-section">
+                        <div class="billing-address-section">
                             <div class="billing-address-title">
                                 {{billingAddressTitleText}}
                             </div>
-                            <InputText
-                                :formInput="formData.streetAddress1"
-                            />
-                            <InputText
-                                :formInput="formData.streetAddress2"
-                            />
-                            <div class="state-zip-line">
+                            <div class="form-row">
+                                <InputText
+                                    :formInput="formData.streetAddress1"
+                                />
+                            </div>
+                            <div class="form-row">
+                                <InputText
+                                    :formInput="formData.streetAddress2"
+                                />
+                            </div>
+                            <div class="state-zip-line form-row">
                                 <InputSelect
                                     :formInput="formData.stateSelect"
                                 />

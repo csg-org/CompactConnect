@@ -15,6 +15,14 @@ import MixinInput from '@components/Forms/_mixins/input.mixin';
     name: 'InputCreditCard',
 })
 class InputCreditCard extends mixins(MixinInput) {
+    //
+    // Methods
+    //
+    inputCreditCardOverride(formInput) {
+        console.log('formInput', formInput);
+
+        this.input(formInput);
+    }
 }
 
 export default toNative(InputCreditCard);
