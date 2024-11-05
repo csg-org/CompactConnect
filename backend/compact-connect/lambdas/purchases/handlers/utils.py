@@ -146,6 +146,8 @@ def _authorize_compact_with_scope(event: dict, resource_parameter: str, scope_pa
         if scope_parameter != resource_parameter:
             scope_value = event['pathParameters'][scope_parameter]
         else:
+            # if the scope parameter is the same as the resource parameter,
+            # we use the resource value as the scope value
             scope_value = resource_value
     except KeyError as e:
         logger.error('Access attempt with missing path parameters!')

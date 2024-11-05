@@ -65,6 +65,8 @@ class Credentials:
                 ),
             ],
             integration=LambdaIntegration(
+                # setting the timeout to 29 seconds to allow for
+                # the lambda to complete before the API Gateway times out at 30 seconds
                 self.post_credentials_payment_processor_handler, timeout=Duration.seconds(29)
             ),
             request_parameters={'method.request.header.Authorization': True},
