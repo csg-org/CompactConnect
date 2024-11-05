@@ -39,6 +39,10 @@ def _generate_test_request_body(selected_jurisdictions: list[str] = None):
 
 @mock_aws
 class TestPostPurchasePrivileges(TstFunction):
+    """
+    In this test setup, we simulate having a licensee that has a license in ohio and is
+    purchasing a privilege in kentucky.
+    """
     def _load_test_jurisdiction(self):
         with open('tests/resources/dynamo/jurisdiction.json') as f:
             jurisdiction = json.load(f)
