@@ -17,6 +17,7 @@ import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
+import { LicenseeUserPurchaseSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import Joi from 'joi';
 
@@ -236,7 +237,12 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     // Methods
     //
     handleSubmit() {
-        console.log('submitted');
+        const { formData, statesSelected } = this;
+
+        const serverData = LicenseeUserPurchaseSerializer.toServer({ formData, statesSelected });
+        console.log('serverData', serverData);
+
+        
     }
 
     initFormInputs() {

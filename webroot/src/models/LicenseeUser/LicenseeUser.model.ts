@@ -57,3 +57,19 @@ export class LicenseeUserSerializer {
         return new LicenseeUser(userData);
     }
 }
+
+export class LicenseeUserPurchaseSerializer {
+    static toServer(json: any): LicenseeUser {
+        const userData: any = {
+            id: json.providerId,
+            email: json.emailAddress,
+            firstName: json.givenName,
+            lastName: json.familyName,
+            accountStatus: json.status || 'inactive',
+            userType: AuthTypes.LICENSEE,
+            licensee: LicenseeSerializer.fromServer(json)
+        };
+
+        return new LicenseeUser(userData);
+    }
+}

@@ -232,4 +232,13 @@ export default {
     setAttestationsAccepted: ({ commit }, areAttestationsAccepted: boolean) => {
         commit(MutationTypes.SET_ATTESTATIONS_ACCEPTED, areAttestationsAccepted);
     },
+    postPrivilegePurchases: ({ commit }, privilegePurchases) => {
+        commit(MutationTypes.POST_PRIVILEGE_PURCHASE_REQUEST);
+        return dataApi.postPrivilegePurchases(privilegePurchases).then((privilegePurchaseData) => {
+            dispatch('getPrivilegePurchaseInformationSuccess', privilegePurchaseData);
+            return privilegePurchaseData;
+        }).catch((error) => {
+            dispatch('getPrivilegePurchaseInformationFailure', error);
+        });
+    },
 };

@@ -137,6 +137,14 @@ export class DataApi {
         return userDataApi.getAuthenticatedLicenseeUser();
     }
 
+    /**
+     * POST Privilege Purchases for Authenticated Licensee user.
+     * @return {Promise<object>} List of privilege purchase options and compact purchase info.
+     */
+    public postPrivilegePurchases(data: any) {
+        return userDataApi.postPrivilegePurchases(data);
+    }
+
     // ========================================================================
     //                              EXAMPLE API
     // ========================================================================
