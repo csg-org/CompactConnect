@@ -245,6 +245,6 @@ export default {
         commit(MutationTypes.POST_PRIVILEGE_PURCHASE_SUCCESS);
     },
     postPrivilegePurchasesFailure: ({ commit }, error: Error) => {
-        commit(MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE);
+        commit(MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE, error);
     },
 };

@@ -129,4 +129,16 @@ export default {
     [MutationTypes.SET_ATTESTATIONS_ACCEPTED]: (state: any, areAttestationsAccepted: boolean) => {
         state.arePurchaseAttestationsAccepted = areAttestationsAccepted;
     },
+    [MutationTypes.POST_PRIVILEGE_PURCHASE_REQUEST]: (state: any) => {
+        state.isLoadingPrivilegePurchaseOptions = true;
+        state.error = null;
+    },
+    [MutationTypes.POST_PRIVILEGE_PURCHASE_SUCCESS]: (state: any) => {
+        state.isLoadingPrivilegePurchaseOptions = false;
+        state.error = null;
+    },
+    [MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE]: (state: any, error: Error) => {
+        state.isLoadingPrivilegePurchaseOptions = false;
+        state.error = error;
+    },
 };

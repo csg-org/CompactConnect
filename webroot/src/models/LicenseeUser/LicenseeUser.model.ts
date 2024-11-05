@@ -59,17 +59,28 @@ export class LicenseeUserSerializer {
 }
 
 export class LicenseeUserPurchaseSerializer {
-    static toServer(json: any): LicenseeUser {
-        const userData: any = {
-            id: json.providerId,
-            email: json.emailAddress,
-            firstName: json.givenName,
-            lastName: json.familyName,
-            accountStatus: json.status || 'inactive',
-            userType: AuthTypes.LICENSEE,
-            licensee: LicenseeSerializer.fromServer(json)
+    static toServer({ formData, statesSelected }): any {
+        // console.log('madeItIn', { formData, statesSelected });
+
+        const purchaseData: any = {
+            selectedJurisdictions: statesSelected,
+            orderInformation: {
+                card: {
+                    number: formData.creditCard.value,
+                    expiration: `20${formData.expYear.value}-${formData.expMonth.value}`,
+                    cvv: formData.cvv.value
+                },
+                billing: {
+                    firstName: formData.firstName.value,
+                    lastName: formData.lastName.value,
+                    streetAddress: formData.streetAddress1.value,
+                    streetAddress2: formData.streetAddress2.value,
+                    state: formData.stateSelect.value.toUpperCase(),
+                    zip: formData.zip.value
+                }
+            }
         };
 
-        return new LicenseeUser(userData);
+        return purchaseData;
     }
 }

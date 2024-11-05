@@ -17,7 +17,11 @@ export const requestSuccess = () => async (requestConfig) => {
     // Endpoints in the below list are accessible to users who are logged in via the licensee userpool
     // and as such require sending that token to authorize their use. All other endpoints are only accessible
     // by users logged in via the staff user pool and will therefore send those tokens to authorize.
-    const licenseeUserEndPoints = ['/v1/provider-users/me', '/v1/purchases/privileges/options'];
+    const licenseeUserEndPoints = [
+        '/v1/provider-users/me',
+        '/v1/purchases/privileges/options',
+        '/v1/purchases/privileges'
+    ];
     const { headers, url } = requestConfig;
     let authToken;
     let authTokenType;

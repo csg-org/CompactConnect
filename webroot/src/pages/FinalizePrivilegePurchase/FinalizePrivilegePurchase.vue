@@ -109,13 +109,13 @@
                             <div class="info-row-label">
                                 {{compactCommissionFeeText}}
                             </div>
-                            <div class="expire-date-value">${{totalCompactCommissionFee}}</div>
+                            <div class="expire-date-value">${{totalCompactCommissionFee?.toFixed(2)}}</div>
                         </div>
                         <div class="purchase-total info-row">
-                            <div class="info-row-label">
+                            <div class="info-row-label total">
                                 {{totalTitle}}
                             </div>
-                            <div class="expire-date-value">${{totalCompactCommissionFee}}</div>
+                            <div class="expire-date-value total">${{totalPurchasePrice?.toFixed(2)}}</div>
                         </div>
                     </div>
                     <InputCheckbox :formInput="formData.noRefunds" />
@@ -132,6 +132,7 @@
                 <div class="right-cell">
                     <InputButton
                         :label="backText"
+                        :isTransparent="true"
                         aria-label="close modal"
                         class="back-button"
                         @click="handleBackClicked"

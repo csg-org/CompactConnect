@@ -233,6 +233,22 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         return this.$t('licensing.militaryDiscountText');
     }
 
+    get totalPurchasePrice(): number {
+        let total = this.totalCompactCommissionFee;
+
+        this.selectedStatePurchaseDataList.forEach((stateSelected) => {
+            if (stateSelected?.fee) {
+                total += stateSelected.fee;
+            }
+
+            if (stateSelected?.isMilitaryDiscountActive && stateSelected?.militaryDiscountAmount) {
+                total -= stateSelected.militaryDiscountAmount;
+            }
+        });
+
+        return total;
+    }
+
     //
     // Methods
     //
@@ -240,7 +256,6 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         const { formData, statesSelected } = this;
 
         const serverData = LicenseeUserPurchaseSerializer.toServer({ formData, statesSelected });
-        console.log('serverData', serverData);
 
         await this.$store.dispatch('user/postPrivilegePurchases', serverData);
     }
