@@ -7,7 +7,7 @@ from tests import TstLambdas
 
 class TestSQSHandler(TstLambdas):
     def test_happy_path(self):
-        from handlers.utils import sqs_handler
+        from common.utils import sqs_handler
 
         @sqs_handler
         def message_handler(message: dict):  # noqa: ARG001 unused-argument
@@ -20,7 +20,7 @@ class TestSQSHandler(TstLambdas):
         self.assertEqual({'batchItemFailures': []}, resp)
 
     def test_partial_failure(self):
-        from handlers.utils import sqs_handler
+        from common.utils import sqs_handler
 
         mock_partial_failures = Mock(
             # Responses when called - three successes, two failures

@@ -8,7 +8,7 @@ from tests import TstLambdas
 class TestPrivilegeRecordSchema(TstLambdas):
     def test_serde(self):
         """Test round-trip deserialization/serialization"""
-        from data_model.schema.privilege import PrivilegeRecordSchema
+        from common.data_model.schema.privilege import PrivilegeRecordSchema
 
         with open('tests/resources/dynamo/privilege.json') as f:
             expected_privilege = json.load(f)
@@ -23,7 +23,7 @@ class TestPrivilegeRecordSchema(TstLambdas):
         self.assertEqual(privilege_data, expected_privilege)
 
     def test_invalid(self):
-        from data_model.schema.privilege import PrivilegeRecordSchema
+        from common.data_model.schema.privilege import PrivilegeRecordSchema
 
         with open('tests/resources/dynamo/privilege.json') as f:
             privilege_data = json.load(f)

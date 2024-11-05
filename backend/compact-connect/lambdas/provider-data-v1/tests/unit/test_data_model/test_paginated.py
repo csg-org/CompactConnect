@@ -13,8 +13,8 @@ class TestPaginated(TstLambdas):
             self._item = json.load(f)
 
     def test_pagination_parameters(self):
-        from data_model.query_paginator import paginated_query
-        from data_model.schema.provider import ProviderRecordSchema
+        from common.data_model.query_paginator import paginated_query
+        from common.data_model.schema.provider import ProviderRecordSchema
 
         calls = []
 
@@ -62,8 +62,8 @@ class TestPaginated(TstLambdas):
         that match filter criteria, which can be fewer. In this case, paginated_query should automatically query
         multiple times to fill out the requested page size.
         """
-        from data_model.query_paginator import paginated_query
-        from data_model.schema.provider import ProviderRecordSchema
+        from common.data_model.query_paginator import paginated_query
+        from common.data_model.schema.provider import ProviderRecordSchema
 
         calls = []
 
@@ -168,8 +168,8 @@ class TestPaginated(TstLambdas):
         )
 
     def test_no_pagination_parameters(self):
-        from data_model.query_paginator import paginated_query
-        from data_model.schema.provider import ProviderRecordSchema
+        from common.data_model.query_paginator import paginated_query
+        from common.data_model.schema.provider import ProviderRecordSchema
 
         calls = []
 
@@ -193,7 +193,7 @@ class TestPaginated(TstLambdas):
                     (),
                     {
                         'dynamo_pagination': {
-                            # Should fall back to default from config
+                            # Should fall back to default from common.config
                             'Limit': 100,
                         },
                     },
@@ -203,8 +203,8 @@ class TestPaginated(TstLambdas):
         )
 
     def test_invalid_key(self):
-        from data_model.query_paginator import paginated_query
-        from exceptions import CCInvalidRequestException
+        from common.data_model.query_paginator import paginated_query
+        from common.exceptions import CCInvalidRequestException
 
         @paginated_query
         def get_something(*args, **kwargs):  # noqa: ARG001 unused-argument
@@ -214,8 +214,8 @@ class TestPaginated(TstLambdas):
             get_something(pagination={'lastKey': 'not-b64-string'})
 
     def test_db_invalid_key(self):
-        from data_model.query_paginator import paginated_query
-        from exceptions import CCInvalidRequestException
+        from common.data_model.query_paginator import paginated_query
+        from common.exceptions import CCInvalidRequestException
 
         @paginated_query
         def throw_an_error(*args, **kwargs):
@@ -245,7 +245,7 @@ class TestPaginated(TstLambdas):
             throw_an_error()
 
     def test_db_other_error(self):
-        from data_model.query_paginator import paginated_query
+        from common.data_model.query_paginator import paginated_query
 
         @paginated_query
         def throw_an_error(*args, **kwargs):
@@ -284,7 +284,7 @@ class TestPaginated(TstLambdas):
         """Decorating instance methods works slightly differently than functions, so we'll make sure our decorator works
         for both.
         """
-        from data_model.query_paginator import paginated_query
+        from common.data_model.query_paginator import paginated_query
 
         calls = []
 

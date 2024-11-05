@@ -69,7 +69,7 @@ class TestTransformations(TstFunction):
         # This should fully ingest the license, which will result in it being written to the DB
         ingest_license_message(event, self.mock_context)
 
-        from data_model.client import DataClient
+        from common.data_model.client import DataClient
 
         # We'll use the data client to get the resulting provider id
         client = DataClient(self.config)

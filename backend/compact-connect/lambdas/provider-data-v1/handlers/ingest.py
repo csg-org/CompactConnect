@@ -1,12 +1,12 @@
 from collections.abc import Iterable
 
 from boto3.dynamodb.types import TypeSerializer
-from config import config, logger
-from data_model.schema.license import LicensePostSchema, LicenseRecordSchema
-from data_model.schema.provider import ProviderRecordSchema
-from exceptions import CCNotFoundException
+from common.config import config, logger
+from common.data_model.schema.license import LicensePostSchema, LicenseRecordSchema
+from common.data_model.schema.provider import ProviderRecordSchema
+from common.exceptions import CCNotFoundException
 
-from handlers.utils import sqs_handler
+from common.utils import sqs_handler
 
 license_schema = LicensePostSchema()
 

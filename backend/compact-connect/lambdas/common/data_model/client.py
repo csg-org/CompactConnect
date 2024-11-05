@@ -5,12 +5,12 @@ from uuid import uuid4
 from boto3.dynamodb.conditions import Attr, Key
 from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from botocore.exceptions import ClientError
-from config import _Config, config, logger
-from exceptions import CCNotFoundException
+from common.config import _Config, config, logger
+from common.exceptions import CCNotFoundException
 
-from data_model.query_paginator import paginated_query
-from data_model.schema import PrivilegeRecordSchema
-from data_model.schema.base_record import SSNIndexRecordSchema
+from common.data_model.query_paginator import paginated_query
+from common.data_model.schema import PrivilegeRecordSchema
+from common.data_model.schema.base_record import SSNIndexRecordSchema
 
 
 class DataClient:

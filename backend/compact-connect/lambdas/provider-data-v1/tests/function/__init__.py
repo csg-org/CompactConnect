@@ -27,10 +27,10 @@ class TstFunction(TstLambdas):
 
         self.build_resources()
 
-        import config
+        import common.config
 
-        config.config = config._Config()  # noqa: SLF001 protected-access
-        self.config = config.config
+        common.config.config = common.config._Config()  # noqa: SLF001 protected-access
+        self.config = common.config.config
 
         self.addCleanup(self.delete_resources)
 
@@ -99,7 +99,7 @@ class TstFunction(TstLambdas):
         :param privilege: The jurisdiction for the privilege
         :param start_serial: Starting number for last portion of the provider's SSN
         """
-        from data_model.client import DataClient
+        from common.data_model.client import DataClient
         from handlers.ingest import ingest_license_message
 
         with open('tests/resources/ingest/message.json') as f:
@@ -135,7 +135,7 @@ class TstFunction(TstLambdas):
 
             # Create a new provider with a license
             now = datetime.now(tz=UTC)
-            with patch('data_model.schema.base_record.datetime') as mock:
+            with patch('common.data_model.schema.base_record.datetime') as mock:
                 # This gives us some variation in dateOfUpdate values to sort by
                 mock.now.side_effect = lambda tz: now - timedelta(  # noqa: ARG005, B023  unused-lambda-argument
                     days=randint(1, 365),

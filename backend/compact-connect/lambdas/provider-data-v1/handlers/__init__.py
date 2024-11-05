@@ -1,5 +1,5 @@
-from config import config, logger
-from exceptions import CCInternalException
+from common.config import config, logger
+from common.exceptions import CCInternalException
 
 
 def get_provider_information(compact: str, provider_id: str) -> dict:

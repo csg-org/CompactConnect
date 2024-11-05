@@ -7,7 +7,7 @@ from tests import TstLambdas
 
 class TestAuthorizeCompactJurisdiction(TstLambdas):
     def test_scope_by_path(self):
-        from handlers.utils import authorize_compact_jurisdiction
+        from common.utils import authorize_compact_jurisdiction
 
         @authorize_compact_jurisdiction(action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -25,8 +25,8 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
         self.assertEqual({'body': 'Hurray!'}, example_entrypoint(event, self.mock_context))
 
     def test_no_path_param(self):
-        from exceptions import CCInvalidRequestException
-        from handlers.utils import authorize_compact_jurisdiction
+        from common.exceptions import CCInvalidRequestException
+        from common.utils import authorize_compact_jurisdiction
 
         @authorize_compact_jurisdiction(action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -41,8 +41,8 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
             example_entrypoint(event, self.mock_context)
 
     def test_no_authorizer(self):
-        from exceptions import CCUnauthorizedException
-        from handlers.utils import authorize_compact_jurisdiction
+        from common.exceptions import CCUnauthorizedException
+        from common.utils import authorize_compact_jurisdiction
 
         @authorize_compact_jurisdiction(action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -60,8 +60,8 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
             example_entrypoint(event, self.mock_context)
 
     def test_missing_scope(self):
-        from exceptions import CCAccessDeniedException
-        from handlers.utils import authorize_compact_jurisdiction
+        from common.exceptions import CCAccessDeniedException
+        from common.utils import authorize_compact_jurisdiction
 
         @authorize_compact_jurisdiction(action='write')
         def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -81,7 +81,7 @@ class TestAuthorizeCompactJurisdiction(TstLambdas):
 
 class TestAuthorizeCompact(TstLambdas):
     def test_authorize_compact(self):
-        from handlers.utils import authorize_compact
+        from common.utils import authorize_compact
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -98,8 +98,8 @@ class TestAuthorizeCompact(TstLambdas):
         self.assertEqual({'body': 'Hurray!'}, example_entrypoint(event, self.mock_context))
 
     def test_no_path_param(self):
-        from exceptions import CCInvalidRequestException
-        from handlers.utils import authorize_compact
+        from common.exceptions import CCInvalidRequestException
+        from common.utils import authorize_compact
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -114,8 +114,8 @@ class TestAuthorizeCompact(TstLambdas):
             example_entrypoint(event, self.mock_context)
 
     def test_no_authorizer(self):
-        from exceptions import CCUnauthorizedException
-        from handlers.utils import authorize_compact
+        from common.exceptions import CCUnauthorizedException
+        from common.utils import authorize_compact
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -130,8 +130,8 @@ class TestAuthorizeCompact(TstLambdas):
             example_entrypoint(event, self.mock_context)
 
     def test_missing_scope(self):
-        from exceptions import CCAccessDeniedException
-        from handlers.utils import authorize_compact
+        from common.exceptions import CCAccessDeniedException
+        from common.utils import authorize_compact
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument

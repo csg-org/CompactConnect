@@ -8,7 +8,7 @@ from tests import TstLambdas
 class TestProviderRecordSchema(TstLambdas):
     def test_serde(self):
         """Test round-trip deserialization/serialization"""
-        from data_model.schema.provider import ProviderRecordSchema
+        from common.data_model.schema.provider import ProviderRecordSchema
 
         with open('tests/resources/dynamo/provider.json') as f:
             expected_provider_record = json.load(f)
@@ -27,7 +27,7 @@ class TestProviderRecordSchema(TstLambdas):
         self.assertEqual(expected_provider_record, license_record)
 
     def test_invalid(self):
-        from data_model.schema.provider import ProviderRecordSchema
+        from common.data_model.schema.provider import ProviderRecordSchema
 
         with open('tests/resources/dynamo/provider.json') as f:
             license_data = json.load(f)

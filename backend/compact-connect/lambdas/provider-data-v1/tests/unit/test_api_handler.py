@@ -11,7 +11,7 @@ class TestApiHandler(TstLambdas):
     """Testing that the api_handler decorator is working as expected."""
 
     def test_happy_path(self):
-        from handlers.utils import api_handler
+        from common.utils import api_handler
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):
@@ -26,8 +26,8 @@ class TestApiHandler(TstLambdas):
         self.assertEqual('{"message": "OK"}', resp['body'])
 
     def test_unauthorized(self):
-        from exceptions import CCUnauthorizedException
-        from handlers.utils import api_handler
+        from common.exceptions import CCUnauthorizedException
+        from common.utils import api_handler
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):
@@ -40,8 +40,8 @@ class TestApiHandler(TstLambdas):
         self.assertEqual(401, resp['statusCode'])
 
     def test_invalid_request(self):
-        from exceptions import CCInvalidRequestException
-        from handlers.utils import api_handler
+        from common.exceptions import CCInvalidRequestException
+        from common.utils import api_handler
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):
@@ -55,7 +55,7 @@ class TestApiHandler(TstLambdas):
         self.assertEqual({'message': "You can't do that"}, json.loads(resp['body']))
 
     def test_client_error(self):
-        from handlers.utils import api_handler
+        from common.utils import api_handler
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):
@@ -68,7 +68,7 @@ class TestApiHandler(TstLambdas):
             lambda_handler(event, self.mock_context)
 
     def test_runtime_error(self):
-        from handlers.utils import api_handler
+        from common.utils import api_handler
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):
@@ -81,7 +81,7 @@ class TestApiHandler(TstLambdas):
             lambda_handler(event, self.mock_context)
 
     def test_null_headers(self):
-        from handlers.utils import api_handler
+        from common.utils import api_handler
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
