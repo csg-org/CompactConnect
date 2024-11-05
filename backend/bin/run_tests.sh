@@ -1,6 +1,9 @@
 # To disable the report, provide basically anything as a first argument
 REPORT="$1"
 
+# Set the PYTHONPATH to include the common directory
+export PYTHONPATH=$(pwd)/compact-connect/lambdas/common:$PYTHONPATH
+
 # Run CDK tests, tracking code coverage in a new data file
 (
   cd compact-connect
