@@ -167,6 +167,10 @@ class TestPostPurchasePrivileges(TstFunction):
     def test_post_purchase_privileges_returns_400_if_selected_jurisdiction_matches_existing_license(
         self, mock_purchase_client_constructor
     ):
+        """
+        In this case, the user is attempting to purchase a privilege in ohio, but they already have a license in ohio.
+        So the request should be rejected.
+        """
         from handlers.privileges import post_purchase_privileges
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
@@ -186,6 +190,9 @@ class TestPostPurchasePrivileges(TstFunction):
     def test_post_purchase_privileges_returns_400_if_selected_jurisdiction_matches_existing_privilege(
         self, mock_purchase_client_constructor
     ):
+        """
+        In this case, the user is attempting to purchase a privilege in kentucky twice.
+        """
         from handlers.privileges import post_purchase_privileges
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
