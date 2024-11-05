@@ -1,9 +1,6 @@
 # To disable the report, provide basically anything as a first argument
 REPORT="$1"
 
-# Set the PYTHONPATH to include the common directory
-export PYTHONPATH=$(pwd)/compact-connect/lambdas/common:$PYTHONPATH
-
 # Run CDK tests, tracking code coverage in a new data file
 (
   cd compact-connect
@@ -21,6 +18,9 @@ for dir in \
   do
   (
     cd "$dir"
+    echo "Running tests in $dir"
+    # create a symlink to the shared code, to simulate the lambda layer setup
+    ln -s ../common common
     # Run lambda tests, appending data to the same data file
     pytest --cov=. --cov-config=.coveragerc --cov-append tests
   ) || exit "$?"
