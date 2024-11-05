@@ -87,44 +87,36 @@
                         <div class="selection-title">{{selectionText}}</div>
                         <ul>
                             <li
-                                v-for="(state, i) in selectedStatePurchaseDataList"
+                                v-for="(state) in selectedStatePurchaseDataList"
                                 :key="state.jurisdiction.abbrev"
                                 class="selected-state-block"
                             >
                                 <div class="info-row">
-                                    <div class="state-title">{{state.jurisdiction.name()}}</div>
-                                    <InputButton
-                                        label="X"
-                                        :isTextLike="true"
-                                        aria-label="deselect state"
-                                        @click="deselectState(state)"
-                                    />
+                                    <div class="info-row-label">
+                                        {{`${state?.jurisdiction?.name()} ${compactPrivilegeStateFeeText}`}}
+                                    </div>
+                                    <div class="expire-date-value">${{state?.fee?.toFixed(2)}}</div>
                                 </div>
-                                <div class="info-row sub-row">
-                                    <div class="info-row-label">He</div>
-                                    <div class="expire-date-value">${{state.fee.toFixed(2)}}</div>
-                                </div>
-                                <div class="info-row sub-row">
-                                    <div class="info-row-label">{{commissionFeeText}}</div>
-                                    <div class="expire-date-value">${{currentCompactCommissionFee.toFixed(2)}}</div>
-                                </div>
-                                <div v-if="state.isMilitaryDiscountActive" class="info-row sub-row">
-                                    <div class="info-row-label">{{militaryDiscountText}}</div>
-                                    <div class="expire-date-value">-${{state.militaryDiscountAmount.toFixed(2)}}</div>
-                                </div>
-                                <div class="info-row">
-                                    <div class="info-row-label">{{subtotalText}}</div>
-                                    <div class="expire-date-value">${{subTotalList[i].toFixed(2)}}</div>
-                                </div>
-                                <div v-if="state.isJurisprudenceRequired" class="jurisprudence-check-box">
-                                    <InputCheckbox
-                                        :formInput="formData.jurisprudenceConfirmations[state.jurisdiction.abbrev]"
-                                        @change="handleJurisprudenceClicked(state)"
-                                    />
+                                <div v-if="state.isMilitaryDiscountActive" class="info-row">
+                                    <div class="info-row-label">
+                                        {{`${state?.jurisdiction?.name()} ${militaryDiscountText}`}}
+                                    </div>
+                                    <div class="expire-date-value">-${{state?.militaryDiscountAmount?.toFixed(2)}}</div>
                                 </div>
                             </li>
                         </ul>
-                        <div class="purchase-total"></div>
+                        <div class="compact-commission-fee info-row">
+                            <div class="info-row-label">
+                                {{compactCommissionFeeText}}
+                            </div>
+                            <div class="expire-date-value">${{totalCompactCommissionFee}}</div>
+                        </div>
+                        <div class="purchase-total info-row">
+                            <div class="info-row-label">
+                                {{totalTitle}}
+                            </div>
+                            <div class="expire-date-value">${{totalCompactCommissionFee}}</div>
+                        </div>
                     </div>
                     <InputCheckbox :formInput="formData.noRefunds" />
                 </div>

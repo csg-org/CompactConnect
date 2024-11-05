@@ -190,15 +190,9 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         return this.currentCompact?.compactCommissionFee || null;
     }
 
-    // get costRows(): Array<object> {
-    //     const costRows: Array<object> = [];
-
-    //     this.selectedStates.forEach((selectedState) => {
-
-    //     })
-
-    //     return costRows;
-    // }
+    get stateFeeText(): string {
+        return this.$t('payment.expirationDate');
+    }
 
     get arePurchaseAttestationsAccepted(): boolean {
         return this.userStore.arePurchaseAttestationsAccepted;
@@ -206,6 +200,36 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
 
     get purchaseDataList(): Array<PrivilegePurchaseOption> {
         return this.currentCompact?.privilegePurchaseOptions || [];
+    }
+
+    get compactPrivilegeStateFeeText(): string {
+        return this.$t('payment.compactPrivilegeStateFee');
+    }
+
+    get compactCommissionFeeText(): string | null {
+        return `${this.$t('payment.compactCommissionFee')} ($${this.currentCompactCommissionFee?.toFixed(2)} x ${this.privCount})`;
+    }
+
+    get privCount(): number {
+        return this.selectedStatePurchaseDataList?.length || 0;
+    }
+
+    get totalTitle(): string {
+        return this.$t('common.total');
+    }
+
+    get totalCompactCommissionFee(): number {
+        let total = 0;
+
+        if (this.currentCompactCommissionFee) {
+            total = this.privCount * this.currentCompactCommissionFee;
+        }
+
+        return total;
+    }
+
+    get militaryDiscountText(): string {
+        return this.$t('licensing.militaryDiscountText');
     }
 
     //

@@ -29,6 +29,7 @@
         "saveAndContinue": "Save & Continue",
         "saveAndClose": "Save & Close",
         "subtotal": "Subtotal",
+        "total": "Total",
         "saving": "Saving...",
         "loading": "Loading...",
         "firstName": "First Name",
@@ -443,7 +444,9 @@
         "streetAddress2": "Street Address 2",
         "completePurchase": "Complete Purchase",
         "expirationDate": "Expiration date",
-        "continueToPurchase": "Continue to purchase"
+        "continueToPurchase": "Continue to purchase",
+        "compactPrivilegeStateFee": "Compact Privilege State Fee",
+        "compactCommissionFee": "Compact Commision Fee"
     },
     "licensing": {
         "license": "License",
