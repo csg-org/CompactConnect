@@ -507,12 +507,3 @@ class PurchaseClient:
             )
 
         return response
-
-
-if __name__ == '__main__':
-    purchase_client = PurchaseClient()
-    purchase_client.validate_and_store_credentials("count", {
-        "processor": "authorize.net",
-        "apiLoginId": "24xMHMr4L5TX",
-        "transactionKey": "2e732TCu3hm8Q2FF"
-    })
