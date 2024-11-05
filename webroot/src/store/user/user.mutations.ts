@@ -31,6 +31,9 @@ export enum MutationTypes {
     GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE = '[User] Get Privilege Purchase Information Failure',
     SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE = '[User] Save Selected Privilege Purchases To Store',
     SET_ATTESTATIONS_ACCEPTED = '[User] Set Attestations Accepted',
+    POST_PRIVILEGE_PURCHASE_REQUEST = '[User] Post Privilege Purchase Request',
+    POST_PRIVILEGE_PURCHASE_SUCCESS = '[User] Post Privilege Purchase Success',
+    POST_PRIVILEGE_PURCHASE_FAILURE = '[User] Post Privilege Purchase Failure'
 }
 
 export default {

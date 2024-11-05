@@ -236,13 +236,13 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     //
     // Methods
     //
-    handleSubmit() {
+    async handleSubmit() {
         const { formData, statesSelected } = this;
 
         const serverData = LicenseeUserPurchaseSerializer.toServer({ formData, statesSelected });
         console.log('serverData', serverData);
 
-        
+        await this.$store.dispatch('user/postPrivilegePurchases', serverData);
     }
 
     initFormInputs() {
