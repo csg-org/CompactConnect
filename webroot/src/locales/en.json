@@ -36,6 +36,7 @@
         "lastName": "Last Name",
         "firstname": "First name",
         "lastname": "Last name",
+        "selection": "Selection",
         "dateOfBirth": "Date of Birth",
         "dateOfBirthShort": "DOB",
         "dateFormat": "mm/dd/yyyy",
@@ -441,7 +442,8 @@
         "streetAddress": "Street Address",
         "streetAddress2": "Street Address 2",
         "completePurchase": "Complete Purchase",
-        "expirationDate": "Expiration date"
+        "expirationDate": "Expiration date",
+        "continueToPurchase": "Continue to purchase"
     },
     "licensing": {
         "license": "License",

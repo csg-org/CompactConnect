@@ -57,7 +57,7 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
     }
 
     get submitLabel(): string {
-        return this.$store.state.user;
+        return this.$t('payment.continueToPurchase');
     }
 
     //
@@ -78,7 +78,7 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
         if (this.currentCompactType) {
             this.$router.push({
                 name: 'LicenseeDashboard',
-                params: { compact: this.currentCompact?.type }
+                params: { compact: this.currentCompactType }
             });
         }
     }
@@ -87,7 +87,16 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
         if (this.currentCompactType) {
             this.$router.push({
                 name: 'SelectPrivileges',
-                params: { compact: this.currentCompact?.type }
+                params: { compact: this.currentCompactType }
+            });
+        }
+    }
+
+    handleSubmit() {
+        if (this.currentCompactType) {
+            this.$router.push({
+                name: 'FinalizePrivilegePurchase',
+                params: { compact: this.currentCompactType }
             });
         }
     }

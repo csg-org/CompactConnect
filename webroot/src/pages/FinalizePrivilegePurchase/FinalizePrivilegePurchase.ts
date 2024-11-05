@@ -14,9 +14,10 @@ import InputNumber from '@components/Forms/InputNumber/InputNumber.vue';
 import InputCreditCard from '@components/Forms/InputCreditCard/InputCreditCard.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
-// import InputDate from '@components/Forms/InputDate/InputDate.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import { Compact } from '@models/Compact/Compact.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
+import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import Joi from 'joi';
 
 @Component({
@@ -36,6 +37,10 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     // Lifecycle
     //
     created() {
+        if (!this.statesSelected || !this.arePurchaseAttestationsAccepted) {
+            this.handleCancelClicked();
+        }
+
         this.initFormInputs();
     }
 
@@ -145,6 +150,62 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
 
     get expirationDateText(): string {
         return this.$t('payment.expirationDate');
+    }
+
+    get selectionText(): string {
+        return this.$t('common.selection');
+    }
+
+    get userStore(): any {
+        return this.$store.state.user;
+    }
+
+    get statesSelected(): Array<string> {
+        return this.userStore.selectedPrivilegesToPurchase;
+    }
+
+    get selectedStatePurchaseDataList(): Array<PrivilegePurchaseOption> {
+        return this.purchaseDataList.filter((option) => {
+            let includes = false;
+
+            const stateAbbrev = option?.jurisdiction?.abbrev;
+
+            if (stateAbbrev) {
+                includes = this.statesSelected?.includes(stateAbbrev);
+            }
+
+            return includes;
+        });
+    }
+
+    get currentCompact(): Compact | null {
+        return this.userStore?.currentCompact || null;
+    }
+
+    get currentCompactType(): string | null {
+        return this.currentCompact?.type || null;
+    }
+
+    get currentCompactCommissionFee(): number | null {
+        return this.currentCompact?.compactCommissionFee || null;
+    }
+
+    // get costRows(): Array<object> {
+    //     const costRows: Array<object> = [];
+
+    //     this.selectedStates.forEach((selectedState) => {
+
+    //     })
+
+    //     return costRows;
+    // }
+
+    get arePurchaseAttestationsAccepted(): boolean {
+        return this.userStore.arePurchaseAttestationsAccepted;
+    }
+
+    get purchaseDataList(): Array<PrivilegePurchaseOption> {
+        return this.currentCompact?.privilegePurchaseOptions || [];
     }
 
     //
@@ -281,11 +342,21 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     }
 
     handleCancelClicked() {
-        console.log('cancel');
+        if (this.currentCompactType) {
+            this.$router.push({
+                name: 'LicenseeDashboard',
+                params: { compact: this.currentCompactType }
+            });
+        }
     }
 
     handleBackClicked() {
-        console.log('back');
+        if (this.currentCompactType) {
+            this.$router.push({
+                name: 'SelectPrivileges',
+                params: { compact: this.currentCompactType }
+            });
+        }
     }
 
     formatCreditCard(): void {

@@ -5,21 +5,35 @@
 //  Created by InspiringApps on 11/4/2024.
 //
 .privilege-purchase-attestation-container {
-    .button-row {
-        display: flex;
-        flex-direction: row;
-        align-items: flex-end;
-        justify-content: space-between;
-        width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 
-        .right-cell {
+    .privilege-form {
+        width: 40rem;
+
+        .attestation-text {
+            padding: 4rem;
+            font-size: @fontSizeLarge;
+        }
+
+        .button-row {
             display: flex;
             flex-direction: row;
             align-items: flex-end;
             justify-content: space-between;
+            width: 100%;
 
-            .back-button {
-                margin-right: 1rem;
+            .right-cell {
+                display: flex;
+                flex-direction: row;
+                align-items: flex-end;
+                justify-content: space-between;
+
+                .back-button {
+                    margin-right: 1rem;
+                }
             }
         }
     }

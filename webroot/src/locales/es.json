@@ -35,6 +35,7 @@
         "middleName": "Segundo nombre",
         "lastName": "Apellido",
         "lastname": "Apellido",
+        "selection": "Selección",
         "dateOfBirth": "Fecha de nacimiento",
         "dateOfBirthShort": "Fecha de nacim.",
         "dateFormat": "mm/dd/aaaa",
@@ -440,7 +441,8 @@
         "completePurchase": "Finalizar compra",
         "expirattionDate": "Fecha de vencimiento",
         "firstNameOnCard": "Introduzca el nombre en la tarjeta",
-        "lastNameOnCard": "Introduzca el apellido en la tarjeta"
+        "lastNameOnCard": "Introduzca el apellido en la tarjeta",
+        "continueToPurchase": "Continuar comprando"
     },
     "licensing": {
         "licensingListTitle": "Datos de licencia",

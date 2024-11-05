@@ -124,6 +124,6 @@ export default {
         state.selectedPrivilegesToPurchase = privilegePurchaseChoices;
     },
     [MutationTypes.SET_ATTESTATIONS_ACCEPTED]: (state: any, areAttestationsAccepted: boolean) => {
-        state.areAttestationsAccepted = areAttestationsAccepted;
+        state.arePurchaseAttestationsAccepted = areAttestationsAccepted;
     },
 };

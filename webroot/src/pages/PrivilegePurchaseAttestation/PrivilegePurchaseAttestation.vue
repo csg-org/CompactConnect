@@ -8,6 +8,9 @@
 <template>
     <div class="privilege-purchase-attestation-container">
         <form class="privilege-form" @submit.prevent="handleSubmit">
+            <div class="attestation-text">
+                Attestations
+            </div>
             <div class="button-row">
                 <InputButton
                     :label="cancelText"
