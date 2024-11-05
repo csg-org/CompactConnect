@@ -2,10 +2,6 @@
 from urllib.parse import quote
 
 from common.config import config
-from marshmallow import ValidationError, post_load, pre_dump, validates_schema
-from marshmallow.fields import UUID, Boolean, Date, Email, String
-from marshmallow.validate import Length, OneOf, Regexp
-
 from common.data_model.schema.base_record import (
     BaseRecordSchema,
     ForgivingSchema,
@@ -13,6 +9,9 @@ from common.data_model.schema.base_record import (
     Set,
     SocialSecurityNumber,
 )
+from marshmallow import ValidationError, post_load, pre_dump, validates_schema
+from marshmallow.fields import UUID, Boolean, Date, Email, String
+from marshmallow.validate import Length, OneOf, Regexp
 
 
 class ProviderPublicSchema(ForgivingSchema):

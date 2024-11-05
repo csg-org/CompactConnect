@@ -5,10 +5,9 @@ from types import MethodType
 
 from botocore.exceptions import ClientError
 from common.config import config, logger
+from common.data_model.schema.base_record import BaseRecordSchema
 from common.exceptions import CCInternalException, CCInvalidRequestException
 from marshmallow import ValidationError
-
-from common.data_model.schema.base_record import BaseRecordSchema
 
 
 # It's conventional to name a decorator in snake_case, even if it is implemented as a class

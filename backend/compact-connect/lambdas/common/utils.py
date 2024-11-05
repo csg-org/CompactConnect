@@ -9,7 +9,12 @@ from uuid import UUID
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from common.config import logger
-from common.exceptions import CCAccessDeniedException, CCInvalidRequestException, CCNotFoundException, CCUnauthorizedException
+from common.exceptions import (
+    CCAccessDeniedException,
+    CCInvalidRequestException,
+    CCNotFoundException,
+    CCUnauthorizedException,
+)
 
 
 class ResponseEncoder(JSONEncoder):

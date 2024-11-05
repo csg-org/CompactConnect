@@ -5,7 +5,6 @@ from common.config import config, logger
 from common.data_model.schema.license import LicensePostSchema, LicenseRecordSchema
 from common.data_model.schema.provider import ProviderRecordSchema
 from common.exceptions import CCNotFoundException
-
 from common.utils import sqs_handler
 
 license_schema = LicensePostSchema()

@@ -7,12 +7,11 @@ from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
 from common.config import config, logger
 from common.data_model.schema.license import LicensePostSchema, LicensePublicSchema
-from event_batch_writer import EventBatchWriter
 from common.exceptions import CCInternalException
+from common.utils import ResponseEncoder, api_handler, authorize_compact_jurisdiction
+from event_batch_writer import EventBatchWriter
 from license_csv_reader import LicenseCSVReader
 from marshmallow import ValidationError
-
-from common.utils import ResponseEncoder, api_handler, authorize_compact_jurisdiction
 
 
 @api_handler

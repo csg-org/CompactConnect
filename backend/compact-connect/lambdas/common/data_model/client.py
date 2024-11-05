@@ -6,11 +6,10 @@ from boto3.dynamodb.conditions import Attr, Key
 from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from botocore.exceptions import ClientError
 from common.config import _Config, config, logger
-from common.exceptions import CCNotFoundException
-
 from common.data_model.query_paginator import paginated_query
 from common.data_model.schema import PrivilegeRecordSchema
 from common.data_model.schema.base_record import SSNIndexRecordSchema
+from common.exceptions import CCNotFoundException
 
 
 class DataClient:

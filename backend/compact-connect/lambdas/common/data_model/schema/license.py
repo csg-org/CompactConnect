@@ -1,11 +1,15 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 
 from common.config import config
+from common.data_model.schema.base_record import (
+    BaseRecordSchema,
+    ForgivingSchema,
+    ITUTE164PhoneNumber,
+    SocialSecurityNumber,
+)
 from marshmallow import ValidationError, pre_dump, validates_schema
 from marshmallow.fields import UUID, Boolean, Date, Email, String
 from marshmallow.validate import Length, OneOf, Regexp
-
-from common.data_model.schema.base_record import BaseRecordSchema, ForgivingSchema, ITUTE164PhoneNumber, SocialSecurityNumber
 
 
 class LicenseCommonSchema(ForgivingSchema):
