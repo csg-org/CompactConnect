@@ -53,7 +53,7 @@ def _generate_default_order_information():
 
 
 def _generate_aslp_compact_configuration():
-    from data_model.schema.compact import Compact
+    from cc_common.data_model.schema.compact import Compact
 
     with open('tests/resources/dynamo/compact.json') as f:
         # setting fixed fee amount for tests
@@ -65,7 +65,7 @@ def _generate_aslp_compact_configuration():
 
 
 def _generate_selected_jurisdictions():
-    from data_model.schema.jurisdiction import Jurisdiction
+    from cc_common.data_model.schema.jurisdiction import Jurisdiction
 
     with open('tests/resources/dynamo/jurisdiction.json') as f:
         jurisdiction = json.load(f)

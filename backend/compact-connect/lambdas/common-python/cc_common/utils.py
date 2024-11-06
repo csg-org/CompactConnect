@@ -8,7 +8,6 @@ from uuid import UUID
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
-
 from cc_common.config import logger
 from cc_common.exceptions import (
     CCAccessDeniedException,
@@ -90,7 +89,7 @@ def api_handler(fn: Callable):
             return {
                 'headers': {'Access-Control-Allow-Origin': '*'},
                 'statusCode': 404,
-                'body': json.dumps({'message': 'Resource not found'}),
+                'body': json.dumps({'message': f'{e.message}'}),
             }
         except CCInvalidRequestException as e:
             logger.info('Invalid request', exc_info=e)

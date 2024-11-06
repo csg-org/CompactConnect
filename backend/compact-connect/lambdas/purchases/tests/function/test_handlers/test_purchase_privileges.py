@@ -2,7 +2,7 @@ import json
 from datetime import UTC, date, datetime
 from unittest.mock import MagicMock, patch
 
-from config import config
+from cc_common.config import config
 from cc_common.exceptions import CCAwsServiceException, CCFailedTransactionException, CCInternalException
 from moto import mock_aws
 

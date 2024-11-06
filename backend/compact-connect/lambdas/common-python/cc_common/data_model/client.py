@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -10,7 +10,7 @@ from cc_common.config import _Config, config, logger
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
-from cc_common.exceptions import CCNotFoundException
+from cc_common.exceptions import CCAwsServiceException, CCNotFoundException
 
 
 class DataClient:
@@ -204,3 +204,82 @@ class DataClient:
                 },
             ],
         )
+
+    @paginated_query
+    def get_privilege_purchase_options(self, *, compact: str, dynamo_pagination: dict):
+        logger.info('Getting privilege purchase options for compact', compact=compact)
+
+        return self.config.compact_configuration_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(f'{compact}#CONFIGURATION'),
+            **dynamo_pagination,
+        )
+
+    def _generate_privilege_record(
+        self,
+        compact_name: str,
+        provider_id: str,
+        jurisdiction_postal_abbreviation: str,
+        license_expiration_date: date,
+        compact_transaction_id: str,
+    ):
+        privilege_object = {
+            'providerId': provider_id,
+            'compact': compact_name,
+            'jurisdiction': jurisdiction_postal_abbreviation.lower(),
+            'status': 'active',
+            'dateOfIssuance': datetime.now(tz=UTC).date(),
+            'dateOfExpiration': license_expiration_date,
+            'compactTransactionId': compact_transaction_id,
+        }
+        schema = PrivilegeRecordSchema()
+        return schema.dump(privilege_object)
+
+    def create_provider_privileges(
+        self,
+        compact_name: str,
+        provider_id: str,
+        jurisdiction_postal_abbreviations: list[str],
+        license_expiration_date: date,
+        compact_transaction_id: str,
+    ):
+        """
+        Create privilege records for a provider in the database.
+
+        This is a transactional operation. If any of the records fail to be created,
+        the entire transaction will be rolled back. As this is usually performed after a provider has purchased
+        one or more privileges, it is important that all records are created successfully.
+
+        :param compact_name: The compact name
+        :param provider_id: The provider id
+        :param jurisdiction_postal_abbreviations: The list of jurisdiction postal codes
+        :param license_expiration_date: The license expiration date
+        :param compact_transaction_id: The compact transaction id
+        """
+        logger.info(
+            'Creating provider privileges',
+            provider_id=provider_id,
+            privlige_jurisdictions=jurisdiction_postal_abbreviations,
+            compact_transaction_id=compact_transaction_id,
+        )
+
+        try:
+            # the batch writer handles retries and sending the requests in batches
+            with self.config.provider_table.batch_writer() as batch:
+                for postal_abbreviation in jurisdiction_postal_abbreviations:
+                    privilege_record = self._generate_privilege_record(
+                        compact_name, provider_id, postal_abbreviation, license_expiration_date, compact_transaction_id
+                    )
+                    batch.put_item(Item=privilege_record)
+        except ClientError as e:
+            message = 'Unable to create all provider privileges. Rolling back transaction.'
+            logger.info(message, error=str(e))
+            # we must rollback and delete the records that were created
+            with self.config.provider_table.batch_writer() as delete_batch:
+                for postal_abbreviation in jurisdiction_postal_abbreviations:
+                    privilege_record = self._generate_privilege_record(
+                        compact_name, provider_id, postal_abbreviation, license_expiration_date, compact_transaction_id
+                    )
+                    # this transaction is idempotent, so we can safely delete the records even if they weren't created
+                    delete_batch.delete_item(Key={'pk': privilege_record['pk'], 'sk': privilege_record['sk']})
+            raise CCAwsServiceException(message) from e

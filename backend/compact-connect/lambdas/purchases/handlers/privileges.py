@@ -2,9 +2,10 @@ import json
 from datetime import date
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from config import config, logger
-from data_model.schema.compact import COMPACT_TYPE, Compact, CompactOptionsApiResponseSchema
-from data_model.schema.jurisdiction import JURISDICTION_TYPE, Jurisdiction, JurisdictionOptionsApiResponseSchema
+from cc_common.config import config, logger
+from cc_common.data_model.schema.compact import COMPACT_TYPE, Compact, CompactOptionsApiResponseSchema
+from cc_common.data_model.schema.jurisdiction import (JURISDICTION_TYPE, Jurisdiction,
+                                                      JurisdictionOptionsApiResponseSchema)
 from cc_common.exceptions import (
     CCAwsServiceException,
     CCFailedTransactionException,

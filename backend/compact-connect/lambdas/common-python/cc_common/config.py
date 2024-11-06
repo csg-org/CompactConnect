@@ -31,6 +31,14 @@ class _Config:
         return DataClient(self)
 
     @cached_property
+    def compact_configuration_table(self):
+        return boto3.resource('dynamodb').Table(self.compact_configuration_table_name)
+
+    @cached_property
+    def secrets_manager_client(self):
+        return boto3.client('secretsmanager')
+
+    @cached_property
     def events_client(self):
         return boto3.client('events', config=BotoConfig(retries={'mode': 'standard'}))
 
@@ -41,6 +49,14 @@ class _Config:
     @cached_property
     def provider_table(self):
         return boto3.resource('dynamodb').Table(self.provider_table_name)
+
+    @property
+    def compact_configuration_table_name(self):
+        return os.environ['COMPACT_CONFIGURATION_TABLE_NAME']
+
+    @property
+    def environment_name(self):
+        return os.environ['ENVIRONMENT_NAME']
 
     @property
     def compacts(self):

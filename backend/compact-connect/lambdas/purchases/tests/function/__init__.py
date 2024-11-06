@@ -22,10 +22,10 @@ class TstFunction(TstLambdas):
 
         self.build_resources()
 
-        import config
+        import cc_common.config
 
-        config.config = config._Config()  # noqa: SLF001 protected-access
-        self.config = config.config
+        cc_common.config.config = cc_common.config._Config()  # noqa: SLF001 protected-access
+        self.config = cc_common.config.config
 
         self.addCleanup(self.delete_resources)
 

@@ -4,10 +4,10 @@ from abc import ABC, abstractmethod
 from authorizenet import apicontractsv1
 from authorizenet.apicontrollers import createTransactionController, getMerchantDetailsController
 from authorizenet.constants import constants
-from config import config, logger
-from data_model.schema.compact import Compact, CompactFeeType
-from data_model.schema.jurisdiction import Jurisdiction, JurisdictionMilitaryDiscountType
-from exceptions import CCFailedTransactionException, CCInternalException, CCInvalidRequestException
+from cc_common.config import config, logger
+from cc_common.data_model.schema.compact import Compact, CompactFeeType
+from cc_common.data_model.schema.jurisdiction import Jurisdiction, JurisdictionMilitaryDiscountType
+from cc_common.exceptions import CCFailedTransactionException, CCInternalException, CCInvalidRequestException
 
 AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
 
