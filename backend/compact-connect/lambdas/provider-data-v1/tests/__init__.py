@@ -17,6 +17,8 @@ class TstLambdas(TestCase):
                 'BULK_BUCKET_NAME': 'cc-license-data-bulk-bucket',
                 'EVENT_BUS_NAME': 'license-data-events',
                 'PROVIDER_TABLE_NAME': 'provider-table',
+                'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
+                'ENVIRONMENT_NAME': 'test',
                 'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'COMPACTS': '["aslp", "octp", "coun"]',
