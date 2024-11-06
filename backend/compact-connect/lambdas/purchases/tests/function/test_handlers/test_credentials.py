@@ -113,7 +113,10 @@ class TestPostPaymentProcessorCredentials(TstFunction):
     ):
         from handlers.credentials import post_payment_processor_credentials
 
-        self._when_purchase_client_raises_exception(mock_purchase_client_constructor)
+        # if authorization fails, the PurchaseClient will not be called
+        mock_purchase_client = self._when_purchase_client_successfully_verifies_credentials(
+            mock_purchase_client_constructor
+        )
 
         event = self._when_testing_jurisdiction_admin_user()
 
@@ -123,3 +126,5 @@ class TestPostPaymentProcessorCredentials(TstFunction):
 
         self.assertEqual({'message': 'Access denied'}, response_body,
         )
+
+        mock_purchase_client.validate_and_store_credentials.assert_not_called()

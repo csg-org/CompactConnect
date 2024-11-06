@@ -499,6 +499,8 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
+        # In this case, the 'aslp' compact has an existing secret in place
+        # so if a compact admin uploads new credentials, the existing secret should be updated
         result = test_purchase_client.validate_and_store_credentials(
             compact_name='aslp', credentials=self._generate_test_credentials_object()
         )
