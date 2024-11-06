@@ -324,6 +324,7 @@
         ],
         "passwordsMustMatch": "Las contraseñas deben coincidir",
         "togglePasswordVisibility": "Activar o desactivar la visibilidad de la contraseña",
+        "passwordResetError": "Se produjo un error al restablecer su contraseña",
         "lastLogin": "Último inicio de sesión",
         "description": "Descripción",
         "copyright": "Copyright",

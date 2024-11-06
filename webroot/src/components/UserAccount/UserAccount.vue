@@ -12,7 +12,9 @@
             <form @submit.prevent="handleSubmit">
                 <InputText :formInput="formData.firstName" />
                 <InputText :formInput="formData.lastName" />
+                <InputText :formInput="formData.email" />
                 <InputSubmit
+                    v-if="isSubmitVisible"
                     :formInput="formData.submit"
                     :label="submitLabel"
                     :isEnabled="!isFormLoading"

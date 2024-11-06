@@ -32,6 +32,7 @@
             @blur="blur(formInput)"
             @input="input(formInput)"
             :class="{ 'has-error': !!formInput.errorMessage }"
+            :disabled="formInput.isDisabled"
         />
         <span
             v-if="formInput.errorMessage"

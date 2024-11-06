@@ -119,6 +119,14 @@ export class DataApi {
     }
 
     /**
+     * UPDATE Authenticated Staff User.
+     * @return {Promise<User>} A User model instance.
+     */
+    public updateAuthenticatedStaffUser(data) {
+        return userDataApi.updateAuthenticatedStaffUser(data);
+    }
+
+    /**
      * GET Privilege Purchase Information for Authenticated Licensee user.
      * @return {Promise<object>} List of privilege purchase options and compact purchase info.
      */

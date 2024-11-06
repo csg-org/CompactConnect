@@ -325,6 +325,7 @@
         ],
         "passwordsMustMatch": "Passwords must match",
         "togglePasswordVisibility": "Toggle password visibility",
+        "passwordResetError": "There was an error resetting your password",
         "lastLogin": "Last Login",
         "description": "Description",
         "copyright": "Copyright",

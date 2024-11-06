@@ -186,6 +186,17 @@ export class UserDataApi implements DataApiInterface {
     }
 
     /**
+     * UPDATE Authenticated Staff User.
+     * @return {Promise<User>} A User model instance.
+     */
+    public async updateAuthenticatedStaffUser(data) {
+        const serverResponse: any = await this.api.patch(`/v1/staff-users/me`, data);
+        const response = StaffUserSerializer.fromServer(serverResponse);
+
+        return response;
+    }
+
+    /**
      * GET Authenticated Licensee User.
      * @return {Promise<User>} A User model instance.
      */

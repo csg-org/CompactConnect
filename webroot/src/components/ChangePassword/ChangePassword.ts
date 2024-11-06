@@ -7,6 +7,7 @@
 
 import { Component, mixins, toNative } from 'vue-facing-decorator';
 import { reactive, computed } from 'vue';
+import { authStorage, AuthTypes, tokens } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputPassword from '@components/Forms/InputPassword/InputPassword.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
@@ -14,6 +15,7 @@ import { User } from '@models/User/User.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
 import { joiPasswordExtendCore } from 'joi-password';
+import axios from 'axios';
 
 const joiPassword = Joi.extend(joiPasswordExtendCore);
 
@@ -35,8 +37,37 @@ class ChangePassword extends mixins(MixinForm) {
     //
     // Computed
     //
+    //
+    get globalStore() {
+        return this.$store.state;
+    }
+
     get userStore() {
         return this.$store.state.user;
+    }
+
+    get authType(): AuthTypes {
+        return this.globalStore.authType;
+    }
+
+    get isStaff(): boolean {
+        return this.authType === AuthTypes.STAFF;
+    }
+
+    get isLicensee(): boolean {
+        return this.authType === AuthTypes.LICENSEE;
+    }
+
+    get authToken(): string {
+        let token = '';
+
+        if (this.isStaff) {
+            token = authStorage.getItem(tokens?.staff?.AUTH_TOKEN) || '';
+        } else if (this.isLicensee) {
+            token = authStorage.getItem(tokens?.licensee?.AUTH_TOKEN) || '';
+        }
+
+        return token;
     }
 
     get user(): User {
@@ -68,7 +99,7 @@ class ChangePassword extends mixins(MixinForm) {
                 autocomplete: 'new-password',
                 validation: joiPassword
                     .string()
-                    .min(8)
+                    .min(12)
                     .minOfSpecialCharacters(1)
                     .minOfLowercase(1)
                     .minOfUppercase(1)
@@ -106,7 +137,9 @@ class ChangePassword extends mixins(MixinForm) {
         if (this.isFormValid) {
             this.startFormLoading();
 
-            await new Promise((resolve) => setTimeout(() => resolve(true), 2000));
+            await this.changePasswordRequest().catch((errMessage) => {
+                this.setError(errMessage);
+            });
 
             if (!this.isFormError) {
                 this.isFormSuccessful = true;
@@ -128,6 +161,29 @@ class ChangePassword extends mixins(MixinForm) {
             confirmPasswordInput.errorMessage = '';
             confirmPasswordInput.isValid = true;
         }
+    }
+
+    async changePasswordRequest(): Promise<void> {
+        const { currentPassword, newPassword } = this.formValues;
+        const requestData = JSON.stringify({
+            AccessToken: this.authToken,
+            PreviousPassword: currentPassword,
+            ProposedPassword: newPassword,
+        });
+        const { cognitoRegion } = this.$envConfig;
+
+        await axios.post(`https://cognito-idp.${cognitoRegion}.amazonaws.com/`, requestData, {
+            headers: {
+                'Content-Type': `application/x-amz-json-1.1`,
+                'X-Amz-Target': `AWSCognitoIdentityProviderService.ChangePassword`,
+                Accept: `*/*`,
+            },
+        }).catch((axiosError) => {
+            const { data } = axiosError.response;
+            const errMessage = data?.message || this.$t('common.passwordResetError');
+
+            throw new Error(errMessage);
+        });
     }
 }
 
