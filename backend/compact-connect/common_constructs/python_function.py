@@ -3,7 +3,7 @@ from aws_cdk import Duration, Stack
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_lambda import Runtime
-from aws_cdk.aws_lambda_python_alpha import BundlingOptions, ICommandHooks
+from aws_cdk.aws_lambda_python_alpha import BundlingOptions, ICommandHooks, PythonLayerVersion
 from aws_cdk.aws_lambda_python_alpha import PythonFunction as CdkPythonFunction
 from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.aws_sns import ITopic
@@ -25,6 +25,7 @@ class PythonFunction(CdkPythonFunction):
         *,
         log_retention: RetentionDays = RetentionDays.ONE_MONTH,
         alarm_topic: ITopic = None,
+        layers: list[PythonLayerVersion] =None,
         **kwargs,
     ):
         defaults = {
@@ -38,6 +39,7 @@ class PythonFunction(CdkPythonFunction):
             bundling=BundlingOptions(command_hooks=TestingHooks()),
             runtime=Runtime.PYTHON_3_12,
             log_retention=log_retention,
+            layers=layers,
             **defaults,
         )
         if alarm_topic is not None:

@@ -7,6 +7,7 @@ from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
+from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from common_constructs.stack import Stack
 
 # Importing module level to allow lazy loading for typing
@@ -24,6 +25,7 @@ class ProviderUsers:
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
         api_model: ApiModel,
+        layers: list[PythonLayerVersion] = None,
     ):
         super().__init__()
         # /v1/provider-users
@@ -45,6 +47,7 @@ class ProviderUsers:
             data_encryption_key=data_encryption_key,
             provider_data_table=provider_data_table,
             lambda_environment=lambda_environment,
+            layers=layers,
         )
 
     def _add_get_provider_user_me(
@@ -52,11 +55,13 @@ class ProviderUsers:
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
         lambda_environment: dict,
+        layers: list[PythonLayerVersion],
     ):
         self.get_provider_users_me_handler = self._get_provider_user_me_handler(
             data_encryption_key=data_encryption_key,
             provider_data_table=provider_data_table,
             lambda_environment=lambda_environment,
+            layers=layers,
         )
         self.api.log_groups.append(self.get_provider_users_me_handler.log_group)
 
@@ -79,6 +84,7 @@ class ProviderUsers:
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
         lambda_environment: dict,
+        layers: list[PythonLayerVersion] = None,
     ) -> PythonFunction:
         stack = Stack.of(self.provider_users_resource)
         handler = PythonFunction(
@@ -90,6 +96,7 @@ class ProviderUsers:
             handler='get_provider_user_me',
             environment=lambda_environment,
             alarm_topic=self.api.alarm_topic,
+            layers=layers,
         )
         data_encryption_key.grant_decrypt(handler)
         provider_data_table.grant_read_data(handler)

@@ -1,6 +1,9 @@
+import os
 from aws_cdk import RemovalPolicy
 from aws_cdk.aws_cognito import UserPoolEmail
 from aws_cdk.aws_kms import Key
+from aws_cdk.aws_lambda import Runtime
+from aws_cdk.aws_lambda_python_alpha import BundlingOptions, PythonLayerVersion
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.security_profile import SecurityProfile
@@ -72,6 +75,9 @@ class PersistentStack(AppStack):
 
         # The new data resources
         self._add_data_resources(removal_policy=removal_policy)
+
+        # Add the common python lambda layer
+        self._add_lambda_layer()
 
         self.compact_configuration_upload = CompactConfigurationUpload(
             self,
@@ -175,4 +181,13 @@ class PersistentStack(AppStack):
 
         self.compact_configuration_table = CompactConfigurationTable(
             self, 'CompactConfigurationTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
+        )
+
+    def _add_lambda_layer(self):
+        self.common_python_lambda_layer = PythonLayerVersion(
+            self, 'CompactConnectCommonPythonLayer',
+            entry=os.path.join('lambdas', 'common'),
+            compatible_runtimes=[Runtime.PYTHON_3_12],
+            description='A layer for common code shared between python lambdas',
+            bundling=BundlingOptions()
         )
