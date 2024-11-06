@@ -1,4 +1,5 @@
 import os
+
 from aws_cdk import RemovalPolicy
 from aws_cdk.aws_cognito import UserPoolEmail
 from aws_cdk.aws_kms import Key
@@ -78,8 +79,6 @@ class PersistentStack(AppStack):
 
         # The new data resources
         self._add_data_resources(removal_policy=removal_policy)
-
-
 
         self.compact_configuration_upload = CompactConfigurationUpload(
             self,
@@ -189,9 +188,10 @@ class PersistentStack(AppStack):
 
     def _add_lambda_layer(self):
         return PythonLayerVersion(
-            self, 'CompactConnectCommonPythonLayer',
+            self,
+            'CompactConnectCommonPythonLayer',
             entry=os.path.join('lambdas', 'common-python'),
             compatible_runtimes=[Runtime.PYTHON_3_12],
             description='A layer for common code shared between python lambdas',
-            bundling=BundlingOptions()
+            bundling=BundlingOptions(),
         )

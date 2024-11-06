@@ -5,6 +5,7 @@ from uuid import uuid4
 from boto3.dynamodb.conditions import Attr, Key
 from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from botocore.exceptions import ClientError
+
 from common.config import _Config, config, logger
 from common.data_model.query_paginator import paginated_query
 from common.data_model.schema import PrivilegeRecordSchema

@@ -25,7 +25,7 @@ class PythonFunction(CdkPythonFunction):
         *,
         log_retention: RetentionDays = RetentionDays.ONE_MONTH,
         alarm_topic: ITopic = None,
-        layers: list[PythonLayerVersion] =None,
+        layers: list[PythonLayerVersion] = None,
         **kwargs,
     ):
         defaults = {

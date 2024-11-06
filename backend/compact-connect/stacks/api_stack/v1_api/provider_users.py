@@ -5,9 +5,9 @@ import os
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource
 from aws_cdk.aws_kms import IKey
+from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
-from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from common_constructs.stack import Stack
 
 # Importing module level to allow lazy loading for typing

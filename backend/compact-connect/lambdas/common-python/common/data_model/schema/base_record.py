@@ -4,10 +4,11 @@
 from abc import ABC
 from datetime import UTC, datetime
 
-from common.exceptions import CCInternalException
 from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump
 from marshmallow.fields import UUID, Date, List, String
 from marshmallow.validate import Regexp
+
+from common.exceptions import CCInternalException
 
 
 class StrictSchema(Schema):

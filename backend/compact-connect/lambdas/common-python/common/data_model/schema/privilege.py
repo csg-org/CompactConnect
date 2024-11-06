@@ -1,9 +1,10 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from common.config import config
-from common.data_model.schema.base_record import BaseRecordSchema
 from marshmallow import pre_dump
 from marshmallow.fields import UUID, Date, String
 from marshmallow.validate import Length, OneOf
+
+from common.config import config
+from common.data_model.schema.base_record import BaseRecordSchema
 
 
 @BaseRecordSchema.register_schema('privilege')

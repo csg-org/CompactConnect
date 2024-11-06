@@ -1,6 +1,10 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from urllib.parse import quote
 
+from marshmallow import ValidationError, post_load, pre_dump, validates_schema
+from marshmallow.fields import UUID, Boolean, Date, Email, String
+from marshmallow.validate import Length, OneOf, Regexp
+
 from common.config import config
 from common.data_model.schema.base_record import (
     BaseRecordSchema,
@@ -9,9 +13,6 @@ from common.data_model.schema.base_record import (
     Set,
     SocialSecurityNumber,
 )
-from marshmallow import ValidationError, post_load, pre_dump, validates_schema
-from marshmallow.fields import UUID, Boolean, Date, Email, String
-from marshmallow.validate import Length, OneOf, Regexp
 
 
 class ProviderPublicSchema(ForgivingSchema):
