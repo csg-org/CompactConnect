@@ -1,12 +1,13 @@
 import os
 
-from aws_cdk import RemovalPolicy
+from aws_cdk import RemovalPolicy, aws_ssm
 from aws_cdk.aws_cognito import UserPoolEmail
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_lambda_python_alpha import BundlingOptions, PythonLayerVersion
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
+from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from constructs import Construct
@@ -45,7 +46,27 @@ class PersistentStack(AppStack):
         removal_policy = RemovalPolicy.RETAIN if environment_name == 'prod' else RemovalPolicy.DESTROY
 
         # Add the common python lambda layer
-        self.common_python_lambda_layer = self._add_lambda_layer()
+        # note this is to only be referenced directly in this stack
+        # all external references should use the ssm parameter
+        _common_python_lambda_layer = PythonLayerVersion(
+            self,
+            'CompactConnectCommonPythonLayer',
+            entry=os.path.join('lambdas', 'common-python'),
+            compatible_runtimes=[Runtime.PYTHON_3_12],
+            description='A layer for common code shared between python lambdas',
+            bundling=BundlingOptions(),
+        )
+
+        # We Store the layer ARN in SSM Parameter Store
+        # since lambda layers can't be shared across stacks
+        # directly due to the fact that you can't update a CloudFormation
+        # exported value that is being referenced by a resource in another stack
+        self.lambda_layer_ssm_parameter = aws_ssm.StringParameter(
+            self,
+            'CommonPythonLayerArnParameter',
+            parameter_name=COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME,
+            string_value=_common_python_lambda_layer.layer_version_arn,
+        )
 
         self.shared_encryption_key = Key(
             self,
@@ -74,11 +95,11 @@ class PersistentStack(AppStack):
         self.data_event_bus = EventBus(self, 'DataEventBus')
 
         # Both of these are slated for deprecation/deletion soon, so we'll mark included resources for removal
-        self._add_mock_data_resources()
+        self._add_mock_data_resources(_common_python_lambda_layer)
         self._add_deprecated_data_resources()
 
         # The new data resources
-        self._add_data_resources(removal_policy=removal_policy)
+        self._add_data_resources(removal_policy=removal_policy, common_layer=_common_python_lambda_layer)
 
         self.compact_configuration_upload = CompactConfigurationUpload(
             self,
@@ -86,6 +107,7 @@ class PersistentStack(AppStack):
             table=self.compact_configuration_table,
             master_key=self.shared_encryption_key,
             environment_name=environment_name,
+            lambda_layers=[_common_python_lambda_layer],
         )
 
         if self.hosted_zone:
@@ -144,7 +166,7 @@ class PersistentStack(AppStack):
             self.provider_users.node.add_dependency(self.user_email_notifications.email_identity)
             self.provider_users.node.add_dependency(self.user_email_notifications.dmarc_record)
 
-    def _add_mock_data_resources(self):
+    def _add_mock_data_resources(self, common_lambda_layer: PythonLayerVersion):
         self.mock_bulk_uploads_bucket = BulkUploadsBucket(
             self,
             'MockBulkUploadsBucket',
@@ -154,7 +176,7 @@ class PersistentStack(AppStack):
             removal_policy=RemovalPolicy.DESTROY,
             auto_delete_objects=True,
             event_bus=self.data_event_bus,
-            lambda_layers=[self.common_python_lambda_layer],
+            lambda_layers=[common_lambda_layer]
         )
 
         self.mock_license_table = LicenseTable(
@@ -166,7 +188,7 @@ class PersistentStack(AppStack):
             self, 'LicenseTable', encryption_key=self.shared_encryption_key, removal_policy=RemovalPolicy.DESTROY
         )
 
-    def _add_data_resources(self, removal_policy: RemovalPolicy):
+    def _add_data_resources(self, removal_policy: RemovalPolicy, common_layer: PythonLayerVersion):
         self.bulk_uploads_bucket = BulkUploadsBucket(
             self,
             'BulkUploadsBucket',
@@ -175,7 +197,7 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
             event_bus=self.data_event_bus,
-            lambda_layers=[self.common_python_lambda_layer],
+            lambda_layers=[common_layer],
         )
 
         self.provider_table = ProviderTable(
@@ -184,17 +206,4 @@ class PersistentStack(AppStack):
 
         self.compact_configuration_table = CompactConfigurationTable(
             self, 'CompactConfigurationTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
-        )
-
-    def _add_lambda_layer(self):
-        """
-        Common Python code shared between Python lambdas.
-        """
-        return PythonLayerVersion(
-            self,
-            'CompactConnectCommonPythonLayer',
-            entry=os.path.join('lambdas', 'common-python'),
-            compatible_runtimes=[Runtime.PYTHON_3_12],
-            description='A layer for common code shared between python lambdas',
-            bundling=BundlingOptions(),
         )

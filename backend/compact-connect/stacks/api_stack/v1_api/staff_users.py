@@ -32,6 +32,7 @@ class StaffUsers:
         self_resource: Resource,
         admin_scopes: list[str],
         persistent_stack: ps.PersistentStack,
+        lambda_layers: list[PythonLayerVersion],
     ):
         super().__init__()
 
@@ -48,19 +49,25 @@ class StaffUsers:
         }
 
         # <base-url>/
-        self._add_get_users(self.admin_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
-        self._add_post_user(self.admin_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
+        self._add_get_users(self.admin_resource, admin_scopes, env_vars=env_vars,
+                            persistent_stack=persistent_stack, lambda_layers=lambda_layers)
+        self._add_post_user(self.admin_resource, admin_scopes, env_vars=env_vars,
+                            persistent_stack=persistent_stack, lambda_layers=lambda_layers)
 
         user_id_resource = self.admin_resource.add_resource('{userId}')
         # <base-url>/{userId}
-        self._add_get_user(user_id_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
-        self._add_patch_user(user_id_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
+        self._add_get_user(user_id_resource, admin_scopes, env_vars=env_vars,
+                           persistent_stack=persistent_stack, lambda_layers=lambda_layers)
+        self._add_patch_user(user_id_resource, admin_scopes, env_vars=env_vars,
+                             persistent_stack=persistent_stack, lambda_layers=lambda_layers)
 
         self.me_resource = self_resource.add_resource('me')
         # <base-url>/me
         profile_scopes = ['profile']
-        self._add_get_me(self.me_resource, profile_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
-        self._add_patch_me(self.me_resource, profile_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
+        self._add_get_me(self.me_resource, profile_scopes, env_vars=env_vars,
+                         persistent_stack=persistent_stack, lambda_layers=lambda_layers)
+        self._add_patch_me(self.me_resource, profile_scopes, env_vars=env_vars,
+                           persistent_stack=persistent_stack, lambda_layers=lambda_layers)
 
         self.api.log_groups.extend(self.log_groups)
 
@@ -70,12 +77,13 @@ class StaffUsers:
         scopes: list[str],
         env_vars: dict,
         persistent_stack: ps.PersistentStack,
+        lambda_layers: list[PythonLayerVersion],
     ):
         get_me_handler = self._get_me_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
             users_table=persistent_stack.staff_users.user_table,
-            lambda_layers=[persistent_stack.common_python_lambda_layer],
+            lambda_layers=lambda_layers,
         )
 
         # Add the GET method to the me_resource
@@ -130,13 +138,14 @@ class StaffUsers:
         scopes: list[str],
         env_vars: dict,
         persistent_stack: ps.PersistentStack,
+            lambda_layers: list[PythonLayerVersion],
     ):
         patch_me_handler = self._patch_me_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
             users_table=persistent_stack.staff_users.user_table,
             user_pool=persistent_stack.staff_users,
-            lambda_layers=[persistent_stack.common_python_lambda_layer],
+            lambda_layers=lambda_layers,
         )
 
         # Add the PATCH method to the me_resource
@@ -193,12 +202,13 @@ class StaffUsers:
         scopes: list[str],
         env_vars: dict,
         persistent_stack: ps.PersistentStack,
+            lambda_layers: list[PythonLayerVersion],
     ):
         get_users_handler = self._get_users_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
             users_table=persistent_stack.staff_users.user_table,
-            lambda_layers=[persistent_stack.common_python_lambda_layer],
+            lambda_layers=lambda_layers,
         )
         # Add the GET method to the users resource
         users_resource.add_method(
@@ -252,12 +262,13 @@ class StaffUsers:
         scopes: list[str],
         env_vars: dict,
         persistent_stack: ps.PersistentStack,
+            lambda_layers: list[PythonLayerVersion],
     ):
         get_user_handler = self._get_user_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
             users_table=persistent_stack.staff_users.user_table,
-            lambda_layers=[persistent_stack.common_python_lambda_layer],
+            lambda_layers=lambda_layers,
         )
 
         # Add the GET method to the user_id resource
@@ -312,12 +323,13 @@ class StaffUsers:
         scopes: list[str],
         env_vars: dict,
         persistent_stack: ps.PersistentStack,
+            lambda_layers: list[PythonLayerVersion],
     ):
         patch_user_handler = self._patch_user_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
             users_table=persistent_stack.staff_users.user_table,
-            lambda_layers=[persistent_stack.common_python_lambda_layer],
+            lambda_layers=lambda_layers,
         )
 
         # Add the PATCH method to the me_resource
@@ -373,13 +385,14 @@ class StaffUsers:
         scopes: list[str],
         env_vars: dict,
         persistent_stack: ps.PersistentStack,
+            lambda_layers: list[PythonLayerVersion],
     ):
         post_user_handler = self._post_user_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
             users_table=persistent_stack.staff_users.user_table,
             user_pool=persistent_stack.staff_users,
-            lambda_layers=[persistent_stack.common_python_lambda_layer],
+            lambda_layers=lambda_layers,
         )
 
         # Add the POST method to the me_resource

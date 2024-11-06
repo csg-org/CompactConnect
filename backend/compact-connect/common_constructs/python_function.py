@@ -1,15 +1,15 @@
-import jsii
 from aws_cdk import Duration, Stack
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_lambda import Runtime
-from aws_cdk.aws_lambda_python_alpha import BundlingOptions, ICommandHooks, PythonLayerVersion
+from aws_cdk.aws_lambda_python_alpha import BundlingOptions, PythonLayerVersion
 from aws_cdk.aws_lambda_python_alpha import PythonFunction as CdkPythonFunction
 from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.aws_sns import ITopic
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
+COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME = '/deployment/lambda/layers/common-python-layer-arn'
 
 class PythonFunction(CdkPythonFunction):
     """Standard Python lambda function that assumes unittest-compatible tests are written in the 'tests' directory.

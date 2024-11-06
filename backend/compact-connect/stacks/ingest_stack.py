@@ -8,8 +8,10 @@ from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import EventPattern, Rule
 from aws_cdk.aws_events_targets import SqsQueue
 from aws_cdk.aws_lambda_event_sources import SqsEventSource
+from aws_cdk.aws_lambda_python_alpha import BundlingOptions, PythonLayerVersion
 from aws_cdk.aws_logs import QueryDefinition, QueryString
 from aws_cdk.aws_sqs import DeadLetterQueue, IQueue, Queue, QueueEncryption
+from aws_cdk.aws_ssm import StringParameter
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import AppStack
@@ -66,6 +68,7 @@ class IngestStack(AppStack):
                 **self.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
+            layers=[self.get_common_layer(persistent_stack)],
         )
         persistent_stack.provider_table.grant_read_write_data(ingest_handler)
         NagSuppressions.add_resource_suppressions_by_path(
@@ -115,6 +118,17 @@ class IngestStack(AppStack):
             ),
             log_groups=[ingest_handler.log_group],
         )
+
+    def get_common_layer(self, persistent_stack: ps.PersistentStack) -> PythonLayerVersion:
+        # fetch the value from SSM parameter
+        common_python_lambda_layer_parameter = StringParameter.from_string_parameter_attributes(
+            self,
+            'CommonPythonLayerParameter',
+            parameter_name=persistent_stack.lambda_layer_ssm_parameter.parameter_name,
+            simple_name=True
+        )
+        return PythonLayerVersion.from_layer_version_arn(self, 'CommonPythonLayer',
+                                                         common_python_lambda_layer_parameter.string_value)
 
     def _add_ingest_chain(self, persistent_stack: ps.PersistentStack):
         ingest_dlq = Queue(
