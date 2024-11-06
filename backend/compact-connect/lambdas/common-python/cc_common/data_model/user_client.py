@@ -2,12 +2,12 @@ from collections.abc import Iterable
 
 from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError
-from config import _Config, logger
-from exceptions import CCInvalidRequestException, CCNotFoundException
-from utils import get_sub_from_user_attributes
 
-from data_model.query_paginator import paginated_query
-from data_model.schema.user import CompactPermissionsRecordSchema, UserAttributesSchema, UserRecordSchema
+from cc_common.config import _Config, logger
+from cc_common.data_model.query_paginator import paginated_query
+from cc_common.data_model.schema.user import CompactPermissionsRecordSchema, UserAttributesSchema, UserRecordSchema
+from cc_common.exceptions import CCInvalidRequestException, CCNotFoundException
+from cc_common.utils import get_sub_from_user_attributes
 
 
 class UserClient:

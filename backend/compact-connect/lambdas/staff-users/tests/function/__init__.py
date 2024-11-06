@@ -81,7 +81,7 @@ class TstFunction(TstLambdas):
 
     def _create_compact_staff_user(self, compacts: list[str]):
         """Create a compact-staff style user for each jurisdiction in the provided compact."""
-        from data_model.schema.user import UserRecordSchema
+        from cc_common.data_model.schema.user import UserRecordSchema
 
         schema = UserRecordSchema()
 
@@ -107,7 +107,7 @@ class TstFunction(TstLambdas):
 
     def _create_board_staff_users(self, compacts: list[str]):
         """Create a board-staff style user for each jurisdiction in the provided compact."""
-        from data_model.schema.user import UserRecordSchema
+        from cc_common.data_model.schema.user import UserRecordSchema
 
         schema = UserRecordSchema()
 
@@ -132,7 +132,7 @@ class TstFunction(TstLambdas):
                 )
 
     def _create_cognito_user(self, *, email: str):
-        from utils import get_sub_from_user_attributes
+        from cc_common.utils import get_sub_from_user_attributes
 
         user_data = self.config.cognito_client.admin_create_user(
             UserPoolId=self.config.user_pool_id,

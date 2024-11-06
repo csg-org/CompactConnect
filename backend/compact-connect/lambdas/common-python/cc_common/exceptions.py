@@ -30,3 +30,7 @@ class CCFailedTransactionException(CCBaseException):
 
 class CCAwsServiceException(CCBaseException):
     """This is raised when an AWS service fails, corresponds to a 500 response"""
+
+
+class CCConflictException(CCBaseException):
+    """Client error in the request, corresponds to a 409 response"""

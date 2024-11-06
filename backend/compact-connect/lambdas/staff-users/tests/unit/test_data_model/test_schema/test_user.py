@@ -8,7 +8,7 @@ from tests import TstLambdas
 
 class TestUserRecordSchema(TstLambdas):
     def test_transform_api_to_dynamo_permissions(self):
-        from data_model.schema.user import UserAPISchema
+        from cc_common.data_model.schema.user import UserAPISchema
 
         with open('tests/resources/api/user-post.json') as f:
             api_user = json.load(f)
@@ -25,7 +25,7 @@ class TestUserRecordSchema(TstLambdas):
         self.assertEqual(dynamo_user['permissions'], dumped_user['permissions'])
 
     def test_transform_dynamo_to_api_permissions(self):
-        from data_model.schema.user import UserAPISchema, UserRecordSchema
+        from cc_common.data_model.schema.user import UserAPISchema, UserRecordSchema
 
         with open('tests/resources/api/user-post.json') as f:
             api_user = json.load(f)
@@ -43,7 +43,7 @@ class TestUserRecordSchema(TstLambdas):
 
     def test_serde_record(self):
         """Test round-trip serialization/deserialization of user records"""
-        from data_model.schema.user import UserRecordSchema
+        from cc_common.data_model.schema.user import UserRecordSchema
 
         with open('tests/resources/dynamo/user.json') as f:
             expected_user = TypeDeserializer().deserialize({'M': json.load(f)})
@@ -58,7 +58,7 @@ class TestUserRecordSchema(TstLambdas):
         self.assertEqual(expected_user, user_data)
 
     def test_invalid_record(self):
-        from data_model.schema.user import UserRecordSchema
+        from cc_common.data_model.schema.user import UserRecordSchema
 
         with open('tests/resources/dynamo/user.json') as f:
             user_data = TypeDeserializer().deserialize({'M': json.load(f)})

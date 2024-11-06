@@ -1,11 +1,11 @@
 # ruff: noqa: N801, N815  invalid-name
 
-from config import config
 from marshmallow import Schema, post_dump, post_load, pre_dump, pre_load
 from marshmallow.fields import UUID, Boolean, Dict, Nested, Raw, String
 from marshmallow.validate import Length, OneOf
 
-from data_model.schema.base_record import BaseRecordSchema, Set
+from cc_common.config import config
+from cc_common.data_model.schema.base_record import BaseRecordSchema, Set
 
 
 class CompactPermissionsRecordSchema(Schema):
@@ -25,6 +25,7 @@ class UserAttributesSchema(Schema):
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
 
 
+@BaseRecordSchema.register_schema('user')
 class UserRecordSchema(BaseRecordSchema):
     _record_type = 'user'
 

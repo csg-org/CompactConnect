@@ -17,6 +17,14 @@ class _Config:
     default_page_size = 100
 
     @cached_property
+    def cognito_client(self):
+        return boto3.client('cognito-idp')
+
+    @cached_property
+    def users_table(self):
+        return boto3.resource('dynamodb').Table(self.users_table_name)
+
+    @cached_property
     def s3_client(self):
         return boto3.client('s3', config=BotoConfig(signature_version='s3v4'))
 
@@ -29,6 +37,12 @@ class _Config:
         from cc_common.data_model.client import DataClient
 
         return DataClient(self)
+
+    @cached_property
+    def user_client(self):
+        from cc_common.data_model.user_client import UserClient
+
+        return UserClient(self)
 
     @cached_property
     def compact_configuration_table(self):
@@ -88,6 +102,18 @@ class _Config:
     @property
     def bulk_bucket_name(self):
         return os.environ['BULK_BUCKET_NAME']
+
+    @property
+    def user_pool_id(self):
+        return os.environ['USER_POOL_ID']
+
+    @property
+    def users_table_name(self):
+        return os.environ['USERS_TABLE_NAME']
+
+    @property
+    def fam_giv_index_name(self):
+        return os.environ['FAM_GIV_INDEX_NAME']
 
 
 config = _Config()

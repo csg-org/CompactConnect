@@ -4,6 +4,7 @@ from datetime import date
 from decimal import Decimal
 from functools import wraps
 from json import JSONEncoder
+from re import match
 from uuid import UUID
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -239,3 +240,95 @@ def sqs_handler(fn: Callable):
         return {'batchItemFailures': batch_failures}
 
     return process_messages
+
+
+def get_allowed_jurisdictions(*, compact: str, scopes: set[str]) -> list[str] | None:
+    """Return a list of jurisdictions the user is allowed to access based on their scopes. If the scopes indicate
+    the user is a compact admin, the function will return None, as they will do no jurisdiction-based filtering.
+    :param str compact: The compact the user is trying to access.
+    :param set scopes: The user's scopes from the request.
+    :return: A list of jurisdictions the user is allowed to access, or None, if no filtering is needed.
+    :rtype: list
+    """
+    if f'{compact}/{compact}.admin' in scopes:
+        # The user has compact-level admin, so no jurisdiction filtering
+        return None
+
+    compact_jurisdictions = []
+    scope_pattern = f'{compact}/(.*).admin'
+    for scope in scopes:
+        if match_obj := match(scope_pattern, scope):
+            compact_jurisdictions.append(match_obj.group(1))
+    return compact_jurisdictions
+
+
+def get_event_scopes(event: dict):
+    return set(event['requestContext']['authorizer']['claims']['scope'].split(' '))
+
+
+def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_changes: dict) -> dict:
+    """Transform PATCH user API changes to permissions into db operation changes. Operation changes are checked
+    against the provided scopes to ensure the user is allowed to make the requested changes.
+    :param str path_compact: The compact declared in the url path
+    :param set scopes: The scopes associated with the user making the request
+    :param dict compact_changes: Permissions changes in the request body
+    Example:
+    {
+        'actions': {
+            'admin': True,
+            'read': False
+        },
+        'jurisdictions': {
+            'oh': {
+                'actions': {
+                    'admin': True,
+                    'write': False
+                }
+            }
+        }
+    }
+    :return: Changes to the User's underlying record
+    :rtype: dict
+    """
+    compact_action_additions = set()
+    compact_action_removals = set()
+    jurisdiction_action_additions = {}
+    jurisdiction_action_removals = {}
+
+    # Collect compact-wide permission changes
+    for action, value in compact_changes.get('actions', {}).items():
+        if action == 'admin' and f'{path_compact}/{path_compact}.admin' not in scopes:
+            raise CCAccessDeniedException('Only compact admins can affect compact-level admin permissions')
+        # Any admin in the compact can affect read permissions, so no read-specific check is necessary here
+        if value:
+            compact_action_additions.add(action)
+        else:
+            compact_action_removals.add(action)
+
+    # Collect jurisdiction-specific changes
+    for jurisdiction, jurisdiction_changes in compact_changes.get('jurisdictions', {}).items():
+        if not {f'{path_compact}/{path_compact}.admin', f'{path_compact}/{jurisdiction}.admin'}.intersection(scopes):
+            raise CCAccessDeniedException(
+                f'Only {path_compact} or {path_compact}/{jurisdiction} admins can affect {path_compact}/{jurisdiction} '
+                'permissions',
+            )
+
+        for action, value in jurisdiction_changes.get('actions', {}).items():
+            if value:
+                jurisdiction_action_additions.setdefault(jurisdiction, set()).add(action)
+            else:
+                jurisdiction_action_removals.setdefault(jurisdiction, set()).add(action)
+
+    return {
+        'compact_action_additions': compact_action_additions,
+        'compact_action_removals': compact_action_removals,
+        'jurisdiction_action_additions': jurisdiction_action_additions,
+        'jurisdiction_action_removals': jurisdiction_action_removals,
+    }
+
+
+def get_sub_from_user_attributes(attributes: list):
+    for attribute in attributes:
+        if attribute['Name'] == 'sub':
+            return attribute['Value']
+    raise ValueError('Failed to find user sub!')
