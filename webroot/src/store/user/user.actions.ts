@@ -239,6 +239,7 @@ export default {
             return serverResponse;
         }).catch((error) => {
             dispatch('postPrivilegePurchasesFailure', error);
+            return error;
         });
     },
     postPrivilegePurchasesSuccess: ({ commit }) => {

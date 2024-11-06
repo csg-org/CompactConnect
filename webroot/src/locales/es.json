@@ -446,7 +446,9 @@
         "lastNameOnCard": "Introduzca el apellido en la tarjeta",
         "continueToPurchase": "Continuar comprando",
         "compactPrivilegeStateFee": "Quota Estatal de Privilegio Compacto",
-        "compactCommissionFee": "Tarifa de Comisión Compacta"
+        "compactCommissionFee": "Tarifa de Comisión Compacta",
+        "purchaseSuccessful": "Compra exitosa",
+        "purchaseSuccessfulMessage": "Tu compra fue exitosa. Sus privilegios aparecerán en su página de perfil dentro de segundos. Si envió documentos incorrectos, el personal compacto se comunicará con usted."
     },
     "licensing": {
         "licensingListTitle": "Datos de licencia",

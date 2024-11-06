@@ -81,6 +81,12 @@ const routes: Array<RouteConfig> = [
         meta: { requiresAuth: true },
     },
     {
+        path: '/:compact/Privileges/PurchaseSuccessful',
+        name: 'PurchaseSuccessful',
+        component: () => import(/* webpackChunkName: "purchaseSuccessful" */ '@pages/PurchaseSuccessful/PurchaseSuccessful.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
         path: '/:compact/Privileges/Attestation',
         name: 'PrivilegePurchaseAttestation',
         component: () => import(/* webpackChunkName: "privilegePurchaseAttestation" */ '@pages/PrivilegePurchaseAttestation/PrivilegePurchaseAttestation.vue'),

@@ -257,7 +257,14 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
 
         const serverData = LicenseeUserPurchaseSerializer.toServer({ formData, statesSelected });
 
-        await this.$store.dispatch('user/postPrivilegePurchases', serverData);
+        const purchaseServerEvent = await this.$store.dispatch('user/postPrivilegePurchases', serverData);
+
+        if (purchaseServerEvent?.message === 'Successfully processed charge') {
+            this.$router.push({
+                name: 'PurchaseSuccessful',
+                params: { compact: this.currentCompactType }
+            });
+        }
     }
 
     initFormInputs() {

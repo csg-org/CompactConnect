@@ -126,7 +126,7 @@
                     :label="cancelText"
                     :isTextLike="true"
                     aria-label="close modal"
-                    class="icon icon-close-modal"
+                    class="cancel-button"
                     @click="handleCancelClicked"
                 />
                 <div class="right-cell">

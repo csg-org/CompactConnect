@@ -22,16 +22,36 @@
 
         .button-row {
             display: flex;
-            flex-direction: row;
-            align-items: flex-end;
-            justify-content: space-between;
+            flex-direction: column-reverse;
+            align-items: center;
+            justify-content: center;
             width: 100%;
+            margin-top: 2rem;
+
+            @media @tabletWidth {
+                flex-direction: row;
+                align-items: flex-end;
+                justify-content: space-between;
+            }
+
+            :deep(.input-container) {
+                margin-bottom: 1rem;
+
+                @media @tabletWidth {
+                    margin-bottom: unset;
+                }
+            }
 
             .right-cell {
                 display: flex;
                 flex-direction: row;
-                align-items: flex-end;
-                justify-content: space-between;
+                align-items: center;
+                justify-content: center;
+
+                @media @tabletWidth {
+                    align-items: flex-end;
+                    justify-content: space-between;
+                }
 
                 .back-button {
                     margin-right: 1rem;
@@ -41,6 +61,7 @@
 
         .finalize-purchase-container {
             .cost-breakdown-container {
+                margin-top: 1rem;
                 padding: 2rem;
                 border-radius: 20px;
                 color: white;
@@ -70,6 +91,11 @@
                         .info-row-label {
                             max-width: 16rem;
                         }
+                    }
+
+                    .selection-title {
+                        margin: 1rem 0;
+                        font-weight: @fontWeightBold;
                     }
                 }
             }
@@ -111,7 +137,7 @@
                             :deep(.input-container) {
                                 &.no-margin {
                                     input {
-                                        width: 15rem;
+                                        width: 10rem;
                                     }
 
                                     select {
