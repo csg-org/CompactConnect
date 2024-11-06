@@ -32,6 +32,7 @@
             :aria-label="formInput.label"
             @blur="blur(formInput)"
             @input="input(formInput)"
+            ref="numberInput"
             :class="{ 'has-error': !!formInput.errorMessage }"
         />
         <span

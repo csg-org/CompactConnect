@@ -66,9 +66,9 @@ export class LicenseeUserPurchaseSerializer {
             selectedJurisdictions: statesSelected,
             orderInformation: {
                 card: {
-                    number: formData.creditCard.value,
+                    number: formData.creditCard.value.replace(/\s+/g, ''),
                     expiration: `20${formData.expYear.value}-${formData.expMonth.value}`,
-                    cvv: formData.cvv.value
+                    cvv: formData.cvv
                 },
                 billing: {
                     firstName: formData.firstName.value,
@@ -80,6 +80,8 @@ export class LicenseeUserPurchaseSerializer {
                 }
             }
         };
+
+        console.log('purchaseData', purchaseData);
 
         return purchaseData;
     }

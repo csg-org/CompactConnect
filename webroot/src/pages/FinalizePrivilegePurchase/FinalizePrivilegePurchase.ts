@@ -8,6 +8,7 @@
 import { Component, mixins } from 'vue-facing-decorator';
 import { reactive, computed } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
+import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputNumber from '@components/Forms/InputNumber/InputNumber.vue';
@@ -30,7 +31,8 @@ import Joi from 'joi';
         InputSubmit,
         InputNumber,
         InputButton,
-        InputCreditCard
+        InputCreditCard,
+        CollapseCaretButton
     }
 })
 export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
@@ -38,6 +40,8 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     // Data
     //
     formErrorMessage = '';
+    expYearRef;
+    cvvRef;
 
     //
     // Lifecycle
@@ -347,7 +351,8 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 placeholder: '000',
                 autocomplete: 'cc-csc',
                 shouldHideErrorMessage: true,
-                validation: Joi.string().required().regex(new RegExp('(^[0-9]{3,4}$)')),
+                enforceMax: true,
+                validation: Joi.string().required().regex(new RegExp('(^[0-9]{3,4}$)')).max(4),
                 value: '',
             }),
             creditCard: new FormInput({
@@ -422,13 +427,14 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     }
 
     handleExpMonthInput(formInput) {
-        if (formInput.value && formInput.value.length > 1) {
-            (this.$refs.expYear as HTMLElement).focus();
+        if (formInput.value && formInput.value.length > 1 && this.expYearRef) {
+            this.expYearRef.focus();
+        }
+    }
 
-            // TODO
-            // console.log('comp', comp);
-
-            // comp.input.focus();
+    handleExpYearInput(formInput) {
+        if (formInput.value && formInput.value.length > 1 && this.cvvRef) {
+            this.cvvRef.focus();
         }
     }
 
@@ -448,6 +454,14 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 params: { compact: this.currentCompactType }
             });
         }
+    }
+
+    handleExpYearRefEmitted(inputData) {
+        this.expYearRef = inputData.ref;
+    }
+
+    handleCVVRefEmitted(inputData) {
+        this.cvvRef = inputData.ref;
     }
 
     formatCreditCard(): void {

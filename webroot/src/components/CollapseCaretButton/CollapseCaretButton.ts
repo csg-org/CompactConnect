@@ -11,11 +11,10 @@ import { Component, Vue, toNative } from 'vue-facing-decorator';
     name: 'CollapseCaretButton',
 })
 class CollapseCaretButton extends Vue {
-    // PROPS
-
     //
     // Data
     //
+    isUp = true;
 
     //
     // Lifecycle
@@ -28,6 +27,10 @@ class CollapseCaretButton extends Vue {
     //
     // Methods
     //
+    toggleCollapse() {
+        this.$emit('toggleCollapse');
+        this.isUp = !this.isUp;
+    }
 }
 
 export default toNative(CollapseCaretButton);

@@ -53,6 +53,7 @@
         "race": "Race",
         "ethnicity": "Ethnicity",
         "welcome": "Welcome",
+        "finish": "Finish",
         "formValidationErrorMessage": "Please correct the errors on the form shown in red and check the box acknowleding no refunds",
         "daysOfTheWeek": {
             "monday": {

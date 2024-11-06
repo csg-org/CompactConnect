@@ -16,6 +16,12 @@ import MixinInput from '@components/Forms/_mixins/input.mixin';
     name: 'InputNumber',
 })
 class InputNumber extends mixins(MixinInput) {
+    //
+    // LifeCycle
+    //
+    mounted() {
+        this.$emit('emitInputRef', { ref: this.$refs.numberInput, inputId: this.formInput.id });
+    }
 }
 
 export default toNative(InputNumber);

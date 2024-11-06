@@ -13,8 +13,15 @@
         <form class="complete-purchase-form" @submit.prevent="handleSubmit">
             <div class="finalize-purchase-container">
                 <div class="finalize-purchase-core-container">
-                    <div class="finalize-purchase-title">
-                        {{paymentTitleText}}
+                    <div class="finalize-purchase-title-row">
+                        <div
+                            class="finalize-purchase-title"
+                            @keydown.prevent="togglePaymentCollapse"
+                            @click="togglePaymentCollapse"
+                        >
+                            {{paymentTitleText}}
+                        </div>
+                        <CollapseCaretButton class="collapse-button" />
                     </div>
                     <div class="payment-core-form">
                         <div class="credit-card-section">
@@ -52,13 +59,15 @@
                                         </div>
                                         <InputNumber
                                             :formInput="formData.expYear"
-                                            ref="expYear"
+                                            @input="handleExpYearInput(formData.expYear)"
+                                            @emitInputRef="handleExpYearRefEmitted"
                                         />
                                     </div>
                                 </div>
                                 <div class="cvv-container">
                                     <InputNumber
                                         :formInput="formData.cvv"
+                                        @emitInputRef="handleCVVRefEmitted"
                                     />
                                 </div>
                             </div>

@@ -4,3 +4,39 @@
 //
 //  Created by InspiringApps on 11/5/2024.
 //
+.purchase-success-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 4rem;
+
+    .button-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        padding: 2rem 0;
+
+        @media @desktopWidth {
+            width: 70rem;
+        }
+    }
+
+    .purchase-success-core {
+        padding: 2rem;
+        border-radius: 20px;
+        background-color: white;
+
+        @media @desktopWidth {
+            width: 70rem;
+        }
+
+        .purchase-success-title {
+            font-size: @fontSizeLarger;
+        }
+
+        .purchase-success-content {
+            max-width: 50rem;
+            padding: 2rem 0;
+        }
+    }
+}

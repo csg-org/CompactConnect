@@ -6,10 +6,14 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
+import InputButton from '@components/Forms/InputButton/InputButton.vue';
+import { CompactType } from '@models/Compact/Compact.model';
 
 @Component({
     name: 'PurchaseSuccessful',
-    components: {}
+    components: {
+        InputButton
+    }
 })
 export default class PurchaseSuccessful extends Vue {
     //
@@ -21,5 +25,27 @@ export default class PurchaseSuccessful extends Vue {
 
     get purchaseSuccessfulMessage(): string {
         return this.$t('payment.purchaseSuccessfulMessage');
+    }
+
+    get finishText(): string {
+        return this.$t('common.finish');
+    }
+
+    get userStore() {
+        return this.$store.state.user;
+    }
+
+    get compactType(): CompactType | null {
+        return this.userStore.currentCompact?.type;
+    }
+
+    //
+    // Methods
+    //
+    handleFinishClicked() {
+        this.$router.push({
+            name: 'LicenseeDashboard',
+            params: { compact: this.compactType }
+        });
     }
 }
