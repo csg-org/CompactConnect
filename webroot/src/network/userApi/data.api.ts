@@ -222,8 +222,6 @@ export class UserDataApi implements DataApiInterface {
     public async postPrivilegePurchases(data: any) {
         const serverResponse: any = await this.api.post(`/v1/purchases/privileges`, data);
 
-        console.log('serverResponse', serverResponse);
-
         return serverResponse;
     }
 }
