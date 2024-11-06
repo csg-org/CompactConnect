@@ -15,7 +15,7 @@ from cc_common.exceptions import (
 )
 from purchase_client import PurchaseClient
 
-from handlers.utils import api_handler
+from cc_common.utils import api_handler
 
 
 def _get_caller_compact_custom_attribute(event: dict) -> str:
