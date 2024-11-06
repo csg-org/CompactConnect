@@ -1,7 +1,7 @@
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from common.config import logger
-from common.exceptions import CCInternalException, CCInvalidRequestException, CCNotFoundException
-from common.utils import api_handler
+from cc_common.config import logger
+from cc_common.exceptions import CCInternalException, CCInvalidRequestException, CCNotFoundException
+from cc_common.utils import api_handler
 
 from . import get_provider_information
 

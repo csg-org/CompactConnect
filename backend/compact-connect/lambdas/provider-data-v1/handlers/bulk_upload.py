@@ -5,10 +5,10 @@ from uuid import uuid4
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
-from common.config import config, logger
-from common.data_model.schema.license import LicensePostSchema, LicensePublicSchema
-from common.exceptions import CCInternalException
-from common.utils import ResponseEncoder, api_handler, authorize_compact_jurisdiction
+from cc_common.config import config, logger
+from cc_common.data_model.schema.license import LicensePostSchema, LicensePublicSchema
+from cc_common.exceptions import CCInternalException
+from cc_common.utils import ResponseEncoder, api_handler, authorize_compact_jurisdiction
 from event_batch_writer import EventBatchWriter
 from license_csv_reader import LicenseCSVReader
 from marshmallow import ValidationError

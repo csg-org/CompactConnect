@@ -8,13 +8,13 @@ from tests import TstLambdas
 
 class TestLicenseSchema(TstLambdas):
     def test_validate_post(self):
-        from common.data_model.schema.license import LicensePostSchema
+        from cc_common.data_model.schema.license import LicensePostSchema
 
         with open('tests/resources/api/license-post.json') as f:
             LicensePostSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **json.load(f)})
 
     def test_invalid_post(self):
-        from common.data_model.schema.license import LicensePostSchema
+        from cc_common.data_model.schema.license import LicensePostSchema
 
         with open('tests/resources/api/license-post.json') as f:
             license_data = json.load(f)
@@ -25,7 +25,7 @@ class TestLicenseSchema(TstLambdas):
 
     def test_serde_record(self):
         """Test round-trip serialization/deserialization of license records"""
-        from common.data_model.schema.license import LicenseRecordSchema
+        from cc_common.data_model.schema.license import LicenseRecordSchema
 
         with open('tests/resources/dynamo/license.json') as f:
             expected_license = json.load(f)
@@ -40,7 +40,7 @@ class TestLicenseSchema(TstLambdas):
         self.assertEqual(expected_license, license_data)
 
     def test_invalid_record(self):
-        from common.data_model.schema.license import LicenseRecordSchema
+        from cc_common.data_model.schema.license import LicenseRecordSchema
 
         with open('tests/resources/dynamo/license.json') as f:
             license_data = json.load(f)
@@ -53,7 +53,7 @@ class TestLicenseSchema(TstLambdas):
         """Licenses are the only record that directly originate from external clients. We'll test their serialization
         as it comes from clients.
         """
-        from common.data_model.schema.license import LicensePostSchema, LicenseRecordSchema
+        from cc_common.data_model.schema.license import LicensePostSchema, LicenseRecordSchema
 
         with open('tests/resources/api/license-post.json') as f:
             license_data = LicensePostSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **json.load(f)})

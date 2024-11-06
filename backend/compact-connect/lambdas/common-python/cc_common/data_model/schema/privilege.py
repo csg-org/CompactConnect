@@ -3,8 +3,8 @@ from marshmallow import pre_dump
 from marshmallow.fields import UUID, Date, String
 from marshmallow.validate import Length, OneOf
 
-from common.config import config
-from common.data_model.schema.base_record import BaseRecordSchema
+from cc_common.config import config
+from cc_common.data_model.schema.base_record import BaseRecordSchema
 
 
 @BaseRecordSchema.register_schema('privilege')

@@ -9,8 +9,8 @@ from uuid import UUID
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 
-from common.config import logger
-from common.exceptions import (
+from cc_common.config import logger
+from cc_common.exceptions import (
     CCAccessDeniedException,
     CCInvalidRequestException,
     CCNotFoundException,

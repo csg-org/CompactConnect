@@ -5,8 +5,8 @@ from marshmallow import ValidationError, post_load, pre_dump, validates_schema
 from marshmallow.fields import UUID, Boolean, Date, Email, String
 from marshmallow.validate import Length, OneOf, Regexp
 
-from common.config import config
-from common.data_model.schema.base_record import (
+from cc_common.config import config
+from cc_common.data_model.schema.base_record import (
     BaseRecordSchema,
     ForgivingSchema,
     ITUTE164PhoneNumber,

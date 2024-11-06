@@ -3,8 +3,8 @@ from tests import TstLambdas
 
 class TestCSVParser(TstLambdas):
     def test_csv_parser(self):
-        from common.config import logger
-        from common.data_model.schema.license import LicensePostSchema
+        from cc_common.config import logger
+        from cc_common.data_model.schema.license import LicensePostSchema
         from license_csv_reader import LicenseCSVReader
 
         schema = LicensePostSchema()

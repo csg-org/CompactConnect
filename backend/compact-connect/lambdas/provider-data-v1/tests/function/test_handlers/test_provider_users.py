@@ -1,6 +1,6 @@
 import json
 
-from common.exceptions import CCInternalException
+from cc_common.exceptions import CCInternalException
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -12,7 +12,7 @@ MOCK_SSN = '123-12-1234'
 @mock_aws
 class TestGetProvider(TstFunction):
     def _create_test_provider(self):
-        from common.config import config
+        from cc_common.config import config
 
         return config.data_client.get_or_create_provider_id(compact=TEST_COMPACT, ssn=MOCK_SSN)
 

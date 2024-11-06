@@ -2,7 +2,7 @@
 import json
 from unittest.mock import patch
 
-from common.exceptions import CCInternalException
+from cc_common.exceptions import CCInternalException
 
 from tests import TstLambdas
 

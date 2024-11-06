@@ -1,9 +1,9 @@
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from common.config import config, logger
-from common.exceptions import CCInvalidRequestException
-from common.utils import api_handler, authorize_compact
+from cc_common.config import config, logger
+from cc_common.exceptions import CCInvalidRequestException
+from cc_common.utils import api_handler, authorize_compact
 
 from . import get_provider_information
 

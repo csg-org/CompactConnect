@@ -9,7 +9,7 @@ from tests.function import TstFunction
 @mock_aws
 class TestClient(TstFunction):
     def test_get_provider_id(self):
-        from common.data_model.client import DataClient
+        from cc_common.data_model.client import DataClient
 
         with open('tests/resources/dynamo/provider-ssn.json') as f:
             record = json.load(f)
@@ -29,8 +29,8 @@ class TestClient(TstFunction):
 
     def test_get_provider_id_not_found(self):
         """Provider ID not found should raise an exception"""
-        from common.data_model.client import DataClient
-        from common.exceptions import CCNotFoundException
+        from cc_common.data_model.client import DataClient
+        from cc_common.exceptions import CCNotFoundException
 
         client = DataClient(self.config)
 
@@ -39,7 +39,7 @@ class TestClient(TstFunction):
             client.get_provider_id(compact='aslp', ssn='321-21-4321')
 
     def test_get_provider(self):
-        from common.data_model.client import DataClient
+        from cc_common.data_model.client import DataClient
 
         provider_id = self._load_provider_data()
 
@@ -58,8 +58,8 @@ class TestClient(TstFunction):
         data into our database, we'll specifically validate data coming _out_ of the database
         and throw an error if it doesn't look as expected.
         """
-        from common.data_model.client import DataClient
-        from common.exceptions import CCInternalException
+        from cc_common.data_model.client import DataClient
+        from cc_common.exceptions import CCInternalException
 
         provider_id = self._load_provider_data()
 
@@ -84,7 +84,7 @@ class TestClient(TstFunction):
             )
 
     def test_get_providers_sorted_by_family_name(self):
-        from common.data_model.client import DataClient
+        from cc_common.data_model.client import DataClient
 
         self._generate_providers(home='oh', privilege='ne', start_serial=9999)
         self._generate_providers(home='ne', privilege='oh', start_serial=9989)
@@ -121,7 +121,7 @@ class TestClient(TstFunction):
         self.assertListEqual(sorted(family_names, key=quote), family_names)
 
     def test_get_providers_sorted_by_family_name_descending(self):
-        from common.data_model.client import DataClient
+        from cc_common.data_model.client import DataClient
 
         self._generate_providers(home='oh', privilege='ne', start_serial=9999)
         client = DataClient(self.config)
@@ -138,7 +138,7 @@ class TestClient(TstFunction):
         self.assertListEqual(sorted(family_names, key=quote, reverse=True), family_names)
 
     def test_get_providers_by_family_name(self):
-        from common.data_model.client import DataClient
+        from cc_common.data_model.client import DataClient
 
         # We'll provide names, so we know we'll have one record for our friends, Tess and Ted Testerly
         self._generate_providers(
@@ -165,7 +165,7 @@ class TestClient(TstFunction):
             self.assertEqual('Testerly', provider['familyName'])
 
     def test_get_providers_by_family_and_given_name(self):
-        from common.data_model.client import DataClient
+        from cc_common.data_model.client import DataClient
 
         # We'll provide names, so we know we'll have one record for our friends, Tess and Ted Testerly
         self._generate_providers(
@@ -193,7 +193,7 @@ class TestClient(TstFunction):
         self.assertEqual('Testerly', resp['items'][0]['familyName'])
 
     def test_get_providers_sorted_by_date_updated(self):
-        from common.data_model.client import DataClient
+        from cc_common.data_model.client import DataClient
 
         self._generate_providers(home='oh', privilege='ne', start_serial=9999)
         self._generate_providers(home='ne', privilege='oh', start_serial=9989)
@@ -230,7 +230,7 @@ class TestClient(TstFunction):
         self.assertListEqual(sorted(dates_of_update), dates_of_update)
 
     def test_get_providers_sorted_by_date_of_update_descending(self):
-        from common.data_model.client import DataClient
+        from cc_common.data_model.client import DataClient
 
         self._generate_providers(home='oh', privilege='ne', start_serial=9999)
         client = DataClient(self.config)
