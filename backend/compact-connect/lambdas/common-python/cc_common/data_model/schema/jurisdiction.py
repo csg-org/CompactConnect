@@ -1,11 +1,11 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
 from collections import UserDict
 
-from cc_common.config import config
 from marshmallow import Schema, pre_dump
 from marshmallow.fields import Boolean, Decimal, List, Nested, String
 from marshmallow.validate import Length, OneOf
 
+from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 from cc_common.data_model.schema.common import CCEnum
 
