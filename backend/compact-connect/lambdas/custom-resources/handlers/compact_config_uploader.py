@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from config import config, logger
+from cc_common.config import config, logger
 
 
 def on_event(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
