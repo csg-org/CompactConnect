@@ -45,6 +45,7 @@
         "phoneNumber": "Número de teléfono",
         "address": "Dirección",
         "welcome": "Bienvenido",
+        "formValidationErrorMessage": "Corrija los errores en el formulario que se muestra en rojo y marque la casilla que reconoce que no hay reembolsos.",
         "city": "Ciudad",
         "state": "Estado",
         "stateJurisdiction": "Estado o Jurisdicción",
@@ -383,7 +384,8 @@
         "tooManyFiles": "Demasiados archivos, solo se permite 1",
         "fileWrongType": "Tipo de archivo incorrecto",
         "lastNameRequired": "Obligatorio cuando se proporciona el nombre",
-        "ssnFormat": "Debe estar en formato ###-##-####"
+        "ssnFormat": "Debe estar en formato ###-##-####",
+        "enterValidCreditCard": "Debe ser un número de tarjeta de crédito válido."
     },
     "serverErrors": {
         "networkError": "Error de red",

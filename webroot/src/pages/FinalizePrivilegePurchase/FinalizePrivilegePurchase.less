@@ -10,6 +10,17 @@
     align-items: center;
     padding: 2rem;
 
+    .form-error-message {
+        padding: 2rem;
+        color: @midRed;
+
+        @media @desktopWidth {
+            margin-bottom: -2rem;
+            padding: unset;
+            padding-top: 2rem;
+        }
+    }
+
     .complete-purchase-form {
         display: flex;
         flex-direction: column;
@@ -81,6 +92,7 @@
                 @media @tabletWidth {
                     width: 32rem;
                     margin-top: unset;
+                    padding: 8rem 2rem;
                     border-radius: 0 20px 20px 0;
                 }
 
@@ -123,7 +135,6 @@
             }
 
             .finalize-purchase-core-container {
-                margin-top: -1rem;
                 padding: 2rem;
                 border-radius: 20px;
                 background-color: white;
@@ -208,7 +219,7 @@
                                     :deep(.input-container) {
                                         &.no-margin {
                                             input {
-                                                width: 3rem;
+                                                width: 3.2rem;
                                             }
                                         }
                                     }

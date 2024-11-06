@@ -35,6 +35,11 @@ import Joi from 'joi';
 })
 export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     //
+    // Data
+    //
+    formErrorMessage = '';
+
+    //
     // Lifecycle
     //
     created() {
@@ -233,6 +238,10 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         return this.$t('licensing.militaryDiscountText');
     }
 
+    get formValidationErrorMessage(): string {
+        return this.$t('common.formValidationErrorMessage');
+    }
+
     get totalPurchasePrice(): number {
         let total = this.totalCompactCommissionFee;
 
@@ -253,17 +262,29 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     // Methods
     //
     async handleSubmit() {
-        const { formData, statesSelected } = this;
+        this.validateAll({ asTouched: true });
 
-        const serverData = LicenseeUserPurchaseSerializer.toServer({ formData, statesSelected });
+        if (this.isFormValid) {
+            this.startFormLoading();
+            this.isFormError = false;
+            this.formErrorMessage = '';
+            const { formData, statesSelected } = this;
 
-        const purchaseServerEvent = await this.$store.dispatch('user/postPrivilegePurchases', serverData);
+            const serverData = LicenseeUserPurchaseSerializer.toServer({ formData, statesSelected });
 
-        if (purchaseServerEvent?.message === 'Successfully processed charge') {
-            this.$router.push({
-                name: 'PurchaseSuccessful',
-                params: { compact: this.currentCompactType }
-            });
+            const purchaseServerEvent = await this.$store.dispatch('user/postPrivilegePurchases', serverData);
+
+            this.endFormLoading();
+
+            if (purchaseServerEvent?.message === 'Successfully processed charge') {
+                this.$router.push({
+                    name: 'PurchaseSuccessful',
+                    params: { compact: this.currentCompactType }
+                });
+            }
+        } else {
+            this.isFormError = true;
+            this.formErrorMessage = this.formValidationErrorMessage;
         }
     }
 
@@ -299,7 +320,9 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 shouldHideMargin: true,
                 placeholder: '00',
                 autocomplete: 'cc-exp-month',
-                validation: Joi.string().required().regex(new RegExp('(^[0-1][0-9]$)')),
+                shouldHideErrorMessage: true,
+                enforceMax: true,
+                validation: Joi.string().required().regex(new RegExp('(^[0-1][0-9]$)')).max(2),
                 value: '',
             }),
             expYear: new FormInput({
@@ -310,7 +333,9 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 shouldHideMargin: true,
                 placeholder: '00',
                 autocomplete: 'cc-exp-year',
-                validation: Joi.string().required().regex(new RegExp('(^[0-9]{2}$)')),
+                shouldHideErrorMessage: true,
+                enforceMax: true,
+                validation: Joi.string().required().regex(new RegExp('(^[0-9]{2}$)')).max(2),
                 value: '',
             }),
             cvv: new FormInput({
@@ -321,6 +346,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 shouldHideMargin: true,
                 placeholder: '000',
                 autocomplete: 'cc-csc',
+                shouldHideErrorMessage: true,
                 validation: Joi.string().required().regex(new RegExp('(^[0-9]{3,4}$)')),
                 value: '',
             }),
@@ -331,8 +357,8 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 shouldHideLabel: false,
                 shouldHideMargin: true,
                 placeholder: '0000 0000 0000 0000',
-                autocomplete: 'cc-csc',
-                // validation: Joi.string().required().regex(new RegExp('(^[0-9]{3,4}$)')),
+                autocomplete: 'cc-number',
+                validation: Joi.string().required().regex(new RegExp('(^[0-9]{4} [0-9]{4} [0-9]{4} [0-9]{4})')).messages(this.joiMessages.creditCard),
                 value: '',
             }),
             streetAddress1: new FormInput({
@@ -383,6 +409,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 shouldHideMargin: true,
                 placeholder: '00000',
                 autocomplete: 'postal-code',
+                shouldHideErrorMessage: true,
                 validation: Joi.string().required().regex(new RegExp('(^[0-9]{5}$)|(^[0-9]{5}-[0-9]{4}$)')),
                 value: '',
             }),
@@ -391,6 +418,18 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 id: 'submit',
             }),
         });
+        this.watchFormInputs();
+    }
+
+    handleExpMonthInput(formInput) {
+        if (formInput.value && formInput.value.length > 1) {
+            (this.$refs.expYear as HTMLElement).focus();
+
+            // TODO
+            // console.log('comp', comp);
+
+            // comp.input.focus();
+        }
     }
 
     handleCancelClicked() {
@@ -412,24 +451,27 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     }
 
     formatCreditCard(): void {
-        const { ssn } = this.formData;
-        const format = (ssnInputVal) => {
+        const { creditCard } = this.formData;
+        const format = (ccInputVal) => {
             // Remove all non-dash and non-numerals
-            let formatted = ssnInputVal.replace(/[^\d-]/g, '');
+            let formatted = ccInputVal.replace(/[^\d-]/g, '');
 
             // Add the first dash if a number from the second group appears
-            formatted = formatted.replace(/^(\d{3})-?(\d{1,2})/, '$1-$2');
+            formatted = formatted.replace(/^(\d{4}) ?(\d{1,4})/, '$1 $2');
 
             // Add the second dash if a number from the third group appears
-            formatted = formatted.replace(/^(\d{3})-?(\d{2})-?(\d{1,4})/, '$1-$2-$3');
+            formatted = formatted.replace(/^(\d{4}) ?(\d{4}) ?(\d{1,4})/, '$1 $2 $3');
 
-            // Remove misplaced dashes
-            formatted = formatted.split('').filter((val, idx) => val !== '-' || idx === 3 || idx === 6).join('');
+            // Add the third dash if a number from the third group appears
+            formatted = formatted.replace(/^(\d{4}) ?(\d{4}) ?(\d{4}) ?(\d{1,4})/, '$1 $2 $3 $4');
+
+            // // Remove misplaced dashes
+            // formatted = formatted.split('').filter((val, idx) => val !== '-' || idx === 3 || idx === 6).join('');
 
             // Enforce max length
-            return formatted.substring(0, 11);
+            return formatted.substring(0, 19);
         };
 
-        ssn.value = format(ssn.value);
+        creditCard.value = format(creditCard.value);
     }
 }

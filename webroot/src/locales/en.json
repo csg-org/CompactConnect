@@ -53,6 +53,7 @@
         "race": "Race",
         "ethnicity": "Ethnicity",
         "welcome": "Welcome",
+        "formValidationErrorMessage": "Please correct the errors on the form shown in red and check the box acknowleding no refunds",
         "daysOfTheWeek": {
             "monday": {
                 "full": "Monday",
@@ -383,7 +384,8 @@
         "tooManyFiles": "Too many files, only 1 allowed",
         "fileWrongType": "Wrong file type",
         "lastNameRequired": "Required when first name is provided",
-        "ssnFormat": "Must be in format ###-##-####"
+        "ssnFormat": "Must be in format ###-##-####",
+        "enterValidCreditCard": "Must be a valid credit card number"
     },
     "serverErrors": {
         "networkError": "Network error",

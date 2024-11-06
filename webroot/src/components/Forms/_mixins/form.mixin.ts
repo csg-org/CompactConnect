@@ -57,6 +57,10 @@ class MixinForm extends Vue {
                 'string.email': this.$t('inputErrors.email'),
                 'string.max': this.$t('inputErrors.maxLength', { max: '{#limit}' }),
             },
+            creditCard: {
+                'string.empty': this.$t('inputErrors.required'),
+                'string.pattern.base': this.$t('inputErrors.enterValidCreditCard')
+            },
             password: {
                 'password.minOfUppercase': this.$t('inputErrors.minOfUppercase', { min: '{#min}' }),
                 'password.minOfLowercase': this.$t('inputErrors.minOfLowercase', { min: '{#min}' }),

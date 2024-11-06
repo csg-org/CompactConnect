@@ -7,6 +7,9 @@
 
 <template>
     <div class="finalize-privilege-purchase-container">
+        <div v-if="formErrorMessage" class="form-error-message">
+            {{formErrorMessage}}
+        </div>
         <form class="complete-purchase-form" @submit.prevent="handleSubmit">
             <div class="finalize-purchase-container">
                 <div class="finalize-purchase-core-container">
@@ -31,6 +34,7 @@
                             <div class="form-row">
                                 <InputCreditCard
                                     :formInput="formData.creditCard"
+                                    @input="formatCreditCard()"
                                 />
                             </div>
                             <div class="cc-dets form-row">
@@ -41,12 +45,14 @@
                                     <div class="exp-chunk-input">
                                         <InputNumber
                                             :formInput="formData.expMonth"
+                                            @input="handleExpMonthInput(formData.expMonth)"
                                         />
                                         <div class="slash">
                                             /
                                         </div>
                                         <InputNumber
                                             :formInput="formData.expYear"
+                                            ref="expYear"
                                         />
                                     </div>
                                 </div>
