@@ -5,7 +5,7 @@ from types import MethodType
 
 from botocore.exceptions import ClientError
 from config import config, logger
-from exceptions import CCInternalException, CCInvalidRequestException
+from cc_common.exceptions import CCInternalException, CCInvalidRequestException
 from marshmallow import ValidationError
 
 from data_model.schema.base_record import BaseRecordSchema

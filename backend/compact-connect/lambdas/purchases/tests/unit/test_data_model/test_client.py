@@ -2,7 +2,7 @@ from datetime import date
 from unittest.mock import MagicMock
 
 from botocore.exceptions import ClientError
-from exceptions import CCAwsServiceException
+from cc_common.exceptions import CCAwsServiceException
 
 from tests import TstLambdas
 

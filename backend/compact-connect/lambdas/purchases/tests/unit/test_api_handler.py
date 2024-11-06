@@ -26,7 +26,7 @@ class TestApiHandler(TstLambdas):
         self.assertEqual('{"message": "OK"}', resp['body'])
 
     def test_unauthorized(self):
-        from exceptions import CCUnauthorizedException
+        from cc_common.exceptions import CCUnauthorizedException
         from handlers.utils import api_handler
 
         @api_handler
@@ -40,7 +40,7 @@ class TestApiHandler(TstLambdas):
         self.assertEqual(401, resp['statusCode'])
 
     def test_invalid_request(self):
-        from exceptions import CCInvalidRequestException
+        from cc_common.exceptions import CCInvalidRequestException
         from handlers.utils import api_handler
 
         @api_handler

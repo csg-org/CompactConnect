@@ -3,7 +3,7 @@ from datetime import UTC, date, datetime
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from config import _Config, logger
-from exceptions import CCAwsServiceException, CCNotFoundException
+from cc_common.exceptions import CCAwsServiceException, CCNotFoundException
 
 from data_model.query_paginator import paginated_query
 from data_model.schema import PrivilegeRecordSchema

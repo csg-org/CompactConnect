@@ -5,7 +5,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from config import config, logger
 from data_model.schema.compact import COMPACT_TYPE, Compact, CompactOptionsApiResponseSchema
 from data_model.schema.jurisdiction import JURISDICTION_TYPE, Jurisdiction, JurisdictionOptionsApiResponseSchema
-from exceptions import (
+from cc_common.exceptions import (
     CCAwsServiceException,
     CCFailedTransactionException,
     CCInternalException,
