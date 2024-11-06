@@ -60,12 +60,34 @@
         }
 
         .finalize-purchase-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+
+            @media @tabletWidth {
+                flex-direction: row;
+            }
+
             .cost-breakdown-container {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
                 margin-top: 1rem;
                 padding: 2rem;
                 border-radius: 20px;
                 color: white;
                 background-color: @primaryColor;
+
+                @media @tabletWidth {
+                    width: 32rem;
+                    margin-top: unset;
+                    border-radius: 0 20px 20px 0;
+                }
+
+                @media @desktopWidth {
+                    margin-top: 8rem;
+                    padding: 8rem 4rem;
+                }
 
                 :deep(.checkbox-container) {
                     label {
@@ -107,12 +129,13 @@
                 background-color: white;
 
                 @media @tabletWidth {
-                    width: 72rem;
+                    width: 42rem;
+                    margin-top: unset;
+                    border-radius: 20px 0 0 20px;
                 }
 
                 @media @desktopWidth {
-                    width: unset;
-                    min-width: 72rem;
+                    width: 54rem;
                     margin-top: 8rem;
                 }
 
