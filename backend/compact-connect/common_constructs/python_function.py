@@ -36,7 +36,7 @@ class PythonFunction(CdkPythonFunction):
         super().__init__(
             scope,
             construct_id,
-            bundling=BundlingOptions(command_hooks=TestingHooks()),
+            bundling=BundlingOptions(),
             runtime=Runtime.PYTHON_3_12,
             log_retention=log_retention,
             layers=layers,
@@ -109,28 +109,3 @@ class PythonFunction(CdkPythonFunction):
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         )
         throttle_alarm.add_alarm_action(SnsAction(alarm_topic))
-
-
-@jsii.implements(ICommandHooks)
-class TestingHooks:
-    """Testing hooks that will automatically run the expected tests package to validate the lambda.
-
-    This command hook will temporarily install dev dependencies, then execute unittest-compatible
-    tests expected to be in the `tests` directory.
-    """
-
-    def after_bundling(self, input_dir: str, output_dir: str) -> list[str]:  # noqa: ARG002 unused-argument
-        return [
-            # # copy common directory for tests
-            # 'cp -r ../common common',
-            # 'mkdir _tmp_dev_deps',
-            # 'python -m pip install -r requirements-dev.txt -t _tmp_dev_deps',
-            # 'PYTHONPATH="$(pwd)/_tmp_dev_deps" python -m unittest discover -s tests',
-            # 'rm -rf _tmp_dev_deps',
-            # 'rm -rf tests',
-            # # remove the symlink
-            # 'rm -rf common',
-        ]
-
-    def before_bundling(self, input_dir: str, output_dir: str) -> list[str]:  # noqa: ARG002 unused-argument
-        return []

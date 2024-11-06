@@ -4,6 +4,7 @@ import os
 
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import AuthorizationType, LambdaIntegration, MethodOptions, MethodResponse, Resource
+from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from aws_cdk.aws_s3 import IBucket
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
@@ -23,6 +24,7 @@ class BulkUploadUrl:
         method_options: MethodOptions,
         bulk_uploads_bucket: IBucket,
         api_model: ApiModel,
+        lambda_layers: list[PythonLayerVersion],
     ):
         super().__init__()
 
@@ -30,10 +32,12 @@ class BulkUploadUrl:
         self.api: cc_api.CCApi = resource.api
         self.api_model = api_model
         self.log_groups = []
-        self._add_bulk_upload_url(method_options=method_options, bulk_uploads_bucket=bulk_uploads_bucket)
+        self._add_bulk_upload_url(method_options=method_options, bulk_uploads_bucket=bulk_uploads_bucket,
+                                  lambda_layers=lambda_layers)
         self.api.log_groups.extend(self.log_groups)
 
-    def _get_bulk_upload_url_handler(self, *, bulk_uploads_bucket: IBucket) -> PythonFunction:
+    def _get_bulk_upload_url_handler(self, *, bulk_uploads_bucket: IBucket,
+                                     lambda_layers: list[PythonLayerVersion]) -> PythonFunction:
         stack: Stack = Stack.of(self.resource)
         handler = PythonFunction(
             self.api,
@@ -44,6 +48,7 @@ class BulkUploadUrl:
             handler='bulk_upload_url_handler',
             environment={'BULK_BUCKET_NAME': bulk_uploads_bucket.bucket_name, **stack.common_env_vars},
             alarm_topic=self.api.alarm_topic,
+            layers=lambda_layers,
         )
         # Grant the handler permissions to write to the bulk bucket
         bulk_uploads_bucket.grant_write(handler)
@@ -62,7 +67,8 @@ class BulkUploadUrl:
         )
         return handler
 
-    def _add_bulk_upload_url(self, *, method_options: MethodOptions, bulk_uploads_bucket: IBucket):
+    def _add_bulk_upload_url(self, *, method_options: MethodOptions, bulk_uploads_bucket: IBucket,
+                             lambda_layers: list[PythonLayerVersion]):
         self.resource.add_method(
             'GET',
             request_validator=self.api.parameter_body_validator,
@@ -73,7 +79,7 @@ class BulkUploadUrl:
                 ),
             ],
             integration=LambdaIntegration(
-                self._get_bulk_upload_url_handler(bulk_uploads_bucket=bulk_uploads_bucket),
+                self._get_bulk_upload_url_handler(bulk_uploads_bucket=bulk_uploads_bucket, lambda_layers=lambda_layers),
                 timeout=Duration.seconds(29),
             ),
             request_parameters={'method.request.header.Authorization': True}

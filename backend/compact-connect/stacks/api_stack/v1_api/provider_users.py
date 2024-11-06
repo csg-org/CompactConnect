@@ -25,7 +25,7 @@ class ProviderUsers:
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
         api_model: ApiModel,
-        layers: list[PythonLayerVersion] = None,
+        lambda_layers: list[PythonLayerVersion],
     ):
         super().__init__()
         # /v1/provider-users
@@ -47,7 +47,7 @@ class ProviderUsers:
             data_encryption_key=data_encryption_key,
             provider_data_table=provider_data_table,
             lambda_environment=lambda_environment,
-            layers=layers,
+            layers=lambda_layers,
         )
 
     def _add_get_provider_user_me(

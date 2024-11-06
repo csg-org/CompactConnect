@@ -5,6 +5,7 @@ import os
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodResponse, Resource
 from aws_cdk.aws_kms import IKey
+from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
@@ -25,6 +26,7 @@ class QueryProviders:
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
         api_model: ApiModel,
+        lambda_layers: list[PythonLayerVersion],
     ):
         super().__init__()
 
@@ -45,12 +47,14 @@ class QueryProviders:
             data_encryption_key=data_encryption_key,
             provider_data_table=provider_data_table,
             lambda_environment=lambda_environment,
+            lambda_layers=lambda_layers,
         )
         self._add_get_provider(
             method_options=method_options,
             data_encryption_key=data_encryption_key,
             provider_data_table=provider_data_table,
             lambda_environment=lambda_environment,
+            lambda_layers=lambda_layers,
         )
 
     def _add_get_provider(
@@ -59,11 +63,13 @@ class QueryProviders:
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
         lambda_environment: dict,
+        lambda_layers: list[PythonLayerVersion],
     ):
         handler = self._get_provider_handler(
             data_encryption_key=data_encryption_key,
             provider_data_table=provider_data_table,
             lambda_environment=lambda_environment,
+            lambda_layers=lambda_layers,
         )
         self.api.log_groups.append(handler.log_group)
 
@@ -89,6 +95,7 @@ class QueryProviders:
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
         lambda_environment: dict,
+        lambda_layers: list[PythonLayerVersion],
     ):
         query_resource = self.resource.add_resource('query')
 
@@ -96,6 +103,7 @@ class QueryProviders:
             data_encryption_key=data_encryption_key,
             provider_data_table=provider_data_table,
             lambda_environment=lambda_environment,
+            lambda_layers=lambda_layers,
         )
         self.api.log_groups.append(handler.log_group)
 
@@ -121,6 +129,7 @@ class QueryProviders:
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
         lambda_environment: dict,
+        lambda_layers: list[PythonLayerVersion],
     ) -> PythonFunction:
         stack = Stack.of(self.resource)
         handler = PythonFunction(
@@ -132,6 +141,7 @@ class QueryProviders:
             handler='get_provider',
             environment=lambda_environment,
             alarm_topic=self.api.alarm_topic,
+            layers=lambda_layers,
         )
         data_encryption_key.grant_decrypt(handler)
         provider_data_table.grant_read_data(handler)
@@ -154,6 +164,7 @@ class QueryProviders:
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
         lambda_environment: dict,
+        lambda_layers: list[PythonLayerVersion],
     ) -> PythonFunction:
         stack = Stack.of(self.api)
         handler = PythonFunction(
@@ -165,6 +176,7 @@ class QueryProviders:
             handler='query_providers',
             environment=lambda_environment,
             alarm_topic=self.api.alarm_topic,
+            layers=lambda_layers,
         )
         data_encryption_key.grant_decrypt(handler)
         provider_data_table.grant_read_data(handler)

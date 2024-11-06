@@ -57,6 +57,7 @@ class V1Api:
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
             api_model=self.api_model,
+            lambda_layers=[persistent_stack.common_python_lambda_layer],
         )
 
         # /v1/purchases
@@ -67,6 +68,7 @@ class V1Api:
             compact_configuration_table=persistent_stack.compact_configuration_table,
             provider_data_table=persistent_stack.provider_table,
             api_model=self.api_model,
+            lambda_layers=[persistent_stack.common_python_lambda_layer],
         )
 
         # /v1/compacts
@@ -91,6 +93,7 @@ class V1Api:
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
             api_model=self.api_model,
+            lambda_layers=[persistent_stack.common_python_lambda_layer],
         )
 
         # POST /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses
@@ -103,12 +106,14 @@ class V1Api:
             method_options=write_auth_method_options,
             event_bus=persistent_stack.data_event_bus,
             api_model=self.api_model,
+            lambda_layers=[persistent_stack.common_python_lambda_layer],
         )
         BulkUploadUrl(
             resource=licenses_resource,
             method_options=write_auth_method_options,
             bulk_uploads_bucket=persistent_stack.bulk_uploads_bucket,
             api_model=self.api_model,
+            lambda_layers=[persistent_stack.common_python_lambda_layer],
         )
 
         # /v1/staff-users

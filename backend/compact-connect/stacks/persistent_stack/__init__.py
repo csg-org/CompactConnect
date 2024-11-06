@@ -187,6 +187,9 @@ class PersistentStack(AppStack):
         )
 
     def _add_lambda_layer(self):
+        """
+        Common Python code shared between Python lambdas.
+        """
         return PythonLayerVersion(
             self,
             'CompactConnectCommonPythonLayer',
