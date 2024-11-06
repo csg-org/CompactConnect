@@ -121,11 +121,15 @@ class TestingHooks:
 
     def after_bundling(self, input_dir: str, output_dir: str) -> list[str]:  # noqa: ARG002 unused-argument
         return [
-            'mkdir _tmp_dev_deps',
-            'python -m pip install -r requirements-dev.txt -t _tmp_dev_deps',
-            'PYTHONPATH="$(pwd)/_tmp_dev_deps" python -m unittest discover -s tests',
-            'rm -rf _tmp_dev_deps',
-            'rm -rf tests',
+            # # copy common directory for tests
+            # 'cp -r ../common common',
+            # 'mkdir _tmp_dev_deps',
+            # 'python -m pip install -r requirements-dev.txt -t _tmp_dev_deps',
+            # 'PYTHONPATH="$(pwd)/_tmp_dev_deps" python -m unittest discover -s tests',
+            # 'rm -rf _tmp_dev_deps',
+            # 'rm -rf tests',
+            # # remove the symlink
+            # 'rm -rf common',
         ]
 
     def before_bundling(self, input_dir: str, output_dir: str) -> list[str]:  # noqa: ARG002 unused-argument

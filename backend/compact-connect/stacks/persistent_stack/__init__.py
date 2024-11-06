@@ -43,6 +43,9 @@ class PersistentStack(AppStack):
         # If we delete this stack, retain the resource (orphan but prevent data loss) or destroy it (clean up)?
         removal_policy = RemovalPolicy.RETAIN if environment_name == 'prod' else RemovalPolicy.DESTROY
 
+        # Add the common python lambda layer
+        self.common_python_lambda_layer = self._add_lambda_layer()
+
         self.shared_encryption_key = Key(
             self,
             'SharedEncryptionKey',
@@ -76,8 +79,7 @@ class PersistentStack(AppStack):
         # The new data resources
         self._add_data_resources(removal_policy=removal_policy)
 
-        # Add the common python lambda layer
-        self._add_lambda_layer()
+
 
         self.compact_configuration_upload = CompactConfigurationUpload(
             self,
@@ -153,6 +155,7 @@ class PersistentStack(AppStack):
             removal_policy=RemovalPolicy.DESTROY,
             auto_delete_objects=True,
             event_bus=self.data_event_bus,
+            lambda_layers=[self.common_python_lambda_layer],
         )
 
         self.mock_license_table = LicenseTable(
@@ -173,6 +176,7 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
             event_bus=self.data_event_bus,
+            lambda_layers=[self.common_python_lambda_layer],
         )
 
         self.provider_table = ProviderTable(
@@ -184,9 +188,9 @@ class PersistentStack(AppStack):
         )
 
     def _add_lambda_layer(self):
-        self.common_python_lambda_layer = PythonLayerVersion(
+        return PythonLayerVersion(
             self, 'CompactConnectCommonPythonLayer',
-            entry=os.path.join('lambdas', 'common'),
+            entry=os.path.join('lambdas', 'common-python'),
             compatible_runtimes=[Runtime.PYTHON_3_12],
             description='A layer for common code shared between python lambdas',
             bundling=BundlingOptions()
