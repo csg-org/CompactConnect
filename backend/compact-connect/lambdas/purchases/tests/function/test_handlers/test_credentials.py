@@ -1,7 +1,7 @@
 import json
 from unittest.mock import MagicMock, patch
 
-from exceptions import CCInvalidRequestException
+from cc_common.exceptions import CCInvalidRequestException
 from moto import mock_aws
 
 from tests.function import TstFunction

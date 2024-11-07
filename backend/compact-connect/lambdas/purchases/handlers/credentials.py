@@ -3,7 +3,7 @@ import json
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from purchase_client import PurchaseClient
 
-from handlers.utils import api_handler, authorize_compact_scoped_action
+from cc_common.utils import api_handler, authorize_compact_scoped_action
 
 
 @api_handler

@@ -3,8 +3,8 @@ import json
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
-from config import config
-from exceptions import CCFailedTransactionException, CCInternalException, CCInvalidRequestException
+from cc_common.config import config
+from cc_common.exceptions import CCFailedTransactionException, CCInternalException, CCInvalidRequestException
 
 from tests import TstLambdas
 
