@@ -472,7 +472,6 @@ describe('User Store Actions', async () => {
         expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
         expect(state.error).to.equal(null);
     });
-
     it('should successfully start save selected privileges to store', () => {
         const commit = sinon.spy();
         const selected = ['ey'];
@@ -524,7 +523,6 @@ describe('User Store Actions', async () => {
             [MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE, error]
         );
     });
-
     it('should successfully save attestations accepted', () => {
         const state = {};
 

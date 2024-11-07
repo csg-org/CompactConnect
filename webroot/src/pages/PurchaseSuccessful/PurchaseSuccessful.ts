@@ -43,6 +43,8 @@ export default class PurchaseSuccessful extends Vue {
     // Methods
     //
     handleFinishClicked() {
+        this.$store.dispatch('user/getLicenseeAccountRequest');
+
         this.$router.push({
             name: 'LicenseeDashboard',
             params: { compact: this.compactType }

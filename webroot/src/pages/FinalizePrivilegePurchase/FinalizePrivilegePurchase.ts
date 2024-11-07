@@ -296,6 +296,9 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                     name: 'PurchaseSuccessful',
                     params: { compact: this.currentCompactType }
                 });
+            } else if (purchaseServerEvent?.message) {
+                this.isFormError = true;
+                this.formErrorMessage = purchaseServerEvent?.message;
             }
         } else {
             this.isFormError = true;
