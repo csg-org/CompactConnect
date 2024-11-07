@@ -21,20 +21,31 @@
             {{ formInput.label }}
             <span v-if="isRequired" class="required-indicator">*</span>
         </label>
-        <input
-            type="text"
-            inputmode="numeric"
-            :id="formInput.id"
-            :name="formInput.name"
-            data-inputmask="'mask': '9999 9999 9999 9999'"
-            :placeholder="formInput.placeholder"
-            v-model="formInput.value"
-            :autocomplete="formInput.autocomplete"
-            :aria-label="formInput.label"
-            @blur="blur(formInput)"
-            @input="inputCreditCardOverride(formInput)"
-            :class="{ 'has-error': !!formInput.errorMessage }"
-        />
+        <div class="input-inner-container">
+            <input
+                :type="inputType"
+                inputmode="numeric"
+                :id="formInput.id"
+                :name="formInput.name"
+                data-inputmask="'mask': '9999 9999 9999 9999'"
+                :placeholder="formInput.placeholder"
+                v-model="formInput.value"
+                :autocomplete="formInput.autocomplete"
+                :aria-label="formInput.label"
+                @blur="blur(formInput)"
+                @input="input(formInput)"
+                :class="{ 'has-error': !!formInput.errorMessage }"
+            />
+            <div
+                :for="formInput.id"
+                class="eye-icon-container"
+                @click="toggleMasking"
+                @keyup.enter="toggleMasking"
+            >
+                <HidePasswordEye v-if="shouldMask" />
+                <ShowPasswordEye v-if="!shouldMask" />
+            </div>
+        </div>
         <span
             v-if="formInput.errorMessage"
             class="form-field-error"

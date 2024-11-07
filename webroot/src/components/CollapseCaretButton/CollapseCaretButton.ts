@@ -17,14 +17,6 @@ class CollapseCaretButton extends Vue {
     isUp = true;
 
     //
-    // Lifecycle
-    //
-
-    //
-    // Computed
-    //
-
-    //
     // Methods
     //
     toggleCollapse() {

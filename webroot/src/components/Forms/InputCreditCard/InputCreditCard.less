@@ -4,3 +4,31 @@
 //
 //  Created by InspiringApps on 11/1/2024.
 //
+.input-container {
+    .password-container {
+        position: relative;
+        display: flex;
+    }
+
+    input {
+        width: 100%;
+    }
+
+    .eye-icon-container {
+        position: absolute;
+        right: 4px;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        width: auto;
+        min-width: 2.4rem;
+        height: 100%;
+        cursor: pointer;
+
+        svg {
+            display: inline-block;
+            height: 80%;
+            fill: @darkGrey;
+        }
+    }
+}

@@ -16,14 +16,16 @@
                     <div class="finalize-purchase-title-row">
                         <div
                             class="finalize-purchase-title"
-                            @keydown.prevent="togglePaymentCollapse"
-                            @click="togglePaymentCollapse"
                         >
                             {{paymentTitleText}}
                         </div>
-                        <CollapseCaretButton class="collapse-button" />
+                        <CollapseCaretButton
+                            v-if="isPhone"
+                            class="collapse-button"
+                            @toggleCollapse="togglePaymentCollapsed"
+                        />
                     </div>
-                    <div class="payment-core-form">
+                    <div v-if="shouldShowPaymentSection || !isPhone" class="payment-core-form">
                         <div class="credit-card-section">
                             <div class="credit-card-title">
                                 {{creditCardTitleText}}

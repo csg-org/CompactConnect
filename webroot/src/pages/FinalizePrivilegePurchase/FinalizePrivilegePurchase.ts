@@ -42,6 +42,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     formErrorMessage = '';
     expYearRef;
     cvvRef;
+    shouldShowPaymentSection = true;
 
     //
     // Lifecycle
@@ -79,6 +80,10 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
 
     get isMobile(): boolean {
         return !this.isDesktop;
+    }
+
+    get isPhone(): boolean {
+        return !this.$matches.tablet.min;
     }
 
     get cancelText(): string {
@@ -462,6 +467,10 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
 
     handleCVVRefEmitted(inputData) {
         this.cvvRef = inputData.ref;
+    }
+
+    togglePaymentCollapsed() {
+        this.shouldShowPaymentSection = !this.shouldShowPaymentSection;
     }
 
     formatCreditCard(): void {
