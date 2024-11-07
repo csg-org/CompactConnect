@@ -472,4 +472,97 @@ describe('User Store Actions', async () => {
         expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
         expect(state.error).to.equal(null);
     });
+
+    it('should successfully start save selected privileges to store', () => {
+        const commit = sinon.spy();
+        const selected = ['ey'];
+
+        actions.savePrivilegePurchaseChoicesToStore({ commit }, selected);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern(
+            [MutationTypes.SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE, selected]
+        );
+    });
+    it('should successfully start save attestations accepted', () => {
+        const commit = sinon.spy();
+
+        actions.setAttestationsAccepted({ commit }, true);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern(
+            [MutationTypes.SET_ATTESTATIONS_ACCEPTED, true]
+        );
+    });
+    it('should successfully start post privilege purchase request', () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        actions.postPrivilegePurchases({ commit, dispatch }, true);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.POST_PRIVILEGE_PURCHASE_REQUEST]);
+    });
+    it('should successfully start post privilege purchases success', () => {
+        const commit = sinon.spy();
+
+        actions.postPrivilegePurchasesSuccess({ commit }, true);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern(
+            [MutationTypes.POST_PRIVILEGE_PURCHASE_SUCCESS]
+        );
+    });
+    it('should successfully start post privilege purchases failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.postPrivilegePurchasesFailure({ commit }, true);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern(
+            [MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE, error]
+        );
+    });
+
+    it('should successfully save attestations accepted', () => {
+        const state = {};
+
+        mutations[MutationTypes.SET_ATTESTATIONS_ACCEPTED](state, true);
+
+        expect(state.arePurchaseAttestationsAccepted).to.equal(true);
+    });
+    it('should successfully save privileges selected to store', () => {
+        const state = {};
+        const selected = ['ey'];
+
+        mutations[MutationTypes.SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE](state, selected);
+
+        expect(state.selectedPrivilegesToPurchase).to.matchPattern(selected);
+    });
+    it('should successfully post privilege purchase request', () => {
+        const state = {};
+
+        mutations[MutationTypes.POST_PRIVILEGE_PURCHASE_REQUEST](state);
+
+        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully post privilege purchase success', () => {
+        const state = {};
+
+        mutations[MutationTypes.POST_PRIVILEGE_PURCHASE_SUCCESS](state);
+
+        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully post privilege purchase failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE](state, error);
+
+        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
 });
