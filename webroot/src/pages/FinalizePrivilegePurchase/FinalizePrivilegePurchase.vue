@@ -69,6 +69,7 @@
                                 <div class="cvv-container">
                                     <InputNumber
                                         :formInput="formData.cvv"
+                                        @input="handleCVVInput(formData.cvv)"
                                         @emitInputRef="handleCVVRefEmitted"
                                     />
                                 </div>
@@ -94,6 +95,7 @@
                                 />
                                 <InputNumber
                                     :formInput="formData.zip"
+                                    @input="handleZipInput(formData.cvv)"
                                 />
                             </div>
                         </div>
@@ -157,7 +159,7 @@
                     <InputSubmit
                         :formInput="formData.submit"
                         :label="submitLabel"
-                        :isEnabled="!isFormLoading"
+                        :isEnabled="!isFormLoading && isSubmitEnabled"
                     />
                 </div>
             </div>

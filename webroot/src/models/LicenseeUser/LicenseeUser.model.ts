@@ -60,15 +60,13 @@ export class LicenseeUserSerializer {
 
 export class LicenseeUserPurchaseSerializer {
     static toServer({ formData, statesSelected }): any {
-        // console.log('madeItIn', { formData, statesSelected });
-
         const purchaseData: any = {
             selectedJurisdictions: statesSelected,
             orderInformation: {
                 card: {
                     number: formData.creditCard.value.replace(/\s+/g, ''),
                     expiration: `20${formData.expYear.value}-${formData.expMonth.value}`,
-                    cvv: formData.cvv
+                    cvv: formData.cvv.value
                 },
                 billing: {
                     firstName: formData.firstName.value,
@@ -80,8 +78,6 @@ export class LicenseeUserPurchaseSerializer {
                 }
             }
         };
-
-        console.log('purchaseData', purchaseData);
 
         return purchaseData;
     }

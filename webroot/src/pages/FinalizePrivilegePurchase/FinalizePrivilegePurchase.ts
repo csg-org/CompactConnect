@@ -267,6 +267,12 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         return total;
     }
 
+    get isSubmitEnabled(): boolean {
+        this.checkValidForAll();
+
+        return this.isFormValid && this.formData.noRefunds.value && !this.isFormLoading;
+    }
+
     //
     // Methods
     //
@@ -431,18 +437,6 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         this.watchFormInputs();
     }
 
-    handleExpMonthInput(formInput) {
-        if (formInput.value && formInput.value.length > 1 && this.expYearRef) {
-            this.expYearRef.focus();
-        }
-    }
-
-    handleExpYearInput(formInput) {
-        if (formInput.value && formInput.value.length > 1 && this.cvvRef) {
-            this.cvvRef.focus();
-        }
-    }
-
     handleCancelClicked() {
         if (this.currentCompactType) {
             this.$router.push({
@@ -476,25 +470,50 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     formatCreditCard(): void {
         const { creditCard } = this.formData;
         const format = (ccInputVal) => {
-            // Remove all non-dash and non-numerals
-            let formatted = ccInputVal.replace(/[^\d-]/g, '');
+            // Remove all non-numerals
+            let formatted = ccInputVal.replace(/[^\d]/g, '');
 
-            // Add the first dash if a number from the second group appears
+            // Add the first space if a number from the second group appears
             formatted = formatted.replace(/^(\d{4}) ?(\d{1,4})/, '$1 $2');
 
-            // Add the second dash if a number from the third group appears
+            // Add the second space if a number from the third group appears
             formatted = formatted.replace(/^(\d{4}) ?(\d{4}) ?(\d{1,4})/, '$1 $2 $3');
 
-            // Add the third dash if a number from the third group appears
+            // Add the third space if a number from the fourth group appears
             formatted = formatted.replace(/^(\d{4}) ?(\d{4}) ?(\d{4}) ?(\d{1,4})/, '$1 $2 $3 $4');
-
-            // // Remove misplaced dashes
-            // formatted = formatted.split('').filter((val, idx) => val !== '-' || idx === 3 || idx === 6).join('');
 
             // Enforce max length
             return formatted.substring(0, 19);
         };
 
         creditCard.value = format(creditCard.value);
+    }
+
+    handleExpMonthInput(formInput) {
+        // Remove all non-numerals
+        formInput.value = formInput.value.replace(/[^\d]/g, '');
+
+        if (formInput.value && formInput.value.length > 1 && this.expYearRef) {
+            this.expYearRef.focus();
+        }
+    }
+
+    handleExpYearInput(formInput) {
+        // Remove all non-numerals
+        formInput.value = formInput.value.replace(/[^\d]/g, '');
+
+        if (formInput.value && formInput.value.length > 1 && this.cvvRef) {
+            this.cvvRef.focus();
+        }
+    }
+
+    handleCVVInput(formInput) {
+        // Remove all non-numerals
+        formInput.value = formInput.value.replace(/[^\d]/g, '');
+    }
+
+    handleZipInput(formInput) {
+        // Remove all non-numerals
+        formInput.value = formInput.value.replace(/[^\d]/g, '');
     }
 }
