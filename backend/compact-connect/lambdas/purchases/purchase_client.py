@@ -490,20 +490,21 @@ class PurchaseClient:
         # first check to see if secret already exists
         try:
             self.secrets_manager_client.describe_secret(
-                SecretId=self._get_payment_processor_secret_name_for_compact(compact_name))
+                SecretId=self._get_payment_processor_secret_name_for_compact(compact_name)
+            )
 
             # secret exists, update its value to whatever the admin sent us
             logger.info('Existing secret found, updating secret for compact', compact_name=compact_name)
             self.secrets_manager_client.put_secret_value(
                 SecretId=self._get_payment_processor_secret_name_for_compact(compact_name),
-                SecretString=json.dumps(secret_value)
+                SecretString=json.dumps(secret_value),
             )
         except self.secrets_manager_client.exceptions.ResourceNotFoundException:
             # secret does not exist, so we can create it
             logger.info('Existing secret not found, creating new secret for compact', compact_name=compact_name)
             self.secrets_manager_client.create_secret(
                 Name=self._get_payment_processor_secret_name_for_compact(compact_name),
-                SecretString=json.dumps(secret_value)
+                SecretString=json.dumps(secret_value),
             )
 
         return response

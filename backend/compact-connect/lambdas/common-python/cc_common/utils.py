@@ -9,6 +9,7 @@ from uuid import UUID
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
+
 from cc_common.config import logger
 from cc_common.exceptions import (
     CCAccessDeniedException,
@@ -115,61 +116,6 @@ def api_handler(fn: Callable):
             raise
 
     return caught_handler
-
-
-class authorize_compact_jurisdiction:  # noqa: N801 invalid-name
-    """
-    Authorize endpoint by matching path parameters compact and jurisdiction to the expected scope.
-    (i.e. aslp/oh.write)
-    """
-
-    def __init__(self, action: str):
-        """Decorator to wrap scope-based authorization, for a scope like '{resource_server}/{scope}.{action}'.
-
-        For a URL path like:
-        ```
-        /foo/{resource_parameter}/bar/{scope_parameter}
-        ```
-
-        decorating an api handler with `@scope_by_path('resource_parameter', 'scope_parameter', 'write')` will create
-        an authorization that expects a request like `/foo/zig/bar/zag` to have a scope called `zig/zag.write`.
-
-        :param str resource_parameter: The path parameter to use for the resource server portion of a resource/scope
-        requirement.
-        :param str scope_parameter: The path parameter to use for the scope portion of a resource/scope requirement
-        :param str action: The additional 'action' portion of the resource/scope requirement.
-        """
-        super().__init__()
-        self.resource_parameter = 'compact'
-        self.scope_parameter = 'jurisdiction'
-        self.action = action
-
-    def __call__(self, fn: Callable):
-        @wraps(fn)
-        @logger.inject_lambda_context
-        def authorized(event: dict, context: LambdaContext):
-            try:
-                scope_value = event['pathParameters'][self.scope_parameter]
-                resource_value = event['pathParameters'][self.resource_parameter]
-            except KeyError as e:
-                logger.error('Access attempt with missing path parameters!')
-                raise CCInvalidRequestException('Missing path parameter!') from e
-
-            logger.debug('Checking authorizer context', request_context=event['requestContext'])
-            try:
-                scopes = event['requestContext']['authorizer']['claims']['scope'].split(' ')
-            except KeyError as e:
-                logger.error('Unauthorized access attempt!', exc_info=e)
-                raise CCUnauthorizedException('Unauthorized access attempt!') from e
-
-            required_scope = f'{resource_value}/{scope_value}.{self.action}'
-            if required_scope not in scopes:
-                logger.warning('Forbidden access attempt!')
-                raise CCAccessDeniedException('Forbidden access attempt!')
-            return fn(event, context)
-
-        return authorized
-
 
 class authorize_compact:  # noqa: N801 invalid-name
     """Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/read)"""

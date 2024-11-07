@@ -80,10 +80,13 @@ def _generate_selected_jurisdictions():
 
 class TestAuthorizeDotNetPurchaseClient(TstLambdas):
     """Testing that the purchase client works with authorize.net SDK as expected."""
+
     def _generate_mock_secrets_manager_client(self):
         mock_secrets_manager_client = MagicMock()
-        mock_secrets_manager_client.exceptions.ResourceNotFoundException = (config.secrets_manager_client
-                                                                            .exceptions.ResourceNotFoundException)
+        mock_secrets_manager_client.exceptions.ResourceNotFoundException = (
+            config.secrets_manager_client.exceptions.ResourceNotFoundException
+        )
+
         def get_secret_value_side_effect(SecretId):  # noqa: N803 invalid-name required for mock
             if SecretId == 'compact-connect/env/test/compact/aslp/credentials/payment-processor':
                 return {'SecretString': json.dumps(MOCK_ASLP_SECRET)}
@@ -92,7 +95,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                 operation_name='get_secret_value',
             )
 
-        def describe_secret_side_effect(SecretId): # noqa: N803 invalid-name required for mock
+        def describe_secret_side_effect(SecretId):  # noqa: N803 invalid-name required for mock
             if SecretId == 'compact-connect/env/test/compact/aslp/credentials/payment-processor':
                 # add other fields here if needed
                 return {'Name': 'compact-connect/env/test/compact/aslp/credentials/payment-processor'}
@@ -485,7 +488,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                     'api_login_id': MOCK_LOGIN_ID,
                     'transaction_key': MOCK_TRANSACTION_KEY,
                 }
-            )
+            ),
         )
 
     @patch('purchase_client.getMerchantDetailsController')
@@ -515,7 +518,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                     'api_login_id': MOCK_LOGIN_ID,
                     'transaction_key': MOCK_TRANSACTION_KEY,
                 }
-            )
+            ),
         )
 
     @patch('purchase_client.getMerchantDetailsController')

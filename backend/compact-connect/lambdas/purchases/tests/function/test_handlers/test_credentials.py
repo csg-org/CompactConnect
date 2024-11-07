@@ -36,7 +36,6 @@ class TestPostPaymentProcessorCredentials(TstFunction):
 
         return event
 
-
     def _when_testing_jurisdiction_admin_user(self):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -124,7 +123,9 @@ class TestPostPaymentProcessorCredentials(TstFunction):
         self.assertEqual(403, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'message': 'Access denied'}, response_body,
+        self.assertEqual(
+            {'message': 'Access denied'},
+            response_body,
         )
 
         mock_purchase_client.validate_and_store_credentials.assert_not_called()
