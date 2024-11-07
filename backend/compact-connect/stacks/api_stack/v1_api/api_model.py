@@ -271,6 +271,42 @@ class ApiModel:
         return self.api._v1_post_purchase_privileges_request_model
 
     @property
+    def post_credentials_payment_processor_request_model(self) -> Model:
+        """Return the post payment processor credentials request model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_post_credentials_payment_processor_request_model'):
+            return self.api._v1_post_credentials_payment_processor_request_model
+        self.api._v1_post_credentials_payment_processor_request_model = self.api.add_model(
+            'V1PostCredentialsPaymentProcessorRequestModel',
+            description='Post payment processor credentials request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=['processor', 'apiLoginId', 'transactionKey'],
+                properties={
+                            'processor': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description='The type of payment processor',
+                                # for now, we only allow 'authorize.net'
+                                enum=['authorize.net'],
+                            ),
+                            'apiLoginId': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description='The api login id for the payment processor',
+                                min_length=1,
+                                max_length=100,
+                            ),
+                            'transactionKey': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description='The transaction key for the payment processor',
+                                min_length=1,
+                                max_length=100,
+                            ),
+                        },
+            ),
+        )
+        return self.api._v1_post_credentials_payment_processor_request_model
+
+    @property
     def post_purchase_privileges_response_model(self) -> Model:
         """Return the purchase privilege response model, which should only be created once per API"""
         if hasattr(self.api, '_v1_post_purchase_privileges_response_model'):
@@ -294,6 +330,27 @@ class ApiModel:
             ),
         )
         return self.api._v1_post_purchase_privileges_response_model
+
+    @property
+    def post_credentials_payment_processor_response_model(self) -> Model:
+        """Return the purchase privilege response model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_post_credentials_payment_processor_response_model'):
+            return self.api._v1_post_credentials_payment_processor_response_model
+        self.api._v1_post_credentials_payment_processor_response_model = self.api.add_model(
+            'V1PostCredentialsPaymentProcessorResponseModel',
+            description='Post payment processor credentials response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=['message'],
+                properties={
+                    'message': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='A message about the request',
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_post_credentials_payment_processor_response_model
 
     @property
     def purchase_privilege_options_response_model(self) -> Model:
