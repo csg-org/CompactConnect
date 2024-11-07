@@ -139,7 +139,7 @@ export class DataApi {
 
     /**
      * POST Privilege Purchases for Authenticated Licensee user.
-     * @return {Promise<object>} List of privilege purchase options and compact purchase info.
+     * @return {Promise<object>} Purchase response object.
      */
     public postPrivilegePurchases(data: any) {
         return userDataApi.postPrivilegePurchases(data);

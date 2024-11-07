@@ -217,7 +217,7 @@ export class UserDataApi implements DataApiInterface {
 
     /**
      * POST Privilege Purchases for Authenticated Licensee user.
-     * @return {Promise<object>} List of privilege purchase options and compact purchase info.
+     * @return {Promise<object>} Purchase response object.
      */
     public async postPrivilegePurchases(data: any) {
         const serverResponse: any = await this.api.post(`/v1/purchases/privileges`, data);

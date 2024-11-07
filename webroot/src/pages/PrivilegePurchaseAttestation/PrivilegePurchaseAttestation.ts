@@ -22,10 +22,6 @@ import { FormInput } from '@/models/FormInput/FormInput.model';
 })
 export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
     //
-    // Data
-    //
-
-    //
     // Lifecycle
     //
     created() {
