@@ -107,13 +107,14 @@ class TstFunction(TstLambdas):
             logger.debug('Loading resource, %s: %s', resource, str(record))
             self._provider_table.put_item(Item=record)
 
-    def _load_license_data(self):
+    def _load_license_data(self, status: str = 'active'):
         """Use the canned test resources to load a basic provider to the DB"""
         license_test_resources = ['tests/resources/dynamo/license.json']
 
         for resource in license_test_resources:
             with open(resource) as f:
                 record = json.load(f, parse_float=Decimal)
+                record['status'] = status
 
             logger.debug('Loading resource, %s: %s', resource, str(record))
             # compact and jurisdiction records go in the compact configuration table
