@@ -1,15 +1,20 @@
+from __future__ import annotations
+
+import stacks.persistent_stack as ps
 from aws_cdk import Duration, Stack
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
-from aws_cdk.aws_lambda import Runtime
+from aws_cdk.aws_lambda import ILayerVersion, Runtime
 from aws_cdk.aws_lambda_python_alpha import BundlingOptions, PythonLayerVersion
 from aws_cdk.aws_lambda_python_alpha import PythonFunction as CdkPythonFunction
 from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.aws_sns import ITopic
+from aws_cdk.aws_ssm import StringParameter
 from cdk_nag import NagSuppressions
 from constructs import Construct
 
 COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME = '/deployment/lambda/layers/common-python-layer-arn'
+
 
 class PythonFunction(CdkPythonFunction):
     """Standard Python lambda function that assumes unittest-compatible tests are written in the 'tests' directory.
@@ -25,7 +30,6 @@ class PythonFunction(CdkPythonFunction):
         *,
         log_retention: RetentionDays = RetentionDays.ONE_MONTH,
         alarm_topic: ITopic = None,
-        layers: list[PythonLayerVersion] = None,
         **kwargs,
     ):
         defaults = {
@@ -39,9 +43,10 @@ class PythonFunction(CdkPythonFunction):
             bundling=BundlingOptions(),
             runtime=Runtime.PYTHON_3_12,
             log_retention=log_retention,
-            layers=layers,
             **defaults,
         )
+        self.add_layers(self._get_common_layer())
+
         if alarm_topic is not None:
             self._add_alarms(alarm_topic)
 
@@ -109,3 +114,25 @@ class PythonFunction(CdkPythonFunction):
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         )
         throttle_alarm.add_alarm_action(SnsAction(alarm_topic))
+
+    def _get_common_layer(self) -> ILayerVersion:
+        common_layer_construct_id = 'CommonPythonLayer'
+        stack = Stack.of(self)
+        # Outside the Persistent stack, we look up the layer via an SSM parameter to avoid cross-stack references in
+        # this case.
+        if isinstance(stack, ps.PersistentStack):
+            return stack.common_python_lambda_layer
+        # We only want to do this look-up once per stack, so we'll first check if it's already been done for the
+        # stack before creating a new one
+        common_layer_version: ILayerVersion = stack.node.try_find_child(common_layer_construct_id)
+        if common_layer_version is not None:
+            return common_layer_version
+        # Fetch the value from SSM parameter
+        common_python_lambda_layer_parameter = StringParameter.from_string_parameter_name(
+            stack,
+            'CommonPythonLayerParameter',
+            string_parameter_name=COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME,
+        )
+        return PythonLayerVersion.from_layer_version_arn(
+            stack, common_layer_construct_id, common_python_lambda_layer_parameter.string_value
+        )

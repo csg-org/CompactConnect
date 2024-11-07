@@ -4,7 +4,6 @@ import os
 import yaml
 from aws_cdk import CustomResource, Duration, Stack
 from aws_cdk.aws_kms import IKey
-from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.custom_resources import Provider
 from cdk_nag import NagSuppressions
@@ -25,7 +24,6 @@ class CompactConfigurationUpload(Construct):
         table: CompactConfigurationTable,
         master_key: IKey,
         environment_name: str,
-        lambda_layers: list[PythonLayerVersion],
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -42,7 +40,6 @@ class CompactConfigurationUpload(Construct):
             environment={
                 'COMPACT_CONFIGURATION_TABLE_NAME': table.table_name,
             },
-            layers=lambda_layers
         )
 
         # grant lambda access to the compact configuration table

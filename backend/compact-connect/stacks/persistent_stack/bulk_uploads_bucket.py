@@ -7,7 +7,6 @@ from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissin
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_kms import IKey
-from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from aws_cdk.aws_logs import QueryDefinition, QueryString
 from aws_cdk.aws_s3 import BucketEncryption, CorsRule, EventType, HttpMethods
 from aws_cdk.aws_s3_notifications import LambdaDestination
@@ -30,7 +29,6 @@ class BulkUploadsBucket(Bucket):
         encryption_key: IKey,
         mock_bucket: bool = False,
         event_bus: EventBus,
-        lambda_layers: list[PythonLayerVersion],
         **kwargs,
     ):
         super().__init__(
@@ -54,7 +52,7 @@ class BulkUploadsBucket(Bucket):
         if mock_bucket:
             self._add_delete_object_events()
         else:
-            self._add_v1_ingest_object_events(event_bus, lambda_layers=lambda_layers)
+            self._add_v1_ingest_object_events(event_bus)
 
         QueryDefinition(
             self,
@@ -138,7 +136,7 @@ class BulkUploadsBucket(Bucket):
             ],
         )
 
-    def _add_v1_ingest_object_events(self, event_bus: EventBus, lambda_layers: list[PythonLayerVersion]):
+    def _add_v1_ingest_object_events(self, event_bus: EventBus):
         """Read any objects that get uploaded and trigger ingest events"""
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
         parse_objects_handler = PythonFunction(
@@ -152,7 +150,6 @@ class BulkUploadsBucket(Bucket):
             alarm_topic=stack.alarm_topic,
             memory_size=1024,
             environment={'EVENT_BUS_NAME': event_bus.event_bus_name, **stack.common_env_vars},
-            layers=lambda_layers,
         )
         self.grant_delete(parse_objects_handler)
         self.grant_read(parse_objects_handler)

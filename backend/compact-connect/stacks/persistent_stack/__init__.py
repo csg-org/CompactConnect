@@ -48,7 +48,7 @@ class PersistentStack(AppStack):
         # Add the common python lambda layer
         # note this is to only be referenced directly in this stack
         # all external references should use the ssm parameter
-        _common_python_lambda_layer = PythonLayerVersion(
+        self.common_python_lambda_layer = PythonLayerVersion(
             self,
             'CompactConnectCommonPythonLayer',
             entry=os.path.join('lambdas', 'common-python'),
@@ -65,7 +65,7 @@ class PersistentStack(AppStack):
             self,
             'CommonPythonLayerArnParameter',
             parameter_name=COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME,
-            string_value=_common_python_lambda_layer.layer_version_arn,
+            string_value=self.common_python_lambda_layer.layer_version_arn,
         )
 
         self.shared_encryption_key = Key(
@@ -95,11 +95,11 @@ class PersistentStack(AppStack):
         self.data_event_bus = EventBus(self, 'DataEventBus')
 
         # Both of these are slated for deprecation/deletion soon, so we'll mark included resources for removal
-        self._add_mock_data_resources(_common_python_lambda_layer)
+        self._add_mock_data_resources()
         self._add_deprecated_data_resources()
 
         # The new data resources
-        self._add_data_resources(removal_policy=removal_policy, common_layer=_common_python_lambda_layer)
+        self._add_data_resources(removal_policy=removal_policy)
 
         self.compact_configuration_upload = CompactConfigurationUpload(
             self,
@@ -107,7 +107,6 @@ class PersistentStack(AppStack):
             table=self.compact_configuration_table,
             master_key=self.shared_encryption_key,
             environment_name=environment_name,
-            lambda_layers=[_common_python_lambda_layer],
         )
 
         if self.hosted_zone:
@@ -166,7 +165,7 @@ class PersistentStack(AppStack):
             self.provider_users.node.add_dependency(self.user_email_notifications.email_identity)
             self.provider_users.node.add_dependency(self.user_email_notifications.dmarc_record)
 
-    def _add_mock_data_resources(self, common_lambda_layer: PythonLayerVersion):
+    def _add_mock_data_resources(self):
         self.mock_bulk_uploads_bucket = BulkUploadsBucket(
             self,
             'MockBulkUploadsBucket',
@@ -176,7 +175,6 @@ class PersistentStack(AppStack):
             removal_policy=RemovalPolicy.DESTROY,
             auto_delete_objects=True,
             event_bus=self.data_event_bus,
-            lambda_layers=[common_lambda_layer]
         )
 
         self.mock_license_table = LicenseTable(
@@ -188,7 +186,7 @@ class PersistentStack(AppStack):
             self, 'LicenseTable', encryption_key=self.shared_encryption_key, removal_policy=RemovalPolicy.DESTROY
         )
 
-    def _add_data_resources(self, removal_policy: RemovalPolicy, common_layer: PythonLayerVersion):
+    def _add_data_resources(self, removal_policy: RemovalPolicy):
         self.bulk_uploads_bucket = BulkUploadsBucket(
             self,
             'BulkUploadsBucket',
@@ -197,7 +195,6 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
             event_bus=self.data_event_bus,
-            lambda_layers=[common_layer],
         )
 
         self.provider_table = ProviderTable(

@@ -13,7 +13,6 @@ from aws_cdk.aws_apigateway import (
 from aws_cdk.aws_cognito import IUserPool
 from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_kms import IKey
-from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
@@ -32,7 +31,6 @@ class StaffUsers:
         self_resource: Resource,
         admin_scopes: list[str],
         persistent_stack: ps.PersistentStack,
-        lambda_layers: list[PythonLayerVersion],
     ):
         super().__init__()
 
@@ -49,25 +47,19 @@ class StaffUsers:
         }
 
         # <base-url>/
-        self._add_get_users(self.admin_resource, admin_scopes, env_vars=env_vars,
-                            persistent_stack=persistent_stack, lambda_layers=lambda_layers)
-        self._add_post_user(self.admin_resource, admin_scopes, env_vars=env_vars,
-                            persistent_stack=persistent_stack, lambda_layers=lambda_layers)
+        self._add_get_users(self.admin_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
+        self._add_post_user(self.admin_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
 
         user_id_resource = self.admin_resource.add_resource('{userId}')
         # <base-url>/{userId}
-        self._add_get_user(user_id_resource, admin_scopes, env_vars=env_vars,
-                           persistent_stack=persistent_stack, lambda_layers=lambda_layers)
-        self._add_patch_user(user_id_resource, admin_scopes, env_vars=env_vars,
-                             persistent_stack=persistent_stack, lambda_layers=lambda_layers)
+        self._add_get_user(user_id_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
+        self._add_patch_user(user_id_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
 
         self.me_resource = self_resource.add_resource('me')
         # <base-url>/me
         profile_scopes = ['profile']
-        self._add_get_me(self.me_resource, profile_scopes, env_vars=env_vars,
-                         persistent_stack=persistent_stack, lambda_layers=lambda_layers)
-        self._add_patch_me(self.me_resource, profile_scopes, env_vars=env_vars,
-                           persistent_stack=persistent_stack, lambda_layers=lambda_layers)
+        self._add_get_me(self.me_resource, profile_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
+        self._add_patch_me(self.me_resource, profile_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
 
         self.api.log_groups.extend(self.log_groups)
 
@@ -77,13 +69,11 @@ class StaffUsers:
         scopes: list[str],
         env_vars: dict,
         persistent_stack: ps.PersistentStack,
-        lambda_layers: list[PythonLayerVersion],
     ):
         get_me_handler = self._get_me_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
             users_table=persistent_stack.staff_users.user_table,
-            lambda_layers=lambda_layers,
         )
 
         # Add the GET method to the me_resource
@@ -103,8 +93,7 @@ class StaffUsers:
             authorization_scopes=scopes,
         )
 
-    def _get_me_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable,
-                        lambda_layers: list[PythonLayerVersion]):
+    def _get_me_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable):
         handler = PythonFunction(
             self.stack,
             'GetMeStaffUserHandler',
@@ -112,7 +101,6 @@ class StaffUsers:
             index='handlers/me.py',
             handler='get_me',
             environment=env_vars,
-            layers=lambda_layers,
         )
         data_encryption_key.grant_decrypt(handler)
         users_table.grant_read_data(handler)
@@ -138,14 +126,12 @@ class StaffUsers:
         scopes: list[str],
         env_vars: dict,
         persistent_stack: ps.PersistentStack,
-            lambda_layers: list[PythonLayerVersion],
     ):
         patch_me_handler = self._patch_me_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
             users_table=persistent_stack.staff_users.user_table,
             user_pool=persistent_stack.staff_users,
-            lambda_layers=lambda_layers,
         )
 
         # Add the PATCH method to the me_resource
@@ -166,8 +152,7 @@ class StaffUsers:
             authorization_scopes=scopes,
         )
 
-    def _patch_me_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable, user_pool: IUserPool,
-                          lambda_layers: list[PythonLayerVersion]):
+    def _patch_me_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable, user_pool: IUserPool):
         handler = PythonFunction(
             self.stack,
             'PatchMeStaffUserHandler',
@@ -175,7 +160,6 @@ class StaffUsers:
             index='handlers/me.py',
             handler='patch_me',
             environment=env_vars,
-            layers=lambda_layers,
         )
         data_encryption_key.grant_encrypt_decrypt(handler)
         users_table.grant_read_write_data(handler)
@@ -202,13 +186,11 @@ class StaffUsers:
         scopes: list[str],
         env_vars: dict,
         persistent_stack: ps.PersistentStack,
-            lambda_layers: list[PythonLayerVersion],
     ):
         get_users_handler = self._get_users_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
             users_table=persistent_stack.staff_users.user_table,
-            lambda_layers=lambda_layers,
         )
         # Add the GET method to the users resource
         users_resource.add_method(
@@ -227,8 +209,7 @@ class StaffUsers:
             authorization_scopes=scopes,
         )
 
-    def _get_users_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable,
-                           lambda_layers: list[PythonLayerVersion]):
+    def _get_users_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable):
         handler = PythonFunction(
             self.stack,
             'GetStaffUsersHandler',
@@ -236,7 +217,6 @@ class StaffUsers:
             index='handlers/users.py',
             handler='get_users',
             environment=env_vars,
-            layers=lambda_layers,
         )
         data_encryption_key.grant_decrypt(handler)
         users_table.grant_read_data(handler)
@@ -262,13 +242,11 @@ class StaffUsers:
         scopes: list[str],
         env_vars: dict,
         persistent_stack: ps.PersistentStack,
-            lambda_layers: list[PythonLayerVersion],
     ):
         get_user_handler = self._get_user_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
             users_table=persistent_stack.staff_users.user_table,
-            lambda_layers=lambda_layers,
         )
 
         # Add the GET method to the user_id resource
@@ -288,8 +266,7 @@ class StaffUsers:
             authorization_scopes=scopes,
         )
 
-    def _get_user_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable,
-                          lambda_layers: list[PythonLayerVersion]):
+    def _get_user_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable):
         handler = PythonFunction(
             self.stack,
             'GetStaffUserHandler',
@@ -297,7 +274,6 @@ class StaffUsers:
             index='handlers/users.py',
             handler='get_one_user',
             environment=env_vars,
-            layers=lambda_layers,
         )
         data_encryption_key.grant_decrypt(handler)
         users_table.grant_read_data(handler)
@@ -323,13 +299,11 @@ class StaffUsers:
         scopes: list[str],
         env_vars: dict,
         persistent_stack: ps.PersistentStack,
-            lambda_layers: list[PythonLayerVersion],
     ):
         patch_user_handler = self._patch_user_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
             users_table=persistent_stack.staff_users.user_table,
-            lambda_layers=lambda_layers,
         )
 
         # Add the PATCH method to the me_resource
@@ -350,8 +324,7 @@ class StaffUsers:
             authorization_scopes=scopes,
         )
 
-    def _patch_user_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable,
-                            lambda_layers: list[PythonLayerVersion]):
+    def _patch_user_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable):
         handler = PythonFunction(
             self.stack,
             'PatchUserHandler',
@@ -359,7 +332,6 @@ class StaffUsers:
             index='handlers/users.py',
             handler='patch_user',
             environment=env_vars,
-            layers=lambda_layers,
         )
         data_encryption_key.grant_encrypt_decrypt(handler)
         users_table.grant_read_write_data(handler)
@@ -385,14 +357,12 @@ class StaffUsers:
         scopes: list[str],
         env_vars: dict,
         persistent_stack: ps.PersistentStack,
-            lambda_layers: list[PythonLayerVersion],
     ):
         post_user_handler = self._post_user_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
             users_table=persistent_stack.staff_users.user_table,
             user_pool=persistent_stack.staff_users,
-            lambda_layers=lambda_layers,
         )
 
         # Add the POST method to the me_resource
@@ -413,8 +383,7 @@ class StaffUsers:
             authorization_scopes=scopes,
         )
 
-    def _post_user_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable, user_pool: IUserPool,
-                           lambda_layers: list[PythonLayerVersion]):
+    def _post_user_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable, user_pool: IUserPool):
         handler = PythonFunction(
             self.stack,
             'PostStaffUserHandler',
@@ -422,7 +391,6 @@ class StaffUsers:
             index='handlers/users.py',
             handler='post_user',
             environment=env_vars,
-            layers=lambda_layers,
         )
         data_encryption_key.grant_encrypt_decrypt(handler)
         users_table.grant_read_write_data(handler)
