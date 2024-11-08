@@ -1,7 +1,7 @@
 import json
 from uuid import UUID
 
-from exceptions import CCInvalidRequestException
+from cc_common.exceptions import CCInvalidRequestException
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -206,7 +206,7 @@ class TestClient(TstFunction):
         user_data['permissions'] = {'actions': {'read', 'admin'}, 'jurisdictions': {}}
         self._table.put_item(Item=user_data)
 
-        from data_model.client import UserClient
+        from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 
