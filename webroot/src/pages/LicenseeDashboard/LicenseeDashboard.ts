@@ -112,6 +112,8 @@ export default class LicenseeDashboard extends Vue {
     // Methods
     //
     startPrivPurchaseFlow() {
+        // The feature is stubbed off at this point, please
+        // manually navigate to the select privilege screen
         console.log('Starting Privilege Purchase Flow!');
     }
 
