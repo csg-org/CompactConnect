@@ -37,64 +37,64 @@
         - Otherwise, a relative path under the domain root; don't include trailing slash
     - **`VUE_APP_ROBOTS_META`**
         - _Server_ :arrow_heading_up:
-            - Dev: `noindex,nofollow`
-            - Test: `noindex,nofollow`
+            - Dev(JCC-Test): `noindex,nofollow`
+            - Test(CSG-Test): `noindex,nofollow`
             - Prod: `nofollow`
         - _Local_ :arrow_heading_down:
             - `noindex,nofollow`
     - **`VUE_APP_DOMAIN`**
         - _Server_ :arrow_heading_up:
-            - Dev: `https://app.test.jcc.iaapi.io`
-            - Test: `https://app.test.compactconnect.org`
+            - Dev(JCC-Test): `https://app.test.jcc.iaapi.io`
+            - Test(CSG-Test): `https://app.test.compactconnect.org`
             - Prod: `https://app.compactconnect.org`
         - _Local_ :arrow_heading_down:
             - `http://localhost:3018`
     - **`VUE_APP_API_STATE_ROOT`**
         - _Server_ :arrow_heading_up:
-            - Dev: `https://api.test.jcc.iaapi.io`
-            - Test: `https://api.test.compactconnect.org`
+            - Dev(JCC-Test): `https://api.test.jcc.iaapi.io`
+            - Test(CSG-Test): `https://api.test.compactconnect.org`
             - Prod: `https://api.compactconnect.org`
         - _Local_ :arrow_heading_down:
             - `https://api.test.jcc.iaapi.io`
     - **`VUE_APP_API_LICENSE_ROOT`**
         - _Server_ :arrow_heading_up:
-            - Dev: `https://api.test.jcc.iaapi.io`
-            - Test: `https://api.test.compactconnect.org`
+            - Dev(JCC-Test): `https://api.test.jcc.iaapi.io`
+            - Test(CSG-Test): `https://api.test.compactconnect.org`
             - Prod: `https://api.compactconnect.org`
         - _Local_ :arrow_heading_down:
             - `https://api.test.jcc.iaapi.io`
     - **`VUE_APP_COGNITO_REGION`**
         - _Server_ :arrow_heading_up:
-            - Dev: `us-east-1`
-            - Test: `us-east-1`
+            - Dev(JCC-Test): `us-east-1`
+            - Test(CSG-Test): `us-east-1`
             - Prod: `us-east-1`
         - _Local_ :arrow_heading_down:
             - `us-east-1`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE`**
         - _Server_ :arrow_heading_up:
-            - Dev: `https://ia-cc-provider-test.auth.us-east-1.amazoncognito.com`
-            - Test: `https://compact-connect-provider-test.auth.us-east-1.amazoncognito.com`
+            - Dev(JCC-Test): `https://ia-cc-provider-test.auth.us-east-1.amazoncognito.com`
+            - Test(CSG-Test): `https://compact-connect-provider-test.auth.us-east-1.amazoncognito.com`
             - Prod: `https://compact-connect-provider.auth.us-east-1.amazoncognito.com`
         - _Local_ :arrow_heading_down:
             - `https://ia-cc-provider-test.auth.us-east-1.amazoncognito.com`
     - **`VUE_APP_COGNITO_CLIENT_ID_LICENSEE`**
         - _Server_ :arrow_heading_up:
-            - Dev: `topd4vhftng5cfm3ccgkb6ejd`
-            - Test: `6erj63mpa5tjqdtdi6vfi9q9hi`
+            - Dev(JCC-Test): `topd4vhftng5cfm3ccgkb6ejd`
+            - Test(CSG-Test): `6erj63mpa5tjqdtdi6vfi9q9hi`
             - Prod: `N/A`
         - _Local_ :arrow_heading_down:
             - `topd4vhftng5cfm3ccgkb6ejd`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF`**
         - _Server_ :arrow_heading_up:
-            - Dev: `https://ia-cc-staff-test.auth.us-east-1.amazoncognito.com`
-            - Test: `https://compact-connect-staff-test.auth.us-east-1.amazoncognito.com`
+            - Dev(JCC-Test): `https://ia-cc-staff-test.auth.us-east-1.amazoncognito.com`
+            - Test(CSG-Test): `https://compact-connect-staff-test.auth.us-east-1.amazoncognito.com`
             - Prod: `https://compact-connect-staff.auth.us-east-1.amazoncognito.com`
         - _Local_ :arrow_heading_down:
             - `https://ia-cc-staff-test.auth.us-east-1.amazoncognito.com`
     - **`VUE_APP_COGNITO_CLIENT_ID_STAFF`**
         - _Server_ :arrow_heading_up:
-            - Dev: `15mh24ea4af3of8jcnv8h2ic10`
-            - Test: `75uq274pv8ufhc1g1h4n86gp1l`
+            - Dev(JCC-Test): `15mh24ea4af3of8jcnv8h2ic10`
+            - Test(CSG-Test): `75uq274pv8ufhc1g1h4n86gp1l`
             - Prod: `1qlqoaivpmosrdjbsi0u0nfkg4`
         - _Local_ :arrow_heading_down:
             - `15mh24ea4af3of8jcnv8h2ic10`
