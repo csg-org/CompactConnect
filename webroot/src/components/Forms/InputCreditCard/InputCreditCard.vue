@@ -27,7 +27,6 @@
                 inputmode="numeric"
                 :id="formInput.id"
                 :name="formInput.name"
-                data-inputmask="'mask': '9999 9999 9999 9999'"
                 :placeholder="formInput.placeholder"
                 v-model="formInput.value"
                 :autocomplete="formInput.autocomplete"
@@ -47,7 +46,7 @@
             </div>
         </div>
         <span
-            v-if="formInput.errorMessage"
+            v-if="formInput.errorMessage && !formInput.shouldHideErrorMessage"
             class="form-field-error"
         >
             {{ formInput.errorMessage }}

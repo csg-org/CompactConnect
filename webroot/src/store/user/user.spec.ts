@@ -447,31 +447,6 @@ describe('User Store Actions', async () => {
             [MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE, error]
         );
     });
-    it('should successfully get privilege purchase information request', () => {
-        const state = {};
-
-        mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST](state);
-
-        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(true);
-        expect(state.error).to.equal(null);
-    });
-    it('should successfully get privilege purchase information failure', () => {
-        const state = {};
-        const error = new Error();
-
-        mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE](state, error);
-
-        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
-        expect(state.error).to.equal(error);
-    });
-    it('should successfully get privilege purchase information success', () => {
-        const state = {};
-
-        mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS](state);
-
-        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
-        expect(state.error).to.equal(null);
-    });
     it('should successfully start save selected privileges to store', () => {
         const commit = sinon.spy();
         const selected = ['ey'];
@@ -522,6 +497,31 @@ describe('User Store Actions', async () => {
         expect(commit.firstCall.args).to.matchPattern(
             [MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE, error]
         );
+    });
+    it('should successfully get privilege purchase information request', () => {
+        const state = {};
+
+        mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST](state);
+
+        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully get privilege purchase information failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE](state, error);
+
+        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully get privilege purchase information success', () => {
+        const state = {};
+
+        mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS](state);
+
+        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
+        expect(state.error).to.equal(null);
     });
     it('should successfully save attestations accepted', () => {
         const state = {};

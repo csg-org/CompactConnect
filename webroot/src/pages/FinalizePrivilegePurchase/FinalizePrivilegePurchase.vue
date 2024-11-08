@@ -52,14 +52,14 @@
                                         {{expirationDateText}} *
                                     </div>
                                     <div class="exp-chunk-input">
-                                        <InputNumber
+                                        <InputText
                                             :formInput="formData.expMonth"
                                             @input="handleExpMonthInput(formData.expMonth)"
                                         />
                                         <div class="slash">
                                             /
                                         </div>
-                                        <InputNumber
+                                        <InputText
                                             :formInput="formData.expYear"
                                             @input="handleExpYearInput(formData.expYear)"
                                             @emitInputRef="handleExpYearRefEmitted"
@@ -67,7 +67,7 @@
                                     </div>
                                 </div>
                                 <div class="cvv-container">
-                                    <InputNumber
+                                    <InputText
                                         :formInput="formData.cvv"
                                         @input="handleCVVInput(formData.cvv)"
                                         @emitInputRef="handleCVVRefEmitted"
@@ -93,7 +93,7 @@
                                 <InputSelect
                                     :formInput="formData.stateSelect"
                                 />
-                                <InputNumber
+                                <InputText
                                     :formInput="formData.zip"
                                     @input="handleZipInput(formData.cvv)"
                                 />
@@ -106,19 +106,19 @@
                         <div class="selection-title">{{selectionText}}</div>
                         <ul>
                             <li
-                                v-for="(state) in selectedStatePurchaseDataList"
+                                v-for="(state) in seletedStatePurchaseDsiplayDataList"
                                 :key="state.jurisdiction.abbrev"
                                 class="selected-state-block"
                             >
                                 <div class="info-row">
                                     <div class="info-row-label">
-                                        {{`${state?.jurisdiction?.name()} ${compactPrivilegeStateFeeText}`}}
+                                        {{state.stateFeeText}}
                                     </div>
                                     <div class="expire-date-value">${{state?.fee?.toFixed(2)}}</div>
                                 </div>
                                 <div v-if="state.isMilitaryDiscountActive" class="info-row">
                                     <div class="info-row-label">
-                                        {{`${state?.jurisdiction?.name()} ${militaryDiscountText}`}}
+                                        {{state.stateMilitaryPurchaseText}}
                                     </div>
                                     <div class="expire-date-value">-${{state?.militaryDiscountAmount?.toFixed(2)}}</div>
                                 </div>

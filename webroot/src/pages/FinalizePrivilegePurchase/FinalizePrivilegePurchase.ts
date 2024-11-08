@@ -11,7 +11,6 @@ import MixinForm from '@components/Forms/_mixins/form.mixin';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
-import InputNumber from '@components/Forms/InputNumber/InputNumber.vue';
 import InputCreditCard from '@components/Forms/InputCreditCard/InputCreditCard.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
@@ -29,7 +28,6 @@ import Joi from 'joi';
         InputSelect,
         InputCheckbox,
         InputSubmit,
-        InputNumber,
         InputButton,
         InputCreditCard,
         CollapseCaretButton
@@ -193,6 +191,19 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         });
     }
 
+    get seletedStatePurchaseDsiplayDataList(): Array<object> {
+        return this.selectedStatePurchaseDataList.map((state) => {
+            const stateFeeText = `${state?.jurisdiction?.name()} ${this.compactPrivilegeStateFeeText}`;
+            const stateMilitaryPurchaseText = `${state?.jurisdiction?.name()} ${this.militaryDiscountText}`;
+
+            return {
+                ...state,
+                stateFeeText,
+                stateMilitaryPurchaseText
+            };
+        });
+    }
+
     get currentCompact(): Compact | null {
         return this.userStore?.currentCompact || null;
     }
@@ -283,9 +294,10 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
             this.startFormLoading();
             this.isFormError = false;
             this.formErrorMessage = '';
-            const { formData, statesSelected } = this;
 
-            const serverData = LicenseeUserPurchaseSerializer.toServer({ formData, statesSelected });
+            const { formValues, statesSelected } = this;
+
+            const serverData = LicenseeUserPurchaseSerializer.toServer({ formValues, statesSelected });
 
             const purchaseServerEvent = await this.$store.dispatch('user/postPrivilegePurchases', serverData);
 
@@ -317,7 +329,6 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 autocomplete: 'given-name',
                 placeholder: this.firstNamePlaceHolderText,
                 validation: Joi.string().required().messages(this.joiMessages.string),
-                value: '',
             }),
             lastName: new FormInput({
                 id: 'last-name',
@@ -328,7 +339,6 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 autocomplete: 'family-name',
                 placeholder: this.lastNamePlaceHolderText,
                 validation: Joi.string().required().messages(this.joiMessages.string),
-                value: '',
             }),
             expMonth: new FormInput({
                 id: 'exp-month',
@@ -341,7 +351,6 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 shouldHideErrorMessage: true,
                 enforceMax: true,
                 validation: Joi.string().required().regex(new RegExp('(^[0-1][0-9]$)')).max(2),
-                value: '',
             }),
             expYear: new FormInput({
                 id: 'exp-year',
@@ -354,7 +363,6 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 shouldHideErrorMessage: true,
                 enforceMax: true,
                 validation: Joi.string().required().regex(new RegExp('(^[0-9]{2}$)')).max(2),
-                value: '',
             }),
             cvv: new FormInput({
                 id: 'cvv',
@@ -367,7 +375,6 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 shouldHideErrorMessage: true,
                 enforceMax: true,
                 validation: Joi.string().required().regex(new RegExp('(^[0-9]{3,4}$)')).max(4),
-                value: '',
             }),
             creditCard: new FormInput({
                 id: 'card',
@@ -378,7 +385,6 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 placeholder: '0000 0000 0000 0000',
                 autocomplete: 'cc-number',
                 validation: Joi.string().required().regex(new RegExp('(^[0-9]{4} [0-9]{4} [0-9]{4} [0-9]{4})')).messages(this.joiMessages.creditCard),
-                value: '',
             }),
             streetAddress1: new FormInput({
                 id: 'street-address-1',

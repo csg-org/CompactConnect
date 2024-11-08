@@ -13,7 +13,7 @@
         class="collapse-caret-button"
     >
         <img v-if="isUp" class="caret-img" src="@assets/icons/up-caret.svg" alt="Collapse Button Logo" />
-        <img v-else class="caret-img" src="@assets/icons/down-caret.svg" alt="Collapse Button Logo" />
+        <img v-else class="caret-img" src="@assets/icons/down-caret.svg" alt="Expand Button Logo" />
     </div>
 </template>
 

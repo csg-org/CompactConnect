@@ -229,55 +229,33 @@ describe('User model', () => {
         expect(user.accountStatusDisplay()).to.equal('Inactive');
     });
     it('should serialize a privilege purchase request for transmission', () => {
-        const formData = {
-            firstName: {
-                value: 'first',
-            },
-            lastName: {
-                value: 'last',
-            },
-            expMonth: {
-                value: '12',
-            },
-            expYear: {
-                value: '25',
-            },
-            cvv: {
-                value: '900',
-            },
-            creditCard: {
-                value: '9999 9999 9999 9999',
-            },
-            streetAddress1: {
-                value: '123 Street st',
-            },
-            streetAddress2: {
-                value: 'Unit 101',
-            },
-            noRefunds: {
-                value: true,
-            },
-            stateSelect: {
-                value: 'ct',
-            },
-            zip: {
-                value: '90210',
-            },
+        const formValues = {
+            firstName: 'first',
+            lastName: 'last',
+            expMonth: '12',
+            expYear: '25',
+            cvv: '900',
+            creditCard: '9999 9999 9999 9999',
+            streetAddress1: '123 Street st',
+            streetAddress2: 'Unit 101',
+            noRefunds: true,
+            stateSelect: 'ct',
+            zip: '90210'
         };
 
         const statesSelected = ['ne', 'ky'];
 
-        const requestData = LicenseeUserPurchaseSerializer.toServer({ statesSelected, formData });
+        const requestData = LicenseeUserPurchaseSerializer.toServer({ statesSelected, formValues });
 
         expect(requestData.selectedJurisdictions).to.matchPattern(['ne', 'ky']);
-        expect(requestData.orderInformation.card.number).to.equal(formData.creditCard.value.replace(/\s+/g, ''));
-        expect(requestData.orderInformation.card.expiration).to.equal(`20${formData.expYear.value}-${formData.expMonth.value}`);
-        expect(requestData.orderInformation.card.cvv).to.equal(formData.cvv.value);
-        expect(requestData.orderInformation.billing.firstName).to.equal(formData.firstName.value);
-        expect(requestData.orderInformation.billing.lastName).to.equal(formData.lastName.value);
-        expect(requestData.orderInformation.billing.streetAddress).to.equal(formData.streetAddress1.value);
-        expect(requestData.orderInformation.billing.streetAddress2).to.equal(formData.streetAddress2.value);
-        expect(requestData.orderInformation.billing.state).to.equal(formData.stateSelect.value.toUpperCase());
-        expect(requestData.orderInformation.billing.zip).to.equal(formData.zip.value);
+        expect(requestData.orderInformation.card.number).to.equal(formValues.creditCard.replace(/\s+/g, ''));
+        expect(requestData.orderInformation.card.expiration).to.equal(`20${formValues.expYear}-${formValues.expMonth}`);
+        expect(requestData.orderInformation.card.cvv).to.equal(formValues.cvv);
+        expect(requestData.orderInformation.billing.firstName).to.equal(formValues.firstName);
+        expect(requestData.orderInformation.billing.lastName).to.equal(formValues.lastName);
+        expect(requestData.orderInformation.billing.streetAddress).to.equal(formValues.streetAddress1);
+        expect(requestData.orderInformation.billing.streetAddress2).to.equal(formValues.streetAddress2);
+        expect(requestData.orderInformation.billing.state).to.equal(formValues.stateSelect.toUpperCase());
+        expect(requestData.orderInformation.billing.zip).to.equal(formValues.zip);
     });
 });

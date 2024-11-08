@@ -59,22 +59,22 @@ export class LicenseeUserSerializer {
 }
 
 export class LicenseeUserPurchaseSerializer {
-    static toServer({ formData, statesSelected }): any {
+    static toServer({ formValues, statesSelected }): any {
         const purchaseData: any = {
             selectedJurisdictions: statesSelected,
             orderInformation: {
                 card: {
-                    number: formData.creditCard.value.replace(/\s+/g, ''),
-                    expiration: `20${formData.expYear.value}-${formData.expMonth.value}`,
-                    cvv: formData.cvv.value
+                    number: formValues.creditCard.replace(/\s+/g, ''),
+                    expiration: `20${formValues.expYear}-${formValues.expMonth}`,
+                    cvv: formValues.cvv
                 },
                 billing: {
-                    firstName: formData.firstName.value,
-                    lastName: formData.lastName.value,
-                    streetAddress: formData.streetAddress1.value,
-                    streetAddress2: formData.streetAddress2.value,
-                    state: formData.stateSelect.value.toUpperCase(),
-                    zip: formData.zip.value
+                    firstName: formValues.firstName,
+                    lastName: formValues.lastName,
+                    streetAddress: formValues.streetAddress1,
+                    streetAddress2: formValues.streetAddress2,
+                    state: formValues.stateSelect.toUpperCase(),
+                    zip: formValues.zip
                 }
             }
         };
