@@ -70,6 +70,20 @@
             - Prod: `us-east-1`
         - _Local_ :arrow_heading_down:
             - `us-east-1`
+    - **`VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE`**
+        - _Server_ :arrow_heading_up:
+            - Dev: `https://ia-cc-provider-test.auth.us-east-1.amazoncognito.com`
+            - Test: `https://compact-connect-provider-test.auth.us-east-1.amazoncognito.com`
+            - Prod: `https://compact-connect-provider.auth.us-east-1.amazoncognito.com`
+        - _Local_ :arrow_heading_down:
+            - `https://ia-cc-provider-test.auth.us-east-1.amazoncognito.com`
+    - **`VUE_APP_COGNITO_CLIENT_ID_LICENSEE`**
+        - _Server_ :arrow_heading_up:
+            - Dev: `topd4vhftng5cfm3ccgkb6ejd`
+            - Test: `5iauq7le7npofot0l7vav5qh0t`
+            - Prod: `1qlqoaivpmosrdjbsi0u0nfkg4`
+        - _Local_ :arrow_heading_down:
+            - `topd4vhftng5cfm3ccgkb6ejd`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF`**
         - _Server_ :arrow_heading_up:
             - Dev: `https://ia-cc-staff-test.auth.us-east-1.amazoncognito.com`
@@ -79,11 +93,11 @@
             - `https://ia-cc-staff-test.auth.us-east-1.amazoncognito.com`
     - **`VUE_APP_COGNITO_CLIENT_ID_STAFF`**
         - _Server_ :arrow_heading_up:
-            - Dev: `4s5iil9aut9lo0du76p37o8m7h`
+            - Dev: `15mh24ea4af3of8jcnv8h2ic10`
             - Test: `5iauq7le7npofot0l7vav5qh0t`
             - Prod: `1qlqoaivpmosrdjbsi0u0nfkg4`
         - _Local_ :arrow_heading_down:
-            - `4s5iil9aut9lo0du76p37o8m7h`
+            - `15mh24ea4af3of8jcnv8h2ic10`
     - **`VUE_APP_MOCK_API`** :arrow_heading_down:
         - Only used for local development
         - `true` if mock API should be used
