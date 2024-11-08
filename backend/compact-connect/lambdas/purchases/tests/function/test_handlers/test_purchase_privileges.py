@@ -45,7 +45,7 @@ class TestPostPurchasePrivileges(TstFunction):
     """
 
     def _load_test_jurisdiction(self):
-        with open('tests/resources/dynamo/jurisdiction.json') as f:
+        with open('../common-python/tests/resources/dynamo/jurisdiction.json') as f:
             jurisdiction = json.load(f)
             # swap out the jurisdiction postal abbreviation for ky
             jurisdiction['postalAbbreviation'] = 'ky'
@@ -60,7 +60,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self._load_provider_data()
         self._load_test_jurisdiction()
         self._load_license_data(status=license_status)
-        with open('tests/resources/api-event.json') as f:
+        with open('../common-python/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['requestContext']['authorizer']['claims']['custom:providerId'] = TEST_PROVIDER_ID
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_compact

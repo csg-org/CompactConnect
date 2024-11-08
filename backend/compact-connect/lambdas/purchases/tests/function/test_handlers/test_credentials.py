@@ -27,7 +27,7 @@ def _generate_test_request_body():
 @mock_aws
 class TestPostPaymentProcessorCredentials(TstFunction):
     def _when_testing_compact_admin_user(self):
-        with open('tests/resources/api-event.json') as f:
+        with open('../common-python/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['pathParameters'] = {'compact': TEST_COMPACT}
             # user is a compact admin with admin scoped permissions
@@ -37,7 +37,7 @@ class TestPostPaymentProcessorCredentials(TstFunction):
         return event
 
     def _when_testing_jurisdiction_admin_user(self):
-        with open('tests/resources/api-event.json') as f:
+        with open('../common-python/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['pathParameters'] = {'compact': TEST_COMPACT}
             # user is an admin with jurisdiction scoped permissions

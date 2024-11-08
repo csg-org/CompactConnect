@@ -81,7 +81,7 @@ class TstFunction(TstLambdas):
 
     def _load_compact_configuration_data(self):
         """Use the canned test resources to load compact and jurisdiction information into the DB"""
-        test_resources = ['tests/resources/dynamo/compact.json', 'tests/resources/dynamo/jurisdiction.json']
+        test_resources = ['../common-python/tests/resources/dynamo/compact.json', '../common-python/tests/resources/dynamo/jurisdiction.json']
 
         for resource in test_resources:
             with open(resource) as f:
@@ -93,7 +93,7 @@ class TstFunction(TstLambdas):
 
     def _load_provider_data(self):
         """Use the canned test resources to load a basic provider to the DB"""
-        provider_test_resources = ['tests/resources/dynamo/provider.json']
+        provider_test_resources = ['../common-python/tests/resources/dynamo/provider.json']
 
         def provider_jurisdictions_to_set(obj: dict):
             if obj.get('type') == 'provider' and 'providerJurisdictions' in obj:
@@ -109,7 +109,7 @@ class TstFunction(TstLambdas):
 
     def _load_license_data(self, status: str = 'active'):
         """Use the canned test resources to load a basic provider to the DB"""
-        license_test_resources = ['tests/resources/dynamo/license.json']
+        license_test_resources = ['../common-python/tests/resources/dynamo/license.json']
 
         for resource in license_test_resources:
             with open(resource) as f:
