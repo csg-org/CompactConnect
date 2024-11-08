@@ -80,8 +80,8 @@
     - **`VUE_APP_COGNITO_CLIENT_ID_LICENSEE`**
         - _Server_ :arrow_heading_up:
             - Dev: `topd4vhftng5cfm3ccgkb6ejd`
-            - Test: `5iauq7le7npofot0l7vav5qh0t`
-            - Prod: `1qlqoaivpmosrdjbsi0u0nfkg4`
+            - Test: `6erj63mpa5tjqdtdi6vfi9q9hi`
+            - Prod: `N/A`
         - _Local_ :arrow_heading_down:
             - `topd4vhftng5cfm3ccgkb6ejd`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF`**
@@ -94,7 +94,7 @@
     - **`VUE_APP_COGNITO_CLIENT_ID_STAFF`**
         - _Server_ :arrow_heading_up:
             - Dev: `15mh24ea4af3of8jcnv8h2ic10`
-            - Test: `5iauq7le7npofot0l7vav5qh0t`
+            - Test: `75uq274pv8ufhc1g1h4n86gp1l`
             - Prod: `1qlqoaivpmosrdjbsi0u0nfkg4`
         - _Local_ :arrow_heading_down:
             - `15mh24ea4af3of8jcnv8h2ic10`
