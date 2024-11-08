@@ -4,6 +4,8 @@ pip-compile --no-emit-index-url --upgrade multi-account/requirements.in
 pip-compile --no-emit-index-url --upgrade multi-account/requirements-dev.in
 pip-compile --no-emit-index-url --upgrade compact-connect/requirements.in
 pip-compile --no-emit-index-url --upgrade compact-connect/requirements-dev.in
+pip-compile --no-emit-index-url --upgrade compact-connect/lambdas/common-python/requirements.in
+pip-compile --no-emit-index-url --upgrade compact-connect/lambdas/common-python/requirements-dev.in
 pip-compile --no-emit-index-url --upgrade compact-connect/lambdas/custom-resources/requirements.in
 pip-compile --no-emit-index-url --upgrade compact-connect/lambdas/custom-resources/requirements-dev.in
 pip-compile --no-emit-index-url --upgrade compact-connect/lambdas/license-data/requirements.in

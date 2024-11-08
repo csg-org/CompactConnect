@@ -7,6 +7,7 @@ REPORT="$1"
   pytest --cov=. --cov-config=.coveragerc tests
 ) || exit "$?"
 for dir in \
+  compact-connect/lambdas/common-python \
   compact-connect/lambdas/license-data \
   compact-connect/lambdas/provider-data-v1 \
   compact-connect/lambdas/staff-user-pre-token \
@@ -19,8 +20,8 @@ for dir in \
   (
     cd "$dir"
     echo "Running tests in $dir"
-    # update the PYTHONPATH to include the shared code
-    export PYTHONPATH=../common-python
+    # update the PYTHONPATH to include the shared code if not common-python
+    [ "$dir" = "compact-connect/lambdas/common-python" ] || export PYTHONPATH=../common-python
     # Run lambda tests, appending data to the same data file
     pytest --cov=. --cov-config=.coveragerc --cov-append tests
   ) || exit "$?"
