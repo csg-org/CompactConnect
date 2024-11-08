@@ -5,8 +5,8 @@ from aws_cdk import Duration, Stack
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_lambda import ILayerVersion, Runtime
-from aws_cdk.aws_lambda_python_alpha import BundlingOptions, PythonLayerVersion
 from aws_cdk.aws_lambda_python_alpha import PythonFunction as CdkPythonFunction
+from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.aws_sns import ITopic
 from aws_cdk.aws_ssm import StringParameter

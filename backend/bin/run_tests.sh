@@ -19,12 +19,10 @@ for dir in \
   (
     cd "$dir"
     echo "Running tests in $dir"
-    # create a symlink to the shared code, to simulate the lambda layer setup
-    ln -s ../common-python/cc_common cc_common
+    # update the PYTHONPATH to include the shared code
+    export PYTHONPATH=../common-python
     # Run lambda tests, appending data to the same data file
     pytest --cov=. --cov-config=.coveragerc --cov-append tests
-    # remove the symlink
-    rm cc_common
   ) || exit "$?"
 done
 

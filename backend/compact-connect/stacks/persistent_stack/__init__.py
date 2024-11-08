@@ -4,7 +4,7 @@ from aws_cdk import RemovalPolicy, aws_ssm
 from aws_cdk.aws_cognito import UserPoolEmail
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import Runtime
-from aws_cdk.aws_lambda_python_alpha import BundlingOptions, PythonLayerVersion
+from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
