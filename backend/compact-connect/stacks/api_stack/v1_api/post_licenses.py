@@ -15,7 +15,14 @@ from .api_model import ApiModel
 
 
 class PostLicenses:
-    def __init__(self, *, resource: Resource, method_options: MethodOptions, event_bus: EventBus, api_model: ApiModel):
+    def __init__(
+        self,
+        *,
+        resource: Resource,
+        method_options: MethodOptions,
+        event_bus: EventBus,
+        api_model: ApiModel,
+    ):
         super().__init__()
 
         self.resource = resource

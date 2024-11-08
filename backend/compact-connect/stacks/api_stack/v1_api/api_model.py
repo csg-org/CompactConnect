@@ -283,25 +283,25 @@ class ApiModel:
                 additional_properties=False,
                 required=['processor', 'apiLoginId', 'transactionKey'],
                 properties={
-                            'processor': JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                description='The type of payment processor',
-                                # for now, we only allow 'authorize.net'
-                                enum=['authorize.net'],
-                            ),
-                            'apiLoginId': JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                description='The api login id for the payment processor',
-                                min_length=1,
-                                max_length=100,
-                            ),
-                            'transactionKey': JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                description='The transaction key for the payment processor',
-                                min_length=1,
-                                max_length=100,
-                            ),
-                        },
+                    'processor': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The type of payment processor',
+                        # for now, we only allow 'authorize.net'
+                        enum=['authorize.net'],
+                    ),
+                    'apiLoginId': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The api login id for the payment processor',
+                        min_length=1,
+                        max_length=100,
+                    ),
+                    'transactionKey': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The transaction key for the payment processor',
+                        min_length=1,
+                        max_length=100,
+                    ),
+                },
             ),
         )
         return self.api._v1_post_credentials_payment_processor_request_model

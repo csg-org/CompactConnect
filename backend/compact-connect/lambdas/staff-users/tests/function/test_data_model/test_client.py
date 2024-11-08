@@ -1,7 +1,7 @@
 import json
 from uuid import UUID
 
-from exceptions import CCInvalidRequestException
+from cc_common.exceptions import CCInvalidRequestException
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -12,7 +12,7 @@ class TestClient(TstFunction):
     def test_get_user(self):
         user_id = self._load_user_data()
 
-        from data_model.client import UserClient
+        from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 
@@ -24,8 +24,8 @@ class TestClient(TstFunction):
 
     def test_get_user_not_found(self):
         """User ID not found should raise an exception"""
-        from data_model.client import UserClient
-        from exceptions import CCNotFoundException
+        from cc_common.data_model.user_client import UserClient
+        from cc_common.exceptions import CCNotFoundException
 
         client = UserClient(self.config)
 
@@ -45,7 +45,7 @@ class TestClient(TstFunction):
         # One user with board-staff-like permissions in octp in each jurisdiction
         self._create_board_staff_users(compacts=['octp'])
 
-        from data_model.client import UserClient
+        from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 
@@ -72,7 +72,7 @@ class TestClient(TstFunction):
         # One user with board-staff-like permissions in aslp and octp in each jurisdiction
         self._create_board_staff_users(compacts=['aslp', 'octp'])
 
-        from data_model.client import UserClient
+        from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 
@@ -104,7 +104,7 @@ class TestClient(TstFunction):
         # One user with board-staff-like permissions in aslp and octp in each jurisdiction
         self._create_board_staff_users(compacts=['aslp', 'octp'])
 
-        from data_model.client import UserClient
+        from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 
@@ -129,7 +129,7 @@ class TestClient(TstFunction):
     def test_update_user_permissions_jurisdiction_actions(self):
         user_id = UUID(self._load_user_data())
 
-        from data_model.client import UserClient
+        from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 
@@ -152,7 +152,7 @@ class TestClient(TstFunction):
         # The sample user looks like board staff in aslp/oh
         user_id = UUID(self._load_user_data())
 
-        from data_model.client import UserClient
+        from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 
@@ -179,7 +179,7 @@ class TestClient(TstFunction):
         user_data['permissions'] = {'actions': {'read', 'admin'}, 'jurisdictions': {}}
         self._table.put_item(Item=user_data)
 
-        from data_model.client import UserClient
+        from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 
@@ -206,7 +206,7 @@ class TestClient(TstFunction):
         user_data['permissions'] = {'actions': {'read', 'admin'}, 'jurisdictions': {}}
         self._table.put_item(Item=user_data)
 
-        from data_model.client import UserClient
+        from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 
@@ -222,7 +222,7 @@ class TestClient(TstFunction):
         # The sample user looks like board staff in aslp/oh
         user_id = UUID(self._load_user_data())
 
-        from data_model.client import UserClient
+        from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 
@@ -236,7 +236,7 @@ class TestClient(TstFunction):
         self.assertFalse({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - user.keys())
 
     def test_create_new_user(self):
-        from data_model.client import UserClient
+        from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 
@@ -256,7 +256,7 @@ class TestClient(TstFunction):
         we're looking at here is that we have two sets of permissions (DB records, internally) but that they share the
         same userId.
         """
-        from data_model.client import UserClient
+        from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 
@@ -285,7 +285,7 @@ class TestClient(TstFunction):
         self.assertEqual({'actions': {'read'}, 'jurisdictions': {'ne': {'write', 'admin'}}}, second_user['permissions'])
 
     def test_create_existing_user_same_compact(self):
-        from data_model.client import UserClient
+        from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
 

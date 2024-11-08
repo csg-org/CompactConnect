@@ -4,10 +4,10 @@ from abc import ABC, abstractmethod
 from authorizenet import apicontractsv1
 from authorizenet.apicontrollers import createTransactionController, getMerchantDetailsController
 from authorizenet.constants import constants
-from config import config, logger
-from data_model.schema.compact import Compact, CompactFeeType
-from data_model.schema.jurisdiction import Jurisdiction, JurisdictionMilitaryDiscountType
-from exceptions import CCFailedTransactionException, CCInternalException, CCInvalidRequestException
+from cc_common.config import config, logger
+from cc_common.data_model.schema.compact import Compact, CompactFeeType
+from cc_common.data_model.schema.jurisdiction import Jurisdiction, JurisdictionMilitaryDiscountType
+from cc_common.exceptions import CCFailedTransactionException, CCInternalException, CCInvalidRequestException
 
 AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
 
@@ -490,20 +490,21 @@ class PurchaseClient:
         # first check to see if secret already exists
         try:
             self.secrets_manager_client.describe_secret(
-                SecretId=self._get_payment_processor_secret_name_for_compact(compact_name))
+                SecretId=self._get_payment_processor_secret_name_for_compact(compact_name)
+            )
 
             # secret exists, update its value to whatever the admin sent us
             logger.info('Existing secret found, updating secret for compact', compact_name=compact_name)
             self.secrets_manager_client.put_secret_value(
                 SecretId=self._get_payment_processor_secret_name_for_compact(compact_name),
-                SecretString=json.dumps(secret_value)
+                SecretString=json.dumps(secret_value),
             )
         except self.secrets_manager_client.exceptions.ResourceNotFoundException:
             # secret does not exist, so we can create it
             logger.info('Existing secret not found, creating new secret for compact', compact_name=compact_name)
             self.secrets_manager_client.create_secret(
                 Name=self._get_payment_processor_secret_name_for_compact(compact_name),
-                SecretString=json.dumps(secret_value)
+                SecretString=json.dumps(secret_value),
             )
 
         return response

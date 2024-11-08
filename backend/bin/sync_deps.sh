@@ -16,4 +16,6 @@ pip-sync \
   compact-connect/lambdas/custom-resources/requirements.txt \
   compact-connect/lambdas/custom-resources/requirements-dev.txt \
   compact-connect/lambdas/purchases/requirements.txt \
-  compact-connect/lambdas/purchases/requirements-dev.txt
+  compact-connect/lambdas/purchases/requirements-dev.txt \
+  compact-connect/lambdas/common-python/requirements.txt \
+  compact-connect/lambdas/common-python/requirements-dev.txt

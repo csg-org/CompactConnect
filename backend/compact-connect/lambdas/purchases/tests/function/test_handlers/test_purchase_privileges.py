@@ -2,8 +2,8 @@ import json
 from datetime import UTC, date, datetime
 from unittest.mock import MagicMock, patch
 
-from config import config
-from exceptions import CCAwsServiceException, CCFailedTransactionException, CCInternalException
+from cc_common.config import config
+from cc_common.exceptions import CCAwsServiceException, CCFailedTransactionException, CCInternalException
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -43,6 +43,7 @@ class TestPostPurchasePrivileges(TstFunction):
     In this test setup, we simulate having a licensee that has a license in ohio and is
     purchasing a privilege in kentucky.
     """
+
     def _load_test_jurisdiction(self):
         with open('tests/resources/dynamo/jurisdiction.json') as f:
             jurisdiction = json.load(f)

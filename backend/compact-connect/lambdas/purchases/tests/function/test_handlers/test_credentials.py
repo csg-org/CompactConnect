@@ -1,7 +1,7 @@
 import json
 from unittest.mock import MagicMock, patch
 
-from exceptions import CCInvalidRequestException
+from cc_common.exceptions import CCInvalidRequestException
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -35,7 +35,6 @@ class TestPostPaymentProcessorCredentials(TstFunction):
             event['body'] = _generate_test_request_body()
 
         return event
-
 
     def _when_testing_jurisdiction_admin_user(self):
         with open('tests/resources/api-event.json') as f:
@@ -124,7 +123,9 @@ class TestPostPaymentProcessorCredentials(TstFunction):
         self.assertEqual(403, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'message': 'Access denied'}, response_body,
+        self.assertEqual(
+            {'message': 'Access denied'},
+            response_body,
         )
 
         mock_purchase_client.validate_and_store_credentials.assert_not_called()
