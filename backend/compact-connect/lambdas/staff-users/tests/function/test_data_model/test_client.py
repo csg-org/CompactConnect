@@ -1,6 +1,7 @@
 import json
 from uuid import UUID
 
+from exceptions import CCInvalidRequestException
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -193,6 +194,29 @@ class TestClient(TstFunction):
         self.assertEqual({'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}}, resp['permissions'])
         # Checking that we're getting the whole object, not just changes
         self.assertFalse({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - resp.keys())
+
+    def test_update_user_permissions_no_change(self):
+        from boto3.dynamodb.types import TypeDeserializer
+
+        with open('tests/resources/dynamo/user.json') as f:
+            user_data = TypeDeserializer().deserialize({'M': json.load(f)})
+
+        user_id = UUID(user_data['userId'])
+        # Convert our canned user into a compact admin
+        user_data['permissions'] = {'actions': {'read', 'admin'}, 'jurisdictions': {}}
+        self._table.put_item(Item=user_data)
+
+        from data_model.client import UserClient
+
+        client = UserClient(self.config)
+
+        with self.assertRaises(CCInvalidRequestException):
+            client.update_user_permissions(
+                compact='aslp',
+                user_id=str(user_id),
+                compact_action_removals=set(),
+                jurisdiction_action_additions={},
+            )
 
     def test_update_user_attributes(self):
         # The sample user looks like board staff in aslp/oh
