@@ -117,6 +117,7 @@ def api_handler(fn: Callable):
 
     return caught_handler
 
+
 class authorize_compact:  # noqa: N801 invalid-name
     """Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/read)"""
 
