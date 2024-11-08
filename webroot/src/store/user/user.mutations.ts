@@ -135,6 +135,8 @@ export default {
     },
     [MutationTypes.POST_PRIVILEGE_PURCHASE_SUCCESS]: (state: any) => {
         state.isLoadingPrivilegePurchaseOptions = false;
+        state.selectedPrivilegesToPurchase = null;
+        state.arePurchaseAttestationsAccepted = false;
         state.error = null;
     },
     [MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE]: (state: any, error: Error) => {

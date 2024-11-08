@@ -547,11 +547,16 @@ describe('User Store Actions', async () => {
         expect(state.error).to.equal(null);
     });
     it('should successfully post privilege purchase success', () => {
-        const state = {};
+        const state = {
+            arePurchaseAttestationsAccepted: true,
+            selectedPrivilegesToPurchase: ['ky'],
+        };
 
         mutations[MutationTypes.POST_PRIVILEGE_PURCHASE_SUCCESS](state);
 
         expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
+        expect(state.arePurchaseAttestationsAccepted).to.equal(false);
+        expect(state.selectedPrivilegesToPurchase).to.equal(null);
         expect(state.error).to.equal(null);
     });
     it('should successfully post privilege purchase failure', () => {
