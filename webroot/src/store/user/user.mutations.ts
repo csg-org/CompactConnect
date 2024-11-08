@@ -26,48 +26,51 @@ export enum MutationTypes {
     UPDATE_ACCOUNT_FAILURE = '[User] Update Account Failure',
     UPDATE_ACCOUNT_SUCCESS = '[User] Update Account Success',
     SET_REFRESH_TIMEOUT_ID = '[User] Set Refresh Timeout ID',
+    GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST = '[User] Get Privilege Purchase Information Request',
+    GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS = '[User] Get Privilege Purchase Information Success',
+    GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE = '[User] Get Privilege Purchase Information Failure',
 }
 
 export default {
     [MutationTypes.LOGIN_REQUEST]: (state: any) => {
-        state.isLoading = true;
+        state.isLoadingAccount = true;
         state.error = null;
     },
     [MutationTypes.LOGIN_FAILURE]: (state: any, error: Error) => {
-        state.isLoading = false;
+        state.isLoadingAccount = false;
         state.error = error;
     },
     [MutationTypes.LOGIN_SUCCESS]: (state: any) => {
         state.isLoggedIn = true;
-        state.isLoading = false;
+        state.isLoadingAccount = false;
         state.error = null;
     },
     [MutationTypes.LOGIN_RESET]: (state: any) => {
         state.error = null;
     },
     [MutationTypes.LOGOUT_REQUEST]: (state: any) => {
-        state.isLoading = true;
+        state.isLoadingAccount = true;
     },
     [MutationTypes.LOGOUT_FAILURE]: (state: any, error: Error) => {
-        state.isLoading = false;
+        state.isLoadingAccount = false;
         state.error = error;
     },
     [MutationTypes.LOGOUT_SUCCESS]: (state: any) => {
         state.model = null;
         state.isLoggedIn = false;
-        state.isLoading = false;
+        state.isLoadingAccount = false;
         state.error = null;
     },
     [MutationTypes.GET_ACCOUNT_REQUEST]: (state: any) => {
-        state.isLoading = true;
+        state.isLoadingAccount = true;
         state.error = null;
     },
     [MutationTypes.GET_ACCOUNT_FAILURE]: (state: any, error: Error) => {
-        state.isLoading = false;
+        state.isLoadingAccount = false;
         state.error = error;
     },
     [MutationTypes.GET_ACCOUNT_SUCCESS]: (state: any) => {
-        state.isLoading = false;
+        state.isLoadingAccount = false;
         state.error = null;
     },
     [MutationTypes.STORE_UPDATE_CURRENT_COMPACT]: (state: any, compact: Compact | null) => {
@@ -79,25 +82,37 @@ export default {
     [MutationTypes.STORE_RESET_USER]: (state: any) => {
         state.model = null;
         state.isLoggedIn = false;
-        state.isLoading = false;
+        state.isLoadingAccount = false;
         state.refreshTokenTimeoutId = null;
         state.userType = null;
         state.currentCompact = null;
         state.error = null;
     },
     [MutationTypes.UPDATE_ACCOUNT_REQUEST]: (state: any) => {
-        state.isLoading = true;
+        state.isLoadingAccount = true;
         state.error = null;
     },
     [MutationTypes.UPDATE_ACCOUNT_FAILURE]: (state: any, error: Error) => {
-        state.isLoading = false;
+        state.isLoadingAccount = false;
         state.error = error;
     },
     [MutationTypes.UPDATE_ACCOUNT_SUCCESS]: (state: any) => {
-        state.isLoading = false;
+        state.isLoadingAccount = false;
         state.error = null;
     },
     [MutationTypes.SET_REFRESH_TIMEOUT_ID]: (state: any, timeoutId: number|null) => {
         state.refreshTokenTimeoutId = timeoutId;
+    },
+    [MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST]: (state: any) => {
+        state.isLoadingPrivilegePurchaseOptions = true;
+        state.error = null;
+    },
+    [MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS]: (state: any) => {
+        state.isLoadingPrivilegePurchaseOptions = false;
+        state.error = null;
+    },
+    [MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE]: (state: any, error: Error) => {
+        state.isLoadingPrivilegePurchaseOptions = false;
+        state.error = error;
     },
 };

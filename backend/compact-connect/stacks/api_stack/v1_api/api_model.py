@@ -151,6 +151,208 @@ class ApiModel:
         return self.api.bulk_upload_response_model
 
     @property
+    def post_purchase_privileges_request_model(self) -> Model:
+        """Return the purchase privilege request model, which should only be created once per API
+        create a schema that defines the following object example:
+            {
+                "selectedJurisdictions": ["<jurisdiction postal abbreviations>"],
+                "orderInformation": {
+                "card": {
+                    "number": "<card number>",
+                    "expiration": "<expiration date>",
+                    "cvv": "<cvv>"
+                },
+                "billing":  {
+                    "firstName": "testFirstName",
+                    "lastName": "testLastName",
+                    "streetAddress": "123 Test St",
+                    "streetAddress2": "", # optional
+                    "state": "OH",
+                    "zip": "12345",
+                }
+              }
+            }
+        """
+        if hasattr(self.api, '_v1_post_purchase_privileges_request_model'):
+            return self.api._v1_post_purchase_privileges_request_model
+        self.api._v1_post_purchase_privileges_request_model = self.api.add_model(
+            'V1PostPurchasePrivilegesRequestModel',
+            description='Post purchase privileges request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=['selectedJurisdictions', 'orderInformation'],
+                properties={
+                    'selectedJurisdictions': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        # setting a max length to prevent abuse
+                        max_length=100,
+                        items=JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            description='Jurisdictions a provider has selected to purchase privileges in.',
+                            enum=self.api.node.get_context('jurisdictions'),
+                        ),
+                    ),
+                    'orderInformation': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        required=['card', 'billing'],
+                        properties={
+                            'card': JsonSchema(
+                                type=JsonSchemaType.OBJECT,
+                                required=['number', 'expiration', 'cvv'],
+                                properties={
+                                    'number': JsonSchema(
+                                        type=JsonSchemaType.STRING,
+                                        description='The card number',
+                                        max_length=19,
+                                        min_length=15,
+                                    ),
+                                    'expiration': JsonSchema(
+                                        type=JsonSchemaType.STRING,
+                                        description='The card expiration date',
+                                        max_length=7,
+                                        min_length=7,
+                                    ),
+                                    'cvv': JsonSchema(
+                                        type=JsonSchemaType.STRING,
+                                        description='The card cvv',
+                                        max_length=4,
+                                        min_length=3,
+                                    ),
+                                },
+                            ),
+                            'billing': JsonSchema(
+                                type=JsonSchemaType.OBJECT,
+                                required=['firstName', 'lastName', 'streetAddress', 'state', 'zip'],
+                                properties={
+                                    'firstName': JsonSchema(
+                                        type=JsonSchemaType.STRING,
+                                        description='The first name on the card',
+                                        max_length=100,
+                                        min_length=1,
+                                    ),
+                                    'lastName': JsonSchema(
+                                        type=JsonSchemaType.STRING,
+                                        description='The last name on the card',
+                                        max_length=100,
+                                        min_length=1,
+                                    ),
+                                    'streetAddress': JsonSchema(
+                                        type=JsonSchemaType.STRING,
+                                        description='The street address for the card',
+                                        max_length=150,
+                                        # just make sure the value is not empty
+                                        min_length=2,
+                                    ),
+                                    'streetAddress2': JsonSchema(
+                                        type=JsonSchemaType.STRING,
+                                        description='The second street address for the card',
+                                        max_length=150,
+                                    ),
+                                    'state': JsonSchema(
+                                        type=JsonSchemaType.STRING,
+                                        description='The state postal abbreviation for the card',
+                                        max_length=2,
+                                        min_length=2,
+                                    ),
+                                    'zip': JsonSchema(
+                                        type=JsonSchemaType.STRING,
+                                        description='The zip code for the card',
+                                        # account for extended zip codes with possible dash
+                                        max_length=10,
+                                        min_length=5,
+                                    ),
+                                },
+                            ),
+                        },
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_post_purchase_privileges_request_model
+
+    @property
+    def post_credentials_payment_processor_request_model(self) -> Model:
+        """Return the post payment processor credentials request model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_post_credentials_payment_processor_request_model'):
+            return self.api._v1_post_credentials_payment_processor_request_model
+        self.api._v1_post_credentials_payment_processor_request_model = self.api.add_model(
+            'V1PostCredentialsPaymentProcessorRequestModel',
+            description='Post payment processor credentials request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=['processor', 'apiLoginId', 'transactionKey'],
+                properties={
+                    'processor': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The type of payment processor',
+                        # for now, we only allow 'authorize.net'
+                        enum=['authorize.net'],
+                    ),
+                    'apiLoginId': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The api login id for the payment processor',
+                        min_length=1,
+                        max_length=100,
+                    ),
+                    'transactionKey': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The transaction key for the payment processor',
+                        min_length=1,
+                        max_length=100,
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_post_credentials_payment_processor_request_model
+
+    @property
+    def post_purchase_privileges_response_model(self) -> Model:
+        """Return the purchase privilege response model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_post_purchase_privileges_response_model'):
+            return self.api._v1_post_purchase_privileges_response_model
+        self.api._v1_post_purchase_privileges_response_model = self.api.add_model(
+            'V1PostPurchasePrivilegesResponseModel',
+            description='Post purchase privileges response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=['transactionId'],
+                properties={
+                    'transactionId': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The transaction id for the purchase',
+                    ),
+                    'message': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='A message about the transaction',
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_post_purchase_privileges_response_model
+
+    @property
+    def post_credentials_payment_processor_response_model(self) -> Model:
+        """Return the purchase privilege response model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_post_credentials_payment_processor_response_model'):
+            return self.api._v1_post_credentials_payment_processor_response_model
+        self.api._v1_post_credentials_payment_processor_response_model = self.api.add_model(
+            'V1PostCredentialsPaymentProcessorResponseModel',
+            description='Post payment processor credentials response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=['message'],
+                properties={
+                    'message': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='A message about the request',
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_post_credentials_payment_processor_response_model
+
+    @property
     def purchase_privilege_options_response_model(self) -> Model:
         """Return the purchase privilege options model, which should only be created once per API"""
         if hasattr(self.api, '_v1_get_purchase_privilege_options_response_model'):

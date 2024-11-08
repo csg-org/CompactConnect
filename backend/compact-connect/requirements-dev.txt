@@ -8,7 +8,7 @@ boolean-py==4.0
     # via license-expression
 build==1.2.2.post1
     # via pip-tools
-cachecontrol[filecache]==0.14.0
+cachecontrol[filecache]==0.14.1
     # via
     #   cachecontrol
     #   pip-audit
@@ -18,7 +18,7 @@ charset-normalizer==3.4.0
     # via requests
 click==8.1.7
     # via pip-tools
-coverage[toml]==7.6.3
+coverage[toml]==7.6.4
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
@@ -36,7 +36,7 @@ idna==3.10
     # via requests
 iniconfig==2.0.0
     # via pytest
-license-expression==30.3.1
+license-expression==30.4.0
     # via cyclonedx-python-lib
 markdown-it-py==3.0.0
     # via rich
@@ -44,9 +44,9 @@ mdurl==0.1.2
     # via markdown-it-py
 msgpack==1.1.0
     # via cachecontrol
-packageurl-python==0.15.6
+packageurl-python==0.16.0
     # via cyclonedx-python-lib
-packaging==24.1
+packaging==24.2
     # via
     #   build
     #   pip-audit
@@ -76,7 +76,7 @@ pytest==8.3.3
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
-pytest-cov==5.0.0
+pytest-cov==6.0.0
     # via -r compact-connect/requirements-dev.in
 python-dateutil==2.9.0.post0
     # via faker
@@ -84,9 +84,9 @@ requests==2.32.3
     # via
     #   cachecontrol
     #   pip-audit
-rich==13.9.2
+rich==13.9.4
     # via pip-audit
-ruff==0.6.9
+ruff==0.7.3
     # via -r compact-connect/requirements-dev.in
 six==1.16.0
     # via

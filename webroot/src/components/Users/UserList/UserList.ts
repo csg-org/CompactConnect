@@ -80,7 +80,7 @@ class UserList extends mixins(MixinForm) {
             // { value: 'permissions', name: this.$t('account.permissions') },
             // { value: 'affiliation', name: this.$t('account.affiliation') },
             // { value: 'states', name: this.$t('account.states') },
-            { value: 'accountStatus', name: this.$t('account.accountStatus') },
+            // { value: 'accountStatus', name: this.$t('account.accountStatus') },
         ];
 
         return options;

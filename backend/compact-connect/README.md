@@ -81,14 +81,13 @@ in the cloud, you can do so by configuring context for your own sandbox AWS acco
 [Back to top](#compact-connect---backend-developer-documentation)
 
 Being a cloud project whose infrastructure is written in Python, establishing tests, using the python `unittest`
-library early will be critical to maintaining reliability and velocity. Be sure that any updates you add are covered
+library is critical to maintaining reliability and velocity. Be sure that any updates you add are covered
 by tests, so we don't introduce bugs or cost time identifying testable bugs after deployment. Note that all
 unit/functional tests bundled with this app should be designed to execute with zero requirements for environmental
 setup (including environment variables) beyond simply installing the dependencies in `requirements*.txt` files. CDK
 tests are defined under the [tests](./tests) directory. Runtime code tests should be similarly bundled within the
-lambda folders. Any python lambda functions defined in cdk code that uses the
-`common_constructs.python_function.PythonFunction` construct will automatically run bundled tests on synthesis to
-facilitate automated testing of the entire app.
+lambda folders. Code that is common across all lambdas should be tested in the `common-python` directory, to reduce
+duplication and ensure consistency across the app.
 
 To execute the tests, simply run `bin/run_tests.sh` from the `backend` directory.
 

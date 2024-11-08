@@ -1,3 +1,4 @@
+import json
 import os
 from unittest import TestCase
 from unittest.mock import MagicMock
@@ -16,12 +17,19 @@ class TstLambdas(TestCase):
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',
+                'ENVIRONMENT_NAME': 'test',
+                'PROVIDER_TABLE_NAME': 'provider-table',
+                'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
+                'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
+                'LICENSE_TYPES': json.dumps(
+                    {'aslp': ['audiologist', 'speech-language pathologist', 'speech and language pathologist']},
+                ),
             },
         )
         # Monkey-patch config object to be sure we have it based
         # on the env vars we set above
-        import config
+        import cc_common.config
 
-        cls.config = config._Config()  # noqa: SLF001 protected-access
-        config.config = cls.config
+        cls.config = cc_common.config._Config()  # noqa: SLF001 protected-access
+        cc_common.config.config = cls.config
         cls.mock_context = MagicMock(name='MockLambdaContext', spec=LambdaContext)

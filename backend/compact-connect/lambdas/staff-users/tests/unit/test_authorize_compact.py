@@ -7,7 +7,7 @@ from tests import TstLambdas
 
 class TestAuthorizeCompact(TstLambdas):
     def test_authorize_compact(self):
-        from utils import authorize_compact
+        from cc_common.utils import authorize_compact
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -24,8 +24,8 @@ class TestAuthorizeCompact(TstLambdas):
         self.assertEqual({'body': 'Hurray!'}, example_entrypoint(event, self.mock_context))
 
     def test_no_path_param(self):
-        from exceptions import CCInvalidRequestException
-        from utils import authorize_compact
+        from cc_common.exceptions import CCInvalidRequestException
+        from cc_common.utils import authorize_compact
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -40,8 +40,8 @@ class TestAuthorizeCompact(TstLambdas):
             example_entrypoint(event, self.mock_context)
 
     def test_no_authorizer(self):
-        from exceptions import CCUnauthorizedException
-        from utils import authorize_compact
+        from cc_common.exceptions import CCUnauthorizedException
+        from cc_common.utils import authorize_compact
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -56,8 +56,8 @@ class TestAuthorizeCompact(TstLambdas):
             example_entrypoint(event, self.mock_context)
 
     def test_missing_scope(self):
-        from exceptions import CCAccessDeniedException
-        from utils import authorize_compact
+        from cc_common.exceptions import CCAccessDeniedException
+        from cc_common.utils import authorize_compact
 
         @authorize_compact(action='read')
         def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument

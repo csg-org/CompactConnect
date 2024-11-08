@@ -4,7 +4,7 @@ import json
 from functools import cached_property
 
 import jsii
-from aws_cdk import Aspects, CfnOutput, Duration, IAspect
+from aws_cdk import ArnFormat, Aspects, CfnOutput, Duration, IAspect
 from aws_cdk.aws_apigateway import (
     AccessLogFormat,
     CognitoUserPoolsAuthorizer,
@@ -28,7 +28,7 @@ from aws_cdk.aws_route53 import ARecord, IHostedZone, RecordTarget
 from aws_cdk.aws_route53_targets import ApiGateway
 from cdk_nag import NagSuppressions
 from common_constructs.security_profile import SecurityProfile
-from common_constructs.stack import AppStack
+from common_constructs.stack import AppStack, Stack
 from common_constructs.webacl import WebACL, WebACLScope
 from constructs import Construct
 
@@ -77,6 +77,8 @@ class CCApi(RestApi):
         **kwargs,
     ):
         stack: AppStack = AppStack.of(scope)
+        # add the ENVIRONMENT_NAME to the common lambda environment variables
+        stack.common_env_vars['ENVIRONMENT_NAME'] = environment_name
         # For developer convenience, we will allow for the case where there is no domain name configured
         domain_kwargs = {}
         if stack.hosted_zone is not None:
@@ -331,6 +333,32 @@ class CCApi(RestApi):
                 **self.v0_common_license_properties,
             },
         )
+
+    def get_secrets_manager_compact_payment_processor_arns(self):
+        """
+        For each supported compact in the system, return the secret arn for the payment processor credentials.
+        The secret arn follows this pattern:
+        compact-connect/env/{environment_name}/compact/{compact_name}/credentials/payment-processor
+
+
+        This is used to scope the permissions granted to the lambda to only the secrets it needs to access.
+        """
+        stack = Stack.of(self)
+        environment_name = stack.common_env_vars['ENVIRONMENT_NAME']
+        compacts = json.loads(stack.common_env_vars['COMPACTS'])
+        return [
+            stack.format_arn(
+                service='secretsmanager',
+                arn_format=ArnFormat.COLON_RESOURCE_NAME,
+                resource='secret',
+                resource_name=(
+                    # add wildcard characters to account for 6-character
+                    # random version suffix appended to secret name by secrets manager
+                    f'compact-connect/env/{environment_name}/compact/{compact}/credentials/payment-processor-??????'
+                ),
+            )
+            for compact in compacts
+        ]
 
     def _configure_alarms(self):
         # Any time the API returns a 5XX

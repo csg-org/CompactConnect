@@ -15,9 +15,13 @@
         "selectFiles": "Selecciona archivos",
         "replaceFile": "Reemplazar el archivo",
         "replaceFiles": "Reemplazar archivos",
+        "next": "Siguiente",
         "change": "Cambiar",
+        "add": "Agregar",
+        "remove": "Eliminar",
         "reset": "Restablecer",
         "save": "Guardar",
+        "saveChanges": "Guardar cambios",
         "submit": "Enviar",
         "clear": "Borrar",
         "success": "Correcto",
@@ -418,8 +422,7 @@
         "formTitle": "Carga de datos compacta",
         "formSubtext": "Las cargas actuales son para fines de prueba y los datos no se guardarán de forma permanente.",
         "uploadHint": "Sólo 1 archivo CSV",
-        "successTitle": "Su documento ha sido subido exitosamente",
-        "successSubtext": "Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet"
+        "successTitle": "Su documento ha sido subido exitosamente"
     },
     "licensing": {
         "licensingListTitle": "Datos de licencia",
@@ -435,6 +438,8 @@
         "status": "Estado",
         "issueDate": "Fecha de asunto",
         "expireDate": "Fecha de caducidad",
+        "expirationDate": "Fecha de caducidad",
+        "militaryDiscountText": "Descuento Militar",
         "lastUpdate": "Última carga",
         "license": "Licencia",
         "licenseExpiredMessage": "Su licencia ha caducado.",
@@ -442,7 +447,15 @@
         "expired": "Caducada",
         "issued": "Emitida",
         "expires": "Caduca",
+        "iUnderstand": "Yo entiendo",
+        "selectPrivileges": "Seleccionar privilegios",
+        "jurisprudenceConfirmation": "Confirmación de jurisprudencia",
+        "jurisprudenceUnderstandParagraph": "Entiendo que una declaración es una declaración jurídicamente vinculante. Entiendo que proporcionar información falsa en esta solicitud podría resultar en la pérdida de mis licencias y/o privilegios. Reconozco que la Comisión puede auditar las certificaciones de jurisprudencia a su discreción.",
+        "subtotal": "Subtotal",
+        "commissionFee": "Comisión Cuota",
+        "jurisdictionFee": "Jurisdicción Cuota",
         "disciplineStatus": "Estado de disciplina",
+        "jurisprudenceExplanationText": "Doy fe de haber completado el examen de jurisprudencia requerido.",
         "noDiscipline": "No disciplina",
         "twoHomeStateErrorMessage": "Dos estados lo tienen incluido como residente. Actualice su información con esos estados para reflejar su estado de residencia actual.",
         "state": "Estado",
@@ -493,10 +506,13 @@
         "usersListTitle": "Usuarios",
         "usersListEmpty": "Invita a los usuarios con el botón de arriba",
         "permissions": "Permisos",
+        "permission": "Permiso",
         "affiliation": "Afiliación",
-        "states": "Estado/Jurisdicción",
+        "state": "Estado / Jurisdiccion",
+        "states": "Estado / Jurisdicciónes",
         "accountStatus": "Estado de la cuenta",
         "accessLevel": {
+            "none": "Ninguno",
             "read": "Lectura",
             "write": "Escritura",
             "admin": "Administración"
@@ -507,7 +523,12 @@
             "pending": "Pendiente"
         },
         "resendInvite": "Reenviar invitación",
-        "userSearchLabel": "Introduzca un nombre"
+        "userSearchLabel": "Introduzca un nombre",
+        "userActions": "Acciones del usuario",
+        "edit": "Editar",
+        "editPermissions": "Editar permisos",
+        "editUserPermissions": "Editar permisos de usuario",
+        "addState": "Agregar estado / jurisdiccion"
     },
     "styleGuide": {
         "headerPlaceholder": "Contenido del encabezado",

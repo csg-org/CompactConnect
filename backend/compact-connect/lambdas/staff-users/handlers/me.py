@@ -1,11 +1,11 @@
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from config import logger
-from exceptions import CCInternalException
-from utils import api_handler
+from cc_common.config import config, logger
+from cc_common.exceptions import CCInternalException
+from cc_common.utils import api_handler
 
-from handlers import user_api_schema, user_client
+from handlers import user_api_schema
 
 
 @api_handler
@@ -13,7 +13,7 @@ def get_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Return a user by the sub in their token"""
     user_id = event['requestContext']['authorizer']['claims']['sub']
 
-    resp = user_client.get_user(user_id=user_id)
+    resp = config.user_client.get_user(user_id=user_id)
     # This is really unlikely, but will check anyway
     last_key = resp['pagination'].get('lastKey')
     if last_key is not None:
@@ -29,7 +29,7 @@ def patch_me(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argume
     user_id = event['requestContext']['authorizer']['claims']['sub']
 
     body = json.loads(event['body'])
-    user_records = user_client.update_user_attributes(user_id=user_id, attributes=body['attributes'])
+    user_records = config.user_client.update_user_attributes(user_id=user_id, attributes=body['attributes'])
     return _merge_user_records(user_id, user_records)
 
 

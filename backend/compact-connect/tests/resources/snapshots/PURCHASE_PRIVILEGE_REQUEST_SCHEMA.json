@@ -1,0 +1,157 @@
+{
+  "properties": {
+    "selectedJurisdictions": {
+      "items": {
+        "description": "Jurisdictions a provider has selected to purchase privileges in.",
+        "enum": [
+          "al",
+          "ak",
+          "az",
+          "ar",
+          "ca",
+          "co",
+          "ct",
+          "de",
+          "dc",
+          "fl",
+          "ga",
+          "hi",
+          "id",
+          "il",
+          "in",
+          "ia",
+          "ks",
+          "ky",
+          "la",
+          "me",
+          "md",
+          "ma",
+          "mi",
+          "mn",
+          "ms",
+          "mo",
+          "mt",
+          "ne",
+          "nv",
+          "nh",
+          "nj",
+          "nm",
+          "ny",
+          "nc",
+          "nd",
+          "oh",
+          "ok",
+          "or",
+          "pa",
+          "pr",
+          "ri",
+          "sc",
+          "sd",
+          "tn",
+          "tx",
+          "ut",
+          "vt",
+          "va",
+          "vi",
+          "wa",
+          "wv",
+          "wi",
+          "wy"
+        ],
+        "type": "string"
+      },
+      "maxLength": 100,
+      "type": "array"
+    },
+    "orderInformation": {
+      "properties": {
+        "card": {
+          "properties": {
+            "number": {
+              "description": "The card number",
+              "maxLength": 19,
+              "minLength": 15,
+              "type": "string"
+            },
+            "expiration": {
+              "description": "The card expiration date",
+              "maxLength": 7,
+              "minLength": 7,
+              "type": "string"
+            },
+            "cvv": {
+              "description": "The card cvv",
+              "maxLength": 4,
+              "minLength": 3,
+              "type": "string"
+            }
+          },
+          "required": [
+            "number",
+            "expiration",
+            "cvv"
+          ],
+          "type": "object"
+        },
+        "billing": {
+          "properties": {
+            "firstName": {
+              "description": "The first name on the card",
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            "lastName": {
+              "description": "The last name on the card",
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            "streetAddress": {
+              "description": "The street address for the card",
+              "maxLength": 150,
+              "minLength": 2,
+              "type": "string"
+            },
+            "streetAddress2": {
+              "description": "The second street address for the card",
+              "maxLength": 150,
+              "type": "string"
+            },
+            "state": {
+              "description": "The state postal abbreviation for the card",
+              "maxLength": 2,
+              "minLength": 2,
+              "type": "string"
+            },
+            "zip": {
+              "description": "The zip code for the card",
+              "maxLength": 10,
+              "minLength": 5,
+              "type": "string"
+            }
+          },
+          "required": [
+            "firstName",
+            "lastName",
+            "streetAddress",
+            "state",
+            "zip"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "card",
+        "billing"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "selectedJurisdictions",
+    "orderInformation"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

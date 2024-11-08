@@ -10,6 +10,7 @@ from stacks.api_stack.v1_api.purchases import Purchases
 from stacks.api_stack.v1_api.query_providers import QueryProviders
 
 from .api_model import ApiModel
+from .credentials import Credentials
 from .post_licenses import PostLicenses
 from .staff_users import StaffUsers
 
@@ -43,6 +44,12 @@ class V1Api:
             authorization_scopes=write_scopes,
         )
 
+        admin_auth_method_options = MethodOptions(
+            authorization_type=AuthorizationType.COGNITO,
+            authorizer=self.api.staff_users_authorizer,
+            authorization_scopes=admin_scopes,
+        )
+
         # /v1/provider-users
         self.provider_users_resource = self.resource.add_resource('provider-users')
         self.provider_users = ProviderUsers(
@@ -58,15 +65,26 @@ class V1Api:
             self.purchases_resource,
             data_encryption_key=persistent_stack.shared_encryption_key,
             compact_configuration_table=persistent_stack.compact_configuration_table,
+            provider_data_table=persistent_stack.provider_table,
             api_model=self.api_model,
         )
 
+        # /v1/compacts
+        self.compacts_resource = self.resource.add_resource('compacts')
         # /v1/compacts/{compact}
-        compact_resource = self.resource.add_resource('compacts').add_resource('{compact}')
+        self.compact_resource = self.compacts_resource.add_resource('{compact}')
+
+        # /v1/compacts/{compact}/credentials
+        credentials_resource = self.compact_resource.add_resource('credentials')
+        self.credentials = Credentials(
+            resource=credentials_resource,
+            method_options=admin_auth_method_options,
+            api_model=self.api_model,
+        )
 
         # POST /v1/compacts/{compact}/providers/query
         # GET  /v1/compacts/{compact}/providers/{providerId}
-        providers_resource = compact_resource.add_resource('providers')
+        providers_resource = self.compact_resource.add_resource('providers')
         QueryProviders(
             resource=providers_resource,
             method_options=read_auth_method_options,
@@ -78,7 +96,7 @@ class V1Api:
         # POST /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses
         # GET  /v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload
         licenses_resource = (
-            compact_resource.add_resource('jurisdictions').add_resource('{jurisdiction}').add_resource('licenses')
+            self.compact_resource.add_resource('jurisdictions').add_resource('{jurisdiction}').add_resource('licenses')
         )
         PostLicenses(
             resource=licenses_resource,
@@ -94,7 +112,7 @@ class V1Api:
         )
 
         # /v1/staff-users
-        staff_users_admin_resource = compact_resource.add_resource('staff-users')
+        staff_users_admin_resource = self.compact_resource.add_resource('staff-users')
         staff_users_self_resource = self.resource.add_resource('staff-users')
         # GET    /v1/staff-users/me
         # PATCH  /v1/staff-users/me

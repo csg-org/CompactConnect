@@ -69,7 +69,7 @@ class TestTransformations(TstFunction):
         # This should fully ingest the license, which will result in it being written to the DB
         ingest_license_message(event, self.mock_context)
 
-        from data_model.client import DataClient
+        from cc_common.data_model.client import DataClient
 
         # We'll use the data client to get the resulting provider id
         client = DataClient(self.config)
@@ -111,6 +111,8 @@ class TestTransformations(TstFunction):
         del expected_provider['providerDateOfUpdate']
         del records['provider']['providerDateOfUpdate']
         del expected_privilege['dateOfIssuance']
+        # removing optional field which is set by the purchase privilege endpoint
+        del expected_privilege['compactTransactionId']
         del records['privilege']['dateOfIssuance']
 
         # Make sure each is represented the way we expect, in the db
@@ -150,6 +152,8 @@ class TestTransformations(TstFunction):
         del expected_provider['licenses'][0]['dateOfUpdate']
         del expected_provider['privileges'][0]['dateOfUpdate']
         del expected_provider['privileges'][0]['dateOfIssuance']
+        # removing optional field which is set by the purchase privilege endpoint
+        del expected_provider['privileges'][0]['compactTransactionId']
 
         # Phew! We've loaded the data all the way in via the ingest chain and back out via the API!
         self.assertEqual(expected_provider, provider_data)

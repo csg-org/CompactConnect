@@ -15,6 +15,13 @@ export enum AuthTypes {
     PUBLIC = 'public',
 }
 
+// =========================
+// =       Fee Types       =
+// =========================
+export enum FeeTypes {
+    FLAT_RATE = 'FLAT_RATE'
+}
+
 // ====================
 // =   Auth storage   =
 // ====================

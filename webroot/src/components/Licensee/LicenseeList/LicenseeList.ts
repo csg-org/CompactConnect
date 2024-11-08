@@ -42,9 +42,17 @@ class LicenseeList extends Vue {
     //
     // Lifecycle
     //
+    async created() {
+        if (this.licenseStore.model?.length) {
+            this.hasSearched = true;
+        }
+    }
+
     async mounted() {
-        await this.setDefaultSort();
-        await this.setDefaultPaging();
+        if (!this.licenseStore.model?.length) {
+            await this.setDefaultSort();
+            await this.setDefaultPaging();
+        }
     }
 
     //
