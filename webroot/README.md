@@ -81,7 +81,7 @@
         - _Server_ :arrow_heading_up:
             - Dev(JCC-Test): `topd4vhftng5cfm3ccgkb6ejd`
             - Test(CSG-Test): `6erj63mpa5tjqdtdi6vfi9q9hi`
-            - Prod: `N/A`
+            - Prod: `3dp0nf7acvtavqlbec6p4t20to`
         - _Local_ :arrow_heading_down:
             - `topd4vhftng5cfm3ccgkb6ejd`
     - **`VUE_APP_COGNITO_AUTH_DOMAIN_STAFF`**
@@ -95,7 +95,7 @@
         - _Server_ :arrow_heading_up:
             - Dev(JCC-Test): `15mh24ea4af3of8jcnv8h2ic10`
             - Test(CSG-Test): `75uq274pv8ufhc1g1h4n86gp1l`
-            - Prod: `1qlqoaivpmosrdjbsi0u0nfkg4`
+            - Prod: `4mnd3u2rp30ssgnm7dk81jcqsc`
         - _Local_ :arrow_heading_down:
             - `15mh24ea4af3of8jcnv8h2ic10`
     - **`VUE_APP_MOCK_API`** :arrow_heading_down:
