@@ -77,19 +77,19 @@ const routes: Array<RouteConfig> = [
     {
         path: '/:compact/Privileges/FinalizePurchase',
         name: 'FinalizePrivilegePurchase',
-        component: () => import(/* webpackChunkName: "finalizePrivilegePurchase" */ '@pages/FinalizePrivilegePurchase/FinalizePrivilegePurchase.vue'),
+        component: () => import(/* webpackChunkName: "privilegePurchase" */ '@pages/FinalizePrivilegePurchase/FinalizePrivilegePurchase.vue'),
         meta: { requiresAuth: true },
     },
     {
         path: '/:compact/Privileges/PurchaseSuccessful',
         name: 'PurchaseSuccessful',
-        component: () => import(/* webpackChunkName: "purchaseSuccessful" */ '@pages/PurchaseSuccessful/PurchaseSuccessful.vue'),
+        component: () => import(/* webpackChunkName: "privilegePurchase" */ '@pages/PurchaseSuccessful/PurchaseSuccessful.vue'),
         meta: { requiresAuth: true },
     },
     {
         path: '/:compact/Privileges/Attestation',
         name: 'PrivilegePurchaseAttestation',
-        component: () => import(/* webpackChunkName: "privilegePurchaseAttestation" */ '@pages/PrivilegePurchaseAttestation/PrivilegePurchaseAttestation.vue'),
+        component: () => import(/* webpackChunkName: "privilegePurchase" */ '@pages/PrivilegePurchaseAttestation/PrivilegePurchaseAttestation.vue'),
         meta: { requiresAuth: true },
     },
     {

@@ -14,6 +14,7 @@ import MixinInput from '@components/Forms/_mixins/input.mixin';
 
 @Component({
     name: 'InputNumber',
+    emits: [ 'emitInputRef' ]
 })
 class InputNumber extends mixins(MixinInput) {
     //
