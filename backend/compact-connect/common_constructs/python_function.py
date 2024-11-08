@@ -40,7 +40,6 @@ class PythonFunction(CdkPythonFunction):
         super().__init__(
             scope,
             construct_id,
-            bundling=BundlingOptions(),
             runtime=Runtime.PYTHON_3_12,
             log_retention=log_retention,
             **defaults,

@@ -45,16 +45,18 @@ class PersistentStack(AppStack):
         # If we delete this stack, retain the resource (orphan but prevent data loss) or destroy it (clean up)?
         removal_policy = RemovalPolicy.RETAIN if environment_name == 'prod' else RemovalPolicy.DESTROY
 
-        # Add the common python lambda layer
-        # note this is to only be referenced directly in this stack
-        # all external references should use the ssm parameter
+        # Add the common python lambda layer for use in all python lambdas
+        # NOTE: this is to only be referenced directly in this stack!
+        # All external references should use the ssm parameter to get the value of the layer arn.
+        # attempting to reference this layer directly in another stack will cause this stack
+        # to be stuck in an UPDATE_ROLLBACK_FAILED state which will require DELETION of stacks
+        # that reference the layer directly. See https://github.com/aws/aws-cdk/issues/1972
         self.common_python_lambda_layer = PythonLayerVersion(
             self,
             'CompactConnectCommonPythonLayer',
             entry=os.path.join('lambdas', 'common-python'),
             compatible_runtimes=[Runtime.PYTHON_3_12],
             description='A layer for common code shared between python lambdas',
-            bundling=BundlingOptions(),
         )
 
         # We Store the layer ARN in SSM Parameter Store
