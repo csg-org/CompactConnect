@@ -13,9 +13,9 @@ import InputPassword from '@components/Forms/InputPassword/InputPassword.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import { User } from '@models/User/User.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
+import { dataApi } from '@network/data.api';
 import Joi from 'joi';
 import { joiPasswordExtendCore } from 'joi-password';
-import axios from 'axios';
 
 const joiPassword = Joi.extend(joiPasswordExtendCore);
 
@@ -165,20 +165,13 @@ class ChangePassword extends mixins(MixinForm) {
 
     async changePasswordRequest(): Promise<void> {
         const { currentPassword, newPassword } = this.formValues;
-        const requestData = JSON.stringify({
+        const requestData = {
             AccessToken: this.authToken,
             PreviousPassword: currentPassword,
             ProposedPassword: newPassword,
-        });
-        const { cognitoRegion } = this.$envConfig;
+        };
 
-        await axios.post(`https://cognito-idp.${cognitoRegion}.amazonaws.com/`, requestData, {
-            headers: {
-                'Content-Type': `application/x-amz-json-1.1`,
-                'X-Amz-Target': `AWSCognitoIdentityProviderService.ChangePassword`,
-                Accept: `*/*`,
-            },
-        }).catch((axiosError) => {
+        await dataApi.updateAuthenticatedUserPassword(requestData).catch((axiosError) => {
             const { data } = axiosError.response;
             const errMessage = data?.message || this.$t('common.passwordResetError');
 

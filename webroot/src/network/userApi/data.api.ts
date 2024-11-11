@@ -175,6 +175,25 @@ export class UserDataApi implements DataApiInterface {
     }
 
     /**
+     * UPDATE Password of authenticated user.
+     * @param  {object}          data The request data.
+     * @return {Promise<object>}      Axios-formatted response from AWS Cognito.
+     */
+    public async updateAuthenticatedUserPassword(data) {
+        const { cognitoRegion } = envConfig;
+        const requestData = JSON.stringify(data || {});
+        const serverResponse: any = await axios.post(`https://cognito-idp.${cognitoRegion}.amazonaws.com/`, requestData, {
+            headers: {
+                'Content-Type': `application/x-amz-json-1.1`,
+                'X-Amz-Target': `AWSCognitoIdentityProviderService.ChangePassword`,
+                Accept: `*/*`,
+            },
+        });
+
+        return serverResponse;
+    }
+
+    /**
      * GET Authenticated Staff User.
      * @return {Promise<User>} A User model instance.
      */
