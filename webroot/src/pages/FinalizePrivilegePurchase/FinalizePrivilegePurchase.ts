@@ -11,9 +11,9 @@ import MixinForm from '@components/Forms/_mixins/form.mixin';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
-import InputCreditCard from '@components/Forms/InputCreditCard/InputCreditCard.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
+import InputCreditCard from '@components/Forms/InputCreditCard/InputCreditCard.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
@@ -287,37 +287,6 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     //
     // Methods
     //
-    async handleSubmit() {
-        this.validateAll({ asTouched: true });
-
-        if (this.isFormValid) {
-            this.startFormLoading();
-            this.isFormError = false;
-            this.formErrorMessage = '';
-
-            const { formValues, statesSelected } = this;
-
-            const serverData = LicenseeUserPurchaseSerializer.toServer({ formValues, statesSelected });
-
-            const purchaseServerEvent = await this.$store.dispatch('user/postPrivilegePurchases', serverData);
-
-            this.endFormLoading();
-
-            if (purchaseServerEvent?.message === 'Successfully processed charge') {
-                this.$router.push({
-                    name: 'PurchaseSuccessful',
-                    params: { compact: this.currentCompactType }
-                });
-            } else if (purchaseServerEvent?.message) {
-                this.isFormError = true;
-                this.formErrorMessage = purchaseServerEvent?.message;
-            }
-        } else {
-            this.isFormError = true;
-            this.formErrorMessage = this.formValidationErrorMessage;
-        }
-    }
-
     initFormInputs() {
         this.formData = reactive({
             firstName: new FormInput({
@@ -444,6 +413,35 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
             }),
         });
         this.watchFormInputs();
+    }
+
+    async handleSubmit() {
+        this.validateAll({ asTouched: true });
+
+        if (this.isFormValid) {
+            this.startFormLoading();
+            this.isFormError = false;
+            this.formErrorMessage = '';
+
+            const { formValues, statesSelected } = this;
+            const serverData = LicenseeUserPurchaseSerializer.toServer({ formValues, statesSelected });
+            const purchaseServerEvent = await this.$store.dispatch('user/postPrivilegePurchases', serverData);
+
+            this.endFormLoading();
+
+            if (purchaseServerEvent?.message === 'Successfully processed charge') {
+                this.$router.push({
+                    name: 'PurchaseSuccessful',
+                    params: { compact: this.currentCompactType }
+                });
+            } else if (purchaseServerEvent?.message) {
+                this.isFormError = true;
+                this.formErrorMessage = purchaseServerEvent?.message;
+            }
+        } else {
+            this.isFormError = true;
+            this.formErrorMessage = this.formValidationErrorMessage;
+        }
     }
 
     handleCancelClicked() {
