@@ -7,9 +7,6 @@
 
 <template>
     <div class="finalize-privilege-purchase-container">
-        <div v-if="formErrorMessage" class="form-error-message">
-            {{formErrorMessage}}
-        </div>
         <form class="complete-purchase-form" @submit.prevent="handleSubmit">
             <div class="finalize-purchase-container">
                 <div class="finalize-purchase-core-container">
@@ -114,13 +111,13 @@
                                     <div class="info-row-label">
                                         {{state.stateFeeText}}
                                     </div>
-                                    <div class="expire-date-value">${{state?.fee?.toFixed(2)}}</div>
+                                    <div class="expire-date-value">${{state.stateFeeDisplay}}</div>
                                 </div>
                                 <div v-if="state.isMilitaryDiscountActive" class="info-row">
                                     <div class="info-row-label">
                                         {{state.stateMilitaryPurchaseText}}
                                     </div>
-                                    <div class="expire-date-value">-${{state?.militaryDiscountAmount?.toFixed(2)}}</div>
+                                    <div class="expire-date-value">-${{state.stateMilitaryDiscountAmountDisplay}}</div>
                                 </div>
                             </li>
                         </ul>
@@ -128,17 +125,20 @@
                             <div class="info-row-label">
                                 {{compactCommissionFeeText}}
                             </div>
-                            <div class="expire-date-value">${{totalCompactCommissionFee?.toFixed(2)}}</div>
+                            <div class="expire-date-value">${{totalCompactCommissionFeeDisplay}}</div>
                         </div>
                         <div class="purchase-total info-row">
                             <div class="info-row-label total">
                                 {{totalTitle}}
                             </div>
-                            <div class="expire-date-value total">${{totalPurchasePrice?.toFixed(2)}}</div>
+                            <div class="expire-date-value total">${{totalPurchasePriceDisplay}}</div>
                         </div>
                     </div>
                     <InputCheckbox :formInput="formData.noRefunds" />
                 </div>
+            </div>
+            <div v-if="formErrorMessage" class="form-error-message">
+                {{formErrorMessage}}
             </div>
             <div class="button-row">
                 <InputButton

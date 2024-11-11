@@ -54,7 +54,7 @@
         "ethnicity": "Ethnicity",
         "welcome": "Welcome",
         "finish": "Finish",
-        "formValidationErrorMessage": "Please correct the errors on the form shown in red and check the box acknowleding no refunds",
+        "formValidationErrorMessage": "Please correct the errors on the form shown in red and check the box acknowledging no refunds",
         "daysOfTheWeek": {
             "monday": {
                 "full": "Monday",

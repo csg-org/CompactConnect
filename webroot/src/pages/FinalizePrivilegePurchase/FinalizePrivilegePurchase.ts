@@ -137,7 +137,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     }
 
     get stateOptions() {
-        const stateOptions = [{ value: '', name: 'select' }];
+        const stateOptions = [{ value: '', name: this.$t('common.select') }];
 
         const states = this.$tm('common.states') as Array<any>;
 
@@ -195,9 +195,21 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         return this.selectedStatePurchaseDataList.map((state) => {
             const stateFeeText = `${state?.jurisdiction?.name()} ${this.compactPrivilegeStateFeeText}`;
             const stateMilitaryPurchaseText = `${state?.jurisdiction?.name()} ${this.militaryDiscountText}`;
+            let stateFeeDisplay = '';
+            let stateMilitaryDiscountAmountDisplay = '';
+
+            if (state?.fee) {
+                stateFeeDisplay = state.fee.toFixed(2);
+            }
+
+            if (state?.militaryDiscountAmount) {
+                stateMilitaryDiscountAmountDisplay = state.militaryDiscountAmount.toFixed(2);
+            }
 
             return {
                 ...state,
+                stateFeeDisplay,
+                stateMilitaryDiscountAmountDisplay,
                 stateFeeText,
                 stateMilitaryPurchaseText
             };
@@ -284,6 +296,14 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         return this.isFormValid && this.formData.noRefunds.value && !this.isFormLoading;
     }
 
+    get totalCompactCommissionFeeDisplay(): string {
+        return this.totalCompactCommissionFee?.toFixed(2) || '';
+    }
+
+    get totalPurchasePriceDisplay(): string {
+        return this.totalPurchasePrice?.toFixed(2) || '';
+    }
+
     //
     // Methods
     //
@@ -364,7 +384,6 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 autocomplete: 'address-line1',
                 validation: Joi.string().required().messages(this.joiMessages.string),
                 placeholder: this.streetAddress1PlaceHolderText,
-                value: '',
             }),
             streetAddress2: new FormInput({
                 id: 'street-address-2',
@@ -373,8 +392,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 shouldHideLabel: false,
                 shouldHideMargin: true,
                 autocomplete: 'address-line2',
-                placeholder: this.streetAddress2PlaceHolderText,
-                value: '',
+                placeholder: this.streetAddress2PlaceHolderText
             }),
             noRefunds: new FormInput({
                 id: 'no-refunds-check',
@@ -405,7 +423,6 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
                 autocomplete: 'postal-code',
                 shouldHideErrorMessage: true,
                 validation: Joi.string().required().regex(new RegExp('(^[0-9]{5}$)|(^[0-9]{5}-[0-9]{4}$)')),
-                value: '',
             }),
             submit: new FormInput({
                 isSubmitInput: true,

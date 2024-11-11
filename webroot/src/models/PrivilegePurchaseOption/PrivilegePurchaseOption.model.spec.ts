@@ -36,10 +36,10 @@ describe('PrivilegePurchaseOption model', () => {
         expect(privilegePurchaseOption.jurisdiction.id).to.equal(null);
         expect(privilegePurchaseOption.jurisdiction.abbrev).to.equal(null);
         expect(privilegePurchaseOption.compactType).to.equal(null);
-        expect(privilegePurchaseOption.fee).to.equal(null);
+        expect(privilegePurchaseOption.fee).to.equal(0);
         expect(privilegePurchaseOption.isMilitaryDiscountActive).to.equal(false);
         expect(privilegePurchaseOption.militaryDiscountType).to.equal(null);
-        expect(privilegePurchaseOption.militaryDiscountAmount).to.equal(null);
+        expect(privilegePurchaseOption.militaryDiscountAmount).to.equal(0);
         expect(privilegePurchaseOption.isJurisprudenceRequired).to.equal(false);
     });
     it('should create a PrivilegePurchaseOption with specific values', () => {
