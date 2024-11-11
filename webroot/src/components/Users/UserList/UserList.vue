@@ -20,6 +20,9 @@
                     />
                 </form>
             </div>
+            <div class="invite-button-container">
+                <button class="invite-user" @click="toggleUserInvite">+ {{ $t('common.invite') }}</button>
+            </div>
         </div>
         <ListContainer
             :listId="listId"
@@ -56,6 +59,14 @@
                 />
             </template>
         </ListContainer>
+        <transition mode="out-in">
+            <div v-if="isInviteActive">
+                <div class="modal-mask"></div>
+                <div class="invite-user-modal">
+                    <UserInvite @saved="closeUserInvite" @cancel="closeUserInvite" />
+                </div>
+            </div>
+        </transition>
     </div>
 </template>
 

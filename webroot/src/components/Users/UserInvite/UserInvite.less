@@ -1,0 +1,78 @@
+//
+//  UserInvite.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 11/11/2024.
+//
+
+.invite-user-container {
+    display: flex;
+    flex-direction: column;
+    max-height: 100vh;
+    overflow-y: auto;
+
+    .invite-user-title {
+        margin-bottom: 2rem;
+        font-size: @fontSizeExtraLarge;
+    }
+
+    .invite-user-name {
+        margin-bottom: 1.2rem;
+        font-size: @fontSizeLarge;
+    }
+
+    .invite-user-form-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .permission-type-select {
+        width: 50%;
+    }
+
+    .permission-select {
+        width: 40%;
+    }
+
+    .input-connector {
+        width: 5%;
+        height: 2px;
+        margin-bottom: 12px;
+        background-color: @black;
+    }
+
+    .row-separator {
+        width: 100%;
+        height: 2px;
+        margin-top: -32px;
+        background-color: @lightGrey;
+    }
+
+    .add-state {
+        margin-top: -2rem;
+        margin-bottom: 2rem;
+        margin-left: auto;
+    }
+
+    .invite-user-button {
+        width: 100%;
+
+        &:not(:first-child) {
+            margin-top: 1.6rem;
+        }
+
+        @media @desktopWidth {
+            width: 48%;
+
+            &:not(:first-child) {
+                margin-top: 0;
+            }
+        }
+
+        &:deep(input) {
+            width: 100%;
+        }
+    }
+}
