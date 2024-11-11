@@ -9,8 +9,8 @@ from tests.function import TstFunction
 @mock_aws
 class TestCSVParser(TstFunction):
     def test_csv_parser(self):
-        from config import logger
-        from data_model.schema.license import LicensePostSchema
+        from cc_common.config import logger
+        from cc_common.data_model.schema.license import LicensePostSchema
         from license_csv_reader import LicenseCSVReader
 
         # Upload our test file to mocked 'S3' then retrieve it, so we can specifically

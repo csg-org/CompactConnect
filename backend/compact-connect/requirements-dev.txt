@@ -8,7 +8,7 @@ boolean-py==4.0
     # via license-expression
 build==1.2.2.post1
     # via pip-tools
-cachecontrol[filecache]==0.14.0
+cachecontrol[filecache]==0.14.1
     # via
     #   cachecontrol
     #   pip-audit
@@ -46,7 +46,7 @@ msgpack==1.1.0
     # via cachecontrol
 packageurl-python==0.16.0
     # via cyclonedx-python-lib
-packaging==24.1
+packaging==24.2
     # via
     #   build
     #   pip-audit
@@ -76,7 +76,7 @@ pytest==8.3.3
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
-pytest-cov==5.0.0
+pytest-cov==6.0.0
     # via -r compact-connect/requirements-dev.in
 python-dateutil==2.9.0.post0
     # via faker
@@ -84,9 +84,9 @@ requests==2.32.3
     # via
     #   cachecontrol
     #   pip-audit
-rich==13.9.3
+rich==13.9.4
     # via pip-audit
-ruff==0.7.1
+ruff==0.7.3
     # via -r compact-connect/requirements-dev.in
 six==1.16.0
     # via

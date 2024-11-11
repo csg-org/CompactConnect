@@ -5,7 +5,7 @@ class TestCollectChanges(TstLambdas):
     """Testing that permissions changes are parsed correctly from the API"""
 
     def test_compact_changes(self):
-        from utils import collect_and_authorize_changes
+        from cc_common.utils import collect_and_authorize_changes
 
         resp = collect_and_authorize_changes(
             path_compact='aslp',
@@ -23,7 +23,7 @@ class TestCollectChanges(TstLambdas):
         )
 
     def test_jurisdiction_changes(self):
-        from utils import collect_and_authorize_changes
+        from cc_common.utils import collect_and_authorize_changes
 
         resp = collect_and_authorize_changes(
             path_compact='aslp',
@@ -41,8 +41,8 @@ class TestCollectChanges(TstLambdas):
         )
 
     def test_disallowed_jurisdiction_changes(self):
-        from exceptions import CCAccessDeniedException
-        from utils import collect_and_authorize_changes
+        from cc_common.exceptions import CCAccessDeniedException
+        from cc_common.utils import collect_and_authorize_changes
 
         with self.assertRaises(CCAccessDeniedException):
             collect_and_authorize_changes(
@@ -52,8 +52,8 @@ class TestCollectChanges(TstLambdas):
             )
 
     def test_jurisdiction_admin_disallowed_compact_changes(self):
-        from exceptions import CCAccessDeniedException
-        from utils import collect_and_authorize_changes
+        from cc_common.exceptions import CCAccessDeniedException
+        from cc_common.utils import collect_and_authorize_changes
 
         with self.assertRaises(CCAccessDeniedException):
             collect_and_authorize_changes(
@@ -63,7 +63,7 @@ class TestCollectChanges(TstLambdas):
             )
 
     def test_compact_and_jurisdiction_changes(self):
-        from utils import collect_and_authorize_changes
+        from cc_common.utils import collect_and_authorize_changes
 
         resp = collect_and_authorize_changes(
             path_compact='aslp',
@@ -84,7 +84,7 @@ class TestCollectChanges(TstLambdas):
         )
 
     def test_jurisdiction_add_only(self):
-        from utils import collect_and_authorize_changes
+        from cc_common.utils import collect_and_authorize_changes
 
         resp = collect_and_authorize_changes(
             path_compact='aslp',

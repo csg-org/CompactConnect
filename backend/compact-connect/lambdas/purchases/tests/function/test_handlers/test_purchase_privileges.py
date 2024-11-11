@@ -2,8 +2,8 @@ import json
 from datetime import UTC, date, datetime
 from unittest.mock import MagicMock, patch
 
-from config import config
-from exceptions import CCAwsServiceException, CCFailedTransactionException, CCInternalException
+from cc_common.config import config
+from cc_common.exceptions import CCAwsServiceException, CCFailedTransactionException, CCInternalException
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -17,7 +17,7 @@ MOCK_TRANSACTION_ID = '1234'
 
 def _generate_test_request_body(selected_jurisdictions: list[str] = None):
     if not selected_jurisdictions:
-        selected_jurisdictions = ['oh']
+        selected_jurisdictions = ['ky']
 
     return json.dumps(
         {
@@ -39,9 +39,25 @@ def _generate_test_request_body(selected_jurisdictions: list[str] = None):
 
 @mock_aws
 class TestPostPurchasePrivileges(TstFunction):
+    """
+    In this test setup, we simulate having a licensee that has a license in ohio and is
+    purchasing a privilege in kentucky.
+    """
+
+    def _load_test_jurisdiction(self):
+        with open('tests/resources/dynamo/jurisdiction.json') as f:
+            jurisdiction = json.load(f)
+            # swap out the jurisdiction postal abbreviation for ky
+            jurisdiction['postalAbbreviation'] = 'ky'
+            jurisdiction['jurisdictionName'] = 'Kentucky'
+            jurisdiction['pk'] = 'aslp#CONFIGURATION'
+            jurisdiction['sk'] = 'aslp#JURISDICTION#ky'
+            self.config.compact_configuration_table.put_item(Item=jurisdiction)
+
     def _when_testing_provider_user_event_with_custom_claims(self, test_compact=TEST_COMPACT, load_license=True):
         self._load_compact_configuration_data()
         self._load_provider_data()
+        self._load_test_jurisdiction()
         if load_license:
             self._load_license_data()
         with open('tests/resources/api-event.json') as f:
@@ -91,7 +107,7 @@ class TestPostPurchasePrivileges(TstFunction):
         )
         self.assertEqual(TEST_COMPACT, purchase_client_call_kwargs['compact_configuration'].compact_name)
         self.assertEqual(
-            ['oh'],
+            ['ky'],
             [
                 jurisdiction.postal_abbreviation
                 for jurisdiction in purchase_client_call_kwargs['selected_jurisdictions']
@@ -147,6 +163,55 @@ class TestPostPurchasePrivileges(TstFunction):
         response_body = json.loads(resp['body'])
 
         self.assertEqual({'message': 'Invalid jurisdiction postal abbreviation'}, response_body)
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_returns_400_if_selected_jurisdiction_matches_existing_license(
+        self, mock_purchase_client_constructor
+    ):
+        """
+        In this case, the user is attempting to purchase a privilege in ohio, but they already have a license in ohio.
+        So the request should be rejected.
+        """
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body(['oh'])
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual(
+            {'message': "Selected privilege jurisdiction 'oh' matches license jurisdiction"}, response_body
+        )
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_returns_400_if_selected_jurisdiction_matches_existing_privilege(
+        self, mock_purchase_client_constructor
+    ):
+        """
+        In this case, the user is attempting to purchase a privilege in kentucky twice.
+        """
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body()
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+
+        # now make the same call with the same jurisdiction
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual(
+            {'message': "Selected privilege jurisdiction 'ky' matches existing privilege jurisdiction"}, response_body
+        )
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_404_if_provider_not_found(self, mock_purchase_client_constructor):
@@ -207,7 +272,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(datetime.now(tz=UTC).date(), privilege_record['dateOfIssuance'])
         self.assertEqual(datetime.now(tz=UTC).date(), privilege_record['dateOfUpdate'])
         self.assertEqual(TEST_COMPACT, privilege_record['compact'])
-        self.assertEqual('oh', privilege_record['jurisdiction'])
+        self.assertEqual('ky', privilege_record['jurisdiction'])
         self.assertEqual(TEST_PROVIDER_ID, str(privilege_record['providerId']))
         self.assertEqual('active', privilege_record['status'])
         self.assertEqual('privilege', privilege_record['type'])

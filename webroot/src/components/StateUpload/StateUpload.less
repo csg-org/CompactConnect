@@ -75,9 +75,28 @@
             }
         }
 
-        .sub-title {
-            margin-top: 1.6rem;
-            padding: 0 8.2rem;
+        .success-actions {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
+            margin-top: 2.4rem;
+
+            @media @desktopWidth {
+                flex-direction: row;
+            }
+
+            .success-btn {
+                margin-bottom: 1.6rem;
+                padding-top: 1rem;
+                padding-bottom: 1rem;
+
+                @media @desktopWidth {
+                    &:first-child {
+                        margin-right: 1.2rem;
+                    }
+                }
+            }
         }
     }
 }

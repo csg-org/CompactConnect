@@ -6,6 +6,8 @@ from unittest.mock import patch
 from app import CompactConnectApp
 from aws_cdk.assertions import Match, Template
 from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolClient, CfnUserPoolRiskConfigurationAttachment
+from aws_cdk.aws_lambda import CfnLayerVersion
+from aws_cdk.aws_ssm import CfnParameter
 
 from tests.unit.base import TstCompactConnectABC
 
@@ -110,6 +112,27 @@ class TestPipeline(TstCompactConnectABC, TestCase):
             snapshot_name='COMPACT_CONFIGURATION_UPLOADER_INPUT',
             overwrite_snapshot=False,
         )
+
+    def test_synth_generates_python_lambda_layer_with_ssm_parameter(self):
+        persistent_stack = self.app.pipeline_stack.test_stage.persistent_stack
+        persistent_stack_template = Template.from_stack(persistent_stack)
+
+        # Ensure our provider user pool is created with expected custom attributes
+        lambda_layer_parameter_properties = self.get_resource_properties_by_logical_id(
+            persistent_stack.get_logical_id(persistent_stack.lambda_layer_ssm_parameter.node.default_child),
+            persistent_stack_template.find_resources(CfnParameter.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        # assert that the parameter name matches expected
+        self.assertEqual('/deployment/lambda/layers/common-python-layer-arn', lambda_layer_parameter_properties['Name'])
+
+        lambda_layer_parameter_properties = self.get_resource_properties_by_logical_id(
+            lambda_layer_parameter_properties['Value']['Ref'],
+            persistent_stack_template.find_resources(CfnLayerVersion.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        # the other properties are dynamic, so here we just check to make sure it exists
+        self.assertEqual(['python3.12'], lambda_layer_parameter_properties['CompatibleRuntimes'])
 
     @staticmethod
     def _sort_compact_configuration_input(compact_configuration_input: dict) -> dict:

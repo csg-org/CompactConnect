@@ -2,7 +2,7 @@ from datetime import date
 from unittest.mock import MagicMock
 
 from botocore.exceptions import ClientError
-from exceptions import CCAwsServiceException
+from cc_common.exceptions import CCAwsServiceException
 
 from tests import TstLambdas
 
@@ -11,7 +11,7 @@ class TestDataClient(TstLambdas):
     """Testing that the api_handler decorator is working as expected."""
 
     def test_data_client_deletes_records_if_exception_during_create_privilege_records(self):
-        from data_model import client
+        from cc_common.data_model import client
 
         mock_dynamo_db_table = MagicMock(name='provider-table')
         mock_batch_writer = MagicMock(name='batch_writer')

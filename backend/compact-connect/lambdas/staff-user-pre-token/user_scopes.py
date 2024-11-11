@@ -1,5 +1,5 @@
 from boto3.dynamodb.conditions import Key
-from config import config, logger
+from cc_common.config import config, logger
 
 
 class UserScopes(set):

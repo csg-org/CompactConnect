@@ -1,9 +1,9 @@
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from config import logger
-from exceptions import CCNotFoundException
-from utils import (
+from cc_common.config import config, logger
+from cc_common.exceptions import CCNotFoundException
+from cc_common.utils import (
     api_handler,
     authorize_compact,
     collect_and_authorize_changes,
@@ -11,7 +11,7 @@ from utils import (
     get_event_scopes,
 )
 
-from handlers import user_api_schema, user_client
+from handlers import user_api_schema
 
 
 @api_handler
@@ -23,7 +23,7 @@ def get_one_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
     scopes = get_event_scopes(event)
     allowed_jurisdictions = get_allowed_jurisdictions(compact=compact, scopes=scopes)
 
-    user = user_client.get_user_in_compact(compact=compact, user_id=user_id)
+    user = config.user_client.get_user_in_compact(compact=compact, user_id=user_id)
 
     # For jurisdiction-admins, don't return users if they have no permissions in the admin's jurisdiction
     if allowed_jurisdictions is not None:
@@ -54,7 +54,7 @@ def get_users(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argum
     scopes = get_event_scopes(event)
     allowed_jurisdictions = get_allowed_jurisdictions(compact=compact, scopes=scopes)
 
-    resp = user_client.get_users_sorted_by_family_name(
+    resp = config.user_client.get_users_sorted_by_family_name(
         compact=compact,
         jurisdictions=allowed_jurisdictions,
         pagination=pagination,
@@ -104,7 +104,7 @@ def patch_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argu
         scopes=scopes,
         compact_changes=permission_changes,
     )
-    user = user_client.update_user_permissions(compact=compact, user_id=user_id, **changes)
+    user = config.user_client.update_user_permissions(compact=compact, user_id=user_id, **changes)
     return user_api_schema.load(user)
 
 
@@ -123,5 +123,5 @@ def post_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argum
     # Use the UserClient to create a new user
     user = user_api_schema.dump(body)
     return user_api_schema.load(
-        user_client.create_user(compact=compact, attributes=user['attributes'], permissions=user['permissions']),
+        config.user_client.create_user(compact=compact, attributes=user['attributes'], permissions=user['permissions']),
     )
