@@ -311,6 +311,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         if (newValue === true) {
             if (stateAbbrev) {
                 this.jurisprudencePendingConfirmation = stateAbbrev;
+                this.formData.jurisprudenceConfirmations[stateAbbrev].value = false;
             }
         }
     }
