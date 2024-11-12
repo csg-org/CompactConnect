@@ -334,7 +334,10 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     deselectState(state) {
-        this.formData.stateCheckList.find((checkBox) => (checkBox.id === state?.jurisdiction?.abbrev)).value = false;
+        const stateAbbrev = state?.jurisdiction?.abbrev;
+
+        this.formData.stateCheckList.find((checkBox) => (checkBox.id === stateAbbrev)).value = false;
+        delete this.formData.jurisprudenceConfirmations[stateAbbrev];
     }
 
     submitUnderstanding() {
@@ -357,7 +360,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         }
     }
 
-    checkState(stateFormInput) {
+    toggleStateSelected(stateFormInput) {
         const newStateFormInputValue = !stateFormInput.value;
         const stateAbbrev = stateFormInput.id;
 

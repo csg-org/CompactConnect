@@ -51,14 +51,13 @@
                                 class="state-select-unit"
                             >
                                 <div
-                                    @click.prevent="checkState(state)"
-                                    @keyup.enter="checkState(state)"
+                                    @click.prevent="toggleStateSelected(state)"
+                                    @keyup.enter="toggleStateSelected(state)"
                                     tabindex="0"
                                     class="enabled-state-overlay"
                                 />
                                 <InputCheckbox
                                     :formInput="state"
-                                    @change="handleStateClicked(state)"
                                 />
                             </div>
                         </li>
