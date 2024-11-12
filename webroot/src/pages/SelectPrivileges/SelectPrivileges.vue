@@ -49,10 +49,13 @@
                             <div
                                 v-else
                                 class="state-select-unit"
-                                @click.stop="checkState(state)"
-                                @keyup.enter="checkState(state)"
-                                tabindex="0"
                             >
+                                <div
+                                    @click.prevent="checkState(state)"
+                                    @keyup.enter="checkState(state)"
+                                    tabindex="0"
+                                    class="enabled-state-overlay"
+                                />
                                 <InputCheckbox
                                     :formInput="state"
                                     @change="handleStateClicked(state)"
