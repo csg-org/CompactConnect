@@ -188,11 +188,12 @@ class TestPostPurchasePrivileges(TstFunction):
         )
 
     @patch('handlers.privileges.PurchaseClient')
-    def test_post_purchase_privileges_returns_400_if_selected_jurisdiction_matches_existing_privilege(
+    def test_purchase_privileges_invalid_if_existing_privilege_expiration_matches_license_expiration(
         self, mock_purchase_client_constructor
     ):
         """
-        In this case, the user is attempting to purchase a privilege in kentucky twice.
+        In this case, the user is attempting to purchase a privilege in kentucky twice and the license expiration
+        date has not been updated since the last renewal. We reject the request in this case.
         """
         from handlers.privileges import post_purchase_privileges
 
@@ -212,6 +213,60 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(
             {'message': "Selected privilege jurisdiction 'ky' matches existing privilege jurisdiction"}, response_body
         )
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_purchase_privileges_allows_existing_privilege_purchase_if_license_expiration_does_not_match(
+        self, mock_purchase_client_constructor
+    ):
+        """
+        In this case, the user is attempting to purchase a privilege in kentucky twice, but the license expiration
+        date is different. We allow the user to renew their privilege so the expiration date is updated.
+        """
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body()
+        test_issuance_date = date(2023, 11, 8).isoformat()
+
+        # create an existing privilege record for the kentucky jurisdiction, simulating a previous purchase
+        with open('../common-python/tests/resources/dynamo/privilege.json') as f:
+            privilege_record = json.load(f)
+            privilege_record['pk'] = f'{TEST_COMPACT}#PROVIDER#{TEST_PROVIDER_ID}'
+            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky#2023-11-08'
+            # in this case, the user is purchasing the privilege for the first time
+            # so the date of renewal is the same as the date of issuance
+            privilege_record['dateOfRenewal'] = test_issuance_date
+            privilege_record['dateOfIssuance'] = test_issuance_date
+            privilege_record['compact'] = TEST_COMPACT
+            privilege_record['jurisdiction'] = 'ky'
+            privilege_record['providerId'] = TEST_PROVIDER_ID
+            self.config.provider_table.put_item(Item=privilege_record)
+
+        # update the license expiration date to be different
+        updated_expiration_date = datetime.now(tz=UTC).date().isoformat()
+        self._load_license_data(expiration_date=updated_expiration_date)
+
+        # now make the same call with the same jurisdiction
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
+
+        # ensure there are two privilege records for the same jurisdiction
+        provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
+        privilege_records = [record for record in provider_records['items'] if record['type'] == 'privilege']
+        self.assertEqual(2, len(privilege_records))
+
+        # ensure the date of renewal is updated
+        updated_privilege_record = next(record for record in privilege_records if record['dateOfRenewal'].isoformat()
+                                        == datetime.now(tz=UTC).date().isoformat())
+        # ensure the expiration is updated
+        self.assertEqual(updated_expiration_date, updated_privilege_record['dateOfExpiration'].isoformat())
+        # ensure the issuance date is the same
+        self.assertEqual(test_issuance_date, updated_privilege_record['dateOfIssuance'].isoformat())
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_404_if_provider_not_found(self, mock_purchase_client_constructor):
@@ -259,7 +314,7 @@ class TestPostPurchasePrivileges(TstFunction):
         resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'])
 
-        # check that the privilege record for oh was created
+        # check that the privilege record for ky was created
         provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
 
         privilege_record = next(record for record in provider_records['items'] if record['type'] == 'privilege')

@@ -156,9 +156,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     license_record = _find_latest_active_license(
         [record for record in user_provider_data['items'] if record['type'] == 'license']
     )
-    existing_privilege_jurisdictions = [
-        record['jurisdiction'] for record in user_provider_data['items'] if record['type'] == 'privilege'
-    ]
+
     # this should never happen, but we check just in case
     if provider_record is None:
         raise CCNotFoundException('Provider not found')
@@ -171,10 +169,16 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             f"Selected privilege jurisdiction '{license_jurisdiction}'" f' matches license jurisdiction'
         )
 
-    for privilege_jurisdiction in existing_privilege_jurisdictions:
-        if privilege_jurisdiction.lower() in selected_jurisdictions_postal_abbreviations:
+    existing_privileges = [
+        record for record in user_provider_data['items'] if record['type'] == 'privilege'
+    ]
+    # a licensee can only purchase an existing privilege for a jurisdiction
+    # if their existing privilege expiration date does not match their license expiration date
+    for privilege in existing_privileges:
+        if (privilege['jurisdiction'].lower() in selected_jurisdictions_postal_abbreviations and
+                privilege['dateOfExpiration'] == license_record['dateOfExpiration']):
             raise CCInvalidRequestException(
-                f"Selected privilege jurisdiction '{privilege_jurisdiction}'"
+                f"Selected privilege jurisdiction '{privilege['jurisdiction'].lower()}'"
                 f' matches existing privilege jurisdiction'
             )
 
@@ -198,6 +202,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             jurisdiction_postal_abbreviations=selected_jurisdictions_postal_abbreviations,
             license_expiration_date=license_expiration_date,
             compact_transaction_id=transaction_response['transactionId'],
+            existing_privileges=existing_privileges,
         )
 
         return transaction_response
