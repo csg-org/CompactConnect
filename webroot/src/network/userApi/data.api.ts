@@ -179,7 +179,7 @@ export class UserDataApi implements DataApiInterface {
      * @param  {object}          data The request data.
      * @return {Promise<object>}      Axios-formatted response from AWS Cognito.
      */
-    public async updateAuthenticatedUserPassword(data) {
+    public async updateAuthenticatedUserPassword(data: object) {
         const { cognitoRegion } = envConfig;
         const requestData = JSON.stringify(data || {});
         const serverResponse: any = await axios.post(`https://cognito-idp.${cognitoRegion}.amazonaws.com/`, requestData, {
@@ -206,9 +206,10 @@ export class UserDataApi implements DataApiInterface {
 
     /**
      * UPDATE Authenticated Staff User.
-     * @return {Promise<User>} A User model instance.
+     * @param  {object}        data The request data.
+     * @return {Promise<User>}      A User model instance.
      */
-    public async updateAuthenticatedStaffUser(data) {
+    public async updateAuthenticatedStaffUser(data: object) {
         const serverResponse: any = await this.api.patch(`/v1/staff-users/me`, data);
         const response = StaffUserSerializer.fromServer(serverResponse);
 
