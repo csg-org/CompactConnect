@@ -313,9 +313,10 @@
             "text": "Text"
         },
         "password": "Password",
+        "changePassword": "Change password",
         "currentPassword": "Current password",
         "newPassword": "New password",
-        "changePasswordFormTitle": "Change password",
+        "confirmNewPassword": "Confirm new password",
         "passwordCreationInstruction": "To create a new password, you have to meet all of the following requirements",
         "passwordRules": [
             "Min 8 characters",
@@ -324,6 +325,9 @@
             "1 number",
             "1 symbol"
         ],
+        "passwordsMustMatch": "Passwords must match",
+        "togglePasswordVisibility": "Toggle password visibility",
+        "passwordResetError": "There was an error resetting your password",
         "lastLogin": "Last Login",
         "description": "Description",
         "copyright": "Copyright",
@@ -505,6 +509,7 @@
         ]
     },
     "account": {
+        "accountTitle": "Account",
         "usersListTitle": "Users",
         "usersListEmpty": "Invite users with the button above",
         "permissions": "Permissions",
