@@ -11,7 +11,7 @@ class TestClient(TstFunction):
     def test_get_provider_id(self):
         from cc_common.data_model.client import DataClient
 
-        with open('tests/resources/dynamo/provider-ssn.json') as f:
+        with open('../common-python/tests/resources/dynamo/provider-ssn.json') as f:
             record = json.load(f)
         provider_ssn = record['ssn']
         expected_provider_id = record['providerId']
@@ -63,7 +63,7 @@ class TestClient(TstFunction):
 
         provider_id = self._load_provider_data()
 
-        with open('tests/resources/dynamo/license.json') as f:
+        with open('../common-python/tests/resources/dynamo/license.json') as f:
             license_record = json.load(f)
 
         self._provider_table.put_item(
@@ -247,17 +247,17 @@ class TestClient(TstFunction):
         self.assertListEqual(sorted(dates_of_update, reverse=True), dates_of_update)
 
     def _load_provider_data(self) -> str:
-        with open('tests/resources/dynamo/provider.json') as f:
+        with open('../common-python/tests/resources/dynamo/provider.json') as f:
             provider_record = json.load(f)
         provider_id = provider_record['providerId']
         provider_record['privilegeJurisdictions'] = set(provider_record['privilegeJurisdictions'])
         self._provider_table.put_item(Item=provider_record)
 
-        with open('tests/resources/dynamo/privilege.json') as f:
+        with open('../common-python/tests/resources/dynamo/privilege.json') as f:
             privilege_record = json.load(f)
         self._provider_table.put_item(Item=privilege_record)
 
-        with open('tests/resources/dynamo/license.json') as f:
+        with open('../common-python/tests/resources/dynamo/license.json') as f:
             license_record = json.load(f)
         self._provider_table.put_item(Item=license_record)
 
