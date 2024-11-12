@@ -64,7 +64,7 @@
                     </ul>
                     <ul class="selected-state-list">
                         <li
-                            v-for="(state, i) in selectedStatePurchaseDataList"
+                            v-for="(state, i) in selectedStatePurchaseDataDisplayList"
                             :key="state.jurisdiction.abbrev"
                             class="selected-state-block"
                         >
@@ -83,19 +83,19 @@
                             </div>
                             <div class="info-row sub-row">
                                 <div class="info-row-label">{{jurisdictionFeeText}}</div>
-                                <div class="expire-date-value">${{state.fee.toFixed(2)}}</div>
+                                <div class="expire-date-value">${{state.feeDisplay}}</div>
                             </div>
                             <div class="info-row sub-row">
                                 <div class="info-row-label">{{commissionFeeText}}</div>
-                                <div class="expire-date-value">${{currentCompactCommissionFee.toFixed(2)}}</div>
+                                <div class="expire-date-value">${{currentCompactCommissionFeeDisplay}}</div>
                             </div>
                             <div v-if="state.isMilitaryDiscountActive" class="info-row sub-row">
                                 <div class="info-row-label">{{militaryDiscountText}}</div>
-                                <div class="expire-date-value">-${{state.militaryDiscountAmount.toFixed(2)}}</div>
+                                <div class="expire-date-value">-${{state.militaryDiscountAmountDisplay}}</div>
                             </div>
                             <div class="info-row">
                                 <div class="info-row-label">{{subtotalText}}</div>
-                                <div class="expire-date-value">${{subTotalList[i].toFixed(2)}}</div>
+                                <div class="expire-date-value">${{subTotalListDisplay[i]}}</div>
                             </div>
                             <div v-if="state.isJurisprudenceRequired" class="jurisprudence-check-box">
                                 <InputCheckbox

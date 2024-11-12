@@ -352,7 +352,8 @@ export const licensees = {
                     compact: 'aslp',
                     providerId: '1',
                     type: 'privilege',
-                    dateOfIssuance: '2024-08-29',
+                    dateOfIssuance: '2023-08-29',
+                    dateOfRenewal: '2024-08-29',
                     dateOfUpdate: '2024-08-29',
                     status: 'inactive'
                 },
@@ -362,27 +363,30 @@ export const licensees = {
                     compact: 'aslp',
                     providerId: '1',
                     type: 'privilege',
-                    dateOfIssuance: '2024-08-29',
+                    dateOfIssuance: '2023-08-29',
+                    dateOfRenewal: '2024-08-29',
                     dateOfUpdate: '2024-08-29',
                     status: 'active'
                 },
                 {
                     licenseJurisdiction: 'ar',
-                    dateOfExpiration: '2025-08-29',
+                    dateOfExpiration: '2026-08-29',
                     compact: 'aslp',
                     providerId: '1',
                     type: 'privilege',
-                    dateOfIssuance: '2024-08-29',
+                    dateOfIssuance: '2023-08-29',
+                    dateOfRenewal: '2024-08-29',
                     dateOfUpdate: '2024-08-29',
                     status: 'active'
                 },
                 {
                     licenseJurisdiction: 'ma',
-                    dateOfExpiration: '2025-08-29',
+                    dateOfExpiration: '2026-08-29',
                     compact: 'aslp',
                     providerId: '1',
                     type: 'privilege',
-                    dateOfIssuance: '2024-08-29',
+                    dateOfIssuance: '2023-08-29',
+                    dateOfRenewal: '2024-08-29',
                     dateOfUpdate: '2024-08-29',
                     status: 'active'
                 },
@@ -393,6 +397,7 @@ export const licensees = {
                     providerId: '1',
                     type: 'privilege',
                     dateOfIssuance: '2019-08-29',
+                    dateOfRenewal: '2024-08-29',
                     dateOfUpdate: '2024-08-29',
                     status: 'in'
                 }
@@ -428,7 +433,7 @@ export const licensees = {
                     dateOfIssuance: '2024-08-29',
                     ssn: '085-32-1496',
                     licenseType: 'audiologist',
-                    dateOfExpiration: '2024-08-29',
+                    dateOfExpiration: '2025-08-29',
                     homeAddressState: 'co',
                     providerId: '1',
                     dateOfRenewal: '2024-08-29',
@@ -505,7 +510,7 @@ export const licensees = {
                     compact: 'aslp',
                     providerId: '1',
                     type: 'privilege',
-                    dateOfIssuance: '2024-08-29',
+                    dateOfIssuance: '2023-08-29',
                     dateOfUpdate: '2024-08-29',
                     status: 'active'
                 },
@@ -515,17 +520,17 @@ export const licensees = {
                     compact: 'aslp',
                     providerId: '1',
                     type: 'privilege',
-                    dateOfIssuance: '2024-08-29',
+                    dateOfIssuance: '2023-08-29',
                     dateOfUpdate: '2024-08-29',
                     status: 'active'
                 },
                 {
                     licenseJurisdiction: 'ar',
-                    dateOfExpiration: '2024-08-29',
+                    dateOfExpiration: '2023-08-29',
                     compact: 'aslp',
                     providerId: '1',
                     type: 'privilege',
-                    dateOfIssuance: '2024-08-29',
+                    dateOfIssuance: '2023-08-29',
                     dateOfUpdate: '2024-08-29',
                     status: 'active'
                 }

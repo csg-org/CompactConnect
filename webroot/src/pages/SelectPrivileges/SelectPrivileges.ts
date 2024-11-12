@@ -63,6 +63,10 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         return this.currentCompact?.compactCommissionFee || null;
     }
 
+    get currentCompactCommissionFeeDisplay(): string {
+        return this.currentCompactCommissionFee?.toFixed(2) || '0.00';
+    }
+
     get userStore(): any {
         return this.$store.state.user;
     }
@@ -99,6 +103,24 @@ export default class SelectPrivileges extends mixins(MixinForm) {
 
         licenseList.forEach((license) => {
             if (license?.issueState?.abbrev) {
+                stateList.push(license?.issueState?.abbrev);
+            }
+        });
+
+        return stateList;
+    }
+
+    get disabledPrivilegeStateChoices(): Array<string> {
+        const licenseList = this.licenseList.concat(this.privilegeList);
+
+        const stateList: Array<string> = [];
+
+        licenseList.forEach((license) => {
+            if (
+                license?.issueState?.abbrev
+                && license?.expireDate === this.activeLicense?.expireDate
+                && license.statusState === LicenseStatus.ACTIVE
+            ) {
                 stateList.push(license?.issueState?.abbrev);
             }
         });
@@ -157,6 +179,27 @@ export default class SelectPrivileges extends mixins(MixinForm) {
             }
 
             return includes;
+        });
+    }
+
+    get selectedStatePurchaseDataDisplayList(): Array<object> {
+        return this.selectedStatePurchaseDataList.map((option) => {
+            let feeDisplay = '';
+            let militaryDiscountAmountDisplay = '';
+
+            if (option?.fee) {
+                feeDisplay = option?.fee?.toFixed(2);
+            }
+
+            if (option?.militaryDiscountAmount) {
+                militaryDiscountAmountDisplay = option?.militaryDiscountAmount?.toFixed(2);
+            }
+
+            return {
+                ...option,
+                feeDisplay,
+                militaryDiscountAmountDisplay
+            };
         });
     }
 
@@ -228,12 +271,14 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         return date;
     }
 
-    get subTotalList(): Array<number> {
+    get subTotalListDisplay(): Array<string> {
         return this.selectedStatePurchaseDataList?.map((purchaseInfo) => {
             const militaryDiscount = purchaseInfo.isMilitaryDiscountActive && purchaseInfo.militaryDiscountAmount
                 ? purchaseInfo.militaryDiscountAmount : 0;
 
-            return ((purchaseInfo?.fee || 0) + (this.currentCompactCommissionFee || 0) - (militaryDiscount));
+            const total = ((purchaseInfo?.fee || 0) + (this.currentCompactCommissionFee || 0) - (militaryDiscount));
+
+            return total.toFixed(2);
         });
     }
 
@@ -382,7 +427,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     checkIfStateSelectIsDisabled(state): boolean {
-        return this.alreadyObtainedPrivilegeStates.includes(state.id);
+        return this.disabledPrivilegeStateChoices.includes(state.id);
     }
 
     @Watch('alreadyObtainedPrivilegeStates.length') reInitForm() {
