@@ -196,6 +196,7 @@ class DataClient:
                                     'status': provider_data['status'],
                                     'dateOfExpiration': provider_data['dateOfExpiration'],
                                     'dateOfIssuance': now.date(),
+                                    'dateOfRenewal': now.date(),
                                     'dateOfUpdate': now.date(),
                                 },
                             ),
