@@ -33,7 +33,7 @@ export default class Logout extends Vue {
 
     get hostedLogoutUriStaff(): string {
         const { domain, cognitoAuthDomainStaff, cognitoClientIdStaff } = this.$envConfig;
-        const loginScopes = 'email openid phone profile';
+        const loginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
         const loginResponseType = 'code';
         const loginRedirectPath = '/auth/callback';
         const loginUriQuery = [

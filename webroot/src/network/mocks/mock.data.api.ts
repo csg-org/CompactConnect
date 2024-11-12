@@ -127,8 +127,18 @@ export class DataApi {
         return this.wait(500).then(() => StaffUserSerializer.fromServer(users.items[0]));
     }
 
+    // Update Authenticated user password
+    public updateAuthenticatedUserPassword() {
+        return this.wait(500).then(() => ({ success: true }));
+    }
+
     // Get Authenticated Staff User
     public getAuthenticatedStaffUser() {
+        return this.wait(500).then(() => StaffUserSerializer.fromServer(staffAccount));
+    }
+
+    // Update Authenticated Staff User
+    public updateAuthenticatedStaffUser() {
         return this.wait(500).then(() => StaffUserSerializer.fromServer(staffAccount));
     }
 
@@ -137,6 +147,11 @@ export class DataApi {
     // ========================================================================
     // Get Authenticated Licensee User
     public getAuthenticatedLicenseeUser() {
+        return this.wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.items[0]));
+    }
+
+    // Update Authenticated Licensee User
+    public updateAuthenticatedLicenseeUser() {
         return this.wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.items[0]));
     }
 
