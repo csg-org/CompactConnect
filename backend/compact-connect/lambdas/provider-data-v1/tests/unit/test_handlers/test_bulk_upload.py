@@ -18,7 +18,7 @@ class TestProcessS3Event(TstLambdas):
 
         mock_process.return_value = None
 
-        with open('tests/resources/put-event.json') as f:
+        with open('../common-python/tests/resources/put-event.json') as f:
             event = json.load(f)
 
         bucket = event['Records'][0]['s3']['bucket']['name']
@@ -45,7 +45,7 @@ class TestProcessS3Event(TstLambdas):
             operation_name='DoAWSThing',
         )
 
-        with open('tests/resources/put-event.json') as f:
+        with open('../common-python/tests/resources/put-event.json') as f:
             event = json.load(f)
 
         with self.assertRaises(ClientError):
@@ -77,7 +77,7 @@ class TestProcessS3Event(TstLambdas):
         # What if the uploaded file is not properly utf-8 encoded?
         mock_process.side_effect = error
 
-        with open('tests/resources/put-event.json') as f:
+        with open('../common-python/tests/resources/put-event.json') as f:
             event = json.load(f)
 
         bucket = event['Records'][0]['s3']['bucket']['name']
@@ -99,7 +99,7 @@ class TestProcessBulkUploadFile(TstLambdas):
 
         mock_config.events_client.put_events.return_value = {'FailedEntryCount': 0, 'Entries': [{'EventId': '123'}]}
 
-        with open('tests/resources/licenses.csv', 'rb') as f:
+        with open('../common-python/tests/resources/licenses.csv', 'rb') as f:
             line_count = len(f.readlines())
             f.seek(0)
             content_length = len(f.read())
@@ -130,7 +130,7 @@ class TestProcessBulkUploadFile(TstLambdas):
         mock_config.events_client.put_events.return_value = {'FailedEntryCount': 0, 'Entries': [{'EventId': '123'}]}
 
         # We'll do a little processing to mangle our CSV data a bit
-        with open('tests/resources/licenses.csv') as f:
+        with open('../common-python/tests/resources/licenses.csv') as f:
             line_count = len(f.readlines())
             f.seek(0)
             csv_data = [line.split(',') for line in f]
