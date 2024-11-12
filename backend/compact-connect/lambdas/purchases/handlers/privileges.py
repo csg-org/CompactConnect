@@ -169,14 +169,14 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             f"Selected privilege jurisdiction '{license_jurisdiction}'" f' matches license jurisdiction'
         )
 
-    existing_privileges = [
-        record for record in user_provider_data['items'] if record['type'] == 'privilege'
-    ]
+    existing_privileges = [record for record in user_provider_data['items'] if record['type'] == 'privilege']
     # a licensee can only purchase an existing privilege for a jurisdiction
     # if their existing privilege expiration date does not match their license expiration date
     for privilege in existing_privileges:
-        if (privilege['jurisdiction'].lower() in selected_jurisdictions_postal_abbreviations and
-                privilege['dateOfExpiration'] == license_record['dateOfExpiration']):
+        if (
+            privilege['jurisdiction'].lower() in selected_jurisdictions_postal_abbreviations
+            and privilege['dateOfExpiration'] == license_record['dateOfExpiration']
+        ):
             raise CCInvalidRequestException(
                 f"Selected privilege jurisdiction '{privilege['jurisdiction'].lower()}'"
                 f' matches existing privilege jurisdiction'

@@ -1,4 +1,4 @@
-from datetime import date, datetime, UTC
+from datetime import UTC, date, datetime
 from unittest.mock import MagicMock
 
 from botocore.exceptions import ClientError
@@ -37,10 +37,12 @@ class TestDataClient(TstLambdas):
                 jurisdiction_postal_abbreviations=['CA'],
                 license_expiration_date=date.fromisoformat('2024-10-31'),
                 existing_privileges=[],
-                compact_transaction_id='test_transaction_id'
+                compact_transaction_id='test_transaction_id',
             )
 
         mock_batch_writer.delete_item.assert_called_with(
-            Key={'pk': 'aslp#PROVIDER#test_provider_id',
-                 'sk': f'aslp#PROVIDER#privilege/ca#{datetime.now(tz=UTC).date().isoformat()}'}
+            Key={
+                'pk': 'aslp#PROVIDER#test_provider_id',
+                'sk': f'aslp#PROVIDER#privilege/ca#{datetime.now(tz=UTC).date().isoformat()}',
+            }
         )

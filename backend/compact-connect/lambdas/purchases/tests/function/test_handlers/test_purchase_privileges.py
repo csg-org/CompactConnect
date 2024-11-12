@@ -54,8 +54,11 @@ class TestPostPurchasePrivileges(TstFunction):
             jurisdiction['sk'] = 'aslp#JURISDICTION#ky'
             self.config.compact_configuration_table.put_item(Item=jurisdiction)
 
-    def _when_testing_provider_user_event_with_custom_claims(self, test_compact=TEST_COMPACT,
-                                                             license_status='active',):
+    def _when_testing_provider_user_event_with_custom_claims(
+        self,
+        test_compact=TEST_COMPACT,
+        license_status='active',
+    ):
         self._load_compact_configuration_data()
         self._load_provider_data()
         self._load_test_jurisdiction()
@@ -261,8 +264,11 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(2, len(privilege_records))
 
         # ensure the date of renewal is updated
-        updated_privilege_record = next(record for record in privilege_records if record['dateOfRenewal'].isoformat()
-                                        == datetime.now(tz=UTC).date().isoformat())
+        updated_privilege_record = next(
+            record
+            for record in privilege_records
+            if record['dateOfRenewal'].isoformat() == datetime.now(tz=UTC).date().isoformat()
+        )
         # ensure the expiration is updated
         self.assertEqual(updated_expiration_date, updated_privilege_record['dateOfExpiration'].isoformat())
         # ensure the issuance date is the same
@@ -283,7 +289,6 @@ class TestPostPurchasePrivileges(TstFunction):
         response_body = json.loads(resp['body'])
 
         self.assertEqual({'message': 'Provider not found'}, response_body)
-
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_400_if_no_active_license_found(self, mock_purchase_client_constructor):

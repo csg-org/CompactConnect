@@ -224,7 +224,6 @@ class DataClient:
         compact_transaction_id: str,
         original_issuance_date: date | None = None,
     ):
-
         today = datetime.now(tz=UTC).date()
         privilege_object = {
             'providerId': provider_id,
@@ -304,7 +303,7 @@ class DataClient:
                         provider_id=provider_id,
                         jurisdiction_postal_abbreviation=postal_abbreviation,
                         license_expiration_date=license_expiration_date,
-                        compact_transaction_id=compact_transaction_id
+                        compact_transaction_id=compact_transaction_id,
                     )
                     # this transaction is idempotent, so we can safely delete the records even if they weren't created
                     delete_batch.delete_item(Key={'pk': privilege_record['pk'], 'sk': privilege_record['sk']})

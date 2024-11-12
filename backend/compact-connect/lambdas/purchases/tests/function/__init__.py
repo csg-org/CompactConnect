@@ -81,7 +81,10 @@ class TstFunction(TstLambdas):
 
     def _load_compact_configuration_data(self):
         """Use the canned test resources to load compact and jurisdiction information into the DB"""
-        test_resources = ['../common-python/tests/resources/dynamo/compact.json', '../common-python/tests/resources/dynamo/jurisdiction.json']
+        test_resources = [
+            '../common-python/tests/resources/dynamo/compact.json',
+            '../common-python/tests/resources/dynamo/jurisdiction.json',
+        ]
 
         for resource in test_resources:
             with open(resource) as f:
