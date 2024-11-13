@@ -318,9 +318,10 @@
             "text": "Text"
         },
         "password": "Password",
+        "changePassword": "Change password",
         "currentPassword": "Current password",
         "newPassword": "New password",
-        "changePasswordFormTitle": "Change password",
+        "confirmNewPassword": "Confirm new password",
         "passwordCreationInstruction": "To create a new password, you have to meet all of the following requirements",
         "passwordRules": [
             "Min 8 characters",
@@ -329,6 +330,9 @@
             "1 number",
             "1 symbol"
         ],
+        "passwordsMustMatch": "Passwords must match",
+        "togglePasswordVisibility": "Toggle password visibility",
+        "passwordResetError": "There was an error resetting your password",
         "lastLogin": "Last Login",
         "description": "Description",
         "copyright": "Copyright",
@@ -431,8 +435,7 @@
         "formTitle": "Compact data upload",
         "formSubtext": "Current uploads are for test purposes and the data will not be saved permanently",
         "uploadHint": "Only 1 CSV",
-        "successTitle": "Your document has been uploaded successfully",
-        "successSubtext": "Lorem ipsum dolor sit amet Lorem ipsum dolor sit amet"
+        "successTitle": "Your document has been uploaded successfully"
     },
     "payment": {
         "firstNameOnCard": "Enter first name on card",
@@ -532,6 +535,7 @@
         ]
     },
     "account": {
+        "accountTitle": "Account",
         "usersListTitle": "Users",
         "usersListEmpty": "Invite users with the button above",
         "permissions": "Permissions",

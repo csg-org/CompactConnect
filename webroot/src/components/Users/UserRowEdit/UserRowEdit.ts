@@ -366,6 +366,10 @@ class UserRowEdit extends mixins(MixinForm) {
                 this.setError(err.message);
             });
 
+            if (this.user.id === this.currentUser.id) {
+                await this.$store.dispatch(`user/getStaffAccountRequest`);
+            }
+
             if (!this.isFormError) {
                 this.isFormSuccessful = true;
             }

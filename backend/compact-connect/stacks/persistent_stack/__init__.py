@@ -1,8 +1,13 @@
-from aws_cdk import RemovalPolicy
+import os
+
+from aws_cdk import RemovalPolicy, aws_ssm
 from aws_cdk.aws_cognito import UserPoolEmail
 from aws_cdk.aws_kms import Key
+from aws_cdk.aws_lambda import Runtime
+from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
+from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from constructs import Construct
@@ -39,6 +44,31 @@ class PersistentStack(AppStack):
         super().__init__(scope, construct_id, environment_context=environment_context, **kwargs)
         # If we delete this stack, retain the resource (orphan but prevent data loss) or destroy it (clean up)?
         removal_policy = RemovalPolicy.RETAIN if environment_name == 'prod' else RemovalPolicy.DESTROY
+
+        # Add the common python lambda layer for use in all python lambdas
+        # NOTE: this is to only be referenced directly in this stack!
+        # All external references should use the ssm parameter to get the value of the layer arn.
+        # attempting to reference this layer directly in another stack will cause this stack
+        # to be stuck in an UPDATE_ROLLBACK_FAILED state which will require DELETION of stacks
+        # that reference the layer directly. See https://github.com/aws/aws-cdk/issues/1972
+        self.common_python_lambda_layer = PythonLayerVersion(
+            self,
+            'CompactConnectCommonPythonLayer',
+            entry=os.path.join('lambdas', 'common-python'),
+            compatible_runtimes=[Runtime.PYTHON_3_12],
+            description='A layer for common code shared between python lambdas',
+        )
+
+        # We Store the layer ARN in SSM Parameter Store
+        # since lambda layers can't be shared across stacks
+        # directly due to the fact that you can't update a CloudFormation
+        # exported value that is being referenced by a resource in another stack
+        self.lambda_layer_ssm_parameter = aws_ssm.StringParameter(
+            self,
+            'CommonPythonLayerArnParameter',
+            parameter_name=COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME,
+            string_value=self.common_python_lambda_layer.layer_version_arn,
+        )
 
         self.shared_encryption_key = Key(
             self,

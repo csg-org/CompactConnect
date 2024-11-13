@@ -124,7 +124,7 @@ class CompactConfigurationUpload(Construct):
 
     def _configuration_is_active_for_environment(self, environment_name: str, active_environments: list[str]) -> bool:
         """Check if the compact configuration is active in the given environment."""
-        return environment_name in active_environments or self.node.try_get_context('sandbox') == 'true'
+        return environment_name in active_environments or self.node.try_get_context('sandbox') is True
 
     def _generate_compact_configuration_json_string(self, environment_name: str) -> str:
         """Currently, all configuration for compacts and jurisdictions is hardcoded in the compact-config directory.

@@ -56,7 +56,7 @@ describe('Date formatters', () => {
     it('should calculate a date diff in days', () => {
         const date1 = moment();
         const date2 = moment().subtract(5, 'days');
-        const diff = dateDiff(date1, date2, 'days');
+        const diff = Math.round(dateDiff(date1, date2, 'days'));
 
         expect(diff).to.equal(5);
     });

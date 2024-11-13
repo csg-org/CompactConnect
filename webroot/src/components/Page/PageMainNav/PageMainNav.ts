@@ -50,6 +50,23 @@ class PageMainNav extends Vue {
         return this.isLoggedIn && this.$store.getters['user/highestPermissionAuthType']() === AuthTypes.STAFF;
     }
 
+    get hasStatePermissions(): boolean {
+        const { model: user } = this.userStore;
+        let hasPermissions = false;
+
+        if (this.isLoggedInAsStaff) {
+            const compactType = this.currentCompact?.type;
+            const compactPermissions = user?.permissions?.find((permission) =>
+                permission.compact.type === compactType) || null;
+
+            if (compactPermissions?.states?.length) {
+                hasPermissions = true;
+            }
+        }
+
+        return hasPermissions;
+    }
+
     get mainLinks() {
         return reactive([
             {
@@ -64,9 +81,16 @@ class PageMainNav extends Vue {
                 to: 'StateUpload',
                 params: { compact: this.currentCompact?.type },
                 label: computed(() => this.$t('navigation.upload')),
-                isEnabled: Boolean(this.currentCompact) && this.isLoggedInAsStaff,
+                isEnabled: Boolean(this.currentCompact) && this.hasStatePermissions,
                 isExternal: false,
                 isExactActive: true,
+            },
+            {
+                to: 'Account',
+                label: computed(() => this.$t('navigation.account')),
+                isEnabled: this.isLoggedIn,
+                isExternal: false,
+                isExactActive: false,
             },
             // { // @NOTE: Disable user-list nav while the user management feature is WIP
             //     to: 'Users',

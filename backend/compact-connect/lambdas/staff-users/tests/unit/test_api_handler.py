@@ -11,7 +11,7 @@ class TestApiHandler(TstLambdas):
     """Testing that the api_handler decorator is working as expected."""
 
     def test_happy_path(self):
-        from utils import api_handler
+        from cc_common.utils import api_handler
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -26,8 +26,8 @@ class TestApiHandler(TstLambdas):
         self.assertEqual('{"message": "OK"}', resp['body'])
 
     def test_unauthorized(self):
-        from exceptions import CCUnauthorizedException
-        from utils import api_handler
+        from cc_common.exceptions import CCUnauthorizedException
+        from cc_common.utils import api_handler
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):
@@ -40,8 +40,8 @@ class TestApiHandler(TstLambdas):
         self.assertEqual(401, resp['statusCode'])
 
     def test_access_denied(self):
-        from exceptions import CCAccessDeniedException
-        from utils import api_handler
+        from cc_common.exceptions import CCAccessDeniedException
+        from cc_common.utils import api_handler
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):
@@ -54,8 +54,8 @@ class TestApiHandler(TstLambdas):
         self.assertEqual(403, resp['statusCode'])
 
     def test_not_found(self):
-        from exceptions import CCNotFoundException
-        from utils import api_handler
+        from cc_common.exceptions import CCNotFoundException
+        from cc_common.utils import api_handler
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):
@@ -69,8 +69,8 @@ class TestApiHandler(TstLambdas):
         self.assertEqual({'message': "I don't see it."}, json.loads(resp['body']))
 
     def test_invalid_request(self):
-        from exceptions import CCInvalidRequestException
-        from utils import api_handler
+        from cc_common.exceptions import CCInvalidRequestException
+        from cc_common.utils import api_handler
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):
@@ -84,7 +84,7 @@ class TestApiHandler(TstLambdas):
         self.assertEqual({'message': 'Your request is wrong.'}, json.loads(resp['body']))
 
     def test_client_error(self):
-        from utils import api_handler
+        from cc_common.utils import api_handler
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):
@@ -97,7 +97,7 @@ class TestApiHandler(TstLambdas):
             lambda_handler(event, self.mock_context)
 
     def test_runtime_error(self):
-        from utils import api_handler
+        from cc_common.utils import api_handler
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):
@@ -113,7 +113,7 @@ class TestApiHandler(TstLambdas):
         """API Gateway will send a null object in the case that a field that is usually a dict is empty. This test
         verifies that the api_handler decorator can handle this case.
         """
-        from utils import api_handler
+        from cc_common.utils import api_handler
 
         @api_handler
         def lambda_handler(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument

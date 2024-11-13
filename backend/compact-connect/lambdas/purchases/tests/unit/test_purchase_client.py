@@ -3,7 +3,8 @@ import json
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
-from exceptions import CCFailedTransactionException, CCInternalException
+from cc_common.config import config
+from cc_common.exceptions import CCFailedTransactionException, CCInternalException, CCInvalidRequestException
 
 from tests import TstLambdas
 
@@ -52,7 +53,7 @@ def _generate_default_order_information():
 
 
 def _generate_aslp_compact_configuration():
-    from data_model.schema.compact import Compact
+    from cc_common.data_model.schema.compact import Compact
 
     with open('tests/resources/dynamo/compact.json') as f:
         # setting fixed fee amount for tests
@@ -64,7 +65,7 @@ def _generate_aslp_compact_configuration():
 
 
 def _generate_selected_jurisdictions():
-    from data_model.schema.jurisdiction import Jurisdiction
+    from cc_common.data_model.schema.jurisdiction import Jurisdiction
 
     with open('tests/resources/dynamo/jurisdiction.json') as f:
         jurisdiction = json.load(f)
@@ -77,17 +78,34 @@ def _generate_selected_jurisdictions():
         return [Jurisdiction(jurisdiction)]
 
 
-class TestPurchaseClient(TstLambdas):
-    """Testing that the api_handler decorator is working as expected."""
+class TestAuthorizeDotNetPurchaseClient(TstLambdas):
+    """Testing that the purchase client works with authorize.net SDK as expected."""
 
     def _generate_mock_secrets_manager_client(self):
-        def get_secret_value_side_effect(SecretId):  # noqa: N803 invalid-name
+        mock_secrets_manager_client = MagicMock()
+        mock_secrets_manager_client.exceptions.ResourceNotFoundException = (
+            config.secrets_manager_client.exceptions.ResourceNotFoundException
+        )
+
+        def get_secret_value_side_effect(SecretId):  # noqa: N803 invalid-name required for mock
             if SecretId == 'compact-connect/env/test/compact/aslp/credentials/payment-processor':
                 return {'SecretString': json.dumps(MOCK_ASLP_SECRET)}
-            raise ValueError(f'Unknown SecretId: {SecretId}')
+            raise config.secrets_manager_client.exceptions.ResourceNotFoundException(
+                {'Error': {'Code': 'ResourceNotFoundException'}},
+                operation_name='get_secret_value',
+            )
 
-        mock_secrets_manager_client = MagicMock()
+        def describe_secret_side_effect(SecretId):  # noqa: N803 invalid-name required for mock
+            if SecretId == 'compact-connect/env/test/compact/aslp/credentials/payment-processor':
+                # add other fields here if needed
+                return {'Name': 'compact-connect/env/test/compact/aslp/credentials/payment-processor'}
+            raise config.secrets_manager_client.exceptions.ResourceNotFoundException(
+                {'Error': {'Code': 'ResourceNotFoundException'}},
+                operation_name='describe_secret',
+            )
+
         mock_secrets_manager_client.get_secret_value.side_effect = get_secret_value_side_effect
+        mock_secrets_manager_client.describe_secret.side_effect = describe_secret_side_effect
 
         return mock_secrets_manager_client
 
@@ -394,3 +412,150 @@ class TestPurchaseClient(TstLambdas):
                 compact_name='aslp',
                 order_information={'transactionId': MOCK_TRANSACTION_ID},
             )
+
+    @staticmethod
+    def _generate_test_credentials_object():
+        return {
+            'processor': 'authorize.net',
+            'apiLoginId': MOCK_LOGIN_ID,
+            'transactionKey': MOCK_TRANSACTION_KEY,
+        }
+
+    def _when_authorize_dot_net_credentials_are_valid(self, mock_create_transaction_controller):
+        mock_success_response = {
+            'messages': {'resultCode': 'Ok', 'message': [{'code': 'I00001', 'text': 'Successful.'}]}
+        }
+
+        return self._setup_mock_transaction_controller(mock_create_transaction_controller, mock_success_response)
+
+    def _when_authorize_dot_net_credentials_are_not_valid(self, mock_create_transaction_controller):
+        mock_success_response = {
+            'messages': {
+                'resultCode': 'Error',
+                'message': [{'code': 'E00124', 'text': 'The provided access token is invalid'}],
+            }
+        }
+
+        return self._setup_mock_transaction_controller(mock_create_transaction_controller, mock_success_response)
+
+    @patch('purchase_client.getMerchantDetailsController')
+    def test_purchase_client_validates_credentials_using_authorize_net_processor(
+        self, mock_get_merchant_details_controller
+    ):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_credentials_are_valid(
+            mock_create_transaction_controller=mock_get_merchant_details_controller
+        )
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        result = test_purchase_client.validate_and_store_credentials(
+            compact_name='aslp', credentials=self._generate_test_credentials_object()
+        )
+
+        self.assertEqual({'message': 'Successfully verified credentials'}, result)
+
+        call_args = mock_get_merchant_details_controller.call_args.args
+        api_contract_v1_obj = call_args[0]
+        # authentication fields
+        self.assertEqual(MOCK_LOGIN_ID, api_contract_v1_obj.merchantAuthentication.name)
+        self.assertEqual(MOCK_TRANSACTION_KEY, api_contract_v1_obj.merchantAuthentication.transactionKey)
+
+    @patch('purchase_client.getMerchantDetailsController')
+    def test_purchase_client_creates_secret_when_secret_does_not_exist(self, mock_get_merchant_details_controller):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_credentials_are_valid(
+            mock_create_transaction_controller=mock_get_merchant_details_controller
+        )
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        result = test_purchase_client.validate_and_store_credentials(
+            compact_name='octp', credentials=self._generate_test_credentials_object()
+        )
+
+        self.assertEqual({'message': 'Successfully verified credentials'}, result)
+
+        mock_secrets_manager_client.create_secret.assert_called_once_with(
+            Name='compact-connect/env/test/compact/octp/credentials/payment-processor',
+            SecretString=json.dumps(
+                {
+                    'processor': 'authorize.net',
+                    'api_login_id': MOCK_LOGIN_ID,
+                    'transaction_key': MOCK_TRANSACTION_KEY,
+                }
+            ),
+        )
+
+    @patch('purchase_client.getMerchantDetailsController')
+    def test_purchase_client_updates_secret_when_secret_exists(self, mock_get_merchant_details_controller):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_credentials_are_valid(
+            mock_create_transaction_controller=mock_get_merchant_details_controller
+        )
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        # In this case, the 'aslp' compact has an existing secret in place
+        # so if a compact admin uploads new credentials, the existing secret should be updated
+        result = test_purchase_client.validate_and_store_credentials(
+            compact_name='aslp', credentials=self._generate_test_credentials_object()
+        )
+
+        self.assertEqual({'message': 'Successfully verified credentials'}, result)
+
+        mock_secrets_manager_client.put_secret_value.assert_called_once_with(
+            SecretId='compact-connect/env/test/compact/aslp/credentials/payment-processor',
+            SecretString=json.dumps(
+                {
+                    'processor': 'authorize.net',
+                    'api_login_id': MOCK_LOGIN_ID,
+                    'transaction_key': MOCK_TRANSACTION_KEY,
+                }
+            ),
+        )
+
+    @patch('purchase_client.getMerchantDetailsController')
+    def test_purchase_client_raises_exception_if_invalid_processor(self, mock_get_merchant_details_controller):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_credentials_are_valid(
+            mock_create_transaction_controller=mock_get_merchant_details_controller
+        )
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        with self.assertRaises(CCInvalidRequestException):
+            test_purchase_client.validate_and_store_credentials(
+                compact_name='aslp',
+                credentials={
+                    'processor': 'stripe',
+                    'apiLoginId': 'mock_login_id',
+                    'transactionKey': MOCK_TRANSACTION_KEY,
+                },
+            )
+
+    @patch('purchase_client.getMerchantDetailsController')
+    def test_purchase_client_raises_exception_if_invalid_credentials(self, mock_get_merchant_details_controller):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_credentials_are_not_valid(
+            mock_create_transaction_controller=mock_get_merchant_details_controller
+        )
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        with self.assertRaises(CCInvalidRequestException) as context:
+            test_purchase_client.validate_and_store_credentials(
+                compact_name='aslp', credentials=self._generate_test_credentials_object()
+            )
+
+        self.assertIn('Failed to verify credentials', str(context.exception.message))

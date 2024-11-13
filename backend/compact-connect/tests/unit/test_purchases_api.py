@@ -8,7 +8,7 @@ from tests.unit.test_api import TestApi
 def _generate_expected_secret_arn(compact: str) -> str:
     return (
         f'arn:aws:secretsmanager:us-east-1:111122223333:secret:compact-connect/env'
-        f'/justin/compact/{compact}/credentials/payment-processor*'
+        f'/justin/compact/{compact}/credentials/payment-processor-??????'
     )
 
 
@@ -107,7 +107,7 @@ class TestPurchasesApi(TestApi):
         method_request_model_logical_id_capture = Capture()
         method_response_model_logical_id_capture = Capture()
 
-        # ensure the GET method is configured with the lambda integration and authorizer
+        # ensure the POST method is configured with the lambda integration and authorizer
         api_stack_template.has_resource_properties(
             type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
             props={
@@ -133,19 +133,19 @@ class TestPurchasesApi(TestApi):
         )
 
         # check that request model matches expected contract
-        post_purchase_privilege_options_request_model = TestApi.get_resource_properties_by_logical_id(
+        post_purchase_privilege_request_model = TestApi.get_resource_properties_by_logical_id(
             method_request_model_logical_id_capture.as_string(),
             api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
         )
 
         self.compare_snapshot(
-            actual=post_purchase_privilege_options_request_model['Schema'],
+            actual=post_purchase_privilege_request_model['Schema'],
             snapshot_name='PURCHASE_PRIVILEGE_REQUEST_SCHEMA',
             overwrite_snapshot=False,
         )
 
         # now check the response matches expected contract
-        post_purchase_privilege_options_response_model = self.get_resource_properties_by_logical_id(
+        post_purchase_privilege_response_model = self.get_resource_properties_by_logical_id(
             method_response_model_logical_id_capture.as_string(),
             api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
         )
@@ -160,7 +160,7 @@ class TestPurchasesApi(TestApi):
                 'required': ['transactionId'],
                 'type': 'object',
             },
-            post_purchase_privilege_options_response_model['Schema'],
+            post_purchase_privilege_response_model['Schema'],
         )
 
     def test_synth_generates_get_purchases_privileges_options_endpoint_resource(self):
