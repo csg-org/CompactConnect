@@ -348,13 +348,24 @@ export const licensees = {
             privileges: [
                 {
                     licenseJurisdiction: 'al',
+                    dateOfExpiration: '2025-08-29',
+                    compact: 'aslp',
+                    providerId: '1',
+                    type: 'privilege',
+                    dateOfIssuance: '2022-08-29',
+                    dateOfRenewal: '2024-08-29',
+                    dateOfUpdate: '2024-08-29',
+                    status: 'inactive'
+                },
+                {
+                    licenseJurisdiction: 'al',
                     dateOfExpiration: '2024-08-29',
                     compact: 'aslp',
                     providerId: '1',
                     type: 'privilege',
-                    dateOfIssuance: '2023-08-29',
-                    dateOfRenewal: '2024-08-29',
-                    dateOfUpdate: '2024-08-29',
+                    dateOfIssuance: '2022-08-29',
+                    dateOfRenewal: '2023-08-29',
+                    dateOfUpdate: '2023-08-29',
                     status: 'inactive'
                 },
                 {
@@ -391,6 +402,17 @@ export const licensees = {
                     status: 'active'
                 },
                 {
+                    licenseJurisdiction: 'ma',
+                    dateOfExpiration: '2024-08-29',
+                    compact: 'aslp',
+                    providerId: '1',
+                    type: 'privilege',
+                    dateOfIssuance: '2023-08-29',
+                    dateOfRenewal: '2023-08-29',
+                    dateOfUpdate: '2023-08-29',
+                    status: 'inactive'
+                },
+                {
                     licenseJurisdiction: 'me',
                     dateOfExpiration: '2020-08-29',
                     compact: 'aslp',
@@ -399,7 +421,7 @@ export const licensees = {
                     dateOfIssuance: '2019-08-29',
                     dateOfRenewal: '2024-08-29',
                     dateOfUpdate: '2024-08-29',
-                    status: 'in'
+                    status: 'inactive'
                 }
             ],
             licenseJurisdiction: 'co',
@@ -430,7 +452,7 @@ export const licensees = {
                     militaryWaiver: true,
                     dateOfBirth: '1990-08-29',
                     type: 'license-home',
-                    dateOfIssuance: '2024-08-29',
+                    dateOfIssuance: '2023-08-29',
                     ssn: '085-32-1496',
                     licenseType: 'audiologist',
                     dateOfExpiration: '2025-08-29',
@@ -442,6 +464,30 @@ export const licensees = {
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
                     status: 'active'
+                },
+                {
+                    compact: 'aslp',
+                    homeAddressStreet2: '',
+                    npi: '6944447281',
+                    homeAddressPostalCode: '',
+                    jurisdiction: 'co',
+                    givenName: 'Jane',
+                    homeAddressStreet1: '1640 Riverside Drive',
+                    militaryWaiver: true,
+                    dateOfBirth: '1990-08-29',
+                    type: 'license-home',
+                    dateOfIssuance: '2023-08-29',
+                    ssn: '085-32-1496',
+                    licenseType: 'audiologist',
+                    dateOfExpiration: '2024-08-29',
+                    homeAddressState: 'co',
+                    providerId: '1',
+                    dateOfRenewal: '2023-08-29',
+                    familyName: 'Doe',
+                    homeAddressCity: 'Riverside',
+                    middleName: '',
+                    dateOfUpdate: '2023-08-29',
+                    status: 'inactive'
                 },
                 {
                     compact: 'aslp',
@@ -478,7 +524,7 @@ export const licensees = {
                     militaryWaiver: true,
                     dateOfBirth: '1990-08-29',
                     type: 'license-home',
-                    dateOfIssuance: '2024-08-29',
+                    dateOfIssuance: '2023-08-29',
                     ssn: '085-32-1496',
                     licenseType: 'audiologist',
                     dateOfExpiration: '2024-08-29',
@@ -489,6 +535,30 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
+                    status: 'inactive'
+                },
+                {
+                    compact: 'aslp',
+                    homeAddressStreet2: '',
+                    npi: '6944447281',
+                    homeAddressPostalCode: '',
+                    jurisdiction: 'nv',
+                    givenName: 'Jane',
+                    homeAddressStreet1: '1640 Riverside Drive',
+                    militaryWaiver: true,
+                    dateOfBirth: '1990-08-29',
+                    type: 'license-home',
+                    dateOfIssuance: '2024-08-29',
+                    ssn: '085-32-1496',
+                    licenseType: 'audiologist',
+                    dateOfExpiration: '2023-08-29',
+                    homeAddressState: 'co',
+                    providerId: '1',
+                    dateOfRenewal: '2023-08-29',
+                    familyName: 'Doe',
+                    homeAddressCity: 'Riverside',
+                    middleName: '',
+                    dateOfUpdate: '2023-08-29',
                     status: 'inactive'
                 }
             ],
