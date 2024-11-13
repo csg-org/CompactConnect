@@ -21,7 +21,12 @@
                 </form>
             </div>
             <div class="invite-button-container">
-                <button class="invite-user" @click="toggleUserInvite">+ {{ $t('common.invite') }}</button>
+                <button
+                    class="invite-user"
+                    @click="toggleUserInvite"
+                >
+                    + {{ $t('common.invite') }}
+                </button>
             </div>
         </div>
         <ListContainer

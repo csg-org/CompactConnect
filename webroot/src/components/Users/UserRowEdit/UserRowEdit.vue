@@ -29,7 +29,7 @@
                     <InputSelect :formInput="formInput" class="permission-select" />
                 </div>
             </TransitionGroup>
-            <div v-if="isCurrentUserCompactAdmin" class="edit-user-form-row">
+            <div v-if="shouldShowAddStateButton" class="edit-user-form-row">
                 <button
                     class="add-state text-like"
                     @click.prevent="createNewStatePermission"
@@ -48,7 +48,7 @@
                     class="edit-user-button"
                     :formInput="formData.submit"
                     :label="$t('common.saveChanges')"
-                    :isEnabled="!isFormLoading && rowUserCompactPermission"
+                    :isEnabled="!isFormLoading && isAnyTypeOfAdmin"
                 />
             </div>
         </form>

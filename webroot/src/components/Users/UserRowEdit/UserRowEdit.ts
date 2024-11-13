@@ -71,6 +71,7 @@ class UserRowEdit extends mixins(MixinForm) {
     // Lifecycle
     //
     created() {
+        this.shouldValuesIncludeDisabled = true;
         this.initFormInputs();
     }
 
@@ -109,6 +110,18 @@ class UserRowEdit extends mixins(MixinForm) {
         return this.getCompactPermission(this.currentUserCompactPermission) === Permission.ADMIN;
     }
 
+    get isCurrentUserStateAdminAny(): boolean {
+        const { currentUserCompactPermission } = this;
+        const statePermissions = currentUserCompactPermission?.states || [];
+        const isStateAdminAny = statePermissions.some((statePermission) => statePermission.isAdmin);
+
+        return isStateAdminAny;
+    }
+
+    get isAnyTypeOfAdmin(): boolean {
+        return this.isCurrentUserCompactAdmin || this.isCurrentUserStateAdminAny;
+    }
+
     get userCompact(): Compact | null {
         return this.rowUserCompactPermission?.compact || null;
     }
@@ -137,6 +150,12 @@ class UserRowEdit extends mixins(MixinForm) {
         ];
     }
 
+    get currentUserStatePermissions(): Array<StatePermission> {
+        const statePermissions = this.currentUserCompactPermission?.states || [];
+
+        return statePermissions;
+    }
+
     get userStatePermissions(): Array<StatePermission> {
         return this.rowUserCompactPermission?.states || [];
     }
@@ -151,14 +170,40 @@ class UserRowEdit extends mixins(MixinForm) {
 
     get userOptionsState(): Array<PermissionOption> {
         const { userCompact } = this;
-        const options = userCompact?.memberStates?.map((memberState: State) => ({
+        let options = userCompact?.memberStates?.map((memberState: State) => ({
             value: (memberState.abbrev as unknown as string)?.toLowerCase() || '',
             name: memberState.name(),
         })) || [];
 
+        if (!this.isCurrentUserCompactAdmin) {
+            options = options.filter((option) =>
+                this.currentUserStatePermissions.some((statePermission) => {
+                    const stateAbbrev = statePermission.state?.abbrev || '';
+                    const isStateAdmin = statePermission.isAdmin;
+
+                    return stateAbbrev === option.value && isStateAdmin;
+                }));
+        }
+
         options.unshift({ value: '', name: this.$t('common.select') });
 
         return options;
+    }
+
+    get shouldShowAddStateButton(): boolean {
+        let shouldShow = false;
+
+        if (this.isCurrentUserStateAdminAny) {
+            const availableStatesNum = this.userOptionsState.length - 1;
+            const assignedStatesNum = Object.keys(this.formData)
+                .filter((formKey) => formKey.startsWith('state-option')).length;
+
+            if (availableStatesNum > assignedStatesNum) {
+                shouldShow = true;
+            }
+        }
+
+        return shouldShow;
     }
 
     //
@@ -182,6 +227,7 @@ class UserRowEdit extends mixins(MixinForm) {
                 placeholder: computed(() => this.$t('account.permission')),
                 valueOptions: this.userPermissionOptionsCompact,
                 value: this.getCompactPermission(this.rowUserCompactPermission),
+                isDisabled: !this.isCurrentUserCompactAdmin,
             }),
             submit: new FormInput({
                 isSubmitInput: true,

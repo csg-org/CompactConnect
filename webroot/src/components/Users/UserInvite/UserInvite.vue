@@ -8,6 +8,7 @@
 <template>
     <Card class="invite-user-container">
         <div class="invite-user-title">{{ $t('account.inviteNewUser') }}</div>
+        <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
         <form @submit.prevent="handleSubmit">
             <div class="invite-user-form-row">
                 <InputText :formInput="formData.email" class="invite-email" />
@@ -29,7 +30,7 @@
                     <InputSelect :formInput="formInput" class="permission-select" />
                 </div>
             </TransitionGroup>
-            <div v-if="isCurrentUserCompactAdmin" class="invite-user-form-row">
+            <div v-if="shouldShowAddStateButton" class="invite-user-form-row">
                 <button
                     class="add-state text-like"
                     @click.prevent="createNewStatePermission"
@@ -48,7 +49,7 @@
                     class="invite-user-button"
                     :formInput="formData.submit"
                     :label="$t('common.sendInvite')"
-                    :isEnabled="!isFormLoading"
+                    :isEnabled="!isFormLoading && isAnyTypeOfAdmin"
                 />
             </div>
         </form>

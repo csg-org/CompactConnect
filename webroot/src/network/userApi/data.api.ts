@@ -141,11 +141,8 @@ export class UserDataApi implements DataApiInterface {
      * @return {Promise<User>}         A User model instance.
      */
     public async createUser(compact: string, data: any) {
-        // const serverResponse = await this.api.post(`/v1/compacts/${compact}/staff-users`, data);
-        // const response = StaffUserSerializer.fromServer(serverResponse);
-        // @TODO
-        console.log(data);
-        const response = StaffUserSerializer.fromServer(data);
+        const serverResponse = await this.api.post(`/v1/compacts/${compact}/staff-users`, data);
+        const response = StaffUserSerializer.fromServer(serverResponse);
 
         return response;
     }

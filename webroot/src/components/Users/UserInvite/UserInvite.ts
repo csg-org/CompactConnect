@@ -9,6 +9,7 @@ import { Component, mixins, toNative } from 'vue-facing-decorator';
 import { reactive, computed, ComputedRef } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Card from '@components/Card/Card.vue';
+import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
@@ -48,6 +49,7 @@ interface PermissionObject {
     name: 'UserInvite',
     components: {
         Card,
+        MockPopulate,
         InputText,
         InputSelect,
         InputButton,
@@ -66,6 +68,7 @@ class UserInvite extends mixins(MixinForm) {
     // Lifecycle
     //
     created() {
+        this.shouldValuesIncludeDisabled = true;
         this.initFormInputs();
     }
 
@@ -96,6 +99,18 @@ class UserInvite extends mixins(MixinForm) {
         return this.getCompactPermission(this.currentUserCompactPermission) === Permission.ADMIN;
     }
 
+    get isCurrentUserStateAdminAny(): boolean {
+        const { currentUserCompactPermission } = this;
+        const statePermissions = currentUserCompactPermission?.states || [];
+        const isStateAdminAny = statePermissions.some((statePermission) => statePermission.isAdmin);
+
+        return isStateAdminAny;
+    }
+
+    get isAnyTypeOfAdmin(): boolean {
+        return this.isCurrentUserCompactAdmin || this.isCurrentUserStateAdminAny;
+    }
+
     get userCompactOptions(): Array<PermissionOption> {
         const { currentCompact } = this;
         const compactOptions: Array<PermissionOption> = [
@@ -120,6 +135,12 @@ class UserInvite extends mixins(MixinForm) {
         ];
     }
 
+    get currentUserStatePermissions(): Array<StatePermission> {
+        const statePermissions = this.currentUserCompactPermission?.states || [];
+
+        return statePermissions;
+    }
+
     get userPermissionOptionsState(): Array<PermissionOption> {
         return [
             { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
@@ -130,14 +151,44 @@ class UserInvite extends mixins(MixinForm) {
 
     get userOptionsState(): Array<PermissionOption> {
         const { currentCompact } = this;
-        const options = currentCompact?.memberStates?.map((memberState: State) => ({
+        let options = currentCompact?.memberStates?.map((memberState: State) => ({
             value: (memberState.abbrev as unknown as string)?.toLowerCase() || '',
             name: memberState.name(),
         })) || [];
 
+        if (!this.isCurrentUserCompactAdmin) {
+            options = options.filter((option) =>
+                this.currentUserStatePermissions.some((statePermission) => {
+                    const stateAbbrev = statePermission.state?.abbrev || '';
+                    const isStateAdmin = statePermission.isAdmin;
+
+                    return stateAbbrev === option.value && isStateAdmin;
+                }));
+        }
+
         options.unshift({ value: '', name: this.$t('common.select') });
 
         return options;
+    }
+
+    get shouldShowAddStateButton(): boolean {
+        let shouldShow = false;
+
+        if (this.isCurrentUserStateAdminAny) {
+            const availableStatesNum = this.userOptionsState.length - 1;
+            const assignedStatesNum = Object.keys(this.formData)
+                .filter((formKey) => formKey.startsWith('state-option')).length;
+
+            if (availableStatesNum > assignedStatesNum) {
+                shouldShow = true;
+            }
+        }
+
+        return shouldShow;
+    }
+
+    get isMockPopulateEnabled(): boolean {
+        return Boolean(this.$envConfig.isDevelopment);
     }
 
     //
@@ -161,6 +212,7 @@ class UserInvite extends mixins(MixinForm) {
                 placeholder: computed(() => this.$t('account.permission')),
                 valueOptions: this.userPermissionOptionsCompact,
                 value: Permission.NONE,
+                isDisabled: !this.isCurrentUserCompactAdmin,
             }),
             email: new FormInput({
                 id: 'email',
@@ -335,7 +387,10 @@ class UserInvite extends mixins(MixinForm) {
             this.startFormLoading();
 
             const formData = this.prepFormData();
-            const serverData = StaffUserSerializer.toServer({ permissions: [formData] });
+            const serverData = StaffUserSerializer.toServer({
+                permissions: [formData.compactData],
+                attributes: formData.userData,
+            });
 
             await this.$store.dispatch(`users/createUserRequest`, {
                 compact: this.currentCompact?.type,
@@ -353,8 +408,11 @@ class UserInvite extends mixins(MixinForm) {
         }
     }
 
-    prepFormData(): object {
+    prepFormData(): any {
         const { formValues } = this;
+        const userData = {
+            email: formValues.email,
+        };
         const compactData = {
             compact: formValues.compact,
             ...this.setCompactPermission(formValues.compactPermission),
@@ -373,7 +431,11 @@ class UserInvite extends mixins(MixinForm) {
             });
         });
 
-        return compactData;
+        return { userData, compactData };
+    }
+
+    mockPopulate(): void {
+        this.formData.email.value = `test@example.com`;
     }
 }
 
