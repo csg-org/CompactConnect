@@ -62,8 +62,14 @@
                             </div>
                         </li>
                     </ul>
-                    <ul class="selected-state-list">
-                        <li
+                    <ul v-if="isPhone" class="selected-state-list">
+                        <SelectedStatePurchaseInformation
+                            v-for="(state, i) in selectedStatePurchaseDataDisplayList"
+                            :key="state.jurisdiction.abbrev"
+                            class="selected-state-block"
+                            
+                        />
+                        <!-- <li
                             v-for="(state, i) in selectedStatePurchaseDataDisplayList"
                             :key="state.jurisdiction.abbrev"
                             class="selected-state-block"
@@ -103,7 +109,7 @@
                                     @change="handleJurisprudenceClicked(state)"
                                 />
                             </div>
-                        </li>
+                        </li> -->
                     </ul>
                 </div>
             </div>

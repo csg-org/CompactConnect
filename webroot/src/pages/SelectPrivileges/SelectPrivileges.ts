@@ -13,6 +13,7 @@ import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import Modal from '@components/Modal/Modal.vue';
+import SelectedStatePurchaseInformation from '@components/SelectedStatePurchaseInformation/SelectedStatePurchaseInformation.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import { License, LicenseStatus } from '@/models/License/License.model';
@@ -28,7 +29,8 @@ import moment from 'moment';
         InputCheckbox,
         InputSubmit,
         InputButton,
-        Modal
+        Modal,
+        SelectedStatePurchaseInformation
     }
 })
 export default class SelectPrivileges extends mixins(MixinForm) {
@@ -87,6 +89,10 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         }
 
         return name;
+    }
+
+    get isPhone() {
+        return this.$matches.phone.only;
     }
 
     get privilegeList(): Array<License> {
