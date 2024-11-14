@@ -9,4 +9,12 @@ export default {
         '<rootDir>/cdk.out/', // It was running tests in the cdk.out directory! Funny.
         '<rootDir>/node_modules/',
     ],
+    coverageThreshold: {
+        global: {
+            branches: 90,
+            functions: 90,
+            lines: 90,
+            statements: 90,
+        }
+    }
 };

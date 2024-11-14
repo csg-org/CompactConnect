@@ -1,4 +1,5 @@
 import { DynamoDBClient, ScanCommand } from '@aws-sdk/client-dynamodb';
+import { SESClient } from '@aws-sdk/client-ses';
 import { Context, EventBridgeEvent } from 'aws-lambda';
 import { Lambda } from '../lib/lambda';
 
@@ -84,8 +85,22 @@ jest.mock('@aws-sdk/client-dynamodb', () => {
     };
 });
 
+// Mock the SESClient
+jest.mock('@aws-sdk/client-ses', () => {
+    return {
+        SESClient: jest.fn(() => ({
+            send: jest.fn(() => ({
+                MessageId: 'foo-123'
+            }))
+        })),
+        SendEmailCommand: jest.fn()
+    };
+});
+
+
 describe('Event collector', () => {
     let mockDynamoDBClient: jest.Mocked<DynamoDBClient>;
+    let mockSESClient: jest.Mocked<SESClient>;
     let lambda: Lambda;
 
     beforeAll(async () => {
@@ -100,14 +115,18 @@ describe('Event collector', () => {
         // Clear all instances and calls to constructor and all methods:
         jest.clearAllMocks();
 
-        // Get the mocked client instance
+        // Get the mocked client instances
         mockDynamoDBClient = new DynamoDBClient() as jest.Mocked<DynamoDBClient>;
+        mockSESClient = new SESClient() as jest.Mocked<SESClient>;
 
-        lambda = new Lambda({ dynamoDBClient: mockDynamoDBClient });
+        lambda = new Lambda({
+            dynamoDBClient: mockDynamoDBClient,
+            sesClient: mockSESClient
+        });
     });
 
     it('should run with no errors', async () => {
-        await lambda.handler(
+        const resp = await lambda.handler(
             SAMPLE_SCHEDULED_EVENT,
             SAMPLE_CONTEXT
         );
@@ -121,6 +140,9 @@ describe('Event collector', () => {
 
         // Verify the send method was called
         expect(mockDynamoDBClient.send).toHaveBeenCalled();
+        expect(mockSESClient.send).toHaveBeenCalled();
+
+        expect(resp).toEqual({ 'message': 'foo-123' });
     });
 
     it('should let DynamoDB errors escape', async () => {
