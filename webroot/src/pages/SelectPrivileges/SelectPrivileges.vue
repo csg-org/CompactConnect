@@ -64,10 +64,10 @@
                     </ul>
                     <ul v-if="isPhone" class="selected-state-list">
                         <SelectedStatePurchaseInformation
-                            v-for="(state, i) in selectedStatePurchaseDataDisplayList"
+                            v-for="(state) in selectedStatePurchaseDataDisplayList"
                             :key="state.jurisdiction.abbrev"
                             class="selected-state-block"
-                            
+                            :state="state"
                         />
                         <!-- <li
                             v-for="(state, i) in selectedStatePurchaseDataDisplayList"
