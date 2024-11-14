@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from functools import cached_property
 
 from aws_cdk.aws_apigateway import (
@@ -97,8 +98,8 @@ class StaffUsers:
         handler = PythonFunction(
             self.stack,
             'GetMeStaffUserHandler',
-            entry='lambdas/staff-users',
-            index='handlers/me.py',
+            lambda_dir='staff-users',
+            index=os.path.join('handlers', 'me.py'),
             handler='get_me',
             environment=env_vars,
         )
@@ -156,8 +157,8 @@ class StaffUsers:
         handler = PythonFunction(
             self.stack,
             'PatchMeStaffUserHandler',
-            entry='lambdas/staff-users',
-            index='handlers/me.py',
+            lambda_dir='staff-users',
+            index=os.path.join('handlers', 'me.py'),
             handler='patch_me',
             environment=env_vars,
         )
@@ -213,8 +214,8 @@ class StaffUsers:
         handler = PythonFunction(
             self.stack,
             'GetStaffUsersHandler',
-            entry='lambdas/staff-users',
-            index='handlers/users.py',
+            lambda_dir='staff-users',
+            index=os.path.join('handlers', 'users.py'),
             handler='get_users',
             environment=env_vars,
         )
@@ -270,8 +271,8 @@ class StaffUsers:
         handler = PythonFunction(
             self.stack,
             'GetStaffUserHandler',
-            entry='lambdas/staff-users',
-            index='handlers/users.py',
+            lambda_dir='staff-users',
+            index=os.path.join('handlers', 'users.py'),
             handler='get_one_user',
             environment=env_vars,
         )
@@ -328,8 +329,8 @@ class StaffUsers:
         handler = PythonFunction(
             self.stack,
             'PatchUserHandler',
-            entry='lambdas/staff-users',
-            index='handlers/users.py',
+            lambda_dir='staff-users',
+            index=os.path.join('handlers', 'users.py'),
             handler='patch_user',
             environment=env_vars,
         )
@@ -387,8 +388,8 @@ class StaffUsers:
         handler = PythonFunction(
             self.stack,
             'PostStaffUserHandler',
-            entry='lambdas/staff-users',
-            index='handlers/users.py',
+            lambda_dir='staff-users',
+            index=os.path.join('handlers', 'users.py'),
             handler='post_user',
             environment=env_vars,
         )

@@ -7,27 +7,27 @@ REPORT="$1"
   pytest --cov=. --cov-config=.coveragerc tests
 ) || exit "$?"
 for dir in \
-  compact-connect/lambdas/common-python \
-  compact-connect/lambdas/provider-data-v1 \
-  compact-connect/lambdas/staff-user-pre-token \
-  compact-connect/lambdas/staff-users \
-  compact-connect/lambdas/data-events \
-  compact-connect/lambdas/custom-resources \
-  compact-connect/lambdas/purchases \
+  compact-connect/lambdas/python/common \
+  compact-connect/lambdas/python/custom-resources \
+  compact-connect/lambdas/python/data-events \
+  compact-connect/lambdas/python/provider-data-v1 \
+  compact-connect/lambdas/python/purchases \
+  compact-connect/lambdas/python/staff-user-pre-token \
+  compact-connect/lambdas/python/staff-users \
   multi-account
   do
   (
     cd "$dir"
     echo "Running tests in $dir"
     # update the PYTHONPATH to include the shared code if not common-python
-    [ "$dir" = "compact-connect/lambdas/common-python" ] || export PYTHONPATH=../common-python
+    [ "$dir" = "compact-connect/lambdas/python/common" ] || export PYTHONPATH=../common
     # Run lambda tests, appending data to the same data file
     pytest --cov=. --cov-config=.coveragerc --cov-append tests
   ) || exit "$?"
 done
 
 (
-  cd compact-connect/lambdas/data-validation-events
+  cd compact-connect/lambdas/nodejs/data-validation-events
   npm run test || exit "$?"
 )
 
