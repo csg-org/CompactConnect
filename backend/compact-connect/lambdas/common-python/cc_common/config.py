@@ -6,6 +6,7 @@ from functools import cached_property
 import boto3
 from aws_lambda_powertools.logging import Logger
 from botocore.config import Config as BotoConfig
+from pytz import timezone
 
 logging.basicConfig()
 logger = Logger()
@@ -114,6 +115,14 @@ class _Config:
     @property
     def fam_giv_index_name(self):
         return os.environ['FAM_GIV_INDEX_NAME']
+
+    @property
+    def expiration_date_resolution_timezone(self):
+        """
+        This is the timezone used to determine the expiration dates of licenses and privileges.
+        We anticipate that this may change in the future, so we have a configuration value for it.
+        """
+        return timezone('US/Eastern')
 
 
 config = _Config()

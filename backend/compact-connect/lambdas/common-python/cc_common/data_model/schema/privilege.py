@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from datetime import UTC, date, datetime
+from datetime import date, datetime
 
 from marshmallow import pre_dump, pre_load
 from marshmallow.fields import UUID, Date, String
@@ -44,7 +44,8 @@ class PrivilegeRecordSchema(BaseRecordSchema):
     def _calculate_status(self, in_data, **kwargs):
         # determine if the status is active or inactive by comparing the expiration date to now
         in_data['status'] = 'active' if (
-                date.fromisoformat(in_data['dateOfExpiration']) > datetime.now(tz=UTC).date()) else 'inactive'
+                date.fromisoformat(in_data['dateOfExpiration']) >
+                datetime.now(tz=config.expiration_date_resolution_timezone).date()) else 'inactive'
 
         return in_data
 
