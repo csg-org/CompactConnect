@@ -31,3 +31,15 @@ class TestPrivilegeRecordSchema(TstLambdas):
 
         with self.assertRaises(ValidationError):
             PrivilegeRecordSchema().load(privilege_data)
+
+    def test_status_is_set_to_inactive_when_past_expiration(self):
+        from cc_common.data_model.schema.privilege import PrivilegeRecordSchema
+
+        with open('tests/resources/dynamo/privilege.json') as f:
+            privilege_data = json.load(f)
+            privilege_data['dateOfExpiration'] = '2020-01-01'
+            privilege_data['status'] = 'active'
+
+        result = PrivilegeRecordSchema().load(privilege_data)
+
+        self.assertEqual(result['status'], 'inactive')
