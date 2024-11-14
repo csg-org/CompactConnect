@@ -32,7 +32,7 @@ class TestHandleDataEvents(TstFunction):
                 'jurisdiction': 'oh',
                 'record_number': Decimal('4'),
                 'errors': {'licenseType': ['Missing data for required field.']},
-                'ingestTime': '2024-10-30T02:30:54.586569+00:00',
+                'time': '2024-10-30T02:30:54.586569+00:00',
                 'valid_data': {},
             },
             saved_event,

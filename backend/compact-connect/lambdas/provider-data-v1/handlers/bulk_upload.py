@@ -84,7 +84,7 @@ def parse_bulk_upload_file(event: dict, context: LambdaContext):  # noqa: ARG001
                             'DetailType': 'license.ingest-failure',
                             'Detail': json.dumps(
                                 {
-                                    'ingestTime': event_time.isoformat(),
+                                    'time': event_time.isoformat(),
                                     'compact': compact,
                                     'jurisdiction': jurisdiction,
                                     'errors': [str(e)],
@@ -145,11 +145,11 @@ def process_bulk_upload_file(
                         'DetailType': 'license.validation-error',
                         'Detail': json.dumps(
                             {
-                                'ingestTime': event_time.isoformat(),
+                                'time': event_time.isoformat(),
                                 'compact': compact,
                                 'jurisdiction': jurisdiction,
-                                'record_number': i + 1,
-                                'valid_data': public_license_data,
+                                'recordNumber': i + 1,
+                                'validData': public_license_data,
                                 'errors': e.messages,
                             },
                             cls=ResponseEncoder,
@@ -165,7 +165,7 @@ def process_bulk_upload_file(
                     'DetailType': 'license.ingest',
                     'Detail': json.dumps(
                         {
-                            'ingestTime': event_time.isoformat(),
+                            'time': event_time.isoformat(),
                             'compact': compact,
                             'jurisdiction': jurisdiction,
                             **schema.dump(validated_license),

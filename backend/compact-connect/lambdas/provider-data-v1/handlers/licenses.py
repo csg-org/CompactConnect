@@ -40,7 +40,7 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
                     'DetailType': 'license.ingest',
                     'Detail': json.dumps(
                         {
-                            'ingestTime': event_time.isoformat(),
+                            'time': event_time.isoformat(),
                             'compact': compact,
                             'jurisdiction': jurisdiction,
                             **schema.dump(license_data),

@@ -34,11 +34,23 @@ const SAMPLE_CONTEXT: Context = {
 };
 
 const SAMPLE_DB_RECORD = {
-    'ingestTime': {
+    'pk': {
+        'S': 'COMPACT#octp#JURISDICTION#oh'
+    },
+    'sk': {
+        'S': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c'
+    },
+    'eventType': {
+        'S': 'license.validation-error'
+    },
+    'time': {
         'S': '2024-10-30T04:47:55.843000+00:00'
     },
-    'valid_data': {
-        'M': {}
+    'compact': {
+        'S': 'octp'
+    },
+    'jurisdiction': {
+        'S': 'oh'
     },
     'errors': {
         'M': {
@@ -51,24 +63,12 @@ const SAMPLE_DB_RECORD = {
             }
         }
     },
-    'sk': {
-        'S': 'TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c'
-    },
-    'compact': {
-        'S': 'octp'
-    },
-    'eventType': {
-        'S': 'license.validation-error'
-    },
-    'jurisdiction': {
-        'S': 'oh'
-    },
-    'record_number': {
+    'recordNumber': {
         'N': '5'
     },
-    'pk': {
-        'S': 'COMPACT#octp#TYPE#license.validation-error'
-    }
+    'validData': {
+        'M': {}
+    },
 };
 
 

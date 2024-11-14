@@ -1,5 +1,6 @@
 export class EnvironmentVariablesService {
     private dataEventTableNameVariable = 'DATA_EVENT_TABLE_NAME';
+    private fromAddressVariable = 'FROM_ADDRESS';
     private debugVariable = 'DEBUG';
 
 
@@ -13,5 +14,9 @@ export class EnvironmentVariablesService {
 
     public getLogLevel() {
         return this.get(this.debugVariable).toLowerCase() == 'true' ? 'DEBUG' : 'INFO';
+    }
+
+    public getFromAddress() {
+        return this.get(this.fromAddressVariable);
     }
 }
