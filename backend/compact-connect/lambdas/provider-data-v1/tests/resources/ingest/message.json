@@ -8,7 +8,7 @@
   "region": "us-east-1",
   "resources": [],
   "detail": {
-    "ingestTime": "2024-07-11T19:57:45Z",
+    "time": "2024-07-11T19:57:45Z",
     "ssn": "123-12-1234",
     "npi": "0608337260",
     "givenName": "Björk",

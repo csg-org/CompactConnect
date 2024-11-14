@@ -23,8 +23,6 @@ class LicensePublicSchema(ForgivingSchema):
 class LicenseCommonSchema(LicensePublicSchema):
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
-    ssn = SocialSecurityNumber(required=True, allow_none=False)
-    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
     licenseType = String(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
@@ -49,12 +47,13 @@ class LicenseCommonSchema(LicensePublicSchema):
     def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
         license_types = config.license_types_for_compact(data['compact'])
         if data['licenseType'] not in license_types:
-            raise ValidationError({'licenseType': f"'licenseType' must be one of {license_types}"})
+            raise ValidationError({'licenseType': f'must be one of {license_types}'})
 
 
 class LicensePostSchema(LicenseCommonSchema):
     """Schema for license data as posted by a board"""
-
+    ssn = SocialSecurityNumber(required=True, allow_none=False)
+    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
     # This status field is required when posting a license record. It will be transformed into the
     # jurisdictionStatus field when the record is ingested.
     status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))

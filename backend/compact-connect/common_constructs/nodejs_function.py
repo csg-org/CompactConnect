@@ -37,7 +37,7 @@ class NodejsFunction(CdkNodejsFunction):
             entry=os.path.join(lambda_dir, 'bin/handler.ts'),
             deps_lock_file_path=os.path.join(lambda_dir, 'package-lock.json'),
             bundling=BundlingOptions(
-                format=OutputFormat.ESM,
+                format=OutputFormat.CJS,
                 main_fields=['module', 'main'],
                 esbuild_args={'--log-limit': '0', '--tree-shaking': 'true'},
             ),
