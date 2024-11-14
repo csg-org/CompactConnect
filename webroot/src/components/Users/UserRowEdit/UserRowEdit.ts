@@ -193,7 +193,7 @@ class UserRowEdit extends mixins(MixinForm) {
     get shouldShowAddStateButton(): boolean {
         let shouldShow = false;
 
-        if (this.isCurrentUserStateAdminAny) {
+        if (this.isCurrentUserCompactAdmin || this.isCurrentUserStateAdminAny) {
             const availableStatesNum = this.userOptionsState.length - 1;
             const assignedStatesNum = Object.keys(this.formData)
                 .filter((formKey) => formKey.startsWith('state-option')).length;

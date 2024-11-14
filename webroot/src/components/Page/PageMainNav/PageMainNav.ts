@@ -9,6 +9,7 @@ import { reactive, computed } from 'vue';
 import { Component, Vue, toNative } from 'vue-facing-decorator';
 import { AuthTypes } from '@/app.config';
 import { Compact } from '@models/Compact/Compact.model';
+import { CompactPermission } from '@models/StaffUser/StaffUser.model';
 
 @Component({
     name: 'PageMainNav',
@@ -50,21 +51,44 @@ class PageMainNav extends Vue {
         return this.isLoggedIn && this.$store.getters['user/highestPermissionAuthType']() === AuthTypes.STAFF;
     }
 
-    get hasStatePermissions(): boolean {
+    get staffPermission(): CompactPermission | null {
         const { model: user } = this.userStore;
-        let hasPermissions = false;
+        const currentPermissions = user?.permissions;
+        const compactPermission = currentPermissions?.find((currentPermission) =>
+            currentPermission.compact.type === this.currentCompact?.type) || null;
+
+        return compactPermission;
+    }
+
+    get isAnyTypeOfAdmin(): boolean {
+        let isAdmin = false;
 
         if (this.isLoggedInAsStaff) {
-            const compactType = this.currentCompact?.type;
-            const compactPermissions = user?.permissions?.find((permission) =>
-                permission.compact.type === compactType) || null;
+            const { staffPermission } = this;
 
-            if (compactPermissions?.states?.length) {
-                hasPermissions = true;
+            if (staffPermission?.isAdmin) {
+                isAdmin = true;
+            } else if (staffPermission?.states?.some((statePermission) => statePermission.isAdmin)) {
+                isAdmin = true;
             }
         }
 
-        return hasPermissions;
+        return isAdmin;
+    }
+
+    get hasStateWritePermissions(): boolean {
+        let hasWritePermissions = false;
+
+        if (this.isLoggedInAsStaff) {
+            const { staffPermission } = this;
+
+            if (staffPermission?.states?.some((statePermission) =>
+                statePermission.isAdmin || statePermission.isWrite)) {
+                hasWritePermissions = true;
+            }
+        }
+
+        return hasWritePermissions;
     }
 
     get mainLinks() {
@@ -81,7 +105,7 @@ class PageMainNav extends Vue {
                 to: 'StateUpload',
                 params: { compact: this.currentCompact?.type },
                 label: computed(() => this.$t('navigation.upload')),
-                isEnabled: Boolean(this.currentCompact) && this.hasStatePermissions,
+                isEnabled: Boolean(this.currentCompact) && this.hasStateWritePermissions,
                 isExternal: false,
                 isExactActive: true,
             },
@@ -96,7 +120,7 @@ class PageMainNav extends Vue {
                 to: 'Users',
                 params: { compact: this.currentCompact?.type },
                 label: computed(() => this.$t('navigation.users')),
-                isEnabled: Boolean(this.currentCompact) && this.isLoggedInAsStaff,
+                isEnabled: this.isAnyTypeOfAdmin,
                 isExternal: false,
                 isExactActive: false,
             },
