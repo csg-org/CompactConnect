@@ -154,7 +154,7 @@ class ProviderUsers:
             self.provider_users_resource,
             'GetProviderUserMeHandler',
             description='Get provider personal profile information handler',
-            entry=os.path.join('lambdas', 'provider-data-v1'),
+            lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'provider_users.py'),
             handler='get_provider_user_me',
             environment=lambda_environment,

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-
 from aws_cdk import Duration
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
@@ -27,7 +25,7 @@ class ReportingStack(AppStack):
             self,
             'DataValidationEventCollector',
             description='Data validation event collector',
-            lambda_dir=os.path.join('lambdas', 'data-validation-events'),
+            lambda_dir='data-validation-events',
             handler='collectEvents',
             timeout=Duration.minutes(15),
             memory_size=2048,

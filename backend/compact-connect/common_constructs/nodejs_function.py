@@ -30,11 +30,13 @@ class NodejsFunction(CdkNodejsFunction):
         }
         defaults.update(kwargs)
 
+        lambda_dir = os.path.join('lambdas', 'nodejs', lambda_dir)
+
         super().__init__(
             scope,
             construct_id,
             runtime=Runtime.NODEJS_20_X,
-            entry=os.path.join(lambda_dir, 'bin/handler.ts'),
+            entry=os.path.join(lambda_dir, 'bin', 'handler.ts'),
             deps_lock_file_path=os.path.join(lambda_dir, 'package-lock.json'),
             bundling=BundlingOptions(
                 format=OutputFormat.CJS,

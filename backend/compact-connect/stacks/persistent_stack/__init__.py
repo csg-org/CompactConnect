@@ -55,7 +55,7 @@ class PersistentStack(AppStack):
         self.common_python_lambda_layer = PythonLayerVersion(
             self,
             'CompactConnectCommonPythonLayer',
-            entry=os.path.join('lambdas', 'common-python'),
+            entry=os.path.join('lambdas', 'python', 'common'),
             compatible_runtimes=[Runtime.PYTHON_3_12],
             description='A layer for common code shared between python lambdas',
         )
