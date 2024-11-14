@@ -14,7 +14,7 @@ license_schema = LicensePostSchema()
 def ingest_license_message(message: dict):
     """For each message, validate the license data and persist it in the database"""
     # We're not using the ingest time here, currently, so we'll discard it
-    message['detail'].pop('ingestTime')
+    message['detail'].pop('time')
 
     # This should already have been validated at this point, before the data was ever sent for ingest,
     # but validation is cheap. We can do it again, just to protect ourselves from something unexpected

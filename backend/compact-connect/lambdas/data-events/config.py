@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import timedelta
 from functools import cached_property
 
 import boto3
@@ -22,6 +23,20 @@ class _Config:
     @property
     def data_events_table_name(self):
         return os.environ['DATA_EVENT_TABLE_NAME']
+
+    @property
+    def event_ttls(self):
+        """
+        Event type-specific TTLs
+        """
+        return {'license.validation-error': timedelta(days=90), 'license.ingest-failure': timedelta(days=90)}
+
+    @property
+    def default_event_ttl(self):
+        """
+        If we don't define a TTL specific for an event type, use this TTL
+        """
+        return timedelta(days=366)
 
 
 config = _Config()

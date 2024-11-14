@@ -1,13 +1,13 @@
 [
   {
-    "ingestTime": "2024-10-30T04:47:55.843000+00:00",
+    "time": "2024-10-30T04:47:55.843000+00:00",
     "valid_data": {},
     "errors": {
       "dateOfRenewal": [
         "Not a valid date."
       ]
     },
-    "sk": "TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c",
+    "sk": "JURISDICTION#oh#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c",
     "compact": "octp",
     "eventType": "license.validation-error",
     "jurisdiction": "oh",
@@ -15,12 +15,12 @@
     "pk": "COMPACT#octp#TYPE#license.validation-error"
   },
   {
-    "ingestTime": "2024-10-30T04:47:55.843000+00:00",
+    "time": "2024-10-30T04:47:55.843000+00:00",
     "valid_data": {},
     "errors": {
       "licenseType": "'licenseType' must be one of ['occupational therapist', 'occupational therapy assistant']"
     },
-    "sk": "TIME#1730263675#EVENT#3128fbc9-d1fb-7bf7-5fbc-35ec700aaae8",
+    "sk": "JURISDICTION#oh#TIME#1730263675#EVENT#3128fbc9-d1fb-7bf7-5fbc-35ec700aaae8",
     "compact": "octp",
     "eventType": "license.validation-error",
     "jurisdiction": "oh",
@@ -28,12 +28,12 @@
     "pk": "COMPACT#octp#TYPE#license.validation-error"
   },
   {
-    "ingestTime": "2024-10-30T04:47:55.843000+00:00",
+    "time": "2024-10-30T04:47:55.843000+00:00",
     "valid_data": {},
     "errors": {
       "licenseType": "'licenseType' must be one of ['occupational therapist', 'occupational therapy assistant']"
     },
-    "sk": "TIME#1730263675#EVENT#871f86a4-c668-8fee-1a9a-21a4d5b3fb8f",
+    "sk": "JURISDICTION#oh#TIME#1730263675#EVENT#871f86a4-c668-8fee-1a9a-21a4d5b3fb8f",
     "compact": "octp",
     "eventType": "license.validation-error",
     "jurisdiction": "oh",
@@ -41,14 +41,14 @@
     "pk": "COMPACT#octp#TYPE#license.validation-error"
   },
   {
-    "ingestTime": "2024-10-30T04:47:55.843000+00:00",
+    "time": "2024-10-30T04:47:55.843000+00:00",
     "valid_data": {},
     "errors": {
       "status": [
         "Must be one of: active, inactive."
       ]
     },
-    "sk": "TIME#1730263675#EVENT#b6ccb0f1-515f-9642-2c0e-9406a73d77e0",
+    "sk": "JURISDICTION#oh#TIME#1730263675#EVENT#b6ccb0f1-515f-9642-2c0e-9406a73d77e0",
     "compact": "octp",
     "eventType": "license.validation-error",
     "jurisdiction": "oh",
@@ -56,12 +56,12 @@
     "pk": "COMPACT#octp#TYPE#license.validation-error"
   },
   {
-    "ingestTime": "2024-10-30T04:47:55.843000+00:00",
+    "time": "2024-10-30T04:47:55.843000+00:00",
     "valid_data": {},
     "errors": {
       "licenseType": "'licenseType' must be one of ['occupational therapist', 'occupational therapy assistant']"
     },
-    "sk": "TIME#1730263675#EVENT#d9d03f28-2e29-cede-2e7f-c4b684c315fc",
+    "sk": "JURISDICTION#oh#TIME#1730263675#EVENT#d9d03f28-2e29-cede-2e7f-c4b684c315fc",
     "compact": "octp",
     "eventType": "license.validation-error",
     "jurisdiction": "oh",
@@ -69,11 +69,11 @@
     "pk": "COMPACT#octp#TYPE#license.validation-error"
   },
   {
-    "ingestTime": "2024-10-30T04:48:05.976000+00:00",
+    "time": "2024-10-30T04:48:05.976000+00:00",
     "errors": [
       "'utf-8' codec can't decode byte 0x83 in position 0: invalid start byte"
     ],
-    "sk": "TIME#1730263685#EVENT#d6fbe045-4a9c-a76a-ad46-6dbe6b78c800",
+    "sk": "JURISDICTION#oh#TIME#1730263685#EVENT#d6fbe045-4a9c-a76a-ad46-6dbe6b78c800",
     "compact": "octp",
     "eventType": "license.ingest-failure",
     "jurisdiction": "oh",

@@ -168,3 +168,12 @@ class TestProcessBulkUploadFile(TstLambdas):
         self.assertEqual(line_count - 1, len(entries))
         self.assertEqual(2, len([entry for entry in entries if entry['DetailType'] == 'license.validation-error']))
         self.assertEqual(line_count - 3, len([entry for entry in entries if entry['DetailType'] == 'license.ingest']))
+
+        # Make sure we're capturing _some_ valid data from the license for feedback
+        bad_ssn_event_details = json.loads(entries[1]['Detail'])
+        self.assertIn('familyName', bad_ssn_event_details['valid_data'].keys())
+
+        bad_license_type_details = json.loads(entries[3]['Detail'])
+        self.assertIn('dateOfIssuance', bad_license_type_details['valid_data'])
+        # Make sure we don't include sensitive data in these events
+        self.assertNotIn('ssn', bad_license_type_details['valid_data'])

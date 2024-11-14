@@ -21,15 +21,8 @@ class LicensePublicSchema(LicenseCommonSchema):
     """Schema for license data that can be shared with the public"""
 
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
-
-
-class LicensePostSchema(LicensePublicSchema):
-    """Schema for license data as posted by a board"""
-
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
-    ssn = SocialSecurityNumber(required=True, allow_none=False)
-    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
     licenseType = String(required=True, allow_none=False)
     status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -39,6 +32,13 @@ class LicensePostSchema(LicensePublicSchema):
     dateOfIssuance = Date(required=True, allow_none=False)
     dateOfRenewal = Date(required=True, allow_none=False)
     dateOfExpiration = Date(required=True, allow_none=False)
+
+
+class LicensePostSchema(LicensePublicSchema):
+    """Schema for license data as posted by a board"""
+
+    ssn = SocialSecurityNumber(required=True, allow_none=False)
+    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
     dateOfBirth = Date(required=True, allow_none=False)
     homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
@@ -53,7 +53,7 @@ class LicensePostSchema(LicensePublicSchema):
     def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
         license_types = config.license_types_for_compact(data['compact'])
         if data['licenseType'] not in license_types:
-            raise ValidationError({'licenseType': f"'licenseType' must be one of {license_types}"})
+            raise ValidationError({'licenseType': f'must be one of {license_types}'})
 
 
 @BaseRecordSchema.register_schema('license')

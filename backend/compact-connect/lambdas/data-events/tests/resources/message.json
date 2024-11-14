@@ -8,7 +8,7 @@
   "region": "us-east-1",
   "resources": [],
   "detail": {
-    "ingestTime": "2024-10-30T02:30:54.586569+00:00",
+    "time": "2024-10-30T02:30:54.586569+00:00",
     "compact": "aslp",
     "jurisdiction": "oh",
     "record_number": 4,
