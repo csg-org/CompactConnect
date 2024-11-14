@@ -6,7 +6,7 @@ from cc_common.config import config
 from cc_common.exceptions import CCAwsServiceException, CCFailedTransactionException, CCInternalException
 from moto import mock_aws
 
-from tests.function import TstFunction
+from .. import TstFunction
 
 TEST_COMPACT = 'aslp'
 # this value is defined in the provider.json file
@@ -57,12 +57,13 @@ class TestPostPurchasePrivileges(TstFunction):
     def _when_testing_provider_user_event_with_custom_claims(
         self,
         test_compact=TEST_COMPACT,
-        license_status='active',
+        license_status: str = 'active',
+        license_expiration_date: str = '2050-01-01',
     ):
         self._load_compact_configuration_data()
         self._load_provider_data()
         self._load_test_jurisdiction()
-        self._load_license_data(status=license_status)
+        self._load_license_data(status=license_status, expiration_date=license_expiration_date)
         with open('../common-python/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['requestContext']['authorizer']['claims']['custom:providerId'] = TEST_PROVIDER_ID
@@ -228,8 +229,8 @@ class TestPostPurchasePrivileges(TstFunction):
         from handlers.privileges import post_purchase_privileges
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
-
-        event = self._when_testing_provider_user_event_with_custom_claims()
+        test_expiration_date = date(2024, 11, 8).isoformat()
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
         event['body'] = _generate_test_request_body()
         test_issuance_date = date(2023, 11, 8).isoformat()
 
@@ -242,13 +243,14 @@ class TestPostPurchasePrivileges(TstFunction):
             # so the date of renewal is the same as the date of issuance
             privilege_record['dateOfRenewal'] = test_issuance_date
             privilege_record['dateOfIssuance'] = test_issuance_date
+            privilege_record['dateOfExpiration'] = test_expiration_date
             privilege_record['compact'] = TEST_COMPACT
             privilege_record['jurisdiction'] = 'ky'
             privilege_record['providerId'] = TEST_PROVIDER_ID
             self.config.provider_table.put_item(Item=privilege_record)
 
         # update the license expiration date to be different
-        updated_expiration_date = datetime.now(tz=UTC).date().isoformat()
+        updated_expiration_date = '2050-01-01'
         self._load_license_data(expiration_date=updated_expiration_date)
 
         # now make the same call with the same jurisdiction
@@ -313,7 +315,7 @@ class TestPostPurchasePrivileges(TstFunction):
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
 
-        event = self._when_testing_provider_user_event_with_custom_claims()
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date='2050-01-01')
         event['body'] = _generate_test_request_body()
 
         resp = post_purchase_privileges(event, self.mock_context)
@@ -326,7 +328,7 @@ class TestPostPurchasePrivileges(TstFunction):
         license_record = next(record for record in provider_records['items'] if record['type'] == 'license')
 
         # make sure the expiration on the license matches the expiration on the privilege
-        expected_expiration_date = date(2024, 6, 6)
+        expected_expiration_date = date(2050, 1, 1)
         self.assertEqual(expected_expiration_date, license_record['dateOfExpiration'])
         self.assertEqual(expected_expiration_date, privilege_record['dateOfExpiration'])
         # the date of issuance should be today
