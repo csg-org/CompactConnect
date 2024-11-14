@@ -11,7 +11,13 @@
         <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
         <form @submit.prevent="handleSubmit">
             <div class="invite-user-form-row">
-                <InputText :formInput="formData.email" class="invite-email" />
+                <InputText :formInput="formData.email" class="invite-user-meta invite-email" />
+            </div>
+            <div class="invite-user-form-row">
+                <InputText :formInput="formData.firstName" class="invite-user-meta invite-first-name" />
+            </div>
+            <div class="invite-user-form-row">
+                <InputText :formInput="formData.lastName" class="invite-user-meta invite-last-name" />
             </div>
             <div class="invite-user-form-row">
                 <InputSelect :formInput="formData.compact" class="permission-type-select" />

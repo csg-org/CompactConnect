@@ -221,6 +221,20 @@ class UserInvite extends mixins(MixinForm) {
                 placeholder: computed(() => this.$t('common.emailAddress')),
                 validation: Joi.string().required().email({ tlds: false }).messages(this.joiMessages.string),
             }),
+            firstName: new FormInput({
+                id: 'first-name',
+                name: 'first-name',
+                label: computed(() => this.$t('common.firstName')),
+                placeholder: computed(() => this.$t('common.firstName')),
+                validation: Joi.string().required().messages(this.joiMessages.string),
+            }),
+            lastName: new FormInput({
+                id: 'last-name',
+                name: 'last-name',
+                label: computed(() => this.$t('common.lastName')),
+                placeholder: computed(() => this.$t('common.lastName')),
+                validation: Joi.string().required().messages(this.joiMessages.string),
+            }),
             submit: new FormInput({
                 isSubmitInput: true,
                 id: 'submit',
@@ -412,6 +426,8 @@ class UserInvite extends mixins(MixinForm) {
         const { formValues } = this;
         const userData = {
             email: formValues.email,
+            firstName: formValues.firstName,
+            lastName: formValues.lastName,
         };
         const compactData = {
             compact: formValues.compact,
@@ -436,6 +452,8 @@ class UserInvite extends mixins(MixinForm) {
 
     mockPopulate(): void {
         this.formData.email.value = `test@example.com`;
+        this.formData.firstName.value = `Test`;
+        this.formData.lastName.value = `User`;
     }
 }
 
