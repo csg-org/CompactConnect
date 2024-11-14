@@ -1,7 +1,9 @@
 export class EnvironmentVariablesService {
-    private dataEventTableNameVariable = 'DATA_EVENT_TABLE_NAME';
-    private fromAddressVariable = 'FROM_ADDRESS';
-    private debugVariable = 'DEBUG';
+    private readonly compactsVariable = 'COMPACTS';
+    private readonly compactConfigurationTableNameVariable = 'COMPACT_CONFIGURATION_TABLE_NAME';
+    private readonly dataEventTableNameVariable = 'DATA_EVENT_TABLE_NAME';
+    private readonly fromAddressVariable = 'FROM_ADDRESS';
+    private readonly debugVariable = 'DEBUG';
 
 
     public get(name: string): string {
@@ -10,6 +12,14 @@ export class EnvironmentVariablesService {
 
     public getDataEventTableName() {
         return this.get(this.dataEventTableNameVariable);
+    }
+
+    public getCompactconfigurationTableName() {
+        return this.get(this.compactConfigurationTableNameVariable);
+    }
+
+    public getCompacts(): string[] {
+        return JSON.parse(this.get(this.compactsVariable));
     }
 
     public getLogLevel() {

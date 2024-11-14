@@ -2,8 +2,14 @@ import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
 import { renderToStaticMarkup, TReaderDocument } from '@usewaypoint/email-builder';
 import { EnvironmentVariablesService } from './environment-variables-service';
+import { ILicenseErrorEventRecord, ILicenseValidationErrorEventRecord } from './models';
 
 const environmentVariableService = new EnvironmentVariablesService();
+
+interface IIngestEvents {
+    ingestFailures: ILicenseErrorEventRecord[];
+    validationErrors: ILicenseValidationErrorEventRecord[];
+}
 
 interface ReportEmailerProperties {
     logger: Logger;
@@ -335,11 +341,11 @@ export class ReportEmailer {
         this.sesClient = props.sesClient;
     }
 
-    public generateReport(events: any[]): string {
+    public generateReport(events: IIngestEvents): string {
         return renderToStaticMarkup(this.emailTemplate, { rootBlockId: 'root' });
     }
 
-    public async sendReportEmail(events: any[]) {
+    public async sendReportEmail(events: IIngestEvents, recipients: string[]) {
         // Generate the HTML report
         const htmlContent = this.generateReport(events);
 
@@ -347,8 +353,7 @@ export class ReportEmailer {
             // Send the email
             const command = new SendEmailCommand({
                 Destination: {
-                    // TODO: Get addressee from config
-                    ToAddresses: ['justin@inspiringapps.com'],
+                    ToAddresses: recipients,
                 },
                 Message: {
                     Body: {
