@@ -33,8 +33,6 @@ from common_constructs.webacl import WebACL, WebACLScope
 from constructs import Construct
 
 from stacks import persistent_stack as ps
-from stacks.api_stack.mock_api import MockApi
-from stacks.api_stack.v0_api import V0Api
 from stacks.api_stack.v1_api import V1Api
 
 MD_FORMAT = '^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$'
@@ -190,8 +188,6 @@ class CCApi(RestApi):
             templates={'application/json': '{"message": "Access denied"}'},
         )
 
-        MockApi(self.root, persistent_stack=persistent_stack)
-        V0Api(self.root, persistent_stack=persistent_stack)
         self.v1_api = V1Api(self.root, persistent_stack=persistent_stack)
 
         QueryDefinition(
