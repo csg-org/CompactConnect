@@ -75,8 +75,7 @@ def _find_latest_active_license(all_licenses: list[dict]) -> dict | None:
 
     # Last issued active license, if there are any active licenses
     latest_active_licenses = sorted(
-        [license_data for license_data in all_licenses
-         if (license_data['status'] == 'active' and license_data['dateOfExpiration'] > date.today())],
+        [license_data for license_data in all_licenses if license_data['status'] == 'active'],
         key=lambda x: x['dateOfIssuance'],
         reverse=True,
     )
