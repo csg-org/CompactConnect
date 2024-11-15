@@ -2,12 +2,13 @@ import json
 import os
 
 import yaml
-from aws_cdk import CustomResource, Duration, Stack
+from aws_cdk import CustomResource, Duration
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.custom_resources import Provider
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
+from common_constructs.stack import Stack
 from constructs import Construct
 
 from .compact_configuration_table import CompactConfigurationTable
@@ -27,6 +28,7 @@ class CompactConfigurationUpload(Construct):
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
+        stack: Stack = Stack.of(self)
 
         self.compact_configuration_upload_function = PythonFunction(
             scope,
@@ -37,9 +39,7 @@ class CompactConfigurationUpload(Construct):
             description='Uploads contents of compact-config directory to the compact configuration Dynamo table',
             timeout=Duration.minutes(10),
             log_retention=RetentionDays.THREE_MONTHS,
-            environment={
-                'COMPACT_CONFIGURATION_TABLE_NAME': table.table_name,
-            },
+            environment={'COMPACT_CONFIGURATION_TABLE_NAME': table.table_name, **stack.common_env_vars},
         )
 
         # grant lambda access to the compact configuration table
@@ -164,6 +164,25 @@ class CompactConfigurationUpload(Construct):
                             environment_name,
                             formatted_jurisdiction['activeEnvironments'],
                         ):
+                            formatted_jurisdiction = self._apply_jurisdiction_configuration_overrides(
+                                formatted_jurisdiction, environment_name
+                            )
+                            self._validate_jurisdiction_configuration(formatted_jurisdiction)
                             uploader_input['jurisdictions'][compact_name].append(formatted_jurisdiction)
 
         return json.dumps(uploader_input)
+
+    def _apply_jurisdiction_configuration_overrides(self, jurisdiction: dict, environment_name: str) -> dict:
+        """Apply overrides to the jurisdiction configuration, based on any overrides set in environment context"""
+        environment_context = self.node.get_context('ssm_context')['environments'][environment_name]
+        if 'jurisdiction_configuration_overrides' in environment_context.keys():
+            jurisdiction.update(environment_context['jurisdiction_configuration_overrides'])
+        return jurisdiction
+
+    @staticmethod
+    def _validate_jurisdiction_configuration(jurisdiction: dict):
+        """Do some basic jurisdiction configuration validation to catch some easy mistakes early"""
+        if not jurisdiction.get('jurisdictionOperationsTeamEmails', []):
+            raise ValueError(
+                f'jurisdictionOperationsTeamEmails is required for jurisdiction {jurisdiction["postalAbbreviation"]}'
+            )

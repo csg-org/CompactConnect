@@ -38,9 +38,7 @@ def on_event(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argume
 
 def upload_configuration(properties: dict):
     compact_configuration = json.loads(properties['compact_configuration'], parse_float=Decimal)
-    logger.info(
-        'Uploading compact configuration',
-    )
+    logger.info('Uploading compact configuration')
 
     # upload the root compact configuration
     _upload_compact_root_configuration(compact_configuration)
@@ -58,7 +56,7 @@ def _upload_compact_root_configuration(compact_configuration: dict) -> None:
     schema = CompactRecordSchema()
     for compact in compact_configuration['compacts']:
         compact_name = compact['compactName']
-        logger.info(f'Compact {compact_name} active for environment, uploading')
+        logger.info('Loading active compact', compact=compact_name)
         compact['type'] = 'compact'
         # remove the activeEnvironments field as it's an implementation detail
         compact.pop('activeEnvironments')
@@ -72,23 +70,21 @@ def _upload_jurisdiction_configuration(compact_configuration: dict) -> None:
     """Upload the jurisdiction configuration to the provider table.
     :param compact_configuration: The compact configuration
     """
-    schema = JurisdictionRecordSchema()
+    jurisdiction_schema = JurisdictionRecordSchema()
     for compact_name, jurisdictions in compact_configuration['jurisdictions'].items():
         for jurisdiction in jurisdictions:
             jurisdiction_postal_abbreviation = jurisdiction['postalAbbreviation']
             logger.info(
-                f'Jurisdiction {jurisdiction_postal_abbreviation} '
-                f'for compact {compact_name} active for environment, uploading',
-            )
-            jurisdiction.update(
-                {
-                    'type': 'jurisdiction',
-                    'compact': compact_name,
-                }
+                'Loading active jurisdiction',
+                compact=compact_name,
+                jurisdiction=jurisdiction_postal_abbreviation,
             )
             # remove the activeEnvironments field as it's an implementation detail
             jurisdiction.pop('activeEnvironments')
 
-            serialized_jurisdiction = schema.dump(jurisdiction)
+            dumped_jurisdiction = jurisdiction_schema.dump(jurisdiction)
 
-            config.compact_configuration_table.put_item(Item=serialized_jurisdiction)
+            # Force an exception on validation failure
+            jurisdiction_schema.load(dumped_jurisdiction)
+
+            config.compact_configuration_table.put_item(Item=jurisdiction_schema.dump(jurisdiction))
