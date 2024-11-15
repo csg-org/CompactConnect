@@ -88,11 +88,27 @@ class LicenseRecordSchema(BaseRecordSchema, LicensePostSchema):
     # This is used to calculate the actual 'status' used by the system in addition
     # to the expiration date of the license.
     jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    # This field is the actual status referenced by the system, which is determined by the expiration date
+    # in addition to the jurisdictionStatus. This should never be written to the DB. It is calculated
+    # whenever the record is loaded.
+    status = String(required=False, allow_none=False, validate=OneOf(['active', 'inactive']))
 
     @pre_dump
+    def pre_dump_initialization(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        in_data = self.generate_pk_sk(in_data)
+        return self.remove_status(in_data)
+
+
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
         in_data['sk'] = f'{in_data['compact']}#PROVIDER#license/{in_data['jurisdiction']}#{in_data['dateOfRenewal']}'
+        return in_data
+
+    def remove_status(self, in_data):
+        """
+        This should never be stored in the database, so we remove it before returning the data.
+        """
+        in_data.pop('status', None)
         return in_data
 
     @pre_load
