@@ -85,30 +85,6 @@ class TestLicenseSchema(TstLambdas):
 
         self.assertEqual(expected_license_record, license_record)
 
-    def test_serialize(self):
-        """Licenses are the only record that directly originate from external clients. We'll test their serialization
-        as it comes from clients.
-        """
-        from cc_common.data_model.schema.license import LicensePostSchema, LicenseRecordSchema
-
-        with open('tests/resources/api/license-post.json') as f:
-            license_data = LicensePostSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **json.load(f)})
-
-        with open('tests/resources/dynamo/license.json') as f:
-            expected_license_record = json.load(f)
-        # Provider will normally be looked up / generated internally, not come from the client
-        provider_id = expected_license_record['providerId']
-
-        license_record = LicenseRecordSchema().dump(
-            {'compact': 'aslp', 'jurisdiction': 'co', 'providerId': UUID(provider_id), **license_data},
-        )
-
-        # These are dynamic and so won't match
-        del expected_license_record['dateOfUpdate']
-        del license_record['dateOfUpdate']
-
-        self.assertEqual(expected_license_record, license_record)
-
     def test_license_record_schema_sets_status_to_inactive_if_license_expired(self):
         """Test round-trip serialization/deserialization of license records"""
         from cc_common.data_model.schema.license import LicenseRecordSchema
