@@ -53,7 +53,7 @@ class LicensePostSchema(LicensePublicSchema):
     def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
         license_types = config.license_types_for_compact(data['compact'])
         if data['licenseType'] not in license_types:
-            raise ValidationError({'licenseType': f'must be one of {license_types}'})
+            raise ValidationError({'licenseType': [f'Must be one of: {', '.join(license_types)}.']})
 
 
 @BaseRecordSchema.register_schema('license')

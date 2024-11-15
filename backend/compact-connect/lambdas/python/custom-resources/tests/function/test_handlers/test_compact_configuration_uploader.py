@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 
 from boto3.dynamodb.conditions import Key
+from marshmallow import ValidationError
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -27,7 +28,7 @@ def generate_single_jurisdiction_config(jurisdiction_name: str, postal_abbreviat
         'postalAbbreviation': postal_abbreviation,
         'jurisdictionFee': 100,
         'militaryDiscount': {'active': True, 'discountType': 'FLAT_RATE', 'discountAmount': 10},
-        'jurisdictionOperationsTeamEmails': [],
+        'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
         'jurisdictionAdverseActionsNotificationEmails': [],
         'jurisdictionSummaryReportNotificationEmails': [],
         'jurisprudenceRequirements': {'required': True},
@@ -43,24 +44,22 @@ def generate_date_string():
 
 
 def generate_mock_compact_configuration():
-    return json.dumps(
-        {
-            'compacts': [
-                generate_single_root_compact_config('aslp', active_environments=[TEST_ENVIRONMENT_NAME]),
-                generate_single_root_compact_config('octp', active_environments=[]),
+    return {
+        'compacts': [
+            generate_single_root_compact_config('aslp', active_environments=[TEST_ENVIRONMENT_NAME]),
+            generate_single_root_compact_config('octp', active_environments=[]),
+        ],
+        'jurisdictions': {
+            'aslp': [
+                generate_single_jurisdiction_config('nebraska', 'ne', active_environments=[TEST_ENVIRONMENT_NAME]),
+                generate_single_jurisdiction_config('ohio', 'oh', active_environments=[]),
             ],
-            'jurisdictions': {
-                'aslp': [
-                    generate_single_jurisdiction_config('nebraska', 'ne', active_environments=[TEST_ENVIRONMENT_NAME]),
-                    generate_single_jurisdiction_config('ohio', 'oh', active_environments=[]),
-                ],
-                'octp': [
-                    generate_single_jurisdiction_config('nebraska', 'ne', active_environments=['sandbox']),
-                    generate_single_jurisdiction_config('ohio', 'oh', active_environments=['sandbox']),
-                ],
-            },
+            'octp': [
+                generate_single_jurisdiction_config('nebraska', 'ne', active_environments=['sandbox']),
+                generate_single_jurisdiction_config('ohio', 'oh', active_environments=['sandbox']),
+            ],
         },
-    )
+    }
 
 
 @mock_aws
@@ -71,7 +70,7 @@ class TestCompactConfigurationUploader(TstFunction):
         event = {
             'RequestType': 'Create',
             'ResourceProperties': {
-                'compact_configuration': generate_mock_compact_configuration(),
+                'compact_configuration': json.dumps(generate_mock_compact_configuration()),
             },
         }
 
@@ -109,7 +108,7 @@ class TestCompactConfigurationUploader(TstFunction):
                     'jurisdictionAdverseActionsNotificationEmails': [],
                     'jurisdictionFee': Decimal('100'),
                     'jurisdictionName': 'nebraska',
-                    'jurisdictionOperationsTeamEmails': [],
+                    'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
                     'jurisdictionSummaryReportNotificationEmails': [],
                     'jurisprudenceRequirements': {'required': True},
                     'militaryDiscount': {'active': True, 'discountAmount': Decimal('10'), 'discountType': 'FLAT_RATE'},
@@ -124,7 +123,7 @@ class TestCompactConfigurationUploader(TstFunction):
                     'jurisdictionAdverseActionsNotificationEmails': [],
                     'jurisdictionFee': Decimal('100'),
                     'jurisdictionName': 'ohio',
-                    'jurisdictionOperationsTeamEmails': [],
+                    'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
                     'jurisdictionSummaryReportNotificationEmails': [],
                     'jurisprudenceRequirements': {'required': True},
                     'militaryDiscount': {'active': True, 'discountAmount': Decimal('10'), 'discountType': 'FLAT_RATE'},
@@ -150,7 +149,7 @@ class TestCompactConfigurationUploader(TstFunction):
                     'jurisdictionAdverseActionsNotificationEmails': [],
                     'jurisdictionFee': Decimal('100'),
                     'jurisdictionName': 'nebraska',
-                    'jurisdictionOperationsTeamEmails': [],
+                    'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
                     'jurisdictionSummaryReportNotificationEmails': [],
                     'jurisprudenceRequirements': {'required': True},
                     'militaryDiscount': {'active': True, 'discountAmount': Decimal('10'), 'discountType': 'FLAT_RATE'},
@@ -165,7 +164,7 @@ class TestCompactConfigurationUploader(TstFunction):
                     'jurisdictionAdverseActionsNotificationEmails': [],
                     'jurisdictionFee': Decimal('100'),
                     'jurisdictionName': 'ohio',
-                    'jurisdictionOperationsTeamEmails': [],
+                    'jurisdictionOperationsTeamEmails': ['cloud-team@example.com'],
                     'jurisdictionSummaryReportNotificationEmails': [],
                     'jurisprudenceRequirements': {'required': True},
                     'militaryDiscount': {'active': True, 'discountAmount': Decimal('10'), 'discountType': 'FLAT_RATE'},
@@ -177,3 +176,20 @@ class TestCompactConfigurationUploader(TstFunction):
             ],
             items,
         )
+
+    def test_compact_configuration_uploader_raises_exception_on_invalid_jurisdiction(self):
+        from handlers.compact_config_uploader import on_event
+
+        mock_configuration = generate_mock_compact_configuration()
+        # An empty ops team email is not allowed
+        mock_configuration['jurisdictions']['aslp'][0]['jurisdictionOperationsTeamEmails'] = []
+
+        event = {
+            'RequestType': 'Create',
+            'ResourceProperties': {
+                'compact_configuration': json.dumps(mock_configuration),
+            },
+        }
+
+        with self.assertRaises(ValidationError):
+            on_event(event, self.mock_context)

@@ -8,8 +8,6 @@ describe('Report emailer', () => {
     beforeAll(async () => {
         process.env.DEBUG = 'true';
         process.env.DATA_EVENT_TABLE_NAME = 'some-table';
-        // Tells the logger to pretty print logs for easier manual reading
-        process.env.POWERTOOLS_DEV = 'true';
     });
 
     it('should render an html document', async () => {

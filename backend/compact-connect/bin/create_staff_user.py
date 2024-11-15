@@ -15,8 +15,10 @@ import sys
 import boto3
 from botocore.exceptions import ClientError
 
-provider_data_path = os.path.join('lambdas', 'staff-users')
+provider_data_path = os.path.join('lambdas', 'python', 'staff-users')
+common_lib_path = os.path.join('lambdas', 'python', 'common')
 sys.path.append(provider_data_path)
+sys.path.append(common_lib_path)
 
 with open('cdk.json') as context_file:
     _context = json.load(context_file)['context']
@@ -27,7 +29,7 @@ os.environ['COMPACTS'] = json.dumps(COMPACTS)
 os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 
 # We have to import this after we've mucked with our path and environment
-from data_model.schema.user import UserRecordSchema  # noqa: E402
+from cc_common.data_model.schema.user import UserRecordSchema  # noqa: E402
 
 USER_POOL_ID = os.environ['USER_POOL_ID']
 USER_TABLE_NAME = os.environ['USER_TABLE_NAME']
