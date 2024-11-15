@@ -14,10 +14,10 @@ import { State } from '@models/State/State.model';
 export interface InterfacePrivilegePurchaseOption {
     jurisdiction?: State;
     compactType?: string | null;
-    fee?: number | null;
+    fee?: number;
     isMilitaryDiscountActive?: boolean;
     militaryDiscountType?: FeeTypes | null;
-    militaryDiscountAmount?: number | null;
+    militaryDiscountAmount?: number;
     isJurisprudenceRequired?: boolean;
 }
 
@@ -28,10 +28,10 @@ export class PrivilegePurchaseOption implements InterfacePrivilegePurchaseOption
     public $tm?: any = () => [];
     public jurisdiction? = new State();
     public compactType? = null;
-    public fee? = null;
+    public fee? = 0;
     public isMilitaryDiscountActive? = false;
     public militaryDiscountType? = null;
-    public militaryDiscountAmount? = null;
+    public militaryDiscountAmount? = 0;
     public isJurisprudenceRequired? = false;
 
     constructor(data?: InterfacePrivilegePurchaseOption) {

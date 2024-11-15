@@ -17,6 +17,8 @@ export interface State {
     isLoadingPrivilegePurchaseOptions: boolean;
     refreshTokenTimeoutId: number | null;
     currentCompact: Compact | null;
+    selectedPrivilegesToPurchase: Array<string> | null;
+    arePurchaseAttestationsAccepted: boolean;
     error: any | null;
 }
 
@@ -25,6 +27,8 @@ export const state: State = {
     isLoggedIn: (!!authStorage.getItem(tokens.staff.AUTH_TOKEN) || !!authStorage.getItem(tokens.licensee.AUTH_TOKEN)),
     isLoadingAccount: false,
     isLoadingPrivilegePurchaseOptions: false,
+    arePurchaseAttestationsAccepted: false,
+    selectedPrivilegesToPurchase: null,
     refreshTokenTimeoutId: null,
     currentCompact: null,
     error: null,

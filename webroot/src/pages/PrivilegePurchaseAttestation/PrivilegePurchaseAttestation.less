@@ -1,0 +1,60 @@
+//
+//  PrivilegePurchaseAttestation.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 11/4/2024.
+//
+.privilege-purchase-attestation-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+
+    .privilege-form {
+        width: 40rem;
+
+        .attestation-text {
+            padding: 4rem;
+            font-size: @fontSizeLarge;
+        }
+
+        .button-row {
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-top: 2rem;
+
+            @media @tabletWidth {
+                flex-direction: row;
+                align-items: flex-end;
+                justify-content: space-between;
+            }
+
+            :deep(.input-container) {
+                margin-bottom: 1rem;
+
+                @media @tabletWidth {
+                    margin-bottom: unset;
+                }
+            }
+
+            .right-cell {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+
+                @media @tabletWidth {
+                    align-items: flex-end;
+                    justify-content: space-between;
+                }
+
+                .back-button {
+                    margin-right: 1rem;
+                }
+            }
+        }
+    }
+}

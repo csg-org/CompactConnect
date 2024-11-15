@@ -29,6 +29,11 @@ export enum MutationTypes {
     GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST = '[User] Get Privilege Purchase Information Request',
     GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS = '[User] Get Privilege Purchase Information Success',
     GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE = '[User] Get Privilege Purchase Information Failure',
+    SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE = '[User] Save Selected Privilege Purchases To Store',
+    SET_ATTESTATIONS_ACCEPTED = '[User] Set Attestations Accepted',
+    POST_PRIVILEGE_PURCHASE_REQUEST = '[User] Post Privilege Purchase Request',
+    POST_PRIVILEGE_PURCHASE_SUCCESS = '[User] Post Privilege Purchase Success',
+    POST_PRIVILEGE_PURCHASE_FAILURE = '[User] Post Privilege Purchase Failure'
 }
 
 export default {
@@ -112,6 +117,29 @@ export default {
         state.error = null;
     },
     [MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE]: (state: any, error: Error) => {
+        state.isLoadingPrivilegePurchaseOptions = false;
+        state.error = error;
+    },
+    [MutationTypes.SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE]: (
+        state: any,
+        privilegePurchaseChoices: Array<string>
+    ) => {
+        state.selectedPrivilegesToPurchase = privilegePurchaseChoices;
+    },
+    [MutationTypes.SET_ATTESTATIONS_ACCEPTED]: (state: any, areAttestationsAccepted: boolean) => {
+        state.arePurchaseAttestationsAccepted = areAttestationsAccepted;
+    },
+    [MutationTypes.POST_PRIVILEGE_PURCHASE_REQUEST]: (state: any) => {
+        state.isLoadingPrivilegePurchaseOptions = true;
+        state.error = null;
+    },
+    [MutationTypes.POST_PRIVILEGE_PURCHASE_SUCCESS]: (state: any) => {
+        state.isLoadingPrivilegePurchaseOptions = false;
+        state.selectedPrivilegesToPurchase = null;
+        state.arePurchaseAttestationsAccepted = false;
+        state.error = null;
+    },
+    [MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE]: (state: any, error: Error) => {
         state.isLoadingPrivilegePurchaseOptions = false;
         state.error = error;
     },

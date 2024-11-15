@@ -81,6 +81,24 @@ const routes: Array<RouteConfig> = [
         meta: { requiresAuth: true },
     },
     {
+        path: '/:compact/Privileges/FinalizePurchase',
+        name: 'FinalizePrivilegePurchase',
+        component: () => import(/* webpackChunkName: "privilegePurchase" */ '@pages/FinalizePrivilegePurchase/FinalizePrivilegePurchase.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/:compact/Privileges/PurchaseSuccessful',
+        name: 'PurchaseSuccessful',
+        component: () => import(/* webpackChunkName: "privilegePurchase" */ '@pages/PurchaseSuccessful/PurchaseSuccessful.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/:compact/Privileges/Attestation',
+        name: 'PrivilegePurchaseAttestation',
+        component: () => import(/* webpackChunkName: "privilegePurchase" */ '@pages/PrivilegePurchaseAttestation/PrivilegePurchaseAttestation.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
         path: '/styleguide',
         name: 'StyleGuide',
         component: () => import(/* webpackChunkName: "styleGuide" */ '@pages/StyleGuide/StyleGuide.vue'),

@@ -57,7 +57,7 @@
             <span v-if="showValueLabel" class="range-value">{{ formattedValue }}</span>
         </div>
         <span
-            v-if="formInput.errorMessage"
+            v-if="formInput.errorMessage && !formInput.shouldHideErrorMessage"
             class="form-field-error"
         >
             {{ formInput.errorMessage }}
