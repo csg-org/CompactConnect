@@ -1,6 +1,10 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from datetime import date, datetime
 
+from marshmallow import ValidationError, pre_dump, pre_load, validates_schema
+from marshmallow.fields import UUID, Boolean, Date, Email, String
+from marshmallow.validate import Length, OneOf, Regexp
+
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import (
     BaseRecordSchema,
@@ -8,9 +12,6 @@ from cc_common.data_model.schema.base_record import (
     ITUTE164PhoneNumber,
     SocialSecurityNumber,
 )
-from marshmallow import ValidationError, pre_dump, pre_load, validates_schema
-from marshmallow.fields import UUID, Boolean, Date, Email, String
-from marshmallow.validate import Length, OneOf, Regexp
 
 
 class LicenseCommonSchema(ForgivingSchema):
@@ -101,8 +102,14 @@ class LicenseRecordSchema(BaseRecordSchema, LicensePostSchema):
     def _calculate_status(self, in_data, **kwargs):
         # determine if the status is active or inactive by checking the jurisdictionStatus
         # along with the expiration date of the license
-        in_data['status'] = 'active' if (in_data['jurisdictionStatus'] == 'active' and
-                date.fromisoformat(in_data['dateOfExpiration']) >
-                datetime.now(tz=config.expiration_date_resolution_timezone).date()) else 'inactive'
+        in_data['status'] = (
+            'active'
+            if (
+                in_data['jurisdictionStatus'] == 'active'
+                and date.fromisoformat(in_data['dateOfExpiration'])
+                > datetime.now(tz=config.expiration_date_resolution_timezone).date()
+            )
+            else 'inactive'
+        )
 
         return in_data
