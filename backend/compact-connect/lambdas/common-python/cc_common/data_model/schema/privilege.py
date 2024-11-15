@@ -35,7 +35,6 @@ class PrivilegeRecordSchema(BaseRecordSchema):
         in_data['sk'] = f'{in_data['compact']}#PROVIDER#privilege/{in_data['jurisdiction']}#{in_data['dateOfRenewal']}'
         return in_data
 
-
     @pre_load
     def pre_load_initialization(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data = self._calculate_status(in_data)
@@ -43,9 +42,14 @@ class PrivilegeRecordSchema(BaseRecordSchema):
 
     def _calculate_status(self, in_data, **kwargs):
         # determine if the status is active or inactive by comparing the expiration date to now
-        in_data['status'] = 'active' if (
-                date.fromisoformat(in_data['dateOfExpiration']) >
-                datetime.now(tz=config.expiration_date_resolution_timezone).date()) else 'inactive'
+        in_data['status'] = (
+            'active'
+            if (
+                date.fromisoformat(in_data['dateOfExpiration'])
+                > datetime.now(tz=config.expiration_date_resolution_timezone).date()
+            )
+            else 'inactive'
+        )
 
         return in_data
 
