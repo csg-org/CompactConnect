@@ -40,7 +40,7 @@ class PythonFunction(CdkPythonFunction):
         super().__init__(
             scope,
             construct_id,
-            runtime=Runtime.PYTHON_3_12,
+            runtime=Runtime.PYTHON_3_13,
             log_retention=log_retention,
             **defaults,
         )
