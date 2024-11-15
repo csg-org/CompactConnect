@@ -1,8 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-
-from marshmallow import ValidationError, pre_dump, validates_schema
-from marshmallow.fields import UUID, Boolean, Date, Email, String
-from marshmallow.validate import Length, OneOf, Regexp
+from datetime import date, datetime
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import (
@@ -11,6 +8,9 @@ from cc_common.data_model.schema.base_record import (
     ITUTE164PhoneNumber,
     SocialSecurityNumber,
 )
+from marshmallow import ValidationError, pre_dump, pre_load, validates_schema
+from marshmallow.fields import UUID, Boolean, Date, Email, String
+from marshmallow.validate import Length, OneOf, Regexp
 
 
 class LicenseCommonSchema(ForgivingSchema):
@@ -48,6 +48,24 @@ class LicensePostSchema(LicensePublicSchema):
     militaryWaiver = Boolean(required=False, allow_none=False)
     emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
+    # When a license record is first uploaded into the system, we store the value of
+    # 'status' under this field for backwards compatibility with the existing contract.
+    # this is used to calculate the actual 'status' used by the system in addition
+    # to the expiration date of the license.
+    jurisdictionStatus = String(required=False, allow_none=False, validate=OneOf(['active', 'inactive']))
+
+    @pre_load
+    def pre_load_initialization(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        return self._set_jurisdiction_status(in_data)
+
+    def _set_jurisdiction_status(self, in_data, **kwargs):
+        """
+        When a license record is first uploaded into the system, the 'jurisdictionStatus' value is captured
+        from the 'status' field for backwards compatibility with the existing contract.
+        This maps the income 'status' value to the internal 'jurisdictionStatus' field.
+        """
+        in_data['jurisdictionStatus'] = in_data['status']
+        return in_data
 
     @validates_schema
     def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
@@ -64,9 +82,27 @@ class LicenseRecordSchema(BaseRecordSchema, LicensePostSchema):
 
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
+    # We have two different status fields for a license:
+    # This field is the status that was uploaded by the jurisdiction.
+    # This is used to calculate the actual 'status' used by the system in addition
+    # to the expiration date of the license.
+    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
         in_data['sk'] = f'{in_data['compact']}#PROVIDER#license/{in_data['jurisdiction']}#{in_data['dateOfRenewal']}'
+        return in_data
+
+    @pre_load
+    def pre_load_initialization(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        return self._calculate_status(in_data)
+
+    def _calculate_status(self, in_data, **kwargs):
+        # determine if the status is active or inactive by checking the jurisdictionStatus
+        # along with the expiration date of the license
+        in_data['status'] = 'active' if (in_data['jurisdictionStatus'] == 'active' and
+                date.fromisoformat(in_data['dateOfExpiration']) >
+                datetime.now(tz=config.expiration_date_resolution_timezone).date()) else 'inactive'
+
         return in_data
