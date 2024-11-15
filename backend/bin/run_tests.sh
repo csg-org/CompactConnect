@@ -8,11 +8,9 @@ REPORT="$1"
 ) || exit "$?"
 for dir in \
   compact-connect/lambdas/common-python \
-  compact-connect/lambdas/license-data \
   compact-connect/lambdas/provider-data-v1 \
   compact-connect/lambdas/staff-user-pre-token \
   compact-connect/lambdas/staff-users \
-  compact-connect/lambdas/delete-objects \
   compact-connect/lambdas/custom-resources \
   compact-connect/lambdas/purchases \
   multi-account
