@@ -1,7 +1,17 @@
 # To disable the report, provide basically anything as a first argument
+set -e
 REPORT="$1"
 
-# Run CDK tests, tracking code coverage in a new data file
+# Run NodeJS tests first
+(
+  cd compact-connect/lambdas/nodejs/ingest-event-reporter
+  npm run test || exit "$?"
+  if [ -z "$REPORT" ]; then
+    open 'coverage/lcov-report/index.html'
+  fi
+)
+
+# Run CDK tests, tracking code coverage in a new, combined, data file
 (
   cd compact-connect
   pytest --cov=. --cov-config=.coveragerc tests
@@ -25,11 +35,6 @@ for dir in \
     pytest --cov=. --cov-config=.coveragerc --cov-append tests
   ) || exit "$?"
 done
-
-(
-  cd compact-connect/lambdas/nodejs/data-validation-events
-  npm run test || exit "$?"
-)
 
 # Run a coverage report with the combined data
 coverage html --fail-under=90

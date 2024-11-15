@@ -19,8 +19,13 @@
     "@types/react": "^18.3.12",
     "@typescript-eslint/eslint-plugin": "^8.12.2",
     "@typescript-eslint/parser": "^8.12.2",
+    "aws-sdk-client-mock": "^4.1.0",
+    "aws-sdk-client-mock-jest": "^4.1.0",
     "esbuild": "0.24.0",
     "eslint": "^9.13.0",
+    "jest": "^29.7.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "tslib": "^2.8.0",
@@ -34,6 +39,7 @@
     "@aws-sdk/client-ses": "^3.682.0",
     "@aws-sdk/util-dynamodb": "^3.682.0",
     "@usewaypoint/email-builder": "^0.0.6",
-    "aws-lambda": "1.0.7"
+    "aws-lambda": "1.0.7",
+    "zod": "^3.23.8"
   }
 }

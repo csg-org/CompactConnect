@@ -2,7 +2,7 @@
 from collections import UserDict
 
 from marshmallow import Schema, pre_dump
-from marshmallow.fields import Boolean, Decimal, List, Nested, String
+from marshmallow.fields import Boolean, Decimal, Email, List, Nested, String
 from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
@@ -40,7 +40,9 @@ class JurisdictionRecordSchema(BaseRecordSchema):
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     jurisdictionFee = Decimal(required=True, allow_none=False)
     militaryDiscount = Nested(JurisdictionMilitaryDiscountSchema(), required=False, allow_none=False)
-    jurisdictionOperationsTeamEmails = List(String(required=True, allow_none=False), required=True, allow_none=False)
+    jurisdictionOperationsTeamEmails = List(
+        Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)
+    )
     jurisdictionAdverseActionsNotificationEmails = List(
         String(required=True, allow_none=False),
         required=True,

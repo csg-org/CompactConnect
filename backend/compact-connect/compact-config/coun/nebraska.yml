@@ -6,7 +6,8 @@ militaryDiscount:
     active: true
     discountType: "FLAT_RATE"
     discountAmount: 10
-jurisdictionOperationsTeamEmails: []
+jurisdictionOperationsTeamEmails:
+    - "cloud-team-nonprod-alerts@inspiringapps.com"
 jurisdictionAdverseActionsNotificationEmails: []
 jurisdictionSummaryReportNotificationEmails: []
 jurisprudenceRequirements:
