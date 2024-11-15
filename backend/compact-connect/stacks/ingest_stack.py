@@ -115,7 +115,6 @@ class IngestStack(AppStack):
             log_groups=[ingest_handler.log_group],
         )
 
-
     def _add_queue_alarms(
         self,
         queue_retention_period: Duration,
