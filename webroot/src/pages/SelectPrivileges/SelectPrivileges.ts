@@ -188,26 +188,26 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         });
     }
 
-    get selectedStatePurchaseDataDisplayList(): Array<object> {
-        return this.selectedStatePurchaseDataList.map((option) => {
-            let feeDisplay = '';
-            let militaryDiscountAmountDisplay = '';
+    // get selectedStatePurchaseDataDisplayList(): Array<object> {
+    //     return this.selectedStatePurchaseDataList.map((option) => {
+    //         let feeDisplay = '';
+    //         let militaryDiscountAmountDisplay = '';
 
-            if (option?.fee) {
-                feeDisplay = option?.fee?.toFixed(2);
-            }
+    //         if (option?.fee) {
+    //             feeDisplay = option?.fee?.toFixed(2);
+    //         }
 
-            if (option?.militaryDiscountAmount) {
-                militaryDiscountAmountDisplay = option?.militaryDiscountAmount?.toFixed(2);
-            }
+    //         if (option?.militaryDiscountAmount) {
+    //             militaryDiscountAmountDisplay = option?.militaryDiscountAmount?.toFixed(2);
+    //         }
 
-            return {
-                ...option,
-                feeDisplay,
-                militaryDiscountAmountDisplay
-            };
-        });
-    }
+    //         return {
+    //             ...option,
+    //             feeDisplay,
+    //             militaryDiscountAmountDisplay
+    //         };
+    //     });
+    // }
 
     get selectedStatesWithJurisprudenceRequired(): Array<string> {
         const selectedStatesWithJurisprudenceRequired: Array<string> = [];
@@ -223,29 +223,29 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         return selectedStatesWithJurisprudenceRequired;
     }
 
-    get expirationDateText(): string {
-        return this.$t('licensing.expirationDate');
-    }
+    // get expirationDateText(): string {
+    //     return this.$t('licensing.expirationDate');
+    // }
 
-    get jurisdictionFeeText(): string {
-        return this.$t('licensing.jurisdictionFee');
-    }
+    // get jurisdictionFeeText(): string {
+    //     return this.$t('licensing.jurisdictionFee');
+    // }
 
-    get commissionFeeText(): string {
-        return this.$t('licensing.commissionFee');
-    }
+    // get commissionFeeText(): string {
+    //     return this.$t('licensing.commissionFee');
+    // }
 
-    get subtotalText(): string {
-        return this.$t('common.subtotal');
-    }
+    // get subtotalText(): string {
+    //     return this.$t('common.subtotal');
+    // }
 
     get jurisprudenceExplanationText(): string {
         return this.$t('licensing.jurisprudenceExplanationText');
     }
 
-    get militaryDiscountText(): string {
-        return this.$t('licensing.militaryDiscountText');
-    }
+    // get militaryDiscountText(): string {
+    //     return this.$t('licensing.militaryDiscountText');
+    // }
 
     get jurisprudenceModalTitle(): string {
         return this.$t('licensing.jurisprudenceConfirmation');

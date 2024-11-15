@@ -5,7 +5,14 @@
 //  Created by InspiringApps on 11/12/2024.
 //
 
-import { Component, Vue, toNative } from 'vue-facing-decorator';
+import {
+    Component,
+    Vue,
+    toNative,
+    Prop
+} from 'vue-facing-decorator';
+import { displayDateFormat } from '@/app.config';
+import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import Modal from '@components/Modal/Modal.vue';
 import { Compact } from '@models/Compact/Compact.model';
@@ -14,14 +21,21 @@ import { License, LicenseStatus } from '@/models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
-import { State } from '@/models/State/State.model';
+// import { State } from '@/models/State/State.model';
 import moment from 'moment';
 
 @Component({
     name: 'SelectedStatePurchaseInformation',
+    components: {
+        InputCheckbox,
+        InputButton,
+        Modal
+    }
 })
 class SelectedStatePurchaseInformation extends Vue {
     // PROPS
+    @Prop({ required: true }) selectedStatePurchaseData?: PrivilegePurchaseOption;
+    @Prop() jurisprudenceCheckInput?: FormInput;
 
     //
     // Data
@@ -42,6 +56,18 @@ class SelectedStatePurchaseInformation extends Vue {
         return this.licensee?.licenses || [];
     }
 
+    get user(): LicenseeUser | null {
+        return this.userStore.model;
+    }
+
+    get userStore(): any {
+        return this.$store.state.user;
+    }
+
+    get licensee(): Licensee | null {
+        return this.user?.licensee || null;
+    }
+
     get activeLicenseExpirationDate(): string {
         let date = '';
 
@@ -56,9 +82,88 @@ class SelectedStatePurchaseInformation extends Vue {
         return date;
     }
 
+    get expirationDateText(): string {
+        return this.$t('licensing.expirationDate');
+    }
+
+    get commissionFeeText(): string {
+        return this.$t('licensing.commissionFee');
+    }
+
+    get jurisdictionFeeText(): string {
+        return this.$t('licensing.jurisdictionFee');
+    }
+
+    get subtotalText(): string {
+        return this.$t('common.subtotal');
+    }
+
+    get militaryDiscountText(): string {
+        return this.$t('licensing.militaryDiscountText');
+    }
+
+    get jurisprudenceExplanationText(): string {
+        return this.$t('licensing.jurisprudenceExplanationText');
+    }
+
+    get jurisprudenceModalTitle(): string {
+        return this.$t('licensing.jurisprudenceConfirmation');
+    }
+
+    get jurisprudenceModalContent(): string {
+        return this.$t('licensing.jurisprudenceUnderstandParagraph');
+    }
+
+    get iUnderstandText(): string {
+        return this.$t('licensing.iUnderstand');
+    }
+
+    get feeDisplay(): string {
+        return this.selectedStatePurchaseData?.fee?.toFixed(2) || '';
+    }
+
+    get militaryDiscountAmountDisplay(): string {
+        return this.selectedStatePurchaseData?.militaryDiscountAmount?.toFixed(2) || '';
+    }
+
+    get currentCompact(): Compact | null {
+        return this.userStore?.currentCompact || null;
+    }
+
+    get currentCompactCommissionFee(): number | null {
+        return this.currentCompact?.compactCommissionFee || null;
+    }
+
+    get currentCompactCommissionFeeDisplay(): string {
+        return this.currentCompactCommissionFee?.toFixed(2) || '0.00';
+    }
+
+    get isMilitaryDiscountActive(): boolean {
+        return this.selectedStatePurchaseData?.isMilitaryDiscountActive || false;
+    }
+
+    get subTotal(): string {
+        const militaryDiscount = this.isMilitaryDiscountActive
+            && this.selectedStatePurchaseData.militaryDiscountAmount
+            ? this.selectedStatePurchaseData?.militaryDiscountAmount : 0;
+
+        const total = ((this.selectedStatePurchaseData?.fee || 0)
+            + (this.currentCompactCommissionFee || 0)
+            - (militaryDiscount));
+
+        return total.toFixed(2);
+    }
+
     //
     // Methods
     //
+    handleJurisprudenceClicked() {
+        console.log('asd');
+    }
+
+    deselectState() {
+        console.log('asd');
+    }
 }
 
 export default toNative(SelectedStatePurchaseInformation);

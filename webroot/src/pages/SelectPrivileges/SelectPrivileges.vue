@@ -62,12 +62,13 @@
                             </div>
                         </li>
                     </ul>
-                    <ul v-if="isPhone" class="selected-state-list">
+                    <ul v-if="!isPhone" class="selected-state-list">
                         <SelectedStatePurchaseInformation
-                            v-for="(state) in selectedStatePurchaseDataDisplayList"
+                            v-for="(state) in selectedStatePurchaseDataList"
                             :key="state.jurisdiction.abbrev"
                             class="selected-state-block"
-                            :state="state"
+                            :selectedStatePurchaseData="state"
+                            :jurisprudenceCheckInput="formData.jurisprudenceConfirmations[state.jurisdiction.abbrev]"
                         />
                         <!-- <li
                             v-for="(state, i) in selectedStatePurchaseDataDisplayList"
