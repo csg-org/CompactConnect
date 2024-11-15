@@ -273,62 +273,6 @@ class CCApi(RestApi):
         CfnOutput(self, 'APIBaseUrl', value=api_domain_name)
         CfnOutput(self, 'APIId', value=self.rest_api_id)
 
-    @property
-    def v0_common_license_properties(self) -> dict:
-        stack: AppStack = AppStack.of(self)
-
-        return {
-            'ssn': JsonSchema(type=JsonSchemaType.STRING, pattern=SSN_FORMAT),
-            'npi': JsonSchema(type=JsonSchemaType.STRING, pattern='^[0-9]{10}$'),
-            'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-            'middleName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-            'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-            'dateOfBirth': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=YMD_FORMAT),
-            'homeStateStreet1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
-            'homeStateStreet2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-            'homeStateCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
-            'homeStatePostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
-            'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=stack.license_types),
-            'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=YMD_FORMAT),
-            'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=YMD_FORMAT),
-            'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=YMD_FORMAT),
-            'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
-        }
-
-    @property
-    def v0_license_response_schema(self):
-        stack: AppStack = AppStack.of(self)
-        return JsonSchema(
-            type=JsonSchemaType.OBJECT,
-            required=[
-                'providerId',
-                'type',
-                'compact',
-                'jurisdiction',
-                'ssn',
-                'givenName',
-                'familyName',
-                'dateOfBirth',
-                'homeStateStreet1',
-                'homeStateCity',
-                'homeStatePostalCode',
-                'licenseType',
-                'dateOfIssuance',
-                'dateOfRenewal',
-                'dateOfExpiration',
-                'dateOfUpdate',
-                'status',
-            ],
-            additional_properties=False,
-            properties={
-                'type': JsonSchema(type=JsonSchemaType.STRING, enum=['license-home']),
-                'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
-                'jurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
-                'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=UUID4_FORMAT),
-                'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=YMD_FORMAT),
-                **self.v0_common_license_properties,
-            },
-        )
 
     def get_secrets_manager_compact_payment_processor_arns(self):
         """
