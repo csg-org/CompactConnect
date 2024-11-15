@@ -117,7 +117,7 @@ class TstFunction(TstLambdas):
         for resource in license_test_resources:
             with open(resource) as f:
                 record = json.load(f, parse_float=Decimal)
-                record['status'] = status
+                record['jurisdictionStatus'] = status
                 if expiration_date:
                     record['dateOfExpiration'] = expiration_date
 
