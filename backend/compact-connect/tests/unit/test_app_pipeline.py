@@ -132,7 +132,7 @@ class TestPipeline(TstCompactConnectABC, TestCase):
         )
 
         # the other properties are dynamic, so here we just check to make sure it exists
-        self.assertEqual(['python3.13'], lambda_layer_parameter_properties['CompatibleRuntimes'])
+        self.assertEqual(['python3.12'], lambda_layer_parameter_properties['CompatibleRuntimes'])
 
     @staticmethod
     def _sort_compact_configuration_input(compact_configuration_input: dict) -> dict:
