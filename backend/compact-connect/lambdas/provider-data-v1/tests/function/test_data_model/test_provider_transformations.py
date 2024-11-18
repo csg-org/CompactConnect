@@ -5,7 +5,7 @@ from unittest.mock import patch
 from boto3.dynamodb.conditions import Key
 from moto import mock_aws
 
-from tests.function import TstFunction
+from .. import TstFunction
 
 
 @mock_aws
@@ -123,6 +123,9 @@ class TestTransformations(TstFunction):
         self.assertEqual(
             f'aslp#PROVIDER#privilege/ne#{datetime.now(tz=UTC).date().isoformat()}', records['privilege'].pop('sk')
         )
+
+        # the provider record has a 'status' field calculated at load time, so we add the expected value
+        expected_provider['status'] = 'active'
 
         # Make sure each is represented the way we expect, in the db
         self.assertEqual(expected_provider, records['provider'])
