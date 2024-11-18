@@ -1,7 +1,8 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
+from datetime import date, datetime
 from urllib.parse import quote
 
-from marshmallow import ValidationError, post_load, pre_dump, validates_schema
+from marshmallow import ValidationError, post_load, pre_dump, pre_load, validates_schema
 from marshmallow.fields import UUID, Boolean, Date, Email, String
 from marshmallow.validate import Length, OneOf, Regexp
 
@@ -26,7 +27,7 @@ class ProviderPublicSchema(ForgivingSchema):
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
     licenseType = String(required=True, allow_none=False)
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -62,6 +63,10 @@ class ProviderRecordSchema(BaseRecordSchema, ProviderPublicSchema):
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = Date(required=True, allow_none=False)
+    # This field is the actual status referenced by the system, which is determined by the expiration date
+    # in addition to the jurisdictionStatus. This should never be written to the DB. It is calculated
+    # whenever the record is loaded.
+    status = String(required=False, allow_none=False, validate=OneOf(['active', 'inactive']))
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
@@ -94,4 +99,23 @@ class ProviderRecordSchema(BaseRecordSchema, ProviderPublicSchema):
     @post_load
     def drop_fam_giv_mid(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         del in_data['providerFamGivMid']
+        return in_data
+
+    @pre_load
+    def pre_load_initialization(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        return self._calculate_status(in_data)
+
+    def _calculate_status(self, in_data, **kwargs):
+        # determine if the status is active or inactive by checking the jurisdictionStatus
+        # along with the expiration date of the license
+        in_data['status'] = (
+            'active'
+            if (
+                    in_data['jurisdictionStatus'] == 'active'
+                    and date.fromisoformat(in_data['dateOfExpiration'])
+                    > datetime.now(tz=config.expiration_date_resolution_timezone).date()
+            )
+            else 'inactive'
+        )
+
         return in_data

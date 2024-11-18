@@ -78,9 +78,11 @@ class TestIngest(TstFunction):
         with open('../common-python/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
         # The license status and provider should immediately be inactive
+        expected_provider['jurisdictionStatus'] = 'inactive'
+        expected_provider['licenses'][0]['jurisdictionStatus'] = 'inactive'
+        # these should be calculated as inactive at record load time
         expected_provider['status'] = 'inactive'
         expected_provider['licenses'][0]['status'] = 'inactive'
-        expected_provider['licenses'][0]['jurisdictionStatus'] = 'inactive'
         # NOTE: when we are supporting privilege applications officially, they should also be set inactive. That will
         # be captured in the relevant feature work - this is just to help us remember, since it's pretty important.
         # expected_provider['privileges'][0]['status'] = 'inactive'
