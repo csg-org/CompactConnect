@@ -179,14 +179,31 @@ class PersistentStack(AppStack):
             event_bus=self.data_event_bus,
         )
 
+        # These dummy exports are required until we remove dependencies from the api stack
+        # see https://github.com/aws/aws-cdk/issues/3414
+        self.export_value(self.mock_bulk_uploads_bucket.bucket_name)
+        self.export_value(self.mock_bulk_uploads_bucket.bucket_arn)
+
         self.mock_license_table = LicenseTable(
-            self, 'MockLicenseTable', encryption_key=self.shared_encryption_key, removal_policy=RemovalPolicy.DESTROY
+            self, 'MockLicenseTable', encryption_key=self.shared_encryption_key,
+            removal_policy=RemovalPolicy.DESTROY
         )
+
+        # These dummy exports are required until we remove dependencies from the api stack
+        # see https://github.com/aws/aws-cdk/issues/3414
+        self.export_value(self.mock_license_table.table_name)
+        self.export_value(self.mock_license_table.table_arn)
 
     def _add_deprecated_data_resources(self):
         self.license_table = LicenseTable(
-            self, 'LicenseTable', encryption_key=self.shared_encryption_key, removal_policy=RemovalPolicy.DESTROY
+            self, 'LicenseTable', encryption_key=self.shared_encryption_key,
+            removal_policy=RemovalPolicy.DESTROY
         )
+
+        # These dummy exports are required until we remove dependencies from the api stack
+        # see https://github.com/aws/aws-cdk/issues/3414
+        self.export_value(self.license_table.table_name)
+        self.export_value(self.license_table.table_arn)
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
         self.bulk_uploads_bucket = BulkUploadsBucket(
