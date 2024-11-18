@@ -67,7 +67,7 @@ jobs:
 
       # Audit dependencies for vulnerabilities
       - name: Audit dependencies (Cloudfront CSP Lambda)
-        run: yarn audit
+        run: yarn run audit:dependencies
         working-directory: ./backend/compact-connect/lambdas/nodejs/cloudfront-csp
 
   CheckIngestEventReporter:
@@ -116,5 +116,5 @@ jobs:
 
       # Audit dependencies for vulnerabilities
       - name: Audit dependencies (Ingest Event Reporter Lambda)
-        run: yarn audit
+        run: yarn run audit:dependencies
         working-directory: ./backend/compact-connect/lambdas/nodejs/ingest-event-reporter
