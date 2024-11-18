@@ -24,8 +24,21 @@
     .invite-user-form-row {
         display: flex;
         flex-wrap: wrap;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
+
+        &:deep(.input-container label) {
+            display: block;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+
+            @media @tabletWidth {
+                display: flex;
+                overflow: unset;
+                white-space: unset;
+            }
+        }
     }
 
     .invite-user-meta {
@@ -43,7 +56,7 @@
     .input-connector {
         width: 5%;
         height: 2px;
-        margin-bottom: 12px;
+        margin-top: 46px;
         background-color: @black;
     }
 
