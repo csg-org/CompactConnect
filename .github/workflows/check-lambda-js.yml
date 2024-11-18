@@ -10,9 +10,11 @@ on:
       - main
       - development
       - ia-web-development
-      - feat/data-validation-emails
     paths:
       - backend/compact-connect/lambdas/nodejs/**
+  push:
+    branches:
+      - feat/data-validation-emails
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
