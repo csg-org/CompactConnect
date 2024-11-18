@@ -8,7 +8,8 @@
     "watch": "tsc -w",
     "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --coverage",
     "lint": "eslint '**/*.ts'",
-    "lint-fix": "eslint --fix"
+    "lint-fix": "eslint --fix",
+    "audit:dependencies": "yarn audit --groups dependencies --level moderate"
   },
   "author": "Inspiring Apps",
   "license": "UNLICENSED",
