@@ -10,11 +10,40 @@
 
     .search-toggle-container {
         display: flex;
-        justify-content: flex-end;
+        flex-direction: column;
+        flex-wrap: wrap;
+        align-items: flex-end;
         margin-bottom: 2.4rem;
 
-        .search-toggle {
-            margin-bottom: 2rem;
+        @media @desktopWidth {
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .search-tag {
+            display: flex;
+            align-content: center;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.2rem;
+            padding: 0.8rem 1rem;
+            border-radius: @borderRadiusPillShape;
+            color: @white;
+            background-color: @primaryColor;
+
+            @media @desktopWidth {
+                margin-right: 2.4rem;
+                margin-bottom: 0;
+            }
+
+            .title {
+                padding-right: 0.4rem;
+            }
+
+            .search-terms {
+                font-weight: @fontWeightBold;
+            }
         }
     }
 }

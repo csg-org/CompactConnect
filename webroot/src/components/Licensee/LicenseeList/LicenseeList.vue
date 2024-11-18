@@ -10,13 +10,22 @@
         <h1 class="list-title">{{ $t('licensing.licensingListTitle') }}</h1>
         <transition name="fade-slow" mode="out-in">
             <div v-if="!hasSearched" class="search-initial-container">
-                <LicenseeSearch @searchParams="handleSearch" />
+                <LicenseeSearch :searchParams="searchParams" @searchParams="handleSearch" />
             </div>
             <div v-else-if="shouldShowSearchModal" class="search-modal-container">
-                <LicenseeSearch @searchParams="handleSearch" />
+                <LicenseeSearch :searchParams="searchParams" @searchParams="handleSearch" />
             </div>
             <div v-else class="licesee-list-container">
                 <div class="search-toggle-container">
+                    <div v-if="hasSearchTerms" class="search-tag">
+                        <span class="title">{{ $t('common.viewing') }}:</span>
+                        <span class="search-terms">
+                            {{ searchDisplayFirstName }}
+                            {{ searchDisplayLastName }}
+                            {{ searchDisplaySsn }}
+                            {{ searchDisplayState }}
+                        </span>
+                    </div>
                     <button
                         class="search-toggle transparent"
                         @click="toggleSearch()"

@@ -18,6 +18,7 @@ import { SortDirection } from '@store/sorting/sorting.state';
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, PageChangeConfig } from '@store/pagination/pagination.state';
 import { PageExhaustError } from '@store/pagination';
 import { RequestParamsInterfaceLocal } from '@network/licenseApi/data.api';
+import { State } from '@models/State/State.model';
 
 @Component({
     name: 'LicenseeList',
@@ -35,6 +36,7 @@ class LicenseeList extends Vue {
     //
     hasSearched = false;
     shouldShowSearchModal = false;
+    searchParams: LicenseSearch = {};
     isInitialFetchCompleted = false;
     prevKey = '';
     nextKey = '';
@@ -74,6 +76,57 @@ class LicenseeList extends Vue {
         return this.$store.state.license;
     }
 
+    get searchDisplayFirstName(): string {
+        return this.searchParams.firstName || '';
+    }
+
+    get searchDisplayLastName(): string {
+        const delimiter = (this.searchDisplayFirstName) ? ' ' : '';
+
+        return `${delimiter}${this.searchParams.lastName}` || '';
+    }
+
+    get searchDisplaySsn(): string {
+        const { ssn } = this.searchParams;
+        const delimiter = (this.searchDisplayFirstName || this.searchDisplayLastName) ? ', ' : '';
+        let displaySsn = '';
+
+        if (ssn) {
+            const masked = ssn.slice(0, 7).replace(/[0-9]/g, '#');
+            const unmasked = ssn.slice(-4);
+
+            displaySsn = `${delimiter}${masked}${unmasked}`;
+        }
+
+        return displaySsn;
+    }
+
+    get searchDisplayState(): string {
+        const { state } = this.searchParams;
+        const { searchDisplayFirstName, searchDisplayLastName, searchDisplaySsn } = this;
+        const delimiter = (searchDisplayFirstName || searchDisplayLastName || searchDisplaySsn) ? ', ' : '';
+        let displayState = '';
+
+        if (state) {
+            const stateModel = new State({ abbrev: state });
+
+            displayState = `${delimiter}${stateModel.name()}`;
+        }
+
+        return displayState;
+    }
+
+    get hasSearchTerms(): boolean {
+        const {
+            searchDisplayFirstName,
+            searchDisplayLastName,
+            searchDisplaySsn,
+            searchDisplayState
+        } = this;
+
+        return Boolean(searchDisplayFirstName || searchDisplayLastName || searchDisplaySsn || searchDisplayState);
+    }
+
     get sortOptions(): Array<any> {
         const options = [
             // Temp for limited server sorting support
@@ -110,6 +163,7 @@ class LicenseeList extends Vue {
 
     handleSearch(params: LicenseSearch): void {
         this.fetchListData(params);
+        this.searchParams = params;
 
         if (!this.hasSearched) {
             this.hasSearched = true;
