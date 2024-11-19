@@ -111,7 +111,6 @@ export class Lambda implements LambdaInterface {
                 }
             }
         }
-
         logger.info('Completing handler');
     }
 }

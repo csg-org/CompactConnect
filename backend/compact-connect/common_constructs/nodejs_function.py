@@ -37,7 +37,7 @@ class NodejsFunction(CdkNodejsFunction):
             construct_id,
             runtime=Runtime.NODEJS_20_X,
             entry=os.path.join(lambda_dir, 'bin', 'handler.ts'),
-            deps_lock_file_path=os.path.join(lambda_dir, 'package-lock.json'),
+            deps_lock_file_path=os.path.join(lambda_dir, 'yarn.lock'),
             bundling=BundlingOptions(
                 format=OutputFormat.CJS,
                 main_fields=['module', 'main'],

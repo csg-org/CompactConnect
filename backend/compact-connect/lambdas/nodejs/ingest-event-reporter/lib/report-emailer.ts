@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
-import { renderToStaticMarkup, TReaderBlock, TReaderDocument } from '@usewaypoint/email-builder';
+import { renderToStaticMarkup, TReaderDocument } from '@usewaypoint/email-builder';
 import { EnvironmentVariablesService } from './environment-variables-service';
 import { IIngestFailureEventRecord, IValidationErrorEventRecord } from './models';
 
@@ -20,9 +20,9 @@ interface ReportEmailerProperties {
 
 
 export class ReportEmailer {
-    logger: Logger;
-    sesClient: SESClient;
-    emailTemplate: TReaderDocument = {
+    private readonly logger: Logger;
+    private readonly sesClient: SESClient;
+    private readonly emailTemplate: TReaderDocument = {
         'root': {
             'type': 'EmailLayout',
             'data': {
@@ -30,92 +30,12 @@ export class ReportEmailer {
                 'canvasColor': '#FFFFFF',
                 'textColor': '#242424',
                 'fontFamily': 'MODERN_SANS',
-                'childrenIds': [
-                    'block-logo',
-                    'block-header',
-                    'block-sub-heading',
-                ]
+                'childrenIds': []
             }
-        },
-        'block-logo': {
-            'type': 'Image',
-            'data': {
-                'style': {
-                    'padding': {
-                        'top': 40,
-                        'bottom': 8,
-                        'right': 68,
-                        'left': 68
-                    },
-                    'backgroundColor': null,
-                    'textAlign': 'center'
-                },
-                'props': {
-                    'width': null,
-                    'height': 100,
-                    'url': 'https://compactconnect.org/wp-content/uploads/2024/07/Compact-Connect-logo_FINAL.png',
-                    'alt': '',
-                    'linkHref': null,
-                    'contentAlignment': 'middle'
-                }
-            }
-        },
-        'block-header': {
-            'type': 'Heading',
-            'data': {
-                'props': {
-                    'text': 'License Data Error Summary',
-                    'level': 'h1'
-                },
-                'style': {
-                    'textAlign': 'center',
-                    'padding': {
-                        'top': 28,
-                        'bottom': 12,
-                        'right': 24,
-                        'left': 24
-                    }
-                }
-            }
-        },
-        'block-sub-heading': {
-            'type': 'Text',
-            'data': {
-                'style': {
-                    'fontSize': 18,
-                    'fontWeight': 'normal',
-                    'textAlign': 'center',
-                    'padding': {
-                        'top': 0,
-                        'bottom': 52,
-                        'right': 40,
-                        'left': 40
-                    }
-                },
-                'props': {
-                    'text': 'There have been some license data errors that prevented ingest. They are listed below:'
-                }
-            }
-        },
-        'block-div': {
-            'type': 'Divider',
-            'data': {
-                'style': {
-                    'padding': {
-                        'top': 12,
-                        'bottom': 16,
-                        'right': 0,
-                        'left': 0
-                    }
-                },
-                'props': {
-                    'lineColor': '#CCCCCC'
-                }
-            }
-        },
+        }
     };
 
-    allsWellEmailTemplate: TReaderDocument = {
+    private readonly allsWellEmailTemplate: TReaderDocument = {
         'root': {
             'type': 'EmailLayout',
             'data': {
@@ -123,109 +43,7 @@ export class ReportEmailer {
                 'canvasColor': '#FFFFFF',
                 'textColor': '#242424',
                 'fontFamily': 'MODERN_SANS',
-                'childrenIds': [
-                    'block-logo',
-                    'block-header',
-                    'block-sub-heading',
-                ]
-            }
-        },
-        'block-logo': {
-            'type': 'Image',
-            'data': {
-                'style': {
-                    'padding': {
-                        'top': 40,
-                        'bottom': 8,
-                        'right': 68,
-                        'left': 68
-                    },
-                    'backgroundColor': null,
-                    'textAlign': 'center'
-                },
-                'props': {
-                    'width': null,
-                    'height': 100,
-                    'url': 'https://compactconnect.org/wp-content/uploads/2024/07/Compact-Connect-logo_FINAL.png',
-                    'alt': '',
-                    'linkHref': null,
-                    'contentAlignment': 'middle'
-                }
-            }
-        },
-        'block-header': {
-            'type': 'Heading',
-            'data': {
-                'props': {
-                    'text': 'Congrats!',
-                    'level': 'h1'
-                },
-                'style': {
-                    'textAlign': 'center',
-                    'padding': {
-                        'top': 28,
-                        'bottom': 12,
-                        'right': 24,
-                        'left': 24
-                    }
-                }
-            }
-        },
-        'block-sub-heading': {
-            'type': 'Text',
-            'data': {
-                'style': {
-                    'fontSize': 18,
-                    'fontWeight': 'normal',
-                    'textAlign': 'center',
-                    'padding': {
-                        'top': 0,
-                        'bottom': 52,
-                        'right': 40,
-                        'left': 40
-                    }
-                },
-                'props': {
-                    'text': 'There have been no license data errors in your jurisdiction for the last 7 days!'
-                }
-            }
-        },
-        'block-div': {
-            'type': 'Divider',
-            'data': {
-                'style': {
-                    'padding': {
-                        'top': 12,
-                        'bottom': 16,
-                        'right': 0,
-                        'left': 0
-                    }
-                },
-                'props': {
-                    'lineColor': '#CCCCCC'
-                }
-            }
-        },
-        'block-footer': {
-            'type': 'Text',
-            'data': {
-                'style': {
-                    'color': '#ffffff',
-                    'backgroundColor': '#2459A9',
-                    'fontSize': 13,
-                    'fontFamily': 'MODERN_SANS',
-                    'fontWeight': 'normal',
-                    'textAlign': 'center',
-                    'padding': {
-                        'top': 40,
-                        'bottom': 40,
-                        'right': 68,
-                        'left': 68
-                    }
-                },
-                'props': {
-                    'text': '© 2024 CompactConnect'
-                }
+                'childrenIds': []
             }
         }
     };
@@ -233,24 +51,6 @@ export class ReportEmailer {
     public constructor(props: ReportEmailerProperties) {
         this.logger = props.logger;
         this.sesClient = props.sesClient;
-    }
-
-    public generateReport(events: IIngestEvents): string {
-        const report = JSON.parse(JSON.stringify(this.emailTemplate));
-
-        for (const ingestFailure of events.ingestFailures) {
-            this.insertDiv(report);
-            this.insertIngestFailure(report, ingestFailure);
-        }
-
-        for (const validationError of events.validationErrors) {
-            this.insertDiv(report);
-            this.insertValidationError(report, validationError);
-        }
-
-        this.insertFooter(report);
-
-        return renderToStaticMarkup(report, { rootBlockId: 'root' });
     }
 
     public async sendReportEmail(events: IIngestEvents, recipients: string[]) {
@@ -292,7 +92,12 @@ export class ReportEmailer {
         this.logger.info('Sending alls well email', { recipients: recipients });
 
         // Generate the HTML report
-        const htmlContent = renderToStaticMarkup(this.allsWellEmailTemplate, { rootBlockId: 'root' });
+        const report = JSON.parse(JSON.stringify(this.allsWellEmailTemplate));
+
+        this.insertHeader(report, 'There have been no license data errors this week!');
+        this.insertFooter(report);
+
+        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
 
         try {
             // Send the email
@@ -309,7 +114,7 @@ export class ReportEmailer {
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: 'Data Validation Report'
+                        Data: 'License Data Summary'
                     }
                 },
                 // We're required by the IAM policy to use this display name
@@ -323,9 +128,47 @@ export class ReportEmailer {
         }
     }
 
+    public generateReport(events: IIngestEvents): string {
+        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+
+        this.insertHeader(
+            report,
+            'There have been some license data errors that prevented ingest. '
+            + 'They are listed below:'
+        );
+        for (const ingestFailure of events.ingestFailures) {
+            this.insertDiv(report);
+            this.insertIngestFailure(report, ingestFailure);
+        }
+
+        // Sort the validation errors by record number then by event time
+        const validationErrors = this.sortValidationErrors(events.validationErrors);
+
+        for (const validationError of validationErrors) {
+            this.insertDiv(report);
+            this.insertValidationError(report, validationError);
+        }
+
+        this.insertFooter(report);
+
+        return renderToStaticMarkup(report, { rootBlockId: 'root' });
+    }
+
+    protected sortValidationErrors(validationErrors: IValidationErrorEventRecord[]) {
+        validationErrors.sort((a, b) => {
+            if ( a.recordNumber != b.recordNumber ) {
+                return a.recordNumber - b.recordNumber;
+            } else {
+                return new Date(a.eventTime).getTime() - new Date(b.eventTime).getTime();
+            }
+        });
+        return validationErrors;
+    }
+
     private insertIngestFailure(report: TReaderDocument, ingestFailure: IIngestFailureEventRecord) {
         const blockAId = `block-${crypto.randomUUID()}`;
-        const blockA: TReaderBlock = {
+
+        report[blockAId] = {
             'type': 'Heading',
             'data': {
                 'props': {
@@ -336,7 +179,7 @@ export class ReportEmailer {
                     'color': '#DA2525',
                     'padding': {
                         'top': 0,
-                        'bottom': 4,
+                        'bottom': 0,
                         'right': 24,
                         'left': 24
                     }
@@ -344,12 +187,9 @@ export class ReportEmailer {
             }
         };
 
-        // Insert the new blocks into the report
-        report[blockAId] = blockA;
+        const blockBId: string = `block-${crypto.randomUUID()}`;
 
-        const ingestErrorMessage = ingestFailure.errors.join('\n');
-
-        const blockB: TReaderBlock = {
+        report[blockBId] = {
             'type': 'Text',
             'data': {
                 'style': {
@@ -362,13 +202,10 @@ export class ReportEmailer {
                     }
                 },
                 'props': {
-                    'text': ingestErrorMessage
+                    'text': ''
                 }
             }
         };
-        const blockBId: string = `block-${crypto.randomUUID()}`;
-
-        report[blockBId] = blockB;
 
         const blockCId = `block-${crypto.randomUUID()}`;
 
@@ -386,6 +223,27 @@ export class ReportEmailer {
                 },
                 'props': {
                     'text': ''
+                }
+            }
+        };
+
+        const blockDId = `block-${crypto.randomUUID()}`;
+        const ingestErrorMessage = ingestFailure.errors.join('\n');
+
+        report[blockDId] = {
+            'type': 'Text',
+            'data': {
+                'style': {
+                    'fontWeight': 'normal',
+                    'padding': {
+                        'top': 0,
+                        'bottom': 0,
+                        'right': 24,
+                        'left': 24
+                    }
+                },
+                'props': {
+                    'text': ingestErrorMessage
                 }
             }
         };
@@ -415,7 +273,8 @@ export class ReportEmailer {
                         },
                         {
                             'childrenIds': [
-                                blockCId
+                                blockCId,
+                                blockDId
                             ]
                         },
                         {
@@ -429,7 +288,6 @@ export class ReportEmailer {
         // Add the ingest error block to the root block
         report['root']['data']['childrenIds'].push(primaryBlockId);
     }
-
 
     private insertValidationError(report: TReaderDocument, validationError: IValidationErrorEventRecord) {
         const blockAId = `block-${crypto.randomUUID()}`;
@@ -587,12 +445,102 @@ export class ReportEmailer {
     }
 
     private insertDiv(report: TReaderDocument) {
-        // The div block is already in the template, so we can just add a reference
-        report['root']['data']['childrenIds'].push('block-div');
+        // We use a constant block ID to reuse the same block
+        const blockDivId = 'block-div';
+
+        report[blockDivId] = {
+            'type': 'Divider',
+            'data': {
+                'style': {
+                    'padding': {
+                        'top': 12,
+                        'bottom': 16,
+                        'right': 0,
+                        'left': 0
+                    }
+                },
+                'props': {
+                    'lineColor': '#CCCCCC'
+                }
+            }
+        };
+
+        report['root']['data']['childrenIds'].push(blockDivId);
+    }
+
+    private insertHeader(report: TReaderDocument, subHeading: string) {
+        const blockLogoId = 'block-logo';
+        const blockHeaderId = 'block-header';
+        const blockSubHeadingId = 'block-sub-heading';
+
+        report[blockLogoId] = {
+            'type': 'Image',
+            'data': {
+                'style': {
+                    'padding': {
+                        'top': 40,
+                        'bottom': 8,
+                        'right': 68,
+                        'left': 68
+                    },
+                    'backgroundColor': null,
+                    'textAlign': 'center'
+                },
+                'props': {
+                    'width': null,
+                    'height': 100,
+                    'url': 'https://compactconnect.org/wp-content/uploads/2024/07/Compact-Connect-logo_FINAL.png',
+                    'alt': '',
+                    'linkHref': null,
+                    'contentAlignment': 'middle'
+                }
+            }
+        };
+        report[blockHeaderId] = {
+            'type': 'Heading',
+            'data': {
+                'props': {
+                    'text': 'License Data Summary',
+                    'level': 'h1'
+                },
+                'style': {
+                    'textAlign': 'center',
+                    'padding': {
+                        'top': 28,
+                        'bottom': 12,
+                        'right': 24,
+                        'left': 24
+                    }
+                }
+            }
+        };
+        report[blockSubHeadingId] = {
+            'type': 'Text',
+            'data': {
+                'style': {
+                    'fontSize': 18,
+                    'fontWeight': 'normal',
+                    'textAlign': 'center',
+                    'padding': {
+                        'top': 0,
+                        'bottom': 52,
+                        'right': 40,
+                        'left': 40
+                    }
+                },
+                'props': {
+                    'text': subHeading
+                }
+            }
+        };
+
+        report['root']['data']['childrenIds'].push(blockLogoId);
+        report['root']['data']['childrenIds'].push(blockHeaderId);
+        report['root']['data']['childrenIds'].push(blockSubHeadingId);
     }
 
     private insertFooter(report: TReaderDocument) {
-        const blockId = `block-${crypto.randomUUID()}`;
+        const blockId = `block-footer`;
 
         report[blockId] = {
             'type': 'Text',

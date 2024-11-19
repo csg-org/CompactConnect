@@ -5,7 +5,7 @@ REPORT="$1"
 # Run NodeJS tests first
 (
   cd compact-connect/lambdas/nodejs/ingest-event-reporter
-  npm run test || exit "$?"
+  yarn test || exit "$?"
   if [ -z "$REPORT" ]; then
     open 'coverage/lcov-report/index.html'
   fi

@@ -126,7 +126,7 @@ class ReportingStack(AppStack):
         Rule(
             self,
             'WeeklyRule',
-            schedule=Schedule.cron(week_day='0', hour='1', minute='0', month='*', year='*'),
+            schedule=Schedule.cron(week_day='7', hour='1', minute='0', month='*', year='*'),
             targets=[
                 LambdaFunction(handler=event_collector, event=RuleTargetInput.from_object({'eventType': 'weekly'}))
             ],
