@@ -139,11 +139,20 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     get stateOptions() {
         const stateOptions = [{ value: '', name: this.$t('common.select') }];
 
-        const states = this.$tm('common.states') as Array<any>;
+        let states = this.$tm('common.states') as Array<any>;
+
+        if (typeof states[0]?.abbrev === 'function') {
+            const normalize = ([value]) => value;
+
+            states = states.map((st) => ({
+                abbrev: st.abbrev({ normalize }),
+                full: st.full({ normalize }),
+            }));
+        }
 
         states?.forEach((state) => {
-            const value = state?.abbrev?.source?.toLowerCase();
-            const name = state?.full?.source;
+            const value = state?.abbrev?.toLowerCase();
+            const name = state?.full;
 
             if (name && value) {
                 stateOptions.push({ value, name });

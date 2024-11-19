@@ -61,10 +61,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         return this.currentCompact?.type || null;
     }
 
-    get currentCompactCommissionFee(): number | null {
-        return this.currentCompact?.compactCommissionFee || null;
-    }
-
     get userStore(): any {
         return this.$store.state.user;
     }
