@@ -7,12 +7,10 @@
 
 import { Component, Watch, mixins } from 'vue-facing-decorator';
 import { reactive } from 'vue';
-import { displayDateFormat } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
-import Modal from '@components/Modal/Modal.vue';
 import SelectedStatePurchaseInformation from '@components/SelectedStatePurchaseInformation/SelectedStatePurchaseInformation.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
@@ -21,7 +19,6 @@ import { Licensee } from '@models/Licensee/Licensee.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { State } from '@/models/State/State.model';
-import moment from 'moment';
 
 @Component({
     name: 'SelectPrivileges',
@@ -29,7 +26,6 @@ import moment from 'moment';
         InputCheckbox,
         InputSubmit,
         InputButton,
-        Modal,
         SelectedStatePurchaseInformation
     }
 })
@@ -59,14 +55,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
 
     get currentCompact(): Compact | null {
         return this.userStore?.currentCompact || null;
-    }
-
-    get currentCompactCommissionFee(): number | null {
-        return this.currentCompact?.compactCommissionFee || null;
-    }
-
-    get currentCompactCommissionFeeDisplay(): string {
-        return this.currentCompactCommissionFee?.toFixed(2) || '0.00';
     }
 
     get userStore(): any {
@@ -188,27 +176,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         });
     }
 
-    // get selectedStatePurchaseDataDisplayList(): Array<object> {
-    //     return this.selectedStatePurchaseDataList.map((option) => {
-    //         let feeDisplay = '';
-    //         let militaryDiscountAmountDisplay = '';
-
-    //         if (option?.fee) {
-    //             feeDisplay = option?.fee?.toFixed(2);
-    //         }
-
-    //         if (option?.militaryDiscountAmount) {
-    //             militaryDiscountAmountDisplay = option?.militaryDiscountAmount?.toFixed(2);
-    //         }
-
-    //         return {
-    //             ...option,
-    //             feeDisplay,
-    //             militaryDiscountAmountDisplay
-    //         };
-    //     });
-    // }
-
     get selectedStatesWithJurisprudenceRequired(): Array<string> {
         const selectedStatesWithJurisprudenceRequired: Array<string> = [];
         const privPurchaseStatesRequiringJurisprudence = this.selectedStatePurchaseDataList
@@ -223,65 +190,16 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         return selectedStatesWithJurisprudenceRequired;
     }
 
-    // get expirationDateText(): string {
-    //     return this.$t('licensing.expirationDate');
-    // }
-
-    // get jurisdictionFeeText(): string {
-    //     return this.$t('licensing.jurisdictionFee');
-    // }
-
-    // get commissionFeeText(): string {
-    //     return this.$t('licensing.commissionFee');
-    // }
-
-    // get subtotalText(): string {
-    //     return this.$t('common.subtotal');
-    // }
-
     get jurisprudenceExplanationText(): string {
         return this.$t('licensing.jurisprudenceExplanationText');
     }
-
-    // get militaryDiscountText(): string {
-    //     return this.$t('licensing.militaryDiscountText');
-    // }
 
     get activeLicense(): License | null {
         return this.licenseList?.find((license) => license.statusState === LicenseStatus.ACTIVE) || null;
     }
 
-    get activeLicenseExpirationDate(): string {
-        let date = '';
-
-        if (this.activeLicense) {
-            const { expireDate } = this.activeLicense;
-
-            if (expireDate) {
-                date = moment(expireDate).format(displayDateFormat);
-            }
-        }
-
-        return date;
-    }
-
-    get subTotalListDisplay(): Array<string> {
-        return this.selectedStatePurchaseDataList?.map((purchaseInfo) => {
-            const militaryDiscount = purchaseInfo.isMilitaryDiscountActive && purchaseInfo.militaryDiscountAmount
-                ? purchaseInfo.militaryDiscountAmount : 0;
-
-            const total = ((purchaseInfo?.fee || 0) + (this.currentCompactCommissionFee || 0) - (militaryDiscount));
-
-            return total.toFixed(2);
-        });
-    }
-
     get selectPrivilegesTitleText(): string {
         return this.$t('licensing.selectPrivileges');
-    }
-
-    get shouldShowJurisprudenceModal(): boolean {
-        return !!this.jurisprudencePendingConfirmation;
     }
 
     get areAllJurisprudenceConfirmed(): boolean {
@@ -343,18 +261,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         }
     }
 
-    handleJurisprudenceClicked(privilegePurchaseInformation) {
-        const stateAbbrev = privilegePurchaseInformation.jurisdiction.abbrev;
-        const newValue = this.formData.jurisprudenceConfirmations[stateAbbrev].value;
-
-        if (newValue === true) {
-            if (stateAbbrev) {
-                this.jurisprudencePendingConfirmation = stateAbbrev;
-                this.formData.jurisprudenceConfirmations[stateAbbrev].value = false;
-            }
-        }
-    }
-
     handleCancelClicked() {
         if (this.currentCompact?.type) {
             this.$router.push({
@@ -374,8 +280,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     deselectState(stateAbbrev) {
-        console.log('hepepep', stateAbbrev);
-
         this.formData.stateCheckList.find((checkBox) => (checkBox.id === stateAbbrev)).value = false;
         delete this.formData.jurisprudenceConfirmations[stateAbbrev];
     }
@@ -385,16 +289,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
 
         if (jurisprudencePendingConfirmation) {
             this.formData.jurisprudenceConfirmations[jurisprudencePendingConfirmation].value = true;
-            this.$store.dispatch('setModalIsOpen', false);
-            this.jurisprudencePendingConfirmation = '';
-        }
-    }
-
-    closeAndInvalidateCheckbox() {
-        const { jurisprudencePendingConfirmation } = this;
-
-        if (jurisprudencePendingConfirmation) {
-            this.formData.jurisprudenceConfirmations[jurisprudencePendingConfirmation].value = false;
             this.$store.dispatch('setModalIsOpen', false);
             this.jurisprudencePendingConfirmation = '';
         }
@@ -422,6 +316,15 @@ export default class SelectPrivileges extends mixins(MixinForm) {
 
     checkIfStateSelectIsDisabled(state): boolean {
         return this.disabledPrivilegeStateChoices.includes(state.id);
+    }
+
+    findStatePurchaseInformation(stateSelectInput): PrivilegePurchaseOption | null {
+        const stateAbbrev = stateSelectInput.id;
+
+        const statePurchaseData = this.selectedStatePurchaseDataList.find((purchaseData) =>
+            (purchaseData.jurisdiction?.abbrev === stateAbbrev)) || null;
+
+        return statePurchaseData;
     }
 
     @Watch('alreadyObtainedPrivilegeStates.length') reInitForm() {

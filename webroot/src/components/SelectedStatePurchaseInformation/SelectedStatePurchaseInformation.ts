@@ -21,7 +21,6 @@ import { License, LicenseStatus } from '@/models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
-// import { State } from '@/models/State/State.model';
 import moment from 'moment';
 
 @Component({
@@ -42,10 +41,6 @@ class SelectedStatePurchaseInformation extends Vue {
     // Data
     //
     isJurisprudencePending = false;
-
-    //
-    // Lifecycle
-    //
 
     //
     // Computed
@@ -102,10 +97,6 @@ class SelectedStatePurchaseInformation extends Vue {
 
     get militaryDiscountText(): string {
         return this.$t('licensing.militaryDiscountText');
-    }
-
-    get jurisprudenceExplanationText(): string {
-        return this.$t('licensing.jurisprudenceExplanationText');
     }
 
     get jurisprudenceModalTitle(): string {
