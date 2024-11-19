@@ -19,11 +19,12 @@ class PrivilegeRecordSchema(BaseRecordSchema):
     providerId = UUID(required=True, allow_none=False)
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
     dateOfIssuance = Date(required=True, allow_none=False)
     dateOfRenewal = Date(required=True, allow_none=False)
     dateOfExpiration = Date(required=True, allow_none=False)
     compactTransactionId = String(required=False, allow_none=False)
+    # this is calculated at load time, so we do not require it since it will not be written to the database
+    status = String(required=False, allow_none=False, validate=OneOf(['active', 'inactive']))
 
     # Generated fields
     pk = String(required=True, allow_none=False)
