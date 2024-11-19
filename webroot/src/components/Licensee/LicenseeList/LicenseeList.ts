@@ -14,6 +14,7 @@ import {
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
 import LicenseeSearch, { LicenseSearch } from '@components/Licensee/LicenseeSearch/LicenseeSearch.vue';
 import LicenseeRow from '@components/Licensee/LicenseeRow/LicenseeRow.vue';
+import CloseX from '@components/Icons/CloseX/CloseX.vue';
 import { SortDirection } from '@store/sorting/sorting.state';
 import { DEFAULT_PAGE, DEFAULT_PAGE_SIZE, PageChangeConfig } from '@store/pagination/pagination.state';
 import { PageExhaustError } from '@store/pagination';
@@ -26,6 +27,7 @@ import { State } from '@models/State/State.model';
         ListContainer,
         LicenseeSearch,
         LicenseeRow,
+        CloseX,
     },
 })
 class LicenseeList extends Vue {
@@ -170,6 +172,11 @@ class LicenseeList extends Vue {
         } else {
             this.toggleSearch();
         }
+    }
+
+    resetSearch(): void {
+        this.searchParams = {};
+        this.toggleSearch();
     }
 
     async setDefaultSort() {

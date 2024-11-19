@@ -27,7 +27,7 @@
             align-items: center;
             justify-content: center;
             margin-bottom: 1.2rem;
-            padding: 0.8rem 1rem;
+            padding: 0.4rem 1rem;
             border-radius: @borderRadiusPillShape;
             color: @white;
             background-color: @primaryColor;
@@ -38,12 +38,23 @@
             }
 
             .title {
-                padding-right: 0.4rem;
+                padding: 0 0.4rem;
             }
 
             .search-terms {
                 font-weight: @fontWeightBold;
             }
+
+            .search-terms-reset {
+                width: 2rem;
+                padding: 0.4rem 0.2rem;
+                cursor: pointer;
+                stroke: @white;
+            }
+        }
+
+        .search-toggle {
+            min-height: 4.8rem;
         }
     }
 }

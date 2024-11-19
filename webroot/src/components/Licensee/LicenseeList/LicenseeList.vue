@@ -25,9 +25,14 @@
                             {{ searchDisplaySsn }}
                             {{ searchDisplayState }}
                         </span>
+                        <CloseX
+                            class="search-terms-reset"
+                            @click="resetSearch()"
+                            tabindex="0"
+                        />
                     </div>
                     <button
-                        class="search-toggle transparent"
+                        class="search-toggle"
                         @click="toggleSearch()"
                         tabindex="0"
                     >
