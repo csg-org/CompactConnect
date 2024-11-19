@@ -64,15 +64,16 @@
                 <InputButton
                     :label="cancelText"
                     :isTextLike="true"
-                    aria-label="close modal"
+                    aria-label="cancel"
                     class="icon icon-close-modal"
                     @click="handleCancelClicked"
                 />
                 <div class="right-cell">
                     <InputButton
                         :label="backText"
-                        aria-label="close modal"
+                        aria-label="go back"
                         class="back-button"
+                        :isTransparent="true"
                         @click="handleBackClicked"
                     />
                     <InputSubmit
