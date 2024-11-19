@@ -24,6 +24,8 @@
         "saveChanges": "Guardar cambios",
         "submit": "Enviar",
         "clear": "Borrar",
+        "subtotal": "Total parcial",
+        "total": "Total",
         "success": "Correcto",
         "error": "Error",
         "saveAndContinue": "Guardar y continuar",
@@ -31,8 +33,11 @@
         "saving": "Guardando...",
         "loading": "Cargando...",
         "firstName": "Nombre",
+        "firstname": "Nombre",
         "middleName": "Segundo nombre",
         "lastName": "Apellido",
+        "lastname": "Apellido",
+        "selection": "Selección",
         "dateOfBirth": "Fecha de nacimiento",
         "dateOfBirthShort": "Fecha de nacim.",
         "dateFormat": "mm/dd/aaaa",
@@ -40,12 +45,15 @@
         "phoneNumber": "Número de teléfono",
         "address": "Dirección",
         "welcome": "Bienvenido",
+        "formValidationErrorMessage": "Corrija los errores en el formulario que se muestra en rojo y marque la casilla que reconoce que no hay reembolsos.",
         "city": "Ciudad",
-        "state": "Estado o Jurisdicción",
+        "state": "Estado",
+        "stateJurisdiction": "Estado o Jurisdicción",
         "zipCode": "Código postal",
         "language": "Idioma",
         "gender": "Género",
         "race": "Raza",
+        "finish": "Termina",
         "ethnicity": "Origen étnico",
         "daysOfTheWeek": {
             "monday": {
@@ -310,9 +318,10 @@
             "text": "Mensaje de texto"
         },
         "password": "Contraseña",
+        "changePassword": "Cambiar la contraseña",
         "currentPassword": "Contraseña actual",
         "newPassword": "Nueva contraseña",
-        "changePasswordFormTitle": "Cambiar la contraseña",
+        "confirmNewPassword": "Confirmar nueva contraseña",
         "passwordCreationInstruction": "Para crear una nueva contraseña, debe cumplir todos los siguientes requisitos",
         "passwordRules": [
             "Mínimo 8 caracteres",
@@ -321,6 +330,9 @@
             "1 número",
             "1 símbolo"
         ],
+        "passwordsMustMatch": "Las contraseñas deben coincidir",
+        "togglePasswordVisibility": "Activar o desactivar la visibilidad de la contraseña",
+        "passwordResetError": "Se produjo un error al restablecer su contraseña",
         "lastLogin": "Último inicio de sesión",
         "description": "Descripción",
         "copyright": "Copyright",
@@ -377,7 +389,8 @@
         "tooManyFiles": "Demasiados archivos, solo se permite 1",
         "fileWrongType": "Tipo de archivo incorrecto",
         "lastNameRequired": "Obligatorio cuando se proporciona el nombre",
-        "ssnFormat": "Debe estar en formato ###-##-####"
+        "ssnFormat": "Debe estar en formato ###-##-####",
+        "enterValidCreditCard": "Debe ser un número de tarjeta de crédito válido."
     },
     "serverErrors": {
         "networkError": "Error de red",
@@ -424,6 +437,25 @@
         "uploadHint": "Sólo 1 archivo CSV",
         "successTitle": "Su documento ha sido subido exitosamente"
     },
+    "payment": {
+        "apptUnitNumber": "Número de apto",
+        "payment": "Pago",
+        "cardNumber": "Número de tarjeta",
+        "billingAddressTitle": "Dirección de Envio",
+        "creditCardTitle": "Tarjeta de Crédito",
+        "enterStreetAddress": "Introduzca dirección",
+        "streetAddress": "Dirección",
+        "streetAddress2": "Dirección 2",
+        "completePurchase": "Finalizar compra",
+        "expirattionDate": "Fecha de vencimiento",
+        "firstNameOnCard": "Introduzca el nombre en la tarjeta",
+        "lastNameOnCard": "Introduzca el apellido en la tarjeta",
+        "continueToPurchase": "Continuar comprando",
+        "compactPrivilegeStateFee": "Quota Estatal de Privilegio Compacto",
+        "compactCommissionFee": "Tarifa de Comisión Compacta",
+        "purchaseSuccessful": "Compra exitosa",
+        "purchaseSuccessfulMessage": "Tu compra fue exitosa. Sus privilegios aparecerán en su página de perfil dentro de segundos. Si envió documentos incorrectos, el personal compacto se comunicará con usted."
+    },
     "licensing": {
         "licensingListTitle": "Datos de licencia",
         "searchTitle": "Iniciar una búsqueda",
@@ -434,6 +466,7 @@
         "residenceLocation": "Ubicación de la residencia",
         "privileges": "Privilegios",
         "ssn": "SSN",
+        "noRefundsMessage": "Todas las compras de privilegios compactos son definitivas. No se emitirán reembolsos.",
         "adverseActions": "Acciones adversas",
         "status": "Estado",
         "issueDate": "Fecha de asunto",
@@ -451,7 +484,6 @@
         "selectPrivileges": "Seleccionar privilegios",
         "jurisprudenceConfirmation": "Confirmación de jurisprudencia",
         "jurisprudenceUnderstandParagraph": "Entiendo que una declaración es una declaración jurídicamente vinculante. Entiendo que proporcionar información falsa en esta solicitud podría resultar en la pérdida de mis licencias y/o privilegios. Reconozco que la Comisión puede auditar las certificaciones de jurisprudencia a su discreción.",
-        "subtotal": "Subtotal",
         "commissionFee": "Comisión Cuota",
         "jurisdictionFee": "Jurisdicción Cuota",
         "disciplineStatus": "Estado de disciplina",
@@ -503,6 +535,7 @@
         ]
     },
     "account": {
+        "accountTitle": "Cuenta",
         "usersListTitle": "Usuarios",
         "usersListEmpty": "Invita a los usuarios con el botón de arriba",
         "permissions": "Permisos",

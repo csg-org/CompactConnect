@@ -57,6 +57,14 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         return this.userStore?.currentCompact || null;
     }
 
+    get currentCompactType(): string | null {
+        return this.currentCompact?.type || null;
+    }
+
+    get currentCompactCommissionFee(): number | null {
+        return this.currentCompact?.compactCommissionFee || null;
+    }
+
     get userStore(): any {
         return this.$store.state.user;
     }
@@ -253,28 +261,32 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     handleSubmit() {
-        // This function is just a stub as it is the boundary to the next feature to be developed
         if (this.isAtLeastOnePrivilegeChosen && this.areAllJurisprudenceConfirmed) {
-            this.startFormLoading();
-            console.log(this.formData);
-            this.endFormLoading();
+            const selectedStates = this.formData.stateCheckList.filter((input) => input.value).map((input) => input.id);
+
+            this.$store.dispatch('user/savePrivilegePurchaseChoicesToStore', selectedStates);
+
+            this.$router.push({
+                name: 'PrivilegePurchaseAttestation',
+                params: { compact: this.currentCompactType }
+            });
         }
     }
 
     handleCancelClicked() {
-        if (this.currentCompact?.type) {
+        if (this.currentCompactType) {
             this.$router.push({
                 name: 'LicenseeDashboard',
-                params: { compact: this.currentCompact?.type }
+                params: { compact: this.currentCompactType }
             });
         }
     }
 
     handleBackClicked() {
-        if (this.currentCompact?.type) {
+        if (this.currentCompactType) {
             this.$router.push({
                 name: 'LicenseeDashboard',
-                params: { compact: this.currentCompact?.type }
+                params: { compact: this.currentCompactType }
             });
         }
     }

@@ -111,11 +111,28 @@ export class DataApi {
     }
 
     /**
+     * UPDATE Password of authenticated user.
+     * @param  {object}          data The request data.
+     * @return {Promise<object>}      Axios-formatted response from AWS Cognito.
+     */
+    public updateAuthenticatedUserPassword(data) {
+        return userDataApi.updateAuthenticatedUserPassword(data);
+    }
+
+    /**
      * GET Authenticated Staff User.
      * @return {Promise<User>} A User model instance.
      */
     public getAuthenticatedStaffUser() {
         return userDataApi.getAuthenticatedStaffUser();
+    }
+
+    /**
+     * UPDATE Authenticated Staff User.
+     * @return {Promise<User>} A User model instance.
+     */
+    public updateAuthenticatedStaffUser(data) {
+        return userDataApi.updateAuthenticatedStaffUser(data);
     }
 
     /**
@@ -135,6 +152,14 @@ export class DataApi {
      */
     public getAuthenticatedLicenseeUser() {
         return userDataApi.getAuthenticatedLicenseeUser();
+    }
+
+    /**
+     * POST Privilege Purchases for Authenticated Licensee user.
+     * @return {Promise<object>} Purchase response object.
+     */
+    public postPrivilegePurchases(data: any) {
+        return userDataApi.postPrivilegePurchases(data);
     }
 
     // ========================================================================

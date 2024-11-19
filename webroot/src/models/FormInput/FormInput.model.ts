@@ -41,6 +41,7 @@ export interface InterfaceFormInput {
     errorMessage?: string | ComputedRef<string>;
     isValid?: boolean;
     isSubmitInput?: boolean;
+    shouldHideErrorMessage?: boolean;
     isFormRow?: boolean;
     shouldHideMargin?: boolean;
     isDisabled?: boolean;
@@ -82,6 +83,7 @@ export class FormInput implements InterfaceFormInput {
     public isValid = false;
     public isSubmitInput = false;
     public isFormRow = false;
+    public shouldHideErrorMessage = false;
     public shouldHideMargin = false;
     public isDisabled = false;
 

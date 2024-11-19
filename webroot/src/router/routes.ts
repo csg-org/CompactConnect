@@ -39,6 +39,12 @@ const routes: Array<RouteConfig> = [
         meta: { requiresAuth: true },
     },
     {
+        path: '/Account',
+        name: 'Account',
+        component: () => import(/* webpackChunkName: "home" */ '@pages/Account/Account.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
         path: '/:compact/Licensing',
         name: 'Licensing',
         component: () => import(/* webpackChunkName: "licensing" */ '@pages/LicensingList/LicensingList.vue'),
@@ -72,6 +78,24 @@ const routes: Array<RouteConfig> = [
         path: '/:compact/LicenseeDashboard',
         name: 'LicenseeDashboard',
         component: () => import(/* webpackChunkName: "licenseeDashboard" */ '@pages/LicenseeDashboard/LicenseeDashboard.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/:compact/Privileges/FinalizePurchase',
+        name: 'FinalizePrivilegePurchase',
+        component: () => import(/* webpackChunkName: "privilegePurchase" */ '@pages/FinalizePrivilegePurchase/FinalizePrivilegePurchase.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/:compact/Privileges/PurchaseSuccessful',
+        name: 'PurchaseSuccessful',
+        component: () => import(/* webpackChunkName: "privilegePurchase" */ '@pages/PurchaseSuccessful/PurchaseSuccessful.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/:compact/Privileges/Attestation',
+        name: 'PrivilegePurchaseAttestation',
+        component: () => import(/* webpackChunkName: "privilegePurchase" */ '@pages/PrivilegePurchaseAttestation/PrivilegePurchaseAttestation.vue'),
         meta: { requiresAuth: true },
     },
     {

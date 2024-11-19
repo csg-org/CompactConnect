@@ -175,11 +175,42 @@ export class UserDataApi implements DataApiInterface {
     }
 
     /**
+     * UPDATE Password of authenticated user.
+     * @param  {object}          data The request data.
+     * @return {Promise<object>}      Axios-formatted response from AWS Cognito.
+     */
+    public async updateAuthenticatedUserPassword(data: object) {
+        const { cognitoRegion } = envConfig;
+        const requestData = JSON.stringify(data || {});
+        const serverResponse: any = await axios.post(`https://cognito-idp.${cognitoRegion}.amazonaws.com/`, requestData, {
+            headers: {
+                'Content-Type': `application/x-amz-json-1.1`,
+                'X-Amz-Target': `AWSCognitoIdentityProviderService.ChangePassword`,
+                Accept: `*/*`,
+            },
+        });
+
+        return serverResponse;
+    }
+
+    /**
      * GET Authenticated Staff User.
      * @return {Promise<User>} A User model instance.
      */
     public async getAuthenticatedStaffUser() {
         const serverResponse: any = await this.api.get(`/v1/staff-users/me`);
+        const response = StaffUserSerializer.fromServer(serverResponse);
+
+        return response;
+    }
+
+    /**
+     * UPDATE Authenticated Staff User.
+     * @param  {object}        data The request data.
+     * @return {Promise<User>}      A User model instance.
+     */
+    public async updateAuthenticatedStaffUser(data: object) {
+        const serverResponse: any = await this.api.patch(`/v1/staff-users/me`, data);
         const response = StaffUserSerializer.fromServer(serverResponse);
 
         return response;
@@ -213,6 +244,16 @@ export class UserDataApi implements DataApiInterface {
         }))[0];
 
         return { privilegePurchaseOptions, compactCommissionFee };
+    }
+
+    /**
+     * POST Privilege Purchases for Authenticated Licensee user.
+     * @return {Promise<object>} Purchase response object.
+     */
+    public async postPrivilegePurchases(data: any) {
+        const serverResponse: any = await this.api.post(`/v1/purchases/privileges`, data);
+
+        return serverResponse;
     }
 }
 

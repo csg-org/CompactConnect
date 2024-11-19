@@ -50,6 +50,7 @@ describe('FormInput model', () => {
         expect(formInput.validation).to.equal(null);
         expect(formInput.showMax).to.equal(false);
         expect(formInput.enforceMax).to.equal(false);
+        expect(formInput.shouldHideErrorMessage).to.equal(false);
         expect(formInput.errorMessage).to.equal('');
         expect(formInput.successMessage).to.equal('');
         expect(formInput.isValid).to.equal(false);
@@ -112,6 +113,7 @@ describe('FormInput model', () => {
             isSubmitInput: true,
             isFormRow: true,
             shouldHideMargin: true,
+            shouldHideErrorMessage: true,
             isDisabled: true,
         };
         const formInput = new FormInput(values);
@@ -154,6 +156,7 @@ describe('FormInput model', () => {
         expect(formInput.errorMessage).to.equal(values.errorMessage);
         expect(formInput.successMessage).to.equal(values.successMessage);
         expect(formInput.isValid).to.equal(values.isValid);
+        expect(formInput.shouldHideErrorMessage).to.equal(true);
         expect(formInput.isSubmitInput).to.equal(values.isSubmitInput);
         expect(formInput.isFormRow).to.equal(values.isFormRow);
         expect(formInput.shouldHideLabel).to.equal(values.shouldHideMargin);

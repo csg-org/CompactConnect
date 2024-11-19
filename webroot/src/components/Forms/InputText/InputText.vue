@@ -27,14 +27,16 @@
             :name="formInput.name"
             :placeholder="formInput.placeholder"
             v-model="formInput.value"
+            ref="input"
             :autocomplete="formInput.autocomplete"
             :aria-label="formInput.label"
             @blur="blur(formInput)"
             @input="input(formInput)"
             :class="{ 'has-error': !!formInput.errorMessage }"
+            :disabled="formInput.isDisabled"
         />
         <span
-            v-if="formInput.errorMessage"
+            v-if="formInput.errorMessage && !formInput.shouldHideErrorMessage"
             class="form-field-error"
         >
             {{ formInput.errorMessage }}

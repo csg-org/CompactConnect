@@ -104,7 +104,7 @@ class LicenseeSearch extends mixins(MixinForm) {
             state: new FormInput({
                 id: 'state',
                 name: 'state',
-                label: computed(() => this.$t('common.state')),
+                label: computed(() => this.$t('common.stateJurisdiction')),
                 valueOptions: this.stateOptions,
             }),
             submit: new FormInput({

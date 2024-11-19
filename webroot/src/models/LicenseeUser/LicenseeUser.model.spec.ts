@@ -5,7 +5,11 @@
 //  Created by InspiringApps on 4/12/2020.
 //
 import { AuthTypes } from '@/app.config';
-import { LicenseeUser, LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
+import {
+    LicenseeUser,
+    LicenseeUserSerializer,
+    LicenseeUserPurchaseSerializer
+} from '@models/LicenseeUser/LicenseeUser.model';
 import { LicenseeSerializer, Licensee } from '@models/Licensee/Licensee.model';
 import i18n from '@/i18n';
 
@@ -223,5 +227,35 @@ describe('User model', () => {
         expect(user.getFullName()).to.equal(`${data.givenName} ${data.familyName}`);
         expect(user.getInitials()).to.equal('TD');
         expect(user.accountStatusDisplay()).to.equal('Inactive');
+    });
+    it('should serialize a privilege purchase request for transmission', () => {
+        const formValues = {
+            firstName: 'first',
+            lastName: 'last',
+            expMonth: '12',
+            expYear: '25',
+            cvv: '900',
+            creditCard: '9999 9999 9999 9999',
+            streetAddress1: '123 Street st',
+            streetAddress2: 'Unit 101',
+            noRefunds: true,
+            stateSelect: 'ct',
+            zip: '90210'
+        };
+
+        const statesSelected = ['ne', 'ky'];
+
+        const requestData = LicenseeUserPurchaseSerializer.toServer({ statesSelected, formValues });
+
+        expect(requestData.selectedJurisdictions).to.matchPattern(['ne', 'ky']);
+        expect(requestData.orderInformation.card.number).to.equal(formValues.creditCard.replace(/\s+/g, ''));
+        expect(requestData.orderInformation.card.expiration).to.equal(`20${formValues.expYear}-${formValues.expMonth}`);
+        expect(requestData.orderInformation.card.cvv).to.equal(formValues.cvv);
+        expect(requestData.orderInformation.billing.firstName).to.equal(formValues.firstName);
+        expect(requestData.orderInformation.billing.lastName).to.equal(formValues.lastName);
+        expect(requestData.orderInformation.billing.streetAddress).to.equal(formValues.streetAddress1);
+        expect(requestData.orderInformation.billing.streetAddress2).to.equal(formValues.streetAddress2);
+        expect(requestData.orderInformation.billing.state).to.equal(formValues.stateSelect.toUpperCase());
+        expect(requestData.orderInformation.billing.zip).to.equal(formValues.zip);
     });
 });
