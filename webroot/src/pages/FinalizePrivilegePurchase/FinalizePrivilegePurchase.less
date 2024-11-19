@@ -151,6 +151,12 @@
                     justify-content: space-between;
                     margin-bottom: 2rem;
 
+                    :deep(.collapse-caret-button) {
+                        svg {
+                            stroke: @primaryColor;
+                        }
+                    }
+
                     .finalize-purchase-title {
                         font-size: @fontSizeExtraLarge;
                     }

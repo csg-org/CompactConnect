@@ -12,6 +12,7 @@ import {
     Prop
 } from 'vue-facing-decorator';
 import { displayDateFormat } from '@/app.config';
+import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import Modal from '@components/Modal/Modal.vue';
@@ -28,7 +29,8 @@ import moment from 'moment';
     components: {
         InputCheckbox,
         InputButton,
-        Modal
+        Modal,
+        CollapseCaretButton
     },
     emits: ['exOutState']
 })
@@ -41,6 +43,7 @@ class SelectedStatePurchaseInformation extends Vue {
     // Data
     //
     isJurisprudencePending = false;
+    isPriceCollapsed = false;
 
     //
     // Computed
@@ -151,6 +154,10 @@ class SelectedStatePurchaseInformation extends Vue {
         return this.$t('common.back');
     }
 
+    get isPhone(): boolean {
+        return !this.$matches.tablet.min;
+    }
+
     //
     // Methods
     //
@@ -189,6 +196,10 @@ class SelectedStatePurchaseInformation extends Vue {
             this.$store.dispatch('setModalIsOpen', false);
             this.isJurisprudencePending = false;
         }
+    }
+
+    togglePriceCollapsed() {
+        this.isPriceCollapsed = !this.isPriceCollapsed;
     }
 }
 

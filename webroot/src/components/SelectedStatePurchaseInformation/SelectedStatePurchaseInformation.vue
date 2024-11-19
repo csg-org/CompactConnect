@@ -10,36 +10,45 @@
         <div class="info-row">
             <div class="state-title">{{selectedStatePurchaseData.jurisdiction.name()}}</div>
             <InputButton
+                v-if="!isPriceCollapsed"
                 label="X"
                 :isTextLike="true"
                 aria-label="deselect state"
                 @click="deselectState()"
             />
         </div>
-        <div class="info-row sub-row">
-            <div class="info-row-label">{{expirationDateText}}</div>
-            <div class="expire-date-value">{{activeLicenseExpirationDate}}</div>
-        </div>
-        <div class="info-row sub-row">
-            <div class="info-row-label">{{jurisdictionFeeText}}</div>
-            <div class="expire-date-value">${{feeDisplay}}</div>
-        </div>
-        <div class="info-row sub-row">
-            <div class="info-row-label">{{commissionFeeText}}</div>
-            <div class="expire-date-value">${{currentCompactCommissionFeeDisplay}}</div>
-        </div>
-        <div v-if="selectedStatePurchaseData.isMilitaryDiscountActive" class="info-row sub-row">
-            <div class="info-row-label">{{militaryDiscountText}}</div>
-            <div class="expire-date-value">-${{militaryDiscountAmountDisplay}}</div>
-        </div>
-        <div class="info-row">
-            <div class="info-row-label">{{subtotalText}}</div>
-            <div class="expire-date-value">${{subTotal}}</div>
+        <div v-if="!isPriceCollapsed">
+            <div class="info-row sub-row">
+                <div class="info-row-label">{{expirationDateText}}</div>
+                <div class="expire-date-value">{{activeLicenseExpirationDate}}</div>
+            </div>
+            <div class="info-row sub-row">
+                <div class="info-row-label">{{jurisdictionFeeText}}</div>
+                <div class="expire-date-value">${{feeDisplay}}</div>
+            </div>
+            <div class="info-row sub-row">
+                <div class="info-row-label">{{commissionFeeText}}</div>
+                <div class="expire-date-value">${{currentCompactCommissionFeeDisplay}}</div>
+            </div>
+            <div v-if="selectedStatePurchaseData.isMilitaryDiscountActive" class="info-row sub-row">
+                <div class="info-row-label">{{militaryDiscountText}}</div>
+                <div class="expire-date-value">-${{militaryDiscountAmountDisplay}}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-row-label">{{subtotalText}}</div>
+                <div class="expire-date-value">${{subTotal}}</div>
+            </div>
         </div>
         <div v-if="selectedStatePurchaseData.isJurisprudenceRequired" class="jurisprudence-check-box">
             <InputCheckbox
                 :formInput="jurisprudenceCheckInput"
                 @change="handleJurisprudenceClicked()"
+            />
+        </div>
+        <div class="collapse-button-container">
+            <CollapseCaretButton
+                v-if="isPhone"
+                @toggleCollapse="togglePriceCollapsed"
             />
         </div>
         <Modal

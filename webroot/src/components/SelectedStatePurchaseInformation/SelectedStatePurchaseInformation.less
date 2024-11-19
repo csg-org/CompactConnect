@@ -6,13 +6,13 @@
 //
 .selected-state-purchase-info-container {
     width: 27rem;
-    margin: 1rem 0;
+    margin: 0.4rem 0;
     padding: 1rem 1.6rem;
     border-radius: 20px;
     color: white;
     background-color: @primaryColor;
 
-    @media @desktopWidth {
+    @media @tabletWidth {
         margin: 1rem 1rem;
     }
 
@@ -58,9 +58,13 @@
                 input {
                     width: 4rem;
                     height: 4rem;
-                    margin: 0 -1.2rem 0 0;
+                    margin: -1rem -1.2rem 0 0;
                     padding: 0;
                     color: white;
+
+                    @media @tabletWidth {
+                        margin: 0 -1.2rem 0 0;
+                    }
                 }
             }
         }
@@ -70,7 +74,23 @@
         }
 
         .state-title {
-            font-size: @fontSizeLarger;
+            font-size: @fontSizeLarge;
+
+            @media @tabletWidth {
+                font-size: @fontSizeLarger;
+            }
+        }
+    }
+
+    .collapse-button-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        :deep(.collapse-caret-button) {
+            svg {
+                stroke: @veryLightGrey;
+            }
         }
     }
 
@@ -79,8 +99,12 @@
             label {
                 margin-left: 1rem;
                 color: white;
-                font-weight: @fontWeight;
-                font-size: 1.5rem;
+                font-weight: @fontWeightLight;
+                font-size: 1.3rem;
+
+                @media @tabletWidth {
+                    font-size: 1.5rem;
+                }
             }
         }
     }

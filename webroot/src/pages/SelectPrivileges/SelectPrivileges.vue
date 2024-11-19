@@ -8,28 +8,6 @@
 <template>
     <div class="select-privileges-container">
         <form class="privilege-form" @submit.prevent="handleSubmit">
-            <div v-if="isMobile" class="button-row">
-                <InputButton
-                    :label="cancelText"
-                    :isTextLike="true"
-                    aria-label="close modal"
-                    class="icon icon-close-modal"
-                    @click="handleCancelClicked"
-                />
-                <div class="right-cell">
-                    <InputButton
-                        :label="backText"
-                        aria-label="close modal"
-                        class="back-button"
-                        @click="handleBackClicked"
-                    />
-                    <InputSubmit
-                        :formInput="formData.submit"
-                        :label="submitLabel"
-                        :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen && areAllJurisprudenceConfirmed"
-                    />
-                </div>
-            </div>
             <div class="select-privileges-core-container">
                 <div class="select-privileges-title">
                     {{selectPrivilegesTitleText}}
@@ -39,6 +17,7 @@
                         <li
                             v-for="state in stateCheckList"
                             :key="state.label"
+                            class="state-unit"
                         >
                             <div v-if="checkIfStateSelectIsDisabled(state)" class="state-select-unit">
                                 <div class="disabled-state-overlay" />

@@ -47,7 +47,15 @@ class PageContainer extends Vue {
         const currentRouteName = this.$route.name;
         const nonFooterRouteNames: Array<string> = [];
 
+        if (this.isPhone) {
+            nonFooterRouteNames.push('SelectPrivileges');
+        }
+
         return (!nonFooterRouteNames.includes((currentRouteName as string)));
+    }
+
+    get isPhone(): boolean {
+        return this.$matches.phone.only;
     }
 
     get isLoading(): boolean {
