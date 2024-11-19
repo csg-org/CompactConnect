@@ -124,9 +124,6 @@ class TestTransformations(TstFunction):
             f'aslp#PROVIDER#privilege/ne#{datetime.now(tz=UTC).date().isoformat()}', records['privilege'].pop('sk')
         )
 
-        # the provider record has a 'status' field calculated at load time, so we add the expected value
-        expected_provider['status'] = 'active'
-
         # Make sure each is represented the way we expect, in the db
         self.assertEqual(expected_provider, records['provider'])
         self.assertEqual(expected_license, records['license'])

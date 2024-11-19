@@ -14,25 +14,17 @@ from cc_common.data_model.schema.base_record import (
 )
 
 
-class LicenseCommonSchema(ForgivingSchema):
-    pass
-
-
-class LicensePublicSchema(LicenseCommonSchema):
+class LicensePublicSchema(ForgivingSchema):
     """Schema for license data that can be shared with the public"""
 
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
 
-
-class LicensePostSchema(LicensePublicSchema):
-    """Schema for license data as posted by a board"""
-
+class LicenseCommonSchema(LicensePublicSchema):
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
     licenseType = String(required=True, allow_none=False)
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -50,6 +42,12 @@ class LicensePostSchema(LicensePublicSchema):
     emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
 
+class LicensePostSchema(LicenseCommonSchema):
+    """Schema for license data as posted by a board"""
+    # This status field is required when posting a license record. It will be transformed into the
+    # jurisdictionStatus field when the record is ingested.
+    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+
     @validates_schema
     def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
         license_types = config.license_types_for_compact(data['compact'])
@@ -57,7 +55,7 @@ class LicensePostSchema(LicensePublicSchema):
             raise ValidationError({'licenseType': f"'licenseType' must be one of {license_types}"})
 
 
-class LicenseIngestSchema(LicensePostSchema):
+class LicenseIngestSchema(LicenseCommonSchema):
     """Schema for converting the external license data to the internal format"""
     # When a license record is first uploaded into the system, we store the value of
     # 'status' under this field for backwards compatibility with the external contract.
@@ -75,7 +73,7 @@ class LicenseIngestSchema(LicensePostSchema):
         from the 'status' field for backwards compatibility with the existing contract.
         This maps the income 'status' value to the internal 'jurisdictionStatus' field.
         """
-        in_data['jurisdictionStatus'] = in_data['status']
+        in_data['jurisdictionStatus'] = in_data.pop('status')
         return in_data
 
     @validates_schema
