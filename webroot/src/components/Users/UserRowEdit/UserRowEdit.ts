@@ -198,6 +198,7 @@ class UserRowEdit extends mixins(MixinForm) {
             const assignedStatesNum = Object.keys(this.formData)
                 .filter((formKey) => formKey.startsWith('state-option')).length;
 
+            // If there are available states that haven't been assigned, the button should be shown
             if (availableStatesNum > assignedStatesNum) {
                 shouldShow = true;
             }
@@ -289,6 +290,7 @@ class UserRowEdit extends mixins(MixinForm) {
                 const stateInputId = permissionInput.id.split('-').pop();
                 const stateInput = this.formData[`state-option-${stateInputId}`];
 
+                // If there are available states that haven't been assigned, the button should be shown
                 if (stateInput.value && stateInput.value === optionState.value) {
                     option.isDisabled = true;
                 }

@@ -179,6 +179,7 @@ class UserInvite extends mixins(MixinForm) {
             const assignedStatesNum = Object.keys(this.formData)
                 .filter((formKey) => formKey.startsWith('state-option')).length;
 
+            // If there are available states that haven't been assigned, the button should be shown
             if (availableStatesNum > assignedStatesNum) {
                 shouldShow = true;
             }
@@ -288,6 +289,7 @@ class UserInvite extends mixins(MixinForm) {
                 const stateInputId = permissionInput.id.split('-').pop();
                 const stateInput = this.formData[`state-option-${stateInputId}`];
 
+                // If state has already been selected then show it in the options list as disabled
                 if (stateInput.value && stateInput.value === optionState.value) {
                     option.isDisabled = true;
                 }
