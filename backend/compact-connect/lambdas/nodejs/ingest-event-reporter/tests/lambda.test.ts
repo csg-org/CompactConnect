@@ -1,10 +1,17 @@
-import { AwsStub, mockClient } from 'aws-sdk-client-mock';
+import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
+import { Context, EventBridgeEvent } from 'aws-lambda';
 import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
-import { Context, EventBridgeEvent } from 'aws-lambda';
+
 import { Lambda } from '../lib/lambda';
+import { ReportEmailer } from '../lib/report-emailer';
 import { IEventBridgeEventDetail } from '../lib/models/event-bridge-event-detail';
+import {
+    SAMPLE_INGEST_FAILURE_ERROR_RECORD,
+    SAMPLE_JURISDICTION_CONFIGURATION,
+    SAMPLE_VALIDATION_ERROR_RECORD
+} from './sample-records';
 
 
 const SAMPLE_NIGHTLY_EVENT: EventBridgeEvent<string, IEventBridgeEventDetail> = {
@@ -55,135 +62,6 @@ const SAMPLE_CONTEXT: Context = {
     succeed: () => console.log('Succeeded!'),
 };
 
-const SAMPLE_INGEST_FAILURE_ERROR_RECORD = {
-    'pk': {
-        'S': 'COMPACT#octp#JURISDICTION#oh'
-    },
-    'sk': {
-        'S': 'TYPE#license.ingest-failure#TIME#1731618012#EVENT#08ff0b63-4492-89c6-4372-3e95f03ee984'
-    },
-    'compact': {
-        'S': 'octp'
-    },
-    'errors': {
-        'L': [
-            {
-                'S': '\'utf-8\' codec can\'t decode byte 0x83 in position 0: invalid start byte'
-            }
-        ]
-    },
-    'eventExpiry': {
-        'N': '1739394328'
-    },
-    'eventTime': {
-        'S': '2024-11-14T21:00:12.382000+00:00'
-    },
-    'eventType': {
-        'S': 'license.ingest-failure'
-    },
-    'jurisdiction': {
-        'S': 'oh'
-    }
-};
-
-const SAMPLE_VALIDATION_ERROR_RECORD = {
-    'pk': {
-        'S': 'COMPACT#octp#JURISDICTION#oh'
-    },
-    'sk': {
-        'S': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c'
-    },
-    'eventType': {
-        'S': 'license.validation-error'
-    },
-    'time': {
-        'S': '2024-10-30T04:47:55.843000+00:00'
-    },
-    'compact': {
-        'S': 'octp'
-    },
-    'jurisdiction': {
-        'S': 'oh'
-    },
-    'errors': {
-        'M': {
-            'dateOfRenewal': {
-                'L': [
-                    {
-                        'S': 'Not a valid date.'
-                    }
-                ]
-            }
-        }
-    },
-    'recordNumber': {
-        'N': '5'
-    },
-    'validData': {
-        'M': {}
-    },
-};
-
-const SAMPLE_JURISDICTION_CONFIGURATION = {
-    'pk': {
-        'S': 'aslp#CONFIGURATION'
-    },
-    'sk': {
-        'S': 'aslp#JURISDICTION#oh'
-    },
-    'compact': {
-        'S': 'aslp'
-    },
-    'dateOfUpdate': {
-        'S': '2024-11-14'
-    },
-    'jurisdictionAdverseActionsNotificationEmails': {
-        'L': []
-    },
-    'jurisdictionFee': {
-        'N': '100'
-    },
-    'jurisdictionName': {
-        'S': 'ohio'
-    },
-    'jurisdictionOperationsTeamEmails': {
-        'L': [
-            {
-                'S': 'justin@inspiringapps.com'
-            }
-        ]
-    },
-    'jurisdictionSummaryReportNotificationEmails': {
-        'L': []
-    },
-    'jurisprudenceRequirements': {
-        'M': {
-            'required': {
-                'BOOL': true
-            }
-        }
-    },
-    'militaryDiscount': {
-        'M': {
-            'active': {
-                'BOOL': true
-            },
-            'discountAmount': {
-                'N': '10'
-            },
-            'discountType': {
-                'S': 'FLAT_RATE'
-            }
-        }
-    },
-    'postalAbbreviation': {
-        'S': 'oh'
-    },
-    'type': {
-        'S': 'jurisdiction'
-    }
-};
-
 /*
  * Double casting to allow us to pass a mock in for the real thing
  */
@@ -193,8 +71,24 @@ const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESClient;
 
 
+jest.mock('../lib/report-emailer');
+
+const mockSendReportEmail = jest.fn(
+    (events, recipients: string[]) => Promise.resolve('message-id-123')
+);
+const mockSendAllsWellEmail = jest.fn(
+    (recipients: string[]) => Promise.resolve('message-id-123')
+);
+
+(ReportEmailer as jest.Mock) = jest.fn().mockImplementation(() => ({
+    sendReportEmail: mockSendReportEmail,
+    sendAllsWellEmail: mockSendAllsWellEmail
+}));
+
+
 describe('Nightly runs', () => {
     let mockSESClient: ReturnType<typeof mockClient>;
+    let mockReportEmailer: jest.Mocked<ReportEmailer>;
     let lambda: Lambda;
 
     beforeAll(async () => {
@@ -203,20 +97,19 @@ describe('Nightly runs', () => {
         process.env.DATA_EVENT_TABLE_NAME = 'data-table';
         process.env.COMPACT_CONFIGURATION_TABLE_NAME = 'compact-table';
         process.env.AWS_REGION = 'us-east-1';
+
+        // Get the mocked client instances
+        mockSESClient = mockClient(SESClient);
     });
 
     beforeEach(() => {
         // Clear all instances and calls to constructor and all methods:
         jest.clearAllMocks();
-
-        // Get the mocked client instances
-        mockSESClient = mockClient(SESClient);
-        mockSESClient.on(SendEmailCommand).resolves({
-            MessageId: 'foo-123'
-        });
+        mockSendReportEmail.mockClear();
+        mockSendAllsWellEmail.mockClear();
     });
 
-    it('should run with no errors', async () => {
+    it('should send a report email when there were errors', async () => {
         const mockDynamoDBClient = mockClient(DynamoDBClient);
 
         mockDynamoDBClient.on(QueryCommand).callsFake((input) => {
@@ -266,7 +159,9 @@ describe('Nightly runs', () => {
             }
         );
 
-        expect(mockSESClient).toHaveReceivedCommand(SendEmailCommand);
+        // Verify an event report was sent
+        expect(mockSendReportEmail).toHaveBeenCalled();
+        expect(mockSendAllsWellEmail).not.toHaveBeenCalled();
     });
 
     it('should not send an email if there were no ingest events', async () => {
@@ -316,8 +211,150 @@ describe('Nightly runs', () => {
             }
         );
 
-        // Verify the send method was called
-        expect(mockSESClient).not.toHaveReceivedCommand(SendEmailCommand);
+        // Verify no emails were sent
+        expect(mockSendReportEmail).not.toHaveBeenCalled();
+        expect(mockSendAllsWellEmail).not.toHaveBeenCalled();
+    });
+
+    it('should let DynamoDB errors escape', async () => {
+        const mockDynamoDBClient = mockClient(DynamoDBClient);
+
+        mockDynamoDBClient.on(QueryCommand).rejects(new Error('DynamoDB error'));
+
+        lambda = new Lambda({
+            dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
+            sesClient: asSESClient(mockSESClient)
+        });
+
+        // Expect the function to throw or handle the error appropriately
+        await expect(lambda.handler(
+            SAMPLE_NIGHTLY_EVENT,
+            SAMPLE_CONTEXT
+        )).rejects.toThrow('DynamoDB error');
+    });
+});
+
+
+describe('Weekly runs', () => {
+    let mockSESClient: ReturnType<typeof mockClient>;
+    let lambda: Lambda;
+
+    beforeAll(async () => {
+        process.env.DEBUG = 'true';
+        process.env.COMPACTS = '["aslp", "octp", "coun"]';
+        process.env.DATA_EVENT_TABLE_NAME = 'data-table';
+        process.env.COMPACT_CONFIGURATION_TABLE_NAME = 'compact-table';
+        process.env.AWS_REGION = 'us-east-1';
+    });
+
+    beforeEach(() => {
+        // Clear all instances and calls to constructor and all methods:
+        jest.clearAllMocks();
+
+        // Get the mocked client instances
+        mockSESClient = mockClient(SESClient);
+        mockSESClient.on(SendEmailCommand).resolves({
+            MessageId: 'foo-123'
+        });
+    });
+
+    it('should send and "All\'s Well" email if there were no events', async () => {
+        const mockDynamoDBClient = mockClient(DynamoDBClient);
+
+        mockDynamoDBClient.on(QueryCommand).callsFake((input) => {
+            const tableName = input.TableName;
+
+            switch (tableName) {
+            case 'data-table':
+                return Promise.resolve({
+                    // No ingest events
+                    Items: []
+                });
+            case 'compact-table':
+                return Promise.resolve({
+                    Items: [SAMPLE_JURISDICTION_CONFIGURATION]
+                });
+            default:
+                throw Error(`Table does not exist: ${tableName}`);
+            }
+        });
+
+        lambda = new Lambda({
+            dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
+            sesClient: asSESClient(mockSESClient)
+        });
+
+        await lambda.handler(
+            SAMPLE_WEEKLY_EVENT,
+            SAMPLE_CONTEXT
+        );
+
+        // Verify the DynamoDB client was called correctly
+        expect(mockDynamoDBClient).toHaveReceivedCommandWith(
+            QueryCommand,
+            {
+                TableName: 'data-table',
+            }
+        );
+
+        // Verify an "All's Well" email was sent
+        expect(mockSendReportEmail).not.toHaveBeenCalled();
+        expect(mockSendAllsWellEmail).toHaveBeenCalled();
+    });
+
+    it('should send a report email and not an alls well, when there were errors', async () => {
+        const mockDynamoDBClient = mockClient(DynamoDBClient);
+
+        mockDynamoDBClient.on(QueryCommand).callsFake((input) => {
+            const tableName = input.TableName;
+
+            switch (tableName) {
+            case 'data-table':
+                if (input?.ExpressionAttributeValues?.[':skBegin']['S']?.startsWith(
+                    'TYPE#license.validation-error#TIME#'
+                )) {
+                    return Promise.resolve({
+                        Items: [SAMPLE_VALIDATION_ERROR_RECORD]
+                    });
+                }
+                if (input?.ExpressionAttributeValues?.[':skBegin']['S']?.startsWith(
+                    'TYPE#license.ingest-failure#TIME#'
+                )) {
+                    return Promise.resolve({
+                        Items: [SAMPLE_INGEST_FAILURE_ERROR_RECORD]
+                    });
+                }
+                throw Error('Unexpected query');
+            case 'compact-table':
+                return Promise.resolve({
+                    Items: [SAMPLE_JURISDICTION_CONFIGURATION]
+                });
+            default:
+                throw Error(`Table does not exist: ${tableName}`);
+            }
+        });
+
+        lambda = new Lambda({
+            dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
+            sesClient: asSESClient(mockSESClient)
+        });
+
+        const resp = await lambda.handler(
+            SAMPLE_WEEKLY_EVENT,
+            SAMPLE_CONTEXT
+        );
+
+        // Verify the DynamoDB client was called correctly
+        expect(mockDynamoDBClient).toHaveReceivedCommandWith(
+            QueryCommand,
+            {
+                TableName: 'data-table',
+            }
+        );
+
+        // Verify an event report was sent
+        expect(mockSendReportEmail).toHaveBeenCalled();
+        expect(mockSendAllsWellEmail).not.toHaveBeenCalled();
     });
 
     it('should let DynamoDB errors escape', async () => {
