@@ -49,11 +49,21 @@ class LicensePostSchema(LicensePublicSchema):
     militaryWaiver = Boolean(required=False, allow_none=False)
     emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
+
+    @validates_schema
+    def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
+        license_types = config.license_types_for_compact(data['compact'])
+        if data['licenseType'] not in license_types:
+            raise ValidationError({'licenseType': f"'licenseType' must be one of {license_types}"})
+
+
+class LicenseIngestSchema(LicensePostSchema):
+    """Schema for converting the external license data to the internal format"""
     # When a license record is first uploaded into the system, we store the value of
-    # 'status' under this field for backwards compatibility with the existing contract.
+    # 'status' under this field for backwards compatibility with the external contract.
     # this is used to calculate the actual 'status' used by the system in addition
     # to the expiration date of the license.
-    jurisdictionStatus = String(required=False, allow_none=False, validate=OneOf(['active', 'inactive']))
+    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
 
     @pre_load
     def pre_load_initialization(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
@@ -76,18 +86,13 @@ class LicensePostSchema(LicensePublicSchema):
 
 
 @BaseRecordSchema.register_schema('license')
-class LicenseRecordSchema(BaseRecordSchema, LicensePostSchema):
+class LicenseRecordSchema(BaseRecordSchema, LicenseIngestSchema):
     """Schema for license records in the license data table"""
 
     _record_type = 'license'
 
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
-    # We have two different status fields for a license:
-    # This field is the status that was uploaded by the jurisdiction.
-    # This is used to calculate the actual 'status' used by the system in addition
-    # to the expiration date of the license.
-    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
     # This field is the actual status referenced by the system, which is determined by the expiration date
     # in addition to the jurisdictionStatus. This should never be written to the DB. It is calculated
     # whenever the record is loaded.

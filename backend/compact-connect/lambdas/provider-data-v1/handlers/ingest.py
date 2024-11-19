@@ -2,12 +2,12 @@ from collections.abc import Iterable
 
 from boto3.dynamodb.types import TypeSerializer
 from cc_common.config import config, logger
-from cc_common.data_model.schema.license import LicensePostSchema, LicenseRecordSchema
+from cc_common.data_model.schema.license import LicenseIngestSchema, LicenseRecordSchema
 from cc_common.data_model.schema.provider import ProviderRecordSchema
 from cc_common.exceptions import CCNotFoundException
 from cc_common.utils import sqs_handler
 
-license_schema = LicensePostSchema()
+license_schema = LicenseIngestSchema()
 
 
 @sqs_handler
@@ -97,7 +97,7 @@ def populate_provider_record(*, provider_id: str, license_post: dict, privilege_
 def find_best_license(all_licenses: Iterable) -> dict:
     # Last issued active license, if there are any active licenses
     latest_active_licenses = sorted(
-        [license_data for license_data in all_licenses if license_data['status'] == 'active'],
+        [license_data for license_data in all_licenses if license_data['jurisdictionStatus'] == 'active'],
         key=lambda x: x['dateOfIssuance'],
         reverse=True,
     )
