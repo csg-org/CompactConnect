@@ -36,14 +36,14 @@
             <div class="info-row-label">{{subtotalText}}</div>
             <div class="expire-date-value">${{subTotal}}</div>
         </div>
-        <div v-if="state.isJurisprudenceRequired" class="jurisprudence-check-box">
+        <div v-if="selectedStatePurchaseData.isJurisprudenceRequired" class="jurisprudence-check-box">
             <InputCheckbox
                 :formInput="jurisprudenceCheckInput"
                 @change="handleJurisprudenceClicked()"
             />
         </div>
-        <!-- <Modal
-            v-if="shouldShowJurisprudenceModal"
+        <Modal
+            v-if="isJurisprudencePending"
             class="jurisprudence-modal"
             :closeOnBackgroundClick="true"
             :showActions="false"
@@ -68,7 +68,7 @@
                     </div>
                 </div>
             </template>
-        </Modal> -->
+        </Modal>
     </li>
 </template>
 

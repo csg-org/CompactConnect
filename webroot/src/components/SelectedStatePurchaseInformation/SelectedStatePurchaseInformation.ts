@@ -30,16 +30,18 @@ import moment from 'moment';
         InputCheckbox,
         InputButton,
         Modal
-    }
+    },
+    emits: ['exOutState']
 })
 class SelectedStatePurchaseInformation extends Vue {
     // PROPS
     @Prop({ required: true }) selectedStatePurchaseData?: PrivilegePurchaseOption;
-    @Prop() jurisprudenceCheckInput?: FormInput;
+    @Prop({ default: new FormInput({ value: false }) }) jurisprudenceCheckInput?: FormInput | any;
 
     //
     // Data
     //
+    isJurisprudencePending = false;
 
     //
     // Lifecycle
@@ -144,25 +146,58 @@ class SelectedStatePurchaseInformation extends Vue {
 
     get subTotal(): string {
         const militaryDiscount = this.isMilitaryDiscountActive
-            && this.selectedStatePurchaseData.militaryDiscountAmount
+            && this.selectedStatePurchaseData?.militaryDiscountAmount
             ? this.selectedStatePurchaseData?.militaryDiscountAmount : 0;
 
         const total = ((this.selectedStatePurchaseData?.fee || 0)
             + (this.currentCompactCommissionFee || 0)
-            - (militaryDiscount));
+            - (militaryDiscount || 0));
 
         return total.toFixed(2);
+    }
+
+    get backText(): string {
+        return this.$t('common.back');
     }
 
     //
     // Methods
     //
     handleJurisprudenceClicked() {
-        console.log('asd');
+        const newValue = this.jurisprudenceCheckInput?.value;
+
+        if (newValue === true) {
+            if (this.jurisprudenceCheckInput) {
+                this.isJurisprudencePending = true;
+                this.jurisprudenceCheckInput.value = false;
+            }
+        }
     }
 
     deselectState() {
-        console.log('asd');
+        const stateAbbrev = this.selectedStatePurchaseData?.jurisdiction?.abbrev;
+
+        this.$emit('exOutState', stateAbbrev);
+    }
+
+    submitUnderstanding() {
+        const { isJurisprudencePending, jurisprudenceCheckInput } = this;
+
+        if (isJurisprudencePending && jurisprudenceCheckInput) {
+            jurisprudenceCheckInput.value = true;
+            this.$store.dispatch('setModalIsOpen', false);
+            this.isJurisprudencePending = false;
+        }
+    }
+
+    closeAndInvalidateCheckbox() {
+        const { isJurisprudencePending, jurisprudenceCheckInput } = this;
+
+        if (isJurisprudencePending && jurisprudenceCheckInput) {
+            jurisprudenceCheckInput.value = false;
+            this.$store.dispatch('setModalIsOpen', false);
+            this.isJurisprudencePending = false;
+        }
     }
 }
 

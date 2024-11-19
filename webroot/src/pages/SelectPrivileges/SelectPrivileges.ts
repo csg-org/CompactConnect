@@ -247,18 +247,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     //     return this.$t('licensing.militaryDiscountText');
     // }
 
-    get jurisprudenceModalTitle(): string {
-        return this.$t('licensing.jurisprudenceConfirmation');
-    }
-
-    get jurisprudenceModalContent(): string {
-        return this.$t('licensing.jurisprudenceUnderstandParagraph');
-    }
-
-    get iUnderstandText(): string {
-        return this.$t('licensing.iUnderstand');
-    }
-
     get activeLicense(): License | null {
         return this.licenseList?.find((license) => license.statusState === LicenseStatus.ACTIVE) || null;
     }
@@ -385,8 +373,8 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         }
     }
 
-    deselectState(state) {
-        const stateAbbrev = state?.jurisdiction?.abbrev;
+    deselectState(stateAbbrev) {
+        console.log('hepepep', stateAbbrev);
 
         this.formData.stateCheckList.find((checkBox) => (checkBox.id === stateAbbrev)).value = false;
         delete this.formData.jurisprudenceConfirmations[stateAbbrev];

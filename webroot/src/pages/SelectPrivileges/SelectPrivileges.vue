@@ -69,6 +69,7 @@
                             class="selected-state-block"
                             :selectedStatePurchaseData="state"
                             :jurisprudenceCheckInput="formData.jurisprudenceConfirmations[state.jurisdiction.abbrev]"
+                            @exOutState="deselectState"
                         />
                         <!-- <li
                             v-for="(state, i) in selectedStatePurchaseDataDisplayList"
@@ -137,7 +138,7 @@
                 </div>
             </div>
         </form>
-        <Modal
+        <!-- <Modal
             v-if="shouldShowJurisprudenceModal"
             class="jurisprudence-modal"
             :closeOnBackgroundClick="true"
@@ -163,7 +164,7 @@
                     </div>
                 </div>
             </template>
-        </Modal>
+        </Modal> -->
     </div>
 </template>
 
