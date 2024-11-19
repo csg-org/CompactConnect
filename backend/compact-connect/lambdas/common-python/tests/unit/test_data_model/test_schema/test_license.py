@@ -14,10 +14,10 @@ class TestLicenseSchema(TstLambdas):
             LicensePostSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **json.load(f)})
 
     def test_license_post_schema_maps_status_to_jurisdiction_status(self):
-        from cc_common.data_model.schema.license import LicensePostSchema
+        from cc_common.data_model.schema.license import LicenseIngestSchema
 
         with open('tests/resources/api/license-post.json') as f:
-            result = LicensePostSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **json.load(f)})
+            result = LicenseIngestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **json.load(f)})
             self.assertEqual("active", result['jurisdictionStatus'])
 
     def test_invalid_post(self):
@@ -65,10 +65,10 @@ class TestLicenseSchema(TstLambdas):
         """Licenses are the only record that directly originate from external clients. We'll test their serialization
         as it comes from clients.
         """
-        from cc_common.data_model.schema.license import LicensePostSchema, LicenseRecordSchema
+        from cc_common.data_model.schema.license import LicenseIngestSchema, LicenseRecordSchema
 
         with open('tests/resources/api/license-post.json') as f:
-            license_data = LicensePostSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **json.load(f)})
+            license_data = LicenseIngestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **json.load(f)})
 
         with open('tests/resources/dynamo/license.json') as f:
             expected_license_record = json.load(f)
