@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow import pre_dump
+from marshmallow import pre_dump, pre_load
 from marshmallow.fields import UUID, Date, String
 from marshmallow.validate import Length, OneOf
 
@@ -19,6 +19,7 @@ class PrivilegeRecordSchema(BaseRecordSchema):
     jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
     dateOfIssuance = Date(required=True, allow_none=False)
+    dateOfRenewal = Date(required=True, allow_none=False)
     dateOfExpiration = Date(required=True, allow_none=False)
     compactTransactionId = String(required=False, allow_none=False)
 
@@ -29,5 +30,12 @@ class PrivilegeRecordSchema(BaseRecordSchema):
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
-        in_data['sk'] = f'{in_data['compact']}#PROVIDER#privilege/{in_data['jurisdiction']}'
+        in_data['sk'] = f'{in_data['compact']}#PROVIDER#privilege/{in_data['jurisdiction']}#{in_data['dateOfRenewal']}'
+        return in_data
+
+    # for backwards compatibility with the old data model
+    # we set the dateOfRenewal to the dateOfIssuance if it does not exist
+    @pre_load
+    def set_date_of_renewal(self, in_data, **kwargs):
+        in_data['dateOfRenewal'] = in_data.get('dateOfRenewal', in_data['dateOfIssuance'])
         return in_data

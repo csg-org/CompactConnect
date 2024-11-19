@@ -66,7 +66,10 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa
     return options_response
 
 
-def _find_best_license(all_licenses: list[dict]) -> dict | None:
+def _find_latest_active_license(all_licenses: list[dict]) -> dict | None:
+    """
+    In this scenario, we are looking for the most recent active license record for the user.
+    """
     if len(all_licenses) == 0:
         return None
 
@@ -78,9 +81,8 @@ def _find_best_license(all_licenses: list[dict]) -> dict | None:
     )
     if latest_active_licenses:
         return latest_active_licenses[0]
-    # Last issued inactive license, otherwise
-    latest_licenses = sorted(all_licenses, key=lambda x: x['dateOfIssuance'], reverse=True)
-    return latest_licenses[0]
+
+    return None
 
 
 @api_handler
@@ -151,17 +153,15 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     provider_id = _get_caller_provider_id_custom_attribute(event)
     user_provider_data = config.data_client.get_provider(compact=compact_name, provider_id=provider_id)
     provider_record = next((record for record in user_provider_data['items'] if record['type'] == 'provider'), None)
-    license_record = _find_best_license(
+    license_record = _find_latest_active_license(
         [record for record in user_provider_data['items'] if record['type'] == 'license']
     )
-    existing_privilege_jurisdictions = [
-        record['jurisdiction'] for record in user_provider_data['items'] if record['type'] == 'privilege'
-    ]
+
     # this should never happen, but we check just in case
     if provider_record is None:
         raise CCNotFoundException('Provider not found')
     if license_record is None:
-        raise CCNotFoundException('License record not found for this user')
+        raise CCInvalidRequestException('No active license found for this user')
 
     license_jurisdiction = license_record['jurisdiction']
     if license_jurisdiction.lower() in selected_jurisdictions_postal_abbreviations:
@@ -169,10 +169,20 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             f"Selected privilege jurisdiction '{license_jurisdiction}'" f' matches license jurisdiction'
         )
 
-    for privilege_jurisdiction in existing_privilege_jurisdictions:
-        if privilege_jurisdiction.lower() in selected_jurisdictions_postal_abbreviations:
+    existing_privileges = [record for record in user_provider_data['items'] if record['type'] == 'privilege']
+    # a licensee can only purchase an existing privilege for a jurisdiction
+    # if their existing privilege expiration date does not match their license expiration date
+    # this is because the only reason a user should renew an existing privilege is if they have renewed
+    # their license and want to extend the expiration date of their privilege to match the new license expiration date.
+    for privilege in existing_privileges:
+        if (
+            privilege['jurisdiction'].lower() in selected_jurisdictions_postal_abbreviations
+            # if their latest privilege expiration date matches the license expiration date they will not
+            # receive any benefit from purchasing the same privilege, since the expiration date will not change
+            and privilege['dateOfExpiration'] == license_record['dateOfExpiration']
+        ):
             raise CCInvalidRequestException(
-                f"Selected privilege jurisdiction '{privilege_jurisdiction}'"
+                f"Selected privilege jurisdiction '{privilege['jurisdiction'].lower()}'"
                 f' matches existing privilege jurisdiction'
             )
 
@@ -196,6 +206,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             jurisdiction_postal_abbreviations=selected_jurisdictions_postal_abbreviations,
             license_expiration_date=license_expiration_date,
             compact_transaction_id=transaction_response['transactionId'],
+            existing_privileges=existing_privileges,
         )
 
         return transaction_response
