@@ -87,8 +87,8 @@ class TestTransformations(TstFunction):
             # using values in expected privilege json file
             jurisdiction_postal_abbreviations=['ne'],
             license_expiration_date=date(2050, 6, 6),
-            compact_transaction_id="1234567890",
-            existing_privileges=[]
+            compact_transaction_id='1234567890',
+            existing_privileges=[],
         )
 
         # Get the provider straight from the table, to inspect them

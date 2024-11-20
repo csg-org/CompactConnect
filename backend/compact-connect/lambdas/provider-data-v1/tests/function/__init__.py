@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from glob import glob
 from random import randint
@@ -151,7 +151,7 @@ class TstFunction(TstLambdas):
                 compact_name='aslp',
                 provider_id=provider_id,
                 jurisdiction_postal_abbreviations=[privilege],
-                license_expiration_date=datetime(2050, 6, 6),
+                license_expiration_date=date(2050, 6, 6),
                 compact_transaction_id='1234567890',
-                existing_privileges=[]
+                existing_privileges=[],
             )
