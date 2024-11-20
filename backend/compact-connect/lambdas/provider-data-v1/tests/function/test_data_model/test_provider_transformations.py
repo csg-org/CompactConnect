@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, date, datetime
+from datetime import date, datetime
 from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
@@ -128,7 +128,9 @@ class TestTransformations(TstFunction):
         # the sk is dynamic and will not match, but we can check its values to make sure the value of each is expected
         self.assertEqual('aslp#PROVIDER#privilege/ne#2024-11-08', expected_privilege.pop('sk'))
         self.assertEqual(
-            f'aslp#PROVIDER#privilege/ne#{datetime.now(tz=UTC).date().isoformat()}', records['privilege'].pop('sk')
+            f'aslp#PROVIDER#privilege/ne#{datetime.now(tz=self.config.expiration_date_resolution_timezone)
+            .date().isoformat()}',
+            records['privilege'].pop('sk'),
         )
 
         # Make sure each is represented the way we expect, in the db

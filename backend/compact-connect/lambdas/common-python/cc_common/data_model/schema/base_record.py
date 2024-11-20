@@ -2,12 +2,13 @@
 # We diverge from PEP8 variable naming in schema because they map to our API JSON Schema in which,
 # by convention, we use camelCase.
 from abc import ABC
-from datetime import UTC, datetime
+from datetime import datetime
 
 from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump
 from marshmallow.fields import UUID, Date, List, String
 from marshmallow.validate import Regexp
 
+from cc_common.config import config
 from cc_common.exceptions import CCInternalException
 
 
@@ -71,7 +72,7 @@ class BaseRecordSchema(StrictSchema, ABC):
     def populate_date_of_update(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         """Populate db-specific fields before dumping to the database"""
         # YYYY-MM-DD
-        in_data['dateOfUpdate'] = datetime.now(tz=UTC).date()
+        in_data['dateOfUpdate'] = datetime.now(tz=config.expiration_date_resolution_timezone).date()
         return in_data
 
     @classmethod

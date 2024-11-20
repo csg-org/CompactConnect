@@ -1,4 +1,4 @@
-from datetime import UTC, date, datetime
+from datetime import date, datetime
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -171,7 +171,7 @@ class DataClient:
         compact_transaction_id: str,
         original_issuance_date: date | None = None,
     ):
-        today = datetime.now(tz=UTC).date()
+        today = datetime.now(tz=self.config.expiration_date_resolution_timezone).date()
         privilege_object = {
             'providerId': provider_id,
             'compact': compact_name,

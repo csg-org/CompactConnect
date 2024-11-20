@@ -6,7 +6,7 @@ from functools import cached_property
 import boto3
 from aws_lambda_powertools.logging import Logger
 from botocore.config import Config as BotoConfig
-from pytz import timezone
+from pytz import FixedOffset
 
 logging.basicConfig()
 logger = Logger()
@@ -120,9 +120,12 @@ class _Config:
     def expiration_date_resolution_timezone(self):
         """
         This is the timezone used to determine the expiration dates of licenses and privileges.
-        We anticipate that this may change in the future, so we have a configuration value for it.
+        This is currently set to UTC-4. We anticipate that this may change in the future,
+        so we have a configuration value for it.
         """
-        return timezone('US/Eastern')
+        # fixed offset for UTC-4 in minutes
+        # see https://pvlib-python.readthedocs.io/en/v0.4.2/timetimezones.html#fixed-offsets
+        return FixedOffset(240)
 
 
 config = _Config()
