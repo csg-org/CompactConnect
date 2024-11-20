@@ -23,8 +23,7 @@ class PrivilegeRecordSchema(BaseRecordSchema):
     dateOfRenewal = Date(required=True, allow_none=False)
     dateOfExpiration = Date(required=True, allow_none=False)
     compactTransactionId = String(required=False, allow_none=False)
-    # this is calculated at load time, so we do not require it since it will not be written to the database
-    status = String(required=False, allow_none=False, validate=OneOf(['active', 'inactive']))
+    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
 
     # Generated fields
     pk = String(required=True, allow_none=False)
@@ -34,6 +33,12 @@ class PrivilegeRecordSchema(BaseRecordSchema):
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
         in_data['sk'] = f'{in_data['compact']}#PROVIDER#privilege/{in_data['jurisdiction']}#{in_data['dateOfRenewal']}'
+        return in_data
+
+    @pre_dump
+    def remove_status_field_if_present(self, in_data, **kwargs):
+        # status is calculated at load time, so we do not write it to the database
+        in_data.pop('status', None)
         return in_data
 
     @pre_load

@@ -14,7 +14,13 @@ class TestPrivilegeRecordSchema(TstLambdas):
             expected_privilege = json.load(f)
 
         schema = PrivilegeRecordSchema()
-        privilege_data = schema.dump(schema.load(expected_privilege))
+        loaded_schema = schema.load(expected_privilege.copy())
+        # assert status field is added
+        self.assertIn('status', loaded_schema)
+
+        privilege_data = schema.dump(loaded_schema)
+        # assert that the status field was stripped from the data on dump
+        self.assertNotIn('status', privilege_data)
 
         # Drop dynamic fields
         del expected_privilege['dateOfUpdate']

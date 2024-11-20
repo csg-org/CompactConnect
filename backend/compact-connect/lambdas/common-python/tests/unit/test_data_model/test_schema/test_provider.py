@@ -16,7 +16,13 @@ class TestProviderRecordSchema(TstLambdas):
         expected_provider_record['privilegeJurisdictions'] = set(expected_provider_record['privilegeJurisdictions'])
 
         schema = ProviderRecordSchema()
-        license_record = schema.dump(schema.load(expected_provider_record))
+        loaded_record = schema.load(expected_provider_record.copy())
+        # assert status field is added
+        self.assertIn('status', loaded_record)
+
+        license_record = schema.dump(schema.load(expected_provider_record.copy()))
+        # assert that the status field was stripped from the data on dump
+        self.assertNotIn('status', license_record)
 
         # These are dynamic and so won't match
         del expected_provider_record['dateOfUpdate']

@@ -38,16 +38,18 @@ class TestLicenseSchema(TstLambdas):
             expected_license = json.load(f)
 
         schema = LicenseRecordSchema()
-        license_data = schema.dump(schema.load(expected_license))
+
+        loaded_license = schema.load(expected_license.copy())
+        # assert status field is added
+        self.assertIn('status', loaded_license)
+
+        license_data = schema.dump(loaded_license)
+        # assert that the status field was stripped from the data on dump
+        self.assertNotIn('status', license_data)
 
         # Drop dynamic fields that won't match
         del expected_license['dateOfUpdate']
         del license_data['dateOfUpdate']
-
-        # the status field should be calculated based on the expiration date
-        # it is not dumped to the DB, but it is calculated when the record is loaded,
-        # so we verify that it is the same as the expected value
-        license_data['status'] = 'active'
 
         self.assertEqual(expected_license, license_data)
 
@@ -86,7 +88,6 @@ class TestLicenseSchema(TstLambdas):
         self.assertEqual(expected_license_record, license_record)
 
     def test_license_record_schema_sets_status_to_inactive_if_license_expired(self):
-        """Test round-trip serialization/deserialization of license records"""
         from cc_common.data_model.schema.license import LicenseRecordSchema
 
         with open('tests/resources/dynamo/license.json') as f:
@@ -98,8 +99,20 @@ class TestLicenseSchema(TstLambdas):
 
         self.assertEqual("inactive", license_data['status'])
 
+    def test_license_record_schema_sets_status_to_inactive_if_jurisdiction_status_inactive(self):
+        from cc_common.data_model.schema.license import LicenseRecordSchema
+
+        with open('tests/resources/dynamo/license.json') as f:
+            raw_license_data = json.load(f)
+            raw_license_data['dateOfExpiration'] = '2100-01-01'
+            raw_license_data['jurisdictionStatus'] = 'inactive'
+
+        schema = LicenseRecordSchema()
+        license_data = schema.load(raw_license_data)
+
+        self.assertEqual("inactive", license_data['status'])
+
     def test_license_record_schema_strips_status_during_serialization(self):
-        """Test round-trip serialization/deserialization of license records"""
         from cc_common.data_model.schema.license import LicenseRecordSchema
 
         with open('tests/resources/dynamo/license.json') as f:

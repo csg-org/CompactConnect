@@ -66,7 +66,7 @@ class ProviderRecordSchema(BaseRecordSchema, ProviderPublicSchema):
     # This field is the actual status referenced by the system, which is determined by the expiration date
     # in addition to the jurisdictionStatus. This should never be written to the DB. It is calculated
     # whenever the record is loaded.
-    status = String(required=False, allow_none=False, validate=OneOf(['active', 'inactive']))
+    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
@@ -82,6 +82,11 @@ class ProviderRecordSchema(BaseRecordSchema, ProviderPublicSchema):
     @pre_dump
     def populate_prov_date_of_update(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['providerDateOfUpdate'] = in_data['dateOfUpdate']
+        return in_data
+
+    @pre_dump
+    def remove_status_field_if_present(self, in_data, **kwargs):
+        in_data.pop('status', None)
         return in_data
 
     @post_load
