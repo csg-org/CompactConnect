@@ -15,6 +15,27 @@ class ApiModel:
         self.api = api
 
     @property
+    def message_response_model(self) -> Model:
+        """Basic response that returns a string message"""
+        if hasattr(self.api, '_v1_message_response_model'):
+            return self.api._v1_message_response_model
+        self.api._v1_message_response_model = self.api.add_model(
+            'V1MessageResponseModel',
+            description='Simple message response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=['message'],
+                properties={
+                    'message': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='A message about the request',
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_message_response_model
+
+    @property
     def query_providers_request_model(self) -> Model:
         """Return the query providers request model, which should only be created once per API"""
         if hasattr(self.api, '_v1_query_providers_request_model'):
@@ -149,6 +170,107 @@ class ApiModel:
             ),
         )
         return self.api.bulk_upload_response_model
+
+    @property
+    def post_provider_user_military_affiliation_request_model(self) -> Model:
+        """Return the post payment processor credentials request model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_post_provider_user_military_affiliation_request_model'):
+            return self.api._v1_post_provider_user_military_affiliation_request_model
+        self.api._v1_post_provider_user_military_affiliation_request_model = self.api.add_model(
+            'V1PostProviderUserMilitaryAffiliationRequestModel',
+            description='Post provider user military affiliation request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=['fileName'],
+                properties={
+                    'fileName': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The name of the military affiliation file'
+                    )
+                },
+            ),
+        )
+        return self.api._v1_post_provider_user_military_affiliation_request_model
+
+    @property
+    def post_provider_military_affiliation_response_model(self) -> Model:
+        """Return the post provider military affiliation response model, which should only be created once per API
+        {
+              "type": "militaryAffiliation",
+              "documentPostUrl": "<s3 url>",
+              "fileName": "military-waiver.pdf",
+              "status": "initializing"
+              "dateOfUpload": "2024-06-06",
+              "dateOfUpdate": "2024-07-08"
+        }
+        """
+        if hasattr(self.api, '_v1_post_provider_military_affiliation_response_model'):
+            return self.api._v1_post_provider_military_affiliation_response_model
+        self.api._v1_post_provider_military_affiliation_response_model = self.api.add_model(
+            'V1PostProviderMilitaryAffiliationResponseModel',
+            description='Post provider military affiliation response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=['type', 'documentPostUrl', 'fileName', 'status', 'dateOfUpload', 'dateOfUpdate'],
+                properties={
+                    'type': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The type of document being uploaded',
+                        enum=['militaryAffiliation'],
+                    ),
+                    'documentPostUrl': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The url to post the document to',
+                    ),
+                    'fileName': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The name of the file being uploaded',
+                    ),
+                    'status': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The status of the document',
+                    ),
+                    'dateOfUpload': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The date the document was uploaded',
+                        format='date',
+                        pattern=cc_api.YMD_FORMAT,
+                    ),
+                    'dateOfUpdate': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The date the document was last updated',
+                        format='date',
+                        pattern=cc_api.YMD_FORMAT,
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_post_provider_military_affiliation_response_model
+
+    @property
+    def patch_provider_user_military_affiliation_request_model(self) -> Model:
+        """Return the post payment processor credentials request model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_patch_provider_user_military_affiliation_request_model'):
+            return self.api._v1_patch_provider_user_military_affiliation_request_model
+        self.api._v1_patch_provider_user_military_affiliation_request_model = self.api.add_model(
+            'V1PatchProviderUserMilitaryAffiliationRequestModel',
+            description='Patch provider user military affiliation request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=['fileName'],
+                properties={
+                    'status': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The status to set the military affiliation to.',
+                        # for now, we only allow 'inactive'
+                        enum=['inactive'],
+                    )
+                },
+            ),
+        )
+        return self.api._v1_patch_provider_user_military_affiliation_request_model
 
     @property
     def post_purchase_privileges_request_model(self) -> Model:
