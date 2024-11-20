@@ -100,6 +100,78 @@ export const SAMPLE_VALIDATION_ERROR_RECORD = {
     }
 };
 
+export const SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS = [
+    {
+        'pk': 'COMPACT#octp#JURISDICTION#oh',
+        'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c',
+        'eventType': 'license.validation-error',
+        'eventTime': '2024-10-30T04:47:55.843000+00:00',
+        'compact': 'octp',
+        'jurisdiction': 'oh',
+        'errors': {
+            'dateOfRenewal': [
+                'Row 5, 4:47'
+            ]
+        },
+        'recordNumber': 5,
+        'validData': {
+            'dateOfExpiration': '2024-06-30',
+            'dateOfIssuance': '2024-06-30',
+            'familyName': 'Carreño Quiñones',
+            'givenName': 'María',
+            'licenseType': 'occupational therapist',
+            'middleName': 'José',
+            'status': 'active'
+        }
+    },
+    {
+        'pk': 'COMPACT#octp#JURISDICTION#oh',
+        'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c',
+        'eventType': 'license.validation-error',
+        'eventTime': '2024-10-30T05:47:55.843000+00:00',
+        'compact': 'octp',
+        'jurisdiction': 'oh',
+        'errors': {
+            'dateOfRenewal': [
+                'Row 4, 5:47'
+            ]
+        },
+        'recordNumber': 4,
+        'validData': {
+            'dateOfExpiration': '2024-06-30',
+            'dateOfIssuance': '2024-06-30',
+            'familyName': 'Carreño Quiñones',
+            'givenName': 'María',
+            'licenseType': 'occupational therapist',
+            'middleName': 'José',
+            'status': 'active'
+        }
+    },
+    {
+        'pk': 'COMPACT#octp#JURISDICTION#oh',
+        'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c',
+        'eventType': 'license.validation-error',
+        'eventTime': '2024-10-30T05:47:55.843000+00:00',
+        'compact': 'octp',
+        'jurisdiction': 'oh',
+        'errors': {
+            'dateOfRenewal': [
+                'Row 5, 5:47'
+            ]
+        },
+        'recordNumber': 5,
+        'validData': {
+            'dateOfExpiration': '2024-06-30',
+            'dateOfIssuance': '2024-06-30',
+            'familyName': 'Carreño Quiñones',
+            'givenName': 'María',
+            'licenseType': 'occupational therapist',
+            'middleName': 'José',
+            'status': 'active'
+        }
+    }
+];
+
 export const SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD = {
     'pk': 'COMPACT#octp#JURISDICTION#oh',
     'sk': 'TYPE#license.validation-error#TIME#1730263675#EVENT#182d8d8b-7fee-6e0c-2e3c-1189a47d5a0c',

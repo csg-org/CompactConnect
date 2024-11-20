@@ -30,7 +30,7 @@
   "jurisdictions": {
     "aslp": [
       {
-        "jurisdictionName": "kentucky",
+        "jurisdictionName": "Kentucky",
         "postalAbbreviation": "ky",
         "jurisdictionFee": 100,
         "militaryDiscount": {
@@ -51,7 +51,7 @@
         ]
       },
       {
-        "jurisdictionName": "nebraska",
+        "jurisdictionName": "Nebraska",
         "postalAbbreviation": "ne",
         "jurisdictionFee": 100,
         "militaryDiscount": {
@@ -72,7 +72,7 @@
         ]
       },
       {
-        "jurisdictionName": "ohio",
+        "jurisdictionName": "Ohio",
         "postalAbbreviation": "oh",
         "jurisdictionFee": 100,
         "militaryDiscount": {
@@ -95,7 +95,7 @@
     ],
     "octp": [
       {
-        "jurisdictionName": "kentucky",
+        "jurisdictionName": "Kentucky",
         "postalAbbreviation": "ky",
         "jurisdictionFee": 100,
         "militaryDiscount": {
@@ -116,7 +116,7 @@
         ]
       },
       {
-        "jurisdictionName": "nebraska",
+        "jurisdictionName": "Nebraska",
         "postalAbbreviation": "ne",
         "jurisdictionFee": 100,
         "militaryDiscount": {
@@ -137,7 +137,7 @@
         ]
       },
       {
-        "jurisdictionName": "ohio",
+        "jurisdictionName": "Ohio",
         "postalAbbreviation": "oh",
         "jurisdictionFee": 100,
         "militaryDiscount": {

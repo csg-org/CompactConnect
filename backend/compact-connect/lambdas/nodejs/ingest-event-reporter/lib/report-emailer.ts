@@ -35,29 +35,16 @@ export class ReportEmailer {
         }
     };
 
-    private readonly allsWellEmailTemplate: TReaderDocument = {
-        'root': {
-            'type': 'EmailLayout',
-            'data': {
-                'backdropColor': '#E9EFF9',
-                'canvasColor': '#FFFFFF',
-                'textColor': '#242424',
-                'fontFamily': 'MODERN_SANS',
-                'childrenIds': []
-            }
-        }
-    };
-
     public constructor(props: ReportEmailerProperties) {
         this.logger = props.logger;
         this.sesClient = props.sesClient;
     }
 
-    public async sendReportEmail(events: IIngestEvents, recipients: string[]) {
+    public async sendReportEmail(events: IIngestEvents, compact: string, jurisdiction: string, recipients: string[]) {
         this.logger.info('Sending report email', { recipients: recipients });
 
         // Generate the HTML report
-        const htmlContent = this.generateReport(events);
+        const htmlContent = this.generateReport(events, compact, jurisdiction);
 
         try {
             // Send the email
@@ -74,7 +61,7 @@ export class ReportEmailer {
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: 'Data Validation Report'
+                        Data: `License Data Error Summary: ${compact} / ${jurisdiction}`
                     }
                 },
                 // We're required by the IAM policy to use this display name
@@ -88,13 +75,15 @@ export class ReportEmailer {
         }
     }
 
-    public async sendAllsWellEmail(recipients: string[]) {
+    public async sendAllsWellEmail(compact: string, jurisdiction: string, recipients: string[]) {
         this.logger.info('Sending alls well email', { recipients: recipients });
 
         // Generate the HTML report
-        const report = JSON.parse(JSON.stringify(this.allsWellEmailTemplate));
+        const report = JSON.parse(JSON.stringify(this.emailTemplate));
 
-        this.insertHeader(report, 'There have been no license data errors this week!');
+        this.insertHeader(report, compact, jurisdiction, 'License Data Summary');
+        this.insertNoErrorImage(report);
+        this.insertSubHeading(report, 'There have been no license data errors this week!');
         this.insertFooter(report);
 
         const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
@@ -114,7 +103,7 @@ export class ReportEmailer {
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: 'License Data Summary'
+                        Data: `License Data Summary: ${compact} / ${jurisdiction}`
                     }
                 },
                 // We're required by the IAM policy to use this display name
@@ -128,10 +117,16 @@ export class ReportEmailer {
         }
     }
 
-    public generateReport(events: IIngestEvents): string {
+    public generateReport(events: IIngestEvents, compact: string, jurisdiction: string): string {
         const report = JSON.parse(JSON.stringify(this.emailTemplate));
 
         this.insertHeader(
+            report,
+            compact,
+            jurisdiction,
+            'License Data Error Summary'
+        );
+        this.insertSubHeading(
             report,
             'There have been some license data errors that prevented ingest. '
             + 'They are listed below:'
@@ -468,10 +463,10 @@ export class ReportEmailer {
         report['root']['data']['childrenIds'].push(blockDivId);
     }
 
-    private insertHeader(report: TReaderDocument, subHeading: string) {
+    private insertHeader(report: TReaderDocument, compact: string, jurisdiction: string, heading: string) {
         const blockLogoId = 'block-logo';
         const blockHeaderId = 'block-header';
-        const blockSubHeadingId = 'block-sub-heading';
+        const blockJurisdictionId = 'block-jurisdiction';
 
         report[blockLogoId] = {
             'type': 'Image',
@@ -489,7 +484,7 @@ export class ReportEmailer {
                 'props': {
                     'width': null,
                     'height': 100,
-                    'url': 'https://compactconnect.org/wp-content/uploads/2024/07/Compact-Connect-logo_FINAL.png',
+                    'url': 'https://app.test.compactconnect.org/img/icons/mstile-310x150.png',
                     'alt': '',
                     'linkHref': null,
                     'contentAlignment': 'middle'
@@ -500,7 +495,7 @@ export class ReportEmailer {
             'type': 'Heading',
             'data': {
                 'props': {
-                    'text': 'License Data Summary',
+                    'text': heading,
                     'level': 'h1'
                 },
                 'style': {
@@ -514,7 +509,37 @@ export class ReportEmailer {
                 }
             }
         };
-        report[blockSubHeadingId] = {
+        report[blockJurisdictionId] = {
+            'type': 'Text',
+            'data': {
+                'style': {
+                    'color': '#2459A9',
+                    'fontSize': 18,
+                    'fontWeight': 'bold',
+                    'textAlign': 'center',
+                    'padding': {
+                        'top': 0,
+                        'bottom': 0,
+                        'right': 24,
+                        'left': 24
+                    }
+                },
+                'props': {
+                    'markdown': true,
+                    'text': `${compact}  /  ${jurisdiction}`
+                }
+            }
+        };
+
+        report['root']['data']['childrenIds'].push(blockLogoId);
+        report['root']['data']['childrenIds'].push(blockHeaderId);
+        report['root']['data']['childrenIds'].push(blockJurisdictionId);
+    }
+
+    private insertSubHeading(report: TReaderDocument, subHeading: string) {
+        const blockId = `block-${crypto.randomUUID()}`;
+
+        report[blockId] = {
             'type': 'Text',
             'data': {
                 'style': {
@@ -534,9 +559,36 @@ export class ReportEmailer {
             }
         };
 
-        report['root']['data']['childrenIds'].push(blockLogoId);
-        report['root']['data']['childrenIds'].push(blockHeaderId);
-        report['root']['data']['childrenIds'].push(blockSubHeadingId);
+        report['root']['data']['childrenIds'].push(blockId);
+    }
+
+    private insertNoErrorImage(report: TReaderDocument) {
+        const blockId = `block-no-error-image`;
+
+        report[blockId] = {
+            'type': 'Image',
+            'data': {
+                'style': {
+                    'padding': {
+                        'top': 68,
+                        'bottom': 16,
+                        'right': 24,
+                        'left': 24
+                    },
+                    'textAlign': 'center'
+                },
+                'props': {
+                    'width': 100,
+                    'height': 100,
+                    'url': 'https://content.inspiringapps.com/assets/18771774-791a-4fad-9948-acad99874424.png',
+                    'alt': 'Sample product',
+                    'linkHref': null,
+                    'contentAlignment': 'middle'
+                }
+            }
+        };
+
+        report['root']['data']['childrenIds'].push(blockId);
     }
 
     private insertFooter(report: TReaderDocument) {
