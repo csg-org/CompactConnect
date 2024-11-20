@@ -42,17 +42,17 @@ class LicenseCommonSchema(LicensePublicSchema):
     emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
 
-class LicensePostSchema(LicenseCommonSchema):
-    """Schema for license data as posted by a board"""
-    # This status field is required when posting a license record. It will be transformed into the
-    # jurisdictionStatus field when the record is ingested.
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
-
     @validates_schema
     def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
         license_types = config.license_types_for_compact(data['compact'])
         if data['licenseType'] not in license_types:
             raise ValidationError({'licenseType': f"'licenseType' must be one of {license_types}"})
+
+class LicensePostSchema(LicenseCommonSchema):
+    """Schema for license data as posted by a board"""
+    # This status field is required when posting a license record. It will be transformed into the
+    # jurisdictionStatus field when the record is ingested.
+    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
 
 
 class LicenseIngestSchema(LicenseCommonSchema):
@@ -76,12 +76,6 @@ class LicenseIngestSchema(LicenseCommonSchema):
         in_data['jurisdictionStatus'] = in_data.pop('status')
         return in_data
 
-    @validates_schema
-    def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
-        license_types = config.license_types_for_compact(data['compact'])
-        if data['licenseType'] not in license_types:
-            raise ValidationError({'licenseType': f"'licenseType' must be one of {license_types}"})
-
 
 @BaseRecordSchema.register_schema('license')
 class LicenseRecordSchema(BaseRecordSchema, LicenseIngestSchema):
@@ -94,13 +88,12 @@ class LicenseRecordSchema(BaseRecordSchema, LicenseIngestSchema):
     # This field is the actual status referenced by the system, which is determined by the expiration date
     # in addition to the jurisdictionStatus. This should never be written to the DB. It is calculated
     # whenever the record is loaded.
-    status = String(required=False, allow_none=False, validate=OneOf(['active', 'inactive']))
+    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
 
     @pre_dump
     def pre_dump_initialization(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data = self.generate_pk_sk(in_data)
         return self.remove_status(in_data)
-
 
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'

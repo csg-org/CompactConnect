@@ -13,9 +13,8 @@ license_schema = LicenseIngestSchema()
 @sqs_handler
 def ingest_license_message(message: dict):
     """For each message, validate the license data and persist it in the database"""
-    # This should already have been validated at this point, before the data was ever sent for ingest,
-    # but validation is cheap. We can do it again, just to protect ourselves from something unexpected
-    # happening on the way here.
+    # This schema load will transform the 'status' field to 'jurisdictionStatus' for internal
+    # references, and will also validate the data.
     license_post = license_schema.load(message['detail'])
     compact = license_post['compact']
     jurisdiction = license_post['jurisdiction']
