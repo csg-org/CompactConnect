@@ -3,7 +3,7 @@ from urllib.parse import quote
 from uuid import uuid4
 
 from boto3.dynamodb.conditions import Attr, Key
-from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
+from boto3.dynamodb.types import TypeDeserializer
 from botocore.exceptions import ClientError
 
 from cc_common.config import _Config, config, logger
@@ -152,59 +152,6 @@ class DataClient:
             **dynamo_pagination,
         )
 
-    def create_privilege(self, *, compact: str, jurisdiction: str, provider_id: str):
-        # The returned items should consist of exactly one record, of type: provider. Just to be extra cautious, we'll
-        # extract the (only) provider type record out of the array with a quick comprehension that filters by `type`.
-        provider_data = [
-            record
-            for record in self.get_provider(
-                compact=compact,
-                provider_id=provider_id,
-                detail=False,
-            )['items']
-            if record['type'] == 'provider'
-        ][0]
-        now = datetime.now(tz=UTC)
-
-        dynamodb_serializer = TypeSerializer()
-        self.config.dynamodb_client.transact_write_items(
-            TransactItems=[
-                # Add the new jurisdiction to the provider's privilege jurisdictions set
-                {
-                    'Update': {
-                        'TableName': config.provider_table_name,
-                        'Key': dynamodb_serializer.serialize(
-                            {'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'},
-                        )['M'],
-                        'UpdateExpression': 'ADD #privilegeJurisdictions :newJurisdictions',
-                        'ExpressionAttributeNames': {'#privilegeJurisdictions': 'privilegeJurisdictions'},
-                        'ExpressionAttributeValues': {
-                            ':newJurisdictions': dynamodb_serializer.serialize({jurisdiction}),
-                        },
-                    },
-                },
-                # Add a new privilege record
-                {
-                    'Put': {
-                        'TableName': config.provider_table_name,
-                        'Item': dynamodb_serializer.serialize(
-                            PrivilegeRecordSchema().dump(
-                                {
-                                    'providerId': provider_id,
-                                    'compact': compact,
-                                    'jurisdiction': jurisdiction,
-                                    'dateOfExpiration': provider_data['dateOfExpiration'],
-                                    'dateOfIssuance': now.date(),
-                                    'dateOfRenewal': now.date(),
-                                    'dateOfUpdate': now.date(),
-                                },
-                            ),
-                        )['M'],
-                    },
-                },
-            ],
-        )
-
     @paginated_query
     def get_privilege_purchase_options(self, *, compact: str, dynamo_pagination: dict):
         logger.info('Getting privilege purchase options for compact', compact=compact)
@@ -291,10 +238,23 @@ class DataClient:
                         original_issuance_date=original_privilege_issuance_date,
                     )
                     batch.put_item(Item=privilege_record)
+
+
+            # finally we need to update the provider record to include the new privilege jurisdictions
+            # batch writer can't perform updates, so we'll use a transact_write_items call
+            self.config.provider_table.update_item(
+                Key={
+                    'pk': f'{compact_name}#PROVIDER#{provider_id}',
+                    'sk': f'{compact_name}#PROVIDER'
+                },
+                UpdateExpression='ADD #privilegeJurisdictions :newJurisdictions',
+                ExpressionAttributeNames= {'#privilegeJurisdictions': 'privilegeJurisdictions'},
+                ExpressionAttributeValues= {':newJurisdictions': set(jurisdiction_postal_abbreviations)},
+            )
         except ClientError as e:
             message = 'Unable to create all provider privileges. Rolling back transaction.'
             logger.info(message, error=str(e))
-            # we must rollback and delete the records that were created
+            # we must rollback and delete the privilege records that were created
             with self.config.provider_table.batch_writer() as delete_batch:
                 for postal_abbreviation in jurisdiction_postal_abbreviations:
                     privilege_record = self._generate_privilege_record(
