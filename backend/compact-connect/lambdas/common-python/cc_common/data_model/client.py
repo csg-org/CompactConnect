@@ -239,17 +239,13 @@ class DataClient:
                     )
                     batch.put_item(Item=privilege_record)
 
-
             # finally we need to update the provider record to include the new privilege jurisdictions
             # batch writer can't perform updates, so we'll use a transact_write_items call
             self.config.provider_table.update_item(
-                Key={
-                    'pk': f'{compact_name}#PROVIDER#{provider_id}',
-                    'sk': f'{compact_name}#PROVIDER'
-                },
+                Key={'pk': f'{compact_name}#PROVIDER#{provider_id}', 'sk': f'{compact_name}#PROVIDER'},
                 UpdateExpression='ADD #privilegeJurisdictions :newJurisdictions',
-                ExpressionAttributeNames= {'#privilegeJurisdictions': 'privilegeJurisdictions'},
-                ExpressionAttributeValues= {':newJurisdictions': set(jurisdiction_postal_abbreviations)},
+                ExpressionAttributeNames={'#privilegeJurisdictions': 'privilegeJurisdictions'},
+                ExpressionAttributeValues={':newJurisdictions': set(jurisdiction_postal_abbreviations)},
             )
         except ClientError as e:
             message = 'Unable to create all provider privileges. Rolling back transaction.'

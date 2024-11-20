@@ -42,7 +42,6 @@ class TestProviderRecordSchema(TstLambdas):
         with self.assertRaises(ValidationError):
             ProviderRecordSchema().load(license_data)
 
-
     def test_provider_record_schema_sets_status_to_inactive_if_license_expired(self):
         """Test round-trip serialization/deserialization of license records"""
         from cc_common.data_model.schema.provider import ProviderRecordSchema
@@ -54,7 +53,7 @@ class TestProviderRecordSchema(TstLambdas):
         schema = ProviderRecordSchema()
         provider_data = schema.load(raw_provider_data)
 
-        self.assertEqual("inactive", provider_data['status'])
+        self.assertEqual('inactive', provider_data['status'])
 
     def test_provider_record_schema_sets_status_to_inactive_if_jurisdiction_status_inactive(self):
         """Test round-trip serialization/deserialization of license records"""
@@ -68,4 +67,4 @@ class TestProviderRecordSchema(TstLambdas):
         schema = ProviderRecordSchema()
         provider_data = schema.load(raw_provider_data)
 
-        self.assertEqual("inactive", provider_data['status'])
+        self.assertEqual('inactive', provider_data['status'])

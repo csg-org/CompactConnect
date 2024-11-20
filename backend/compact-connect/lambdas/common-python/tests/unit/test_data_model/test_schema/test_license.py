@@ -18,7 +18,7 @@ class TestLicenseSchema(TstLambdas):
 
         with open('tests/resources/api/license-post.json') as f:
             result = LicenseIngestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **json.load(f)})
-            self.assertEqual("active", result['jurisdictionStatus'])
+            self.assertEqual('active', result['jurisdictionStatus'])
 
     def test_invalid_post(self):
         from cc_common.data_model.schema.license import LicensePostSchema
@@ -97,7 +97,7 @@ class TestLicenseSchema(TstLambdas):
         schema = LicenseRecordSchema()
         license_data = schema.load(raw_license_data)
 
-        self.assertEqual("inactive", license_data['status'])
+        self.assertEqual('inactive', license_data['status'])
 
     def test_license_record_schema_sets_status_to_inactive_if_jurisdiction_status_inactive(self):
         from cc_common.data_model.schema.license import LicenseRecordSchema
@@ -110,7 +110,7 @@ class TestLicenseSchema(TstLambdas):
         schema = LicenseRecordSchema()
         license_data = schema.load(raw_license_data)
 
-        self.assertEqual("inactive", license_data['status'])
+        self.assertEqual('inactive', license_data['status'])
 
     def test_license_record_schema_strips_status_during_serialization(self):
         from cc_common.data_model.schema.license import LicenseRecordSchema
@@ -121,4 +121,4 @@ class TestLicenseSchema(TstLambdas):
         schema = LicenseRecordSchema()
         license_data = schema.dump(schema.load(raw_license_data))
 
-        self.assertNotIn("status", license_data)
+        self.assertNotIn('status', license_data)

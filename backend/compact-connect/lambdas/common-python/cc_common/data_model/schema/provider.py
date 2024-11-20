@@ -116,9 +116,9 @@ class ProviderRecordSchema(BaseRecordSchema, ProviderPublicSchema):
         in_data['status'] = (
             'active'
             if (
-                    in_data['jurisdictionStatus'] == 'active'
-                    and date.fromisoformat(in_data['dateOfExpiration'])
-                    > datetime.now(tz=config.expiration_date_resolution_timezone).date()
+                in_data['jurisdictionStatus'] == 'active'
+                and date.fromisoformat(in_data['dateOfExpiration'])
+                > datetime.now(tz=config.expiration_date_resolution_timezone).date()
             )
             else 'inactive'
         )

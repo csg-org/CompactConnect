@@ -19,6 +19,7 @@ class LicensePublicSchema(ForgivingSchema):
 
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
 
+
 class LicenseCommonSchema(LicensePublicSchema):
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
@@ -48,8 +49,10 @@ class LicenseCommonSchema(LicensePublicSchema):
         if data['licenseType'] not in license_types:
             raise ValidationError({'licenseType': f"'licenseType' must be one of {license_types}"})
 
+
 class LicensePostSchema(LicenseCommonSchema):
     """Schema for license data as posted by a board"""
+
     # This status field is required when posting a license record. It will be transformed into the
     # jurisdictionStatus field when the record is ingested.
     status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
@@ -57,6 +60,7 @@ class LicensePostSchema(LicenseCommonSchema):
 
 class LicenseIngestSchema(LicenseCommonSchema):
     """Schema for converting the external license data to the internal format"""
+
     # When a license record is first uploaded into the system, we store the value of
     # 'status' under this field for backwards compatibility with the external contract.
     # this is used to calculate the actual 'status' used by the system in addition
