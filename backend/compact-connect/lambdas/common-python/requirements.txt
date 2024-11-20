@@ -23,8 +23,6 @@ packaging==24.2
     # via marshmallow
 python-dateutil==2.9.0.post0
     # via botocore
-pytz==2024.2
-    # via -r compact-connect/lambdas/common-python/requirements.in
 s3transfer==0.10.3
     # via boto3
 six==1.16.0

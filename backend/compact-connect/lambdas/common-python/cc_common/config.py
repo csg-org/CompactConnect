@@ -1,3 +1,4 @@
+from datetime import timedelta, timezone
 import json
 import logging
 import os
@@ -6,7 +7,6 @@ from functools import cached_property
 import boto3
 from aws_lambda_powertools.logging import Logger
 from botocore.config import Config as BotoConfig
-from pytz import FixedOffset
 
 logging.basicConfig()
 logger = Logger()
@@ -125,7 +125,7 @@ class _Config:
         """
         # fixed offset for UTC-4 in minutes
         # see https://pvlib-python.readthedocs.io/en/v0.4.2/timetimezones.html#fixed-offsets
-        return FixedOffset(240)
+        return timezone(offset=timedelta(hours=-4))
 
 
 config = _Config()
