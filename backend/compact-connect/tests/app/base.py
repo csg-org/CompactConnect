@@ -240,6 +240,8 @@ class TstAppABC(ABC):
         if snapshot != actual and overwrite_snapshot:
             with open(snapshot_path, 'w') as f:
                 json.dump(actual, f, indent=2)
+                # So the data files will end with a newline
+                f.write('\n')
             sys.stdout.write(f"Snapshot '{snapshot_name}' has been overwritten.")
         else:
             self.maxDiff = None  # pylint: disable=invalid-name,attribute-defined-outside-init

@@ -62,7 +62,10 @@ export class Lambda implements LambdaInterface {
                 // If there were any issues, send a report email summarizing them
                 if (ingestEvents.ingestFailures.length || ingestEvents.validationErrors.length) {
                     const messageId = await this.reportEmailer.sendReportEmail(
-                        ingestEvents, jurisdictionConfig.jurisdictionOperationsTeamEmails
+                        ingestEvents,
+                        compact,
+                        jurisdictionConfig.jurisdictionName,
+                        jurisdictionConfig.jurisdictionOperationsTeamEmails
                     );
 
                     logger.info(
@@ -95,6 +98,8 @@ export class Lambda implements LambdaInterface {
 
                         if (!weeklyIngestEvents.ingestFailures.length && !weeklyIngestEvents.validationErrors.length) {
                             const messageId = await this.reportEmailer.sendAllsWellEmail(
+                                compact,
+                                jurisdictionConfig.jurisdictionName,
                                 jurisdictionConfig.jurisdictionOperationsTeamEmails
                             );
 

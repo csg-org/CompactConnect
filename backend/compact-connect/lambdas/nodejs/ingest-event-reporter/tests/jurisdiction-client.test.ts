@@ -146,23 +146,25 @@ describe('JurisdictionClient', () => {
         process.env.COMPACT_CONFIGURATION_TABLE_NAME = 'compact-table';
         process.env.AWS_REGION = 'us-east-1';
 
+    });
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('should return jurisdiction data from the dynamo', async () => {
         mockDynamoDBClient = mockClient(DynamoDBClient);
 
         mockDynamoDBClient.on(QueryCommand).resolves({
             Items: SAMPLE_JURISDICTION_ITEMS
         });
-    });
 
-    beforeEach(() => {
-        jest.clearAllMocks();
 
         jurisdictionClient = new JurisdictionClient({
             logger: new Logger(),
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
-    });
 
-    it('should return jurisdiction data from the dynamo', async () => {
         const jurisdictions = await jurisdictionClient.getJurisdictions('aslp');
 
         expect(jurisdictions).toHaveLength(2);
@@ -180,5 +182,20 @@ describe('JurisdictionClient', () => {
 
         // Verify we got the expected jurisdictions back
         expect(jurisdictions.map((j) => j.jurisdictionName)).toEqual(expect.arrayContaining(['ohio', 'nebraska']));
+    });
+
+    it('should return an empty array if no records in dynamo', async () => {
+        mockDynamoDBClient = mockClient(DynamoDBClient);
+
+        mockDynamoDBClient.on(QueryCommand).resolves({});
+
+        jurisdictionClient = new JurisdictionClient({
+            logger: new Logger(),
+            dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
+        });
+
+        const jurisdictions = await jurisdictionClient.getJurisdictions('aslp');
+
+        expect(jurisdictions).toEqual([]);
     });
 });

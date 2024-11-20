@@ -2,8 +2,10 @@ import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
+import { IValidationErrorEventRecord } from '../lib/models';
 import { ReportEmailer } from '../lib/report-emailer';
 import {
+    SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS,
     SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD,
     SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD
 } from './sample-records';
@@ -36,10 +38,14 @@ describe('Report emailer', () => {
             logger: logger,
             sesClient: asSESClient(mockSESClient)
         });
-        const template = reportEmailer.generateReport({
-            ingestFailures: [ SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD ],
-            validationErrors: [ SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD ]
-        });
+        const template = reportEmailer.generateReport(
+            {
+                ingestFailures: [ SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD ],
+                validationErrors: [ SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD ]
+            },
+            'aslp',
+            'ohio'
+        );
 
         // Any HTML document would start with a '<' and end with a '>'
         expect(template.charAt(0)).toBe('<');
@@ -59,6 +65,8 @@ describe('Report emailer', () => {
                 ingestFailures: [ SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD ],
                 validationErrors: [ SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD ]
             },
+            'aslp',
+            'ohio',
             [
                 'operations@example.com'
             ]
@@ -80,12 +88,40 @@ describe('Report emailer', () => {
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: 'Data Validation Report'
+                        Data: 'License Data Error Summary: aslp / ohio'
                     }
                 },
                 Source: 'Compact Connect <noreply@example.org>'
             }
         );
+    });
+
+    it('should sort validation errors by record number then time', async () => {
+        const logger = new Logger();
+        const sesClient = new SESClient();
+
+        class TestableReportEmailer extends ReportEmailer {
+            public testSortValidationErrors(validationErrors: IValidationErrorEventRecord[]) {
+                return this.sortValidationErrors(validationErrors);
+            }
+        }
+
+        const reportEmailer = new TestableReportEmailer({
+            logger: logger,
+            sesClient: sesClient
+        });
+
+        const sorted = reportEmailer.testSortValidationErrors(
+            SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS
+        );
+
+        const flattenedErrors: string[] = sorted.flatMap((record) => record.errors.dateOfRenewal);
+
+        expect(flattenedErrors).toEqual([
+            'Row 4, 5:47',
+            'Row 5, 4:47',
+            'Row 5, 5:47'
+        ]);
     });
 
     it('should send an alls well email', async () => {
@@ -95,7 +131,11 @@ describe('Report emailer', () => {
             logger: logger,
             sesClient: sesClient
         });
-        const messageId = await reportEmailer.sendAllsWellEmail([ 'operations@example.com' ]);
+        const messageId = await reportEmailer.sendAllsWellEmail(
+            'aslp',
+            'ohio',
+            [ 'operations@example.com' ]
+        );
 
         expect(messageId).toEqual('message-id-123');
         expect(mockSESClient).toHaveReceivedCommandWith(
@@ -113,7 +153,7 @@ describe('Report emailer', () => {
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: 'License Data Summary'
+                        Data: 'License Data Summary: aslp / ohio'
                     }
                 },
                 Source: 'Compact Connect <noreply@example.org>'
