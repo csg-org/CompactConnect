@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import UTC, date, datetime
 from unittest.mock import MagicMock
 
 from botocore.exceptions import ClientError
@@ -32,9 +32,17 @@ class TestDataClient(TstLambdas):
 
         with self.assertRaises(CCAwsServiceException):
             test_data_client.create_provider_privileges(
-                'aslp', 'test_provider_id', ['CA'], date.fromisoformat('2024-10-31'), 'test_transaction_id'
+                compact_name='aslp',
+                provider_id='test_provider_id',
+                jurisdiction_postal_abbreviations=['CA'],
+                license_expiration_date=date.fromisoformat('2024-10-31'),
+                existing_privileges=[],
+                compact_transaction_id='test_transaction_id',
             )
 
         mock_batch_writer.delete_item.assert_called_with(
-            Key={'pk': 'aslp#PROVIDER#test_provider_id', 'sk': 'aslp#PROVIDER#privilege/ca'}
+            Key={
+                'pk': 'aslp#PROVIDER#test_provider_id',
+                'sk': f'aslp#PROVIDER#privilege/ca#{datetime.now(tz=UTC).date().isoformat()}',
+            }
         )

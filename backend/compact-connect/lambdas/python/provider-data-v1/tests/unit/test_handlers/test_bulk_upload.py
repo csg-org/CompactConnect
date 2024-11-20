@@ -100,7 +100,7 @@ class TestProcessBulkUploadFile(TstLambdas):
 
         mock_config.events_client.put_events.return_value = {'FailedEntryCount': 0, 'Entries': [{'EventId': '123'}]}
 
-        with open('tests/resources/licenses.csv', 'rb') as f:
+        with open('../common/tests/resources/licenses.csv', 'rb') as f:
             line_count = len(f.readlines())
             f.seek(0)
             content_length = len(f.read())
@@ -137,7 +137,7 @@ class TestProcessBulkUploadFile(TstLambdas):
         mock_config.events_client.put_events.return_value = {'FailedEntryCount': 0, 'Entries': [{'EventId': '123'}]}
 
         # We'll do a little processing to mangle our CSV data a bit
-        with open('tests/resources/licenses.csv') as f:
+        with open('../common/tests/resources/licenses.csv') as f:
             line_count = len(f.readlines())
             f.seek(0)
             csv_data = [line.split(',') for line in f]

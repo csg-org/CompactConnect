@@ -31,7 +31,7 @@ for dir in \
   (
     cd "$dir"
     echo "Running tests in $dir"
-    # update the PYTHONPATH to include the shared code if not common-python
+    # update the PYTHONPATH to include the shared code if not python/common
     [ "$dir" = "compact-connect/lambdas/python/common" ] || export PYTHONPATH=../common
     # Run lambda tests, appending data to the same data file
     pytest --cov=. --cov-config=.coveragerc --cov-append tests

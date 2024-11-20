@@ -1,4 +1,5 @@
 import json
+from datetime import UTC, datetime
 from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
@@ -16,19 +17,19 @@ class TestTransformations(TstFunction):
         transformations all happen as expected.
         """
         # Before we get started, we'll pre-set the SSN/providerId association we expect
-        with open('tests/resources/dynamo/provider-ssn.json') as f:
+        with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_ssn = json.load(f)
 
         self._provider_table.put_item(Item=provider_ssn)
         expected_provider_id = provider_ssn['providerId']
 
         # license data as it comes in from a board, in this case, as POSTed through the API
-        with open('tests/resources/api/license-post.json') as f:
+        with open('../common/tests/resources/api/license-post.json') as f:
             license_post = json.load(f)
         license_ssn = license_post['ssn']
 
         # The API Gateway event, as it is presented to the API lambda
-        with open('tests/resources/api-event.json') as f:
+        with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # Pack an array of one license into the request body
@@ -57,7 +58,7 @@ class TestTransformations(TstFunction):
             )
 
         # A sample SQS message from EventBridge
-        with open('tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/message.json') as f:
             message = json.load(f)
 
         # Pack our license.ingest event into the sample message
@@ -93,14 +94,14 @@ class TestTransformations(TstFunction):
         records = {item['type']: item for item in resp['Items']}
 
         # Expected representation of each record in the database
-        with open('tests/resources/dynamo/provider.json') as f:
+        with open('../common/tests/resources/dynamo/provider.json') as f:
             expected_provider = json.load(f)
         # Convert this to the data type expected from DynamoDB
         expected_provider['privilegeJurisdictions'] = set(expected_provider['privilegeJurisdictions'])
 
-        with open('tests/resources/dynamo/license.json') as f:
+        with open('../common/tests/resources/dynamo/license.json') as f:
             expected_license = json.load(f)
-        with open('tests/resources/dynamo/privilege.json') as f:
+        with open('../common/tests/resources/dynamo/privilege.json') as f:
             expected_privilege = json.load(f)
 
         # Force the provider id to match
@@ -111,9 +112,17 @@ class TestTransformations(TstFunction):
         del expected_provider['providerDateOfUpdate']
         del records['provider']['providerDateOfUpdate']
         del expected_privilege['dateOfIssuance']
+        del expected_privilege['dateOfRenewal']
         # removing optional field which is set by the purchase privilege endpoint
         del expected_privilege['compactTransactionId']
         del records['privilege']['dateOfIssuance']
+        del records['privilege']['dateOfRenewal']
+
+        # the sk is dynamic and will not match, but we can check its values to make sure the value of each is expected
+        self.assertEqual('aslp#PROVIDER#privilege/ne#2024-11-08', expected_privilege.pop('sk'))
+        self.assertEqual(
+            f'aslp#PROVIDER#privilege/ne#{datetime.now(tz=UTC).date().isoformat()}', records['privilege'].pop('sk')
+        )
 
         # Make sure each is represented the way we expect, in the db
         self.assertEqual(expected_provider, records['provider'])
@@ -123,7 +132,7 @@ class TestTransformations(TstFunction):
         from handlers.providers import get_provider
 
         # Get a fresh API Gateway event
-        with open('tests/resources/api-event.json') as f:
+        with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
@@ -137,7 +146,7 @@ class TestTransformations(TstFunction):
         provider_data = json.loads(resp['body'])
 
         # Expected representation of our provider coming _out_ via the API
-        with open('tests/resources/api/provider-detail-response.json') as f:
+        with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
 
         # Force the provider id to match
@@ -148,10 +157,12 @@ class TestTransformations(TstFunction):
         del provider_data['licenses'][0]['dateOfUpdate']
         del provider_data['privileges'][0]['dateOfUpdate']
         del provider_data['privileges'][0]['dateOfIssuance']
+        del provider_data['privileges'][0]['dateOfRenewal']
         del expected_provider['dateOfUpdate']
         del expected_provider['licenses'][0]['dateOfUpdate']
         del expected_provider['privileges'][0]['dateOfUpdate']
         del expected_provider['privileges'][0]['dateOfIssuance']
+        del expected_provider['privileges'][0]['dateOfRenewal']
         # removing optional field which is set by the purchase privilege endpoint
         del expected_provider['privileges'][0]['compactTransactionId']
 

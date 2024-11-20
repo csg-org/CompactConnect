@@ -86,8 +86,8 @@ by tests, so we don't introduce bugs or cost time identifying testable bugs afte
 unit/functional tests bundled with this app should be designed to execute with zero requirements for environmental
 setup (including environment variables) beyond simply installing the dependencies in `requirements*.txt` files. CDK
 tests are defined under the [tests](./tests) directory. Runtime code tests should be similarly bundled within the
-lambda folders. Code that is common across all lambdas should be tested in the `common-python` directory, to reduce
-duplication and ensure consistency across the app.
+lambda folders. Code that is common across all python lambdas should be tested in the `python/common` directory, to
+reduce duplication and ensure consistency across the app.
 
 To execute the tests, simply run `bin/run_tests.sh` from the `backend` directory.
 

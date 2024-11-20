@@ -171,6 +171,11 @@ export class DataApi {
         });
     }
 
+    // Post Privilege Purchases for Licensee User
+    public postPrivilegePurchases() {
+        return this.wait(500).then(() => ({ message: 'Successfully processed charge', transactionId: '120044154134' }));
+    }
+
     // ========================================================================
     //                              EXAMPLE API
     // ========================================================================

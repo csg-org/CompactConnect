@@ -1,2 +1,2 @@
-# common requirements are managed in the common-python requirements.in file
+# common requirements are managed in the common requirements.in file
 authorizenet>=1.1.5, <2

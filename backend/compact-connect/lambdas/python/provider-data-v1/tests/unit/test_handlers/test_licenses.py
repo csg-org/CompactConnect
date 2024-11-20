@@ -14,7 +14,7 @@ class TestPostLicenses(TstLambdas):
 
         mock_config.events_client.put_events.return_value = {'FailedEntryCount': 0, 'Entries': [{'EventId': '123'}]}
 
-        with open('tests/resources/api-event.json') as f:
+        with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has scopes for oh
@@ -22,7 +22,7 @@ class TestPostLicenses(TstLambdas):
 
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
 
-        with open('tests/resources/api/license-post.json') as f:
+        with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
 
         resp = post_licenses(event, self.mock_context)
@@ -42,7 +42,7 @@ class TestPostLicenses(TstLambdas):
     def test_cross_compact(self, mock_config):
         from handlers.licenses import post_licenses
 
-        with open('tests/resources/api-event.json') as f:
+        with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has scopes for aslp, not octp
@@ -50,7 +50,7 @@ class TestPostLicenses(TstLambdas):
 
         event['pathParameters'] = {'compact': 'octp', 'jurisdiction': 'oh'}
 
-        with open('tests/resources/api/license-post.json') as f:
+        with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
 
         resp = post_licenses(event, self.mock_context)
@@ -61,7 +61,7 @@ class TestPostLicenses(TstLambdas):
     def test_wrong_jurisdiction(self, mock_config):  # noqa: ARG001 unused-argument
         from handlers.licenses import post_licenses
 
-        with open('tests/resources/api-event.json') as f:
+        with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has scopes for oh, not ne
@@ -69,7 +69,7 @@ class TestPostLicenses(TstLambdas):
 
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne'}
 
-        with open('tests/resources/api/license-post.json') as f:
+        with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
 
         resp = post_licenses(event, self.mock_context)
@@ -94,7 +94,7 @@ class TestPostLicenses(TstLambdas):
             ],
         }
 
-        with open('tests/resources/api-event.json') as f:
+        with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has scopes for oh
@@ -102,7 +102,7 @@ class TestPostLicenses(TstLambdas):
 
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
 
-        with open('tests/resources/api/license-post.json') as f:
+        with open('../common/tests/resources/api/license-post.json') as f:
             event['body'] = json.dumps([json.load(f)])
 
         with self.assertRaises(CCInternalException):
