@@ -81,14 +81,14 @@ class TstFunction(TstLambdas):
         """Use the canned test resources to load a basic provider to the DB"""
         test_resources = glob('../common-python/tests/resources/dynamo/*.json')
 
-        def provider_jurisdictions_to_set(obj: dict):
-            if obj.get('type') == 'provider' and 'providerJurisdictions' in obj:
-                obj['providerJurisdictions'] = set(obj['providerJurisdictions'])
+        def privilege_jurisdictions_to_set(obj: dict):
+            if obj.get('type') == 'provider' and 'privilegeJurisdictions' in obj:
+                obj['privilegeJurisdictions'] = set(obj['privilegeJurisdictions'])
             return obj
 
         for resource in test_resources:
             with open(resource) as f:
-                record = json.load(f, object_hook=provider_jurisdictions_to_set, parse_float=Decimal)
+                record = json.load(f, object_hook=privilege_jurisdictions_to_set, parse_float=Decimal)
 
             logger.debug('Loading resource, %s: %s', resource, str(record))
             self._provider_table.put_item(Item=record)
@@ -147,4 +147,11 @@ class TstFunction(TstLambdas):
                 )
             # Add a privilege
             provider_id = data_client.get_provider_id(compact='aslp', ssn=ssn)
-            data_client.create_privilege(compact='aslp', jurisdiction=privilege, provider_id=provider_id)
+            data_client.create_provider_privileges(
+                compact_name='aslp',
+                provider_id=provider_id,
+                jurisdiction_postal_abbreviations=[privilege],
+                license_expiration_date=datetime(2050, 6, 6),
+                compact_transaction_id='1234567890',
+                existing_privileges=[]
+            )
