@@ -5,7 +5,7 @@ from decimal import Decimal
 from boto3.dynamodb.conditions import Key
 from moto import mock_aws
 
-from tests.function import TstFunction
+from .. import TstFunction
 
 TEST_ENVIRONMENT_NAME = 'test'
 
