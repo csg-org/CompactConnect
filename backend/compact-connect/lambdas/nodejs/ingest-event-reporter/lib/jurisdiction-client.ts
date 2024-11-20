@@ -28,15 +28,15 @@ export class JurisdictionClient {
      * Queries the table for configured jurisdictions in the given compact
      */
     public async getJurisdictions(
-        compact: string
+        compactAbbr: string
     ): Promise<IJurisdiction[]> {
         const resp = await this.dynamoDBClient.send(new QueryCommand({
             TableName: environmentVariables.getCompactconfigurationTableName(),
             Select: 'ALL_ATTRIBUTES',
             KeyConditionExpression: 'pk = :pk and begins_with (sk, :sk)',
             ExpressionAttributeValues: {
-                ':pk': { 'S': `${compact}#CONFIGURATION` },
-                ':sk': { 'S': `${compact}#JURISDICTION#` },
+                ':pk': { 'S': `${compactAbbr}#CONFIGURATION` },
+                ':sk': { 'S': `${compactAbbr}#JURISDICTION#` },
             }
         }));
 

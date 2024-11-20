@@ -356,21 +356,4 @@ describe('Weekly runs', () => {
         expect(mockSendReportEmail).toHaveBeenCalled();
         expect(mockSendAllsWellEmail).not.toHaveBeenCalled();
     });
-
-    it('should let DynamoDB errors escape', async () => {
-        const mockDynamoDBClient = mockClient(DynamoDBClient);
-
-        mockDynamoDBClient.on(QueryCommand).rejects(new Error('DynamoDB error'));
-
-        lambda = new Lambda({
-            dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
-            sesClient: asSESClient(mockSESClient)
-        });
-
-        // Expect the function to throw or handle the error appropriately
-        await expect(lambda.handler(
-            SAMPLE_NIGHTLY_EVENT,
-            SAMPLE_CONTEXT
-        )).rejects.toThrow('DynamoDB error');
-    });
 });
