@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import json
-from datetime import UTC, datetime
+from datetime import datetime
 from decimal import Decimal
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -62,7 +62,7 @@ def _upload_compact_root_configuration(compact_configuration: dict) -> None:
                 'pk': f'{compact_name.lower()}#CONFIGURATION',
                 'sk': f'{compact_name.lower()}#CONFIGURATION',
                 'type': 'compact',
-                'dateOfUpdate': datetime.now(tz=UTC).strftime('%Y-%m-%d'),
+                'dateOfUpdate': datetime.now(tz=config.expiration_date_resolution_timezone).strftime('%Y-%m-%d'),
             },
         )
         # remove the activeEnvironments field as it's an implementation detail
@@ -88,7 +88,7 @@ def _upload_jurisdiction_configuration(compact_configuration: dict) -> None:
                     'sk': f'{compact_name.lower()}#JURISDICTION#{jurisdiction_postal_abbreviation.lower()}',
                     'type': 'jurisdiction',
                     'compact': compact_name,
-                    'dateOfUpdate': datetime.now(tz=UTC).strftime('%Y-%m-%d'),
+                    'dateOfUpdate': datetime.now(tz=config.expiration_date_resolution_timezone).strftime('%Y-%m-%d'),
                 },
             )
             # remove the activeEnvironments field as it's an implementation detail

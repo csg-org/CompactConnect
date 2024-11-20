@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, date, datetime
+from datetime import date, datetime
 from unittest.mock import MagicMock, patch
 
 from cc_common.config import config
@@ -269,7 +269,8 @@ class TestPostPurchasePrivileges(TstFunction):
         updated_privilege_record = next(
             record
             for record in privilege_records
-            if record['dateOfRenewal'].isoformat() == datetime.now(tz=UTC).date().isoformat()
+            if record['dateOfRenewal'].isoformat()
+            == datetime.now(tz=self.config.expiration_date_resolution_timezone).date().isoformat()
         )
         # ensure the expiration is updated
         self.assertEqual(updated_expiration_date, updated_privilege_record['dateOfExpiration'].isoformat())
@@ -332,8 +333,12 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(expected_expiration_date, license_record['dateOfExpiration'])
         self.assertEqual(expected_expiration_date, privilege_record['dateOfExpiration'])
         # the date of issuance should be today
-        self.assertEqual(datetime.now(tz=UTC).date(), privilege_record['dateOfIssuance'])
-        self.assertEqual(datetime.now(tz=UTC).date(), privilege_record['dateOfUpdate'])
+        self.assertEqual(
+            datetime.now(tz=self.config.expiration_date_resolution_timezone).date(), privilege_record['dateOfIssuance']
+        )
+        self.assertEqual(
+            datetime.now(tz=self.config.expiration_date_resolution_timezone).date(), privilege_record['dateOfUpdate']
+        )
         self.assertEqual(TEST_COMPACT, privilege_record['compact'])
         self.assertEqual('ky', privilege_record['jurisdiction'])
         self.assertEqual(TEST_PROVIDER_ID, str(privilege_record['providerId']))

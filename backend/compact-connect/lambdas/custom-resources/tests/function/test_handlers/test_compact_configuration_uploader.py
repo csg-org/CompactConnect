@@ -1,5 +1,5 @@
 import json
-from datetime import UTC, datetime
+from datetime import datetime
 from decimal import Decimal
 
 from boto3.dynamodb.conditions import Key
@@ -35,13 +35,6 @@ def generate_single_jurisdiction_config(jurisdiction_name: str, postal_abbreviat
     }
 
 
-def generate_date_string():
-    # yes, there is always a chance that the tests are run precisely at midnight
-    # which will cause the test to fail and will need to be rerun,
-    # but that's a risk we're willing to take.
-    return datetime.now(tz=UTC).strftime('%Y-%m-%d')
-
-
 def generate_mock_compact_configuration():
     return json.dumps(
         {
@@ -65,6 +58,12 @@ def generate_mock_compact_configuration():
 
 @mock_aws
 class TestCompactConfigurationUploader(TstFunction):
+    def generate_date_string(self):
+        # yes, there is always a chance that the tests are run precisely at midnight
+        # which will cause the test to fail and will need to be rerun,
+        # but that's a risk we're willing to take.
+        return datetime.now(tz=self.config.expiration_date_resolution_timezone).strftime('%Y-%m-%d')
+
     def test_compact_configuration_uploader_store_all_config(self):
         from handlers.compact_config_uploader import on_event
 
@@ -98,14 +97,14 @@ class TestCompactConfigurationUploader(TstFunction):
                     'compactName': 'aslp',
                     'compactOperationsTeamEmails': [],
                     'compactSummaryReportNotificationEmails': [],
-                    'dateOfUpdate': generate_date_string(),
+                    'dateOfUpdate': self.generate_date_string(),
                     'pk': 'aslp#CONFIGURATION',
                     'sk': 'aslp#CONFIGURATION',
                     'type': 'compact',
                 },
                 {
                     'compact': 'aslp',
-                    'dateOfUpdate': generate_date_string(),
+                    'dateOfUpdate': self.generate_date_string(),
                     'jurisdictionAdverseActionsNotificationEmails': [],
                     'jurisdictionFee': Decimal('100'),
                     'jurisdictionName': 'nebraska',
@@ -120,7 +119,7 @@ class TestCompactConfigurationUploader(TstFunction):
                 },
                 {
                     'compact': 'aslp',
-                    'dateOfUpdate': generate_date_string(),
+                    'dateOfUpdate': self.generate_date_string(),
                     'jurisdictionAdverseActionsNotificationEmails': [],
                     'jurisdictionFee': Decimal('100'),
                     'jurisdictionName': 'ohio',
@@ -139,14 +138,14 @@ class TestCompactConfigurationUploader(TstFunction):
                     'compactName': 'octp',
                     'compactOperationsTeamEmails': [],
                     'compactSummaryReportNotificationEmails': [],
-                    'dateOfUpdate': generate_date_string(),
+                    'dateOfUpdate': self.generate_date_string(),
                     'pk': 'octp#CONFIGURATION',
                     'sk': 'octp#CONFIGURATION',
                     'type': 'compact',
                 },
                 {
                     'compact': 'octp',
-                    'dateOfUpdate': generate_date_string(),
+                    'dateOfUpdate': self.generate_date_string(),
                     'jurisdictionAdverseActionsNotificationEmails': [],
                     'jurisdictionFee': Decimal('100'),
                     'jurisdictionName': 'nebraska',
@@ -161,7 +160,7 @@ class TestCompactConfigurationUploader(TstFunction):
                 },
                 {
                     'compact': 'octp',
-                    'dateOfUpdate': generate_date_string(),
+                    'dateOfUpdate': self.generate_date_string(),
                     'jurisdictionAdverseActionsNotificationEmails': [],
                     'jurisdictionFee': Decimal('100'),
                     'jurisdictionName': 'ohio',
