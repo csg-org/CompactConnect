@@ -1,10 +1,18 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
   "properties": {
-    "dateOfUpdate": {
-      "description": "The date the document was last updated",
-      "format": "date",
-      "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+    "type": {
+      "description": "The type of document being uploaded",
+      "enum": [
+        "militaryAffiliation"
+      ],
+      "type": "string"
+    },
+    "fileName": {
+      "description": "The name of the file being uploaded",
+      "type": "string"
+    },
+    "status": {
+      "description": "The status of the military affiliation",
       "type": "string"
     },
     "dateOfUpload": {
@@ -13,33 +21,38 @@
       "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
       "type": "string"
     },
-    "documentPostUrl": {
-      "description": "The url to post the document to",
+    "dateOfUpdate": {
+      "description": "The date the document was last updated",
+      "format": "date",
+      "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
       "type": "string"
     },
-    "fileName": {
-      "description": "The name of the file being uploaded",
-      "type": "string"
-    },
-    "status": {
-      "description": "The status of the document",
-      "type": "string"
-    },
-    "type": {
-      "description": "The type of document being uploaded",
-      "enum": [
-        "militaryAffiliation"
-      ],
-      "type": "string"
+    "documentUploadFields": {
+      "description": "The fields used to upload the document",
+      "properties": {
+        "url": {
+          "description": "The url to upload the document to",
+          "type": "string"
+        },
+        "fields": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "The form fields used to upload the document",
+          "type": "object"
+        }
+      },
+      "type": "object"
     }
   },
   "required": [
     "type",
-    "documentPostUrl",
+    "documentUploadFields",
     "fileName",
     "status",
     "dateOfUpload",
     "dateOfUpdate"
   ],
-  "type": "object"
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
 }

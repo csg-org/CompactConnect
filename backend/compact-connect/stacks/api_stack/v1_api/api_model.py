@@ -212,16 +212,12 @@ class ApiModel:
             description='Post provider military affiliation response model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['type', 'documentPostUrl', 'fileName', 'status', 'dateOfUpload', 'dateOfUpdate'],
+                required=['type', 'documentUploadFields', 'fileName', 'status', 'dateOfUpload', 'dateOfUpdate'],
                 properties={
                     'type': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The type of document being uploaded',
                         enum=['militaryAffiliation'],
-                    ),
-                    'documentPostUrl': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The url to post the document to',
                     ),
                     'fileName': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -229,7 +225,7 @@ class ApiModel:
                     ),
                     'status': JsonSchema(
                         type=JsonSchemaType.STRING,
-                        description='The status of the document',
+                        description='The status of the military affiliation',
                     ),
                     'dateOfUpload': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -242,6 +238,24 @@ class ApiModel:
                         description='The date the document was last updated',
                         format='date',
                         pattern=cc_api.YMD_FORMAT,
+                    ),
+                    'documentUploadFields': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        description='The fields used to upload the document',
+                        properties={
+                            'url': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                description='The url to upload the document to'
+                            ),
+                            'fields': JsonSchema(
+                                type=JsonSchemaType.OBJECT,
+                                description='The form fields used to upload the document',
+                                # these are documented in S3 documentation
+                                # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/
+                                # generate_presigned_post.html
+                                additional_properties=JsonSchema(type=JsonSchemaType.STRING),
+                            ),
+                        },
                     ),
                 },
             ),
