@@ -16,6 +16,7 @@ import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputCreditCard from '@components/Forms/InputCreditCard/InputCreditCard.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import { Compact } from '@models/Compact/Compact.model';
+import { State } from '@models/State/State.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import { LicenseeUserPurchaseSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
@@ -139,16 +140,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     get stateOptions() {
         const stateOptions = [{ value: '', name: this.$t('common.select') }];
 
-        let states = this.$tm('common.states') as Array<any>;
-
-        if (typeof states[0]?.abbrev === 'function') {
-            const normalize = ([value]) => value;
-
-            states = states.map((st) => ({
-                abbrev: st.abbrev({ normalize }),
-                full: st.full({ normalize }),
-            }));
-        }
+        const states = new State().generateAllStateData();
 
         states?.forEach((state) => {
             const value = state?.abbrev?.toLowerCase();

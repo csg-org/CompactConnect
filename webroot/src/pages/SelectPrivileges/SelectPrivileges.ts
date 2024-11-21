@@ -50,7 +50,26 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     // Computed
     //
     get purchaseDataList(): Array<PrivilegePurchaseOption> {
-        return this.currentCompact?.privilegePurchaseOptions || [];
+        const privilegePurchaseOptions = [...this.currentCompact?.privilegePurchaseOptions || []];
+
+        privilegePurchaseOptions.sort((a, b) => {
+            let toReturn = 0;
+            const nameA = (a as PrivilegePurchaseOption).jurisdiction?.abbrev;
+            const nameB = (b as PrivilegePurchaseOption).jurisdiction?.abbrev;
+
+            if (nameA && nameB) {
+                if (nameA < nameB) {
+                    toReturn = -1;
+                }
+                if (nameA > nameB) {
+                    toReturn = 1;
+                }
+            }
+
+            return toReturn;
+        });
+
+        return privilegePurchaseOptions;
     }
 
     get currentCompact(): Compact | null {
@@ -83,7 +102,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         return name;
     }
 
-    get isPhone() {
+    get isPhone(): boolean {
         return this.$matches.phone.only;
     }
 

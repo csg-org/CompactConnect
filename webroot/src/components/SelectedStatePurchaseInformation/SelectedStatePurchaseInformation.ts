@@ -37,7 +37,7 @@ import moment from 'moment';
 class SelectedStatePurchaseInformation extends Vue {
     // PROPS
     @Prop({ required: true }) selectedStatePurchaseData?: PrivilegePurchaseOption;
-    @Prop({ default: new FormInput({ value: false }) }) jurisprudenceCheckInput?: FormInput | any;
+    @Prop({ default: new FormInput({ value: false }) }) jurisprudenceCheckInput?: FormInput | any; // any required because ts does not recognize all type options for value
 
     //
     // Data
