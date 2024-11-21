@@ -123,8 +123,6 @@ class _Config:
         This is currently set to UTC-4. We anticipate that this may change in the future,
         so we have a configuration value for it.
         """
-        # fixed offset for UTC-4 in minutes
-        # see https://pvlib-python.readthedocs.io/en/v0.4.2/timetimezones.html#fixed-offsets
         return timezone(offset=timedelta(hours=-4))
 
 
