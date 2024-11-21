@@ -1,9 +1,10 @@
 {
   "properties": {
-    "type": {
-      "description": "The type of document being uploaded",
+    "affiliationType": {
+      "description": "The type of military affiliation",
       "enum": [
-        "militaryAffiliation"
+        "militaryMember",
+        "militaryMemberSpouse"
       ],
       "type": "string"
     },
