@@ -18,10 +18,11 @@
 
     .jurisprudence-modal {
         :deep(.modal-container) {
-            max-width: 60rem;
+            max-width: 90vw;
             padding: 2rem;
 
             @media @tabletWidth {
+                max-width: 60rem;
                 padding: 4rem;
             }
 
@@ -70,7 +71,7 @@
         }
 
         &.sub-row {
-            color: rgba(255, 255, 255, 0.5);
+            color: ~"rgba(@{white}, 0.75)";
         }
 
         .state-title {
@@ -89,6 +90,8 @@
 
         :deep(.collapse-caret-button) {
             svg {
+                width: 2.4rem;
+                height: 1.4rem;
                 stroke: @veryLightGrey;
             }
         }
