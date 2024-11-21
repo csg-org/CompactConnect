@@ -1,3 +1,3 @@
-export interface IEventBridgeEventDetail {
+export interface IEventBridgeEvent {
     eventType: 'nightly' | 'weekly';
 }
