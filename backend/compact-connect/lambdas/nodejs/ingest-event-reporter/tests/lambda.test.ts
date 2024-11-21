@@ -6,7 +6,7 @@ import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
 
 import { Lambda } from '../lib/lambda';
 import { ReportEmailer } from '../lib/report-emailer';
-import { IEventBridgeEventDetail } from '../lib/models/event-bridge-event-detail';
+import { IEventBridgeEvent } from '../lib/models/event-bridge-event-detail';
 import {
     SAMPLE_INGEST_FAILURE_ERROR_RECORD,
     SAMPLE_JURISDICTION_CONFIGURATION,
@@ -14,37 +14,14 @@ import {
 } from './sample-records';
 
 
-const SAMPLE_NIGHTLY_EVENT: EventBridgeEvent<string, IEventBridgeEventDetail> = {
-    'version': '0',
-    'id': '4dd7e0e4-dfe8-29ab-a1d7-5dd5efc2a4fe',
-    'detail-type': 'Scheduled Event',
-    'source': 'aws.events',
-    'account': '992382587219',
-    'time': '2024-11-01T04:08:00Z',
-    'region': 'us-east-1',
-    'resources': [
-        'arn:aws:events:us-east-1:992382587219:rule/Sandbox-ReportingStack-ScheduleRuleDA5BD877-Kqysj6AhkI6E'
-    ],
-    'detail': {
-        'eventType': 'nightly'
-    }
+const SAMPLE_NIGHTLY_EVENT: IEventBridgeEvent = {
+    'eventType': 'nightly'
 };
 
-const SAMPLE_WEEKLY_EVENT: EventBridgeEvent<string, IEventBridgeEventDetail> = {
-    'version': '0',
-    'id': '4dd7e0e4-dfe8-29ab-a1d7-5dd5efc2a4fe',
-    'detail-type': 'Scheduled Event',
-    'source': 'aws.events',
-    'account': '992382587219',
-    'time': '2024-11-01T04:08:00Z',
-    'region': 'us-east-1',
-    'resources': [
-        'arn:aws:events:us-east-1:992382587219:rule/Sandbox-ReportingStack-ScheduleRuleDA5BD877-Kqysj6AhkI6E'
-    ],
-    'detail': {
-        'eventType': 'weekly'
-    }
+const SAMPLE_WEEKLY_EVENT: IEventBridgeEvent = {
+    'eventType': 'weekly'
 };
+
 
 const SAMPLE_CONTEXT: Context = {
     callbackWaitsForEmptyEventLoop: true,
