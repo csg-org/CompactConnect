@@ -51,11 +51,11 @@ class MilitaryAffiliationRecordSchema(BaseRecordSchema):
 class PostMilitaryAffiliationResponseSchema(ForgivingSchema):
     """Schema for POST requests to create a new military affiliation record"""
 
-    documentUploadFields = Nested(S3PresignedPostSchema(), required=True, allow_none=False)
     fileNames = List(String(required=True, allow_none=False), required=True, allow_none=False)
-    documentKeys = List(String(required=True, allow_none=False), required=True, allow_none=False)
     dateOfUpload = Date(required=True, allow_none=False)
     dateOfUpdate = Date(required=True, allow_none=False)
     status = String(required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationStatus]))
     affiliationType = String(required=True, allow_none=False,
                              validate=OneOf([e.value for e in MilitaryAffiliationType]))
+    documentUploadFields = List(Nested(S3PresignedPostSchema(), required=True, allow_none=False),
+                                required=True, allow_none=False)

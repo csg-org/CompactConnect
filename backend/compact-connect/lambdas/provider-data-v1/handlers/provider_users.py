@@ -71,6 +71,7 @@ def _post_provider_military_affiliation(event, context):
     event_body = json.loads(event['body'])
     file_names: list[str] = event_body['fileNames']
     document_keys = []
+    document_upload_fields = []
     # verify all files use supported file extensions
     for file_name in file_names:
         file_name_without_extension, file_extension = file_name.rsplit('.', 1)
@@ -80,18 +81,19 @@ def _post_provider_military_affiliation(event, context):
 
         # generate a UUID for the document key, which includes the filename followed by the UUID and the file extension
         document_uuid = f'{file_name_without_extension}#{uuid.uuid4()}.{file_extension}'
-        document_keys.append(s3_document_prefix + document_uuid)
+        document_key = s3_document_prefix + document_uuid
+        document_keys.append(document_key)
 
-    # generate a pre-signed url to allow the client to upload all the files in fileNames
-    pre_signed_post_response = config.s3_client.generate_presigned_post(
-        Bucket=config.provider_user_bucket_name,
-        Key=s3_document_prefix+'${filename}',
-        Conditions=[
-            ["starts-with", "$key", s3_document_prefix],
-            # max file size is 10MB
-            ["content-length-range", 0, 10485760],
-        ]
-    )
+        # generate a pre-signed url to allow the client to upload all the files in fileNames
+        pre_signed_post_response = config.s3_client.generate_presigned_post(
+            Bucket=config.provider_user_bucket_name,
+            Key=document_key,
+            Conditions=[
+                # max file size is 10MB
+                ["content-length-range", 0, 10485760],
+            ]
+        )
+        document_upload_fields.append(pre_signed_post_response)
 
     # save the military affiliation record to the database
     military_affiliation_record = config.data_client.create_military_affiliation(
@@ -104,7 +106,7 @@ def _post_provider_military_affiliation(event, context):
     # serialize the response
     serialized_record = MilitaryAffiliationRecordSchema().dump(military_affiliation_record)
     # In the case of post, we need to return the pre-signed post response to the client
-    serialized_record['documentUploadFields'] = pre_signed_post_response
+    serialized_record['documentUploadFields'] = document_upload_fields
 
     return PostMilitaryAffiliationResponseSchema().load(serialized_record)
 
