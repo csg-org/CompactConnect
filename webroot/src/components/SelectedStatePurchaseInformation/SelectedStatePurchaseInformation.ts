@@ -37,7 +37,7 @@ import moment from 'moment';
 class SelectedStatePurchaseInformation extends Vue {
     // PROPS
     @Prop({ required: true }) selectedStatePurchaseData?: PrivilegePurchaseOption;
-    @Prop({ default: new FormInput({ value: false }) }) jurisprudenceCheckInput?: FormInput | any; // any required because ts does not recognize all type options for value
+    @Prop({ default: new FormInput({ value: false }) }) jurisprudenceCheckInput?: FormInput;
 
     //
     // Data
@@ -164,10 +164,10 @@ class SelectedStatePurchaseInformation extends Vue {
     handleJurisprudenceClicked() {
         const newValue = this.jurisprudenceCheckInput?.value;
 
-        if (newValue === true) {
+        if (newValue) {
             if (this.jurisprudenceCheckInput) {
                 this.isJurisprudencePending = true;
-                this.jurisprudenceCheckInput.value = false;
+                this.setJurisprudenceInputValue(false);
             }
         }
     }
@@ -182,7 +182,7 @@ class SelectedStatePurchaseInformation extends Vue {
         const { isJurisprudencePending, jurisprudenceCheckInput } = this;
 
         if (isJurisprudencePending && jurisprudenceCheckInput) {
-            jurisprudenceCheckInput.value = true;
+            this.setJurisprudenceInputValue(true);
             this.$store.dispatch('setModalIsOpen', false);
             this.isJurisprudencePending = false;
         }
@@ -192,9 +192,15 @@ class SelectedStatePurchaseInformation extends Vue {
         const { isJurisprudencePending, jurisprudenceCheckInput } = this;
 
         if (isJurisprudencePending && jurisprudenceCheckInput) {
-            jurisprudenceCheckInput.value = false;
+            this.setJurisprudenceInputValue(false);
             this.$store.dispatch('setModalIsOpen', false);
             this.isJurisprudencePending = false;
+        }
+    }
+
+    setJurisprudenceInputValue(newValue) {
+        if (this.jurisprudenceCheckInput) {
+            (this.jurisprudenceCheckInput.value as any) = newValue; // any use required here because of outstanding ts bug regarding union type inference
         }
     }
 

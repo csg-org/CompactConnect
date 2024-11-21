@@ -7,6 +7,7 @@
 
 import { Component, mixins } from 'vue-facing-decorator';
 import { reactive, computed } from 'vue';
+import { stateList } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
@@ -140,11 +141,10 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     get stateOptions() {
         const stateOptions = [{ value: '', name: this.$t('common.select') }];
 
-        const states = new State().generateAllStateData();
-
-        states?.forEach((state) => {
-            const value = state?.abbrev?.toLowerCase();
-            const name = state?.full;
+        stateList?.forEach((state) => {
+            const stateObject = new State({ abbrev: state });
+            const value = stateObject?.abbrev?.toLowerCase();
+            const name = stateObject?.name();
 
             if (name && value) {
                 stateOptions.push({ value, name });

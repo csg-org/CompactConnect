@@ -40,15 +40,6 @@ export class State implements InterfaceStateCreate {
     // Helper methods
     public name(): string {
         const abbrev = (this.abbrev || '').toUpperCase() || '';
-        const states = this.generateAllStateData();
-
-        const state = states.find((st) => st.abbrev === abbrev);
-        const stateName = state?.full || this.$t('common.stateUnknown');
-
-        return stateName;
-    }
-
-    public generateAllStateData(): Array<any> {
         let states = this.$tm('common.states') || [];
 
         /* istanbul ignore next */ // i18n translations are not functions in the test runner environment, so this block won't be traversed
@@ -61,7 +52,10 @@ export class State implements InterfaceStateCreate {
             }));
         }
 
-        return states;
+        const state = states.find((st) => st.abbrev === abbrev);
+        const stateName = state?.full || this.$t('common.stateUnknown');
+
+        return stateName;
     }
 }
 
