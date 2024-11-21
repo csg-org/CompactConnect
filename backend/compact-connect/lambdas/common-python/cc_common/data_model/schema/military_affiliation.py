@@ -12,6 +12,13 @@ class MilitaryAffiliationStatus(CCEnum):
     ACTIVE = 'active'
     INACTIVE = 'inactive'
 
+class MilitaryAffiliationType(CCEnum):
+    MILITARY_MEMBER = 'militaryMember'
+    MILITARY_MEMBER_SPOUSE = 'militaryMemberSpouse'
+
+
+SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS = ('.pdf', '.jpg', '.jpeg', '.png', '.docx')
+
 
 @BaseRecordSchema.register_schema('militaryAffiliation')
 class MilitaryAffiliationRecordSchema(BaseRecordSchema):
@@ -24,6 +31,8 @@ class MilitaryAffiliationRecordSchema(BaseRecordSchema):
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     documentKey = String(required=True, allow_none=False)
     fileName = String(required=True, allow_none=False)
+    affiliationType = String(required=True, allow_none=False,
+                             validate=OneOf([e.value for e in MilitaryAffiliationType]))
     dateOfUpload = Date(required=True, allow_none=False)
     status = String(required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationStatus]))
 
@@ -47,4 +56,4 @@ class PostMilitaryAffiliationResponseSchema(ForgivingSchema):
     dateOfUpload = Date(required=True, allow_none=False)
     dateOfUpdate = Date(required=True, allow_none=False)
     status = String(required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationStatus]))
-    type = String(required=True, allow_none=False)
+    affiliationType = String(required=True, allow_none=False)

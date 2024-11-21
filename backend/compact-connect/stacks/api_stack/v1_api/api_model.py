@@ -214,10 +214,10 @@ class ApiModel:
                 type=JsonSchemaType.OBJECT,
                 required=['type', 'documentUploadFields', 'fileName', 'status', 'dateOfUpload', 'dateOfUpdate'],
                 properties={
-                    'type': JsonSchema(
+                    'affiliationType': JsonSchema(
                         type=JsonSchemaType.STRING,
-                        description='The type of document being uploaded',
-                        enum=['militaryAffiliation'],
+                        description='The type of military affiliation',
+                        enum=['militaryMember', 'militaryMemberSpouse'],
                     ),
                     'fileName': JsonSchema(
                         type=JsonSchemaType.STRING,
