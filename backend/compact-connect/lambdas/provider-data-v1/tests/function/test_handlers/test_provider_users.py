@@ -101,10 +101,10 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         military_affiliation_data = json.loads(resp['body'])
 
         #remove dynamic fields from s3 response
-        del military_affiliation_data['documentUploadFields']['fields']['policy']
-        del military_affiliation_data['documentUploadFields']['fields']['x-amz-signature']
-        del military_affiliation_data['documentUploadFields']['fields']['x-amz-date']
-        del military_affiliation_data['documentUploadFields']['fields']['x-amz-credential']
+        del military_affiliation_data['documentUploadFields'][0]['fields']['policy']
+        del military_affiliation_data['documentUploadFields'][0]['fields']['x-amz-signature']
+        del military_affiliation_data['documentUploadFields'][0]['fields']['x-amz-date']
+        del military_affiliation_data['documentUploadFields'][0]['fields']['x-amz-credential']
 
         today = datetime.now(self.config.expiration_date_resolution_timezone).date().isoformat()
         provider_id = event['requestContext']['authorizer']['claims']['custom:providerId']
@@ -114,12 +114,12 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
                 'affiliationType': 'militaryMember',
                  'dateOfUpdate': today,
                  'dateOfUpload': today,
-                 'documentKeys': [f'/provider/{provider_id}/document-type/military-affiliations/{today}/military_affiliation#1234.pdf'],
-                 'documentUploadFields': {'fields': {
-                     'key': f'/provider/{provider_id}/document-type/military-affiliations/{today}/${{filename}}',
+                 'documentUploadFields': [{'fields': {
+                     'key': f'/provider/{provider_id}/document-type/military-affiliations'
+                            f'/{today}/military_affiliation#1234.pdf',
                      'x-amz-algorithm': 'AWS4-HMAC-SHA256'
                  },
-                 'url': 'https://provider-user-bucket.s3.amazonaws.com/'},
+                 'url': 'https://provider-user-bucket.s3.amazonaws.com/'}],
                  'fileNames': ['military_affiliation.pdf'],
                  'status': 'initializing'
             }, military_affiliation_data)
