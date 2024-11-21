@@ -1,19 +1,16 @@
 //
-//  UserRowEdit.ts
+//  UserInvite.ts
 //  CompactConnect
 //
-//  Created by InspiringApps on 10/14/2024.
+//  Created by InspiringApps on 11/11/2024.
 //
 
-import {
-    Component,
-    mixins,
-    Prop,
-    toNative
-} from 'vue-facing-decorator';
+import { Component, mixins, toNative } from 'vue-facing-decorator';
 import { reactive, computed, ComputedRef } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Card from '@components/Card/Card.vue';
+import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
+import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
@@ -49,9 +46,11 @@ interface PermissionObject {
 }
 
 @Component({
-    name: 'UserRowEdit',
+    name: 'UserInvite',
     components: {
         Card,
+        MockPopulate,
+        InputText,
         InputSelect,
         InputButton,
         InputSubmit,
@@ -59,9 +58,7 @@ interface PermissionObject {
     },
     emits: [ 'cancel', 'saved' ],
 })
-class UserRowEdit extends mixins(MixinForm) {
-    @Prop({ required: true }) user!: StaffUser;
-
+class UserInvite extends mixins(MixinForm) {
     //
     // Data
     //
@@ -98,14 +95,6 @@ class UserRowEdit extends mixins(MixinForm) {
         return compactPermission;
     }
 
-    get rowUserCompactPermission(): CompactPermission | null {
-        const userPermissions = this.user.permissions;
-        const compactPermission = userPermissions?.find((userPermission: CompactPermission) =>
-            userPermission.compact.type === this.currentCompact?.type) || null;
-
-        return compactPermission;
-    }
-
     get isCurrentUserCompactAdmin(): boolean {
         return this.getCompactPermission(this.currentUserCompactPermission) === Permission.ADMIN;
     }
@@ -122,20 +111,16 @@ class UserRowEdit extends mixins(MixinForm) {
         return this.isCurrentUserCompactAdmin || this.isCurrentUserStateAdminAny;
     }
 
-    get userCompact(): Compact | null {
-        return this.rowUserCompactPermission?.compact || null;
-    }
-
     get userCompactOptions(): Array<PermissionOption> {
-        const { userCompact } = this;
+        const { currentCompact } = this;
         const compactOptions: Array<PermissionOption> = [
             { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
         ];
 
-        if (userCompact && userCompact.type) {
+        if (currentCompact && currentCompact.type) {
             compactOptions.push({
-                value: userCompact.type,
-                name: userCompact.abbrev(),
+                value: currentCompact.type,
+                name: currentCompact.abbrev(),
             });
         }
 
@@ -156,10 +141,6 @@ class UserRowEdit extends mixins(MixinForm) {
         return statePermissions;
     }
 
-    get userStatePermissions(): Array<StatePermission> {
-        return this.rowUserCompactPermission?.states || [];
-    }
-
     get userPermissionOptionsState(): Array<PermissionOption> {
         return [
             { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
@@ -169,8 +150,8 @@ class UserRowEdit extends mixins(MixinForm) {
     }
 
     get userOptionsState(): Array<PermissionOption> {
-        const { userCompact } = this;
-        let options = userCompact?.memberStates?.map((memberState: State) => ({
+        const { currentCompact } = this;
+        let options = currentCompact?.memberStates?.map((memberState: State) => ({
             value: (memberState.abbrev as unknown as string)?.toLowerCase() || '',
             name: memberState.name(),
         })) || [];
@@ -207,6 +188,10 @@ class UserRowEdit extends mixins(MixinForm) {
         return shouldShow;
     }
 
+    get isMockPopulateEnabled(): boolean {
+        return Boolean(this.$envConfig.isDevelopment);
+    }
+
     //
     // Methods
     //
@@ -218,7 +203,7 @@ class UserRowEdit extends mixins(MixinForm) {
                 label: computed(() => this.$t('account.affiliation')),
                 placeholder: computed(() => this.$t('account.affiliation')),
                 valueOptions: this.userCompactOptions,
-                value: this.userCompact?.type,
+                value: this.currentCompact?.type,
                 isDisabled: true,
             }),
             compactPermission: new FormInput({
@@ -227,8 +212,29 @@ class UserRowEdit extends mixins(MixinForm) {
                 label: computed(() => this.$t('account.permission')),
                 placeholder: computed(() => this.$t('account.permission')),
                 valueOptions: this.userPermissionOptionsCompact,
-                value: this.getCompactPermission(this.rowUserCompactPermission),
+                value: Permission.NONE,
                 isDisabled: !this.isCurrentUserCompactAdmin,
+            }),
+            email: new FormInput({
+                id: 'email',
+                name: 'email',
+                label: computed(() => this.$t('common.emailAddress')),
+                placeholder: computed(() => this.$t('common.emailAddress')),
+                validation: Joi.string().required().email({ tlds: false }).messages(this.joiMessages.string),
+            }),
+            firstName: new FormInput({
+                id: 'first-name',
+                name: 'first-name',
+                label: computed(() => this.$t('common.firstName')),
+                placeholder: computed(() => this.$t('common.firstName')),
+                validation: Joi.string().required().messages(this.joiMessages.string),
+            }),
+            lastName: new FormInput({
+                id: 'last-name',
+                name: 'last-name',
+                label: computed(() => this.$t('common.lastName')),
+                placeholder: computed(() => this.$t('common.lastName')),
+                validation: Joi.string().required().messages(this.joiMessages.string),
             }),
             submit: new FormInput({
                 isSubmitInput: true,
@@ -237,14 +243,7 @@ class UserRowEdit extends mixins(MixinForm) {
             }),
         });
 
-        this.addStateFormInputs();
         this.watchFormInputs(); // Important if you want automated form validation
-    }
-
-    addStateFormInputs(): void {
-        this.userStatePermissions.forEach((statePermission) => {
-            this.addStateFormInput(statePermission);
-        });
     }
 
     addStateFormInput(statePermission?: StatePermission): void {
@@ -290,7 +289,7 @@ class UserRowEdit extends mixins(MixinForm) {
                 const stateInputId = permissionInput.id.split('-').pop();
                 const stateInput = this.formData[`state-option-${stateInputId}`];
 
-                // If there are available states that haven't been assigned, the button should be shown
+                // If state has already been selected then show it in the options list as disabled
                 if (stateInput.value && stateInput.value === optionState.value) {
                     option.isDisabled = true;
                 }
@@ -404,19 +403,17 @@ class UserRowEdit extends mixins(MixinForm) {
             this.startFormLoading();
 
             const formData = this.prepFormData();
-            const serverData = StaffUserSerializer.toServer({ permissions: [formData] });
+            const serverData = StaffUserSerializer.toServer({
+                permissions: [formData.compactData],
+                attributes: formData.userData,
+            });
 
-            await this.$store.dispatch(`users/updateUserRequest`, {
-                compact: this.userCompact?.type,
-                userId: this.user.id,
+            await this.$store.dispatch(`users/createUserRequest`, {
+                compact: this.currentCompact?.type,
                 data: serverData,
             }).catch((err) => {
                 this.setError(err.message);
             });
-
-            if (this.user.id === this.currentUser.id) {
-                await this.$store.dispatch(`user/getStaffAccountRequest`);
-            }
 
             if (!this.isFormError) {
                 this.isFormSuccessful = true;
@@ -427,8 +424,13 @@ class UserRowEdit extends mixins(MixinForm) {
         }
     }
 
-    prepFormData(): object {
+    prepFormData(): any {
         const { formValues } = this;
+        const userData = {
+            email: formValues.email,
+            firstName: formValues.firstName,
+            lastName: formValues.lastName,
+        };
         const compactData = {
             compact: formValues.compact,
             ...this.setCompactPermission(formValues.compactPermission),
@@ -447,10 +449,16 @@ class UserRowEdit extends mixins(MixinForm) {
             });
         });
 
-        return compactData;
+        return { userData, compactData };
+    }
+
+    mockPopulate(): void {
+        this.formData.email.value = `test@example.com`;
+        this.formData.firstName.value = `Test`;
+        this.formData.lastName.value = `User`;
     }
 }
 
-export default toNative(UserRowEdit);
+export default toNative(UserInvite);
 
-// export default UserRowEdit;
+// export default UserInvite;

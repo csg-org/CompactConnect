@@ -1,27 +1,27 @@
 //
-//  UserRowEdit.less
+//  UserInvite.less
 //  CompactConnect
 //
-//  Created by InspiringApps on 10/14/2024.
+//  Created by InspiringApps on 11/11/2024.
 //
 
-.edit-user-container {
+.invite-user-container {
     display: flex;
     flex-direction: column;
     max-height: 100vh;
     overflow-y: auto;
 
-    .edit-user-title {
+    .invite-user-title {
         margin-bottom: 2rem;
         font-size: @fontSizeExtraLarge;
     }
 
-    .edit-user-name {
+    .invite-user-name {
         margin-bottom: 1.2rem;
         font-size: @fontSizeLarge;
     }
 
-    .edit-user-form-row {
+    .invite-user-form-row {
         display: flex;
         flex-wrap: wrap;
         align-items: flex-start;
@@ -39,6 +39,10 @@
                 white-space: unset;
             }
         }
+    }
+
+    .invite-user-meta {
+        width: 100%;
     }
 
     .permission-type-select {
@@ -69,7 +73,7 @@
         margin-left: auto;
     }
 
-    .edit-user-button {
+    .invite-user-button {
         width: 100%;
 
         &:not(:first-child) {

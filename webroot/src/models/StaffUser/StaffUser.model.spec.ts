@@ -290,6 +290,11 @@ describe('User model', () => {
                     ],
                 },
             ],
+            attributes: {
+                email: 'test@example.com',
+                firstName: 'Test',
+                lastName: 'User',
+            },
         };
         const requestData = StaffUserSerializer.toServer(data);
 
@@ -309,6 +314,11 @@ describe('User model', () => {
                         },
                     },
                 },
+            },
+            attributes: {
+                email: data.attributes.email,
+                givenName: data.attributes.firstName,
+                familyName: data.attributes.lastName,
             },
         });
     });
