@@ -52,10 +52,10 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     get purchaseDataList(): Array<PrivilegePurchaseOption> {
         const privilegePurchaseOptions = [...this.currentCompact?.privilegePurchaseOptions || []];
 
-        privilegePurchaseOptions.sort((a, b) => {
+        privilegePurchaseOptions.sort((a: PrivilegePurchaseOption, b: PrivilegePurchaseOption) => {
             let toReturn = 0;
-            const nameA = (a as PrivilegePurchaseOption).jurisdiction?.abbrev;
-            const nameB = (b as PrivilegePurchaseOption).jurisdiction?.abbrev;
+            const nameA = a.jurisdiction?.name().toLowerCase();
+            const nameB = b.jurisdiction?.name().toLowerCase();
 
             if (nameA && nameB) {
                 if (nameA < nameB) {
@@ -129,7 +129,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
 
     get disabledPrivilegeStateChoices(): Array<string> {
         const licenseList = this.licenseList.concat(this.privilegeList);
-
         const stateList: Array<string> = [];
 
         licenseList.forEach((license) => {
