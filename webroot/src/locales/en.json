@@ -20,8 +20,10 @@
         "add": "Add",
         "remove": "Remove",
         "reset": "Reset",
+        "invite": "Invite",
         "save": "Save",
         "saveChanges": "Save changes",
+        "sendInvite": "Send invite",
         "submit": "Submit",
         "clear": "Clear",
         "success": "Success",
@@ -562,7 +564,8 @@
         "edit": "Edit",
         "editPermissions": "Edit permissions",
         "editUserPermissions": "Edit user permissions",
-        "addState": "Add state / jurisdiction"
+        "addState": "Add state / jurisdiction",
+        "inviteNewUser": "Invite new user"
     },
     "styleGuide": {
         "headerPlaceholder": "Header Content",
