@@ -16,6 +16,7 @@ class MixinForm extends Vue {
     // Data
     //
     formData: any = {};
+    shouldValuesIncludeDisabled = false;
     isFormValid = false;
     isFormLoading = false;
     isFormSuccessful = false;
@@ -33,7 +34,7 @@ class MixinForm extends Vue {
         const values: any = {};
 
         this.formKeys.forEach((key) => {
-            if (!formData[key].isSubmitInput && !formData[key].isDisabled) {
+            if (!formData[key].isSubmitInput && (!formData[key].isDisabled || this.shouldValuesIncludeDisabled)) {
                 values[key] = formData[key].value;
             }
         });

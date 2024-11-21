@@ -28,13 +28,36 @@ describe('Form mixin', async () => {
 
         expect(component.formValues).to.matchPattern({});
     });
-    it('should get custom form values', async () => {
+    it('should get custom form values (standard)', async () => {
         const wrapper = await mountShallow(FormMixin);
         const component = wrapper.vm;
 
         component.formData = { id: { value: 1 }};
 
         expect(component.formValues).to.matchPattern({ id: 1 });
+    });
+    it('should get custom form values (exclude disabled by default)', async () => {
+        const wrapper = await mountShallow(FormMixin);
+        const component = wrapper.vm;
+
+        component.formData = {
+            prop1: { value: 1 },
+            prop2: { value: 2, isDisabled: true },
+        };
+
+        expect(component.formValues).to.matchPattern({ prop1: 1 });
+    });
+    it('should get custom form values (override to include disabled)', async () => {
+        const wrapper = await mountShallow(FormMixin);
+        const component = wrapper.vm;
+
+        component.shouldValuesIncludeDisabled = true;
+        component.formData = {
+            prop1: { value: 1 },
+            prop2: { value: 2, isDisabled: true },
+        };
+
+        expect(component.formValues).to.matchPattern({ prop1: 1, prop2: 2 });
     });
     it('should have super-scope input and blur methods', async () => {
         const wrapper = await mountShallow(FormMixin);
