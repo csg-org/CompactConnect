@@ -1,0 +1,27 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "fileNames": {
+      "description": "List of military affiliation file names",
+      "items": {
+        "description": "The name of the file being uploaded",
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "affiliationType": {
+      "description": "The type of military affiliation",
+      "enum": [
+        "militaryMember",
+        "militaryMemberSpouse"
+      ],
+      "type": "string"
+    }
+  },
+  "required": [
+    "fileNames",
+    "affiliationType"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

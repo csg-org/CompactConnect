@@ -2,8 +2,8 @@
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 from cc_common.data_model.schema.common import CCEnum, S3PresignedPostSchema
-from marshmallow import Schema, pre_dump
-from marshmallow.fields import UUID, Date, Nested, String
+from marshmallow import pre_dump
+from marshmallow.fields import UUID, Date, List, Nested, String
 from marshmallow.validate import Length, OneOf
 
 
@@ -17,7 +17,7 @@ class MilitaryAffiliationType(CCEnum):
     MILITARY_MEMBER_SPOUSE = 'militaryMemberSpouse'
 
 
-SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS = ('.pdf', '.jpg', '.jpeg', '.png', '.docx')
+SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS = ('pdf', 'jpg', 'jpeg', 'png', 'docx')
 
 
 @BaseRecordSchema.register_schema('militaryAffiliation')
@@ -30,7 +30,7 @@ class MilitaryAffiliationRecordSchema(BaseRecordSchema):
     providerId = UUID(required=True, allow_none=False)
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     documentKey = String(required=True, allow_none=False)
-    fileName = String(required=True, allow_none=False)
+    fileNames = List(String(required=True, allow_none=False), required=True, allow_none=False)
     affiliationType = String(required=True, allow_none=False,
                              validate=OneOf([e.value for e in MilitaryAffiliationType]))
     dateOfUpload = Date(required=True, allow_none=False)

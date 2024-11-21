@@ -182,11 +182,20 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['fileName'],
+                required=['fileNames', 'affiliationType'],
                 properties={
-                    'fileName': JsonSchema(
+                    'fileNames': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of military affiliation file names',
+                        items=JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            description='The name of the file being uploaded',
+                        ),
+                    ),
+                    'affiliationType': JsonSchema(
                         type=JsonSchemaType.STRING,
-                        description='The name of the military affiliation file'
+                        description='The type of military affiliation',
+                        enum=['militaryMember', 'militaryMemberSpouse']
                     )
                 },
             ),
