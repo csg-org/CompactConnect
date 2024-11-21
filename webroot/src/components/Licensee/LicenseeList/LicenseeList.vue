@@ -17,14 +17,9 @@
             </div>
             <div v-else class="licesee-list-container">
                 <div class="search-toggle-container">
-                    <div v-if="hasSearchTerms" class="search-tag">
+                    <div v-if="searchDisplayAll" class="search-tag">
                         <span class="title">{{ $t('common.viewing') }}:</span>
-                        <span class="search-terms">
-                            {{ searchDisplayFirstName }}
-                            {{ searchDisplayLastName }}
-                            {{ searchDisplaySsn }}
-                            {{ searchDisplayState }}
-                        </span>
+                        <span class="search-terms">{{ searchDisplayAll }}</span>
                         <CloseX
                             class="search-terms-reset"
                             @click="resetSearch()"

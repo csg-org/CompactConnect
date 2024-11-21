@@ -118,7 +118,7 @@ class LicenseeList extends Vue {
         return displayState;
     }
 
-    get hasSearchTerms(): boolean {
+    get searchDisplayAll(): string {
         const {
             searchDisplayFirstName,
             searchDisplayLastName,
@@ -126,7 +126,7 @@ class LicenseeList extends Vue {
             searchDisplayState
         } = this;
 
-        return Boolean(searchDisplayFirstName || searchDisplayLastName || searchDisplaySsn || searchDisplayState);
+        return [searchDisplayFirstName, searchDisplayLastName, searchDisplaySsn, searchDisplayState].join('').trim();
     }
 
     get sortOptions(): Array<any> {
