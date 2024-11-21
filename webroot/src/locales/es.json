@@ -20,7 +20,9 @@
         "add": "Agregar",
         "remove": "Eliminar",
         "reset": "Restablecer",
+        "invite": "Invitar",
         "save": "Guardar",
+        "sendInvite": "Enviar invitación",
         "saveChanges": "Guardar cambios",
         "submit": "Enviar",
         "clear": "Borrar",
@@ -561,7 +563,8 @@
         "edit": "Editar",
         "editPermissions": "Editar permisos",
         "editUserPermissions": "Editar permisos de usuario",
-        "addState": "Agregar estado / jurisdiccion"
+        "addState": "Agregar estado / jurisdiccion",
+        "inviteNewUser": "Invitar nuevo usuario"
     },
     "styleGuide": {
         "headerPlaceholder": "Contenido del encabezado",

@@ -509,6 +509,7 @@ class StaffUsers:
     def _attributes_schema(self):
         return JsonSchema(
             type=JsonSchemaType.OBJECT,
+            required=['email', 'givenName', 'familyName'],
             additional_properties=False,
             properties={
                 'email': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=100),
