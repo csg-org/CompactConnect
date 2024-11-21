@@ -29,7 +29,7 @@ class MilitaryAffiliationRecordSchema(BaseRecordSchema):
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    documentKey = String(required=True, allow_none=False)
+    documentKeys = List(String(required=True, allow_none=False), required=True, allow_none=False)
     fileNames = List(String(required=True, allow_none=False), required=True, allow_none=False)
     affiliationType = String(required=True, allow_none=False,
                              validate=OneOf([e.value for e in MilitaryAffiliationType]))
@@ -52,8 +52,10 @@ class PostMilitaryAffiliationResponseSchema(ForgivingSchema):
     """Schema for POST requests to create a new military affiliation record"""
 
     documentUploadFields = Nested(S3PresignedPostSchema(), required=True, allow_none=False)
-    fileName = String(required=True, allow_none=False)
+    fileNames = List(String(required=True, allow_none=False), required=True, allow_none=False)
+    documentKeys = List(String(required=True, allow_none=False), required=True, allow_none=False)
     dateOfUpload = Date(required=True, allow_none=False)
     dateOfUpdate = Date(required=True, allow_none=False)
     status = String(required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationStatus]))
-    affiliationType = String(required=True, allow_none=False)
+    affiliationType = String(required=True, allow_none=False,
+                             validate=OneOf([e.value for e in MilitaryAffiliationType]))

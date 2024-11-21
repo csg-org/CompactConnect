@@ -24,6 +24,7 @@ class TstLambdas(TestCase):
                 'USER_POOL_ID': 'us-east-1-12345',
                 'USERS_TABLE_NAME': 'provider-table',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
+                'PROVIDER_USER_BUCKET_NAME': 'provider-user-bucket',
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',
                 'LICENSE_TYPES': json.dumps(

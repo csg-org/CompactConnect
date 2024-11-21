@@ -11,6 +11,8 @@ from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
 from cc_common.exceptions import CCAwsServiceException, CCNotFoundException
+from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationRecordSchema, MilitaryAffiliationStatus, \
+    MilitaryAffiliationType
 
 
 class DataClient:
@@ -263,3 +265,28 @@ class DataClient:
                     # this transaction is idempotent, so we can safely delete the records even if they weren't created
                     delete_batch.delete_item(Key={'pk': privilege_record['pk'], 'sk': privilege_record['sk']})
             raise CCAwsServiceException(message) from e
+
+    def create_military_affiliation(self, compact: str, provider_id: str, affiliation_type: MilitaryAffiliationType,
+                                    file_names: list[str],
+                                    document_keys: list[str]):
+
+        military_affiliation_record = {
+            'type': 'militaryAffiliation',
+            'affiliationType': affiliation_type.value,
+            'fileNames': file_names,
+            'compact': compact,
+            'providerId': provider_id,
+            # we set this to initializing until the client uploads the document, which
+            # will trigger another lambda to update the status to active
+            'status': MilitaryAffiliationStatus.INITIALIZING.value,
+            'documentKeys': document_keys,
+            'dateOfUpload': datetime.now(tz=self.config.expiration_date_resolution_timezone).date(),
+        }
+
+        schema = MilitaryAffiliationRecordSchema()
+        military_affiliation_serialized_record = schema.dump(military_affiliation_record)
+        self.config.provider_table.put_item(Item=military_affiliation_serialized_record)
+
+        return military_affiliation_record
+
+

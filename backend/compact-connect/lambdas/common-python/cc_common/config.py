@@ -105,6 +105,10 @@ class _Config:
         return os.environ['BULK_BUCKET_NAME']
 
     @property
+    def provider_user_bucket_name(self):
+        return os.environ['PROVIDER_USER_BUCKET_NAME']
+
+    @property
     def user_pool_id(self):
         return os.environ['USER_POOL_ID']
 
