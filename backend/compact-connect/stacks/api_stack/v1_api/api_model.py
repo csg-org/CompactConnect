@@ -190,6 +190,8 @@ class ApiModel:
                         items=JsonSchema(
                             type=JsonSchemaType.STRING,
                             description='The name of the file being uploaded',
+                            # setting a max file name length of 150 to prevent abuse
+                            max_length=150,
                         ),
                     ),
                     'affiliationType': JsonSchema(
@@ -221,16 +223,20 @@ class ApiModel:
             description='Post provider military affiliation response model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['type', 'documentUploadFields', 'fileName', 'status', 'dateOfUpload', 'dateOfUpdate'],
+                required=['affiliationType', 'documentUploadFields', 'fileName', 'status', 'dateOfUpload', 'dateOfUpdate'],
                 properties={
                     'affiliationType': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The type of military affiliation',
                         enum=['militaryMember', 'militaryMemberSpouse'],
                     ),
-                    'fileName': JsonSchema(
-                        type=JsonSchemaType.STRING,
-                        description='The name of the file being uploaded',
+                    'fileNames': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of military affiliation file names',
+                        items=JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            description='The name of the file being uploaded',
+                        ),
                     ),
                     'status': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -249,22 +255,26 @@ class ApiModel:
                         pattern=cc_api.YMD_FORMAT,
                     ),
                     'documentUploadFields': JsonSchema(
-                        type=JsonSchemaType.OBJECT,
-                        description='The fields used to upload the document',
-                        properties={
-                            'url': JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                description='The url to upload the document to'
-                            ),
-                            'fields': JsonSchema(
-                                type=JsonSchemaType.OBJECT,
-                                description='The form fields used to upload the document',
-                                # these are documented in S3 documentation
-                                # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/
-                                # generate_presigned_post.html
-                                additional_properties=JsonSchema(type=JsonSchemaType.STRING),
-                            ),
-                        },
+                        type=JsonSchemaType.ARRAY,
+                        description='The fields used to upload documents',
+                        items=JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            description='The fields used to upload a specific document',
+                            properties={
+                                'url': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    description='The url to upload the document to'
+                                ),
+                                'fields': JsonSchema(
+                                    type=JsonSchemaType.OBJECT,
+                                    description='The form fields used to upload the document',
+                                    # these are documented in S3 documentation
+                                    # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3/client/
+                                    # generate_presigned_post.html
+                                    additional_properties=JsonSchema(type=JsonSchemaType.STRING),
+                                ),
+                            },
+                        ),
                     ),
                 },
             ),

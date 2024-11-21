@@ -1,10 +1,10 @@
-from datetime import datetime
 import json
-
-from cc_common.exceptions import CCInternalException
-from moto import mock_aws
+from datetime import datetime
 from unittest.mock import patch
 
+from moto import mock_aws
+
+from cc_common.exceptions import CCInternalException
 from .. import TstFunction
 
 TEST_COMPACT = 'aslp'
@@ -111,15 +111,19 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
 
         self.assertEqual(
             {
-                'affiliationType': 'militaryMember',
+                 'affiliationType': 'militaryMember',
                  'dateOfUpdate': today,
                  'dateOfUpload': today,
-                 'documentUploadFields': [{'fields': {
-                     'key': f'/provider/{provider_id}/document-type/military-affiliations'
-                            f'/{today}/military_affiliation#1234.pdf',
-                     'x-amz-algorithm': 'AWS4-HMAC-SHA256'
-                 },
-                 'url': 'https://provider-user-bucket.s3.amazonaws.com/'}],
+                 'documentUploadFields': [
+                     {
+                         'fields': {
+                            'key': f'/provider/{provider_id}/document-type/military-affiliations'
+                                   f'/{today}/military_affiliation#1234.pdf',
+                            'x-amz-algorithm': 'AWS4-HMAC-SHA256'
+                     },
+                         'url': 'https://provider-user-bucket.s3.amazonaws.com/'
+                     }
+                 ],
                  'fileNames': ['military_affiliation.pdf'],
                  'status': 'initializing'
             }, military_affiliation_data)

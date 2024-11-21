@@ -8,9 +8,13 @@
       ],
       "type": "string"
     },
-    "fileName": {
-      "description": "The name of the file being uploaded",
-      "type": "string"
+    "fileNames": {
+      "description": "List of military affiliation file names",
+      "items": {
+        "description": "The name of the file being uploaded",
+        "type": "string"
+      },
+      "type": "array"
     },
     "status": {
       "description": "The status of the military affiliation",
@@ -29,25 +33,29 @@
       "type": "string"
     },
     "documentUploadFields": {
-      "description": "The fields used to upload the document",
-      "properties": {
-        "url": {
-          "description": "The url to upload the document to",
-          "type": "string"
-        },
-        "fields": {
-          "additionalProperties": {
+      "description": "The fields used to upload documents",
+      "items": {
+        "description": "The fields used to upload a specific document",
+        "properties": {
+          "url": {
+            "description": "The url to upload the document to",
             "type": "string"
           },
-          "description": "The form fields used to upload the document",
-          "type": "object"
-        }
+          "fields": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "The form fields used to upload the document",
+            "type": "object"
+          }
+        },
+        "type": "object"
       },
-      "type": "object"
+      "type": "array"
     }
   },
   "required": [
-    "type",
+    "affiliationType",
     "documentUploadFields",
     "fileName",
     "status",
