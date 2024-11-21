@@ -2,11 +2,11 @@ import type { LambdaInterface } from '@aws-lambda-powertools/commons/lib/esm/typ
 import { Logger } from '@aws-lambda-powertools/logger';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { SESClient } from '@aws-sdk/client-ses';
-import { Context, EventBridgeEvent } from 'aws-lambda';
+import { Context } from 'aws-lambda';
 
 import { EnvironmentVariablesService } from './environment-variables-service';
 import { JurisdictionClient } from './jurisdiction-client';
-import { IEventBridgeEventDetail } from './models/event-bridge-event-detail';
+import { IEventBridgeEvent } from './models/event-bridge-event-detail';
 import { ReportEmailer } from './report-emailer';
 import { EventClient } from './event-client';
 
@@ -43,7 +43,7 @@ export class Lambda implements LambdaInterface {
     }
 
     @logger.injectLambdaContext({ resetKeys: true })
-    public async handler(event: EventBridgeEvent<string, any>, context: Context): Promise<any> {
+    public async handler(event: IEventBridgeEvent, context: Context): Promise<any> {
         logger.info('Processing event', { event: event });
         logger.debug('Context wait for event loop', { wait_for_empty_event_loop: context.callbackWaitsForEmptyEventLoop });
 
@@ -84,7 +84,7 @@ export class Lambda implements LambdaInterface {
                             jurisdiction: jurisdictionConfig.postalAbbreviation
                         }
                     );
-                    const eventType = (event.detail as IEventBridgeEventDetail).eventType;
+                    const eventType = event.eventType;
 
                     // If this is a weekly run and there have been no issues all week, we send an "All's Well" report
                     if (eventType === 'weekly') {
