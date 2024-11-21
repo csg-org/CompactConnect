@@ -155,18 +155,12 @@ class TestProviderUsersApi(TestApi):
             api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
         )
 
-        self.assertEqual(
-            {
-                '$schema': 'http://json-schema.org/draft-04/schema#',
-                'additionalProperties': False,
-                'properties': {
-                    'fileName': {'description': 'The name of the military ' 'affiliation file', 'type': 'string'}
-                },
-                'required': ['fileName'],
-                'type': 'object',
-            },
+        self.compare_snapshot(
             post_request_model['Schema'],
+            'POST_PROVIDER_USERS_MILITARY_AFFILIATION_REQUEST_SCHEMA',
+            overwrite_snapshot=True,
         )
+
 
         post_response_model = TestApi.get_resource_properties_by_logical_id(
             post_method_response_model_logical_id_capture.as_string(),
