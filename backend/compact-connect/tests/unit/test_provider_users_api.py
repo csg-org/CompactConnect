@@ -158,7 +158,7 @@ class TestProviderUsersApi(TestApi):
         self.compare_snapshot(
             post_request_model['Schema'],
             'POST_PROVIDER_USERS_MILITARY_AFFILIATION_REQUEST_SCHEMA',
-            overwrite_snapshot=True,
+            overwrite_snapshot=False,
         )
 
 
