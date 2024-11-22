@@ -110,6 +110,14 @@ class PageMainNav extends Vue {
                 isExactActive: true,
             },
             {
+                to: 'LicenseeDashboard',
+                params: { compact: this.currentCompact?.type },
+                label: computed(() => this.$t('navigation.dashboard')),
+                isEnabled: Boolean(this.currentCompact) && !this.isLoggedInAsStaff,
+                isExternal: false,
+                isExactActive: false,
+            },
+            {
                 to: 'Account',
                 label: computed(() => this.$t('navigation.account')),
                 isEnabled: this.isLoggedIn,
