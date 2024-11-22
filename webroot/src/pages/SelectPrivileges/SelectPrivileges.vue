@@ -139,19 +139,21 @@
             <template v-slot:content>
                 <div class="jurisprudence-modal-content">
                     {{jurisprudenceModalContent}}
-                    <div class="action-button-row">
-                        <InputButton
-                            class="back-button"
-                            :label="backText"
-                            :isTransparent="true"
-                            :onClick="closeAndInvalidateCheckbox"
-                        />
-                        <InputButton
-                            class="understand-button"
-                            :label="iUnderstandText"
-                            :onClick="submitUnderstanding"
-                        />
-                    </div>
+                    <form @submit.prevent="submitUnderstanding">
+                        <div class="action-button-row">
+                            <InputButton
+                                class="back-button"
+                                :label="backText"
+                                :isTransparent="true"
+                                :onClick="closeAndInvalidateCheckbox"
+                            />
+                            <InputSubmit
+                                class="understand-button"
+                                :formInput="formData.submitUnderstanding"
+                                :label="iUnderstandText"
+                            />
+                        </div>
+                    </form>
                 </div>
             </template>
         </Modal>

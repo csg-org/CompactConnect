@@ -114,6 +114,7 @@ class UserList extends mixins(MixinForm) {
             userSearch: new FormInput({
                 id: 'user-search',
                 name: 'user-search',
+                label: computed(() => this.$t('account.userSearchLabel')),
                 shouldHideLabel: true,
                 placeholder: computed(() => this.$t('account.userSearchLabel')),
             }),

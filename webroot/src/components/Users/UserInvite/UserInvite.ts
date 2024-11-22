@@ -72,6 +72,10 @@ class UserInvite extends mixins(MixinForm) {
         this.initFormInputs();
     }
 
+    mounted() {
+        document.getElementById('email')?.focus();
+    }
+
     //
     // Computed
     //
@@ -197,24 +201,6 @@ class UserInvite extends mixins(MixinForm) {
     //
     initFormInputs(): void {
         this.formData = reactive({
-            compact: new FormInput({
-                id: 'compact',
-                name: 'compact',
-                label: computed(() => this.$t('account.affiliation')),
-                placeholder: computed(() => this.$t('account.affiliation')),
-                valueOptions: this.userCompactOptions,
-                value: this.currentCompact?.type,
-                isDisabled: true,
-            }),
-            compactPermission: new FormInput({
-                id: 'compact-permission',
-                name: 'compact-permission',
-                label: computed(() => this.$t('account.permission')),
-                placeholder: computed(() => this.$t('account.permission')),
-                valueOptions: this.userPermissionOptionsCompact,
-                value: Permission.NONE,
-                isDisabled: !this.isCurrentUserCompactAdmin,
-            }),
             email: new FormInput({
                 id: 'email',
                 name: 'email',
@@ -236,6 +222,24 @@ class UserInvite extends mixins(MixinForm) {
                 placeholder: computed(() => this.$t('common.lastName')),
                 validation: Joi.string().required().messages(this.joiMessages.string),
             }),
+            compact: new FormInput({
+                id: 'compact',
+                name: 'compact',
+                label: computed(() => this.$t('account.affiliation')),
+                placeholder: computed(() => this.$t('account.affiliation')),
+                valueOptions: this.userCompactOptions,
+                value: this.currentCompact?.type,
+                isDisabled: true,
+            }),
+            compactPermission: new FormInput({
+                id: 'compact-permission',
+                name: 'compact-permission',
+                label: computed(() => this.$t('account.permission')),
+                placeholder: computed(() => this.$t('account.permission')),
+                valueOptions: this.userPermissionOptionsCompact,
+                value: Permission.NONE,
+                isDisabled: !this.isCurrentUserCompactAdmin,
+            }),
             submit: new FormInput({
                 isSubmitInput: true,
                 id: 'submit',
@@ -244,6 +248,28 @@ class UserInvite extends mixins(MixinForm) {
         });
 
         this.watchFormInputs(); // Important if you want automated form validation
+    }
+
+    focusTrap(event: KeyboardEvent): void {
+        const { formData } = this;
+        const firstEnabledFormInput: string = Object.keys(formData)
+            .filter((key) => key !== 'submit')
+            .find((key) => !formData[key].isDisabled) || '';
+        const firstEnabledInputId = formData[firstEnabledFormInput]?.id || 'cancel-edit-user';
+        const firstTabIndex = document.getElementById(firstEnabledInputId);
+        const lastTabIndex = document.getElementById('submit');
+
+        if (event.shiftKey) {
+            // shift + tab to last input
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+                event.preventDefault();
+            }
+        } else if (document.activeElement === lastTabIndex) {
+            // Tab to first input
+            firstTabIndex?.focus();
+            event.preventDefault();
+        }
     }
 
     addStateFormInput(statePermission?: StatePermission): void {

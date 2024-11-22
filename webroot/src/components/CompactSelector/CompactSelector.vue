@@ -13,6 +13,12 @@
                 :formInput="formData.compact"
                 @input="handleCompactSelect"
             />
+            <input
+                type="submit"
+                class="compact-select-submit"
+                tabindex="-1"
+                :aria-label="$t('common.submit')"
+            />
         </form>
     </div>
 </template>
