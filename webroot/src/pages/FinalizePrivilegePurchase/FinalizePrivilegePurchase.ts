@@ -332,7 +332,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
             expMonth: new FormInput({
                 id: 'exp-month',
                 name: 'exp-month',
-                label: '',
+                label: 'expiration month',
                 shouldHideLabel: true,
                 shouldHideMargin: true,
                 placeholder: '00',
@@ -344,7 +344,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
             expYear: new FormInput({
                 id: 'exp-year',
                 name: 'exp-year',
-                label: '',
+                label: 'expiration year',
                 shouldHideLabel: true,
                 shouldHideMargin: true,
                 placeholder: '00',
