@@ -241,6 +241,28 @@ class UserRowEdit extends mixins(MixinForm) {
         this.watchFormInputs(); // Important if you want automated form validation
     }
 
+    focusTrap(event: KeyboardEvent): void {
+        const { formData } = this;
+        const firstEnabledFormInput: string = Object.keys(formData)
+            .filter((key) => key !== 'submit')
+            .find((key) => !formData[key].isDisabled) || '';
+        const firstEnabledInputId = formData[firstEnabledFormInput]?.id || 'cancel-edit-user';
+        const firstTabIndex = document.getElementById(firstEnabledInputId);
+        const lastTabIndex = document.getElementById('submit');
+
+        if (event.shiftKey) {
+            // shift + tab to last input
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+                event.preventDefault();
+            }
+        } else if (document.activeElement === lastTabIndex) {
+            // Tab to first input
+            firstTabIndex?.focus();
+            event.preventDefault();
+        }
+    }
+
     addStateFormInputs(): void {
         this.userStatePermissions.forEach((statePermission) => {
             this.addStateFormInput(statePermission);

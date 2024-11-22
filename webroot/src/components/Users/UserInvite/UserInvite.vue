@@ -6,7 +6,7 @@
 -->
 
 <template>
-    <Card class="invite-user-container">
+    <Card class="invite-user-container" @keydown.tab="focusTrap($event)">
         <div class="invite-user-title">{{ $t('account.inviteNewUser') }}</div>
         <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
         <form @submit.prevent="handleSubmit">
@@ -45,6 +45,7 @@
             </div>
             <div class="invite-user-form-row">
                 <InputButton
+                    id="cancel-invite-user"
                     class="invite-user-button"
                     :label="$t('common.cancel')"
                     :shouldHideMargin="true"
