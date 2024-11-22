@@ -129,6 +129,28 @@ class _Config:
         """
         return timezone(offset=timedelta(hours=-4))
 
+    @cached_property
+    def data_events_table(self):
+        return boto3.resource('dynamodb').Table(self.data_events_table_name)
+
+    @property
+    def data_events_table_name(self):
+        return os.environ['DATA_EVENT_TABLE_NAME']
+
+    @property
+    def event_ttls(self):
+        """
+        Event type-specific TTLs
+        """
+        return {'license.validation-error': timedelta(days=90), 'license.ingest-failure': timedelta(days=90)}
+
+    @property
+    def default_event_ttl(self):
+        """
+        If we don't define a TTL specific for an event type, use this TTL
+        """
+        return timedelta(days=366)
+
     @property
     def current_standard_datetime(self):
         """

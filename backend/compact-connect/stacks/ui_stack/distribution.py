@@ -80,7 +80,7 @@ class UIDistribution(Distribution):
                 scope,
                 'CSPFunction',
                 code=Code.from_inline(f.read()),
-                runtime=Runtime.NODEJS_20_X,
+                runtime=Runtime.NODEJS_22_X,
                 handler='index.handler',
             )
         NagSuppressions.add_resource_suppressions_by_path(

@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 
-from config import config, logger
-from utils import sqs_handler
+from cc_common.config import config, logger
+from cc_common.utils import sqs_handler
 
 
 @sqs_handler
