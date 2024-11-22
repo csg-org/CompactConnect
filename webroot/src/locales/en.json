@@ -446,6 +446,8 @@
         "payment": "Payment",
         "creditCardTitle": "Credit Card",
         "cardNumber": "Card number",
+        "cardExpirationMonth": "Expiration month",
+        "cardExpirationYear": "Expiration year",
         "billingAddressTitle": "Billing Address",
         "enterStreetAddress": "Enter street address",
         "apptUnitNumber": "Appt/unit number",
