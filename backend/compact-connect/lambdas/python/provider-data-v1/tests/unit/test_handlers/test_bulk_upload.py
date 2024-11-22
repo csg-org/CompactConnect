@@ -11,7 +11,9 @@ from tests import TstLambdas
 
 class TestProcessS3Event(TstLambdas):
     @patch('handlers.bulk_upload.process_bulk_upload_file', autospec=True)
-    @patch('handlers.bulk_upload.config', autospec=True)
+    # We can't autospec because it causes the patch to evaluate properties that look up environment variables that we
+    # don't intend to set for these tests.
+    @patch('handlers.bulk_upload.config', autospec=False)
     def test_process_s3_event(self, mock_config, mock_process):
         from handlers.bulk_upload import parse_bulk_upload_file
 
@@ -34,7 +36,9 @@ class TestProcessS3Event(TstLambdas):
         mock_config.events_client.put_events.assert_not_called()
 
     @patch('handlers.bulk_upload.process_bulk_upload_file', autospec=True)
-    @patch('handlers.bulk_upload.config', autospec=True)
+    # We can't autospec because it causes the patch to evaluate properties that look up environment variables that we
+    # don't intend to set for these tests.
+    @patch('handlers.bulk_upload.config', autospec=False)
     def test_internal_exception(self, mock_config, mock_process):
         from handlers.bulk_upload import parse_bulk_upload_file
 
@@ -60,7 +64,9 @@ class TestProcessS3Event(TstLambdas):
         mock_config.events_client.put_events.assert_not_called()
 
     @patch('handlers.bulk_upload.process_bulk_upload_file', autospec=True)
-    @patch('handlers.bulk_upload.config', autospec=True)
+    # We can't autospec because it causes the patch to evaluate properties that look up environment variables that we
+    # don't intend to set for these tests.
+    @patch('handlers.bulk_upload.config', autospec=False)
     def test_bad_data(self, mock_config, mock_process):
         from handlers.bulk_upload import parse_bulk_upload_file
 
@@ -94,7 +100,9 @@ class TestProcessS3Event(TstLambdas):
 
 
 class TestProcessBulkUploadFile(TstLambdas):
-    @patch('handlers.bulk_upload.config', autospec=True)
+    # We can't autospec because it causes the patch to evaluate properties that look up environment variables that we
+    # don't intend to set for these tests.
+    @patch('handlers.bulk_upload.config', autospec=False)
     def test_good_data(self, mock_config):
         from handlers.bulk_upload import process_bulk_upload_file
 
@@ -130,7 +138,9 @@ class TestProcessBulkUploadFile(TstLambdas):
         # Make sure we published the right number of events
         self.assertEqual(line_count - 1, len(entries))
 
-    @patch('handlers.bulk_upload.config', autospec=True)
+    # We can't autospec because it causes the patch to evaluate properties that look up environment variables that we
+    # don't intend to set for these tests.
+    @patch('handlers.bulk_upload.config', autospec=False)
     def test_bad_data(self, mock_config):
         from handlers.bulk_upload import process_bulk_upload_file
 

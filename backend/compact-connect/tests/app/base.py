@@ -222,6 +222,9 @@ class TstAppABC(ABC):
         self._check_no_stack_annotations(stage.ui_stack)
         self._check_no_stack_annotations(stage.api_stack)
         self._check_no_stack_annotations(stage.ingest_stack)
+        # There is on reporting stack if no hosted zone is configured
+        if stage.persistent_stack.hosted_zone:
+            self._check_no_stack_annotations(stage.reporting_stack)
 
     def compare_snapshot(self, actual: dict, snapshot_name: str, overwrite_snapshot: bool = False):
         """

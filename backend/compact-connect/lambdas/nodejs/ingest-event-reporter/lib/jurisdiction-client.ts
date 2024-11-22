@@ -27,7 +27,7 @@ export class JurisdictionClient {
     /*
      * Queries the table for configured jurisdictions in the given compact
      */
-    public async getJurisdictions(
+    public async getJurisdictionConfigurations(
         compactAbbr: string
     ): Promise<IJurisdiction[]> {
         const resp = await this.dynamoDBClient.send(new QueryCommand({

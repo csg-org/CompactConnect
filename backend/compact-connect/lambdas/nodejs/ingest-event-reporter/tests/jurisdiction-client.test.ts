@@ -165,7 +165,7 @@ describe('JurisdictionClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        const jurisdictions = await jurisdictionClient.getJurisdictions('aslp');
+        const jurisdictions = await jurisdictionClient.getJurisdictionConfigurations('aslp');
 
         expect(jurisdictions).toHaveLength(2);
         expect(mockDynamoDBClient).toHaveReceivedCommandWith(
@@ -194,7 +194,7 @@ describe('JurisdictionClient', () => {
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
         });
 
-        const jurisdictions = await jurisdictionClient.getJurisdictions('aslp');
+        const jurisdictions = await jurisdictionClient.getJurisdictionConfigurations('aslp');
 
         expect(jurisdictions).toEqual([]);
     });

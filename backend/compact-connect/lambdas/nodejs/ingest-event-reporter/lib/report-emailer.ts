@@ -19,6 +19,10 @@ interface ReportEmailerProperties {
 }
 
 
+/*
+ * Integrates with AWS SES to send emails and with EmailBuilderJS to render JS object templates into HTML
+ * content that is expected to be consistently rendered across common email clients.
+ */
 export class ReportEmailer {
     private readonly logger: Logger;
     private readonly sesClient: SESClient;

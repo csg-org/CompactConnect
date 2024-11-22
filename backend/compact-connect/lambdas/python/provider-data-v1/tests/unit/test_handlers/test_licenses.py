@@ -8,7 +8,9 @@ from tests import TstLambdas
 
 
 class TestPostLicenses(TstLambdas):
-    @patch('handlers.licenses.config', autospec=True)
+    # We can't autospec because it causes the patch to evaluate properties that look up environment variables that we
+    # don't intend to set for these tests.
+    @patch('handlers.licenses.config', autospec=False)
     def test_post_licenses(self, mock_config):
         from handlers.licenses import post_licenses
 
@@ -38,7 +40,9 @@ class TestPostLicenses(TstLambdas):
         self.assertEqual(1, len(entries))
         self.assertEqual('license.ingest', entries[0]['DetailType'])
 
-    @patch('handlers.licenses.config', autospec=True)
+    # We can't autospec because it causes the patch to evaluate properties that look up environment variables that we
+    # don't intend to set for these tests.
+    @patch('handlers.licenses.config', autospec=False)
     def test_cross_compact(self, mock_config):
         from handlers.licenses import post_licenses
 
@@ -57,7 +61,9 @@ class TestPostLicenses(TstLambdas):
 
         self.assertEqual(403, resp['statusCode'])
 
-    @patch('handlers.licenses.config', autospec=True)
+    # We can't autospec because it causes the patch to evaluate properties that look up environment variables that we
+    # don't intend to set for these tests.
+    @patch('handlers.licenses.config', autospec=False)
     def test_wrong_jurisdiction(self, mock_config):  # noqa: ARG001 unused-argument
         from handlers.licenses import post_licenses
 
@@ -76,7 +82,9 @@ class TestPostLicenses(TstLambdas):
 
         self.assertEqual(403, resp['statusCode'])
 
-    @patch('handlers.licenses.config', autospec=True)
+    # We can't autospec because it causes the patch to evaluate properties that look up environment variables that we
+    # don't intend to set for these tests.
+    @patch('handlers.licenses.config', autospec=False)
     def test_event_error(self, mock_config):
         """If we have trouble publishing our events to AWS EventBridge, we should
         return a 500 (raise a CCInternalException).

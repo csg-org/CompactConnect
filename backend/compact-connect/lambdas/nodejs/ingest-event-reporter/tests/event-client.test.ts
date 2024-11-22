@@ -71,6 +71,10 @@ describe('EventClient', () => {
         const [ startStamp, endStamp ] = eventClient.getYesterdayTimestamps();
 
         expect(endStamp - startStamp).toEqual(86400);
+        const endDate = new Date(endStamp * 1000);
+
+        // After the UTC_OFFSET, our timestamp should be 4AM UTC on whatever day
+        expect(endDate.getUTCHours()).toEqual(4);
     });
 
     it('should produce weekly timestamps 604800 seconds (7 days) apart', async () => {
@@ -82,6 +86,10 @@ describe('EventClient', () => {
         const [ startStamp, endStamp ] = eventClient.getLastWeekTimestamps();
 
         expect(endStamp - startStamp).toEqual(604800);
+        const endDate = new Date(endStamp * 1000);
+
+        // After the UTC_OFFSET, our timestamp should be 4AM UTC on whatever day
+        expect(endDate.getUTCHours()).toEqual(4);
     });
 
     it('should return validation errors from the getValidationErrors method', async () => {

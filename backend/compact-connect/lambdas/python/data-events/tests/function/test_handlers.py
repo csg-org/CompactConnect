@@ -2,13 +2,13 @@ from decimal import Decimal
 
 from moto import mock_aws
 
-from tests.function import TstFunction
+from . import TstFunction
 
 
 @mock_aws
 class TestHandleDataEvents(TstFunction):
     def test_handle_data_event(self):
-        from handlers import handle_data_events
+        from handlers.data_events import handle_data_events
 
         with open('tests/resources/message.json') as f:
             message = f.read()
