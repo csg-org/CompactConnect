@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from datetime import timedelta, timezone
 from functools import cached_property
 
 import boto3
@@ -114,6 +115,37 @@ class _Config:
     @property
     def fam_giv_index_name(self):
         return os.environ['FAM_GIV_INDEX_NAME']
+
+    @property
+    def expiration_date_resolution_timezone(self):
+        """
+        This is the timezone used to determine the expiration dates of licenses and privileges.
+        This is currently set to UTC-4. We anticipate that this may change in the future,
+        so we have a configuration value for it.
+        """
+        return timezone(offset=timedelta(hours=-4))
+
+    @cached_property
+    def data_events_table(self):
+        return boto3.resource('dynamodb').Table(self.data_events_table_name)
+
+    @property
+    def data_events_table_name(self):
+        return os.environ['DATA_EVENT_TABLE_NAME']
+
+    @property
+    def event_ttls(self):
+        """
+        Event type-specific TTLs
+        """
+        return {'license.validation-error': timedelta(days=90), 'license.ingest-failure': timedelta(days=90)}
+
+    @property
+    def default_event_ttl(self):
+        """
+        If we don't define a TTL specific for an event type, use this TTL
+        """
+        return timedelta(days=366)
 
 
 config = _Config()

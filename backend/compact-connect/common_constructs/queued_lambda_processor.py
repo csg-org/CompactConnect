@@ -11,6 +11,10 @@ from constructs import Construct
 
 
 class QueuedLambdaProcessor(Construct):
+    """
+    Creates a standard SQS queue and Dead Letter Queue configuration for reliable queue-based Lambda message processing
+    """
+
     def __init__(
         self,
         scope: Construct,

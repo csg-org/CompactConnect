@@ -51,7 +51,7 @@ export class Lambda implements LambdaInterface {
 
         // Loop over each compact the system knows about
         for (const compact of environmentVariables.getCompacts()) {
-            const jurisdictionConfigs = await this.jurisdictionClient.getJurisdictions(compact);
+            const jurisdictionConfigs = await this.jurisdictionClient.getJurisdictionConfigurations(compact);
 
             // Loop over each jurisdiction that we have contacts configured for
             for (const jurisdictionConfig of jurisdictionConfigs) {

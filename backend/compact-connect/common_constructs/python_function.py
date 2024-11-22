@@ -65,6 +65,11 @@ class PythonFunction(CdkPythonFunction):
                     'id': 'HIPAA.Security-LambdaInsideVPC',
                     'reason': 'We may choose to move our lambdas into private VPC subnets in a future enhancement',
                 },
+                {
+                    'id': 'AwsSolutions-L1',
+                    'reason': 'We will assess migrating to the 3.13 runtime '
+                    'after the runtime has had time to stabilize',
+                },
             ],
         )
         NagSuppressions.add_resource_suppressions_by_path(

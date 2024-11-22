@@ -18,7 +18,7 @@ class TstLambdas(TestCase):
         )
         # Monkey-patch config object to be sure we have it based
         # on the env vars we set above
-        import config
+        from cc_common import config
 
         cls.config = config._Config()  # noqa: SLF001 protected-access
         config.config = cls.config

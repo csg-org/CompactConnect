@@ -5,6 +5,8 @@ import { EnvironmentVariablesService } from './environment-variables-service';
 import { IIngestFailureEventRecord, IValidationErrorEventRecord } from './models';
 
 const environmentVariables = new EnvironmentVariablesService();
+// Four hours in seconds
+const UTC_OFFSET = 4*3600;
 
 
 interface EventClientProps {
@@ -40,13 +42,16 @@ export class EventClient {
         // Uncomment to manually force today's events into the time window (for development/testing)
         // today.setUTCDate(today.getUTCDate() + 1);
 
+        // Before we send out our paired timestamps, we adjust them by UTC_OFFSET to adjust them to the UTC-4 timezone
+        // Which is Eastern Daylight Time, a rough approximation of a 'local' timezone that may make more sense to
+        // somebody expecting to see a day broken out in a US timezone.
         return [
             Number.parseInt(
                 (yesterday.valueOf()/1000).toString()
-            ),
+            ) + UTC_OFFSET,
             Number.parseInt(
                 (today.valueOf()/1000).toString()
-            )
+            ) + UTC_OFFSET
         ];
     }
 
@@ -64,13 +69,16 @@ export class EventClient {
         // Uncomment to manually force today's events into the time window (for development/testing)
         // today.setUTCDate(today.getUTCDate() + 1);
 
+        // Before we send out our paired timestamps, we adjust them by UTC_OFFSET to adjust them to the UTC-4 timezone
+        // Which is Eastern Daylight Time, a rough approximation of a 'local' timezone that may make more sense to
+        // somebody expecting to see a day broken out in a US timezone.
         return [
             Number.parseInt(
                 (lastWeek.valueOf()/1000).toString()
-            ),
+            ) + UTC_OFFSET,
             Number.parseInt(
                 (today.valueOf()/1000).toString()
-            )
+            ) + UTC_OFFSET
         ];
     }
 

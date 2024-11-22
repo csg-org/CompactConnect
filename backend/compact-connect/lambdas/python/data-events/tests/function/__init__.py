@@ -4,7 +4,7 @@ import os
 import boto3
 from moto import mock_aws
 
-from tests import TstLambdas
+from .. import TstLambdas
 
 logger = logging.getLogger(__name__)
 logging.basicConfig()
@@ -20,7 +20,7 @@ class TstFunction(TstLambdas):
 
         self.build_resources()
 
-        import config
+        from cc_common import config
 
         config.config = config._Config()  # noqa: SLF001 protected-access
         self.config = config.config
