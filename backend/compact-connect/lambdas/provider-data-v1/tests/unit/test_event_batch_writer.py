@@ -21,7 +21,7 @@ class TestEventBatchWriter(TstLambdas):
         mock_client = MagicMock()
         mock_client.put_events.side_effect = mock_put_items
 
-        with open('tests/resources/ingest/message.json') as f:
+        with open('../common-python/tests/resources/ingest/message.json') as f:
             event = json.load(f)
 
         with EventBatchWriter(client=mock_client) as writer:
@@ -49,7 +49,7 @@ class TestEventBatchWriter(TstLambdas):
         mock_client = MagicMock()
         mock_client.put_events.side_effect = mock_put_items
 
-        with open('tests/resources/ingest/message.json') as f:
+        with open('../common-python/tests/resources/ingest/message.json') as f:
             event = json.load(f)
 
         with EventBatchWriter(client=mock_client) as writer:
@@ -79,7 +79,7 @@ class TestEventBatchWriter(TstLambdas):
         mock_client = MagicMock()
         mock_client.put_events.side_effect = mock_put_items
 
-        with open('tests/resources/ingest/message.json') as f:
+        with open('../common-python/tests/resources/ingest/message.json') as f:
             event = json.load(f)
 
         with EventBatchWriter(client=mock_client) as writer:
@@ -104,7 +104,7 @@ class TestEventBatchWriter(TstLambdas):
         mock_client = MagicMock()
         mock_client.put_events.side_effect = mock_put_items
 
-        with open('tests/resources/ingest/message.json') as f:
+        with open('../common-python/tests/resources/ingest/message.json') as f:
             event = json.load(f)
 
         def interrupted_with_exception():
@@ -155,7 +155,7 @@ class TestEventBatchWriter(TstLambdas):
         mock_client = MagicMock()
         mock_client.put_events.side_effect = mock_put_items
 
-        with open('tests/resources/ingest/message.json') as f:
+        with open('../common-python/tests/resources/ingest/message.json') as f:
             event = json.load(f)
 
         with EventBatchWriter(client=mock_client) as writer:
@@ -181,7 +181,7 @@ class TestEventBatchWriter(TstLambdas):
         mock_client = MagicMock()
         mock_client.put_events.side_effect = mock_put_items
 
-        with open('tests/resources/ingest/message.json') as f:
+        with open('../common-python/tests/resources/ingest/message.json') as f:
             event = json.load(f)
 
         with EventBatchWriter(client=mock_client, batch_size=5) as writer:

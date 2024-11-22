@@ -20,8 +20,10 @@
         "add": "Add",
         "remove": "Remove",
         "reset": "Reset",
+        "invite": "Invite",
         "save": "Save",
         "saveChanges": "Save changes",
+        "sendInvite": "Send invite",
         "submit": "Submit",
         "clear": "Clear",
         "success": "Success",
@@ -29,11 +31,15 @@
         "saveAndContinue": "Save & Continue",
         "saveAndClose": "Save & Close",
         "subtotal": "Subtotal",
+        "total": "Total",
         "saving": "Saving...",
         "loading": "Loading...",
         "firstName": "First Name",
         "middleName": "Middle Name",
         "lastName": "Last Name",
+        "firstname": "First name",
+        "lastname": "Last name",
+        "selection": "Selection",
         "dateOfBirth": "Date of Birth",
         "dateOfBirthShort": "DOB",
         "dateFormat": "mm/dd/yyyy",
@@ -41,13 +47,16 @@
         "phoneNumber": "Phone Number",
         "address": "Address",
         "city": "City",
-        "state": "State / Jurisdiction",
+        "state": "State",
+        "stateJurisdiction": "State / Jurisdiction",
         "zipCode": "Zip Code",
         "language": "Language",
         "gender": "Gender",
         "race": "Race",
         "ethnicity": "Ethnicity",
         "welcome": "Welcome",
+        "finish": "Finish",
+        "formValidationErrorMessage": "Please correct the errors on the form shown in red and check the box acknowledging no refunds",
         "daysOfTheWeek": {
             "monday": {
                 "full": "Monday",
@@ -311,9 +320,10 @@
             "text": "Text"
         },
         "password": "Password",
+        "changePassword": "Change password",
         "currentPassword": "Current password",
         "newPassword": "New password",
-        "changePasswordFormTitle": "Change password",
+        "confirmNewPassword": "Confirm new password",
         "passwordCreationInstruction": "To create a new password, you have to meet all of the following requirements",
         "passwordRules": [
             "Min 8 characters",
@@ -322,6 +332,9 @@
             "1 number",
             "1 symbol"
         ],
+        "passwordsMustMatch": "Passwords must match",
+        "togglePasswordVisibility": "Toggle password visibility",
+        "passwordResetError": "There was an error resetting your password",
         "lastLogin": "Last Login",
         "description": "Description",
         "copyright": "Copyright",
@@ -333,6 +346,7 @@
         "home": "Home",
         "upload": "Upload",
         "licensing": "Licensing",
+        "dashboard": "Dashboard",
         "users": "Users",
         "styleGuide": "Styleguide",
         "account": "Account",
@@ -378,7 +392,8 @@
         "tooManyFiles": "Too many files, only 1 allowed",
         "fileWrongType": "Wrong file type",
         "lastNameRequired": "Required when first name is provided",
-        "ssnFormat": "Must be in format ###-##-####"
+        "ssnFormat": "Must be in format ###-##-####",
+        "enterValidCreditCard": "Must be a valid credit card number"
     },
     "serverErrors": {
         "networkError": "Network error",
@@ -425,6 +440,27 @@
         "uploadHint": "Only 1 CSV",
         "successTitle": "Your document has been uploaded successfully"
     },
+    "payment": {
+        "firstNameOnCard": "Enter first name on card",
+        "lastNameOnCard": "Enter last name on card",
+        "payment": "Payment",
+        "creditCardTitle": "Credit Card",
+        "cardNumber": "Card number",
+        "cardExpirationMonth": "Expiration month",
+        "cardExpirationYear": "Expiration year",
+        "billingAddressTitle": "Billing Address",
+        "enterStreetAddress": "Enter street address",
+        "apptUnitNumber": "Appt/unit number",
+        "streetAddress": "Street Address",
+        "streetAddress2": "Street Address 2",
+        "completePurchase": "Complete Purchase",
+        "expirationDate": "Expiration date",
+        "continueToPurchase": "Continue to purchase",
+        "compactPrivilegeStateFee": "Compact Privilege State Fee",
+        "compactCommissionFee": "Compact Commision Fee",
+        "purchaseSuccessful": "Purchase Successful",
+        "purchaseSuccessfulMessage": "Your purchase was successful. Your privileges will appear on your profile page within seconds. If you submitted incorrect documents, you will be contacted by compact staff."
+    },
     "licensing": {
         "license": "License",
         "licensingListTitle": "Licensing Data",
@@ -437,6 +473,7 @@
         "residenceLocation": "Residence location",
         "obtainPrivileges": "Obtain Privileges",
         "privileges": "Privileges",
+        "noRefundsMessage": "All compact privilege purchases are final. Refunds will not be issued.",
         "ssn": "SSN",
         "commissionFee": "Commission Fee",
         "jurisdictionFee": "Jurisdiction Fee",
@@ -444,6 +481,7 @@
         "status": "Status",
         "expired": "Expired",
         "issueDate": "Issue Date",
+        "state": "State",
         "issued": "Issued",
         "expirationDate": "Expiration date",
         "militaryDiscountText": "Military Discount",
@@ -458,7 +496,6 @@
         "noDiscipline": "No discipline",
         "twoHomeStateErrorMessage": "Two states have you listed as a resident. Please update your information with those states to reflect your current residency status.",
         "jurisprudenceExplanationText": "I attest I have completed the required jurisprudence exam.",
-        "state": "State",
         "statusOptions": {
             "active": "Active",
             "inactive": "Inactive"
@@ -503,6 +540,7 @@
         ]
     },
     "account": {
+        "accountTitle": "Account",
         "usersListTitle": "Users",
         "usersListEmpty": "Invite users with the button above",
         "permissions": "Permissions",
@@ -528,7 +566,8 @@
         "edit": "Edit",
         "editPermissions": "Edit permissions",
         "editUserPermissions": "Edit user permissions",
-        "addState": "Add state / jurisdiction"
+        "addState": "Add state / jurisdiction",
+        "inviteNewUser": "Invite new user"
     },
     "styleGuide": {
         "headerPlaceholder": "Header Content",

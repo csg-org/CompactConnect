@@ -79,7 +79,7 @@ class TstFunction(TstLambdas):
 
     def _load_provider_data(self):
         """Use the canned test resources to load a basic provider to the DB"""
-        test_resources = glob('tests/resources/dynamo/*.json')
+        test_resources = glob('../common-python/tests/resources/dynamo/*.json')
 
         def provider_jurisdictions_to_set(obj: dict):
             if obj.get('type') == 'provider' and 'providerJurisdictions' in obj:
@@ -102,7 +102,7 @@ class TstFunction(TstLambdas):
         from cc_common.data_model.client import DataClient
         from handlers.ingest import ingest_license_message
 
-        with open('tests/resources/ingest/message.json') as f:
+        with open('../common-python/tests/resources/ingest/message.json') as f:
             ingest_message = json.load(f)
 
         name_faker = Faker(['en_US', 'ja_JP', 'es_MX'])

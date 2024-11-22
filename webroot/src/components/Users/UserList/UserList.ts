@@ -15,6 +15,7 @@ import { reactive, computed } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
 import InputSearch from '@components/Forms/InputSearch/InputSearch.vue';
+import UserInvite from '@components/Users/UserInvite/UserInvite.vue';
 import UserRow from '@components/Users/UserRow/UserRow.vue';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import { SortDirection } from '@store/sorting/sorting.state';
@@ -26,6 +27,7 @@ import { PageExhaustError } from '@store/pagination';
     components: {
         ListContainer,
         InputSearch,
+        UserInvite,
         UserRow,
     }
 })
@@ -38,6 +40,7 @@ class UserList extends mixins(MixinForm) {
     isInitialFetchCompleted = false;
     prevKey = '';
     nextKey = '';
+    isInviteActive = false;
 
     //
     // Lifecycle
@@ -111,6 +114,8 @@ class UserList extends mixins(MixinForm) {
             userSearch: new FormInput({
                 id: 'user-search',
                 name: 'user-search',
+                label: computed(() => this.$t('account.userSearchLabel')),
+                shouldHideLabel: true,
                 placeholder: computed(() => this.$t('account.userSearchLabel')),
             }),
         });
@@ -274,6 +279,14 @@ class UserList extends mixins(MixinForm) {
         if (this.isInitialFetchCompleted) {
             await this.fetchListData();
         }
+    }
+
+    toggleUserInvite(): void {
+        this.isInviteActive = !this.isInviteActive;
+    }
+
+    closeUserInvite(): void {
+        this.isInviteActive = false;
     }
 }
 

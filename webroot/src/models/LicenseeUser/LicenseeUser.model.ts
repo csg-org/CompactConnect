@@ -57,3 +57,28 @@ export class LicenseeUserSerializer {
         return new LicenseeUser(userData);
     }
 }
+
+export class LicenseeUserPurchaseSerializer {
+    static toServer({ formValues, statesSelected }): any {
+        const purchaseData: any = {
+            selectedJurisdictions: statesSelected,
+            orderInformation: {
+                card: {
+                    number: formValues.creditCard.replace(/\s+/g, ''),
+                    expiration: `20${formValues.expYear}-${formValues.expMonth}`,
+                    cvv: formValues.cvv
+                },
+                billing: {
+                    firstName: formValues.firstName,
+                    lastName: formValues.lastName,
+                    streetAddress: formValues.streetAddress1,
+                    streetAddress2: formValues.streetAddress2,
+                    state: formValues.stateSelect.toUpperCase(),
+                    zip: formValues.zip
+                }
+            }
+        };
+
+        return purchaseData;
+    }
+}

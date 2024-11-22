@@ -121,8 +121,8 @@ class CompactSelector extends mixins(MixinForm) {
     initFormInputs(): void {
         this.formData = reactive({
             compact: new FormInput({
-                id: 'compact',
-                name: 'compact',
+                id: 'compact-global',
+                name: 'compact-global',
                 label: computed(() => this.$t('common.compact')),
                 shouldHideLabel: true,
                 shouldHideMargin: true,

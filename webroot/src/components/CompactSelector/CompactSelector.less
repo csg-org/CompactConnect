@@ -4,3 +4,15 @@
 //
 //  Created by InspiringApps on 10/2/2024.
 //
+
+.compact-selector-container {
+    max-width: 30rem;
+
+    @media (min-width: 400px) {
+        max-width: unset;
+    }
+
+    .compact-select-submit {
+        .visually-hidden();
+    }
+}

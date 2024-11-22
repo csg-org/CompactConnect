@@ -43,18 +43,21 @@
                 class="eye-icon-container"
                 @click="togglePassword"
                 @keyup.enter="togglePassword"
+                role="button"
+                :aria-label="$t('common.togglePasswordVisibility')"
+                tabindex="0"
             >
                 <HidePasswordEye v-if="shouldHidePassword" />
                 <ShowPasswordEye v-if="!shouldHidePassword" />
             </div>
         </div>
-        <!-- <span
-            v-if="formInput.errorMessage"
+        <span
+            v-if="!passwordRequirements.length && formInput.errorMessage"
             class="form-field-error"
         >
             {{ formInput.errorMessage }}
-        </span> -->
-        <div class="password-requirements">
+        </span>
+        <div class="password-requirements" :tabindex="(passwordRequirements.length) ? 0 : -1">
             <div
                 v-for="{ description, isValid } in passwordRequirements"
                 :key="description"

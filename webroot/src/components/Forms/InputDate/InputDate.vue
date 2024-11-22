@@ -54,7 +54,7 @@
             :locale="$i18n.locale"
         />
         <span
-            v-if="formInput.errorMessage"
+            v-if="formInput.errorMessage && !formInput.shouldHideErrorMessage"
             class="form-field-error"
         >
             {{ formInput.errorMessage }}

@@ -116,8 +116,8 @@ class ExampleForm extends mixins(MixinForm) {
             state: new FormInput({
                 id: 'state',
                 name: 'state',
-                label: computed(() => this.$t('common.state')),
-                placeholder: computed(() => this.$t('common.state')),
+                label: computed(() => this.$t('common.stateJurisdiction')),
+                placeholder: computed(() => this.$t('common.stateJurisdiction')),
                 validation: Joi.string().required().messages(this.joiMessages.string),
                 valueOptions: [{ value: '', name: computed(() => this.$t('common.chooseOne')) }]
                     .concat(this.states.map((state) => ({ value: state.abbrev, name: state.full }))),

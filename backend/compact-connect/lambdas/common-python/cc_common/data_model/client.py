@@ -196,6 +196,7 @@ class DataClient:
                                     'status': provider_data['status'],
                                     'dateOfExpiration': provider_data['dateOfExpiration'],
                                     'dateOfIssuance': now.date(),
+                                    'dateOfRenewal': now.date(),
                                     'dateOfUpdate': now.date(),
                                 },
                             ),
@@ -222,13 +223,16 @@ class DataClient:
         jurisdiction_postal_abbreviation: str,
         license_expiration_date: date,
         compact_transaction_id: str,
+        original_issuance_date: date | None = None,
     ):
+        today = datetime.now(tz=UTC).date()
         privilege_object = {
             'providerId': provider_id,
             'compact': compact_name,
             'jurisdiction': jurisdiction_postal_abbreviation.lower(),
             'status': 'active',
-            'dateOfIssuance': datetime.now(tz=UTC).date(),
+            'dateOfIssuance': original_issuance_date if original_issuance_date else today,
+            'dateOfRenewal': today,
             'dateOfExpiration': license_expiration_date,
             'compactTransactionId': compact_transaction_id,
         }
@@ -242,6 +246,7 @@ class DataClient:
         jurisdiction_postal_abbreviations: list[str],
         license_expiration_date: date,
         compact_transaction_id: str,
+        existing_privileges: list[dict],
     ):
         """
         Create privilege records for a provider in the database.
@@ -255,6 +260,8 @@ class DataClient:
         :param jurisdiction_postal_abbreviations: The list of jurisdiction postal codes
         :param license_expiration_date: The license expiration date
         :param compact_transaction_id: The compact transaction id
+        :param existing_privileges: The list of existing privileges for this user. Used to track the original issuance
+        date of the privilege.
         """
         logger.info(
             'Creating provider privileges',
@@ -267,8 +274,23 @@ class DataClient:
             # the batch writer handles retries and sending the requests in batches
             with self.config.provider_table.batch_writer() as batch:
                 for postal_abbreviation in jurisdiction_postal_abbreviations:
+                    # get the original privilege issuance date from an existing privilege record if it exists
+                    original_privilege_issuance_date = next(
+                        (
+                            record['dateOfIssuance']
+                            for record in existing_privileges
+                            if record['jurisdiction'].lower() == postal_abbreviation.lower()
+                        ),
+                        None,
+                    )
+
                     privilege_record = self._generate_privilege_record(
-                        compact_name, provider_id, postal_abbreviation, license_expiration_date, compact_transaction_id
+                        compact_name=compact_name,
+                        provider_id=provider_id,
+                        jurisdiction_postal_abbreviation=postal_abbreviation,
+                        license_expiration_date=license_expiration_date,
+                        compact_transaction_id=compact_transaction_id,
+                        original_issuance_date=original_privilege_issuance_date,
                     )
                     batch.put_item(Item=privilege_record)
         except ClientError as e:
@@ -278,7 +300,11 @@ class DataClient:
             with self.config.provider_table.batch_writer() as delete_batch:
                 for postal_abbreviation in jurisdiction_postal_abbreviations:
                     privilege_record = self._generate_privilege_record(
-                        compact_name, provider_id, postal_abbreviation, license_expiration_date, compact_transaction_id
+                        compact_name=compact_name,
+                        provider_id=provider_id,
+                        jurisdiction_postal_abbreviation=postal_abbreviation,
+                        license_expiration_date=license_expiration_date,
+                        compact_transaction_id=compact_transaction_id,
                     )
                     # this transaction is idempotent, so we can safely delete the records even if they weren't created
                     delete_batch.delete_item(Key={'pk': privilege_record['pk'], 'sk': privilege_record['sk']})

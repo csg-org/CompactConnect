@@ -16,6 +16,7 @@ class MixinForm extends Vue {
     // Data
     //
     formData: any = {};
+    shouldValuesIncludeDisabled = false;
     isFormValid = false;
     isFormLoading = false;
     isFormSuccessful = false;
@@ -33,7 +34,7 @@ class MixinForm extends Vue {
         const values: any = {};
 
         this.formKeys.forEach((key) => {
-            if (!formData[key].isSubmitInput) {
+            if (!formData[key].isSubmitInput && (!formData[key].isDisabled || this.shouldValuesIncludeDisabled)) {
                 values[key] = formData[key].value;
             }
         });
@@ -56,6 +57,10 @@ class MixinForm extends Vue {
                 'string.min': this.$t('inputErrors.minLength', { min: '{#limit}' }),
                 'string.email': this.$t('inputErrors.email'),
                 'string.max': this.$t('inputErrors.maxLength', { max: '{#limit}' }),
+            },
+            creditCard: {
+                'string.empty': this.$t('inputErrors.required'),
+                'string.pattern.base': this.$t('inputErrors.enterValidCreditCard')
             },
             password: {
                 'password.minOfUppercase': this.$t('inputErrors.minOfUppercase', { min: '{#min}' }),

@@ -6,7 +6,7 @@
 -->
 
 <template>
-    <Card class="edit-user-container">
+    <Card class="edit-user-container" @keydown.tab="focusTrap($event)">
         <div class="edit-user-title">{{ $t('account.editUserPermissions') }}</div>
         <form @submit.prevent="handleSubmit">
             <div class="edit-user-name">
@@ -29,7 +29,7 @@
                     <InputSelect :formInput="formInput" class="permission-select" />
                 </div>
             </TransitionGroup>
-            <div v-if="isCurrentUserCompactAdmin" class="edit-user-form-row">
+            <div v-if="shouldShowAddStateButton" class="edit-user-form-row">
                 <button
                     class="add-state text-like"
                     @click.prevent="createNewStatePermission"
@@ -38,6 +38,7 @@
             </div>
             <div class="edit-user-form-row">
                 <InputButton
+                    id="cancel-edit-user"
                     class="edit-user-button"
                     :label="$t('common.cancel')"
                     :shouldHideMargin="true"
@@ -48,7 +49,7 @@
                     class="edit-user-button"
                     :formInput="formData.submit"
                     :label="$t('common.saveChanges')"
-                    :isEnabled="!isFormLoading && rowUserCompactPermission"
+                    :isEnabled="!isFormLoading && isAnyTypeOfAdmin"
                 />
             </div>
         </form>

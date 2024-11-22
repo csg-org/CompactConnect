@@ -353,6 +353,20 @@ export class StaffUserSerializer {
             });
         }
 
+        if (data?.attributes) {
+            serverData.attributes = {};
+
+            if (data.attributes.email) {
+                serverData.attributes.email = data.attributes.email;
+            }
+            if (data.attributes.firstName) {
+                serverData.attributes.givenName = data.attributes.firstName;
+            }
+            if (data.attributes.lastName) {
+                serverData.attributes.familyName = data.attributes.lastName;
+            }
+        }
+
         return serverData;
     }
 }
