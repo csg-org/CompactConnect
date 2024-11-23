@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import stacks.persistent_stack as ps
 from aws_cdk import Duration, Stack
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
@@ -28,6 +30,7 @@ class PythonFunction(CdkPythonFunction):
         scope: Construct,
         construct_id: str,
         *,
+        lambda_dir: str,
         log_retention: RetentionDays = RetentionDays.ONE_MONTH,
         alarm_topic: ITopic = None,
         **kwargs,
@@ -40,6 +43,7 @@ class PythonFunction(CdkPythonFunction):
         super().__init__(
             scope,
             construct_id,
+            entry=os.path.join('lambdas', 'python', lambda_dir),
             runtime=Runtime.PYTHON_3_12,
             log_retention=log_retention,
             **defaults,
@@ -60,6 +64,11 @@ class PythonFunction(CdkPythonFunction):
                 {
                     'id': 'HIPAA.Security-LambdaInsideVPC',
                     'reason': 'We may choose to move our lambdas into private VPC subnets in a future enhancement',
+                },
+                {
+                    'id': 'AwsSolutions-L1',
+                    'reason': 'We will assess migrating to the 3.13 runtime '
+                    'after the runtime has had time to stabilize',
                 },
             ],
         )
