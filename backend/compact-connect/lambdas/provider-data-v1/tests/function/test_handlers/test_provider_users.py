@@ -140,3 +140,31 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         resp = provider_user_me_military_affiliation(event, self.mock_context)
 
         self.assertEqual(400, resp['statusCode'])
+
+    def _when_testing_file_names(self, file_names: list[str]):
+        from handlers.provider_users import provider_user_me_military_affiliation
+
+        event = self._when_testing_post_provider_user_military_affiliation_event_with_custom_claims()
+        event['body'] = json.dumps({
+            'fileNames': file_names,
+            'affiliationType': 'militaryMember',
+        })
+
+        return provider_user_me_military_affiliation(event, self.mock_context)
+
+
+    def test_post_provider_returns_400_if_file_name_using_unsupported_file_extension(self):
+
+        resp = self._when_testing_file_names(['military_affiliation.guff'])
+
+        self.assertEqual(400, resp['statusCode'])
+        message = json.loads(resp['body'])['message']
+
+        self.assertEqual("""Invalid file type "guff" The following file types are supported: ('pdf', 'jpg', 'jpeg', 'png', 'docx')""", message)
+
+
+    def test_post_provider_returns_200_if_file_extensions_valid(self):
+        resp = self._when_testing_file_names(['file.pdf', 'file.jpg', 'file.jpeg', 'file.png', 'file.docx'])
+
+        self.assertEqual(200, resp['statusCode'])
+
