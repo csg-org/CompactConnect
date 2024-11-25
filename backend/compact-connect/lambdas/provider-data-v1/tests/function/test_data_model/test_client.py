@@ -2,6 +2,7 @@ import json
 from urllib.parse import quote
 
 from moto import mock_aws
+from boto3.dynamodb.conditions import Key
 
 from .. import TstFunction
 
@@ -262,3 +263,51 @@ class TestClient(TstFunction):
         self._provider_table.put_item(Item=license_record)
 
         return provider_id
+
+    def _get_military_affiliation_records(self, provider_id: str) -> list[dict]:
+        return self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}') & Key('sk').begins_with(
+                f'aslp#PROVIDER#military-affiliation#',
+            )
+        )['Items']
+
+    def test_complete_military_affiliation_initialization_sets_expected_status(self):
+        from cc_common.data_model.client import DataClient
+
+        # Here we are testing an edge case where there are two military affiliation records
+        # both in an initializing state. This could happen in the event of a failed file upload.
+        # We want to ensure that the most recent record is set to active and the older record is
+        # set to inactive.
+        with open('../common-python/tests/resources/dynamo/military-affiliation.json') as f:
+            military_affiliation_record = json.load(f)
+            military_affiliation_record['status'] = 'initializing'
+
+        military_affiliation_record['sk'] = 'aslp#PROVIDER#military-affiliation#2024-07-08'
+        military_affiliation_record['dateOfUpload'] = '2024-07-08T13:34:59+00:00'
+        self._provider_table.put_item(Item=military_affiliation_record)
+
+        # now add record on following day
+        military_affiliation_record['sk'] = 'aslp#PROVIDER#military-affiliation#2024-07-09'
+        military_affiliation_record['dateOfUpload'] = '2024-07-09T10:34:59+00:00'
+        self._provider_table.put_item(Item=military_affiliation_record)
+
+        provider_id = military_affiliation_record['providerId']
+
+        # assert that two records exist, both in an inactive state
+        military_affiliation_record = self._get_military_affiliation_records(provider_id)
+        self.assertEqual(2, len(military_affiliation_record))
+        self.assertEqual('initializing', military_affiliation_record[0]['status'])
+        self.assertEqual('initializing', military_affiliation_record[1]['status'])
+
+
+        # now complete the initialization to set the most recent record to active
+        # and the older record to inactive
+        client = DataClient(self.config)
+        client.complete_military_affiliation_initialization(compact='aslp',
+                                                            provider_id=provider_id)
+
+        military_affiliation_record = self._get_military_affiliation_records(provider_id)
+        self.assertEqual(2, len(military_affiliation_record))
+        # the records will be sorted by dateOfUpload, from oldest to newest
+        self.assertEqual('inactive', military_affiliation_record[0]['status'])
+        self.assertEqual('active', military_affiliation_record[1]['status'])

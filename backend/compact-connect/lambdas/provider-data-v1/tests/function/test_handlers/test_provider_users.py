@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from unittest.mock import patch
-from boto3.dynamodb.conditions import Attr, Key
+from boto3.dynamodb.conditions import Key
 
 from moto import mock_aws
 
@@ -128,7 +128,7 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
                  'documentUploadFields': [
                      {
                          'fields': {
-                            'key': f'/provider/{provider_id}/document-type/military-affiliations'
+                            'key': f'compact/{TEST_COMPACT}/provider/{provider_id}/document-type/military-affiliations'
                                    f'/{today}/military_affiliation#1234.pdf',
                             'x-amz-algorithm': 'AWS4-HMAC-SHA256'
                      },
