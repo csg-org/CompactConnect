@@ -8,6 +8,7 @@ from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
+
 from stacks import persistent_stack as ps
 
 # Importing module level to allow lazy loading for typing
@@ -49,8 +50,9 @@ class ProviderUsers:
         )
 
         # /v1/provider-users/me/military-affiliation
-        self.provider_users_me_military_affiliation_resource = (self.provider_users_me_resource
-                                                                .add_resource('military-affiliation'))
+        self.provider_users_me_military_affiliation_resource = self.provider_users_me_resource.add_resource(
+            'military-affiliation'
+        )
 
         self.provider_users_me_military_affiliation_handler = PythonFunction(
             self.provider_users_resource,
@@ -73,7 +75,7 @@ class ProviderUsers:
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs '
-                              'and is scoped to one table, bucket, and encryption key.',
+                    'and is scoped to one table, bucket, and encryption key.',
                 },
             ],
         )
@@ -85,12 +87,14 @@ class ProviderUsers:
             method_responses=[
                 MethodResponse(
                     status_code='200',
-                    response_models={'application/json':
-                                         self.api_model.post_provider_military_affiliation_response_model},
+                    response_models={
+                        'application/json': self.api_model.post_provider_military_affiliation_response_model
+                    },
                 ),
             ],
-            integration=LambdaIntegration(self.provider_users_me_military_affiliation_handler,
-                                          timeout=Duration.seconds(29)),
+            integration=LambdaIntegration(
+                self.provider_users_me_military_affiliation_handler, timeout=Duration.seconds(29)
+            ),
             request_parameters={'method.request.header.Authorization': True},
             authorizer=self.api.provider_users_authorizer,
         )
@@ -105,12 +109,12 @@ class ProviderUsers:
                     response_models={'application/json': self.api_model.message_response_model},
                 ),
             ],
-            integration=LambdaIntegration(self.provider_users_me_military_affiliation_handler,
-                                          timeout=Duration.seconds(29)),
+            integration=LambdaIntegration(
+                self.provider_users_me_military_affiliation_handler, timeout=Duration.seconds(29)
+            ),
             request_parameters={'method.request.header.Authorization': True},
             authorizer=self.api.provider_users_authorizer,
         )
-
 
     def _add_get_provider_user_me(
         self,

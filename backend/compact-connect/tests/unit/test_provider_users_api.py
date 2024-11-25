@@ -133,8 +133,7 @@ class TestProviderUsersApi(TestApi):
                 # ensure the lambda integration is configured with the expected handler
                 'Integration': TestApi.generate_expected_integration_object(
                     api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_users.provider_users_me_military_affiliation_handler
-                        .node.default_child,
+                        api_stack.api.v1_api.provider_users.provider_users_me_military_affiliation_handler.node.default_child,
                     ),
                 ),
                 'RequestModels': {
@@ -161,7 +160,6 @@ class TestProviderUsersApi(TestApi):
             overwrite_snapshot=False,
         )
 
-
         post_response_model = TestApi.get_resource_properties_by_logical_id(
             post_method_response_model_logical_id_capture.as_string(),
             api_stack_template.find_resources(CfnModel.CFN_RESOURCE_TYPE_NAME),
@@ -187,8 +185,7 @@ class TestProviderUsersApi(TestApi):
                 # ensure the lambda integration is configured with the expected handler
                 'Integration': TestApi.generate_expected_integration_object(
                     api_stack.get_logical_id(
-                        api_stack.api.v1_api.provider_users.provider_users_me_military_affiliation_handler
-                        .node.default_child,
+                        api_stack.api.v1_api.provider_users.provider_users_me_military_affiliation_handler.node.default_child,
                     ),
                 ),
                 'RequestModels': {
