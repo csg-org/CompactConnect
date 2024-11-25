@@ -2,11 +2,11 @@
 # We diverge from PEP8 variable naming in schema because they map to our API JSON Schema in which,
 # by convention, we use camelCase.
 from abc import ABC
-from datetime import datetime
+from datetime import date, datetime
 
-from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump
+from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump, pre_load
 from marshmallow.fields import UUID, Date, List, String
-from marshmallow.validate import Regexp
+from marshmallow.validate import OneOf, Regexp
 
 from cc_common.config import config
 from cc_common.exceptions import CCInternalException
@@ -91,6 +91,39 @@ class BaseRecordSchema(StrictSchema, ABC):
             return cls._registered_schema[record_type]
         except KeyError as e:
             raise CCInternalException(f'Unsupported record type, "{record_type}"') from e
+
+
+class CalculatedStatusRecordSchema(BaseRecordSchema):
+    """Schema for records whose active/inactive status is determined at load time. This
+    includes licenses, privileges and provider records."""
+
+    # This field is the actual status referenced by the system, which is determined by the expiration date
+    # in addition to the jurisdictionStatus. This should never be written to the DB. It is calculated
+    # whenever the record is loaded.
+    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+
+    @pre_dump
+    def remove_status_field_if_present(self, in_data, **kwargs):
+        """Remove the status field before dumping to the database"""
+        in_data.pop('status', None)
+        return in_data
+
+    @pre_load
+    def _calculate_status(self, in_data, **kwargs):
+        """Determine the status of the record based on the expiration date"""
+        in_data['status'] = (
+            'active'
+            # licenses have a jurisdictionStatus field, but privileges do not
+            # so we need to check for the existence of the field before using it
+            if (
+                in_data.get('jurisdictionStatus', 'active') == 'active'
+                and date.fromisoformat(in_data['dateOfExpiration'])
+                > datetime.now(tz=config.expiration_date_resolution_timezone).date()
+            )
+            else 'inactive'
+        )
+
+        return in_data
 
 
 class ITUTE164PhoneNumber(String):

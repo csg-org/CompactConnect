@@ -1,5 +1,4 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from datetime import date, datetime
 
 from marshmallow import ValidationError, pre_dump, pre_load, validates_schema
 from marshmallow.fields import UUID, Boolean, Date, Email, String
@@ -8,6 +7,7 @@ from marshmallow.validate import Length, OneOf, Regexp
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import (
     BaseRecordSchema,
+    CalculatedStatusRecordSchema,
     ForgivingSchema,
     ITUTE164PhoneNumber,
     SocialSecurityNumber,
@@ -82,50 +82,17 @@ class LicenseIngestSchema(LicenseCommonSchema):
 
 
 @BaseRecordSchema.register_schema('license')
-class LicenseRecordSchema(BaseRecordSchema, LicenseIngestSchema):
+class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
     """Schema for license records in the license data table"""
 
     _record_type = 'license'
 
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
-    # This field is the actual status referenced by the system, which is determined by the expiration date
-    # in addition to the jurisdictionStatus. This should never be written to the DB. It is calculated
-    # whenever the record is loaded.
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
 
     @pre_dump
-    def pre_dump_initialization(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        in_data = self.generate_pk_sk(in_data)
-        return self.remove_status(in_data)
-
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
         in_data['sk'] = f'{in_data['compact']}#PROVIDER#license/{in_data['jurisdiction']}#{in_data['dateOfRenewal']}'
-        return in_data
-
-    def remove_status(self, in_data):
-        """
-        This should never be stored in the database, so we remove it before returning the data.
-        """
-        in_data.pop('status', None)
-        return in_data
-
-    @pre_load
-    def pre_load_initialization(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        return self._calculate_status(in_data)
-
-    def _calculate_status(self, in_data, **kwargs):
-        # determine if the status is active or inactive by checking the jurisdictionStatus
-        # along with the expiration date of the license
-        in_data['status'] = (
-            'active'
-            if (
-                in_data['jurisdictionStatus'] == 'active'
-                and date.fromisoformat(in_data['dateOfExpiration'])
-                > datetime.now(tz=config.expiration_date_resolution_timezone).date()
-            )
-            else 'inactive'
-        )
-
         return in_data

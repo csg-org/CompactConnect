@@ -1,5 +1,4 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from datetime import date, datetime
 from urllib.parse import quote
 
 from marshmallow import ValidationError, post_load, pre_dump, pre_load, validates_schema
@@ -9,6 +8,7 @@ from marshmallow.validate import Length, OneOf, Regexp
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import (
     BaseRecordSchema,
+    CalculatedStatusRecordSchema,
     ForgivingSchema,
     ITUTE164PhoneNumber,
     Set,
@@ -54,7 +54,7 @@ class ProviderPublicSchema(ForgivingSchema):
 
 
 @BaseRecordSchema.register_schema('provider')
-class ProviderRecordSchema(BaseRecordSchema, ProviderPublicSchema):
+class ProviderRecordSchema(CalculatedStatusRecordSchema, ProviderPublicSchema):
     """Schema for license records in the license data table"""
 
     _record_type = 'provider'
@@ -63,10 +63,6 @@ class ProviderRecordSchema(BaseRecordSchema, ProviderPublicSchema):
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = Date(required=True, allow_none=False)
-    # This field is the actual status referenced by the system, which is determined by the expiration date
-    # in addition to the jurisdictionStatus. This should never be written to the DB. It is calculated
-    # whenever the record is loaded.
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
@@ -84,11 +80,6 @@ class ProviderRecordSchema(BaseRecordSchema, ProviderPublicSchema):
         in_data['providerDateOfUpdate'] = in_data['dateOfUpdate']
         return in_data
 
-    @pre_dump
-    def remove_status_field_if_present(self, in_data, **kwargs):
-        in_data.pop('status', None)
-        return in_data
-
     @post_load
     def drop_prov_date_of_update(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         del in_data['providerDateOfUpdate']
@@ -104,23 +95,4 @@ class ProviderRecordSchema(BaseRecordSchema, ProviderPublicSchema):
     @post_load
     def drop_fam_giv_mid(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         del in_data['providerFamGivMid']
-        return in_data
-
-    @pre_load
-    def pre_load_initialization(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        return self._calculate_status(in_data)
-
-    def _calculate_status(self, in_data, **kwargs):
-        # determine if the status is active or inactive by checking the jurisdictionStatus
-        # along with the expiration date of the license
-        in_data['status'] = (
-            'active'
-            if (
-                in_data['jurisdictionStatus'] == 'active'
-                and date.fromisoformat(in_data['dateOfExpiration'])
-                > datetime.now(tz=config.expiration_date_resolution_timezone).date()
-            )
-            else 'inactive'
-        )
-
         return in_data
