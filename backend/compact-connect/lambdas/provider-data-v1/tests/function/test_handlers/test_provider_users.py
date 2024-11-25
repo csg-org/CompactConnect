@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 from unittest.mock import patch
+from boto3.dynamodb.conditions import Attr, Key
 
 from moto import mock_aws
 
@@ -73,6 +74,14 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
 
         return config.data_client.get_or_create_provider_id(compact=TEST_COMPACT, ssn=MOCK_SSN)
 
+    def _get_military_affiliation_records(self, event):
+        provider_id = event['requestContext']['authorizer']['claims']['custom:providerId']
+        return self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'{TEST_COMPACT}#PROVIDER#{provider_id}') & Key('sk').begins_with(
+                f'{TEST_COMPACT}#PROVIDER#military-affiliation#',
+            )
+        )['Items']
+
     def _when_testing_post_provider_user_military_affiliation_event_with_custom_claims(self):
         self._load_provider_data()
         provider_id = self._create_test_provider()
@@ -130,6 +139,26 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
                  'status': 'initializing'
             }, military_affiliation_data)
 
+    def test_post_provider_military_affiliation_sets_previous_record_status_to_inactive(self):
+        from handlers.provider_users import provider_user_me_military_affiliation
+
+        event = self._when_testing_post_provider_user_military_affiliation_event_with_custom_claims()
+
+        resp = provider_user_me_military_affiliation(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        # get the military affiliation record
+        military_affiliation_records = self._get_military_affiliation_records(event)
+        # There should have been another record loaded previously with an 'active' status by the
+        # test setup, so now we check to see if it has been set to 'inactive'
+        self.assertEqual(2, len(military_affiliation_records))
+        # record with the oldest upload date should be inactive, the other should be initializing
+        affiliations_sorted_by_date = sorted(military_affiliation_records, key=lambda x: x['dateOfUpload'])
+        self.assertEqual('inactive', affiliations_sorted_by_date[0]['status'])
+        self.assertEqual('initializing', affiliations_sorted_by_date[1]['status'])
+
+
     def test_post_provider_returns_400_if_api_call_made_without_proper_claims(self):
         from handlers.provider_users import provider_user_me_military_affiliation
 
@@ -170,3 +199,81 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
 
+
+@mock_aws
+class TestPatchProviderMilitaryAffiliation(TstFunction):
+    def _create_test_provider(self):
+        from cc_common.config import config
+
+        return config.data_client.get_or_create_provider_id(compact=TEST_COMPACT, ssn=MOCK_SSN)
+
+    def _when_testing_patch_provider_user_military_affiliation_event_with_custom_claims(self):
+        self._load_provider_data()
+        provider_id = self._create_test_provider()
+        with open('../common-python/tests/resources/api-event.json') as f:
+            event = json.load(f)
+            event['httpMethod'] = 'PATCH'
+            event['requestContext']['authorizer']['claims']['custom:providerId'] = provider_id
+            event['requestContext']['authorizer']['claims']['custom:compact'] = TEST_COMPACT
+            event['body'] = json.dumps({
+                'status': 'inactive'
+            })
+
+        return event
+
+    def _get_military_affiliation_records(self, event):
+        provider_id = event['requestContext']['authorizer']['claims']['custom:providerId']
+        return self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'{TEST_COMPACT}#PROVIDER#{provider_id}') & Key('sk').begins_with(
+                f'{TEST_COMPACT}#PROVIDER#military-affiliation#',
+            )
+        )['Items']
+
+    def test_patch_provider_military_affiliation_returns_message(self):
+        from handlers.provider_users import provider_user_me_military_affiliation
+
+        event = self._when_testing_patch_provider_user_military_affiliation_event_with_custom_claims()
+
+        resp = provider_user_me_military_affiliation(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        resp_body = json.loads(resp['body'])
+
+        self.assertEqual({'message': 'Military affiliation updated successfully'}, resp_body)
+
+    def test_patch_provider_military_affiliation_returs_400_if_invalid_body(self):
+        from handlers.provider_users import provider_user_me_military_affiliation
+
+        event = self._when_testing_patch_provider_user_military_affiliation_event_with_custom_claims()
+
+        event['body'] = json.dumps({
+            'status': 'active'
+        })
+
+        resp = provider_user_me_military_affiliation(event, self.mock_context)
+
+        self.assertEqual(400, resp['statusCode'])
+        message = json.loads(resp['body'])['message']
+
+        self.assertEqual('Invalid status value. Only "inactive" is allowed.', message)
+
+
+    def test_patch_provider_military_affiliation_updates_status(self):
+        from handlers.provider_users import provider_user_me_military_affiliation
+
+        event = self._when_testing_patch_provider_user_military_affiliation_event_with_custom_claims()
+
+        # get the military affiliation record loaded in the test setup and confirm it is active
+        affiliation_record = self._get_military_affiliation_records(event)
+        self.assertEqual(1, len(affiliation_record))
+        self.assertEqual('active', affiliation_record[0]['status'])
+
+        resp = provider_user_me_military_affiliation(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        # now confirm the status has been updated to inactive
+        affiliation_record = self._get_military_affiliation_records(event)
+
+        self.assertEqual(1, len(affiliation_record))
+        self.assertEqual('inactive', affiliation_record[0]['status'])

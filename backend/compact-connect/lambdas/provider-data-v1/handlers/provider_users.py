@@ -113,6 +113,12 @@ def _post_provider_military_affiliation(event, context):
 def _patch_provider_military_affiliation(event, context):
     compact, provider_id = _check_provider_user_attributes(event)
 
+    event_body = json.loads(event['body'])
+    # we only accept the status field with the value of 'inactive'
+    if event_body.get('status') != 'inactive':
+        raise CCInvalidRequestException('Invalid status value. Only "inactive" is allowed.')
+
+    config.data_client.inactivate_military_affiliation_status(compact=compact, provider_id=provider_id)
 
     return {
         "message": "Military affiliation updated successfully"

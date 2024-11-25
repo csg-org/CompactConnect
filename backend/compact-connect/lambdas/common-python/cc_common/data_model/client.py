@@ -266,11 +266,34 @@ class DataClient:
                     delete_batch.delete_item(Key={'pk': privilege_record['pk'], 'sk': privilege_record['sk']})
             raise CCAwsServiceException(message) from e
 
+    def _get_active_military_affiliation_records(self, compact: str, provider_id: str):
+        active_military_affiliation_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}') & Key('sk').begins_with(
+                f'{compact}#PROVIDER#military-affiliation#',
+            ),
+            FilterExpression=Attr('status').eq(MilitaryAffiliationStatus.ACTIVE.value),
+        ).get('Items', [])
+
+        schema = MilitaryAffiliationRecordSchema()
+        return [schema.load(record) for record in active_military_affiliation_records]
+
     def create_military_affiliation(self, compact: str, provider_id: str, affiliation_type: MilitaryAffiliationType,
                                     file_names: list[str],
                                     document_keys: list[str]):
+        """
+        Create a new military affiliation record for a provider in the database.
 
-        military_affiliation_record = {
+        If there are any previous active military affiliations for this provider, they will be set to inactive.
+
+        :param compact: The compact name
+        :param provider_id: The provider id
+        :param affiliation_type: The type of military affiliation
+        :param file_names: The list of file names for the documents
+        :param document_keys: The list of s3 document keys for the documents
+        :return: The created military affiliation record
+        """
+
+        latest_military_affiliation_record = {
             'type': 'militaryAffiliation',
             'affiliationType': affiliation_type.value,
             'fileNames': file_names,
@@ -284,9 +307,36 @@ class DataClient:
         }
 
         schema = MilitaryAffiliationRecordSchema()
-        military_affiliation_serialized_record = schema.dump(military_affiliation_record)
-        self.config.provider_table.put_item(Item=military_affiliation_serialized_record)
+        latest_military_affiliation_record_serialized = schema.dump(latest_military_affiliation_record)
 
-        return military_affiliation_record
+        # we need to check if any other active military affiliations exist for this provider
+        # if they do, we need to set them to inactive
+        active_military_affiliation_records = self._get_active_military_affiliation_records(compact, provider_id)
+
+        with self.config.provider_table.batch_writer() as batch:
+            batch.put_item(Item=latest_military_affiliation_record_serialized)
+
+            for record in active_military_affiliation_records:
+                record['status'] = MilitaryAffiliationStatus.INACTIVE.value
+                serialized_record = schema.dump(record)
+                batch.put_item(Item=serialized_record)
 
 
+        return latest_military_affiliation_record
+
+
+    def inactivate_military_affiliation_status(self, compact: str, provider_id: str):
+        """
+        Sets all active military affiliation records to an inactive status for a provider in the database.
+
+        :param compact: The compact name
+        :param provider_id: The provider id
+        :return: None
+        """
+        active_military_affiliation_records = self._get_active_military_affiliation_records(compact, provider_id)
+        schema = MilitaryAffiliationRecordSchema()
+        with self.config.provider_table.batch_writer() as batch:
+            for record in active_military_affiliation_records:
+                record['status'] = MilitaryAffiliationStatus.INACTIVE.value
+                serialized_record = schema.dump(record)
+                batch.put_item(Item=serialized_record)
