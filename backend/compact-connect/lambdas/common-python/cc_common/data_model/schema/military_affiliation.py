@@ -1,9 +1,10 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
+from datetime import date
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 from cc_common.data_model.schema.common import CCEnum, S3PresignedPostSchema
 from marshmallow import pre_dump
-from marshmallow.fields import UUID, Date, List, Nested, String
+from marshmallow.fields import UUID, Date, List, Nested, String, DateTime
 from marshmallow.validate import Length, OneOf
 
 
@@ -33,7 +34,7 @@ class MilitaryAffiliationRecordSchema(BaseRecordSchema):
     fileNames = List(String(required=True, allow_none=False), required=True, allow_none=False)
     affiliationType = String(required=True, allow_none=False,
                              validate=OneOf([e.value for e in MilitaryAffiliationType]))
-    dateOfUpload = Date(required=True, allow_none=False)
+    dateOfUpload = DateTime(required=True, allow_none=False)
     status = String(required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationStatus]))
 
     # Generated fields
@@ -43,7 +44,8 @@ class MilitaryAffiliationRecordSchema(BaseRecordSchema):
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
-        in_data['sk'] = f'{in_data['compact']}#PROVIDER#military-affiliation#{in_data['dateOfUpload']}'
+        upload_date = in_data['dateOfUpload'].date().isoformat()
+        in_data['sk'] = f'{in_data['compact']}#PROVIDER#military-affiliation#{upload_date}'
         return in_data
 
 
@@ -52,7 +54,7 @@ class PostMilitaryAffiliationResponseSchema(ForgivingSchema):
     """Schema for POST requests to create a new military affiliation record"""
 
     fileNames = List(String(required=True, allow_none=False), required=True, allow_none=False)
-    dateOfUpload = Date(required=True, allow_none=False)
+    dateOfUpload = DateTime(required=True, allow_none=False)
     dateOfUpdate = Date(required=True, allow_none=False)
     status = String(required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationStatus]))
     affiliationType = String(required=True, allow_none=False,

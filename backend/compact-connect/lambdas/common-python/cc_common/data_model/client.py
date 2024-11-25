@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -280,7 +280,7 @@ class DataClient:
             # will trigger another lambda to update the status to active
             'status': MilitaryAffiliationStatus.INITIALIZING.value,
             'documentKeys': document_keys,
-            'dateOfUpload': datetime.now(tz=self.config.expiration_date_resolution_timezone).date(),
+            'dateOfUpload': datetime.now(tz=UTC),
         }
 
         schema = MilitaryAffiliationRecordSchema()

@@ -109,11 +109,13 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         today = datetime.now(self.config.expiration_date_resolution_timezone).date().isoformat()
         provider_id = event['requestContext']['authorizer']['claims']['custom:providerId']
 
+        # remove the dynamic dateOfUpload field
+        military_affiliation_data.pop('dateOfUpload')
+
         self.assertEqual(
             {
                  'affiliationType': 'militaryMember',
                  'dateOfUpdate': today,
-                 'dateOfUpload': today,
                  'documentUploadFields': [
                      {
                          'fields': {
