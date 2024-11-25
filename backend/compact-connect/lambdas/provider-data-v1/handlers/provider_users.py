@@ -1,11 +1,12 @@
-from datetime import datetime
+from datetime import UTC, datetime
 import json
 import uuid
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import logger, config
 from cc_common.data_model.schema.military_affiliation import PostMilitaryAffiliationResponseSchema, \
-    MilitaryAffiliationRecordSchema, SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS, MilitaryAffiliationType
+    MilitaryAffiliationRecordSchema, SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS, MilitaryAffiliationType, \
+    MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException, CCNotFoundException
 from cc_common.utils import api_handler
 
@@ -65,8 +66,8 @@ def _post_provider_military_affiliation(event, context):
     """
     compact, provider_id = _check_provider_user_attributes(event)
 
-    s3_document_prefix = (f'/provider/{provider_id}/document-type/military-affiliations/'
-                          f'{datetime.now(config.expiration_date_resolution_timezone).date().isoformat()}/')
+    s3_document_prefix = (f'compact/{compact}/provider/{provider_id}/document-type/'
+                          f'{MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME}/{datetime.now(tz=UTC).date().isoformat()}/')
 
     event_body = json.loads(event['body'])
     file_names: list[str] = event_body['fileNames']

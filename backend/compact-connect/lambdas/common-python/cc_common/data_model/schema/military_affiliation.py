@@ -19,6 +19,7 @@ class MilitaryAffiliationType(CCEnum):
 
 
 SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS = ('pdf', 'jpg', 'jpeg', 'png', 'docx')
+MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME = 'military-affiliations'
 
 
 @BaseRecordSchema.register_schema('militaryAffiliation')

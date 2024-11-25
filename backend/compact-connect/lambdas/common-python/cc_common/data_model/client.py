@@ -266,16 +266,51 @@ class DataClient:
                     delete_batch.delete_item(Key={'pk': privilege_record['pk'], 'sk': privilege_record['sk']})
             raise CCAwsServiceException(message) from e
 
-    def _get_active_military_affiliation_records(self, compact: str, provider_id: str):
-        active_military_affiliation_records = self.config.provider_table.query(
+    def _get_military_affiliation_records_by_status(self, compact: str, provider_id: str,
+                                                    status: MilitaryAffiliationStatus):
+        military_affiliation_records = self.config.provider_table.query(
             KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}') & Key('sk').begins_with(
                 f'{compact}#PROVIDER#military-affiliation#',
             ),
-            FilterExpression=Attr('status').eq(MilitaryAffiliationStatus.ACTIVE.value),
+            FilterExpression=Attr('status').eq(status.value),
         ).get('Items', [])
 
         schema = MilitaryAffiliationRecordSchema()
-        return [schema.load(record) for record in active_military_affiliation_records]
+        return [schema.load(record) for record in military_affiliation_records]
+
+    def _get_active_military_affiliation_records(self, compact: str, provider_id: str):
+        return self._get_military_affiliation_records_by_status(compact, provider_id, MilitaryAffiliationStatus.ACTIVE)
+
+    def _get_initializing_military_affiliation_records(self, compact: str, provider_id: str):
+        return self._get_military_affiliation_records_by_status(compact, provider_id,
+                                                                MilitaryAffiliationStatus.INITIALIZING)
+
+    def complete_military_affiliation_initialization(self, compact: str, provider_id: str):
+        """
+        This method is called when the client has uploaded the document for a military affiliation record.
+
+        It gets all records in an initializing state, sets the latest to active, and the rest to inactive for a
+        self-healing process.
+        """
+        initializing_military_affiliation_records = self._get_initializing_military_affiliation_records(compact,
+                                                                                                        provider_id)
+
+        if not initializing_military_affiliation_records:
+            return
+
+        latest_military_affiliation_record = max(initializing_military_affiliation_records,
+                                                 key=lambda record: record['dateOfUpload'])
+
+        schema = MilitaryAffiliationRecordSchema()
+        with self.config.provider_table.batch_writer() as batch:
+            for record in initializing_military_affiliation_records:
+                if record['dateOfUpload'] == latest_military_affiliation_record['dateOfUpload']:
+                    record['status'] = MilitaryAffiliationStatus.ACTIVE.value
+                else:
+                    record['status'] = MilitaryAffiliationStatus.INACTIVE.value
+
+                serialized_record = schema.dump(record)
+                batch.put_item(Item=serialized_record)
 
     def create_military_affiliation(self, compact: str, provider_id: str, affiliation_type: MilitaryAffiliationType,
                                     file_names: list[str],
