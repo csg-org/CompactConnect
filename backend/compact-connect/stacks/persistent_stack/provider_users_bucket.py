@@ -23,6 +23,7 @@ class ProviderUsersBucket(Bucket):
     """
     S3 bucket to house provider documents such as military affiliation records.
     """
+
     def __init__(
         self,
         scope: Construct,

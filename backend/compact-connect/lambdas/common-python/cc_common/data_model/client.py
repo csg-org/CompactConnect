@@ -10,9 +10,12 @@ from cc_common.config import _Config, config, logger
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
+from cc_common.data_model.schema.military_affiliation import (
+    MilitaryAffiliationRecordSchema,
+    MilitaryAffiliationStatus,
+    MilitaryAffiliationType,
+)
 from cc_common.exceptions import CCAwsServiceException, CCNotFoundException
-from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationRecordSchema, MilitaryAffiliationStatus, \
-    MilitaryAffiliationType
 
 
 class DataClient:
@@ -266,10 +269,12 @@ class DataClient:
                     delete_batch.delete_item(Key={'pk': privilege_record['pk'], 'sk': privilege_record['sk']})
             raise CCAwsServiceException(message) from e
 
-    def _get_military_affiliation_records_by_status(self, compact: str, provider_id: str,
-                                                    status: MilitaryAffiliationStatus):
+    def _get_military_affiliation_records_by_status(
+        self, compact: str, provider_id: str, status: MilitaryAffiliationStatus
+    ):
         military_affiliation_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}') & Key('sk').begins_with(
+            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
+            & Key('sk').begins_with(
                 f'{compact}#PROVIDER#military-affiliation#',
             ),
             FilterExpression=Attr('status').eq(status.value),
@@ -282,8 +287,9 @@ class DataClient:
         return self._get_military_affiliation_records_by_status(compact, provider_id, MilitaryAffiliationStatus.ACTIVE)
 
     def _get_initializing_military_affiliation_records(self, compact: str, provider_id: str):
-        return self._get_military_affiliation_records_by_status(compact, provider_id,
-                                                                MilitaryAffiliationStatus.INITIALIZING)
+        return self._get_military_affiliation_records_by_status(
+            compact, provider_id, MilitaryAffiliationStatus.INITIALIZING
+        )
 
     def complete_military_affiliation_initialization(self, compact: str, provider_id: str):
         """
@@ -292,14 +298,16 @@ class DataClient:
         It gets all records in an initializing state, sets the latest to active, and the rest to inactive for a
         self-healing process.
         """
-        initializing_military_affiliation_records = self._get_initializing_military_affiliation_records(compact,
-                                                                                                        provider_id)
+        initializing_military_affiliation_records = self._get_initializing_military_affiliation_records(
+            compact, provider_id
+        )
 
         if not initializing_military_affiliation_records:
             return
 
-        latest_military_affiliation_record = max(initializing_military_affiliation_records,
-                                                 key=lambda record: record['dateOfUpload'])
+        latest_military_affiliation_record = max(
+            initializing_military_affiliation_records, key=lambda record: record['dateOfUpload']
+        )
 
         schema = MilitaryAffiliationRecordSchema()
         with self.config.provider_table.batch_writer() as batch:
@@ -312,9 +320,14 @@ class DataClient:
                 serialized_record = schema.dump(record)
                 batch.put_item(Item=serialized_record)
 
-    def create_military_affiliation(self, compact: str, provider_id: str, affiliation_type: MilitaryAffiliationType,
-                                    file_names: list[str],
-                                    document_keys: list[str]):
+    def create_military_affiliation(
+        self,
+        compact: str,
+        provider_id: str,
+        affiliation_type: MilitaryAffiliationType,
+        file_names: list[str],
+        document_keys: list[str],
+    ):
         """
         Create a new military affiliation record for a provider in the database.
 
@@ -356,9 +369,7 @@ class DataClient:
                 serialized_record = schema.dump(record)
                 batch.put_item(Item=serialized_record)
 
-
         return latest_military_affiliation_record
-
 
     def inactivate_military_affiliation_status(self, compact: str, provider_id: str):
         """

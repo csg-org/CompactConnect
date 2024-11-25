@@ -186,8 +186,7 @@ class PersistentStack(AppStack):
         self.export_value(self.mock_bulk_uploads_bucket.bucket_arn)
 
         self.mock_license_table = LicenseTable(
-            self, 'MockLicenseTable', encryption_key=self.shared_encryption_key,
-            removal_policy=RemovalPolicy.DESTROY
+            self, 'MockLicenseTable', encryption_key=self.shared_encryption_key, removal_policy=RemovalPolicy.DESTROY
         )
 
         # These dummy exports are required until we remove dependencies from the api stack
@@ -197,8 +196,7 @@ class PersistentStack(AppStack):
 
     def _add_deprecated_data_resources(self):
         self.license_table = LicenseTable(
-            self, 'LicenseTable', encryption_key=self.shared_encryption_key,
-            removal_policy=RemovalPolicy.DESTROY
+            self, 'LicenseTable', encryption_key=self.shared_encryption_key, removal_policy=RemovalPolicy.DESTROY
         )
 
         # These dummy exports are required until we remove dependencies from the api stack

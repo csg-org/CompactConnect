@@ -273,7 +273,6 @@ class CCApi(RestApi):
         CfnOutput(self, 'APIBaseUrl', value=api_domain_name)
         CfnOutput(self, 'APIId', value=self.rest_api_id)
 
-
     def get_secrets_manager_compact_payment_processor_arns(self):
         """
         For each supported compact in the system, return the secret arn for the payment processor credentials.

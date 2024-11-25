@@ -197,8 +197,8 @@ class ApiModel:
                     'affiliationType': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='The type of military affiliation',
-                        enum=['militaryMember', 'militaryMemberSpouse']
-                    )
+                        enum=['militaryMember', 'militaryMemberSpouse'],
+                    ),
                 },
             ),
         )
@@ -223,7 +223,14 @@ class ApiModel:
             description='Post provider military affiliation response model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['affiliationType', 'documentUploadFields', 'fileName', 'status', 'dateOfUpload', 'dateOfUpdate'],
+                required=[
+                    'affiliationType',
+                    'documentUploadFields',
+                    'fileName',
+                    'status',
+                    'dateOfUpload',
+                    'dateOfUpdate',
+                ],
                 properties={
                     'affiliationType': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -262,8 +269,7 @@ class ApiModel:
                             description='The fields used to upload a specific document',
                             properties={
                                 'url': JsonSchema(
-                                    type=JsonSchemaType.STRING,
-                                    description='The url to upload the document to'
+                                    type=JsonSchemaType.STRING, description='The url to upload the document to'
                                 ),
                                 'fields': JsonSchema(
                                     type=JsonSchemaType.OBJECT,

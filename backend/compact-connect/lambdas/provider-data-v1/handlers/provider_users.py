@@ -1,12 +1,16 @@
-from datetime import UTC, datetime
 import json
 import uuid
+from datetime import UTC, datetime
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from cc_common.config import logger, config
-from cc_common.data_model.schema.military_affiliation import PostMilitaryAffiliationResponseSchema, \
-    MilitaryAffiliationRecordSchema, SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS, MilitaryAffiliationType, \
-    MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME
+from cc_common.config import config, logger
+from cc_common.data_model.schema.military_affiliation import (
+    MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME,
+    SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS,
+    MilitaryAffiliationRecordSchema,
+    MilitaryAffiliationType,
+    PostMilitaryAffiliationResponseSchema,
+)
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException, CCNotFoundException
 from cc_common.utils import api_handler
 
@@ -45,7 +49,7 @@ def get_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 u
 
 
 @api_handler
-def provider_user_me_military_affiliation(event: dict, context: LambdaContext): # noqa: ARG001 unused-argument
+def provider_user_me_military_affiliation(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
     Endpoint for a provider user to update their military affiliation.
     This handles both the POST and PATCH methods.
@@ -66,8 +70,10 @@ def _post_provider_military_affiliation(event, context):
     """
     compact, provider_id = _check_provider_user_attributes(event)
 
-    s3_document_prefix = (f'compact/{compact}/provider/{provider_id}/document-type/'
-                          f'{MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME}/{datetime.now(tz=UTC).date().isoformat()}/')
+    s3_document_prefix = (
+        f'compact/{compact}/provider/{provider_id}/document-type/'
+        f'{MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME}/{datetime.now(tz=UTC).date().isoformat()}/'
+    )
 
     event_body = json.loads(event['body'])
     file_names: list[str] = event_body['fileNames']
@@ -77,8 +83,10 @@ def _post_provider_military_affiliation(event, context):
     for file_name in file_names:
         file_name_without_extension, file_extension = file_name.rsplit('.', 1)
         if file_extension not in SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS:
-            raise CCInvalidRequestException(f'Invalid file type "{file_extension}" The following file types '
-                                            f'are supported: {SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS}')
+            raise CCInvalidRequestException(
+                f'Invalid file type "{file_extension}" The following file types '
+                f'are supported: {SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS}'
+            )
 
         # generate a UUID for the document key, which includes the filename followed by the UUID and the file extension
         document_uuid = f'{file_name_without_extension}#{uuid.uuid4()}.{file_extension}'
@@ -91,8 +99,8 @@ def _post_provider_military_affiliation(event, context):
             Key=document_key,
             Conditions=[
                 # max file size is 10MB
-                ["content-length-range", 0, 10485760],
-            ]
+                ['content-length-range', 0, 10485760],
+            ],
         )
         document_upload_fields.append(pre_signed_post_response)
 
@@ -102,7 +110,7 @@ def _post_provider_military_affiliation(event, context):
         provider_id=provider_id,
         affiliation_type=MilitaryAffiliationType(event_body['affiliationType']),
         file_names=file_names,
-        document_keys=document_keys
+        document_keys=document_keys,
     )
     # serialize the response
     serialized_record = MilitaryAffiliationRecordSchema().dump(military_affiliation_record)
@@ -110,6 +118,7 @@ def _post_provider_military_affiliation(event, context):
     serialized_record['documentUploadFields'] = document_upload_fields
 
     return PostMilitaryAffiliationResponseSchema().load(serialized_record)
+
 
 def _patch_provider_military_affiliation(event, context):
     compact, provider_id = _check_provider_user_attributes(event)
@@ -121,6 +130,4 @@ def _patch_provider_military_affiliation(event, context):
 
     config.data_client.inactivate_military_affiliation_status(compact=compact, provider_id=provider_id)
 
-    return {
-        "message": "Military affiliation updated successfully"
-    }
+    return {'message': 'Military affiliation updated successfully'}

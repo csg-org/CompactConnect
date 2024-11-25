@@ -1,7 +1,7 @@
 import json
 from datetime import UTC, datetime
-from boto3.dynamodb.conditions import Key
 
+from boto3.dynamodb.conditions import Key
 from moto import mock_aws
 
 from .. import TstFunction
@@ -16,15 +16,18 @@ MOCK_MILITARY_AFFILIATION_FILE_NAME = 'military_affiliation.pdf'
 class TestProviderUserBucketS3Events(TstFunction):
     def _call_post_military_affiliation_endpoint(self):
         from handlers.provider_users import provider_user_me_military_affiliation
+
         with open('../common-python/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'POST'
             event['requestContext']['authorizer']['claims']['custom:providerId'] = TEST_PROVIDER_ID
             event['requestContext']['authorizer']['claims']['custom:compact'] = TEST_COMPACT
-            event['body'] = json.dumps({
-                'fileNames': [MOCK_MILITARY_AFFILIATION_FILE_NAME],
-                'affiliationType': 'militaryMember',
-            })
+            event['body'] = json.dumps(
+                {
+                    'fileNames': [MOCK_MILITARY_AFFILIATION_FILE_NAME],
+                    'affiliationType': 'militaryMember',
+                }
+            )
 
         return provider_user_me_military_affiliation(event, self.mock_context)
 
@@ -37,16 +40,19 @@ class TestProviderUserBucketS3Events(TstFunction):
         # Simulate the s3 bucket event
         with open('../common-python/tests/resources/put-event.json') as f:
             event = json.load(f)
-            event['Records'][0]['s3']['object']['key'] = (f'compact/{TEST_COMPACT}/provider/{TEST_PROVIDER_ID}/'
-                                                          f'document-type/military-affiliations/'
-                                                          f'{datetime.now(tz=UTC).date().isoformat()}/'
-                                                          f'{MOCK_MILITARY_AFFILIATION_FILE_NAME}')
+            event['Records'][0]['s3']['object']['key'] = (
+                f'compact/{TEST_COMPACT}/provider/{TEST_PROVIDER_ID}/'
+                f'document-type/military-affiliations/'
+                f'{datetime.now(tz=UTC).date().isoformat()}/'
+                f'{MOCK_MILITARY_AFFILIATION_FILE_NAME}'
+            )
 
         return event
 
     def _get_military_affiliation_records(self):
         return self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'{TEST_COMPACT}#PROVIDER#{TEST_PROVIDER_ID}') & Key('sk').begins_with(
+            KeyConditionExpression=Key('pk').eq(f'{TEST_COMPACT}#PROVIDER#{TEST_PROVIDER_ID}')
+            & Key('sk').begins_with(
                 f'{TEST_COMPACT}#PROVIDER#military-affiliation#',
             )
         )['Items']

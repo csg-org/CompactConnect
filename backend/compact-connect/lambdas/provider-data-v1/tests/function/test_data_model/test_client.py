@@ -1,8 +1,8 @@
 import json
 from urllib.parse import quote
 
-from moto import mock_aws
 from boto3.dynamodb.conditions import Key
+from moto import mock_aws
 
 from .. import TstFunction
 
@@ -266,7 +266,8 @@ class TestClient(TstFunction):
 
     def _get_military_affiliation_records(self, provider_id: str) -> list[dict]:
         return self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}') & Key('sk').begins_with(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').begins_with(
                 f'aslp#PROVIDER#military-affiliation#',
             )
         )['Items']
@@ -299,12 +300,10 @@ class TestClient(TstFunction):
         self.assertEqual('initializing', military_affiliation_record[0]['status'])
         self.assertEqual('initializing', military_affiliation_record[1]['status'])
 
-
         # now complete the initialization to set the most recent record to active
         # and the older record to inactive
         client = DataClient(self.config)
-        client.complete_military_affiliation_initialization(compact='aslp',
-                                                            provider_id=provider_id)
+        client.complete_military_affiliation_initialization(compact='aslp', provider_id=provider_id)
 
         military_affiliation_record = self._get_military_affiliation_records(provider_id)
         self.assertEqual(2, len(military_affiliation_record))

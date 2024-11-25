@@ -7,7 +7,6 @@ from app import CompactConnectApp
 from aws_cdk.assertions import Capture, Match, Template
 from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolClient, CfnUserPoolRiskConfigurationAttachment
 from aws_cdk.aws_lambda import CfnFunction, CfnLayerVersion
-
 from aws_cdk.aws_s3 import CfnBucket
 from aws_cdk.aws_ssm import CfnParameter
 
@@ -136,48 +135,46 @@ class TestPipeline(TstCompactConnectABC, TestCase):
         # the other properties are dynamic, so here we just check to make sure it exists
         self.assertEqual(['python3.12'], lambda_layer_parameter_properties['CompatibleRuntimes'])
 
-
     def test_synth_generates_provider_users_bucket_with_event_handler(self):
         persistent_stack = self.app.pipeline_stack.test_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
 
-        provider_users_bucket_event_lambda_logical_id = persistent_stack.get_logical_id(persistent_stack
-                                                                                        .provider_users_bucket
-                                                                        .process_events_handler.node.default_child)
+        provider_users_bucket_event_lambda_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.provider_users_bucket.process_events_handler.node.default_child
+        )
 
         persistent_stack_template.has_resource(
-            type="Custom::S3BucketNotifications",
+            type='Custom::S3BucketNotifications',
             props={
-                "Properties": {
-                "BucketName": {
-                    "Ref": persistent_stack.get_logical_id(persistent_stack.provider_users_bucket.node.default_child)
-                },
-                    "NotificationConfiguration": {
-                        "LambdaFunctionConfigurations": [
+                'Properties': {
+                    'BucketName': {
+                        'Ref': persistent_stack.get_logical_id(
+                            persistent_stack.provider_users_bucket.node.default_child
+                        )
+                    },
+                    'NotificationConfiguration': {
+                        'LambdaFunctionConfigurations': [
                             {
-                                "Events": [
-                                    "s3:ObjectCreated:*"
-                                ],
-                                "LambdaFunctionArn": {
-                                    "Fn::GetAtt": [
-                                        provider_users_bucket_event_lambda_logical_id,
-                                        "Arn"
-                                    ]
-                                }
+                                'Events': ['s3:ObjectCreated:*'],
+                                'LambdaFunctionArn': {
+                                    'Fn::GetAtt': [provider_users_bucket_event_lambda_logical_id, 'Arn']
+                                },
                             }
                         ]
-                    }
+                    },
                 }
-            }
+            },
         )
 
         # ensure lambda points to expected handler
         provider_users_bucket_handler = self.get_resource_properties_by_logical_id(
             provider_users_bucket_event_lambda_logical_id,
-            persistent_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME))
+            persistent_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+        )
 
-        self.assertEqual('handlers.provider_s3_events.process_provider_s3_events',
-                         provider_users_bucket_handler['Handler'])
+        self.assertEqual(
+            'handlers.provider_s3_events.process_provider_s3_events', provider_users_bucket_handler['Handler']
+        )
 
     @staticmethod
     def _sort_compact_configuration_input(compact_configuration_input: dict) -> dict:

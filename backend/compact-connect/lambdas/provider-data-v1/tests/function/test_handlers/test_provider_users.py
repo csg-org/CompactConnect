@@ -1,11 +1,11 @@
 import json
 from datetime import datetime
 from unittest.mock import patch
-from boto3.dynamodb.conditions import Key
 
+from boto3.dynamodb.conditions import Key
+from cc_common.exceptions import CCInternalException
 from moto import mock_aws
 
-from cc_common.exceptions import CCInternalException
 from .. import TstFunction
 
 TEST_COMPACT = 'aslp'
@@ -67,6 +67,7 @@ class TestGetProvider(TstFunction):
         with self.assertRaises(CCInternalException):
             get_provider_user_me(event, self.mock_context)
 
+
 @mock_aws
 class TestPostProviderMilitaryAffiliation(TstFunction):
     def _create_test_provider(self):
@@ -77,7 +78,8 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
     def _get_military_affiliation_records(self, event):
         provider_id = event['requestContext']['authorizer']['claims']['custom:providerId']
         return self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'{TEST_COMPACT}#PROVIDER#{provider_id}') & Key('sk').begins_with(
+            KeyConditionExpression=Key('pk').eq(f'{TEST_COMPACT}#PROVIDER#{provider_id}')
+            & Key('sk').begins_with(
                 f'{TEST_COMPACT}#PROVIDER#military-affiliation#',
             )
         )['Items']
@@ -90,16 +92,19 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
             event['httpMethod'] = 'POST'
             event['requestContext']['authorizer']['claims']['custom:providerId'] = provider_id
             event['requestContext']['authorizer']['claims']['custom:compact'] = TEST_COMPACT
-            event['body'] = json.dumps({
-                'fileNames': [MOCK_MILITARY_AFFILIATION_FILE_NAME],
-                'affiliationType': 'militaryMember',
-            })
+            event['body'] = json.dumps(
+                {
+                    'fileNames': [MOCK_MILITARY_AFFILIATION_FILE_NAME],
+                    'affiliationType': 'militaryMember',
+                }
+            )
 
         return event
 
     @patch('handlers.provider_users.uuid')
     def test_post_provider_military_affiliation_returns_affiliation_information(self, mock_uuid):
         from handlers.provider_users import provider_user_me_military_affiliation
+
         mock_uuid.uuid4.return_value = '1234'
 
         event = self._when_testing_post_provider_user_military_affiliation_event_with_custom_claims()
@@ -109,7 +114,7 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         military_affiliation_data = json.loads(resp['body'])
 
-        #remove dynamic fields from s3 response
+        # remove dynamic fields from s3 response
         del military_affiliation_data['documentUploadFields'][0]['fields']['policy']
         del military_affiliation_data['documentUploadFields'][0]['fields']['x-amz-signature']
         del military_affiliation_data['documentUploadFields'][0]['fields']['x-amz-date']
@@ -123,21 +128,23 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
 
         self.assertEqual(
             {
-                 'affiliationType': 'militaryMember',
-                 'dateOfUpdate': today,
-                 'documentUploadFields': [
-                     {
-                         'fields': {
+                'affiliationType': 'militaryMember',
+                'dateOfUpdate': today,
+                'documentUploadFields': [
+                    {
+                        'fields': {
                             'key': f'compact/{TEST_COMPACT}/provider/{provider_id}/document-type/military-affiliations'
-                                   f'/{today}/military_affiliation#1234.pdf',
-                            'x-amz-algorithm': 'AWS4-HMAC-SHA256'
-                     },
-                         'url': 'https://provider-user-bucket.s3.amazonaws.com/'
-                     }
-                 ],
-                 'fileNames': ['military_affiliation.pdf'],
-                 'status': 'initializing'
-            }, military_affiliation_data)
+                            f'/{today}/military_affiliation#1234.pdf',
+                            'x-amz-algorithm': 'AWS4-HMAC-SHA256',
+                        },
+                        'url': 'https://provider-user-bucket.s3.amazonaws.com/',
+                    }
+                ],
+                'fileNames': ['military_affiliation.pdf'],
+                'status': 'initializing',
+            },
+            military_affiliation_data,
+        )
 
     def test_post_provider_military_affiliation_sets_previous_record_status_to_inactive(self):
         from handlers.provider_users import provider_user_me_military_affiliation
@@ -158,7 +165,6 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         self.assertEqual('inactive', affiliations_sorted_by_date[0]['status'])
         self.assertEqual('initializing', affiliations_sorted_by_date[1]['status'])
 
-
     def test_post_provider_returns_400_if_api_call_made_without_proper_claims(self):
         from handlers.provider_users import provider_user_me_military_affiliation
 
@@ -176,23 +182,25 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         from handlers.provider_users import provider_user_me_military_affiliation
 
         event = self._when_testing_post_provider_user_military_affiliation_event_with_custom_claims()
-        event['body'] = json.dumps({
-            'fileNames': file_names,
-            'affiliationType': 'militaryMember',
-        })
+        event['body'] = json.dumps(
+            {
+                'fileNames': file_names,
+                'affiliationType': 'militaryMember',
+            }
+        )
 
         return provider_user_me_military_affiliation(event, self.mock_context)
 
-
     def test_post_provider_returns_400_if_file_name_using_unsupported_file_extension(self):
-
         resp = self._when_testing_file_names(['military_affiliation.guff'])
 
         self.assertEqual(400, resp['statusCode'])
         message = json.loads(resp['body'])['message']
 
-        self.assertEqual("""Invalid file type "guff" The following file types are supported: ('pdf', 'jpg', 'jpeg', 'png', 'docx')""", message)
-
+        self.assertEqual(
+            """Invalid file type "guff" The following file types are supported: ('pdf', 'jpg', 'jpeg', 'png', 'docx')""",
+            message,
+        )
 
     def test_post_provider_returns_200_if_file_extensions_valid(self):
         resp = self._when_testing_file_names(['file.pdf', 'file.jpg', 'file.jpeg', 'file.png', 'file.docx'])
@@ -215,16 +223,15 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
             event['httpMethod'] = 'PATCH'
             event['requestContext']['authorizer']['claims']['custom:providerId'] = provider_id
             event['requestContext']['authorizer']['claims']['custom:compact'] = TEST_COMPACT
-            event['body'] = json.dumps({
-                'status': 'inactive'
-            })
+            event['body'] = json.dumps({'status': 'inactive'})
 
         return event
 
     def _get_military_affiliation_records(self, event):
         provider_id = event['requestContext']['authorizer']['claims']['custom:providerId']
         return self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'{TEST_COMPACT}#PROVIDER#{provider_id}') & Key('sk').begins_with(
+            KeyConditionExpression=Key('pk').eq(f'{TEST_COMPACT}#PROVIDER#{provider_id}')
+            & Key('sk').begins_with(
                 f'{TEST_COMPACT}#PROVIDER#military-affiliation#',
             )
         )['Items']
@@ -246,9 +253,7 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
 
         event = self._when_testing_patch_provider_user_military_affiliation_event_with_custom_claims()
 
-        event['body'] = json.dumps({
-            'status': 'active'
-        })
+        event['body'] = json.dumps({'status': 'active'})
 
         resp = provider_user_me_military_affiliation(event, self.mock_context)
 
@@ -256,7 +261,6 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
         message = json.loads(resp['body'])['message']
 
         self.assertEqual('Invalid status value. Only "inactive" is allowed.', message)
-
 
     def test_patch_provider_military_affiliation_updates_status(self):
         from handlers.provider_users import provider_user_me_military_affiliation
