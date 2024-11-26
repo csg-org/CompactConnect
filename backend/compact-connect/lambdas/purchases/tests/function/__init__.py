@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from decimal import Decimal
+from glob import glob
 
 import boto3
 from moto import mock_aws
@@ -96,16 +97,16 @@ class TstFunction(TstLambdas):
 
     def _load_provider_data(self):
         """Use the canned test resources to load a basic provider to the DB"""
-        provider_test_resources = ['../common-python/tests/resources/dynamo/provider.json']
+        test_resources = glob('../common-python/tests/resources/dynamo/provider.json')
 
-        def provider_jurisdictions_to_set(obj: dict):
-            if obj.get('type') == 'provider' and 'providerJurisdictions' in obj:
-                obj['providerJurisdictions'] = set(obj['providerJurisdictions'])
+        def privilege_jurisdictions_to_set(obj: dict):
+            if obj.get('type') == 'provider' and 'privilegeJurisdictions' in obj:
+                obj['privilegeJurisdictions'] = set(obj['privilegeJurisdictions'])
             return obj
 
-        for resource in provider_test_resources:
+        for resource in test_resources:
             with open(resource) as f:
-                record = json.load(f, object_hook=provider_jurisdictions_to_set, parse_float=Decimal)
+                record = json.load(f, object_hook=privilege_jurisdictions_to_set, parse_float=Decimal)
 
             logger.debug('Loading resource, %s: %s', resource, str(record))
             self._provider_table.put_item(Item=record)
@@ -117,7 +118,7 @@ class TstFunction(TstLambdas):
         for resource in license_test_resources:
             with open(resource) as f:
                 record = json.load(f, parse_float=Decimal)
-                record['status'] = status
+                record['jurisdictionStatus'] = status
                 if expiration_date:
                     record['dateOfExpiration'] = expiration_date
 

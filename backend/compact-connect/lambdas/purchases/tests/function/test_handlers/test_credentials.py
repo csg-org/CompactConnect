@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 from cc_common.exceptions import CCInvalidRequestException
 from moto import mock_aws
 
-from tests.function import TstFunction
+from .. import TstFunction
 
 TEST_COMPACT = 'aslp'
 # this value is defined in the provider.json file

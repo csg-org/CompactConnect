@@ -4,7 +4,7 @@ from uuid import uuid4
 from botocore.exceptions import ClientError
 from moto import mock_aws
 
-from tests.function import TstFunction
+from .. import TstFunction
 
 
 @mock_aws

@@ -3,7 +3,7 @@ import json
 from cc_common.exceptions import CCInternalException
 from moto import mock_aws
 
-from tests.function import TstFunction
+from .. import TstFunction
 
 TEST_COMPACT = 'aslp'
 MOCK_SSN = '123-12-1234'

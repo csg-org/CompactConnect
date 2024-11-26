@@ -2,7 +2,7 @@ import json
 
 from moto import mock_aws
 
-from tests.function import TstFunction
+from .. import TstFunction
 
 
 @mock_aws
@@ -77,7 +77,10 @@ class TestIngest(TstFunction):
 
         with open('../common-python/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
-        # The license and provider should immediately be inactive
+        # The license status and provider should immediately be inactive
+        expected_provider['jurisdictionStatus'] = 'inactive'
+        expected_provider['licenses'][0]['jurisdictionStatus'] = 'inactive'
+        # these should be calculated as inactive at record load time
         expected_provider['status'] = 'inactive'
         expected_provider['licenses'][0]['status'] = 'inactive'
         # NOTE: when we are supporting privilege applications officially, they should also be set inactive. That will

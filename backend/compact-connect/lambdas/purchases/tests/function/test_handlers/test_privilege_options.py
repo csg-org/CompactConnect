@@ -2,7 +2,7 @@ import json
 
 from moto import mock_aws
 
-from tests.function import TstFunction
+from .. import TstFunction
 
 TEST_COMPACT = 'aslp'
 TEST_PROVIDER_ID = 'some-provider-id'

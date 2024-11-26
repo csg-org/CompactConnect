@@ -8,6 +8,7 @@ from marshmallow.validate import Length, OneOf, Regexp
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import (
     BaseRecordSchema,
+    CalculatedStatusRecordSchema,
     ForgivingSchema,
     ITUTE164PhoneNumber,
     Set,
@@ -26,7 +27,7 @@ class ProviderPublicSchema(ForgivingSchema):
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
     licenseType = String(required=True, allow_none=False)
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -53,7 +54,7 @@ class ProviderPublicSchema(ForgivingSchema):
 
 
 @BaseRecordSchema.register_schema('provider')
-class ProviderRecordSchema(BaseRecordSchema, ProviderPublicSchema):
+class ProviderRecordSchema(CalculatedStatusRecordSchema, ProviderPublicSchema):
     """Schema for license records in the license data table"""
 
     _record_type = 'provider'

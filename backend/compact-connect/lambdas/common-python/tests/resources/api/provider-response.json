@@ -7,6 +7,7 @@
   "middleName": "Gunnar",
   "familyName": "Guðmundsdóttir",
   "licenseType": "speech-language pathologist",
+  "jurisdictionStatus": "active",
   "status": "active",
   "compact": "aslp",
   "licenseJurisdiction": "oh",
@@ -21,6 +22,6 @@
   "phoneNumber": "+13213214321",
   "dateOfBirth": "2024-06-06",
   "dateOfUpdate": "2024-07-08",
-  "dateOfExpiration": "2024-06-06",
+  "dateOfExpiration": "2050-06-06",
   "birthMonthDay": "06-06"
 }
