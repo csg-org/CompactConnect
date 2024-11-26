@@ -4,7 +4,7 @@ from unittest.mock import patch
 from boto3.dynamodb.conditions import Key
 from moto import mock_aws
 
-from tests.function import TstFunction
+from .. import TstFunction
 
 
 @mock_aws

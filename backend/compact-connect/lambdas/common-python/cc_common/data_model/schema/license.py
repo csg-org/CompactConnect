@@ -1,37 +1,31 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 
-from marshmallow import ValidationError, pre_dump, validates_schema
+from marshmallow import ValidationError, pre_dump, pre_load, validates_schema
 from marshmallow.fields import UUID, Boolean, Date, Email, String
 from marshmallow.validate import Length, OneOf, Regexp
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import (
     BaseRecordSchema,
+    CalculatedStatusRecordSchema,
     ForgivingSchema,
     ITUTE164PhoneNumber,
     SocialSecurityNumber,
 )
 
 
-class LicenseCommonSchema(ForgivingSchema):
-    pass
-
-
-class LicensePublicSchema(LicenseCommonSchema):
+class LicensePublicSchema(ForgivingSchema):
     """Schema for license data that can be shared with the public"""
 
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
 
 
-class LicensePostSchema(LicensePublicSchema):
-    """Schema for license data as posted by a board"""
-
+class LicenseCommonSchema(LicensePublicSchema):
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
     licenseType = String(required=True, allow_none=False)
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -56,14 +50,46 @@ class LicensePostSchema(LicensePublicSchema):
             raise ValidationError({'licenseType': f"'licenseType' must be one of {license_types}"})
 
 
+class LicensePostSchema(LicenseCommonSchema):
+    """Schema for license data as posted by a board"""
+
+    # This status field is required when posting a license record. It will be transformed into the
+    # jurisdictionStatus field when the record is ingested.
+    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+
+
+class LicenseIngestSchema(LicenseCommonSchema):
+    """Schema for converting the external license data to the internal format"""
+
+    # When a license record is first uploaded into the system, we store the value of
+    # 'status' under this field for backwards compatibility with the external contract.
+    # this is used to calculate the actual 'status' used by the system in addition
+    # to the expiration date of the license.
+    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+
+    @pre_load
+    def pre_load_initialization(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        return self._set_jurisdiction_status(in_data)
+
+    def _set_jurisdiction_status(self, in_data, **kwargs):
+        """
+        When a license record is first uploaded into the system, the 'jurisdictionStatus' value is captured
+        from the 'status' field for backwards compatibility with the existing contract.
+        This maps the income 'status' value to the internal 'jurisdictionStatus' field.
+        """
+        in_data['jurisdictionStatus'] = in_data.pop('status')
+        return in_data
+
+
 @BaseRecordSchema.register_schema('license')
-class LicenseRecordSchema(BaseRecordSchema, LicensePostSchema):
+class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
     """Schema for license records in the license data table"""
 
     _record_type = 'license'
 
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
+    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument

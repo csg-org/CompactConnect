@@ -7,6 +7,7 @@
   "middleName": "Gunnar",
   "familyName": "Guðmundsdóttir",
   "licenseType": "speech-language pathologist",
+  "jurisdictionStatus": "active",
   "status": "active",
   "compact": "aslp",
   "licenseJurisdiction": "oh",
@@ -21,7 +22,7 @@
   "phoneNumber": "+13213214321",
   "dateOfBirth": "2024-06-06",
   "dateOfUpdate": "2024-07-08",
-  "dateOfExpiration": "2024-06-06",
+  "dateOfExpiration": "2050-06-06",
   "birthMonthDay": "06-06",
   "licenses": [
     {
@@ -33,12 +34,13 @@
       "npi": "0608337260",
       "licenseType": "speech-language pathologist",
       "status": "active",
+      "jurisdictionStatus": "active",
       "givenName": "Björk",
       "middleName": "Gunnar",
       "familyName": "Guðmundsdóttir",
       "dateOfIssuance": "2024-06-06",
       "dateOfRenewal": "2024-06-06",
-      "dateOfExpiration": "2024-06-06",
+      "dateOfExpiration": "2050-06-06",
       "dateOfBirth": "2024-06-06",
       "dateOfUpdate": "2024-07-08",
       "homeAddressStreet1": "123 A St.",
@@ -61,7 +63,7 @@
       "dateOfIssuance": "2024-06-06",
       "dateOfRenewal": "2024-11-08",
       "dateOfUpdate": "2024-07-01",
-      "dateOfExpiration": "2024-06-06",
+      "dateOfExpiration": "2050-06-06",
       "compactTransactionId": "1234567890"
     }
   ]

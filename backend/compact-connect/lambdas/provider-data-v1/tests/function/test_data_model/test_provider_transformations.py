@@ -1,11 +1,11 @@
 import json
-from datetime import UTC, datetime
+from datetime import date, datetime
 from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
 from moto import mock_aws
 
-from tests.function import TstFunction
+from .. import TstFunction
 
 
 @mock_aws
@@ -81,7 +81,15 @@ class TestTransformations(TstFunction):
         self.assertEqual(expected_provider_id, provider_id)
 
         # Add a privilege to practice in Nebraska
-        client.create_privilege(compact='aslp', jurisdiction='ne', provider_id=provider_id)
+        client.create_provider_privileges(
+            compact_name='aslp',
+            provider_id=provider_id,
+            # using values in expected privilege json file
+            jurisdiction_postal_abbreviations=['ne'],
+            license_expiration_date=date(2050, 6, 6),
+            compact_transaction_id='1234567890',
+            existing_privileges=[],
+        )
 
         # Get the provider straight from the table, to inspect them
         resp = self._provider_table.query(
@@ -113,15 +121,16 @@ class TestTransformations(TstFunction):
         del records['provider']['providerDateOfUpdate']
         del expected_privilege['dateOfIssuance']
         del expected_privilege['dateOfRenewal']
-        # removing optional field which is set by the purchase privilege endpoint
-        del expected_privilege['compactTransactionId']
+        # removing dynamic fields
         del records['privilege']['dateOfIssuance']
         del records['privilege']['dateOfRenewal']
 
         # the sk is dynamic and will not match, but we can check its values to make sure the value of each is expected
         self.assertEqual('aslp#PROVIDER#privilege/ne#2024-11-08', expected_privilege.pop('sk'))
         self.assertEqual(
-            f'aslp#PROVIDER#privilege/ne#{datetime.now(tz=UTC).date().isoformat()}', records['privilege'].pop('sk')
+            f'aslp#PROVIDER#privilege/ne#{datetime.now(tz=self.config.expiration_date_resolution_timezone)
+            .date().isoformat()}',
+            records['privilege'].pop('sk'),
         )
 
         # Make sure each is represented the way we expect, in the db
@@ -163,8 +172,6 @@ class TestTransformations(TstFunction):
         del expected_provider['privileges'][0]['dateOfUpdate']
         del expected_provider['privileges'][0]['dateOfIssuance']
         del expected_provider['privileges'][0]['dateOfRenewal']
-        # removing optional field which is set by the purchase privilege endpoint
-        del expected_provider['privileges'][0]['compactTransactionId']
 
         # Phew! We've loaded the data all the way in via the ingest chain and back out via the API!
         self.assertEqual(expected_provider, provider_data)

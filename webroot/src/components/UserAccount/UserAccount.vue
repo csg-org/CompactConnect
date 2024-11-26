@@ -14,10 +14,12 @@
                 <InputText :formInput="formData.lastName" />
                 <InputText :formInput="formData.email" />
                 <InputSubmit
-                    v-if="isSubmitVisible"
                     :formInput="formData.submit"
+                    class="account-submit"
+                    :class="{ 'not-visible': !isSubmitVisible }"
                     :label="submitLabel"
                     :isEnabled="!isFormLoading"
+                    :tabindex="(isSubmitVisible) ? 0 : -1"
                 />
             </form>
             <ChangePassword />

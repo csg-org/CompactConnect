@@ -6,7 +6,7 @@
 -->
 
 <template>
-    <Card class="edit-user-container">
+    <Card class="edit-user-container" @keydown.tab="focusTrap($event)">
         <div class="edit-user-title">{{ $t('account.editUserPermissions') }}</div>
         <form @submit.prevent="handleSubmit">
             <div class="edit-user-name">
@@ -38,6 +38,7 @@
             </div>
             <div class="edit-user-form-row">
                 <InputButton
+                    id="cancel-edit-user"
                     class="edit-user-button"
                     :label="$t('common.cancel')"
                     :shouldHideMargin="true"

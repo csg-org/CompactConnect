@@ -251,6 +251,10 @@ export default class SelectPrivileges extends mixins(MixinForm) {
                 isSubmitInput: true,
                 id: 'submit',
             }),
+            submitUnderstanding: new FormInput({
+                isSubmitInput: true,
+                id: 'submit-understanding',
+            }),
         };
 
         this.purchaseDataList?.forEach((purchaseOption) => {
