@@ -7,14 +7,17 @@
 
 import {
     Component,
-    Vue,
+    mixins,
     toNative,
     Prop
 } from 'vue-facing-decorator';
+import { reactive } from 'vue';
+import MixinForm from '@components/Forms/_mixins/form.mixin';
 import { displayDateFormat } from '@/app.config';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
+import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import Modal from '@components/Modal/Modal.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
@@ -30,14 +33,22 @@ import moment from 'moment';
         InputCheckbox,
         InputButton,
         Modal,
-        CollapseCaretButton
+        CollapseCaretButton,
+        InputSubmit
     },
     emits: ['exOutState']
 })
-class SelectedStatePurchaseInformation extends Vue {
+class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     // PROPS
     @Prop({ required: true }) selectedStatePurchaseData?: PrivilegePurchaseOption;
     @Prop({ default: new FormInput({ value: false }) }) jurisprudenceCheckInput?: FormInput;
+
+    //
+    // Lifecycle
+    //
+    async created() {
+        this.initFormInputs();
+    }
 
     //
     // Data
@@ -161,6 +172,17 @@ class SelectedStatePurchaseInformation extends Vue {
     //
     // Methods
     //
+    initFormInputs(): void {
+        const initFormData: any = {
+            submitUnderstanding: new FormInput({
+                isSubmitInput: true,
+                id: 'submit-understanding',
+            }),
+        };
+
+        this.formData = reactive(initFormData);
+    }
+
     handleJurisprudenceClicked() {
         const newValue = this.jurisprudenceCheckInput?.value;
 

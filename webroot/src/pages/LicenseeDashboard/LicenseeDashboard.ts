@@ -74,6 +74,9 @@ export default class LicenseeDashboard extends Vue {
     }
 
     get privilegeList(): Array<License> {
+        // From list of all privileges associated with user (independent of status),
+        // returns only most recent privilege fetched associated with each state
+        // to positively and most clearly display user's status in each state
         const privilegeList: Array<License> = [];
 
         this.licenseePrivileges.forEach((privilege) => {
@@ -98,6 +101,9 @@ export default class LicenseeDashboard extends Vue {
     }
 
     get licenseList(): Array<License> {
+        // From list of all licenses associated with user (independent of status),
+        // returns only most recent license fetched associated with each state
+        // to positively and most clearly display user's status in each state
         const licenseList: Array<License> = [];
 
         this.licenseeLicenses.forEach((license) => {
