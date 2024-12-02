@@ -217,7 +217,7 @@ class TestProviderUsersApi(TestApi):
                         'type': 'string',
                     }
                 },
-                'required': ['fileName'],
+                'required': ['status'],
                 'type': 'object',
             },
             patch_request_model['Schema'],
