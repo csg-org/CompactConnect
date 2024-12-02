@@ -267,9 +267,7 @@ class TestClient(TstFunction):
     def _get_military_affiliation_records(self, provider_id: str) -> list[dict]:
         return self.config.provider_table.query(
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
-            & Key('sk').begins_with(
-                f'aslp#PROVIDER#military-affiliation#',
-            )
+            & Key('sk').begins_with('aslp#PROVIDER#military-affiliation#')
         )['Items']
 
     def test_complete_military_affiliation_initialization_sets_expected_status(self):

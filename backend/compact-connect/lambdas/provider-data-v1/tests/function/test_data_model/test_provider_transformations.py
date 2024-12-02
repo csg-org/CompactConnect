@@ -92,14 +92,16 @@ class TestTransformations(TstFunction):
         )
 
         from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationType
+
         # Add a military affiliation
         client.create_military_affiliation(
             compact='aslp',
             provider_id=provider_id,
             affiliation_type=MilitaryAffiliationType.MILITARY_MEMBER,
             file_names=['military-waiver.pdf'],
-            document_keys=['/provider/<provider_id>/document-type/military-affiliations/2024-07-08/'
-                           'military-waiver#1234.pdf'],
+            document_keys=[
+                '/provider/<provider_id>/document-type/military-affiliations/2024-07-08/military-waiver#1234.pdf'
+            ],
         )
 
         # Get the provider straight from the table, to inspect them
@@ -129,11 +131,13 @@ class TestTransformations(TstFunction):
             expected_military_affiliation['status'] = 'initializing'
 
         # Force the provider id to match
-        for record in [expected_provider,
-                       expected_license,
-                       expected_privilege,
-                       expected_military_affiliation,
-                       *records.values()]:
+        for record in [
+            expected_provider,
+            expected_license,
+            expected_privilege,
+            expected_military_affiliation,
+            *records.values(),
+        ]:
             # Drop dynamic field
             del record['dateOfUpdate']
         # These fields will be dynamic, so we'll remove them from comparison
@@ -209,7 +213,6 @@ class TestTransformations(TstFunction):
         del expected_provider['privileges'][0]['dateOfRenewal']
         del expected_provider['militaryAffiliations'][0]['dateOfUpload']
         del expected_provider['militaryAffiliations'][0]['dateOfUpdate']
-
 
         # Phew! We've loaded the data all the way in via the ingest chain and back out via the API!
         self.assertEqual(expected_provider, provider_data)

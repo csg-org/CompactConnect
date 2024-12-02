@@ -49,7 +49,7 @@ def get_provider_user_me(event: dict, context: LambdaContext):  # noqa: ARG001 u
 
 
 @api_handler
-def provider_user_me_military_affiliation(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+def provider_user_me_military_affiliation(event: dict, context: LambdaContext):
     """
     Endpoint for a provider user to update their military affiliation.
     This handles both the POST and PATCH methods.
@@ -57,13 +57,13 @@ def provider_user_me_military_affiliation(event: dict, context: LambdaContext): 
     # handle POST method
     if event['httpMethod'] == 'POST':
         return _post_provider_military_affiliation(event, context)
-    elif event['httpMethod'] == 'PATCH':
+    if event['httpMethod'] == 'PATCH':
         return _patch_provider_military_affiliation(event, context)
-    else:
-        raise CCInvalidRequestException('Invalid HTTP method')
+
+    raise CCInvalidRequestException('Invalid HTTP method')
 
 
-def _post_provider_military_affiliation(event, context):
+def _post_provider_military_affiliation(event, context): # noqa: ARG001 unused-argument
     """
     Handle the POST method for updating a provider's military affiliation.
     Creates a new military affiliation record and generates a S3 pre-signed URL for the user to upload their document.
@@ -120,7 +120,11 @@ def _post_provider_military_affiliation(event, context):
     return PostMilitaryAffiliationResponseSchema().load(serialized_record)
 
 
-def _patch_provider_military_affiliation(event, context):
+def _patch_provider_military_affiliation(event, context): # noqa: ARG001 unused-argument
+    """
+    Handle the PATCH method for updating a provider's military affiliation.
+    Updates the status of the user's military affiliation.
+    """
     compact, provider_id = _check_provider_user_attributes(event)
 
     event_body = json.loads(event['body'])

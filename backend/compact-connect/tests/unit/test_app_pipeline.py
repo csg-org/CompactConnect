@@ -4,10 +4,9 @@ from unittest import TestCase
 from unittest.mock import patch
 
 from app import CompactConnectApp
-from aws_cdk.assertions import Capture, Match, Template
+from aws_cdk.assertions import Match, Template
 from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolClient, CfnUserPoolRiskConfigurationAttachment
 from aws_cdk.aws_lambda import CfnFunction, CfnLayerVersion
-from aws_cdk.aws_s3 import CfnBucket
 from aws_cdk.aws_ssm import CfnParameter
 
 from tests.unit.base import TstCompactConnectABC

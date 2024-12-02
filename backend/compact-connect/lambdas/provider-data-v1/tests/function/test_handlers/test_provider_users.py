@@ -198,7 +198,8 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         message = json.loads(resp['body'])['message']
 
         self.assertEqual(
-            """Invalid file type "guff" The following file types are supported: ('pdf', 'jpg', 'jpeg', 'png', 'docx')""",
+            "Invalid file type \"guff\" The following file types are supported: "
+            "('pdf', 'jpg', 'jpeg', 'png', 'docx')",
             message,
         )
 
