@@ -102,6 +102,8 @@ def _post_provider_military_affiliation(event, context): # noqa: ARG001 unused-a
                 # max file size is 10MB
                 ['content-length-range', 0, 10485760],
             ],
+            # the pre-signed URL will expire in 10 minutes
+            ExpiresIn=600,
         )
         document_upload_fields.append(pre_signed_post_response)
 
