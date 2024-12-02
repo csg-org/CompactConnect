@@ -88,8 +88,9 @@ def _post_provider_military_affiliation(event, context): # noqa: ARG001 unused-a
                 f'are supported: {SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS}'
             )
 
-        # generate a UUID for the document key, which includes the filename followed by the UUID and the file extension
-        document_uuid = f'{file_name_without_extension}#{uuid.uuid4()}.{file_extension}'
+        # generate a UUID for the document key, which includes a random UUID followed by the filename
+        # and the file extension
+        document_uuid = f'{uuid.uuid4()}#{file_name_without_extension}.{file_extension}'
         document_key = s3_document_prefix + document_uuid
         document_keys.append(document_key)
 

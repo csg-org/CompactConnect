@@ -134,7 +134,7 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
                     {
                         'fields': {
                             'key': f'compact/{TEST_COMPACT}/provider/{provider_id}/document-type/military-affiliations'
-                            f'/{today}/military_affiliation#1234.pdf',
+                            f'/{today}/1234#military_affiliation.pdf',
                             'x-amz-algorithm': 'AWS4-HMAC-SHA256',
                         },
                         'url': 'https://provider-user-bucket.s3.amazonaws.com/',
