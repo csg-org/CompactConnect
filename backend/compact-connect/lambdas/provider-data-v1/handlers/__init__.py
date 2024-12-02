@@ -1,5 +1,4 @@
 from cc_common.config import config, logger
-from cc_common.data_model.schema.military_affiliation import MILITARY_AFFILIATION_RECORD_TYPE
 from cc_common.exceptions import CCInternalException
 
 
@@ -35,7 +34,7 @@ def get_provider_information(compact: str, provider_id: str) -> dict:
             case 'privilege':
                 logger.debug('Identified privilege record', provider_id=provider_id)
                 privileges.append(record)
-            case MILITARY_AFFILIATION_RECORD_TYPE:
+            case 'militaryAffiliation':
                 logger.debug('Identified military affiliation record', provider_id=provider_id)
                 military_affiliations.append(record)
 
