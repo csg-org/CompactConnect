@@ -298,7 +298,7 @@ class ApiModel:
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
                 additional_properties=False,
-                required=['fileName'],
+                required=['status'],
                 properties={
                     'status': JsonSchema(
                         type=JsonSchemaType.STRING,

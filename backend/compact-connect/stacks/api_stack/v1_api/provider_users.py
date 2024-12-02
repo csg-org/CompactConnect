@@ -65,7 +65,7 @@ class ProviderUsers:
             alarm_topic=self.api.alarm_topic,
         )
         persistent_stack.shared_encryption_key.grant_decrypt(self.provider_users_me_military_affiliation_handler)
-        persistent_stack.provider_table.grant_read_data(self.provider_users_me_military_affiliation_handler)
+        persistent_stack.provider_table.grant_read_write_data(self.provider_users_me_military_affiliation_handler)
         persistent_stack.provider_users_bucket.grant_read_write(self.provider_users_me_military_affiliation_handler)
         self.api.log_groups.append(self.provider_users_me_military_affiliation_handler.log_group)
         NagSuppressions.add_resource_suppressions_by_path(
