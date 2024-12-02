@@ -49,9 +49,7 @@ class BulkUploadsBucket(Bucket):
         )
         self.log_groups = []
 
-        if mock_bucket:
-            self._add_delete_object_events()
-        else:
+        if not mock_bucket:
             self._add_v1_ingest_object_events(event_bus)
 
         QueryDefinition(
@@ -77,61 +75,6 @@ class BulkUploadsBucket(Bucket):
                 {
                     'id': 'HIPAA.Security-S3BucketVersioningEnabled',
                     'reason': 'This bucket houses transitory data only, so storing of version history is unhelpful.',
-                },
-            ],
-        )
-
-    def _add_delete_object_events(self):
-        """Delete any objects that get uploaded - for mock api purposes"""
-        stack: ps.PersistentStack = ps.PersistentStack.of(self)
-
-        delete_objects_handler = PythonFunction(
-            self,
-            'DeleteObjectsHandler',
-            description='Delete S3 objects handler',
-            entry=os.path.join('lambdas', 'delete-objects'),
-            index='main.py',
-            handler='delete_objects',
-            alarm_topic=stack.alarm_topic,
-        )
-        self.grant_delete(delete_objects_handler)
-        self.add_event_notification(event=EventType.OBJECT_CREATED, dest=LambdaDestination(delete_objects_handler))
-        self.log_groups.append(delete_objects_handler.log_group)
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{delete_objects_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'The actions and resource have wildcards but are still scoped to this bucket and'
-                    ' only the actions needed to perform its function',
-                },
-            ],
-        )
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{stack.node.path}/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/'
-            'Role/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'applies_to': ['Resource::*'],
-                    'reason': """The lambda policy is scoped specifically to the PutBucketNotification action, which
-                    suits its purpose.""",
-                },
-            ],
-        )
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{stack.node.path}/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/' 'Role/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM4',
-                    'applies_to': [
-                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
-                    ],
-                    'reason': 'The BasicExecutionRole policy is appropriate for this lambda',
                 },
             ],
         )

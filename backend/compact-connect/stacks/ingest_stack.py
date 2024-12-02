@@ -21,7 +21,6 @@ from stacks import persistent_stack as ps
 class IngestStack(AppStack):
     def __init__(self, scope: Construct, construct_id: str, *, persistent_stack: ps.PersistentStack, **kwargs):
         super().__init__(scope, construct_id, **kwargs)
-        self._add_ingest_chain(persistent_stack)
         self._add_v1_ingest_chain(persistent_stack)
 
     def _add_v1_ingest_chain(self, persistent_stack: ps.PersistentStack):
@@ -108,86 +107,6 @@ class IngestStack(AppStack):
             self,
             'V1RuntimeQuery',
             query_definition_name=f'{self.node.id}/V1Lambdas',
-            query_string=QueryString(
-                fields=['@timestamp', '@log', 'level', 'status', 'message', '@message'],
-                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
-                sort='@timestamp desc',
-            ),
-            log_groups=[ingest_handler.log_group],
-        )
-
-    def _add_ingest_chain(self, persistent_stack: ps.PersistentStack):
-        ingest_dlq = Queue(
-            self,
-            'IngestDLQ',
-            encryption=QueueEncryption.KMS,
-            encryption_master_key=persistent_stack.shared_encryption_key,
-            enforce_ssl=True,
-        )
-
-        queue_retention_period = Duration.hours(12)
-        ingest_queue = Queue(
-            self,
-            'IngestQueue',
-            encryption=QueueEncryption.KMS,
-            encryption_master_key=persistent_stack.shared_encryption_key,
-            enforce_ssl=True,
-            retention_period=queue_retention_period,
-            visibility_timeout=Duration.minutes(5),
-            dead_letter_queue=DeadLetterQueue(max_receive_count=3, queue=ingest_dlq),
-        )
-        Rule(
-            self,
-            'IngestEventRule',
-            event_bus=persistent_stack.data_event_bus,
-            event_pattern=EventPattern(detail_type=['license-ingest']),
-            targets=[SqsQueue(ingest_queue, dead_letter_queue=ingest_dlq)],
-        )
-
-        ingest_handler = PythonFunction(
-            self,
-            'IngestHandler',
-            description='Ingest license data handler',
-            entry=os.path.join('lambdas', 'license-data'),
-            index=os.path.join('handlers', 'ingest.py'),
-            handler='ingest_license_message',
-            timeout=Duration.minutes(1),
-            environment={
-                'LICENSE_TABLE_NAME': persistent_stack.license_table.table_name,
-                'SSN_INDEX_NAME': persistent_stack.license_table.ssn_index_name,
-                **self.common_env_vars,
-            },
-            alarm_topic=persistent_stack.alarm_topic,
-        )
-        persistent_stack.license_table.grant_read_write_data(ingest_handler)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{ingest_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """
-                    This policy contains wild-carded actions and resources but they are scoped to the
-                    specific actions, KMS key and Table that this lambda specifically needs access to.
-                    """,
-                },
-            ],
-        )
-
-        ingest_handler.add_event_source(
-            SqsEventSource(
-                ingest_queue,
-                batch_size=50,
-                max_batching_window=Duration.minutes(5),
-                report_batch_item_failures=True,
-            ),
-        )
-        self._add_queue_alarms(queue_retention_period, ingest_queue, ingest_dlq, persistent_stack)
-
-        QueryDefinition(
-            self,
-            'RuntimeQuery',
-            query_definition_name=f'{self.node.id}/Lambdas',
             query_string=QueryString(
                 fields=['@timestamp', '@log', 'level', 'status', 'message', '@message'],
                 filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
