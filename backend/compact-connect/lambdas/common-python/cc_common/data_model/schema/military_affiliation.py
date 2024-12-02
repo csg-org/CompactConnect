@@ -23,12 +23,14 @@ class MilitaryAffiliationType(CCEnum):
 SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS = ('pdf', 'jpg', 'jpeg', 'png', 'docx')
 MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME = 'military-affiliations'
 
+MILITARY_AFFILIATION_RECORD_TYPE = 'militaryAffiliation'
+
 
 @BaseRecordSchema.register_schema('militaryAffiliation')
 class MilitaryAffiliationRecordSchema(BaseRecordSchema):
     """Schema for military affiliation records in the license data table"""
 
-    _record_type = 'militaryAffiliation'
+    _record_type = MILITARY_AFFILIATION_RECORD_TYPE
 
     # Provided fields
     providerId = UUID(required=True, allow_none=False)

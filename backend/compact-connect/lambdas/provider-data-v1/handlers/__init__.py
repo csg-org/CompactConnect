@@ -1,5 +1,6 @@
 from cc_common.config import config, logger
 from cc_common.exceptions import CCInternalException
+from cc_common.data_model.schema.military_affiliation import MILITARY_AFFILIATION_RECORD_TYPE
 
 
 def get_provider_information(compact: str, provider_id: str) -> dict:
@@ -22,6 +23,7 @@ def get_provider_information(compact: str, provider_id: str) -> dict:
     provider = None
     privileges = []
     licenses = []
+    military_affiliations = []
     for record in provider_data['items']:
         match record['type']:
             case 'provider':
@@ -33,10 +35,15 @@ def get_provider_information(compact: str, provider_id: str) -> dict:
             case 'privilege':
                 logger.debug('Identified privilege record', provider_id=provider_id)
                 privileges.append(record)
+            case MILITARY_AFFILIATION_RECORD_TYPE:
+                logger.debug('Identified military affiliation record', provider_id=provider_id)
+                military_affiliations.append(record)
+
     if provider is None:
         logger.error("Failed to find a provider's primary record!", provider_id=provider_id)
         raise CCInternalException('Unexpected provider data')
 
     provider['licenses'] = licenses
     provider['privileges'] = privileges
+    provider['militaryAffiliations'] = military_affiliations
     return provider
