@@ -63,7 +63,7 @@ def provider_user_me_military_affiliation(event: dict, context: LambdaContext):
     raise CCInvalidRequestException('Invalid HTTP method')
 
 
-def _post_provider_military_affiliation(event, context): # noqa: ARG001 unused-argument
+def _post_provider_military_affiliation(event, context):  # noqa: ARG001 unused-argument
     """
     Handle the POST method for updating a provider's military affiliation.
     Creates a new military affiliation record and generates a S3 pre-signed URL for the user to upload their document.
@@ -123,7 +123,7 @@ def _post_provider_military_affiliation(event, context): # noqa: ARG001 unused-a
     return PostMilitaryAffiliationResponseSchema().load(serialized_record)
 
 
-def _patch_provider_military_affiliation(event, context): # noqa: ARG001 unused-argument
+def _patch_provider_military_affiliation(event, context):  # noqa: ARG001 unused-argument
     """
     Handle the PATCH method for updating a provider's military affiliation.
     Updates the status of the user's military affiliation.

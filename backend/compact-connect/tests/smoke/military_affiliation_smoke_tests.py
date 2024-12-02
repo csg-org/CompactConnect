@@ -14,6 +14,7 @@ API_URL = os.environ['API_URL']
 # The cognito ID token issued when the user is authenticated.
 TEST_USER_COGNITO_ID_TOKEN = os.environ['TEST_USER_ID_TOKEN']
 
+
 def test_military_affiliation_upload():
     # Step 1: Create a military affiliation record in the DB using the POST
     # '/v1/provider-users/me/military-affiliation' endpoint.
@@ -30,14 +31,12 @@ def test_military_affiliation_upload():
         'affiliationType': 'militaryMember',
     }
     post_api_response = requests.post(
-        url=API_URL + '/v1/provider-users/me/military-affiliation',
-        headers=headers,
-        json=post_body,
-        timeout=10
+        url=API_URL + '/v1/provider-users/me/military-affiliation', headers=headers, json=post_body, timeout=10
     )
 
-    assert post_api_response.status_code == 200, \
-        f'Failed to POST military affiliations record. Response: {post_api_response.json()}'
+    assert (
+        post_api_response.status_code == 200
+    ), f'Failed to POST military affiliations record. Response: {post_api_response.json()}'
 
     """
     Response body should include S3 pre-sign url form in this format:
@@ -64,8 +63,9 @@ def test_military_affiliation_upload():
         pre_signed_url = post_api_response_json['documentUploadFields'][0]['url']
         pre_signed_fields = post_api_response_json['documentUploadFields'][0]['fields']
         s3_upload_response = requests.post(pre_signed_url, files=files, data=pre_signed_fields, timeout=10)
-        assert s3_upload_response.status_code == 204, \
-            f'Failed to upload test file to S3. Response: {s3_upload_response.text}'
+        assert (
+            s3_upload_response.status_code == 204
+        ), f'Failed to upload test file to S3. Response: {s3_upload_response.text}'
 
     # Wait a couple of seconds for S3 event to trigger the lambda that processes the uploaded file
     # and updates the military affiliation record status to 'active'.
@@ -73,20 +73,24 @@ def test_military_affiliation_upload():
 
     # Get the provider data from the GET '/v1/provider-users/me' endpoint.
     get_provider_data_response = requests.get(API_URL + '/v1/provider-users/me', headers=headers, timeout=10)
-    assert get_provider_data_response.status_code == 200, \
-        f'Failed to GET provider data. Response: {get_provider_data_response.json()}'
+    assert (
+        get_provider_data_response.status_code == 200
+    ), f'Failed to GET provider data. Response: {get_provider_data_response.json()}'
     # check the response for a top level 'militaryAffiliations' field and verify it has a record with an upload date of
     # today and a status of 'active'
     provider_data = get_provider_data_response.json()
     military_affiliations = provider_data.get('militaryAffiliations')
     assert military_affiliations, 'No military affiliations found in provider data'
     today = datetime.now(tz=UTC).date().isoformat()
-    matching_military_affiliation = next((ma for ma in military_affiliations
-                                 if datetime.fromisoformat(ma['dateOfUpload']).date().isoformat() == today), None)
+    matching_military_affiliation = next(
+        (ma for ma in military_affiliations if datetime.fromisoformat(ma['dateOfUpload']).date().isoformat() == today),
+        None,
+    )
     assert matching_military_affiliation, f'No military affiliation record found for today ({today})'
     assert matching_military_affiliation['status'] == 'active', 'Military affiliation record is not active'
 
-    sys.stdout.write(f"Successfully added military affiliation record: {matching_military_affiliation}\n")
+    sys.stdout.write(f'Successfully added military affiliation record: {matching_military_affiliation}\n')
+
 
 def test_military_affiliation_patch_update():
     # Step 1: Update the military affiliation status in the DB using the PATCH
@@ -101,25 +105,26 @@ def test_military_affiliation_patch_update():
         'status': 'inactive',
     }
     patch_api_response = requests.patch(
-        url=API_URL + '/v1/provider-users/me/military-affiliation',
-        headers=headers,
-        json=patch_body,
-        timeout=10
+        url=API_URL + '/v1/provider-users/me/military-affiliation', headers=headers, json=patch_body, timeout=10
     )
 
-    assert patch_api_response.status_code == 200, \
-        f'Failed to PATCH military affiliations record. Response: {patch_api_response.json()}'
+    assert (
+        patch_api_response.status_code == 200
+    ), f'Failed to PATCH military affiliations record. Response: {patch_api_response.json()}'
 
     get_provider_data_response = requests.get(API_URL + '/v1/provider-users/me', headers=headers, timeout=10)
-    assert get_provider_data_response.status_code == 200, \
-        f'Failed to GET provider data. Response: {get_provider_data_response.json()}'
+    assert (
+        get_provider_data_response.status_code == 200
+    ), f'Failed to GET provider data. Response: {get_provider_data_response.json()}'
 
     provider_data = get_provider_data_response.json()
     military_affiliations = provider_data.get('militaryAffiliations')
-    assert all(ma['status'] == 'inactive' for ma in military_affiliations), \
-        f'Not all military affiliation records are inactive: {military_affiliations}'
+    assert all(
+        ma['status'] == 'inactive' for ma in military_affiliations
+    ), f'Not all military affiliation records are inactive: {military_affiliations}'
 
-    sys.stdout.write(f"Successfully updated military affiliation records: {military_affiliations}\n")
+    sys.stdout.write(f'Successfully updated military affiliation records: {military_affiliations}\n')
+
 
 if __name__ == '__main__':
     test_military_affiliation_upload()
