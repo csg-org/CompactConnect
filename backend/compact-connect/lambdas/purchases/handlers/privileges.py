@@ -9,6 +9,7 @@ from cc_common.data_model.schema.jurisdiction import (
     Jurisdiction,
     JurisdictionOptionsApiResponseSchema,
 )
+from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationStatus
 from cc_common.exceptions import (
     CCAwsServiceException,
     CCFailedTransactionException,
@@ -83,6 +84,29 @@ def _find_latest_active_license(all_licenses: list[dict]) -> dict | None:
         return latest_active_licenses[0]
 
     return None
+
+
+def _determine_military_affiliation_status(provider_records: list[dict]) -> bool:
+    """
+    Determine if the provider has an active military affiliation.
+    """
+    military_affiliation_records = [record for record in provider_records if record['type'] == 'militaryAffiliation']
+    if not military_affiliation_records:
+        return False
+
+    # we only need to check the most recent military affiliation record
+    latest_military_affiliation = sorted(military_affiliation_records, key=lambda x: x['dateOfUpload'], reverse=True)[0]
+
+    if latest_military_affiliation['status'] == MilitaryAffiliationStatus.INITIALIZING.value:
+        # this only occurs if the user's military document was not processed by S3 as expected. We need
+        # to return a message to the user letting them know they need to re-upload their document
+        raise CCInvalidRequestException(
+            'Your proof of military affiliation documentation was not successfully processed. '
+            'Please return to the Military Status page and re-upload your military affiliation '
+            'documentation or end your military affiliation.'
+        )
+
+    return latest_military_affiliation['status'] == MilitaryAffiliationStatus.ACTIVE.value
 
 
 @api_handler
@@ -187,7 +211,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             )
 
     license_expiration_date: date = license_record['dateOfExpiration']
-    user_active_military = bool(provider_record.get('militaryWaiver', False))
+    user_active_military = _determine_military_affiliation_status(user_provider_data['items'])
 
     purchase_client = PurchaseClient()
     transaction_response = None
