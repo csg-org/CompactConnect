@@ -1,0 +1,114 @@
+//
+//  SelectedStatePurchaseInformation.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 11/12/2024.
+//
+.selected-state-purchase-info-container {
+    width: 27rem;
+    margin: 0.4rem 0;
+    padding: 1rem 1.6rem;
+    border-radius: 20px;
+    color: white;
+    background-color: @primaryColor;
+
+    @media @tabletWidth {
+        margin: 1rem 1rem;
+    }
+
+    .jurisprudence-modal {
+        :deep(.modal-container) {
+            max-width: 90vw;
+            padding: 2rem;
+
+            @media @tabletWidth {
+                max-width: 60rem;
+                padding: 4rem;
+            }
+
+            .jurisprudence-modal-content {
+                padding-top: 1rem;
+                overflow-y: hidden;
+                color: black;
+
+                .action-button-row {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: flex-end;
+                    margin-top: 4rem;
+                    margin-bottom: -3rem;
+
+                    .understand-button {
+                        margin-left: 1rem;
+                    }
+                }
+            }
+        }
+    }
+
+    .info-row {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        margin: 1rem 0;
+
+        :deep(.input-button-container) {
+            &.input-container {
+                margin: 0;
+
+                input {
+                    width: 4rem;
+                    height: 4rem;
+                    margin: -1rem -1.2rem 0 0;
+                    padding: 0;
+                    color: white;
+
+                    @media @tabletWidth {
+                        margin: 0 -1.2rem 0 0;
+                    }
+                }
+            }
+        }
+
+        &.sub-row {
+            color: ~"rgba(@{white}, 0.75)";
+        }
+
+        .state-title {
+            font-size: @fontSizeLarge;
+
+            @media @tabletWidth {
+                font-size: @fontSizeLarger;
+            }
+        }
+    }
+
+    .collapse-button-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        :deep(.collapse-caret-button) {
+            svg {
+                width: 2.4rem;
+                height: 1.4rem;
+                stroke: @veryLightGrey;
+            }
+        }
+    }
+
+    .jurisprudence-check-box {
+        :deep(.checkbox-container) {
+            label {
+                margin-left: 1rem;
+                color: white;
+                font-weight: @fontWeightLight;
+                font-size: 1.3rem;
+
+                @media @tabletWidth {
+                    font-size: 1.5rem;
+                }
+            }
+        }
+    }
+}

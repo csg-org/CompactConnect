@@ -9,6 +9,7 @@ import { Component, Vue, toNative } from 'vue-facing-decorator';
 
 @Component({
     name: 'CollapseCaretButton',
+    emits: [ 'toggleCollapse' ]
 })
 class CollapseCaretButton extends Vue {
     //
