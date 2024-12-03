@@ -11,9 +11,10 @@ import requests
 # set the following constant values to match your environment
 # This should include the https:// prefix  (ex. https://sandbox.compactconnect.org)
 API_URL = os.environ['API_URL']
-# The cognito ID token issued when the user is authenticated.
-TEST_USER_COGNITO_ID_TOKEN = os.environ['TEST_USER_ID_TOKEN']
-
+# The cognito ID token issued when the user is authenticated. This can be fetched by logging
+# into the Compact Connect UI of your test environment and copying the value of 'id_token_licensee' from the
+# browser's local storage.
+TEST_USER_COGNITO_ID_TOKEN = os.environ['TEST_PROVIDER_USER_ID_TOKEN']
 
 def test_military_affiliation_upload():
     # Step 1: Create a military affiliation record in the DB using the POST
@@ -38,8 +39,8 @@ def test_military_affiliation_upload():
         post_api_response.status_code == 200
     ), f'Failed to POST military affiliations record. Response: {post_api_response.json()}'
 
-    """
-    Response body should include S3 pre-sign url form in this format:
+    '''
+    The response body should include S3 pre-sign url form in this format:
     {
     ...
         'documentUploadFields': [
@@ -55,7 +56,7 @@ def test_military_affiliation_upload():
         'fileNames': ['military_affiliation.pdf'],
         'status': 'initializing',
     }
-    """
+    '''
     post_api_response_json = post_api_response.json()
     # Use the S3 pre-signed URL to upload a test file to the S3 bucket.
     with open('../resources/test_files/military_affiliation.pdf', 'rb') as test_file:
