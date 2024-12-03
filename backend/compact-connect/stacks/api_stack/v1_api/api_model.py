@@ -207,14 +207,6 @@ class ApiModel:
     @property
     def post_provider_military_affiliation_response_model(self) -> Model:
         """Return the post provider military affiliation response model, which should only be created once per API
-        {
-              "type": "militaryAffiliation",
-              "documentPostUrl": "<s3 url>",
-              "fileName": "military-waiver.pdf",
-              "status": "initializing"
-              "dateOfUpload": "2024-06-06",
-              "dateOfUpdate": "2024-07-08"
-        }
         """
         if hasattr(self.api, '_v1_post_provider_military_affiliation_response_model'):
             return self.api._v1_post_provider_military_affiliation_response_model

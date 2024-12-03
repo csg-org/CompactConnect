@@ -292,7 +292,7 @@ class TestClient(TstFunction):
 
         provider_id = military_affiliation_record['providerId']
 
-        # assert that two records exist, both in an inactive state
+        # assert that two records exist, both in an initializing state
         military_affiliation_record = self._get_military_affiliation_records(provider_id)
         self.assertEqual(2, len(military_affiliation_record))
         self.assertEqual('initializing', military_affiliation_record[0]['status'])
@@ -305,6 +305,10 @@ class TestClient(TstFunction):
 
         military_affiliation_record = self._get_military_affiliation_records(provider_id)
         self.assertEqual(2, len(military_affiliation_record))
-        # the records will be sorted by dateOfUpload, from oldest to newest
-        self.assertEqual('inactive', military_affiliation_record[0]['status'])
-        self.assertEqual('active', military_affiliation_record[1]['status'])
+        # This asserts that the records are sorted by dateOfUpload, from oldest to newest
+        oldest_record = military_affiliation_record[0]
+        newest_record = military_affiliation_record[1]
+        self.assertTrue(oldest_record['dateOfUpload'] < newest_record['dateOfUpload'],
+                        'Records are not sorted by date')
+        self.assertEqual('inactive', oldest_record['status'])
+        self.assertEqual('active', newest_record['status'])
