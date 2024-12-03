@@ -130,7 +130,7 @@ class TestTransformations(TstFunction):
             # the military affiliation document is uploaded
             expected_military_affiliation['status'] = 'initializing'
 
-        # Force the provider id to match
+        # each record has a dynamic dateOfUpdate field that we'll remove for comparison
         for record in [
             expected_provider,
             expected_license,

@@ -1,6 +1,5 @@
-# ruff: noqa: S101  we use asserts for smoke testing
+# ruff: noqa: S101 T201  we use asserts and print statements for smoke testing
 import os
-import sys
 import time
 from datetime import UTC, datetime
 
@@ -90,7 +89,7 @@ def test_military_affiliation_upload():
     assert matching_military_affiliation, f'No military affiliation record found for today ({today})'
     assert matching_military_affiliation['status'] == 'active', 'Military affiliation record is not active'
 
-    sys.stdout.write(f'Successfully added military affiliation record: {matching_military_affiliation}\n')
+    print(f'Successfully added military affiliation record: {matching_military_affiliation}')
 
 
 def test_military_affiliation_patch_update():
@@ -124,7 +123,7 @@ def test_military_affiliation_patch_update():
         ma['status'] == 'inactive' for ma in military_affiliations
     ), f'Not all military affiliation records are inactive: {military_affiliations}'
 
-    sys.stdout.write(f'Successfully updated military affiliation records: {military_affiliations}\n')
+    print(f'Successfully updated military affiliation records: {military_affiliations}')
 
 
 if __name__ == '__main__':

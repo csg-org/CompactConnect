@@ -357,17 +357,13 @@ class DataClient:
         schema = MilitaryAffiliationRecordSchema()
         latest_military_affiliation_record_serialized = schema.dump(latest_military_affiliation_record)
 
-        # we need to check if any other active military affiliations exist for this provider
-        # if they do, we need to set them to inactive
-        active_military_affiliation_records = self._get_active_military_affiliation_records(compact, provider_id)
-
         with self.config.provider_table.batch_writer() as batch:
             batch.put_item(Item=latest_military_affiliation_record_serialized)
 
-            for record in active_military_affiliation_records:
-                record['status'] = MilitaryAffiliationStatus.INACTIVE.value
-                serialized_record = schema.dump(record)
-                batch.put_item(Item=serialized_record)
+        # We need to check for any other military affiliations with an 'active' status for this provider
+        # and set them to inactive. Note these could be consolidated into a single batch call if performance
+        # becomes an issue.
+        self.inactivate_military_affiliation_status(compact, provider_id)
 
         return latest_military_affiliation_record
 
