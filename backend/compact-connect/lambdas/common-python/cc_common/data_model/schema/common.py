@@ -14,9 +14,6 @@ class CCEnum(Enum):
 
     @classmethod
     def from_str(cls, label: str) -> 'CCEnum':
-        # check if value of enum matches label
-        if label in cls.__members__:
-            return cls[label]
         return cls[label]
 
 
