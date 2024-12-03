@@ -73,6 +73,7 @@ class PaymentProcessorClient(ABC):
     @abstractmethod
     def process_charge_on_credit_card_for_privilege_purchase(
         self,
+        licensee_id: str,
         order_information: dict,
         compact_configuration: Compact,
         selected_jurisdictions: list[Jurisdiction],
@@ -81,6 +82,7 @@ class PaymentProcessorClient(ABC):
         """
         Process a charge on a credit card for a list of privileges within a compact.
 
+        :param licensee_id: The user ID of the Licensee for whom the privileges are being purchased.
         :param order_information: A dictionary containing the order information (billing, card, etc.)
         :param compact_configuration: The compact configuration.
         :param selected_jurisdictions: A list of selected jurisdictions to purchase privileges for.
@@ -188,6 +190,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
 
     def process_charge_on_credit_card_for_privilege_purchase(
         self,
+        licensee_id: str,
         order_information: dict,
         compact_configuration: Compact,
         selected_jurisdictions: list[Jurisdiction],
@@ -208,6 +211,12 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         payment = apicontractsv1.paymentType()
         payment.creditCard = credit_card
 
+        # Create order information
+        order = apicontractsv1.orderType()
+        # We store the LICENSEE ID in the description field, since the ID is a UUID that is 36 characters long
+        # and this is the only field that can store that length of data
+        order.description = f'LICENSEE#{licensee_id}#'
+
         line_items = apicontractsv1.ArrayOfLineItem()
         for jurisdiction in selected_jurisdictions:
             jurisdiction_name_title_case = jurisdiction.jurisdiction_name.title()
@@ -227,7 +236,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
 
         # Add the compact fee to the line items
         compact_fee_line_item = apicontractsv1.lineItemType()
-        compact_fee_line_item.itemId = f'{compact_configuration.compact_name}-fee'
+        compact_fee_line_item.itemId = f'{compact_configuration.compact_name}-compact-fee'
         compact_fee_line_item.name = f'{compact_configuration.compact_name.upper()} Compact Fee'
         compact_fee_line_item.description = 'Compact fee applied for each privilege purchased'
         compact_fee_line_item.quantity = len(selected_jurisdictions)
@@ -264,6 +273,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         transaction_request.payment = payment
         transaction_request.billTo = customer_address
         transaction_request.transactionSettings = settings
+        transaction_request.order = order
         transaction_request.lineItems = line_items
         transaction_request.taxExempt = True
 
@@ -423,6 +433,7 @@ class PurchaseClient:
 
     def process_charge_for_licensee_privileges(
         self,
+        licensee_id: str,
         order_information: dict,
         compact_configuration: Compact,
         selected_jurisdictions: list[Jurisdiction],
@@ -431,6 +442,7 @@ class PurchaseClient:
         """
         Process a charge on a credit card for a list of privileges within a compact.
 
+        :param licensee_id: The Licensee user ID.
         :param order_information: A dictionary containing the order information (billing, card, etc.)
         :param compact_configuration: The compact configuration.
         :param selected_jurisdictions: A list of selected jurisdictions to purchase privileges for.
@@ -443,6 +455,7 @@ class PurchaseClient:
             )
 
         return self.payment_processor_client.process_charge_on_credit_card_for_privilege_purchase(
+            licensee_id=licensee_id,
             order_information=order_information,
             compact_configuration=compact_configuration,
             selected_jurisdictions=selected_jurisdictions,

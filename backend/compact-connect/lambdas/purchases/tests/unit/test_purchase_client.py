@@ -18,6 +18,8 @@ MOCK_ASLP_SECRET = {
 
 MOCK_TRANSACTION_ID = '123456'
 
+MOCK_LICENSEE_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
+
 EXPECTED_TOTAL_FEE_AMOUNT = 150.50
 
 
@@ -170,6 +172,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
         response = test_purchase_client.process_charge_for_licensee_privileges(
+            licensee_id=MOCK_LICENSEE_ID,
             order_information=_generate_default_order_information(),
             compact_configuration=_generate_aslp_compact_configuration(),
             selected_jurisdictions=_generate_selected_jurisdictions(),
@@ -192,6 +195,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
         test_purchase_client.process_charge_for_licensee_privileges(
+            licensee_id=MOCK_LICENSEE_ID,
             order_information=_generate_default_order_information(),
             compact_configuration=_generate_aslp_compact_configuration(),
             selected_jurisdictions=_generate_selected_jurisdictions(),
@@ -239,6 +243,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
         test_purchase_client.process_charge_for_licensee_privileges(
+            licensee_id=MOCK_LICENSEE_ID,
             order_information=_generate_default_order_information(),
             compact_configuration=_generate_aslp_compact_configuration(),
             selected_jurisdictions=_generate_selected_jurisdictions(),
@@ -258,7 +263,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             'Compact Privilege for Ohio', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].description
         )
         # second line item is the compact fee
-        self.assertEqual('aslp-fee', api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].itemId)
+        self.assertEqual('aslp-compact-fee', api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].itemId)
         self.assertEqual('ASLP Compact Fee', api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].name)
         self.assertEqual(50.50, api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].unitPrice)
         self.assertEqual(1, api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].quantity)
@@ -284,6 +289,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
         test_purchase_client.process_charge_for_licensee_privileges(
+            licensee_id=MOCK_LICENSEE_ID,
             order_information=_generate_default_order_information(),
             compact_configuration=_generate_aslp_compact_configuration(),
             selected_jurisdictions=_generate_selected_jurisdictions(),
@@ -322,6 +328,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         with self.assertRaises(CCFailedTransactionException):
             test_purchase_client.process_charge_for_licensee_privileges(
+                licensee_id=MOCK_LICENSEE_ID,
                 order_information=_generate_default_order_information(),
                 compact_configuration=_generate_aslp_compact_configuration(),
                 selected_jurisdictions=_generate_selected_jurisdictions(),
@@ -341,6 +348,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         with self.assertRaises(CCInternalException):
             test_purchase_client.process_charge_for_licensee_privileges(
+                licensee_id=MOCK_LICENSEE_ID,
                 order_information=_generate_default_order_information(),
                 compact_configuration=_generate_aslp_compact_configuration(),
                 selected_jurisdictions=_generate_selected_jurisdictions(),
