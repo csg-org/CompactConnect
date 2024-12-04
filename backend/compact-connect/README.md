@@ -114,7 +114,8 @@ its environment:
 5) Update the environment entry under `ssm_context.environments` to your own name and your own AWS sandbox account id (which you can find by following these [these instructions](https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-identifiers.html#FindAccountId)),
    and domain name, if you set one up. **If you opted not to create a HostedZone, remove the `domain_name` field.**
    The key under `environments` must match the value you put under `environment_name`.
-6) Configure your aws cli to authenticate against your own account.
+6) Configure your aws cli to authenticate against your own account. There are several ways to do this based on the
+   type of authentication you use to login to your account. See the [AWS CLI Configuration Guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html).
 7) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account.
 8) Run `cdk deploy 'Sandbox/*'` to get the initial stack resources deployed.
 
