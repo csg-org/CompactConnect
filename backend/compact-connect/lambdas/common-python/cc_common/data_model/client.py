@@ -5,7 +5,6 @@ from uuid import uuid4
 from boto3.dynamodb.conditions import Attr, Key
 from boto3.dynamodb.types import TypeDeserializer
 from botocore.exceptions import ClientError
-
 from cc_common.config import _Config, config, logger
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
@@ -174,15 +173,15 @@ class DataClient:
         jurisdiction_postal_abbreviation: str,
         license_expiration_date: date,
         compact_transaction_id: str,
-        original_issuance_date: date | None = None,
+        original_issuance_date: datetime | None = None,
     ):
-        today = datetime.now(tz=self.config.expiration_date_resolution_timezone).date()
+        current_datetime = config.current_standard_datetime
         privilege_object = {
             'providerId': provider_id,
             'compact': compact_name,
             'jurisdiction': jurisdiction_postal_abbreviation.lower(),
-            'dateOfIssuance': original_issuance_date if original_issuance_date else today,
-            'dateOfRenewal': today,
+            'dateOfIssuance': original_issuance_date if original_issuance_date else current_datetime,
+            'dateOfRenewal': current_datetime,
             'dateOfExpiration': license_expiration_date,
             'compactTransactionId': compact_transaction_id,
         }

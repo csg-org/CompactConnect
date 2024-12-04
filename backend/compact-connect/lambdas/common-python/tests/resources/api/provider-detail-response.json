@@ -60,8 +60,8 @@
       "compact": "aslp",
       "jurisdiction": "ne",
       "status": "active",
-      "dateOfIssuance": "2024-06-06",
-      "dateOfRenewal": "2024-11-08",
+      "dateOfIssuance": "2024-06-06T23:59:59+00:00",
+      "dateOfRenewal": "2024-11-08T23:59:59+00:00",
       "dateOfUpdate": "2024-07-01",
       "dateOfExpiration": "2050-06-06",
       "compactTransactionId": "1234567890"

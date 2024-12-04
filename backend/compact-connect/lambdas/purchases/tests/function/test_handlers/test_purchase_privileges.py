@@ -278,6 +278,7 @@ class TestPostPurchasePrivileges(TstFunction):
         )
 
     @patch('handlers.privileges.PurchaseClient')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-10-05T23:59:59+00:00'))
     def test_purchase_privileges_allows_existing_privilege_purchase_if_license_expiration_does_not_match(
         self, mock_purchase_client_constructor
     ):
@@ -288,16 +289,16 @@ class TestPostPurchasePrivileges(TstFunction):
         from handlers.privileges import post_purchase_privileges
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
-        test_expiration_date = date(2024, 11, 8).isoformat()
+        test_expiration_date = date(2024, 10, 8).isoformat()
         event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
         event['body'] = _generate_test_request_body()
-        test_issuance_date = date(2023, 11, 8).isoformat()
+        test_issuance_date = datetime(2023, 10, 8, hour=5).isoformat()
 
         # create an existing privilege record for the kentucky jurisdiction, simulating a previous purchase
         with open('../common-python/tests/resources/dynamo/privilege.json') as f:
             privilege_record = json.load(f)
             privilege_record['pk'] = f'{TEST_COMPACT}#PROVIDER#{TEST_PROVIDER_ID}'
-            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky#2023-11-08'
+            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky#2023-10-08'
             # in this case, the user is purchasing the privilege for the first time
             # so the date of renewal is the same as the date of issuance
             privilege_record['dateOfRenewal'] = test_issuance_date
@@ -329,7 +330,7 @@ class TestPostPurchasePrivileges(TstFunction):
             record
             for record in privilege_records
             if record['dateOfRenewal'].isoformat()
-            == datetime.now(tz=self.config.expiration_date_resolution_timezone).date().isoformat()
+            == '2024-10-05T23:59:59+00:00'
         )
         # ensure the expiration is updated
         self.assertEqual(updated_expiration_date, updated_privilege_record['dateOfExpiration'].isoformat())
@@ -393,7 +394,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(expected_expiration_date, privilege_record['dateOfExpiration'])
         # the date of issuance should be today
         self.assertEqual(
-            datetime.now(tz=self.config.expiration_date_resolution_timezone).date(), privilege_record['dateOfIssuance']
+            datetime.now(tz=self.config.expiration_date_resolution_timezone).date(), privilege_record['dateOfIssuance'].date()
         )
         self.assertEqual(
             datetime.now(tz=self.config.expiration_date_resolution_timezone).date(), privilege_record['dateOfUpdate']
