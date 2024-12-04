@@ -152,15 +152,6 @@ class TestTransformations(TstFunction):
         del records['privilege']['dateOfRenewal']
         del records['militaryAffiliation']['dateOfUpload']
 
-
-        # check the sk of the military affiliation, which is also dynamic
-        self.assertEqual('aslp#PROVIDER#military-affiliation#2024-07-08', expected_military_affiliation.pop('sk'))
-        self.assertEqual(
-            f'aslp#PROVIDER#military-affiliation#{datetime.now(tz=self.config.expiration_date_resolution_timezone)
-            .date().isoformat()}',
-            records['militaryAffiliation'].pop('sk'),
-        )
-
         # Make sure each is represented the way we expect, in the db
         self.assertEqual(expected_provider, records['provider'])
         self.assertEqual(expected_license, records['license'])

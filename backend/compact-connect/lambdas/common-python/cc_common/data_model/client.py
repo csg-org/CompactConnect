@@ -350,7 +350,7 @@ class DataClient:
             # will trigger another lambda to update the status to active
             'status': MilitaryAffiliationStatus.INITIALIZING.value,
             'documentKeys': document_keys,
-            'dateOfUpload': datetime.now(tz=UTC),
+            'dateOfUpload': config.current_standard_datetime,
         }
 
         schema = MilitaryAffiliationRecordSchema()
