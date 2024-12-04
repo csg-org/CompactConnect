@@ -9,9 +9,8 @@ from marshmallow.fields import UUID, DateTime, List, String
 from marshmallow.validate import OneOf, Regexp
 
 from cc_common.config import config
-from cc_common.exceptions import CCInternalException
 from cc_common.data_model.schema.common import ensure_value_is_datetime
-
+from cc_common.exceptions import CCInternalException
 
 
 class StrictSchema(Schema):

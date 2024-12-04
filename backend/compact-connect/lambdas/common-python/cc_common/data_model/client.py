@@ -1,10 +1,11 @@
-from datetime import UTC, date, datetime
+from datetime import date, datetime
 from urllib.parse import quote
 from uuid import uuid4
 
 from boto3.dynamodb.conditions import Attr, Key
 from boto3.dynamodb.types import TypeDeserializer
 from botocore.exceptions import ClientError
+
 from cc_common.config import _Config, config, logger
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema

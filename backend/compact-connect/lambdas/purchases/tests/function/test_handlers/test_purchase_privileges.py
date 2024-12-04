@@ -1,5 +1,5 @@
 import json
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from unittest.mock import MagicMock, patch
 
 from cc_common.config import config
@@ -158,9 +158,8 @@ class TestPostPurchasePrivileges(TstFunction):
         self, mock_purchase_client_constructor
     ):
         from handlers.privileges import post_purchase_privileges
-        self._when_purchase_client_successfully_processes_request(
-            mock_purchase_client_constructor
-        )
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
         event = self._when_testing_provider_user_event_with_custom_claims()
         self._load_military_affiliation_record_data(status='initializing')
         event['body'] = _generate_test_request_body()
@@ -292,7 +291,7 @@ class TestPostPurchasePrivileges(TstFunction):
         test_expiration_date = date(2024, 10, 8).isoformat()
         event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
         event['body'] = _generate_test_request_body()
-        test_issuance_date = datetime(2023, 10, 8, hour=5).isoformat()
+        test_issuance_date = datetime(2023, 10, 8, hour=5, tzinfo=UTC).isoformat()
 
         # create an existing privilege record for the kentucky jurisdiction, simulating a previous purchase
         with open('../common-python/tests/resources/dynamo/privilege.json') as f:
@@ -327,10 +326,7 @@ class TestPostPurchasePrivileges(TstFunction):
 
         # ensure the date of renewal is updated
         updated_privilege_record = next(
-            record
-            for record in privilege_records
-            if record['dateOfRenewal'].isoformat()
-            == '2024-10-05T23:59:59+00:00'
+            record for record in privilege_records if record['dateOfRenewal'].isoformat() == '2024-10-05T23:59:59+00:00'
         )
         # ensure the expiration is updated
         self.assertEqual(updated_expiration_date, updated_privilege_record['dateOfExpiration'].isoformat())

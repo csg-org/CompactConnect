@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime
 from unittest.mock import MagicMock, patch
 
 from botocore.exceptions import ClientError

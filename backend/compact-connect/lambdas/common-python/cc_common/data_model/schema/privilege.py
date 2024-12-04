@@ -1,11 +1,12 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 
-from cc_common.config import config
-from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema
-from cc_common.data_model.schema.common import ensure_value_is_datetime
 from marshmallow import pre_dump, pre_load
 from marshmallow.fields import UUID, Date, DateTime, String
 from marshmallow.validate import Length, OneOf
+
+from cc_common.config import config
+from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema
+from cc_common.data_model.schema.common import ensure_value_is_datetime
 
 
 @BaseRecordSchema.register_schema('privilege')
@@ -32,7 +33,9 @@ class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
-        in_data['sk'] = f'{in_data['compact']}#PROVIDER#privilege/{in_data['jurisdiction']}#{in_data['dateOfRenewal'].date().isoformat()}'  # noqa: E501
+        in_data['sk'] = (
+            f'{in_data['compact']}#PROVIDER#privilege/{in_data['jurisdiction']}#{in_data['dateOfRenewal'].date().isoformat()}'  # noqa: E501
+        )
         return in_data
 
     @pre_load

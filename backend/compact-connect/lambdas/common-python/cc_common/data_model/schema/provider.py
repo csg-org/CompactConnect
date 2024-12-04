@@ -1,6 +1,10 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from urllib.parse import quote
 
+from marshmallow import ValidationError, post_load, pre_dump, pre_load, validates_schema
+from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, String
+from marshmallow.validate import Length, OneOf, Regexp
+
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import (
     BaseRecordSchema,
@@ -11,9 +15,6 @@ from cc_common.data_model.schema.base_record import (
     SocialSecurityNumber,
 )
 from cc_common.data_model.schema.common import ensure_value_is_datetime
-from marshmallow import ValidationError, post_load, pre_dump, pre_load, validates_schema
-from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, String
-from marshmallow.validate import Length, OneOf, Regexp
 
 
 class ProviderPublicSchema(ForgivingSchema):

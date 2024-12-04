@@ -60,7 +60,6 @@ def generate_mock_compact_configuration():
 
 @mock_aws
 class TestCompactConfigurationUploader(TstFunction):
-
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(MOCK_CURRENT_TIMESTAMP))
     def test_compact_configuration_uploader_store_all_config(self):
         from handlers.compact_config_uploader import on_event
