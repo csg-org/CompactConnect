@@ -19,6 +19,7 @@ from stacks.persistent_stack.event_bus import EventBus
 from stacks.persistent_stack.license_table import LicenseTable
 from stacks.persistent_stack.provider_table import ProviderTable
 from stacks.persistent_stack.provider_users import ProviderUsers
+from stacks.persistent_stack.provider_users_bucket import ProviderUsersBucket
 from stacks.persistent_stack.staff_users import StaffUsers
 from stacks.persistent_stack.user_email_notifications import UserEmailNotifications
 
@@ -185,8 +186,7 @@ class PersistentStack(AppStack):
         self.export_value(self.mock_bulk_uploads_bucket.bucket_arn)
 
         self.mock_license_table = LicenseTable(
-            self, 'MockLicenseTable', encryption_key=self.shared_encryption_key,
-            removal_policy=RemovalPolicy.DESTROY
+            self, 'MockLicenseTable', encryption_key=self.shared_encryption_key, removal_policy=RemovalPolicy.DESTROY
         )
 
         # These dummy exports are required until we remove dependencies from the api stack
@@ -196,8 +196,7 @@ class PersistentStack(AppStack):
 
     def _add_deprecated_data_resources(self):
         self.license_table = LicenseTable(
-            self, 'LicenseTable', encryption_key=self.shared_encryption_key,
-            removal_policy=RemovalPolicy.DESTROY
+            self, 'LicenseTable', encryption_key=self.shared_encryption_key, removal_policy=RemovalPolicy.DESTROY
         )
 
         # These dummy exports are required until we remove dependencies from the api stack
@@ -222,4 +221,14 @@ class PersistentStack(AppStack):
 
         self.compact_configuration_table = CompactConfigurationTable(
             self, 'CompactConfigurationTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
+        )
+
+        # bucket for holding documentation for providers
+        self.provider_users_bucket = ProviderUsersBucket(
+            self,
+            'ProviderUsersBucket',
+            access_logs_bucket=self.access_logs_bucket,
+            encryption_key=self.shared_encryption_key,
+            provider_table=self.provider_table,
+            removal_policy=removal_policy,
         )

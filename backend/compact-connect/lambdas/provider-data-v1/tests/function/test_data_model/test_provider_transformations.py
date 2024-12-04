@@ -91,14 +91,27 @@ class TestTransformations(TstFunction):
             existing_privileges=[],
         )
 
+        from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationType
+
+        # Add a military affiliation
+        client.create_military_affiliation(
+            compact='aslp',
+            provider_id=provider_id,
+            affiliation_type=MilitaryAffiliationType.MILITARY_MEMBER,
+            file_names=['military-waiver.pdf'],
+            document_keys=[
+                '/provider/<provider_id>/document-type/military-affiliations/2024-07-08/1234#military-waiver.pdf'
+            ],
+        )
+
         # Get the provider straight from the table, to inspect them
         resp = self._provider_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
             & Key('sk').begins_with('aslp#PROVIDER'),
         )
-        # One record for reach of: provider, license, privilege
-        self.assertEqual(3, len(resp['Items']))
+        # One record for reach of: provider, license, privilege, militaryAffiliation
+        self.assertEqual(4, len(resp['Items']))
         records = {item['type']: item for item in resp['Items']}
 
         # Expected representation of each record in the database
@@ -111,9 +124,20 @@ class TestTransformations(TstFunction):
             expected_license = json.load(f)
         with open('../common-python/tests/resources/dynamo/privilege.json') as f:
             expected_privilege = json.load(f)
+        with open('../common-python/tests/resources/dynamo/military-affiliation.json') as f:
+            expected_military_affiliation = json.load(f)
+            # in this case, the status will be initializing, since it is not set to active until
+            # the military affiliation document is uploaded
+            expected_military_affiliation['status'] = 'initializing'
 
-        # Force the provider id to match
-        for record in [expected_provider, expected_license, expected_privilege, *records.values()]:
+        # each record has a dynamic dateOfUpdate field that we'll remove for comparison
+        for record in [
+            expected_provider,
+            expected_license,
+            expected_privilege,
+            expected_military_affiliation,
+            *records.values(),
+        ]:
             # Drop dynamic field
             del record['dateOfUpdate']
         # These fields will be dynamic, so we'll remove them from comparison
@@ -121,9 +145,11 @@ class TestTransformations(TstFunction):
         del records['provider']['providerDateOfUpdate']
         del expected_privilege['dateOfIssuance']
         del expected_privilege['dateOfRenewal']
+        del expected_military_affiliation['dateOfUpload']
         # removing dynamic fields
         del records['privilege']['dateOfIssuance']
         del records['privilege']['dateOfRenewal']
+        del records['militaryAffiliation']['dateOfUpload']
 
         # the sk is dynamic and will not match, but we can check its values to make sure the value of each is expected
         self.assertEqual('aslp#PROVIDER#privilege/ne#2024-11-08', expected_privilege.pop('sk'))
@@ -132,11 +158,19 @@ class TestTransformations(TstFunction):
             .date().isoformat()}',
             records['privilege'].pop('sk'),
         )
+        # check the sk of the military affiliation, which is also dynamic
+        self.assertEqual('aslp#PROVIDER#military-affiliation#2024-07-08', expected_military_affiliation.pop('sk'))
+        self.assertEqual(
+            f'aslp#PROVIDER#military-affiliation#{datetime.now(tz=self.config.expiration_date_resolution_timezone)
+            .date().isoformat()}',
+            records['militaryAffiliation'].pop('sk'),
+        )
 
         # Make sure each is represented the way we expect, in the db
         self.assertEqual(expected_provider, records['provider'])
         self.assertEqual(expected_license, records['license'])
         self.assertEqual(expected_privilege, records['privilege'])
+        self.assertEqual(expected_military_affiliation, records['militaryAffiliation'])
 
         from handlers.providers import get_provider
 
@@ -157,6 +191,9 @@ class TestTransformations(TstFunction):
         # Expected representation of our provider coming _out_ via the API
         with open('../common-python/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
+            # in this case, the military affiliation status will be initializing, since it is not set to active until
+            # the military affiliation document is uploaded to s3
+            expected_provider['militaryAffiliations'][0]['status'] = 'initializing'
 
         # Force the provider id to match
         expected_provider['providerId'] = provider_id
@@ -167,11 +204,15 @@ class TestTransformations(TstFunction):
         del provider_data['privileges'][0]['dateOfUpdate']
         del provider_data['privileges'][0]['dateOfIssuance']
         del provider_data['privileges'][0]['dateOfRenewal']
+        del provider_data['militaryAffiliations'][0]['dateOfUpload']
+        del provider_data['militaryAffiliations'][0]['dateOfUpdate']
         del expected_provider['dateOfUpdate']
         del expected_provider['licenses'][0]['dateOfUpdate']
         del expected_provider['privileges'][0]['dateOfUpdate']
         del expected_provider['privileges'][0]['dateOfIssuance']
         del expected_provider['privileges'][0]['dateOfRenewal']
+        del expected_provider['militaryAffiliations'][0]['dateOfUpload']
+        del expected_provider['militaryAffiliations'][0]['dateOfUpdate']
 
         # Phew! We've loaded the data all the way in via the ingest chain and back out via the API!
         self.assertEqual(expected_provider, provider_data)

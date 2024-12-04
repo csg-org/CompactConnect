@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -10,6 +10,11 @@ from cc_common.config import _Config, config, logger
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
+from cc_common.data_model.schema.military_affiliation import (
+    MilitaryAffiliationRecordSchema,
+    MilitaryAffiliationStatus,
+    MilitaryAffiliationType,
+)
 from cc_common.exceptions import CCAwsServiceException, CCNotFoundException
 
 
@@ -263,3 +268,117 @@ class DataClient:
                     # this transaction is idempotent, so we can safely delete the records even if they weren't created
                     delete_batch.delete_item(Key={'pk': privilege_record['pk'], 'sk': privilege_record['sk']})
             raise CCAwsServiceException(message) from e
+
+    def _get_military_affiliation_records_by_status(
+        self, compact: str, provider_id: str, status: MilitaryAffiliationStatus
+    ):
+        military_affiliation_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
+            & Key('sk').begins_with(
+                f'{compact}#PROVIDER#military-affiliation#',
+            ),
+            FilterExpression=Attr('status').eq(status.value),
+        ).get('Items', [])
+
+        schema = MilitaryAffiliationRecordSchema()
+        return [schema.load(record) for record in military_affiliation_records]
+
+    def _get_active_military_affiliation_records(self, compact: str, provider_id: str):
+        return self._get_military_affiliation_records_by_status(compact, provider_id, MilitaryAffiliationStatus.ACTIVE)
+
+    def _get_initializing_military_affiliation_records(self, compact: str, provider_id: str):
+        return self._get_military_affiliation_records_by_status(
+            compact, provider_id, MilitaryAffiliationStatus.INITIALIZING
+        )
+
+    def complete_military_affiliation_initialization(self, compact: str, provider_id: str):
+        """
+        This method is called when the client has uploaded the document for a military affiliation record.
+
+        It gets all records in an initializing state, sets the latest to active, and the rest to inactive for a
+        self-healing process.
+        """
+        initializing_military_affiliation_records = self._get_initializing_military_affiliation_records(
+            compact, provider_id
+        )
+
+        if not initializing_military_affiliation_records:
+            return
+
+        latest_military_affiliation_record = max(
+            initializing_military_affiliation_records, key=lambda record: record['dateOfUpload']
+        )
+
+        schema = MilitaryAffiliationRecordSchema()
+        with self.config.provider_table.batch_writer() as batch:
+            for record in initializing_military_affiliation_records:
+                if record['dateOfUpload'] == latest_military_affiliation_record['dateOfUpload']:
+                    record['status'] = MilitaryAffiliationStatus.ACTIVE.value
+                else:
+                    record['status'] = MilitaryAffiliationStatus.INACTIVE.value
+
+                serialized_record = schema.dump(record)
+                batch.put_item(Item=serialized_record)
+
+    def create_military_affiliation(
+        self,
+        compact: str,
+        provider_id: str,
+        affiliation_type: MilitaryAffiliationType,
+        file_names: list[str],
+        document_keys: list[str],
+    ):
+        """
+        Create a new military affiliation record for a provider in the database.
+
+        If there are any previous active military affiliations for this provider, they will be set to inactive.
+
+        :param compact: The compact name
+        :param provider_id: The provider id
+        :param affiliation_type: The type of military affiliation
+        :param file_names: The list of file names for the documents
+        :param document_keys: The list of s3 document keys for the documents
+        :return: The created military affiliation record
+        """
+
+        latest_military_affiliation_record = {
+            'type': 'militaryAffiliation',
+            'affiliationType': affiliation_type.value,
+            'fileNames': file_names,
+            'compact': compact,
+            'providerId': provider_id,
+            # we set this to initializing until the client uploads the document, which
+            # will trigger another lambda to update the status to active
+            'status': MilitaryAffiliationStatus.INITIALIZING.value,
+            'documentKeys': document_keys,
+            'dateOfUpload': datetime.now(tz=UTC),
+        }
+
+        schema = MilitaryAffiliationRecordSchema()
+        latest_military_affiliation_record_serialized = schema.dump(latest_military_affiliation_record)
+
+        with self.config.provider_table.batch_writer() as batch:
+            batch.put_item(Item=latest_military_affiliation_record_serialized)
+
+        # We need to check for any other military affiliations with an 'active' status for this provider
+        # and set them to inactive. Note these could be consolidated into a single batch call if performance
+        # becomes an issue.
+        self.inactivate_military_affiliation_status(compact, provider_id)
+
+        return latest_military_affiliation_record
+
+    def inactivate_military_affiliation_status(self, compact: str, provider_id: str):
+        """
+        Sets all active military affiliation records to an inactive status for a provider in the database.
+
+        :param compact: The compact name
+        :param provider_id: The provider id
+        :return: None
+        """
+        active_military_affiliation_records = self._get_active_military_affiliation_records(compact, provider_id)
+        schema = MilitaryAffiliationRecordSchema()
+        with self.config.provider_table.batch_writer() as batch:
+            for record in active_military_affiliation_records:
+                record['status'] = MilitaryAffiliationStatus.INACTIVE.value
+                serialized_record = schema.dump(record)
+                batch.put_item(Item=serialized_record)

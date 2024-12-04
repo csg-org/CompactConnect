@@ -123,5 +123,12 @@ class TstFunction(TstLambdas):
                     record['dateOfExpiration'] = expiration_date
 
             logger.debug('Loading resource, %s: %s', resource, str(record))
-            # compact and jurisdiction records go in the compact configuration table
             self._provider_table.put_item(Item=record)
+
+    def _load_military_affiliation_record_data(self, status: str = 'active'):
+        """Use the canned test resources to load a basic provider to the DB"""
+        with open('../common-python/tests/resources/dynamo/military-affiliation.json') as f:
+            record = json.load(f, parse_float=Decimal)
+            record['status'] = status
+
+        self._provider_table.put_item(Item=record)

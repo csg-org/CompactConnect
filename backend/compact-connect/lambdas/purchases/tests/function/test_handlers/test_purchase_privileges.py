@@ -117,7 +117,66 @@ class TestPostPurchasePrivileges(TstFunction):
                 for jurisdiction in purchase_client_call_kwargs['selected_jurisdictions']
             ],
         )
+        # in this test, the user had an empty list of military affiliations, so this should be false
         self.assertEqual(False, purchase_client_call_kwargs['user_active_military'])
+
+    def _when_testing_military_affiliation_status(
+        self,
+        mock_purchase_client_constructor: MagicMock,
+        military_affiliation_status: str,
+        expected_military_parameter: bool,
+    ):
+        from handlers.privileges import post_purchase_privileges
+
+        mock_purchase_client = self._when_purchase_client_successfully_processes_request(
+            mock_purchase_client_constructor
+        )
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        self._load_military_affiliation_record_data(status=military_affiliation_status)
+        event['body'] = _generate_test_request_body()
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+
+        purchase_client_call_kwargs = mock_purchase_client.process_charge_for_licensee_privileges.call_args.kwargs
+        self.assertEqual(expected_military_parameter, purchase_client_call_kwargs['user_active_military'])
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_calls_purchase_client_with_active_military_status(
+        self, mock_purchase_client_constructor
+    ):
+        self._when_testing_military_affiliation_status(mock_purchase_client_constructor, 'active', True)
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_calls_purchase_client_with_inactive_military_status(
+        self, mock_purchase_client_constructor
+    ):
+        self._when_testing_military_affiliation_status(mock_purchase_client_constructor, 'inactive', False)
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_raises_exception_when_military_affiliation_in_initializing_status(
+        self, mock_purchase_client_constructor
+    ):
+        from handlers.privileges import post_purchase_privileges
+        self._when_purchase_client_successfully_processes_request(
+            mock_purchase_client_constructor
+        )
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        self._load_military_affiliation_record_data(status='initializing')
+        event['body'] = _generate_test_request_body()
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual(
+            {
+                'message': 'Your proof of military affiliation documentation was not successfully'
+                ' processed. Please return to the Military Status page and re-upload your military'
+                ' affiliation documentation or end your military affiliation.'
+            },
+            response_body,
+        )
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_transaction_id(self, mock_purchase_client_constructor):

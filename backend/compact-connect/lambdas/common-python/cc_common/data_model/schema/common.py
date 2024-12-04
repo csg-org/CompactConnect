@@ -1,5 +1,8 @@
 from enum import Enum
 
+from marshmallow import Schema
+from marshmallow.fields import Dict, String, Url
+
 
 class CCEnum(Enum):
     """
@@ -12,3 +15,12 @@ class CCEnum(Enum):
     @classmethod
     def from_str(cls, label: str) -> 'CCEnum':
         return cls[label]
+
+
+class S3PresignedPostSchema(Schema):
+    """
+    Schema for S3 pre-signed post data
+    """
+
+    url = Url(schemes=['https'], required=True, allow_none=False)
+    fields = Dict(keys=String(), values=String(), required=True, allow_none=False)
