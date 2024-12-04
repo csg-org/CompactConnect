@@ -135,11 +135,9 @@ class TstFunction(TstLambdas):
 
             # Create a new provider with a license
             now = self.config.current_standard_datetime
-            with patch('cc_common.data_model.schema.base_record.datetime') as mock:
-                # This gives us some variation in dateOfUpdate values to sort by
-                mock.now.side_effect = lambda tz: now - timedelta(  # noqa: ARG005, B023  unused-lambda-argument
-                    days=randint(1, 365),
-                )
+            # This gives us some variation in dateOfUpdate values to sort by
+            with patch('cc_common.config._Config.current_standard_datetime',
+                       new_callable=lambda: now - timedelta( days=randint(1, 365))):
 
                 ingest_license_message(
                     {'Records': [{'messageId': '123', 'body': json.dumps(ingest_message_copy)}]},
