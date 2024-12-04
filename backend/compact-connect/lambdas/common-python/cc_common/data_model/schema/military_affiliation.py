@@ -1,7 +1,7 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 
 from marshmallow import pre_dump
-from marshmallow.fields import UUID, Date, DateTime, List, Nested, String
+from marshmallow.fields import UUID, DateTime, List, Nested, String
 from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
@@ -60,7 +60,7 @@ class PostMilitaryAffiliationResponseSchema(ForgivingSchema):
 
     fileNames = List(String(required=True, allow_none=False), required=True, allow_none=False)
     dateOfUpload = DateTime(required=True, allow_none=False)
-    dateOfUpdate = Date(required=True, allow_none=False)
+    dateOfUpdate = DateTime(required=True, allow_none=False)
     status = String(required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationStatus]))
     affiliationType = String(
         required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationType])

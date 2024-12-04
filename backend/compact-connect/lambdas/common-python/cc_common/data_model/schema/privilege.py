@@ -36,6 +36,7 @@ class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
 
     @pre_load
     def pre_load_initialization(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        in_data = super().pre_load_initialization(in_data, **kwargs)
         return self._enforce_datetimes(in_data)
 
     def _enforce_datetimes(self, in_data, **kwargs):

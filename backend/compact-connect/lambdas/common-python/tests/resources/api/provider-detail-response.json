@@ -21,7 +21,7 @@
   "emailAddress": "björk@example.com",
   "phoneNumber": "+13213214321",
   "dateOfBirth": "2024-06-06",
-  "dateOfUpdate": "2024-07-08",
+  "dateOfUpdate": "2024-07-08T23:59:59+00:00",
   "dateOfExpiration": "2050-06-06",
   "birthMonthDay": "06-06",
   "licenses": [
@@ -42,7 +42,7 @@
       "dateOfRenewal": "2024-06-06",
       "dateOfExpiration": "2050-06-06",
       "dateOfBirth": "2024-06-06",
-      "dateOfUpdate": "2024-07-08",
+      "dateOfUpdate": "2024-07-08T23:59:59+00:00",
       "homeAddressStreet1": "123 A St.",
       "homeAddressStreet2": "Apt 321",
       "homeAddressCity": "Columbus",
@@ -62,7 +62,7 @@
       "status": "active",
       "dateOfIssuance": "2024-06-06T23:59:59+00:00",
       "dateOfRenewal": "2024-11-08T23:59:59+00:00",
-      "dateOfUpdate": "2024-07-01",
+      "dateOfUpdate": "2024-07-01T23:59:59+00:00",
       "dateOfExpiration": "2050-06-06",
       "compactTransactionId": "1234567890"
     }
@@ -77,7 +77,7 @@
       "fileNames": ["military-waiver.pdf"],
       "status": "active",
       "dateOfUpload": "2024-07-08T13:34:59+00:00",
-      "dateOfUpdate": "2024-07-08"
+      "dateOfUpdate": "2024-07-08T23:59:59+00:00"
    }
   ]
 }

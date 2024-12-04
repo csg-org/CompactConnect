@@ -369,6 +369,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual({'message': 'No active license found for this user'}, response_body)
 
     @patch('handlers.privileges.PurchaseClient')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_post_purchase_privileges_adds_privilege_record_if_transaction_successful(
         self, mock_purchase_client_constructor
     ):
@@ -392,13 +393,10 @@ class TestPostPurchasePrivileges(TstFunction):
         expected_expiration_date = date(2050, 1, 1)
         self.assertEqual(expected_expiration_date, license_record['dateOfExpiration'])
         self.assertEqual(expected_expiration_date, privilege_record['dateOfExpiration'])
-        # the date of issuance should be today
-        self.assertEqual(
-            datetime.now(tz=self.config.expiration_date_resolution_timezone).date(), privilege_record['dateOfIssuance'].date()
-        )
-        self.assertEqual(
-            datetime.now(tz=self.config.expiration_date_resolution_timezone).date(), privilege_record['dateOfUpdate']
-        )
+        # the date of issuance should be mocked timestamp
+        mock_datetime = datetime.fromisoformat('2024-11-08T23:59:59+00:00')
+        self.assertEqual(mock_datetime, privilege_record['dateOfIssuance'])
+        self.assertEqual(mock_datetime, privilege_record['dateOfUpdate'])
         self.assertEqual(TEST_COMPACT, privilege_record['compact'])
         self.assertEqual('ky', privilege_record['jurisdiction'])
         self.assertEqual(TEST_PROVIDER_ID, str(privilege_record['providerId']))
