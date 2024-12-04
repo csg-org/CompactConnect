@@ -32,6 +32,8 @@ class ProviderPublicSchema(ForgivingSchema):
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
+    # these dates are determined by the license records uploaded by a state
+    # they do not include a timestamp, so we use the Date field type
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfBirth = Date(required=True, allow_none=False)
     homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))

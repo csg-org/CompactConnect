@@ -22,6 +22,7 @@ class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
     dateOfRenewal = DateTime(required=True, allow_none=False)
     # this is determined by the license expiration date, which is a date field, so this is also a date field
     dateOfExpiration = Date(required=True, allow_none=False)
+    # the id of the transaction that was made when the user purchased the privilege
     compactTransactionId = String(required=False, allow_none=False)
 
     # Generated fields

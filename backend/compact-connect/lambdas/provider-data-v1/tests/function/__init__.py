@@ -134,7 +134,7 @@ class TstFunction(TstLambdas):
             )
 
             # Create a new provider with a license
-            now = datetime.now(tz=self.config.expiration_date_resolution_timezone)
+            now = self.config.current_standard_datetime
             with patch('cc_common.data_model.schema.base_record.datetime') as mock:
                 # This gives us some variation in dateOfUpdate values to sort by
                 mock.now.side_effect = lambda tz: now - timedelta(  # noqa: ARG005, B023  unused-lambda-argument
