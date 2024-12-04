@@ -25,7 +25,6 @@ class TestDataClient(TstLambdas):
         )
 
         mock_config = MagicMock(spec=client._Config)  # noqa: SLF001 protected-access
-        mock_config.expiration_date_resolution_timezone = timezone(offset=timedelta(hours=-4))
         mock_config.provider_table = mock_dynamo_db_table
 
         test_data_client = client.DataClient(mock_config)
