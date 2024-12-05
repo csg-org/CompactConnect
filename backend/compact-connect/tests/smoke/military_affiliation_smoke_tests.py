@@ -4,16 +4,14 @@ import time
 from datetime import UTC, datetime
 
 import requests
+from smoke_common import get_api_base_url, get_auth_headers, load_smoke_test_env
 
-# This script is used to test the military affiliations upload flow of the Compact Connect API.
-# It is currently configured to run locally against a sandbox environment. To run this script, you must
-# set the following constant values to match your environment
-# This should include the https:// prefix  (ex. https://sandbox.compactconnect.org)
-API_URL = os.environ['API_URL']
-# The cognito ID token issued when the user is authenticated. This can be fetched by logging
-# into the Compact Connect UI of your test environment and copying the value of 'id_token_licensee' from the
-# browser's local storage.
-TEST_USER_COGNITO_ID_TOKEN = os.environ['TEST_PROVIDER_USER_ID_TOKEN']
+# This script is used to test the military affiliations upload flow against a sandbox environment
+# # of the Compact Connect API.
+
+# To run this script, create a smoke_tests_env.json file in the same directory as this script using the
+# 'smoke_tests_env_example.json' file as a template.
+
 
 
 def test_military_affiliation_upload():
@@ -23,16 +21,14 @@ def test_military_affiliation_upload():
     # Step 3: Verify that the test pdf file was uploaded successfully by checking the response status code.
     # Step 4: Get the provider data from the GET '/v1/provider-users/me' endpoint and verify that the military
     # affiliation record is active.
-    headers = {
-        'Authorization': 'Bearer ' + TEST_USER_COGNITO_ID_TOKEN,
-    }
+    headers = get_auth_headers()
 
     post_body = {
         'fileNames': ['military_affiliation.pdf'],
         'affiliationType': 'militaryMember',
     }
     post_api_response = requests.post(
-        url=API_URL + '/v1/provider-users/me/military-affiliation', headers=headers, json=post_body, timeout=10
+        url=get_api_base_url() + '/v1/provider-users/me/military-affiliation', headers=headers, json=post_body, timeout=10
     )
 
     assert (
@@ -59,7 +55,8 @@ def test_military_affiliation_upload():
     """
     post_api_response_json = post_api_response.json()
     # Use the S3 pre-signed URL to upload a test file to the S3 bucket.
-    with open('../resources/test_files/military_affiliation.pdf', 'rb') as test_file:
+    with (open(os.path.join(os.path.dirname(__file__), '../resources/test_files/military_affiliation.pdf'), 'rb')
+          as test_file):
         files = {'file': (test_file.name, test_file)}
         pre_signed_url = post_api_response_json['documentUploadFields'][0]['url']
         pre_signed_fields = post_api_response_json['documentUploadFields'][0]['fields']
@@ -73,7 +70,7 @@ def test_military_affiliation_upload():
     time.sleep(2)
 
     # Get the provider data from the GET '/v1/provider-users/me' endpoint.
-    get_provider_data_response = requests.get(API_URL + '/v1/provider-users/me', headers=headers, timeout=10)
+    get_provider_data_response = requests.get(get_api_base_url() + '/v1/provider-users/me', headers=headers, timeout=10)
     assert (
         get_provider_data_response.status_code == 200
     ), f'Failed to GET provider data. Response: {get_provider_data_response.json()}'
@@ -98,22 +95,21 @@ def test_military_affiliation_patch_update():
     # '/v1/provider-users/me/military-affiliation' endpoint.
     # Step 4: Get the provider data from the GET '/v1/provider-users/me' endpoint and verify that all the military
     # affiliation records are inactive.
-    headers = {
-        'Authorization': 'Bearer ' + TEST_USER_COGNITO_ID_TOKEN,
-    }
+    headers = get_auth_headers()
 
     patch_body = {
         'status': 'inactive',
     }
     patch_api_response = requests.patch(
-        url=API_URL + '/v1/provider-users/me/military-affiliation', headers=headers, json=patch_body, timeout=10
+        url=get_api_base_url() + '/v1/provider-users/me/military-affiliation',
+        headers=headers, json=patch_body, timeout=10
     )
 
     assert (
         patch_api_response.status_code == 200
     ), f'Failed to PATCH military affiliations record. Response: {patch_api_response.json()}'
 
-    get_provider_data_response = requests.get(API_URL + '/v1/provider-users/me', headers=headers, timeout=10)
+    get_provider_data_response = requests.get(get_api_base_url() + '/v1/provider-users/me', headers=headers, timeout=10)
     assert (
         get_provider_data_response.status_code == 200
     ), f'Failed to GET provider data. Response: {get_provider_data_response.json()}'
@@ -128,5 +124,6 @@ def test_military_affiliation_patch_update():
 
 
 if __name__ == '__main__':
+    load_smoke_test_env()
     test_military_affiliation_upload()
     test_military_affiliation_patch_update()
