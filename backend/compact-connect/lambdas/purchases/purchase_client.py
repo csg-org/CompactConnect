@@ -118,6 +118,11 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         if hasattr(response, 'transactionResponse') and hasattr(response.transactionResponse, 'errors'):
             error_code = response.transactionResponse.errors.error[0].errorCode
             error_message = response.transactionResponse.errors.error[0].errorText
+            if error_code =='11' or error_message == 'A duplicate transaction has been submitted.':
+                # This occurs if the user submitted duplicate transactions within the duplicate window
+                # we log the warning and return it as a user error
+                logger.warning(logger_message, error_code=error_code, error_message=error_message)
+                raise CCInvalidRequestException("Duplicate transaction detected for previously successful transaction.")
             logger.error(logger_message, error_code=error_code, error_message=error_message)
 
         else:
@@ -216,7 +221,9 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         # We store the LICENSEE ID in the description field, since the ID is a UUID that is 36 characters long
         # and this is the only field that can store that length of data. The description field can hold up to 255
         # characters.
-        order.description = json.dumps({'LICENSEE': licensee_id})
+        # We initially debated storing this as a JSON serialized string, but the authorize.net api strips the {} from
+        # the object, so we are using this format.
+        order.description = f'LICENSEE#{licensee_id}#'
 
         line_items = apicontractsv1.ArrayOfLineItem()
         for jurisdiction in selected_jurisdictions:
