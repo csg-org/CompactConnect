@@ -27,7 +27,7 @@ class TestPatchUser(TstFunction):
         self.assertEqual(
             {
                 'attributes': {'email': 'justin@example.org', 'familyName': 'Williams', 'givenName': 'Justin'},
-                'dateOfUpdate': '2024-09-12',
+                'dateOfUpdate': '2024-09-12T23:59:59+00:00',
                 'permissions': {
                     'aslp': {
                         'actions': {'read': True},

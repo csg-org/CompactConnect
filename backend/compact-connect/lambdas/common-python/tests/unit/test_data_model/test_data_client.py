@@ -1,5 +1,5 @@
-from datetime import date, datetime, timedelta, timezone
-from unittest.mock import MagicMock
+from datetime import date, datetime
+from unittest.mock import MagicMock, patch
 
 from botocore.exceptions import ClientError
 from cc_common.exceptions import CCAwsServiceException
@@ -8,6 +8,7 @@ from tests import TstLambdas
 
 
 class TestDataClient(TstLambdas):
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_data_client_deletes_records_if_exception_during_create_privilege_records(self):
         from cc_common.data_model import client
 
@@ -24,7 +25,6 @@ class TestDataClient(TstLambdas):
         )
 
         mock_config = MagicMock(spec=client._Config)  # noqa: SLF001 protected-access
-        mock_config.expiration_date_resolution_timezone = timezone(offset=timedelta(hours=-4))
         mock_config.provider_table = mock_dynamo_db_table
 
         test_data_client = client.DataClient(mock_config)
@@ -42,7 +42,6 @@ class TestDataClient(TstLambdas):
         mock_batch_writer.delete_item.assert_called_with(
             Key={
                 'pk': 'aslp#PROVIDER#test_provider_id',
-                'sk': f'aslp#PROVIDER#privilege/ca#{datetime
-                .now(tz=timezone(offset=timedelta(hours=-4))).date().isoformat()}',
+                'sk': 'aslp#PROVIDER#privilege/ca#2024-11-08',
             }
         )

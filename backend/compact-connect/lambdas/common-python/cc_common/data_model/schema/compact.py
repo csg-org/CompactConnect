@@ -49,8 +49,8 @@ class CompactRecordSchema(BaseRecordSchema):
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         # the pk and sk are the same for the root compact record
-        in_data['pk'] = f'{in_data['compact']}#CONFIGURATION'
-        in_data['sk'] = f'{in_data['compact']}#CONFIGURATION'
+        in_data['pk'] = f'{in_data['compactName']}#CONFIGURATION'
+        in_data['sk'] = f'{in_data['compactName']}#CONFIGURATION'
         return in_data
 
 

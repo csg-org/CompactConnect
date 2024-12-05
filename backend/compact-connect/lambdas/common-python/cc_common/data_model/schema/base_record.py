@@ -5,10 +5,11 @@ from abc import ABC
 from datetime import date, datetime
 
 from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump, pre_load
-from marshmallow.fields import UUID, Date, List, String
+from marshmallow.fields import UUID, DateTime, List, String
 from marshmallow.validate import OneOf, Regexp
 
 from cc_common.config import config
+from cc_common.data_model.schema.common import ensure_value_is_datetime
 from cc_common.exceptions import CCInternalException
 
 
@@ -50,10 +51,17 @@ class BaseRecordSchema(StrictSchema, ABC):
     # Generated fields
     pk = String(required=True, allow_none=False)
     sk = String(required=True, allow_none=False)
-    dateOfUpdate = Date(required=True, allow_none=False)
+    dateOfUpdate = DateTime(required=True, allow_none=False)
 
     # Provided fields
     type = String(required=True, allow_none=False)
+
+    @pre_load
+    def ensure_date_of_update_is_datetime(self, in_data, **kwargs):
+        # for backwards compatibility with the old data model, which was using a Date value
+        in_data['dateOfUpdate'] = ensure_value_is_datetime(in_data['dateOfUpdate'])
+
+        return in_data
 
     @post_load
     def drop_base_gen_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
@@ -71,8 +79,8 @@ class BaseRecordSchema(StrictSchema, ABC):
     @pre_dump
     def populate_date_of_update(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         """Populate db-specific fields before dumping to the database"""
-        # YYYY-MM-DD
-        in_data['dateOfUpdate'] = datetime.now(tz=config.expiration_date_resolution_timezone).date()
+        # set the dateOfUpdate field to the current UTC time
+        in_data['dateOfUpdate'] = config.current_standard_datetime
         return in_data
 
     @classmethod

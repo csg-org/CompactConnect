@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from datetime import timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from functools import cached_property
 
 import boto3
@@ -128,6 +128,13 @@ class _Config:
         so we have a configuration value for it.
         """
         return timezone(offset=timedelta(hours=-4))
+
+    @property
+    def current_standard_datetime(self):
+        """
+        Standardized way to get the current datetime with the microseconds stripped off.
+        """
+        return datetime.now(tz=UTC).replace(microsecond=0)
 
 
 config = _Config()

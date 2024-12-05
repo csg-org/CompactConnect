@@ -60,7 +60,7 @@ class JurisdictionRecordSchema(BaseRecordSchema):
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#CONFIGURATION'
-        in_data['sk'] = f'{in_data['compact']}#JURISDICTION#{in_data['postalAbbreviation']}'
+        in_data['sk'] = f'{in_data['compact']}#JURISDICTION#{in_data['postalAbbreviation'].lower()}'
         return in_data
 
 

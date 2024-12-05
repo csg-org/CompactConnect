@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from glob import glob
 from random import randint
@@ -133,14 +133,11 @@ class TstFunction(TstLambdas):
                 },
             )
 
-            # Create a new provider with a license
-            now = datetime.now(tz=self.config.expiration_date_resolution_timezone)
-            with patch('cc_common.data_model.schema.base_record.datetime') as mock:
-                # This gives us some variation in dateOfUpdate values to sort by
-                mock.now.side_effect = lambda tz: now - timedelta(  # noqa: ARG005, B023  unused-lambda-argument
-                    days=randint(1, 365),
-                )
-
+            # This gives us some variation in dateOfUpdate values to sort by
+            with patch(
+                'cc_common.config._Config.current_standard_datetime',
+                new_callable=lambda: datetime.now(tz=UTC).replace(microsecond=0) - timedelta(days=randint(1, 365)),
+            ):
                 ingest_license_message(
                     {'Records': [{'messageId': '123', 'body': json.dumps(ingest_message_copy)}]},
                     self.mock_context,
