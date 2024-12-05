@@ -357,7 +357,8 @@ class ApiModel:
                                         type=JsonSchemaType.STRING,
                                         description='The card number',
                                         max_length=19,
-                                        min_length=15,
+                                        # set a min length of acceptable card numbers
+                                        min_length=13,
                                     ),
                                     'expiration': JsonSchema(
                                         type=JsonSchemaType.STRING,
