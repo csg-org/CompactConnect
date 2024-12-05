@@ -44,10 +44,11 @@ def ensure_value_is_datetime(value: str):
     :return: A datetime string
     :raises: ValueError if the value is not a valid date or datetime string
     """
+    # Confirm that the value is either a valid date or datetime string
+    # this will raise a ValueError if the string is not a valid datetime
+    dt = datetime.fromisoformat(value)
     # check if string is the same length as date format 'YYYY-MM-DD'
     if len(value) == 10:
-        # parse the date string
-        dt = datetime.fromisoformat(value)
         # convert it to a datetime
         # we set it to the end of the day UTC time for overlap with U.S. timezones
         value_dt = datetime.combine(dt, datetime.max.time(), tzinfo=UTC).replace(microsecond=0)
