@@ -300,7 +300,9 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         call_args = mock_create_transaction_controller.call_args.args
         api_contract_v1_obj = call_args[0]
 
-        self.assertEqual(f'LICENSEE#{MOCK_LICENSEE_ID}#', api_contract_v1_obj.transactionRequest.order.description)
+        # the order description should be a json serialized string
+        deserialized_order_description = json.loads(api_contract_v1_obj.transactionRequest.order.description)
+        self.assertEqual({"LICENSEE": MOCK_LICENSEE_ID}, deserialized_order_description)
 
     @patch('purchase_client.createTransactionController')
     def test_purchase_client_sends_expected_line_items_when_purchasing_privileges_with_military_discount(

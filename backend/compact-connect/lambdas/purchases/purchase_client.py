@@ -214,8 +214,9 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         # Create order information
         order = apicontractsv1.orderType()
         # We store the LICENSEE ID in the description field, since the ID is a UUID that is 36 characters long
-        # and this is the only field that can store that length of data
-        order.description = f'LICENSEE#{licensee_id}#'
+        # and this is the only field that can store that length of data. The description field can hold up to 255
+        # characters.
+        order.description = json.dumps({'LICENSEE': licensee_id})
 
         line_items = apicontractsv1.ArrayOfLineItem()
         for jurisdiction in selected_jurisdictions:
