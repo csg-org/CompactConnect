@@ -70,7 +70,7 @@
             "number": {
               "description": "The card number",
               "maxLength": 19,
-              "minLength": 15,
+              "minLength": 13,
               "type": "string"
             },
             "expiration": {
