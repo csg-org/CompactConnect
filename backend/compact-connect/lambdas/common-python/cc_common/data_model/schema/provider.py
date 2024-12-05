@@ -69,7 +69,6 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema, ProviderPublicSchema):
 
     @pre_load
     def pre_load_initialization(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        in_data = super().pre_load_initialization(in_data, **kwargs)
         in_data['providerDateOfUpdate'] = ensure_value_is_datetime(in_data['providerDateOfUpdate'])
 
         return in_data

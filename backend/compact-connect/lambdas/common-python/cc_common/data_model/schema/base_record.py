@@ -57,7 +57,7 @@ class BaseRecordSchema(StrictSchema, ABC):
     type = String(required=True, allow_none=False)
 
     @pre_load
-    def pre_load_initialization(self, in_data, **kwargs):
+    def ensure_date_of_update_is_datetime(self, in_data, **kwargs):
         # for backwards compatibility with the old data model, which was using a Date value
         in_data['dateOfUpdate'] = ensure_value_is_datetime(in_data['dateOfUpdate'])
 
