@@ -18,9 +18,24 @@ class LicensePublicSchema(ForgivingSchema):
     """Schema for license data that can be shared with the public"""
 
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
+    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
+    jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
+    licenseType = String(required=True, allow_none=False)
+    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    givenName = String(required=True, allow_none=False, validate=Length(1, 100))
+    middleName = String(required=False, allow_none=False, validate=Length(1, 100))
+    familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    suffix = String(required=False, allow_none=False, validate=Length(1, 100))
+    dateOfIssuance = Date(required=True, allow_none=False)
+    dateOfRenewal = Date(required=True, allow_none=False)
+    dateOfExpiration = Date(required=True, allow_none=False)
 
 
-class LicenseCommonSchema(LicensePublicSchema):
+class LicenseCommonSchema(ForgivingSchema):
+    """
+    This schema is used for both the LicensePostSchema and LicenseIngestSchema. It contains the fields that are common
+    to both the external and internal representations of a license record.
+    """
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     licenseType = String(required=True, allow_none=False)
@@ -61,7 +76,8 @@ class LicensePostSchema(LicenseCommonSchema):
 
 class LicenseIngestSchema(LicenseCommonSchema):
     """Schema for converting the external license data to the internal format"""
-
+    ssn = SocialSecurityNumber(required=True, allow_none=False)
+    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
     # When a license record is first uploaded into the system, we store the value of
     # 'status' under this field for backwards compatibility with the external contract.
     # this is used to calculate the actual 'status' used by the system in addition
@@ -88,6 +104,8 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
 
     _record_type = 'license'
 
+    ssn = SocialSecurityNumber(required=True, allow_none=False)
+    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
     jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
