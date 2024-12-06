@@ -58,7 +58,7 @@ class ProviderUsers:
             self.provider_users_resource,
             'ProviderUserMeMilitaryAffiliationHandler',
             description='Provider user military affiliation handler',
-            entry=os.path.join('lambdas', 'provider-data-v1'),
+            lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'provider_users.py'),
             handler='provider_user_me_military_affiliation',
             environment=lambda_environment,
