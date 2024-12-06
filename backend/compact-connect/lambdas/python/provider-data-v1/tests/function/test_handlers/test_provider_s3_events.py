@@ -17,7 +17,7 @@ class TestProviderUserBucketS3Events(TstFunction):
     def _call_post_military_affiliation_endpoint(self):
         from handlers.provider_users import provider_user_me_military_affiliation
 
-        with open('../common-python/tests/resources/api-event.json') as f:
+        with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'POST'
             event['requestContext']['authorizer']['claims']['custom:providerId'] = TEST_PROVIDER_ID
@@ -38,7 +38,7 @@ class TestProviderUserBucketS3Events(TstFunction):
         self.assertEqual(200, post_resp['statusCode'])
 
         # Simulate the s3 bucket event
-        with open('../common-python/tests/resources/put-event.json') as f:
+        with open('../common/tests/resources/put-event.json') as f:
             event = json.load(f)
             event['Records'][0]['s3']['object']['key'] = (
                 f'compact/{TEST_COMPACT}/provider/{TEST_PROVIDER_ID}/'

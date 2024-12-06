@@ -23,7 +23,7 @@ class TestGetProvider(TstFunction):
     def _when_testing_provider_user_event_with_custom_claims(self):
         self._load_provider_data()
         provider_id = self._create_test_provider()
-        with open('../common-python/tests/resources/api-event.json') as f:
+        with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['requestContext']['authorizer']['claims']['custom:providerId'] = provider_id
             event['requestContext']['authorizer']['claims']['custom:compact'] = TEST_COMPACT
@@ -40,7 +40,7 @@ class TestGetProvider(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
 
-        with open('../common-python/tests/resources/api/provider-detail-response.json') as f:
+        with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
         self.assertEqual(expected_provider, provider_data)
 
@@ -87,7 +87,7 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
     def _when_testing_post_provider_user_military_affiliation_event_with_custom_claims(self):
         self._load_provider_data()
         provider_id = self._create_test_provider()
-        with open('../common-python/tests/resources/api-event.json') as f:
+        with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'POST'
             event['requestContext']['authorizer']['claims']['custom:providerId'] = provider_id
@@ -219,7 +219,7 @@ class TestPatchProviderMilitaryAffiliation(TstFunction):
     def _when_testing_patch_provider_user_military_affiliation_event_with_custom_claims(self):
         self._load_provider_data()
         provider_id = self._create_test_provider()
-        with open('../common-python/tests/resources/api-event.json') as f:
+        with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['httpMethod'] = 'PATCH'
             event['requestContext']['authorizer']['claims']['custom:providerId'] = provider_id
