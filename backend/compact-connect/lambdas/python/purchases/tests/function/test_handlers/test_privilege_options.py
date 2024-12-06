@@ -13,7 +13,7 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
     def _when_testing_provider_user_event_with_custom_claims(self, test_compact=TEST_COMPACT):
         self._load_compact_configuration_data()
         self._load_provider_data()
-        with open('../common-python/tests/resources/api-event.json') as f:
+        with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['requestContext']['authorizer']['claims']['custom:providerId'] = TEST_PROVIDER_ID
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_compact
@@ -30,7 +30,7 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         privilege_options = json.loads(resp['body'])
 
-        with open('../common-python/tests/resources/dynamo/jurisdiction.json') as f:
+        with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
             expected_jurisdiction_option = json.load(f)
             expected_jurisdiction_option.pop('pk')
             expected_jurisdiction_option.pop('sk')
@@ -58,7 +58,7 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         privilege_options = json.loads(resp['body'])
 
-        with open('../common-python/tests/resources/dynamo/compact.json') as f:
+        with open('../common/tests/resources/dynamo/compact.json') as f:
             expected_compact_option = json.load(f)
             expected_compact_option.pop('pk')
             expected_compact_option.pop('sk')

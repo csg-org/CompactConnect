@@ -18,19 +18,19 @@ class TestTransformations(TstFunction):
         transformations all happen as expected.
         """
         # Before we get started, we'll pre-set the SSN/providerId association we expect
-        with open('../common-python/tests/resources/dynamo/provider-ssn.json') as f:
+        with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_ssn = json.load(f)
 
         self._provider_table.put_item(Item=provider_ssn)
         expected_provider_id = provider_ssn['providerId']
 
         # license data as it comes in from a board, in this case, as POSTed through the API
-        with open('../common-python/tests/resources/api/license-post.json') as f:
+        with open('../common/tests/resources/api/license-post.json') as f:
             license_post = json.load(f)
         license_ssn = license_post['ssn']
 
         # The API Gateway event, as it is presented to the API lambda
-        with open('../common-python/tests/resources/api-event.json') as f:
+        with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # Pack an array of one license into the request body
@@ -59,7 +59,7 @@ class TestTransformations(TstFunction):
             )
 
         # A sample SQS message from EventBridge
-        with open('../common-python/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/message.json') as f:
             message = json.load(f)
 
         # Pack our license.ingest event into the sample message
@@ -116,16 +116,16 @@ class TestTransformations(TstFunction):
         records = {item['type']: item for item in resp['Items']}
 
         # Expected representation of each record in the database
-        with open('../common-python/tests/resources/dynamo/provider.json') as f:
+        with open('../common/tests/resources/dynamo/provider.json') as f:
             expected_provider = json.load(f)
         # Convert this to the data type expected from DynamoDB
         expected_provider['privilegeJurisdictions'] = set(expected_provider['privilegeJurisdictions'])
 
-        with open('../common-python/tests/resources/dynamo/license.json') as f:
+        with open('../common/tests/resources/dynamo/license.json') as f:
             expected_license = json.load(f)
-        with open('../common-python/tests/resources/dynamo/privilege.json') as f:
+        with open('../common/tests/resources/dynamo/privilege.json') as f:
             expected_privilege = json.load(f)
-        with open('../common-python/tests/resources/dynamo/military-affiliation.json') as f:
+        with open('../common/tests/resources/dynamo/military-affiliation.json') as f:
             expected_military_affiliation = json.load(f)
             # in this case, the status will be initializing, since it is not set to active until
             # the military affiliation document is uploaded
@@ -161,7 +161,7 @@ class TestTransformations(TstFunction):
         from handlers.providers import get_provider
 
         # Get a fresh API Gateway event
-        with open('../common-python/tests/resources/api-event.json') as f:
+        with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
@@ -175,7 +175,7 @@ class TestTransformations(TstFunction):
         provider_data = json.loads(resp['body'])
 
         # Expected representation of our provider coming _out_ via the API
-        with open('../common-python/tests/resources/api/provider-detail-response.json') as f:
+        with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
             # in this case, the military affiliation status will be initializing, since it is not set to active until
             # the military affiliation document is uploaded to s3

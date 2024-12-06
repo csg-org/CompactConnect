@@ -4,7 +4,7 @@ from uuid import uuid4
 from botocore.exceptions import ClientError
 from moto import mock_aws
 
-from .. import TstFunction
+from tests.function import TstFunction
 
 
 @mock_aws
@@ -12,7 +12,7 @@ class TestBulkUpload(TstFunction):
     def test_get_bulk_upload_url(self):
         from handlers.bulk_upload import bulk_upload_url_handler
 
-        with open('../common-python/tests/resources/api-event.json') as f:
+        with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/oh.write'
@@ -26,7 +26,7 @@ class TestBulkUpload(TstFunction):
     def test_get_bulk_upload_url_forbidden(self):
         from handlers.bulk_upload import bulk_upload_url_handler
 
-        with open('../common-python/tests/resources/api-event.json') as f:
+        with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
         # User has permission in ne, not oh
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/ne.write'
@@ -44,10 +44,10 @@ class TestProcessObjects(TstFunction):
 
         # Upload a bulk license csv file
         object_key = f'aslp/co/{uuid4().hex}'
-        self._bucket.upload_file('../common-python/tests/resources/licenses.csv', object_key)
+        self._bucket.upload_file('../common/tests/resources/licenses.csv', object_key)
 
         # Simulate the s3 bucket event
-        with open('../common-python/tests/resources/put-event.json') as f:
+        with open('../common/tests/resources/put-event.json') as f:
             event = json.load(f)
 
         event['Records'][0]['s3']['bucket'] = {

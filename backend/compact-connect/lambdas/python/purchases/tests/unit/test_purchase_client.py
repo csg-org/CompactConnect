@@ -57,7 +57,7 @@ def _generate_default_order_information():
 def _generate_aslp_compact_configuration():
     from cc_common.data_model.schema.compact import Compact
 
-    with open('../common-python/tests/resources/dynamo/compact.json') as f:
+    with open('../common/tests/resources/dynamo/compact.json') as f:
         # setting fixed fee amount for tests
         compact = json.load(f)
         # DynamoDB loads this as a Decimal
@@ -69,7 +69,7 @@ def _generate_aslp_compact_configuration():
 def _generate_selected_jurisdictions():
     from cc_common.data_model.schema.jurisdiction import Jurisdiction
 
-    with open('../common-python/tests/resources/dynamo/jurisdiction.json') as f:
+    with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
         jurisdiction = json.load(f)
         jurisdiction['jurisdictionFee'] = Decimal(100.00)
         # set military discount to fixed amount for tests

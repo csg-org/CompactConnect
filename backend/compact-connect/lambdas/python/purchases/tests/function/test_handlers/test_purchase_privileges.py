@@ -45,7 +45,7 @@ class TestPostPurchasePrivileges(TstFunction):
     """
 
     def _load_test_jurisdiction(self):
-        with open('../common-python/tests/resources/dynamo/jurisdiction.json') as f:
+        with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
             jurisdiction = json.load(f)
             # swap out the jurisdiction postal abbreviation for ky
             jurisdiction['postalAbbreviation'] = 'ky'
@@ -64,7 +64,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self._load_provider_data()
         self._load_test_jurisdiction()
         self._load_license_data(status=license_status, expiration_date=license_expiration_date)
-        with open('../common-python/tests/resources/api-event.json') as f:
+        with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['requestContext']['authorizer']['claims']['custom:providerId'] = TEST_PROVIDER_ID
             event['requestContext']['authorizer']['claims']['custom:compact'] = test_compact
@@ -294,7 +294,7 @@ class TestPostPurchasePrivileges(TstFunction):
         test_issuance_date = datetime(2023, 10, 8, hour=5, tzinfo=UTC).isoformat()
 
         # create an existing privilege record for the kentucky jurisdiction, simulating a previous purchase
-        with open('../common-python/tests/resources/dynamo/privilege.json') as f:
+        with open('../common/tests/resources/dynamo/privilege.json') as f:
             privilege_record = json.load(f)
             privilege_record['pk'] = f'{TEST_COMPACT}#PROVIDER#{TEST_PROVIDER_ID}'
             privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky#2023-10-08'
