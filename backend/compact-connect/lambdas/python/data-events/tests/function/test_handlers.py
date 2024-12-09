@@ -4,7 +4,6 @@ from moto import mock_aws
 
 from . import TstFunction
 
-
 @mock_aws
 class TestHandleDataEvents(TstFunction):
     def test_handle_data_event(self):
@@ -36,6 +35,42 @@ class TestHandleDataEvents(TstFunction):
                 'recordNumber': Decimal('4'),
                 'errors': {'licenseType': ['Missing data for required field.']},
                 'validData': {},
+            },
+            saved_event,
+        )
+
+    def test_handle_data_event_sanitizes_license_ingest_events(self):
+        from handlers.data_events import handle_data_events
+
+        # this test file represents a license.ingest event
+        with open('../common/tests/resources/ingest/message.json') as f:
+            message = f.read()
+
+        event = {'Records': [{'messageId': '123', 'body': message}]}
+
+        resp = handle_data_events(event, self.mock_context)
+
+        self.assertEqual({'batchItemFailures': []}, resp)
+        key = {
+            'pk': 'COMPACT#aslp#JURISDICTION#oh',
+            'sk': 'TYPE#license.ingest#TIME#1720727865#EVENT#44ec3255-8d59-a6ae-0783-5563a9318a58',
+        }
+        saved_event = self._data_event_table.get_item(Key=key)['Item']
+        # Drop dynamic value
+        del saved_event['eventExpiry']
+
+        self.assertEqual(
+            {
+                **key,
+                'eventTime': '2024-07-11T19:57:45+00:00',
+                'eventType': 'license.ingest',
+                'compact': 'aslp',
+                'licenseType': 'speech-language pathologist',
+                'jurisdiction': 'oh',
+                'status': 'active',
+                'dateOfIssuance': '2024-06-06',
+                'dateOfRenewal': '2024-06-06',
+                'dateOfExpiration': '2050-06-06'
             },
             saved_event,
         )
