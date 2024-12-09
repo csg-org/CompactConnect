@@ -217,6 +217,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     transaction_response = None
     try:
         transaction_response = purchase_client.process_charge_for_licensee_privileges(
+            licensee_id=provider_id,
             order_information=body['orderInformation'],
             compact_configuration=compact,
             selected_jurisdictions=selected_jurisdictions,
