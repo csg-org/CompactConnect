@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 import json
-from datetime import datetime
 from decimal import Decimal
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
+from cc_common.data_model.schema.compact import CompactRecordSchema
+from cc_common.data_model.schema.jurisdiction import JurisdictionRecordSchema
 
 
 def on_event(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -54,27 +55,24 @@ def _upload_compact_root_configuration(compact_configuration: dict) -> None:
     """Upload the root compact configuration to the provider table.
     :param compact_configuration: The compact configuration
     """
+    schema = CompactRecordSchema()
     for compact in compact_configuration['compacts']:
         compact_name = compact['compactName']
         logger.info(f'Compact {compact_name} active for environment, uploading')
-        compact.update(
-            {
-                'pk': f'{compact_name.lower()}#CONFIGURATION',
-                'sk': f'{compact_name.lower()}#CONFIGURATION',
-                'type': 'compact',
-                'dateOfUpdate': datetime.now(tz=config.expiration_date_resolution_timezone).strftime('%Y-%m-%d'),
-            },
-        )
+        compact['type'] = 'compact'
         # remove the activeEnvironments field as it's an implementation detail
         compact.pop('activeEnvironments')
 
-        config.compact_configuration_table.put_item(Item=compact)
+        serialized_compact = schema.dump(compact)
+
+        config.compact_configuration_table.put_item(Item=serialized_compact)
 
 
 def _upload_jurisdiction_configuration(compact_configuration: dict) -> None:
     """Upload the jurisdiction configuration to the provider table.
     :param compact_configuration: The compact configuration
     """
+    schema = JurisdictionRecordSchema()
     for compact_name, jurisdictions in compact_configuration['jurisdictions'].items():
         for jurisdiction in jurisdictions:
             jurisdiction_postal_abbreviation = jurisdiction['postalAbbreviation']
@@ -84,14 +82,13 @@ def _upload_jurisdiction_configuration(compact_configuration: dict) -> None:
             )
             jurisdiction.update(
                 {
-                    'pk': f'{compact_name.lower()}#CONFIGURATION',
-                    'sk': f'{compact_name.lower()}#JURISDICTION#{jurisdiction_postal_abbreviation.lower()}',
                     'type': 'jurisdiction',
                     'compact': compact_name,
-                    'dateOfUpdate': datetime.now(tz=config.expiration_date_resolution_timezone).strftime('%Y-%m-%d'),
-                },
+                }
             )
             # remove the activeEnvironments field as it's an implementation detail
             jurisdiction.pop('activeEnvironments')
 
-            config.compact_configuration_table.put_item(Item=jurisdiction)
+            serialized_jurisdiction = schema.dump(jurisdiction)
+
+            config.compact_configuration_table.put_item(Item=serialized_jurisdiction)

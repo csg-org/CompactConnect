@@ -308,7 +308,6 @@ class TestClient(TstFunction):
         # This asserts that the records are sorted by dateOfUpload, from oldest to newest
         oldest_record = military_affiliation_record[0]
         newest_record = military_affiliation_record[1]
-        self.assertTrue(oldest_record['dateOfUpload'] < newest_record['dateOfUpload'],
-                        'Records are not sorted by date')
+        self.assertTrue(oldest_record['dateOfUpload'] < newest_record['dateOfUpload'], 'Records are not sorted by date')
         self.assertEqual('inactive', oldest_record['status'])
         self.assertEqual('active', newest_record['status'])
