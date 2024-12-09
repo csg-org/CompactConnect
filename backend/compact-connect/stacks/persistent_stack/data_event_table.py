@@ -102,8 +102,6 @@ class DataEventTable(Table):
             self,
             'EventReceiverRule',
             event_bus=event_bus,
-            # We will ignore ingest events, since they have sensitive data, but will store everything else
-            event_pattern=EventPattern(detail_type=Match.anything_but('license.ingest')),
             targets=[SqsQueue(self.event_processor.queue, dead_letter_queue=self.event_processor.dlq)],
         )
         NagSuppressions.add_resource_suppressions(

@@ -1,7 +1,7 @@
 {
   "version": "0",
   "id": "44ec3255-8d59-a6ae-0783-5563a9318a58",
-  "detail-type": "license-ingest",
+  "detail-type": "license.ingest",
   "source": "org.compactconnect.manual-test",
   "account": "992382587219",
   "time": "2024-07-11T19:57:45Z",
