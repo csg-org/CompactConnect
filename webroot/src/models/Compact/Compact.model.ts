@@ -19,6 +19,12 @@ export enum CompactType { // Temp server definition until server returns via end
     COUNSILING = 'coun',
 }
 
+export interface PaymentProcessorConfig {
+    apiLoginId: string;
+    transactionKey: string;
+    processor: string;
+}
+
 export interface InterfaceCompactCreate {
     id?: string | null;
     type?: CompactType | null;

@@ -9,6 +9,7 @@ import { stateDataApi } from '@network/stateApi/data.api';
 import { licenseDataApi } from '@network/licenseApi/data.api';
 import { userDataApi } from '@network/userApi/data.api';
 import { exampleDataApi } from '@network/exampleApi/data.api';
+import { PaymentProcessorConfig } from '@models/Compact/Compact.model';
 
 export class DataApi {
     /**
@@ -43,6 +44,16 @@ export class DataApi {
      */
     public stateUploadRequest(config: any, file: File) {
         return stateDataApi.uploadRequest(config, file);
+    }
+
+    /**
+     * POST Compact payment processer config.
+     * @param  {string}                 compact The compact string ID (aslp, ot, counseling).
+     * @param  {PaymentProcessorConfig} config  The payment processer config data.
+     * @return {Promise<object>}                The server response.
+     */
+    public updatePaymentProcessorConfig(compact: string, config: PaymentProcessorConfig) {
+        return stateDataApi.updatePaymentProcessorConfig(compact, config);
     }
 
     // ========================================================================
