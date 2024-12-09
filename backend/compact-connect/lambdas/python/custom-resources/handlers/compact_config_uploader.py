@@ -79,6 +79,7 @@ def _upload_jurisdiction_configuration(compact_configuration: dict) -> None:
                 compact=compact_name,
                 jurisdiction=jurisdiction_postal_abbreviation,
             )
+            jurisdiction['compact'] = compact_name
             # remove the activeEnvironments field as it's an implementation detail
             jurisdiction.pop('activeEnvironments')
 
