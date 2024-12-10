@@ -2,7 +2,7 @@ import { Logger } from '@aws-lambda-powertools/logger';
 import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { unmarshall } from '@aws-sdk/util-dynamodb';
 import { EnvironmentVariablesService } from './environment-variables-service';
-import { IIngestFailureEventRecord, IValidationErrorEventRecord } from './models';
+import { IIngestFailureEventRecord, IIngestSuccessEventRecord, IValidationErrorEventRecord } from './models';
 
 const environmentVariables = new EnvironmentVariablesService();
 
@@ -138,6 +138,41 @@ export class EventClient {
         return resp.Items?.map((item) => unmarshall(item) as IIngestFailureEventRecord) || [];
     }
 
+    /*
+     * Queries the data event table for ingest successes and returns the first 100 matching records.
+     *
+     * This is used to determine if a jurisdiction has had any successful uploads within the
+     * time window.
+     */
+    public async getIngestSuccesses(
+        compact: string,
+        jurisdiction: string,
+        startTimeStamp: number,
+        endTimeStamp: number
+    ): Promise<IIngestSuccessEventRecord[]> {
+        this.logger.info('Getting ingest failures', {
+            compact: compact,
+            jurisdiction: jurisdiction,
+            start_time_stamp: startTimeStamp,
+            end_time_stamp: endTimeStamp,
+        });
+        const resp = await this.dynamoDBClient.send(new QueryCommand({
+            TableName: environmentVariables.getDataEventTableName(),
+            Select: 'ALL_ATTRIBUTES',
+            // We don't necessarily return all the matching records for this check
+            // since we're just looking for the presence of any ingest successes
+            Limit: 100,
+            KeyConditionExpression: 'pk = :pk and sk BETWEEN :skBegin and :skEnd',
+            ExpressionAttributeValues: {
+                ':pk': { 'S': `COMPACT#${compact}#JURISDICTION#${jurisdiction}` },
+                ':skBegin': { 'S': `TYPE#license.ingest#TIME#${startTimeStamp}#` },
+                ':skEnd': { 'S': `TYPE#license.ingest#TIME#${endTimeStamp}#` },
+            }
+        }));
+
+        return resp.Items?.map((item) => unmarshall(item) as IIngestSuccessEventRecord) || [];
+    }
+
     public async getEvents(compact: string, jurisdiction: string, startTimeStamp: number, endTimeStamp: number) {
         this.logger.info('Gathering events', {
             compact: compact,
@@ -150,13 +185,22 @@ export class EventClient {
             compact, jurisdiction, startTimeStamp, endTimeStamp
         );
 
-        const ingestPromise = this.getIngestFailures(
+        const ingestFailurePromise = this.getIngestFailures(
             compact, jurisdiction, startTimeStamp, endTimeStamp
         );
-        const [ validationErrors, ingestFailures ] = await Promise.all([validationPromise, ingestPromise]);
+
+        const ingestSuccessPromise = this.getIngestSuccesses(
+            compact, jurisdiction, startTimeStamp, endTimeStamp
+        );
+
+
+        const [ validationErrors, ingestFailures, ingestSuccesses ] = await Promise.all([
+            validationPromise, ingestFailurePromise, ingestSuccessPromise
+        ]);
 
         return {
             ingestFailures: ingestFailures,
+            ingestSuccesses: ingestSuccesses,
             validationErrors: validationErrors,
         };
     }

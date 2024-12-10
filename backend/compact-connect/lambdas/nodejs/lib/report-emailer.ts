@@ -44,12 +44,8 @@ export class ReportEmailer {
         this.sesClient = props.sesClient;
     }
 
-    public async sendReportEmail(events: IIngestEvents, compact: string, jurisdiction: string, recipients: string[]) {
-        this.logger.info('Sending report email', { recipients: recipients });
-
-        // Generate the HTML report
-        const htmlContent = this.generateReport(events, compact, jurisdiction);
-
+    private async sendEmail({ htmlContent, subject, recipients, errorMessage }:
+         {htmlContent: string, subject: string, recipients: string[], errorMessage?: string}) {
         try {
             // Send the email
             const command = new SendEmailCommand({
@@ -65,7 +61,7 @@ export class ReportEmailer {
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: `License Data Error Summary: ${compact} / ${jurisdiction}`
+                        Data: subject
                     }
                 },
                 // We're required by the IAM policy to use this display name
@@ -74,9 +70,24 @@ export class ReportEmailer {
 
             return (await this.sesClient.send(command)).MessageId;
         } catch (error) {
-            this.logger.error('Error sending report email', { error: error });
+            this.logger.error(errorMessage || 'Error sending email', { error: error });
             throw error;
         }
+    }
+
+
+    public async sendReportEmail(events: IIngestEvents, compact: string, jurisdiction: string, recipients: string[]) {
+        this.logger.info('Sending report email', { recipients: recipients });
+
+        // Generate the HTML report
+        const htmlContent = this.generateReport(events, compact, jurisdiction);
+
+        this.sendEmail({ 
+            htmlContent, 
+            subject: `License Data Error Summary: ${compact} / ${jurisdiction}`, 
+            recipients, 
+            errorMessage: 'Error sending report email' 
+        });
     }
 
     public async sendAllsWellEmail(compact: string, jurisdiction: string, recipients: string[]) {
@@ -92,33 +103,33 @@ export class ReportEmailer {
 
         const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
 
-        try {
-            // Send the email
-            const command = new SendEmailCommand({
-                Destination: {
-                    ToAddresses: recipients,
-                },
-                Message: {
-                    Body: {
-                        Html: {
-                            Charset: 'UTF-8',
-                            Data: htmlContent
-                        }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: `License Data Summary: ${compact} / ${jurisdiction}`
-                    }
-                },
-                // We're required by the IAM policy to use this display name
-                Source: `Compact Connect <${environmentVariableService.getFromAddress()}>`,
-            });
+        this.sendEmail({ 
+            htmlContent, 
+            subject: `License Data Summary: ${compact} / ${jurisdiction}`, 
+            recipients, 
+            errorMessage: 'Error sending alls well email' 
+        });
+    }
 
-            return (await this.sesClient.send(command)).MessageId;
-        } catch (error) {
-            this.logger.error('Error sending alls well email', { error: error });
-            throw error;
-        }
+    public async sendNoLicenseUpdatesEmail(compact: string, jurisdiction: string, recipients: string[]) {
+        this.logger.info('Sending no license updates email', { recipients: recipients });
+
+        // Generate the HTML report
+        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+
+        this.insertHeader(report, compact, jurisdiction, 'License Data Summary');
+        this.insertNoErrorImage(report);
+        this.insertSubHeading(report, 'No license updates this week!');
+        this.insertFooter(report);
+
+        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+
+        this.sendEmail({ 
+            htmlContent, 
+            subject: `License Data Summary: ${compact} / ${jurisdiction}`, 
+            recipients, 
+            errorMessage: 'Error sending no license updates email' 
+        });
     }
 
     public generateReport(events: IIngestEvents, compact: string, jurisdiction: string): string {
