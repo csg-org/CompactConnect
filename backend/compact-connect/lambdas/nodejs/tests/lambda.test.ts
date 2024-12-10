@@ -250,6 +250,70 @@ describe('Weekly runs', () => {
         });
     });
 
+
+    it('should send an "All\'s Well" email if there were success events without failures', async () => {
+        const mockDynamoDBClient = mockClient(DynamoDBClient);
+
+        mockDynamoDBClient.on(QueryCommand).callsFake((input) => {
+            const tableName = input.TableName;
+
+            switch (tableName) {
+            case 'data-table':
+                if (input?.ExpressionAttributeValues?.[':skBegin']['S']?.startsWith(
+                    'TYPE#license.validation-error#TIME#'
+                )) {
+                    return Promise.resolve({
+                        Items: []
+                    });
+                }
+                if (input?.ExpressionAttributeValues?.[':skBegin']['S']?.startsWith(
+                    'TYPE#license.ingest-failure#TIME#'
+                )) {
+                    return Promise.resolve({
+                        Items: []
+                    });
+                }
+                if (input?.ExpressionAttributeValues?.[':skBegin']['S']?.startsWith(
+                    'TYPE#license.ingest#TIME#'
+                )) {
+                    return Promise.resolve({
+                        Items: [SAMPLE_INGEST_SUCCESS_RECORD]
+                    });
+                }
+                throw Error(`Unexpected query ${JSON.stringify(input)}`);
+            case 'compact-table':
+                return Promise.resolve({
+                    Items: [SAMPLE_JURISDICTION_CONFIGURATION]
+                });
+            default:
+                throw Error(`Table does not exist: ${tableName}`);
+            }
+        });
+
+        lambda = new Lambda({
+            dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
+            sesClient: asSESClient(mockSESClient)
+        });
+
+        await lambda.handler(
+            SAMPLE_WEEKLY_EVENT,
+            SAMPLE_CONTEXT
+        );
+
+        // Verify the DynamoDB client was called correctly
+        expect(mockDynamoDBClient).toHaveReceivedCommandWith(
+            QueryCommand,
+            {
+                TableName: 'data-table',
+            }
+        );
+
+        // Verify an "All's Well" email was sent
+        expect(mockSendReportEmail).not.toHaveBeenCalled();
+        expect(mockSendAllsWellEmail).toHaveBeenCalled();
+        expect(mockSendNoLicenseUpdatesEmail).not.toHaveBeenCalled();
+    });
+
     it('should send "no license updates" email if there were no events', async () => {
         const mockDynamoDBClient = mockClient(DynamoDBClient);
 

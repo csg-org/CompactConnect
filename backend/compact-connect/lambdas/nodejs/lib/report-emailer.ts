@@ -45,7 +45,7 @@ export class ReportEmailer {
     }
 
     private async sendEmail({ htmlContent, subject, recipients, errorMessage }:
-         {htmlContent: string, subject: string, recipients: string[], errorMessage?: string}) {
+         {htmlContent: string, subject: string, recipients: string[], errorMessage: string}) {
         try {
             // Send the email
             const command = new SendEmailCommand({
@@ -70,7 +70,7 @@ export class ReportEmailer {
 
             return (await this.sesClient.send(command)).MessageId;
         } catch (error) {
-            this.logger.error(errorMessage || 'Error sending email', { error: error });
+            this.logger.error(errorMessage, { error: error });
             throw error;
         }
     }
@@ -125,7 +125,7 @@ export class ReportEmailer {
 
         return this.sendEmail({ 
             htmlContent, 
-            subject: `License Data Summary: ${compact} / ${jurisdiction}`, 
+            subject: `No License Updates for Last 7 Days: ${compact} / ${jurisdiction}`, 
             recipients, 
             errorMessage: 'Error sending no license updates email' 
         });
