@@ -49,6 +49,13 @@ Python requirements are pinned in [`requirements.txt`](requirements.txt). Instal
 $ pip install -r requirements.txt
 ```
 
+Node.js requirements (for some selected Lambda runtimes) are defined in [`package.json`](./lambdas/nodejs). Install them using `yarn`.
+
+```shell
+$ cd lambdas/nodejs
+$ yarn install
+```
+
 At this point you can now synthesize the CloudFormation template(s) for this code.
 
 ```
