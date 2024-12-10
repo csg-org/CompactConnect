@@ -31,7 +31,14 @@ describe('EventClient', () => {
                     Items: [{ 'eventType': { 'S': 'license.ingest-failure' }}]
                 });
             }
-            throw Error('Unexpected query');
+            if (input?.ExpressionAttributeValues?.[':skBegin']['S']?.startsWith(
+                'TYPE#license.ingest#TIME#'
+            )) {
+                return Promise.resolve({
+                    Items: [{ 'eventType': { 'S': 'license.ingest' }}]
+                });
+            }
+            throw Error(`Unexpected query ${input}`);
         });
     };
 
@@ -137,7 +144,7 @@ describe('EventClient', () => {
         expect(validationErrors).toEqual([]);
     });
 
-    it('should return ingest failures and validation errors from the getEvents method', async() => {
+    it('should return ingest failures, successes, and validation errors from the getEvents method', async() => {
         withErrorsInDynamoDB();
 
         const eventClient = new EventClient({
@@ -149,7 +156,8 @@ describe('EventClient', () => {
 
         expect(ingestEvents).toEqual({
             ingestFailures: [{ 'eventType': 'license.ingest-failure' }],
-            validationErrors: [{ 'eventType': 'license.validation-error' }]
+            validationErrors: [{ 'eventType': 'license.validation-error' }],
+            ingestSuccesses: [{ 'eventType': 'license.ingest' }]
         });
     });
 });
