@@ -5,7 +5,7 @@ import requests
 from smoke_common import (
     call_provider_users_me_endpoint,
     get_api_base_url,
-    get_auth_headers,
+    get_provider_user_auth_headers,
     get_provider_user_dynamodb_table,
     load_smoke_test_env,
 )
@@ -60,7 +60,7 @@ def test_purchasing_privilege():
       ]
     }
 
-    headers = get_auth_headers()
+    headers = get_provider_user_auth_headers()
     post_api_response = requests.post(
         url=get_api_base_url() + '/v1/purchases/privileges', headers=headers, json=post_body, timeout=20
     )

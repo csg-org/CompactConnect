@@ -4,7 +4,7 @@ import time
 from datetime import UTC, datetime
 
 import requests
-from smoke_common import get_api_base_url, get_auth_headers, load_smoke_test_env
+from smoke_common import get_api_base_url, get_provider_user_auth_headers, load_smoke_test_env
 
 # This script is used to test the military affiliations upload flow against a sandbox environment
 # # of the Compact Connect API.
@@ -21,7 +21,7 @@ def test_military_affiliation_upload():
     # Step 3: Verify that the test pdf file was uploaded successfully by checking the response status code.
     # Step 4: Get the provider data from the GET '/v1/provider-users/me' endpoint and verify that the military
     # affiliation record is active.
-    headers = get_auth_headers()
+    headers = get_provider_user_auth_headers()
 
     post_body = {
         'fileNames': ['military_affiliation.pdf'],
@@ -95,7 +95,7 @@ def test_military_affiliation_patch_update():
     # '/v1/provider-users/me/military-affiliation' endpoint.
     # Step 4: Get the provider data from the GET '/v1/provider-users/me' endpoint and verify that all the military
     # affiliation records are inactive.
-    headers = get_auth_headers()
+    headers = get_provider_user_auth_headers()
 
     patch_body = {
         'status': 'inactive',
