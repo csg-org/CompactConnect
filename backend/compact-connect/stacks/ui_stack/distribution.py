@@ -75,12 +75,12 @@ class UIDistribution(Distribution):
                 }
             ],
         )
-        with open(os.path.join('lambdas', 'cloudfront-csp', 'index.js')) as f:
+        with open(os.path.join('lambdas', 'nodejs', 'cloudfront-csp', 'index.js')) as f:
             csp_function = Function(
                 scope,
                 'CSPFunction',
                 code=Code.from_inline(f.read()),
-                runtime=Runtime.NODEJS_20_X,
+                runtime=Runtime.NODEJS_22_X,
                 handler='index.handler',
             )
         NagSuppressions.add_resource_suppressions_by_path(
