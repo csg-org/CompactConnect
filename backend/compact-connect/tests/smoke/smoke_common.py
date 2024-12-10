@@ -11,16 +11,20 @@ def get_provider_user_auth_headers():
         'Authorization': 'Bearer ' + os.environ['TEST_PROVIDER_USER_ID_TOKEN'],
     }
 
+
 def get_staff_user_auth_headers():
     return {
         'Authorization': 'Bearer ' + os.environ['TEST_STAFF_USER_ACCESS_TOKEN'],
     }
 
+
 def get_api_base_url():
     return os.environ['CC_TEST_API_BASE_URL']
 
+
 def get_provider_user_dynamodb_table():
     return boto3.resource('dynamodb').Table(os.environ['CC_TEST_PROVIDER_DYNAMO_TABLE_NAME'])
+
 
 def get_data_events_dynamodb_table():
     return boto3.resource('dynamodb').Table(os.environ['CC_TEST_DATA_EVENT_DYNAMO_TABLE_NAME'])
@@ -31,12 +35,14 @@ def load_smoke_test_env():
         env_vars = json.load(env_file)
         os.environ.update(env_vars)
 
+
 def call_provider_users_me_endpoint():
     # Get the provider data from the GET '/v1/provider-users/me' endpoint.
-    get_provider_data_response = requests.get(url=get_api_base_url() + '/v1/provider-users/me',
-                                              headers=get_provider_user_auth_headers(), timeout=10)
+    get_provider_data_response = requests.get(
+        url=get_api_base_url() + '/v1/provider-users/me', headers=get_provider_user_auth_headers(), timeout=10
+    )
     assert (
-            get_provider_data_response.status_code == 200
+        get_provider_data_response.status_code == 200
     ), f'Failed to GET provider data. Response: {get_provider_data_response.json()}'
     # check the response for a top level 'privileges' field and verify it has a new record with the correct
     # jurisdiction and transaction id
