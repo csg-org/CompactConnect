@@ -6,7 +6,7 @@ from aws_cdk import Duration, RemovalPolicy
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_dynamodb import Attribute, AttributeType, BillingMode, Table, TableEncryption
-from aws_cdk.aws_events import EventPattern, IEventBus, Match, Rule
+from aws_cdk.aws_events import IEventBus, Rule
 from aws_cdk.aws_events_targets import SqsQueue
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_sns import ITopic

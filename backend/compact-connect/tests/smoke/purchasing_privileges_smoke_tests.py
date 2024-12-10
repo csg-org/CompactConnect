@@ -11,16 +11,19 @@ import requests
 # To run this script, create a smoke_tests_env.json file in the same directory as this script using the
 # 'smoke_tests_env_example.json' file as a template.
 
+
 def _call_users_me_endpoint(headers):
     # Get the provider data from the GET '/v1/provider-users/me' endpoint.
-    get_provider_data_response = requests.get(url=os.environ['CC_TEST_API_BASE_URL'] + '/v1/provider-users/me',
-                                              headers=headers, timeout=10)
+    get_provider_data_response = requests.get(
+        url=os.environ['CC_TEST_API_BASE_URL'] + '/v1/provider-users/me', headers=headers, timeout=10
+    )
     assert (
-            get_provider_data_response.status_code == 200
+        get_provider_data_response.status_code == 200
     ), f'Failed to GET provider data. Response: {get_provider_data_response.json()}'
     # check the response for a top level 'privileges' field and verify it has a new record with the correct
     # jurisdiction and transaction id
     return get_provider_data_response.json()
+
 
 def test_purchasing_privilege():
     # Step 1: Purchase a privilege through the POST '/v1/purchases/privileges' endpoint.
@@ -45,40 +48,36 @@ def test_purchasing_privilege():
                 Key={
                     'pk': f'{compact}#PROVIDER#{provider_id}',
                     'sk': f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}'
-                          f'#{datetime.fromisoformat(privilege["dateOfRenewal"]).date().isoformat()}'
+                    f'#{datetime.fromisoformat(privilege["dateOfRenewal"]).date().isoformat()}',
                 }
             )
 
     post_body = {
-      "orderInformation": {
-        "card": {
-        # This test card number is defined in authorize.net's testing documentation
-        # https://developer.authorize.net/hello_world/testing_guide.html
-          "number": "4007000000027",
-          "cvv": "123",
-          "expiration": "2050-12"
+        'orderInformation': {
+            'card': {
+                # This test card number is defined in authorize.net's testing documentation
+                # https://developer.authorize.net/hello_world/testing_guide.html
+                'number': '4007000000027',
+                'cvv': '123',
+                'expiration': '2050-12',
+            },
+            'billing': {
+                'zip': '44628',
+                'firstName': 'Joe',
+                'lastName': 'Dokes',
+                'streetAddress': '14 Main Street',
+                'streetAddress2': 'Apt. 12J',
+                'state': 'TX',
+            },
         },
-        "billing": {
-          "zip": "44628",
-          "firstName": "Joe",
-          "lastName": "Dokes",
-          "streetAddress": "14 Main Street",
-          "streetAddress2": "Apt. 12J",
-          "state": "TX"
-        }
-      },
-      "selectedJurisdictions": [
-        "ne"
-      ]
+        'selectedJurisdictions': ['ne'],
     }
 
     post_api_response = requests.post(
         url=os.environ['CC_TEST_API_BASE_URL'] + '/v1/purchases/privileges', headers=headers, json=post_body, timeout=20
     )
 
-    assert (
-        post_api_response.status_code == 200
-    ), f'Failed to purchase privilege. Response: {post_api_response.json()}'
+    assert post_api_response.status_code == 200, f'Failed to purchase privilege. Response: {post_api_response.json()}'
 
     transaction_id = post_api_response.json().get('transactionId')
 
@@ -87,13 +86,17 @@ def test_purchasing_privilege():
     assert privileges, 'No privileges found in provider data'
     today = datetime.now(tz=UTC).date().isoformat()
     matching_privilege = next(
-        (privilege for privilege in privileges
-         if datetime.fromisoformat(privilege['dateOfIssuance']).date().isoformat() == today),
+        (
+            privilege
+            for privilege in privileges
+            if datetime.fromisoformat(privilege['dateOfIssuance']).date().isoformat() == today
+        ),
         None,
     )
     assert matching_privilege, f'No privilege record found for today ({today})'
-    assert matching_privilege['compactTransactionId'] == transaction_id, \
-        'Privilege record does not match transaction id'
+    assert (
+        matching_privilege['compactTransactionId'] == transaction_id
+    ), 'Privilege record does not match transaction id'
 
     print(f'Successfully purchased privilege record: {matching_privilege}')
 

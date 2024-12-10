@@ -4,6 +4,7 @@ from moto import mock_aws
 
 from . import TstFunction
 
+
 @mock_aws
 class TestHandleDataEvents(TstFunction):
     def test_handle_data_event(self):
@@ -70,7 +71,7 @@ class TestHandleDataEvents(TstFunction):
                 'status': 'active',
                 'dateOfIssuance': '2024-06-06',
                 'dateOfRenewal': '2024-06-06',
-                'dateOfExpiration': '2050-06-06'
+                'dateOfExpiration': '2050-06-06',
             },
             saved_event,
         )
