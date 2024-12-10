@@ -160,4 +160,41 @@ describe('Report emailer', () => {
             }
         );
     });
+
+    it('should send a "no license updates" email', async () => {
+        const logger = new Logger();
+        const sesClient = new SESClient();
+        const reportEmailer = new ReportEmailer({
+            logger: logger,
+            sesClient: sesClient
+        });
+        const messageId = await reportEmailer.sendNoLicenseUpdatesEmail(
+            'aslp',
+            'ohio',
+            [ 'operations@example.com' ]
+        );
+
+        expect(messageId).toEqual('message-id-123');
+        expect(mockSESClient).toHaveReceivedCommandWith(
+            SendEmailCommand,
+            {
+                Destination: {
+                    ToAddresses: ['operations@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('<!DOCTYPE html>')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'No License Updates for Last 7 Days: aslp / ohio'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            }
+        );
+    });
 });
