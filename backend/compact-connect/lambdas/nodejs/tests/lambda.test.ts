@@ -10,7 +10,8 @@ import { IEventBridgeEvent } from '../lib/models/event-bridge-event-detail';
 import {
     SAMPLE_INGEST_FAILURE_ERROR_RECORD,
     SAMPLE_JURISDICTION_CONFIGURATION,
-    SAMPLE_VALIDATION_ERROR_RECORD
+    SAMPLE_VALIDATION_ERROR_RECORD,
+    SAMPLE_INGEST_SUCCESS_RECORD
 } from './sample-records';
 
 
@@ -57,9 +58,14 @@ const mockSendAllsWellEmail = jest.fn(
     (recipients: string[]) => Promise.resolve('message-id-123')
 );
 
+const mockSendNoLicenseUpdatesEmail = jest.fn(
+    (recipients: string[]) => Promise.resolve('message-id-no-license-updates')
+);
+
 (ReportEmailer as jest.Mock) = jest.fn().mockImplementation(() => ({
     sendReportEmail: mockSendReportEmail,
-    sendAllsWellEmail: mockSendAllsWellEmail
+    sendAllsWellEmail: mockSendAllsWellEmail,
+    sendNoLicenseUpdatesEmail: mockSendNoLicenseUpdatesEmail
 }));
 
 
@@ -108,7 +114,14 @@ describe('Nightly runs', () => {
                         Items: [SAMPLE_INGEST_FAILURE_ERROR_RECORD]
                     });
                 }
-                throw Error('Unexpected query');
+                if (input?.ExpressionAttributeValues?.[':skBegin']['S']?.startsWith(
+                    'TYPE#license.ingest#TIME#'
+                )) {
+                    return Promise.resolve({
+                        Items: [SAMPLE_INGEST_SUCCESS_RECORD]
+                    });
+                }
+                throw Error(`Unexpected query ${JSON.stringify(input)}`);
             case 'compact-table':
                 return Promise.resolve({
                     Items: [SAMPLE_JURISDICTION_CONFIGURATION]
@@ -139,6 +152,7 @@ describe('Nightly runs', () => {
         // Verify an event report was sent
         expect(mockSendReportEmail).toHaveBeenCalled();
         expect(mockSendAllsWellEmail).not.toHaveBeenCalled();
+        
     });
 
     it('should not send an email if there were no ingest events', async () => {
@@ -191,6 +205,7 @@ describe('Nightly runs', () => {
         // Verify no emails were sent
         expect(mockSendReportEmail).not.toHaveBeenCalled();
         expect(mockSendAllsWellEmail).not.toHaveBeenCalled();
+        expect(mockSendNoLicenseUpdatesEmail).not.toHaveBeenCalled();
     });
 
     it('should let DynamoDB errors escape', async () => {
@@ -235,7 +250,7 @@ describe('Weekly runs', () => {
         });
     });
 
-    it('should send and "All\'s Well" email if there were no events', async () => {
+    it('should send "no license updates" email if there were no events', async () => {
         const mockDynamoDBClient = mockClient(DynamoDBClient);
 
         mockDynamoDBClient.on(QueryCommand).callsFake((input) => {
@@ -276,7 +291,8 @@ describe('Weekly runs', () => {
 
         // Verify an "All's Well" email was sent
         expect(mockSendReportEmail).not.toHaveBeenCalled();
-        expect(mockSendAllsWellEmail).toHaveBeenCalled();
+        expect(mockSendAllsWellEmail).not.toHaveBeenCalled();
+        expect(mockSendNoLicenseUpdatesEmail).toHaveBeenCalled();
     });
 
     it('should send a report email and not an alls well, when there were errors', async () => {
@@ -301,7 +317,14 @@ describe('Weekly runs', () => {
                         Items: [SAMPLE_INGEST_FAILURE_ERROR_RECORD]
                     });
                 }
-                throw Error('Unexpected query');
+                if (input?.ExpressionAttributeValues?.[':skBegin']['S']?.startsWith(
+                    'TYPE#license.ingest#TIME#'
+                )) {
+                    return Promise.resolve({
+                        Items: [SAMPLE_INGEST_SUCCESS_RECORD]
+                    });
+                }
+                throw Error(`Unexpected query ${JSON.stringify(input)}`);
             case 'compact-table':
                 return Promise.resolve({
                     Items: [SAMPLE_JURISDICTION_CONFIGURATION]
