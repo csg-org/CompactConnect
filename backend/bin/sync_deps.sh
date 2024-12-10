@@ -1,3 +1,8 @@
+(
+  cd compact-connect/lambdas/nodejs
+  yarn install
+)
+
 pip-sync \
   multi-account/requirements-dev.txt \
   multi-account/requirements.txt \

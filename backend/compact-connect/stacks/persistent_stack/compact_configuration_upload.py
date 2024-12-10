@@ -25,6 +25,7 @@ class CompactConfigurationUpload(Construct):
         table: CompactConfigurationTable,
         master_key: IKey,
         environment_name: str,
+        environment_context: dict,
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
@@ -118,7 +119,9 @@ class CompactConfigurationUpload(Construct):
             service_token=self.compact_configuration_upload_provider.service_token,
             properties={
                 # passing this as a property to the custom resource so that the lambda can access it
-                'compact_configuration': self._generate_compact_configuration_json_string(environment_name),
+                'compact_configuration': self._generate_compact_configuration_json_string(
+                    environment_name, environment_context
+                ),
             },
         )
 
@@ -126,7 +129,7 @@ class CompactConfigurationUpload(Construct):
         """Check if the compact configuration is active in the given environment."""
         return environment_name in active_environments or self.node.try_get_context('sandbox') is True
 
-    def _generate_compact_configuration_json_string(self, environment_name: str) -> str:
+    def _generate_compact_configuration_json_string(self, environment_name: str, environment_context: dict) -> str:
         """Currently, all configuration for compacts and jurisdictions is hardcoded in the compact-config directory.
         This reads the YAML configuration files and generates a JSON string of all the configuration objects that
         should be uploaded into the provider table.
@@ -165,16 +168,15 @@ class CompactConfigurationUpload(Construct):
                             formatted_jurisdiction['activeEnvironments'],
                         ):
                             formatted_jurisdiction = self._apply_jurisdiction_configuration_overrides(
-                                formatted_jurisdiction, environment_name
+                                formatted_jurisdiction, environment_context
                             )
                             self._validate_jurisdiction_configuration(formatted_jurisdiction)
                             uploader_input['jurisdictions'][compact_name].append(formatted_jurisdiction)
 
         return json.dumps(uploader_input)
 
-    def _apply_jurisdiction_configuration_overrides(self, jurisdiction: dict, environment_name: str) -> dict:
+    def _apply_jurisdiction_configuration_overrides(self, jurisdiction: dict, environment_context: dict) -> dict:
         """Apply overrides to the jurisdiction configuration, based on any overrides set in environment context"""
-        environment_context = self.node.get_context('ssm_context')['environments'][environment_name]
         if 'jurisdiction_configuration_overrides' in environment_context.keys():
             jurisdiction.update(environment_context['jurisdiction_configuration_overrides'])
         return jurisdiction

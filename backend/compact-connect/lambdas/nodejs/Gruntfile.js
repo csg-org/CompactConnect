@@ -13,7 +13,7 @@ module.exports = function (grunt) {
         //= Directory config =
         //====================
         lambdaFiles: [
-            '**/**.js',
+            'cloudfront-csp/**/**.js',
             '!**/node_modules/**/*.js',
             '!**/dist/**/*.js',
             '!Gruntfile.js',

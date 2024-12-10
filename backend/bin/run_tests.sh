@@ -8,7 +8,7 @@ EXIT=1
 if [[ "$LANGUAGE" == 'nodejs' || "$LANGUAGE" == 'all' ]]; then
   # Run NodeJS tests first
   (
-    cd compact-connect/lambdas/nodejs/ingest-event-reporter
+    cd compact-connect/lambdas/nodejs
     yarn test || exit "$?"
     if [ -z "$REPORT" ]; then
       open 'coverage/lcov-report/index.html'

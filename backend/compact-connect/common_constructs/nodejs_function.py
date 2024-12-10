@@ -30,18 +30,20 @@ class NodejsFunction(CdkNodejsFunction):
         }
         defaults.update(kwargs)
 
-        lambda_dir = os.path.join('lambdas', 'nodejs', lambda_dir)
+        nodejs_dir = os.path.join('lambdas', 'nodejs')
+        lambda_dir = os.path.join(nodejs_dir, lambda_dir)
 
         super().__init__(
             scope,
             construct_id,
             runtime=Runtime.NODEJS_22_X,
-            entry=os.path.join(lambda_dir, 'bin', 'handler.ts'),
-            deps_lock_file_path=os.path.join(lambda_dir, 'yarn.lock'),
+            entry=os.path.join(lambda_dir, 'handler.ts'),
+            deps_lock_file_path=os.path.join(nodejs_dir, 'yarn.lock'),
             bundling=BundlingOptions(
                 format=OutputFormat.CJS,
                 main_fields=['module', 'main'],
                 esbuild_args={'--log-limit': '0', '--tree-shaking': 'true'},
+                force_docker_bundling=True,
             ),
             log_retention=log_retention,
             **defaults,

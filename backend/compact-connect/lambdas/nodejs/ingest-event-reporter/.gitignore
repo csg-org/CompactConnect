@@ -1,6 +1,3 @@
-lib/**/*.mjs
-lib/**/*.js
-lib/**/*.js.map
-bin/**/*.mjs
-bin/**/*.js
-bin/**/*.js.map
+*.mjs
+*.js
+*.js.map

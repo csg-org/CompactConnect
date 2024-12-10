@@ -1,15 +1,20 @@
 {
-  "name": "data-validation-events",
+  "name": "compact-connect",
   "version": "1.0.0",
-  "type": "module",
-  "description": "Collect license data validation events and report them back to admins",
+  "type": "commonjs",
+  "description": "NodeJS lambdas for Compact Connect",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --coverage",
-    "lint": "eslint '**/*.ts'",
-    "lint-fix": "eslint --fix",
-    "audit:dependencies": "yarn audit --groups dependencies --level moderate"
+    "test:ingest": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --coverage",
+    "lint:ingest": "eslint '**/*.ts'",
+    "lint:ingest:fix": "eslint --fix",
+    "test:csp": "mocha cloudfront-csp/test",
+    "lint:csp": "grunt check",
+    "lint": "eslint '**/*.ts' && grunt check",
+    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest --coverage && mocha cloudfront-csp/test",
+    "audit:dependencies": "yarn audit --groups dependencies --level moderate",
+    "grunt": "grunt"
   },
   "author": "Inspiring Apps",
   "license": "UNLICENSED",
@@ -31,7 +36,16 @@
     "ts-node": "^10.9.2",
     "tslib": "^2.8.0",
     "tsx": "^4.19.2",
-    "typescript": "5.6.3"
+    "typescript": "5.6.3",
+    "chai": "^4.1.2",
+    "chai-match-pattern": "^1.1.0",
+    "chalk": "^4.1.2",
+    "grunt": "^1.6.1",
+    "grunt-contrib-watch": "^1.1.0",
+    "grunt-eslint": "^25.0.0",
+    "jit-grunt": "^0.10.0",
+    "lambda-local": "^2.2.0",
+    "mocha": "^11.0.0"
   },
   "dependencies": {
     "@aws-lambda-powertools/logger": "^2.10.0",

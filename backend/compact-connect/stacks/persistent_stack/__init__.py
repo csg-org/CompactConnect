@@ -110,6 +110,7 @@ class PersistentStack(AppStack):
             table=self.compact_configuration_table,
             master_key=self.shared_encryption_key,
             environment_name=environment_name,
+            environment_context=environment_context,
         )
 
         if self.hosted_zone:

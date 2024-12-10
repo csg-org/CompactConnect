@@ -10,6 +10,7 @@ on:
       - main
       - development
       - ia-web-development
+      - ia-development
     paths:
       - backend/compact-connect/lambdas/nodejs/**
 
@@ -18,7 +19,7 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  CheckCSPLambda:
+  CheckLambdas:
     runs-on: ubuntu-latest
 
     steps:
@@ -36,7 +37,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
-          node-version: '20.15.1'
+          node-version: '22.1.0'
 
       # Use any cached yarn dependencies (saves build time)
       - uses: actions/cache@v2
@@ -44,74 +45,22 @@ jobs:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
-      # =======================================================================
-      # =                      Cloudfront CSP Lambda                          =
-      # =======================================================================
       # Install Yarn Dependencies
       - name: Install JS dependencies (Cloudfront CSP Lambda)
         run: yarn install
-        working-directory: ./backend/compact-connect/lambdas/nodejs/cloudfront-csp
+        working-directory: ./backend/compact-connect/lambdas/nodejs
 
       # Run Linter Checks
       - name: Run linter (Cloudfront CSP Lambda)
         run: yarn run lint
-        working-directory: ./backend/compact-connect/lambdas/nodejs/cloudfront-csp
+        working-directory: ./backend/compact-connect/lambdas/nodejs
 
       # Run Unit Tests
       - name: Run unit tests (Cloudfront CSP Lambda)
         run: yarn test
-        working-directory: ./backend/compact-connect/lambdas/nodejs/cloudfront-csp
+        working-directory: ./backend/compact-connect/lambdas/nodejs
 
       # Audit dependencies for vulnerabilities
       - name: Audit dependencies (Cloudfront CSP Lambda)
         run: yarn run audit:dependencies
-        working-directory: ./backend/compact-connect/lambdas/nodejs/cloudfront-csp
-
-  CheckIngestEventReporter:
-    runs-on: ubuntu-latest
-
-    steps:
-      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
-      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted by GitHub!"
-      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
-
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-
-      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
-      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
-
-      # Setup Node
-      - name: Setup Node
-        uses: actions/setup-node@v1
-        with:
-          node-version: '20.15.1'
-
-      # Use any cached yarn dependencies (saves build time)
-      - uses: actions/cache@v2
-        with:
-          path: '**/node_modules'
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
-
-      # =======================================================================
-      # =                 Ingest Event Reporter Lambda                        =
-      # =======================================================================
-      # Install Yarn Dependencies
-      - name: Install JS dependencies (Ingest Event Reporter Lambda)
-        run: yarn install
-        working-directory: ./backend/compact-connect/lambdas/nodejs/ingest-event-reporter
-
-      # Run Linter Checks
-      - name: Run linter (Ingest Event Reporter Lambda)
-        run: yarn run lint
-        working-directory: ./backend/compact-connect/lambdas/nodejs/ingest-event-reporter
-
-      # Run Unit Tests
-      - name: Run unit tests (Ingest Event Reporter Lambda)
-        run: yarn test
-        working-directory: ./backend/compact-connect/lambdas/nodejs/ingest-event-reporter
-
-      # Audit dependencies for vulnerabilities
-      - name: Audit dependencies (Ingest Event Reporter Lambda)
-        run: yarn run audit:dependencies
-        working-directory: ./backend/compact-connect/lambdas/nodejs/ingest-event-reporter
+        working-directory: ./backend/compact-connect/lambdas/nodejs

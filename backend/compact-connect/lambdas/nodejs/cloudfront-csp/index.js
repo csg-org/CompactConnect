@@ -168,7 +168,9 @@ const srcKeywordsEscape = (srcList, listName = '') => {
                 const srcItemLowerCase = srcItem.toLowerCase();
 
                 if (srcKeywords.includes(srcItemLowerCase)) {
-                    const keywordConfig = srcKeywordsConfig.find((config) => srcItemLowerCase === config.value.toLowerCase());
+                    const keywordConfig = srcKeywordsConfig.find(
+                        (config) => srcItemLowerCase === config.value.toLowerCase()
+                    );
 
                     if (keywordConfig) {
                         if (!keywordConfig.isAllowed) {
