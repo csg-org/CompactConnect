@@ -86,7 +86,7 @@ class BulkUploadsBucket(Bucket):
             self,
             'V1ParseObjectsHandler',
             description='Parse s3 objects handler',
-            entry=os.path.join('lambdas', 'provider-data-v1'),
+            lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'bulk_upload.py'),
             handler='parse_bulk_upload_file',
             timeout=Duration.minutes(15),

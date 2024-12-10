@@ -1,12 +1,13 @@
 # PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
-jurisdictionName: "nebraska"
+jurisdictionName: "Nebraska"
 postalAbbreviation: "ne"
 jurisdictionFee: 100
 militaryDiscount:
     active: true
     discountType: "FLAT_RATE"
     discountAmount: 10
-jurisdictionOperationsTeamEmails: []
+jurisdictionOperationsTeamEmails:
+    - "cloud-team-nonprod-alerts@inspiringapps.com"
 jurisdictionAdverseActionsNotificationEmails: []
 jurisdictionSummaryReportNotificationEmails: []
 jurisprudenceRequirements:

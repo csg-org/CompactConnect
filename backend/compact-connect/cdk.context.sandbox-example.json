@@ -16,6 +16,11 @@
           "email": [
             "justin@example.com"
           ]
+        },
+        "jurisdiction_configuration_overrides": {
+          "jurisdictionOperationsTeamEmails": [
+            "justin@example.com"
+          ]
         }
       }
     }

@@ -39,7 +39,7 @@ class BulkUploadUrl:
             self.api,
             'V1BulkUrlHandler',
             description='Get upload url handler',
-            entry=os.path.join('lambdas', 'provider-data-v1'),
+            lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'bulk_upload.py'),
             handler='bulk_upload_url_handler',
             environment={'BULK_BUCKET_NAME': bulk_uploads_bucket.bucket_name, **stack.common_env_vars},
