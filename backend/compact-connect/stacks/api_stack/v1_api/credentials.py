@@ -85,7 +85,7 @@ class Credentials:
             self.resource,
             'PostCredentialsPaymentProcessorHandler',
             description='Post credentials payment processor handler',
-            entry=os.path.join('lambdas', 'purchases'),
+            lambda_dir='purchases',
             index=os.path.join('handlers', 'credentials.py'),
             handler='post_payment_processor_credentials',
             environment=lambda_environment,
