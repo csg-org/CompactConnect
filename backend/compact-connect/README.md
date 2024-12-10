@@ -56,7 +56,7 @@ $ cdk synth
 ```
 
 For development work there are additional requirements in `requirements-dev.txt` to install with
-`pip install -r requirements.txt`.
+`pip install -r requirements-dev.txt`.
 
 To add additional dependencies, for example other CDK libraries, just add them to the `requirements.in` file and rerun
 `pip-compile requirements.in`, then `pip install -r requirements.txt` command.
