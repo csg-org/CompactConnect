@@ -1,5 +1,9 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 
+from marshmallow import ValidationError, pre_dump, pre_load, validates_schema
+from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, String
+from marshmallow.validate import Length, OneOf, Regexp
+
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import (
     BaseRecordSchema,
@@ -8,9 +12,6 @@ from cc_common.data_model.schema.base_record import (
     ITUTE164PhoneNumber,
     SocialSecurityNumber,
 )
-from marshmallow import ValidationError, pre_dump, pre_load, validates_schema
-from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, String
-from marshmallow.validate import Length, OneOf, Regexp
 
 
 class SanitizedLicenseIngestDataEventSchema(ForgivingSchema):
@@ -24,6 +25,7 @@ class SanitizedLicenseIngestDataEventSchema(ForgivingSchema):
     dateOfRenewal = Date(required=True, allow_none=False)
     dateOfExpiration = Date(required=True, allow_none=False)
     eventTime = DateTime(required=True, allow_none=False)
+
 
 class LicensePublicSchema(ForgivingSchema):
     """Schema for license data that can be shared with the public"""
@@ -47,6 +49,7 @@ class LicenseCommonSchema(ForgivingSchema):
     This schema is used for both the LicensePostSchema and LicenseIngestSchema. It contains the fields that are common
     to both the external and internal representations of a license record.
     """
+
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     licenseType = String(required=True, allow_none=False)
@@ -78,6 +81,7 @@ class LicenseCommonSchema(ForgivingSchema):
 
 class LicensePostSchema(LicenseCommonSchema):
     """Schema for license data as posted by a board"""
+
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
     # This status field is required when posting a license record. It will be transformed into the
@@ -87,6 +91,7 @@ class LicensePostSchema(LicenseCommonSchema):
 
 class LicenseIngestSchema(LicenseCommonSchema):
     """Schema for converting the external license data to the internal format"""
+
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
     # When a license record is first uploaded into the system, we store the value of
