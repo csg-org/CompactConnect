@@ -6,7 +6,7 @@ from aws_cdk import Duration, RemovalPolicy
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_dynamodb import Attribute, AttributeType, BillingMode, Table, TableEncryption
-from aws_cdk.aws_events import IEventBus, Rule
+from aws_cdk.aws_events import EventPattern, IEventBus, Match, Rule
 from aws_cdk.aws_events_targets import SqsQueue
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_sns import ITopic
@@ -102,6 +102,9 @@ class DataEventTable(Table):
             self,
             'EventReceiverRule',
             event_bus=event_bus,
+            # match any event detail_type
+            # https://stackoverflow.com/a/62407802
+            event_pattern=EventPattern(detail_type=Match.prefix('')),
             targets=[SqsQueue(self.event_processor.queue, dead_letter_queue=self.event_processor.dlq)],
         )
         NagSuppressions.add_resource_suppressions(
