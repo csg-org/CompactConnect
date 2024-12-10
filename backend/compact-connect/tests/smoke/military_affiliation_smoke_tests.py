@@ -13,7 +13,6 @@ from smoke_common import get_api_base_url, get_provider_user_auth_headers, load_
 # 'smoke_tests_env_example.json' file as a template.
 
 
-
 def test_military_affiliation_upload():
     # Step 1: Create a military affiliation record in the DB using the POST
     # '/v1/provider-users/me/military-affiliation' endpoint.
@@ -28,7 +27,10 @@ def test_military_affiliation_upload():
         'affiliationType': 'militaryMember',
     }
     post_api_response = requests.post(
-        url=get_api_base_url() + '/v1/provider-users/me/military-affiliation', headers=headers, json=post_body, timeout=10
+        url=get_api_base_url() + '/v1/provider-users/me/military-affiliation',
+        headers=headers,
+        json=post_body,
+        timeout=10,
     )
 
     assert (
@@ -55,8 +57,9 @@ def test_military_affiliation_upload():
     """
     post_api_response_json = post_api_response.json()
     # Use the S3 pre-signed URL to upload a test file to the S3 bucket.
-    with (open(os.path.join(os.path.dirname(__file__), '../resources/test_files/military_affiliation.pdf'), 'rb')
-          as test_file):
+    with open(
+        os.path.join(os.path.dirname(__file__), '../resources/test_files/military_affiliation.pdf'), 'rb'
+    ) as test_file:
         files = {'file': (test_file.name, test_file)}
         pre_signed_url = post_api_response_json['documentUploadFields'][0]['url']
         pre_signed_fields = post_api_response_json['documentUploadFields'][0]['fields']
@@ -102,7 +105,9 @@ def test_military_affiliation_patch_update():
     }
     patch_api_response = requests.patch(
         url=get_api_base_url() + '/v1/provider-users/me/military-affiliation',
-        headers=headers, json=patch_body, timeout=10
+        headers=headers,
+        json=patch_body,
+        timeout=10,
     )
 
     assert (
