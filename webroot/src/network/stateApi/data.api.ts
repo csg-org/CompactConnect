@@ -13,6 +13,7 @@ import {
     responseError
 } from '@network/stateApi/interceptors';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
+import { PaymentProcessorConfig } from '@models/Compact/Compact.model';
 
 export interface DataApiInterface {
     api: AxiosInstance;
@@ -104,6 +105,16 @@ export class StateDataApi implements DataApiInterface {
 
             }
         });
+    }
+
+    /**
+     * POST Compact payment processer config.
+     * @param  {string}                 compact The compact string ID (aslp, ot, counseling).
+     * @param  {PaymentProcessorConfig} config  The payment processer config data.
+     * @return {Promise<object>}                The server response.
+     */
+    public updatePaymentProcessorConfig(compact: string, config: PaymentProcessorConfig) {
+        return this.api.post(`v1/compacts/${compact}/credentials/payment-processor`, config);
     }
 }
 

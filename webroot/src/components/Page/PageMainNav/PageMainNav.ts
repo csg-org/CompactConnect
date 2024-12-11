@@ -60,20 +60,19 @@ class PageMainNav extends Vue {
         return compactPermission;
     }
 
+    get isCompactAdmin(): boolean {
+        return this.isLoggedInAsStaff && Boolean(this.staffPermission?.isAdmin);
+    }
+
+    get isStateAdmin(): boolean {
+        const { isLoggedInAsStaff, staffPermission } = this;
+        const isAdmin = Boolean(staffPermission?.states?.some((statePermission) => statePermission.isAdmin));
+
+        return isLoggedInAsStaff && isAdmin;
+    }
+
     get isAnyTypeOfAdmin(): boolean {
-        let isAdmin = false;
-
-        if (this.isLoggedInAsStaff) {
-            const { staffPermission } = this;
-
-            if (staffPermission?.isAdmin) {
-                isAdmin = true;
-            } else if (staffPermission?.states?.some((statePermission) => statePermission.isAdmin)) {
-                isAdmin = true;
-            }
-        }
-
-        return isAdmin;
+        return this.isCompactAdmin || this.isStateAdmin;
     }
 
     get hasStateWritePermissions(): boolean {
@@ -108,6 +107,14 @@ class PageMainNav extends Vue {
                 isEnabled: Boolean(this.currentCompact) && this.hasStateWritePermissions,
                 isExternal: false,
                 isExactActive: true,
+            },
+            {
+                to: 'CompactSettings',
+                params: { compact: this.currentCompact?.type },
+                label: computed(() => this.$t('navigation.compactSettings')),
+                isEnabled: Boolean(this.currentCompact) && this.isCompactAdmin,
+                isExternal: false,
+                isExactActive: false,
             },
             {
                 to: 'LicenseeDashboard',
