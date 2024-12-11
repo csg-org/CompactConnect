@@ -1,8 +1,8 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from urllib.parse import quote
 
-from marshmallow import ValidationError, post_load, pre_dump, validates_schema
-from marshmallow.fields import UUID, Boolean, Date, Email, String
+from marshmallow import ValidationError, post_load, pre_dump, pre_load, validates_schema
+from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, String
 from marshmallow.validate import Length, OneOf, Regexp
 
 from cc_common.config import config
@@ -14,6 +14,7 @@ from cc_common.data_model.schema.base_record import (
     Set,
     SocialSecurityNumber,
 )
+from cc_common.data_model.schema.common import ensure_value_is_datetime
 
 
 class ProviderPublicSchema(ForgivingSchema):
@@ -32,6 +33,8 @@ class ProviderPublicSchema(ForgivingSchema):
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
+    # these dates are determined by the license records uploaded by a state
+    # they do not include a timestamp, so we use the Date field type
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfBirth = Date(required=True, allow_none=False)
     homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
@@ -62,7 +65,13 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema, ProviderPublicSchema):
     # Generated fields
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
-    providerDateOfUpdate = Date(required=True, allow_none=False)
+    providerDateOfUpdate = DateTime(required=True, allow_none=False)
+
+    @pre_load
+    def pre_load_initialization(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        in_data['providerDateOfUpdate'] = ensure_value_is_datetime(in_data['providerDateOfUpdate'])
+
+        return in_data
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument

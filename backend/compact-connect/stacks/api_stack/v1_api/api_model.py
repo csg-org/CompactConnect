@@ -206,8 +206,7 @@ class ApiModel:
 
     @property
     def post_provider_military_affiliation_response_model(self) -> Model:
-        """Return the post provider military affiliation response model, which should only be created once per API
-        """
+        """Return the post provider military affiliation response model, which should only be created once per API"""
         if hasattr(self.api, '_v1_post_provider_military_affiliation_response_model'):
             return self.api._v1_post_provider_military_affiliation_response_model
         self.api._v1_post_provider_military_affiliation_response_model = self.api.add_model(
@@ -357,7 +356,8 @@ class ApiModel:
                                         type=JsonSchemaType.STRING,
                                         description='The card number',
                                         max_length=19,
-                                        min_length=15,
+                                        # set a min length of acceptable card numbers
+                                        min_length=13,
                                     ),
                                     'expiration': JsonSchema(
                                         type=JsonSchemaType.STRING,

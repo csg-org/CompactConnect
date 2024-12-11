@@ -102,6 +102,7 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         return event
 
     @patch('handlers.provider_users.uuid')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-12-04T08:08:08+00:00'))
     def test_post_provider_military_affiliation_returns_affiliation_information(self, mock_uuid):
         from handlers.provider_users import provider_user_me_military_affiliation
 
@@ -120,7 +121,6 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         del military_affiliation_data['documentUploadFields'][0]['fields']['x-amz-date']
         del military_affiliation_data['documentUploadFields'][0]['fields']['x-amz-credential']
 
-        today = datetime.now(self.config.expiration_date_resolution_timezone).date().isoformat()
         provider_id = event['requestContext']['authorizer']['claims']['custom:providerId']
 
         # remove the dynamic dateOfUpload field
@@ -129,12 +129,12 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         self.assertEqual(
             {
                 'affiliationType': 'militaryMember',
-                'dateOfUpdate': today,
+                'dateOfUpdate': '2024-12-04T08:08:08+00:00',
                 'documentUploadFields': [
                     {
                         'fields': {
                             'key': f'compact/{TEST_COMPACT}/provider/{provider_id}/document-type/military-affiliations'
-                            f'/{today}/1234#military_affiliation.pdf',
+                            f'/2024-12-04/1234#military_affiliation.pdf',
                             'x-amz-algorithm': 'AWS4-HMAC-SHA256',
                         },
                         'url': 'https://provider-user-bucket.s3.amazonaws.com/',
@@ -198,8 +198,8 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
         message = json.loads(resp['body'])['message']
 
         self.assertEqual(
-            'Invalid file type "guff" The following file types are supported: ' +
-            "('pdf', 'jpg', 'jpeg', 'png', 'docx')",
+            'Invalid file type "guff" The following file types are supported: '
+            + "('pdf', 'jpg', 'jpeg', 'png', 'docx')",
             message,
         )
 

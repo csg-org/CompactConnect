@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 from decimal import Decimal
+from unittest.mock import patch
 
 from boto3.dynamodb.conditions import Key
 from moto import mock_aws
@@ -8,6 +9,7 @@ from moto import mock_aws
 from .. import TstFunction
 
 TEST_ENVIRONMENT_NAME = 'test'
+MOCK_CURRENT_TIMESTAMP = '2024-11-08T23:59:59+00:00'
 
 
 def generate_single_root_compact_config(compact_name: str, active_environments: list):
@@ -58,12 +60,7 @@ def generate_mock_compact_configuration():
 
 @mock_aws
 class TestCompactConfigurationUploader(TstFunction):
-    def generate_date_string(self):
-        # yes, there is always a chance that the tests are run precisely at midnight
-        # which will cause the test to fail and will need to be rerun,
-        # but that's a risk we're willing to take.
-        return datetime.now(tz=self.config.expiration_date_resolution_timezone).strftime('%Y-%m-%d')
-
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat(MOCK_CURRENT_TIMESTAMP))
     def test_compact_configuration_uploader_store_all_config(self):
         from handlers.compact_config_uploader import on_event
 
@@ -97,14 +94,14 @@ class TestCompactConfigurationUploader(TstFunction):
                     'compactName': 'aslp',
                     'compactOperationsTeamEmails': [],
                     'compactSummaryReportNotificationEmails': [],
-                    'dateOfUpdate': self.generate_date_string(),
+                    'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'pk': 'aslp#CONFIGURATION',
                     'sk': 'aslp#CONFIGURATION',
                     'type': 'compact',
                 },
                 {
                     'compact': 'aslp',
-                    'dateOfUpdate': self.generate_date_string(),
+                    'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
                     'jurisdictionFee': Decimal('100'),
                     'jurisdictionName': 'nebraska',
@@ -119,7 +116,7 @@ class TestCompactConfigurationUploader(TstFunction):
                 },
                 {
                     'compact': 'aslp',
-                    'dateOfUpdate': self.generate_date_string(),
+                    'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
                     'jurisdictionFee': Decimal('100'),
                     'jurisdictionName': 'ohio',
@@ -138,14 +135,14 @@ class TestCompactConfigurationUploader(TstFunction):
                     'compactName': 'octp',
                     'compactOperationsTeamEmails': [],
                     'compactSummaryReportNotificationEmails': [],
-                    'dateOfUpdate': self.generate_date_string(),
+                    'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'pk': 'octp#CONFIGURATION',
                     'sk': 'octp#CONFIGURATION',
                     'type': 'compact',
                 },
                 {
                     'compact': 'octp',
-                    'dateOfUpdate': self.generate_date_string(),
+                    'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
                     'jurisdictionFee': Decimal('100'),
                     'jurisdictionName': 'nebraska',
@@ -160,7 +157,7 @@ class TestCompactConfigurationUploader(TstFunction):
                 },
                 {
                     'compact': 'octp',
-                    'dateOfUpdate': self.generate_date_string(),
+                    'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
                     'jurisdictionAdverseActionsNotificationEmails': [],
                     'jurisdictionFee': Decimal('100'),
                     'jurisdictionName': 'ohio',

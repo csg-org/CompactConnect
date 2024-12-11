@@ -11,6 +11,7 @@ from .. import TstFunction
 @mock_aws
 class TestTransformations(TstFunction):
     # Yes, this is an excessively long method. We're going with it for sake of a single illustrative test.
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_transformations(self):
         """Provider data undergoes several transformations from when a license is first posted, stored into the
         database, then returned via the API. We will specifically test that chain, end to end, to make sure the
@@ -150,21 +151,6 @@ class TestTransformations(TstFunction):
         del records['privilege']['dateOfIssuance']
         del records['privilege']['dateOfRenewal']
         del records['militaryAffiliation']['dateOfUpload']
-
-        # the sk is dynamic and will not match, but we can check its values to make sure the value of each is expected
-        self.assertEqual('aslp#PROVIDER#privilege/ne#2024-11-08', expected_privilege.pop('sk'))
-        self.assertEqual(
-            f'aslp#PROVIDER#privilege/ne#{datetime.now(tz=self.config.expiration_date_resolution_timezone)
-            .date().isoformat()}',
-            records['privilege'].pop('sk'),
-        )
-        # check the sk of the military affiliation, which is also dynamic
-        self.assertEqual('aslp#PROVIDER#military-affiliation#2024-07-08', expected_military_affiliation.pop('sk'))
-        self.assertEqual(
-            f'aslp#PROVIDER#military-affiliation#{datetime.now(tz=self.config.expiration_date_resolution_timezone)
-            .date().isoformat()}',
-            records['militaryAffiliation'].pop('sk'),
-        )
 
         # Make sure each is represented the way we expect, in the db
         self.assertEqual(expected_provider, records['provider'])
