@@ -26,7 +26,7 @@ class TestIngest(TstFunction):
             event = json.load(f)
 
         event['pathParameters'] = {'compact': 'aslp'}
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/readGeneral'
         event['body'] = json.dumps({'query': {'ssn': '123-12-1234'}})
         resp = query_providers(event, self.mock_context)
         self.assertEqual(resp['statusCode'], 200)
@@ -71,7 +71,7 @@ class TestIngest(TstFunction):
             event = json.load(f)
 
         event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/readGeneral'
         resp = get_provider(event, self.mock_context)
         self.assertEqual(resp['statusCode'], 200)
 
@@ -131,7 +131,7 @@ class TestIngest(TstFunction):
             event = json.load(f)
 
         event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/readGeneral'
         resp = get_provider(event, self.mock_context)
         self.assertEqual(resp['statusCode'], 200)
 
@@ -188,7 +188,7 @@ class TestIngest(TstFunction):
             event = json.load(f)
 
         event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/readGeneral'
         resp = get_provider(event, self.mock_context)
         self.assertEqual(resp['statusCode'], 200)
 

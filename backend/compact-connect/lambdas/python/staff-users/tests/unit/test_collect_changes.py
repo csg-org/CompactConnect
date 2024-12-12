@@ -10,12 +10,12 @@ class TestCollectChanges(TstLambdas):
         resp = collect_and_authorize_changes(
             path_compact='aslp',
             scopes={'openid', 'email', 'aslp/admin', 'aslp/aslp.admin'},
-            compact_changes={'actions': {'admin': True, 'read': False}, 'jurisdictions': {}},
+            compact_changes={'actions': {'admin': True, 'readPrivate': False}, 'jurisdictions': {}},
         )
         self.assertEqual(
             {
                 'compact_action_additions': {'admin'},
-                'compact_action_removals': {'read'},
+                'compact_action_removals': {'readPrivate'},
                 'jurisdiction_action_additions': {},
                 'jurisdiction_action_removals': {},
             },
@@ -69,14 +69,14 @@ class TestCollectChanges(TstLambdas):
             path_compact='aslp',
             scopes={'openid', 'email', 'aslp/admin', 'aslp/aslp.admin'},
             compact_changes={
-                'actions': {'admin': True, 'read': False},
+                'actions': {'admin': True, 'readPrivate': False},
                 'jurisdictions': {'oh': {'actions': {'admin': True, 'write': False}}},
             },
         )
         self.assertEqual(
             {
                 'compact_action_additions': {'admin'},
-                'compact_action_removals': {'read'},
+                'compact_action_removals': {'readPrivate'},
                 'jurisdiction_action_additions': {'oh': {'admin'}},
                 'jurisdiction_action_removals': {'oh': {'write'}},
             },
