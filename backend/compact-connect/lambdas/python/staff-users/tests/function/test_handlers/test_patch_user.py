@@ -30,7 +30,7 @@ class TestPatchUser(TstFunction):
                 'dateOfUpdate': '2024-09-12T23:59:59+00:00',
                 'permissions': {
                     'aslp': {
-                        'actions': {'read': True},
+                        'actions': {'readPrivate': True},
                         'jurisdictions': {'oh': {'actions': {'admin': True, 'write': True}}},
                     },
                 },
