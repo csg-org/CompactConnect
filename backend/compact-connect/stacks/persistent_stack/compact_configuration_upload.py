@@ -27,7 +27,7 @@ class CompactConfigurationUpload(Construct):
         **kwargs,
     ):
         super().__init__(scope, construct_id, **kwargs)
-
+        stack: Stack = Stack.of(self)
         self.compact_configuration_upload_function = PythonFunction(
             scope,
             'CompactConfigurationUploadFunction',
@@ -38,7 +38,7 @@ class CompactConfigurationUpload(Construct):
             timeout=Duration.minutes(10),
             log_retention=RetentionDays.THREE_MONTHS,
             environment={
-                'COMPACT_CONFIGURATION_TABLE_NAME': table.table_name,
+                'COMPACT_CONFIGURATION_TABLE_NAME': table.table_name, **stack.common_env_vars
             },
         )
 

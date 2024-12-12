@@ -80,6 +80,7 @@ class PersistentStack(AppStack):
         )
 
         notifications = environment_context.get('notifications', {})
+        print('notifications:', notifications)
         self.alarm_topic = AlarmTopic(
             self,
             'AlarmTopic',
@@ -87,6 +88,7 @@ class PersistentStack(AppStack):
             email_subscriptions=notifications.get('email', []),
             slack_subscriptions=notifications.get('slack', []),
         )
+
 
         self.access_logs_bucket = AccessLogsBucket(
             self,
