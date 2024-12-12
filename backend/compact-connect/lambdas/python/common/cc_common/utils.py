@@ -344,6 +344,13 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
     for action, value in compact_changes.get('actions', {}).items():
         if action == 'admin' and f'{path_compact}/{path_compact}.admin' not in scopes:
             raise CCAccessDeniedException('Only compact admins can affect compact-level admin permissions')
+        if action == 'readPrivate' and f'{path_compact}/{path_compact}.admin' not in scopes:
+            raise CCAccessDeniedException('Only compact admins can affect compact-level access to private information')
+
+        # dropping the read action as this is now implicitly granted to all users
+        if action == 'read':
+            logger.info('Dropping "read" action as this is implicitly granted to all users')
+            continue
         # Any admin in the compact can affect read permissions, so no read-specific check is necessary here
         if value:
             compact_action_additions.add(action)
@@ -359,6 +366,11 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
             )
 
         for action, value in jurisdiction_changes.get('actions', {}).items():
+            # dropping the read action as this is now implicitly granted to all users
+            if action == 'read':
+                logger.info('Dropping "read" action as this is implicitly granted to all users')
+                continue
+
             if value:
                 jurisdiction_action_additions.setdefault(jurisdiction, set()).add(action)
             else:
