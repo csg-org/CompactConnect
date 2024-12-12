@@ -5,7 +5,12 @@ from unittest.mock import patch
 
 from app import CompactConnectApp
 from aws_cdk.assertions import Match, Template
-from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolClient, CfnUserPoolRiskConfigurationAttachment
+from aws_cdk.aws_cognito import (
+    CfnUserPool,
+    CfnUserPoolClient,
+    CfnUserPoolResourceServer,
+    CfnUserPoolRiskConfigurationAttachment,
+)
 from aws_cdk.aws_lambda import CfnFunction, CfnLayerVersion
 from aws_cdk.aws_ssm import CfnParameter
 
@@ -52,6 +57,30 @@ class TestPipeline(TstAppABC, TestCase):
 
         for ui_stack in (self.app.pipeline_stack.test_stage.ui_stack, self.app.pipeline_stack.prod_stage.ui_stack):
             self._inspect_ui_stack(ui_stack)
+
+    def test_synth_generates_resource_servers_with_expected_scopes_for_staff_users(self):
+        persistent_stack = self.app.pipeline_stack.test_stage.persistent_stack
+        persistent_stack_template = Template.from_stack(persistent_stack)
+
+        # Get the resource servers created in the persistent stack
+        resource_servers = persistent_stack.staff_users.resource_servers
+        # this should match the number of compacts we have onboarded into the system
+        self.assertEqual(3, len(resource_servers))
+
+        resource_server_cfn_properties = []
+        for compact, resource_server in resource_servers.items():
+            # for this test, we just get the 'aslp' compact resource server
+            if compact == 'aslp':
+                resource_server_cfn_properties.append(
+                    self.get_resource_properties_by_logical_id(
+                        persistent_stack.get_logical_id(resource_server.node.default_child),
+                        persistent_stack_template.find_resources(CfnUserPoolResourceServer.CFN_RESOURCE_TYPE_NAME),
+                    )
+                )
+
+        # Ensure the resource servers are created with the expected scopes
+        self.assertEqual(['admin', 'write', 'readGeneral'], [scope['ScopeName']
+                                             for scope in resource_server_cfn_properties[0]['Scopes']])
 
     def test_cognito_using_recommended_security_in_prod(self):
         stack = self.app.pipeline_stack.prod_stage.persistent_stack

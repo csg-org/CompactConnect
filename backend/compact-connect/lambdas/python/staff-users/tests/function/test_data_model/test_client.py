@@ -142,7 +142,7 @@ class TestClient(TstFunction):
 
         self.assertEqual(user_id, resp['userId'])
         self.assertEqual(
-            {'actions': {'read'}, 'jurisdictions': {'oh': {'admin'}, 'ky': {'write'}}},
+            {'actions': {'readPrivate'}, 'jurisdictions': {'oh': {'admin'}, 'ky': {'write'}}},
             resp['permissions'],
         )
         # Just checking that we're getting the whole object, not just changes
@@ -164,7 +164,7 @@ class TestClient(TstFunction):
         )
 
         self.assertEqual(user_id, resp['userId'])
-        self.assertEqual({'actions': {'read', 'admin'}, 'jurisdictions': {}}, resp['permissions'])
+        self.assertEqual({'actions': {'readPrivate', 'admin'}, 'jurisdictions': {}}, resp['permissions'])
         # Checking that we're getting the whole object, not just changes
         self.assertFalse({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - resp.keys())
 

@@ -17,7 +17,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps({'query': {'ssn': '123-12-1234'}})
 
@@ -48,7 +48,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps({'query': {'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}})
 
@@ -80,7 +80,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps(
             {'sorting': {'key': 'dateOfUpdate'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
@@ -109,7 +109,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps(
             {'sorting': {'key': 'familyName'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
@@ -143,7 +143,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps(
             {
@@ -175,7 +175,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps(
             {
@@ -201,7 +201,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps({'query': {}})
 
@@ -229,7 +229,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps({'query': {'jurisdiction': 'oh'}, 'sorting': {'key': 'invalid'}})
 
@@ -251,7 +251,7 @@ class TestGetProvider(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
         event['queryStringParameters'] = None
 
@@ -274,7 +274,7 @@ class TestGetProvider(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'octp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
         event['queryStringParameters'] = None
 
@@ -289,7 +289,7 @@ class TestGetProvider(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         # providerId _should_ be included in these pathParameters. We're leaving it out for this test.
         event['pathParameters'] = {'compact': 'aslp'}
         event['queryStringParameters'] = None
