@@ -32,37 +32,26 @@ export default class Logout extends Vue {
     }
 
     get hostedLogoutUriStaff(): string {
-        const { domain, cognitoAuthDomainStaff, cognitoClientIdStaff } = this.$envConfig;
-        const loginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
-        const loginResponseType = 'code';
-        const loginRedirectPath = '/auth/callback';
-        const loginUriQuery = [
+        const { cognitoAuthDomainStaff, cognitoClientIdStaff } = this.$envConfig;
+        const logoutUriQuery = [
             `?client_id=${cognitoClientIdStaff}`,
-            `&response_type=${loginResponseType}`,
-            `&scope=${encodeURIComponent(loginScopes)}`,
-            `&state=${AuthTypes.STAFF}`,
-            `&redirect_uri=${encodeURIComponent(`${domain}${loginRedirectPath}`)}`,
+            `&logout_uri=${encodeURIComponent(this.hostedLogoutUriLicensee)}`
         ].join('');
         const idpPath = '/logout';
-        const loginUri = `${cognitoAuthDomainStaff}${idpPath}${loginUriQuery}`;
+        const loginUri = `${cognitoAuthDomainStaff}${idpPath}${logoutUriQuery}`;
 
         return loginUri;
     }
 
     get hostedLogoutUriLicensee(): string {
         const { domain, cognitoAuthDomainLicensee, cognitoClientIdLicensee } = this.$envConfig;
-        const loginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
-        const loginResponseType = 'code';
-        const loginRedirectPath = '/auth/callback';
-        const loginUriQuery = [
+        const disambiguationLink = encodeURIComponent(`${(domain as string)}/Login`);
+        const logoutUriQuery = [
             `?client_id=${cognitoClientIdLicensee}`,
-            `&response_type=${loginResponseType}`,
-            `&scope=${encodeURIComponent(loginScopes)}`,
-            `&state=${AuthTypes.LICENSEE}`,
-            `&redirect_uri=${encodeURIComponent(`${domain}${loginRedirectPath}`)}`,
+            `&logout_uri=${disambiguationLink}`
         ].join('');
         const idpPath = '/logout';
-        const loginUri = `${cognitoAuthDomainLicensee}${idpPath}${loginUriQuery}`;
+        const loginUri = `${cognitoAuthDomainLicensee}${idpPath}${logoutUriQuery}`;
 
         return loginUri;
     }
