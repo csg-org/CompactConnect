@@ -119,7 +119,7 @@ def api_handler(fn: Callable):
 
 
 class authorize_compact:  # noqa: N801 invalid-name
-    """Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/read)"""
+    """Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/readGeneral)"""
 
     def __init__(self, action: str):
         super().__init__()
@@ -164,8 +164,9 @@ def _authorize_compact_with_scope(event: dict, resource_parameter: str, scope_pa
     For each of these actions, specific rules apply to the scope required to perform the action, which are
     as follows:
 
-    Read - granted at compact level, allows read access to all jurisdictions within the compact.
-    i.e. aslp/read would allow read access to all jurisdictions within the aslp compact.
+    ReadGeneral - granted at compact level, allows read access to all generally available (not private) jurisdiction
+    data within the compact.
+    i.e. aslp/readGeneral would allow read access to all generally available jurisdiction data within the aslp compact.
 
     Write - granted at jurisdiction level, allows write access to a specific jurisdiction within the compact.
     i.e. aslp/oh.write would allow write access to the ohio jurisdiction within the aslp compact.

@@ -25,7 +25,7 @@ class V1Api:
         self.api: cc_api.CCApi = root.api
         self.api_model = ApiModel(api=self.api)
         read_scopes = [
-            f'{resource_server}/read' for resource_server in persistent_stack.staff_users.resource_servers.keys()
+            f'{resource_server}/readGeneral' for resource_server in persistent_stack.staff_users.resource_servers.keys()
         ]
         write_scopes = [
             f'{resource_server}/write' for resource_server in persistent_stack.staff_users.resource_servers.keys()

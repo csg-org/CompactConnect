@@ -165,7 +165,7 @@ class TestTransformations(TstFunction):
             event = json.load(f)
 
         event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
 
         resp = get_provider(event, self.mock_context)
 
