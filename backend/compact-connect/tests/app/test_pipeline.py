@@ -79,8 +79,10 @@ class TestPipeline(TstAppABC, TestCase):
                 )
 
         # Ensure the resource servers are created with the expected scopes
-        self.assertEqual(['admin', 'write', 'readGeneral'], [scope['ScopeName']
-                                             for scope in resource_server_cfn_properties[0]['Scopes']])
+        self.assertEqual(
+            ['admin', 'write', 'readGeneral'],
+            [scope['ScopeName'] for scope in resource_server_cfn_properties[0]['Scopes']],
+        )
 
     def test_cognito_using_recommended_security_in_prod(self):
         stack = self.app.pipeline_stack.prod_stage.persistent_stack
