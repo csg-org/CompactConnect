@@ -88,5 +88,3 @@ class UserScopes(set):
 
         # readGeneral is always added an implicit permission granted to all staff users at their jurisdiction levels
         self.add(f'{compact_name}/{jurisdiction_name}.readGeneral')
-
-

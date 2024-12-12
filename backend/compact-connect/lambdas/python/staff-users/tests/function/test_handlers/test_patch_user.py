@@ -204,11 +204,22 @@ class TestPatchUser(TstFunction):
             event = json.load(f)
 
         # The user has admin permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/oh.admin aslp/aslp.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = (
+            'openid email aslp/admin aslp/oh.admin aslp/aslp.admin'
+        )
         event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
-        event['body'] = json.dumps({
-            'permissions': {'aslp': {"actions": {'readPrivate': True,},
-                                     'jurisdictions': {'oh': {'actions': {'admin': True, 'readPrivate': True}}}}}})
+        event['body'] = json.dumps(
+            {
+                'permissions': {
+                    'aslp': {
+                        'actions': {
+                            'readPrivate': True,
+                        },
+                        'jurisdictions': {'oh': {'actions': {'admin': True, 'readPrivate': True}}},
+                    }
+                }
+            }
+        )
 
         resp = patch_user(event, self.mock_context)
 
