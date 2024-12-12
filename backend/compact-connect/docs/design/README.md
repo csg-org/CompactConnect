@@ -85,16 +85,19 @@ how permissions are stored and translated into scopes.
 
 #### Compact Executive Directors and Staff
 
-Compact ED level staff can have permission to read all compact data as well as to create and manage users and their
-permissions. They can grant other users the ability to write data for a particular jurisdiction and to create more
-users associated with a particular jurisdiction. They can also delete any user within their compact, so long as that
-user does not have permissions associated with a different compact.
+Compact ED level staff can have permission to read all generally available data for any compact, and if they have the 
+`readPrivate` permission they will be able to view all data for any licensee within the compact. They will also be able
+to create and manage users and their permissions. They can grant other users the ability to write data for a particular
+jurisdiction and to create more users associated with a particular jurisdiction. They can also delete any user within 
+their compact, so long as that user does not have permissions associated with a different compact.
 
 #### Board Executive Directors and Staff
 
-Board ED level staff can have permission to read all compact data, write data to for their own jurisdiction, and to
-create more users that have permissions within their own jurisdiction. They can also delete any user within their
-jurisdiction, so long as that user does not have permissions associated with a different compact or jurisdiction.
+Board ED level staff can have permission to read all generally available jurisdiction data, and if they have the 
+`readPrivate` permission they will be able to view all information for any licensee that has either a license or privilege
+within their jurisdiction. They can also write data to for their own jurisdiction, and to create more users that have 
+permissions within their own jurisdiction. They can also delete any user within their jurisdiction, so long as that user
+does not have permissions associated with a different compact or jurisdiction.
 
 #### Implementation of Scopes
 
@@ -109,17 +112,21 @@ require more than 100 scopes per resource server.
 
 To design around the 100 scope limit, we will have to split authorization into two layers: coarse- and fine-grained.
 We can rely on the Cognito authorizers to protect our API endpoints based on fewer coarse-grained scopes, then
-protect the more fine-grained access within the API endpoint logic. The Staff User pool resource servers will are
-configured with `read`, `write`, and `admin` scopes. `read` scopes indicate that the user is allowed to read the
-entire compact's licensee data. `write` and `admin` scopes, however, indicate only that the user is allowed to write
-or administrate _something_ in the compact respectively, thus giving them access to the write or administrative
-API endpoints. We will then rely on the API endpoint logic to refine their access based on the more fine-grained
-access scopes.
+protect the more fine-grained access within the API endpoint logic. The Staff User pool resource servers are
+configured with `readGeneral`, `write`, and `admin` scopes. The `readGeneral` scope is implicitly granted to all users in
+the system, and is used to indicate that the user is allowed to read any compact's licensee data that is not considered
+private. The `write` and `admin` scopes, however, indicate only that the user is allowed to write or administrate 
+_something_ in the compact respectively, thus giving them access to the write or administrative API endpoints. We will 
+then rely on the API endpoint logic to refine their access based on the more fine-grained access scopes.
 
-To compliment each of the `write` and `admin` scopes, there will be at least one, more specific, scope, to indicate
-_what_ within the compact they are allowed to write or administrate, respectively. In the case of `write` scopes,
-a jurisdiction-specific scope will control what jurisdiction they are able to write data for (i.e. `al.write` grants
-permission to write data for the Alabama jurisdiction). Similarly, `admin` scopes can have a jurisdiction-specific
+In addition to the `readGeneral` scope, there is a `readPrivate` scope that is used to indicate that the user is allowed
+to read all of a compact's licensee data, so long as that licensee is within their compact or jurisdiction for which
+they have that permission.
+
+To compliment each of the `write` and `admin` scopes, there will be at least one, more specific, scope, 
+to indicate _what_ within the compact they are allowed to write or administrate, respectively. In the case of `write` 
+scopes, a jurisdiction-specific scope will control what jurisdiction they are able to write data for (i.e. `al.write` 
+grants permission to write data for the Alabama jurisdiction). Similarly, `admin` scopes can have a jurisdiction-specific
 scope like `al.admin` and can also have a compact-wide scope like `aslp.admin`, which grants permission for a compact
 executive director to perform the administrative functions for the Audiology and Speech Language Pathology compact.
 
