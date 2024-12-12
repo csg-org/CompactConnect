@@ -38,7 +38,6 @@ class LicenseeList extends Vue {
     //
     hasSearched = false;
     shouldShowSearchModal = false;
-    searchParams: LicenseSearch = {};
     isInitialFetchCompleted = false;
     prevKey = '';
     nextKey = '';
@@ -76,6 +75,10 @@ class LicenseeList extends Vue {
 
     get licenseStore(): any {
         return this.$store.state.license;
+    }
+
+    get searchParams(): LicenseSearch {
+        return this.licenseStore.search;
     }
 
     get searchDisplayFirstName(): string {
@@ -164,8 +167,12 @@ class LicenseeList extends Vue {
     }
 
     handleSearch(params: LicenseSearch): void {
-        this.fetchListData(params);
-        this.searchParams = params;
+        this.$store.dispatch('license/setStoreSearch', params);
+        this.$store.dispatch('pagination/updatePaginationPage', {
+            paginationId: this.listId,
+            newPage: 1,
+        });
+        this.fetchListData();
 
         if (!this.hasSearched) {
             this.hasSearched = true;
@@ -175,7 +182,7 @@ class LicenseeList extends Vue {
     }
 
     resetSearch(): void {
-        this.searchParams = {};
+        this.$store.dispatch('license/resetStoreSearch');
         this.toggleSearch();
     }
 
@@ -223,7 +230,8 @@ class LicenseeList extends Vue {
         }
     }
 
-    async fetchListData(searchParams?: LicenseSearch) {
+    async fetchListData() {
+        const { searchParams } = this;
         const sorting = this.sortingStore.sortingMap[this.listId];
         const { option, direction } = sorting || {};
         const pagination = this.paginationStore.paginationMap[this.listId];
