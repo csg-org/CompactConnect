@@ -18,6 +18,8 @@ interface ReportEmailerProperties {
     sesClient: SESClient;
 }
 
+const EMAIL_IMAGE_BASE_URL = 'https://app.compactconnect.org/img/email';
+
 
 /*
  * Integrates with AWS SES to send emails and with EmailBuilderJS to render JS object templates into HTML
@@ -117,8 +119,9 @@ export class ReportEmailer {
         // Generate the HTML report
         const report = JSON.parse(JSON.stringify(this.emailTemplate));
 
-        this.insertHeader(report, compact, jurisdiction, 'No License Updates');
-        this.insertSubHeading(report, 'There have been no license updates reported this week!');
+        this.insertHeader(report, compact, jurisdiction, 'License Data Summary');
+        this.insertClockImage(report);
+        this.insertSubHeading(report, 'There have been no licenses uploaded in the last 7 days.');
         this.insertFooter(report);
 
         const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
@@ -498,7 +501,7 @@ export class ReportEmailer {
                 'props': {
                     'width': null,
                     'height': 100,
-                    'url': 'https://app.test.compactconnect.org/img/icons/mstile-310x150.png',
+                    'url': `${EMAIL_IMAGE_BASE_URL}/compact-connect-logo-final.png`,
                     'alt': '',
                     'linkHref': null,
                     'contentAlignment': 'middle'
@@ -576,6 +579,35 @@ export class ReportEmailer {
         report['root']['data']['childrenIds'].push(blockId);
     }
 
+    private insertClockImage(report: TReaderDocument) {
+        const blockId = `block-clock-image`;
+
+        report[blockId] = {
+            'type': 'Image',
+            'data': {
+                'style': {
+                    'padding': {
+                        'top': 68,
+                        'bottom': 16,
+                        'right': 24,
+                        'left': 24
+                    },
+                    'textAlign': 'center'
+                },
+                'props': {
+                    'width': 100,
+                    'height': 100,
+                    'url': `${EMAIL_IMAGE_BASE_URL}/ico-noupdates@2x.png`,
+                    'alt': 'Clock icon',
+                    'linkHref': null,
+                    'contentAlignment': 'middle'
+                }
+            }
+        };
+
+        report['root']['data']['childrenIds'].push(blockId);
+    }
+
     private insertNoErrorImage(report: TReaderDocument) {
         const blockId = `block-no-error-image`;
 
@@ -594,8 +626,8 @@ export class ReportEmailer {
                 'props': {
                     'width': 100,
                     'height': 100,
-                    'url': 'https://content.inspiringapps.com/assets/18771774-791a-4fad-9948-acad99874424.png',
-                    'alt': 'Sample product',
+                    'url': `${EMAIL_IMAGE_BASE_URL}/ico-noerrors@2x.png`,
+                    'alt': 'Success icon',
                     'linkHref': null,
                     'contentAlignment': 'middle'
                 }
