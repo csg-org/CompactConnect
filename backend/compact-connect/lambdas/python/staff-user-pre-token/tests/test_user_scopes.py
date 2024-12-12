@@ -43,8 +43,18 @@ class TestGetUserScopesFromDB(TstLambdas):
 
         scopes = UserScopes(self._user_sub)
 
-        self.assertEqual({'profile', 'aslp/readGeneral', 'aslp/admin', 'aslp/write', 'aslp/al.admin',
-                          'aslp/al.write', 'aslp/al.readGeneral'}, scopes)
+        self.assertEqual(
+            {
+                'profile',
+                'aslp/readGeneral',
+                'aslp/admin',
+                'aslp/write',
+                'aslp/al.admin',
+                'aslp/al.write',
+                'aslp/al.readGeneral',
+            },
+            scopes,
+        )
 
     def test_board_ed_user_multi_compact(self):
         """
@@ -88,7 +98,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'octp/al.admin',
                 'octp/al.write',
                 'octp/al.readGeneral',
-             },
+            },
             scopes,
         )
 

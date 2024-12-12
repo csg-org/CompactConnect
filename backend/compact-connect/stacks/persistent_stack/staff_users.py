@@ -98,7 +98,8 @@ class StaffUsers(UserPool):
         )
         self.read_scope = ResourceServerScope(
             scope_name='readGeneral',
-            scope_description='Read access for generally available data (not private) in the compact')
+            scope_description='Read access for generally available data (not private) in the compact',
+        )
 
         # One resource server for each compact
         self.resource_servers = {
