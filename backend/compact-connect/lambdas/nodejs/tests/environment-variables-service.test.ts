@@ -18,7 +18,6 @@ describe('Environment variables service with debug', () => {
 
         logger.debug('Test!');
 
-        // Verify the send method was called
         expect(logger.getLevelName()).toBe('DEBUG');
     });
 
@@ -42,7 +41,6 @@ describe('Environment variables service without debug', () => {
 
         logger.debug('Test!');
 
-        // Verify the send method was called
         expect(logger.getLevelName()).toBe('INFO');
     });
 });

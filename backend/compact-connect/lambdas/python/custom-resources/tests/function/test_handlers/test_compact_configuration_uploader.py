@@ -173,7 +173,7 @@ class TestCompactConfigurationUploader(TstFunction):
             items,
         )
 
-    def test_compact_configuration_uploader_raises_exception_on_invalid_jurisdiction(self):
+    def test_compact_configuration_uploader_raises_exception_on_invalid_jurisdiction_config(self):
         from handlers.compact_config_uploader import on_event
 
         mock_configuration = generate_mock_compact_configuration()

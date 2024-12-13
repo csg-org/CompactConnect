@@ -20,11 +20,6 @@ class TstFunction(TstLambdas):
 
         self.build_resources()
 
-        from cc_common import config
-
-        config.config = config._Config()  # noqa: SLF001 protected-access
-        self.config = config.config
-
         self.addCleanup(self.delete_resources)
 
     def build_resources(self):

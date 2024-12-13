@@ -6,27 +6,27 @@ export class EnvironmentVariablesService {
     private readonly debugVariable = 'DEBUG';
 
 
-    public get(name: string): string {
+    public getEnvVar(name: string): string {
         return process.env[name]?.trim() || '';
     }
 
     public getDataEventTableName() {
-        return this.get(this.dataEventTableNameVariable);
+        return this.getEnvVar(this.dataEventTableNameVariable);
     }
 
     public getCompactconfigurationTableName() {
-        return this.get(this.compactConfigurationTableNameVariable);
+        return this.getEnvVar(this.compactConfigurationTableNameVariable);
     }
 
     public getCompacts(): string[] {
-        return JSON.parse(this.get(this.compactsVariable));
+        return JSON.parse(this.getEnvVar(this.compactsVariable));
     }
 
     public getLogLevel() {
-        return this.get(this.debugVariable).toLowerCase() == 'true' ? 'DEBUG' : 'INFO';
+        return this.getEnvVar(this.debugVariable).toLowerCase() == 'true' ? 'DEBUG' : 'INFO';
     }
 
     public getFromAddress() {
-        return this.get(this.fromAddressVariable);
+        return this.getEnvVar(this.fromAddressVariable);
     }
 }

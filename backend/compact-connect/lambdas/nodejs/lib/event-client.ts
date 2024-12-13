@@ -73,7 +73,8 @@ export class EventClient {
     }
 
     /*
-     * Queries the data event table for validation errors by looking for each comp
+     * Queries the data event table for validation errors by looking for validation errors for the
+     * given compact/jurisdiction in the given time window.
      */
     public async getValidationErrors(
         compact: string,

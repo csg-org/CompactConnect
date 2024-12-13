@@ -55,7 +55,7 @@ class ReportingStack(AppStack):
                 resource_name=persistent_stack.user_email_notifications.config_set.configuration_set_name,
             ),
         ]
-        # We'll assume that, if it is a sandbox environment, they're in the SES sandbox
+        # We'll assume that, if it is a sandbox environment, they're in the Simple Email Service (SES) sandbox
         if self.node.try_get_context('sandbox'):
             # SES Sandboxed accounts require that the sending principal also be explicitly granted permission to send
             # emails to the SES identity they configured for testing. Because we don't know that identity in advance,

@@ -129,6 +129,15 @@ describe('Nightly runs', () => {
         );
 
         // Verify the DynamoDB client was called correctly
+        // To get jurisdictions
+        expect(mockDynamoDBClient).toHaveReceivedCommandWith(
+            QueryCommand,
+            {
+                TableName: 'compact-table',
+            }
+        );
+
+        // To get events
         expect(mockDynamoDBClient).toHaveReceivedCommandWith(
             QueryCommand,
             {

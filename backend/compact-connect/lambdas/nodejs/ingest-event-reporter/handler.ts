@@ -8,4 +8,4 @@ const lambda = new Lambda({
     sesClient: new SESClient(),
 });
 
-export const collectEvents = lambda.handler.bind(lambda); //
+export const collectEvents = lambda.handler.bind(lambda);
