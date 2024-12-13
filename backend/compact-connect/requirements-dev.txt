@@ -86,11 +86,7 @@ requests==2.32.3
     #   pip-audit
 rich==13.9.4
     # via pip-audit
-<<<<<<< HEAD
-ruff==0.8.3
-=======
 ruff==0.7.4
->>>>>>> development
     # via -r compact-connect/requirements-dev.in
 six==1.17.0
     # via
