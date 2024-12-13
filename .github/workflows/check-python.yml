@@ -33,7 +33,8 @@ jobs:
   TestPython:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
@@ -47,7 +48,7 @@ jobs:
         run: "cd backend; bin/sync_deps.sh"
 
       - name: Test backend
-        run: "cd backend; bin/run_tests.sh no-report"
+        run: "cd backend; bin/run_tests.sh python no-report"
 
       - name: Check Dependencies
         run: "pip-audit"

@@ -49,6 +49,13 @@ Python requirements are pinned in [`requirements.txt`](requirements.txt). Instal
 $ pip install -r requirements.txt
 ```
 
+Node.js requirements (for some selected Lambda runtimes) are defined in [`package.json`](./lambdas/nodejs). Install them using `yarn`.
+
+```shell
+$ cd lambdas/nodejs
+$ yarn install
+```
+
 At this point you can now synthesize the CloudFormation template(s) for this code.
 
 ```
@@ -90,6 +97,16 @@ lambda folders. Code that is common across all lambdas should be tested in the `
 duplication and ensure consistency across the app.
 
 To execute the tests, simply run `bin/run_tests.sh` from the `backend` directory.
+
+## Documentation
+[Back to top](#compact-connect---backend-developer-documentation)
+
+Keeping documentation current is an important part of feature development in this project. If the feature involves a non-trivial amount of architecture or other technical design, be sure that the design and considerations are captured in the [design documentation](./docs/design). If any updates are made to the API, be sure to follow these steps to keep the documentation current:
+1) Export a fresh api specification (OAS 3.0) is exported from API Gateway and used to update [the Open API Specification JSON file](./docs/api-specification/latest-oas30.json).
+2) Run `bin/trim_oas30.py` to organize and trim the API to include only supported API endpoints (and update the script itself, if needed).
+3) If you exported the api specification from somewhere other than the CSG Test environment, be sure to set the `servers[0].url` entry back to the correct base URL for the CSG Test environment.
+4) Update the change summary at the bottom of the [Technical User Docs](./docs/README.md).
+5) Update the [Postman Collection and Environment](./docs/postman) as appropriate.
 
 ## Deployment
 [Back to top](#compact-connect---backend-developer-documentation)

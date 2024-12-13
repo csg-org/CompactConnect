@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 
 from aws_cdk.aws_cognito import (
     ClientAttributes,
@@ -118,7 +117,7 @@ class StaffUsers(UserPool):
             self,
             'ScopeCustomizationHandler',
             description='Auth scope customization handler',
-            entry=os.path.join('lambdas', 'staff-user-pre-token'),
+            lambda_dir='staff-user-pre-token',
             index='main.py',
             handler='customize_scopes',
             alarm_topic=persistent_stack.alarm_topic,

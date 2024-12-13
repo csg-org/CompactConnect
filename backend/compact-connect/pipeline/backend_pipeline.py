@@ -77,6 +77,7 @@ class BackendPipeline(CdkCodePipeline):
                     f'cd {cdk_path}',
                     'npm install -g aws-cdk',
                     'python -m pip install -r requirements.txt',
+                    '( cd lambdas/nodejs; yarn install --frozen-lockfile )',
                     'cdk synth',
                 ],
             ),
