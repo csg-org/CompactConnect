@@ -1,5 +1,6 @@
 {
     "common": {
+        "appName": "Compact Connect",
         "yes": "Yes",
         "no": "No",
         "back": "Back",
@@ -24,6 +25,7 @@
         "save": "Save",
         "saveChanges": "Save changes",
         "sendInvite": "Send invite",
+        "toggleNav": "Toggle nav menu",
         "submit": "Submit",
         "clear": "Clear",
         "success": "Success",

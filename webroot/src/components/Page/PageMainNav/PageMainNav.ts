@@ -8,6 +8,7 @@
 import { reactive, computed } from 'vue';
 import { Component, Vue, toNative } from 'vue-facing-decorator';
 import { AuthTypes } from '@/app.config';
+// import CompactSelector from '@components/CompactSelector/CompactSelector.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { CompactPermission } from '@models/StaffUser/StaffUser.model';
 
@@ -23,16 +24,12 @@ class PageMainNav extends Vue {
     //
     // Computed
     //
-    get isDesktop(): boolean {
-        return this.$matches.desktop.min;
+    get globalStore() {
+        return this.$store.state;
     }
 
-    get isMobile(): boolean {
-        return !this.isDesktop;
-    }
-
-    get isMainNavVisible(): boolean {
-        return this.isDesktop || this.isMainNavToggled;
+    get isNavExpanded(): boolean {
+        return this.globalStore.isNavExpanded;
     }
 
     get userStore() {
@@ -152,12 +149,20 @@ class PageMainNav extends Vue {
     //
     // Methods
     //
-    toggleMainNav() {
-        this.isMainNavToggled = !this.isMainNavToggled;
+    navToggle(): void {
+        if (this.globalStore.isNavExpanded) {
+            this.$store.dispatch('collapseNavMenu');
+        } else {
+            this.$store.dispatch('expandNavMenu');
+        }
     }
 
-    collapseMainNav() {
-        this.isMainNavToggled = false;
+    navExpand(): void {
+        this.$store.dispatch('expandNavMenu');
+    }
+
+    navCollapse(): void {
+        this.$store.dispatch('collapseNavMenu');
     }
 }
 

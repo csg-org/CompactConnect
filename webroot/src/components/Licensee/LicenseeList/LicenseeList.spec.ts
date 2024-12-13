@@ -113,7 +113,6 @@ describe('LicenseeList component', async () => {
         const requestConfig = await component.fetchListData();
 
         expect(requestConfig).to.matchPattern({
-            compact: undefined,
             jurisdiction: undefined,
             licenseeFirstName: undefined,
             licenseeLastName: undefined,

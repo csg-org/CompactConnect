@@ -5,95 +5,98 @@
 //  Created by InspiringApps on 6/18/2024.
 //
 
-.state-upload {
-    flex-grow: 1;
+.state-upload-container {
     width: 100%;
 
     @media @desktopWidth {
         width: 50%;
-        max-width: 60rem;
+        max-width: 56rem;
     }
 
-    .state-upload-form {
-        display: flex;
-        flex-basis: 100%;
-        flex-direction: column;
-        align-items: flex-start;
+    .state-upload {
+        width: 100%;
+        margin-top: 2rem;
 
-        .sub-title {
-            font-style: italic;
-        }
-
-        .state-upload-form-container {
+        .state-upload-form {
             display: flex;
-            flex-grow: 1;
-            margin-top: 4.8rem;
+            flex-basis: 100%;
+            flex-direction: column;
+            align-items: flex-start;
 
-            .state-select {
-                width: 20rem;
+            .sub-title {
+                font-style: italic;
             }
 
-            .compact-select {
-                width: 25.4rem;
+            .state-upload-form-container {
+                display: flex;
+                flex-grow: 1;
+
+                .state-select {
+                    width: 20rem;
+                }
+
+                .compact-select {
+                    width: 25.4rem;
+                }
+
+                .input-submit-container {
+                    margin-top: 8rem;
+                }
             }
 
-            .input-submit-container {
-                margin-top: auto;
+            form {
+                display: flex;
+                flex-direction: column;
+                flex-grow: 1;
             }
         }
 
-        form {
+        .state-upload-success {
             display: flex;
             flex-direction: column;
             flex-grow: 1;
-        }
-    }
-
-    .state-upload-success {
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-        align-items: center;
-        justify-content: center;
-        padding: 0 0.8rem;
-        text-align: center;
-
-        .icon-container {
-            display: flex;
             align-items: center;
             justify-content: center;
-            width: 6.4rem;
-            height: 6.4rem;
-            margin-bottom: 1.6rem;
-            border-radius: 50%;
-            overflow: hidden;
-            background-color: @primaryColor;
+            padding: 0 0.8rem;
+            text-align: center;
 
-            .icon-check-circle {
-                width: 100%;
-                fill: @white;
-            }
-        }
-
-        .success-actions {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            width: 100%;
-            margin-top: 2.4rem;
-
-            @media @desktopWidth {
-                flex-direction: row;
-            }
-
-            .success-btn {
+            .icon-container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 6.4rem;
+                height: 6.4rem;
                 margin-bottom: 1.6rem;
-                padding-top: 1rem;
-                padding-bottom: 1rem;
+                border-radius: 50%;
+                overflow: hidden;
+                background-color: @primaryColor;
+
+                .icon-check-circle {
+                    width: 100%;
+                    fill: @white;
+                }
+            }
+
+            .success-actions {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                width: 100%;
+                margin-top: 2.4rem;
 
                 @media @desktopWidth {
-                    &:first-child {
-                        margin-right: 1.2rem;
+                    flex-direction: row;
+                }
+
+                .success-btn {
+                    margin-bottom: 1.6rem;
+                    padding-top: 1rem;
+                    padding-bottom: 1rem;
+
+                    @media @desktopWidth {
+                        &:first-child {
+                            margin-right: 1.2rem;
+                        }
                     }
                 }
             }

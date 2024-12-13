@@ -5,12 +5,11 @@
 //  Created by InspiringApps on 8/19/2024.
 //
 
-.state-upload-container {
+.state-upload-page-container {
+    justify-content: center;
+    min-height: ~"calc(100vh - @{appHeaderHeight} - @{appFooterHeight} - 2rem)";
+
     .state-upload-component-container {
         margin: 0 auto;
-
-        @media @desktopWidth {
-            margin-top: 4.8rem;
-        }
     }
 }

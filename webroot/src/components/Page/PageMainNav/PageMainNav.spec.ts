@@ -44,16 +44,6 @@ describe('PageMainNav component', async () => {
                         return mainNavLinks;
                     }
                 },
-                isDesktop: {
-                    get() {
-                        return true;
-                    }
-                },
-                isMainNavVisible: {
-                    get() {
-                        return true;
-                    }
-                },
             },
         });
         const links = wrapper.findAll('a');

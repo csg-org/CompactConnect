@@ -1,5 +1,6 @@
 {
     "common": {
+        "appName": "Compact Connect",
         "yes": "Sí",
         "no": "No",
         "back": "Volver",
@@ -23,6 +24,7 @@
         "invite": "Invitar",
         "save": "Guardar",
         "sendInvite": "Enviar invitación",
+        "toggleNav": "Alternar menú de navegación",
         "saveChanges": "Guardar cambios",
         "submit": "Enviar",
         "clear": "Borrar",
