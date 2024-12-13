@@ -22,6 +22,12 @@ class ReportingStack(AppStack):
 
     def _add_ingest_event_reporting_chain(self, persistent_stack: ps.PersistentStack):
         from_address = f'noreply@{persistent_stack.user_email_notifications.email_identity.email_identity_name}'
+        # we host email image assets in the UI bucket, so we'll use the UI domain name if it's available
+        if self.ui_domain_name is not None:
+            ui_base_path_url = f'https://{self.ui_domain_name}'
+        else:
+            # default to csg test environment
+            ui_base_path_url = 'https://app.test.compactconnect.org'
 
         # We use a Node.js function in this case because the tool we identified for email report generation,
         # EmailBuilderJS, is in Node.js. To make utilizing the tool as simple as possible, we opted to not mix
@@ -38,6 +44,7 @@ class ReportingStack(AppStack):
                 'FROM_ADDRESS': from_address,
                 'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
                 'DATA_EVENT_TABLE_NAME': persistent_stack.data_event_table.table_name,
+                'UI_BASE_PATH_URL': ui_base_path_url,
                 **self.common_env_vars,
             },
         )

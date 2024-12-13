@@ -23,6 +23,7 @@ describe('Report emailer', () => {
     beforeAll(async () => {
         process.env.DEBUG = 'true';
         process.env.FROM_ADDRESS = 'noreply@example.org';
+        process.env.UI_BASE_PATH_URL = 'https://app.test.compactconnect.org';
 
         mockSESClient = mockClient(SESClient);
 
@@ -161,7 +162,7 @@ describe('Report emailer', () => {
         );
     });
 
-    it('should send a "no license updates" email', async () => {
+    it('should send a "no license updates" email with expected image url', async () => {
         const logger = new Logger();
         const sesClient = new SESClient();
         const reportEmailer = new ReportEmailer({
@@ -185,7 +186,7 @@ describe('Report emailer', () => {
                     Body: {
                         Html: {
                             Charset: 'UTF-8',
-                            Data: expect.stringContaining('<!DOCTYPE html>')
+                            Data: expect.stringContaining('src=\"https://app.test.compactconnect.org/img/email/ico-noupdates@2x.png\"')
                         }
                     },
                     Subject: {

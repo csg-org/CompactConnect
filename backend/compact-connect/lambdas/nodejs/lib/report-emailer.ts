@@ -18,7 +18,9 @@ interface ReportEmailerProperties {
     sesClient: SESClient;
 }
 
-const EMAIL_IMAGE_BASE_URL = 'https://app.compactconnect.org/img/email';
+const getEmailImageBaseUrl = () => {
+    return `${environmentVariableService.getUiBasePathUrl()}/img/email`;
+};
 
 
 /*
@@ -501,7 +503,7 @@ export class ReportEmailer {
                 'props': {
                     'width': null,
                     'height': 100,
-                    'url': `${EMAIL_IMAGE_BASE_URL}/compact-connect-logo-final.png`,
+                    'url': `${getEmailImageBaseUrl()}/compact-connect-logo-final.png`,
                     'alt': '',
                     'linkHref': null,
                     'contentAlignment': 'middle'
@@ -597,7 +599,7 @@ export class ReportEmailer {
                 'props': {
                     'width': 100,
                     'height': 100,
-                    'url': `${EMAIL_IMAGE_BASE_URL}/ico-noupdates@2x.png`,
+                    'url': `${getEmailImageBaseUrl()}/ico-noupdates@2x.png`,
                     'alt': 'Clock icon',
                     'linkHref': null,
                     'contentAlignment': 'middle'
@@ -626,7 +628,7 @@ export class ReportEmailer {
                 'props': {
                     'width': 100,
                     'height': 100,
-                    'url': `${EMAIL_IMAGE_BASE_URL}/ico-noerrors@2x.png`,
+                    'url': `${getEmailImageBaseUrl()}/ico-noerrors@2x.png`,
                     'alt': 'Success icon',
                     'linkHref': null,
                     'contentAlignment': 'middle'
