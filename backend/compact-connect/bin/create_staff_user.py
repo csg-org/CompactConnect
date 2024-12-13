@@ -16,7 +16,9 @@ import boto3
 from botocore.exceptions import ClientError
 
 provider_data_path = os.path.join('lambdas', 'staff-users')
+common_lib_path = os.path.join('lambdas', 'common-python')
 sys.path.append(provider_data_path)
+sys.path.append(common_lib_path)
 
 with open('cdk.json') as context_file:
     _context = json.load(context_file)['context']

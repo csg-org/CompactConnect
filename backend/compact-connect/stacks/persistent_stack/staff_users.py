@@ -69,13 +69,31 @@ class StaffUsers(UserPool):
         if not callback_urls:
             raise ValueError(
                 "This app requires a callback url for its authentication path. Either provide 'domain_name' or set "
-                "'allow_local_ui' to true in this environment's context.",
+                "'allow_local_ui' to true in this environment's context."
             )
 
+        logout_urls = []
+        if stack.ui_domain_name is not None:
+            logout_urls.append(f'https://{stack.ui_domain_name}/Login')
+        # This toggle will allow front-end devs to point their local UI at this environment's user pool to support
+        # authenticated actions.
+        if environment_context.get('allow_local_ui', False):
+            local_ui_port = environment_context.get('local_ui_port', '3018')
+            logout_urls.append(f'http://localhost:{local_ui_port}/Login')
+        if not callback_urls:
+            raise ValueError(
+                "This app requires a callback url for its authentication path. Either provide 'domain_name' or set "
+                "'allow_local_ui' to true in this environment's context."
+            )
+        hosted_logout_urls = ['https://compact-connect-provider-dana.auth.us-east-1.amazoncognito.com/', 'https://compact-connect-staff-dana.auth.us-east-1.amazoncognito.com/']
+        logout_urls += hosted_logout_urls
+        # Add in other cognito logout route
+        # print('cognito_domain_prefix', cognito_domain_prefix)
         # Do not allow resource server scopes via the client - they are assigned via token customization
         # to allow for user attribute-based access
         self.ui_client = self.add_ui_client(
             callback_urls=callback_urls,
+            logout_urls=logout_urls,
             # We have to provide one True value or CFn will make every attribute writeable
             write_attributes=ClientAttributes().with_standard_attributes(email=True),
             # We want to limit the attributes that this app can read and write so only email is visible.

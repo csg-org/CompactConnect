@@ -67,19 +67,21 @@ class ProviderUsers(UserPool):
         # authenticated actions.
         if environment_context.get('allow_local_ui', False):
             local_ui_port = environment_context.get('local_ui_port', '3018')
-            logout_urls.append(f'http://localhost:{local_ui_port}/auth/Login')
+            logout_urls.append(f'http://localhost:{local_ui_port}/Login')
         if not callback_urls:
             raise ValueError(
                 "This app requires a callback url for its authentication path. Either provide 'domain_name' or set "
                 "'allow_local_ui' to true in this environment's context."
             )
+        hosted_logout_urls = ['https://compact-connect-provider-dana.auth.us-east-1.amazoncognito.com/', 'https://compact-connect-staff-dana.auth.us-east-1.amazoncognito.com/']
+        logout_urls += hosted_logout_urls
         # Add in other cognito logout route
-
+        # print('cognito_domain_prefix', cognito_domain_prefix)
 
         # Create an app client to allow the front-end to authenticate.
         self.ui_client = self.add_ui_client(
             callback_urls=callback_urls,
-            # logout_urls=logout_urls,
+            logout_urls=logout_urls,
             # For now, we are allowing the user to read and update their email, given name, and family name.
             # we only allow the user to be able to see their providerId and compact, which are custom attributes.
             # If we ever want other attributes to be read or written, they must be added here.

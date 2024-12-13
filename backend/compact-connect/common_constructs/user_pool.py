@@ -118,6 +118,7 @@ class UserPool(CdkUserPool):
     def add_ui_client(
         self,
         callback_urls: list[str],
+        logout_urls: list[str],
         read_attributes: ClientAttributes,
         write_attributes: ClientAttributes,
         ui_scopes: list[OAuthScope] = None,
@@ -126,6 +127,7 @@ class UserPool(CdkUserPool):
         Creates an app client for the UI to authenticate with the user pool.
 
         :param callback_urls: The URLs that Cognito allows the UI to redirect to after authentication.
+        :param logout_urls: The URLs that Cognito allows the UI to redirect to after logout.
         :param read_attributes: The attributes that the UI can read.
         :param write_attributes: The attributes that the UI can write.
         :param ui_scopes: OAuth scopes that are allowed with this client
@@ -140,6 +142,7 @@ class UserPool(CdkUserPool):
             ),
             o_auth=OAuthSettings(
                 callback_urls=callback_urls,
+                logout_urls=logout_urls,
                 flows=OAuthFlows(authorization_code_grant=True, implicit_code_grant=False),
                 scopes=ui_scopes,
             ),
