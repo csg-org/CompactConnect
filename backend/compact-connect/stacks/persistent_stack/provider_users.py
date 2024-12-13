@@ -63,18 +63,18 @@ class ProviderUsers(UserPool):
         logout_urls = []
         if stack.ui_domain_name is not None:
             logout_urls.append(f'https://{stack.ui_domain_name}/Login')
+            logout_urls.append(f'https://{stack.ui_domain_name}/Logout')
         # This toggle will allow front-end devs to point their local UI at this environment's user pool to support
         # authenticated actions.
         if environment_context.get('allow_local_ui', False):
             local_ui_port = environment_context.get('local_ui_port', '3018')
             logout_urls.append(f'http://localhost:{local_ui_port}/Login')
+            logout_urls.append(f'http://localhost:{local_ui_port}/Logout')
         if not callback_urls:
             raise ValueError(
                 "This app requires a callback url for its authentication path. Either provide 'domain_name' or set "
                 "'allow_local_ui' to true in this environment's context."
             )
-        hosted_logout_urls = ['https://compact-connect-provider-dana.auth.us-east-1.amazoncognito.com/', 'https://compact-connect-staff-dana.auth.us-east-1.amazoncognito.com/']
-        logout_urls += hosted_logout_urls
         # Add in other cognito logout route
         # print('cognito_domain_prefix', cognito_domain_prefix)
 

@@ -32,15 +32,16 @@ export default class Logout extends Vue {
     }
 
     get hostedLogoutUriStaff(): string {
-        const { cognitoAuthDomainStaff, cognitoClientIdStaff } = this.$envConfig;
+        const { domain, cognitoAuthDomainStaff, cognitoClientIdStaff } = this.$envConfig;
+        const logoutLink = encodeURIComponent(`${(domain as string)}/Logout`);
         const logoutUriQuery = [
             `?client_id=${cognitoClientIdStaff}`,
-            `&logout_uri=${encodeURIComponent(this.hostedLogoutUriLicensee)}`
+            `&logout_uri=${logoutLink}`
         ].join('');
         const idpPath = '/logout';
-        const loginUri = `${cognitoAuthDomainStaff}${idpPath}${logoutUriQuery}`;
+        const logoutUri = `${cognitoAuthDomainStaff}${idpPath}${logoutUriQuery}`;
 
-        return loginUri;
+        return logoutUri;
     }
 
     get hostedLogoutUriLicensee(): string {
@@ -51,19 +52,25 @@ export default class Logout extends Vue {
             `&logout_uri=${disambiguationLink}`
         ].join('');
         const idpPath = '/logout';
-        const loginUri = `${cognitoAuthDomainLicensee}${idpPath}${logoutUriQuery}`;
+        const logoutUri = `${cognitoAuthDomainLicensee}${idpPath}${logoutUriQuery}`;
 
-        return loginUri;
+        return logoutUri;
     }
 
     //
     // Methods
     //
     async logout(): Promise<void> {
-        const isLoggedInAsLicenseeOnly = this.$store.getters['user/highestPermissionAuthType']() === AuthTypes.LICENSEE;
+        if (this.isLoggedIn) {
+            const isLoggedInAsLicenseeOnly = this.$store.getters['user/highestPermissionAuthType']() === AuthTypes.LICENSEE;
 
-        await this.logoutChecklist();
-        this.redirectToHighestPermissionHostedLogout(isLoggedInAsLicenseeOnly);
+            await this.logoutChecklist();
+            this.redirectToHighestPermissionHostedLogout(isLoggedInAsLicenseeOnly);
+        } else {
+            this.$router.push({
+                name: 'Login'
+            });
+        }
     }
 
     async logoutChecklist(): Promise<void> {
@@ -78,6 +85,10 @@ export default class Logout extends Vue {
         if (workingUri) {
             authStorage.setItem(AUTH_LOGIN_GOTO_PATH, workingUri);
         }
+    }
+
+    get isLoggedIn(): boolean {
+        return this.userStore.isLoggedIn;
     }
 
     redirectToHighestPermissionHostedLogout(isLoggedInAsLicenseeOnly): void {
