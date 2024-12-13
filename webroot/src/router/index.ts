@@ -29,6 +29,8 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
     const isAuthGuardedRoute = to.matched.some((route) => route.meta.requiresAuth);
+    const isLicenseeRoute = to.matched.some((route) => route.meta.licenseeAccess);
+    const isStaffRoute = to.matched.some((route) => route.meta.staffAccess);
     const routeParamCompactType = to.params?.compact;
 
     // If the store does not have the requested compact, set it from the route (e.g. page refreshes)
@@ -42,15 +44,21 @@ router.beforeEach(async (to, from, next) => {
 
     // If the route requires auth, check first
     if (isAuthGuardedRoute) {
-        const { isLoggedIn } = store.getters['user/state'];
+        const {
+            isLoggedIn,
+            isLoggedInAsLicensee,
+            isLoggedInAsStaff
+        } = store.getters['user/state'];
 
         if (!isLoggedIn) {
             next({ name: 'Logout' });
-        } else {
+        } else if ((isLicenseeRoute && isStaffRoute)
+        || (isLicenseeRoute && isLoggedInAsLicensee)
+        || (isStaffRoute && isLoggedInAsStaff)) {
             next();
+        } else {
+            next({ name: 'Home' });
         }
-    } else {
-        next();
     }
 });
 

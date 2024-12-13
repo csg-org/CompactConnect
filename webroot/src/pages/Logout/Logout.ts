@@ -44,12 +44,17 @@ export default class Logout extends Vue {
         return logoutUri;
     }
 
+    get loginURL(): string {
+        const { domain } = this.$envConfig;
+
+        return `${(domain as string)}/Login`;
+    }
+
     get hostedLogoutUriLicensee(): string {
-        const { domain, cognitoAuthDomainLicensee, cognitoClientIdLicensee } = this.$envConfig;
-        const disambiguationLink = encodeURIComponent(`${(domain as string)}/Login`);
+        const { cognitoAuthDomainLicensee, cognitoClientIdLicensee } = this.$envConfig;
         const logoutUriQuery = [
             `?client_id=${cognitoClientIdLicensee}`,
-            `&logout_uri=${disambiguationLink}`
+            `&logout_uri=${encodeURIComponent(this.loginURL)}`
         ].join('');
         const idpPath = '/logout';
         const logoutUri = `${cognitoAuthDomainLicensee}${idpPath}${logoutUriQuery}`;
@@ -67,16 +72,14 @@ export default class Logout extends Vue {
             await this.logoutChecklist();
             this.redirectToHighestPermissionHostedLogout(isLoggedInAsLicenseeOnly);
         } else {
-            this.$router.push({
-                name: 'Login'
-            });
+            window.location.replace(this.loginURL);
         }
     }
 
     async logoutChecklist(): Promise<void> {
         this.$store.dispatch('user/clearRefreshTokenTimeout');
         this.stashWorkingUri();
-        await this.$store.dispatch('user/logoutRequest', this.$store.getters['user/highestPermissionAuthType']());
+        await this.$store.dispatch('user/logoutRequest');
     }
 
     stashWorkingUri(): void {
