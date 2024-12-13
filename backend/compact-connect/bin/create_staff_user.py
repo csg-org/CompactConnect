@@ -15,8 +15,9 @@ import sys
 import boto3
 from botocore.exceptions import ClientError
 
-provider_data_path = os.path.join('lambdas', 'staff-users')
-common_lib_path = os.path.join('lambdas', 'common-python')
+provider_data_path = os.path.join('lambdas', 'python', 'staff-users')
+common_lib_path = os.path.join('lambdas', 'python', 'common')
+
 sys.path.append(provider_data_path)
 sys.path.append(common_lib_path)
 

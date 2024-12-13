@@ -1,0 +1,37 @@
+{
+  "Type": "AWS::Events::Rule",
+  "Properties": {
+    "EventBusName": {
+      "Ref": "DataEventBus55A300BC"
+    },
+    "EventPattern": {
+      "detail-type": [
+        {
+          "anything-but": [
+            "license.ingest"
+          ]
+        }
+      ]
+    },
+    "State": "ENABLED",
+    "Targets": [
+      {
+        "Arn": {
+          "Fn::GetAtt": [
+            "DataEventTableDataSourceQueueA8D4356F",
+            "Arn"
+          ]
+        },
+        "DeadLetterConfig": {
+          "Arn": {
+            "Fn::GetAtt": [
+              "DataEventTableDataSourceDLQ391B9932",
+              "Arn"
+            ]
+          }
+        },
+        "Id": "Target0"
+      }
+    ]
+  }
+}

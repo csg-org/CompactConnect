@@ -10,15 +10,16 @@ on:
       - main
       - development
       - ia-web-development
+      - ia-development
     paths:
-      - backend/compact-connect/lambdas/cloudfront-csp/**
+      - backend/compact-connect/lambdas/nodejs/**
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  CheckLambdaJS:
+  CheckLambdas:
     runs-on: ubuntu-latest
 
     steps:
@@ -36,7 +37,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
-          node-version: '20.15.1'
+          node-version: '22.1.0'
 
       # Use any cached yarn dependencies (saves build time)
       - uses: actions/cache@v2
@@ -44,20 +45,22 @@ jobs:
           path: '**/node_modules'
           key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
 
-      # =======================================================================
-      # =                      Cloudfront CSP Lambda                          =
-      # =======================================================================
       # Install Yarn Dependencies
       - name: Install JS dependencies (Cloudfront CSP Lambda)
         run: yarn install
-        working-directory: ./backend/compact-connect/lambdas/cloudfront-csp
+        working-directory: ./backend/compact-connect/lambdas/nodejs
 
       # Run Linter Checks
       - name: Run linter (Cloudfront CSP Lambda)
         run: yarn run lint
-        working-directory: ./backend/compact-connect/lambdas/cloudfront-csp
+        working-directory: ./backend/compact-connect/lambdas/nodejs
 
       # Run Unit Tests
       - name: Run unit tests (Cloudfront CSP Lambda)
         run: yarn test
-        working-directory: ./backend/compact-connect/lambdas/cloudfront-csp
+        working-directory: ./backend/compact-connect/lambdas/nodejs
+
+      # Audit dependencies for vulnerabilities
+      - name: Audit dependencies (Cloudfront CSP Lambda)
+        run: yarn run audit:dependencies
+        working-directory: ./backend/compact-connect/lambdas/nodejs
