@@ -12,6 +12,8 @@ def handle_data_events(message: dict):
     # in the case of a licence.ingest event, we sanitize the PII from the license record
     if event_type == 'license.ingest':
         sanitized_schema = SanitizedLicenseIngestDataEventSchema()
+        # by loading and dumping the data, we ensure that the data is sanitized as the schema
+        # will remove all fields that are not explicitly defined in the schema
         message['detail'] = sanitized_schema.dump(sanitized_schema.load(message['detail']))
 
     compact = message['detail']['compact']

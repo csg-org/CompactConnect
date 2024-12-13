@@ -14,19 +14,6 @@ from cc_common.data_model.schema.base_record import (
 )
 
 
-class SanitizedLicenseIngestDataEventSchema(ForgivingSchema):
-    """Schema which removes all pii from the license ingest event for storing in the database"""
-
-    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
-    licenseType = String(required=True, allow_none=False)
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
-    dateOfIssuance = Date(required=True, allow_none=False)
-    dateOfRenewal = Date(required=True, allow_none=False)
-    dateOfExpiration = Date(required=True, allow_none=False)
-    eventTime = DateTime(required=True, allow_none=False)
-
-
 class LicensePublicSchema(ForgivingSchema):
     """Schema for license data that can be shared with the public"""
 
@@ -87,6 +74,19 @@ class LicensePostSchema(LicenseCommonSchema):
     # This status field is required when posting a license record. It will be transformed into the
     # jurisdictionStatus field when the record is ingested.
     status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+
+
+class SanitizedLicenseIngestDataEventSchema(ForgivingSchema):
+    """Schema which removes all pii from the license ingest event for storing in the database"""
+
+    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
+    jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
+    licenseType = String(required=True, allow_none=False)
+    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    dateOfIssuance = Date(required=True, allow_none=False)
+    dateOfRenewal = Date(required=True, allow_none=False)
+    dateOfExpiration = Date(required=True, allow_none=False)
+    eventTime = DateTime(required=True, allow_none=False)
 
 
 class LicenseIngestSchema(LicenseCommonSchema):

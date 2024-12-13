@@ -1,8 +1,10 @@
-# ruff: noqa: S101 T201  we use asserts and print statements for smoke testing
+# ruff: noqa: T201  we use print statements for smoke testing
+#!/usr/bin/env python3
 from datetime import UTC, datetime
 
 import requests
 from smoke_common import (
+    SmokeTestFailureException,
     call_provider_users_me_endpoint,
     get_api_base_url,
     get_provider_user_auth_headers,
@@ -64,13 +66,15 @@ def test_purchasing_privilege():
         url=get_api_base_url() + '/v1/purchases/privileges', headers=headers, json=post_body, timeout=20
     )
 
-    assert post_api_response.status_code == 200, f'Failed to purchase privilege. Response: {post_api_response.json()}'
+    if post_api_response.status_code != 200:
+        raise SmokeTestFailureException(f'Failed to purchase privilege. Response: {post_api_response.json()}')
 
     transaction_id = post_api_response.json().get('transactionId')
 
     provider_data = call_provider_users_me_endpoint()
     privileges = provider_data.get('privileges')
-    assert privileges, 'No privileges found in provider data'
+    if not privileges:
+        raise SmokeTestFailureException('No privileges found in provider data')
     today = datetime.now(tz=UTC).date().isoformat()
     matching_privilege = next(
         (
@@ -80,10 +84,10 @@ def test_purchasing_privilege():
         ),
         None,
     )
-    assert matching_privilege, f'No privilege record found for today ({today})'
-    assert (
-        matching_privilege['compactTransactionId'] == transaction_id
-    ), 'Privilege record does not match transaction id'
+    if not matching_privilege:
+        raise SmokeTestFailureException(f'No privilege record found for today ({today})')
+    if matching_privilege['compactTransactionId'] != transaction_id:
+        raise SmokeTestFailureException('Privilege record does not match transaction id')
 
     print(f'Successfully purchased privilege record: {matching_privilege}')
 

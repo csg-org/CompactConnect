@@ -1,10 +1,11 @@
-# ruff: noqa: S101 T201  we use asserts and print statements for smoke testing
-
+# ruff: noqa: T201  we use print statements for smoke testing
+#!/usr/bin/env python3
 import time
 from datetime import UTC, datetime, timedelta
 
 import requests
 from smoke_common import (
+    SmokeTestFailureException,
     get_api_base_url,
     get_data_events_dynamodb_table,
     get_provider_user_dynamodb_table,
@@ -62,7 +63,9 @@ def upload_licenses_record():
         timeout=10,
     )
 
-    assert post_response.status_code == 200, f'Failed to POST license record. Response: {post_response.json()}'
+    if post_response.status_code != 200:
+        raise SmokeTestFailureException(f'Failed to POST license record. Response: {post_response.json()}')
+
     print(f'License record successfully uploaded {post_response.json()}')
 
     # Step 2: Verify the provider records are added to the provider's record.
@@ -80,9 +83,10 @@ def upload_licenses_record():
         print('License record not found in provider table. Retrying...')
         time.sleep(30)
 
-    assert 'Item' in ssn_record_response, (
-        f'Failed to find license record in provider table. ' f'Response: {ssn_record_response}'
-    )
+    if 'Item' not in ssn_record_response:
+        raise SmokeTestFailureException(
+            f'Failed to find license record in provider table. Response: {ssn_record_response}'
+        )
     print(f'SSN record successfully added to provider table {ssn_record_response["Item"]}')
 
     provider_id = ssn_record_response['Item']['providerId']
@@ -91,18 +95,21 @@ def upload_licenses_record():
         KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': f'{COMPACT}#PROVIDER#{provider_id}'}
     )
 
-    assert 'Items' in provider_record_query_response, 'Failed to find provider records in provider table.'
+    if 'Items' not in provider_record_query_response:
+        raise SmokeTestFailureException('Failed to find provider records in provider table.')
     # we expect to find a license record and a privilege record with the following sk pattern:
     # 'sk': f'{compact}#PROVIDER'
     license_record = next(
         (record for record in provider_record_query_response['Items'] if record['type'] == 'license'), None
     )
-    assert license_record, 'Failed to find license record in provider table.'
+    if not license_record:
+        raise SmokeTestFailureException('Failed to find license record in provider table.')
     print(f'License record successfully added to provider table {license_record}')
     provider_record = next(
         (record for record in provider_record_query_response['Items'] if record['type'] == 'provider'), None
     )
-    assert provider_record, 'Failed to find provider record in provider table.'
+    if not provider_record:
+        raise SmokeTestFailureException('Failed to find provider record in provider table.')
     print(f'Provider record successfully added to provider table {provider_record}')
 
     # Step 3: Verify the license record is recorded in the data events table.=
@@ -121,9 +128,10 @@ def upload_licenses_record():
         },
     )
 
-    assert license_ingest_record_response.get('Items'), (
-        f'Failed to find license ingest record in data events table.' f' Response: {license_ingest_record_response}'
-    )
+    if not license_ingest_record_response.get('Items'):
+        raise SmokeTestFailureException(
+            f'Failed to find license ingest record in data events table. Response: {license_ingest_record_response}'
+        )
     print(
         f'License ingest data event successfully added to data events table {license_ingest_record_response["Items"]}'
     )

@@ -1,10 +1,16 @@
-# ruff: noqa: S101 T201  we use asserts and print statements for smoke testing
+# ruff: noqa: T201 we use print statements for smoke testing
+#!/usr/bin/env python3
 import os
 import time
 from datetime import UTC, datetime
 
 import requests
-from smoke_common import get_api_base_url, get_provider_user_auth_headers, load_smoke_test_env
+from smoke_common import (
+    SmokeTestFailureException,
+    get_api_base_url,
+    get_provider_user_auth_headers,
+    load_smoke_test_env,
+)
 
 # This script is used to test the military affiliations upload flow against a sandbox environment
 # # of the Compact Connect API.
@@ -33,9 +39,11 @@ def test_military_affiliation_upload():
         timeout=10,
     )
 
-    assert (
-        post_api_response.status_code == 200
-    ), f'Failed to POST military affiliations record. Response: {post_api_response.json()}'
+    if post_api_response.status_code != 200:
+        raise SmokeTestFailureException(
+            f'Failed to POST military affiliations record. Response: {post_api_response.json()}'
+        )
+    print('Successfully called POST military affiliation endpoint.')
 
     """
     The response body should include S3 pre-sign url form in this format:
@@ -64,31 +72,36 @@ def test_military_affiliation_upload():
         pre_signed_url = post_api_response_json['documentUploadFields'][0]['url']
         pre_signed_fields = post_api_response_json['documentUploadFields'][0]['fields']
         s3_upload_response = requests.post(pre_signed_url, files=files, data=pre_signed_fields, timeout=10)
-        assert (
-            s3_upload_response.status_code == 204
-        ), f'Failed to upload test file to S3. Response: {s3_upload_response.text}'
+        if s3_upload_response.status_code != 204:
+            raise SmokeTestFailureException(f'Failed to upload test file to S3. Response: {s3_upload_response.text}')
+        print('Successfully uploaded test file to S3')
 
-    # Wait a couple of seconds for S3 event to trigger the lambda that processes the uploaded file
+    # Wait for S3 event to trigger the lambda that processes the uploaded file
     # and updates the military affiliation record status to 'active'.
-    time.sleep(2)
+    time.sleep(10)
 
     # Get the provider data from the GET '/v1/provider-users/me' endpoint.
     get_provider_data_response = requests.get(get_api_base_url() + '/v1/provider-users/me', headers=headers, timeout=10)
-    assert (
-        get_provider_data_response.status_code == 200
-    ), f'Failed to GET provider data. Response: {get_provider_data_response.json()}'
-    # check the response for a top level 'militaryAffiliations' field and verify it has a record with an upload date of
-    # today and a status of 'active'
+    if get_provider_data_response.status_code != 200:
+        raise SmokeTestFailureException(f'Failed to GET provider data. Response: {get_provider_data_response.json()}')
+
     provider_data = get_provider_data_response.json()
     military_affiliations = provider_data.get('militaryAffiliations')
-    assert military_affiliations, 'No military affiliations found in provider data'
+    if not military_affiliations:
+        raise SmokeTestFailureException('No military affiliations found in provider data')
     today = datetime.now(tz=UTC).date().isoformat()
     matching_military_affiliation = next(
         (ma for ma in military_affiliations if datetime.fromisoformat(ma['dateOfUpload']).date().isoformat() == today),
         None,
     )
-    assert matching_military_affiliation, f'No military affiliation record found for today ({today})'
-    assert matching_military_affiliation['status'] == 'active', 'Military affiliation record is not active'
+    if not matching_military_affiliation:
+        raise SmokeTestFailureException(
+            f'No military affiliation record found for today. ' f'Military affiliations: ({military_affiliations})'
+        )
+    if matching_military_affiliation['status'] != 'active':
+        raise SmokeTestFailureException(
+            f'Military affiliation record is not active. ' f'Status: {matching_military_affiliation["status"]}'
+        )
 
     print(f'Successfully added military affiliation record: {matching_military_affiliation}')
 
@@ -110,20 +123,19 @@ def test_military_affiliation_patch_update():
         timeout=10,
     )
 
-    assert (
-        patch_api_response.status_code == 200
-    ), f'Failed to PATCH military affiliations record. Response: {patch_api_response.json()}'
+    if patch_api_response.status_code != 200:
+        raise SmokeTestFailureException(
+            f'Failed to PATCH military affiliations record. Response: {patch_api_response.json()}'
+        )
 
     get_provider_data_response = requests.get(get_api_base_url() + '/v1/provider-users/me', headers=headers, timeout=10)
-    assert (
-        get_provider_data_response.status_code == 200
-    ), f'Failed to GET provider data. Response: {get_provider_data_response.json()}'
+    if get_provider_data_response.status_code != 200:
+        raise SmokeTestFailureException(f'Failed to GET provider data. Response: {get_provider_data_response.json()}')
 
     provider_data = get_provider_data_response.json()
     military_affiliations = provider_data.get('militaryAffiliations')
-    assert all(
-        ma['status'] == 'inactive' for ma in military_affiliations
-    ), f'Not all military affiliation records are inactive: {military_affiliations}'
+    if not all(ma['status'] == 'inactive' for ma in military_affiliations):
+        raise SmokeTestFailureException(f'Not all military affiliation records are inactive: {military_affiliations}')
 
     print(f'Successfully updated military affiliation records: {military_affiliations}')
 

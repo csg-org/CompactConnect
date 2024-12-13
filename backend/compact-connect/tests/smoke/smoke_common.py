@@ -1,9 +1,17 @@
-# ruff: noqa: S101 T201  we use asserts and print statements for smoke testing
 import json
 import os
 
 import boto3
 import requests
+
+
+class SmokeTestFailureException(Exception):
+    """
+    Custom exception to raise when a smoke test fails.
+    """
+
+    def __init__(self, message):
+        super().__init__(message)
 
 
 def get_provider_user_auth_headers():
@@ -41,9 +49,7 @@ def call_provider_users_me_endpoint():
     get_provider_data_response = requests.get(
         url=get_api_base_url() + '/v1/provider-users/me', headers=get_provider_user_auth_headers(), timeout=10
     )
-    assert (
-        get_provider_data_response.status_code == 200
-    ), f'Failed to GET provider data. Response: {get_provider_data_response.json()}'
-    # check the response for a top level 'privileges' field and verify it has a new record with the correct
-    # jurisdiction and transaction id
+    if get_provider_data_response.status_code != 200:
+        raise SmokeTestFailureException(f'Failed to GET provider data. Response: {get_provider_data_response.json()}')
+    # return the response body
     return get_provider_data_response.json()
