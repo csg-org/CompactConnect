@@ -28,14 +28,14 @@ class AlarmTopic(Topic):
             self.add_subscription(EmailSubscription(email))
 
         self.slack_channel_integrations = {}
-        # for config in slack_subscriptions:
-        #     self.slack_channel_integrations[config['channel_name']] = SlackChannelConfiguration(
-        #         self,
-        #         f'{config['channel_name']}-SlackChannelConfiguration',
-        #         notification_topics=[self],
-        #         workspace_id=config['workspace_id'],
-        #         channel_id=config['channel_id'],
-        #     )
+        for config in slack_subscriptions:
+            self.slack_channel_integrations[config['channel_name']] = SlackChannelConfiguration(
+                self,
+                f'{config['channel_name']}-SlackChannelConfiguration',
+                notification_topics=[self],
+                workspace_id=config['workspace_id'],
+                channel_id=config['channel_id'],
+            )
 
     def _configure_cloudwatch_principal(self, master_key: IKey):
         stack = Stack.of(self)
