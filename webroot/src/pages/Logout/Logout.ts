@@ -79,7 +79,7 @@ export default class Logout extends Vue {
     async logoutChecklist(): Promise<void> {
         this.$store.dispatch('user/clearRefreshTokenTimeout');
         this.stashWorkingUri();
-        await this.$store.dispatch('user/logoutRequest');
+        await this.$store.dispatch('user/logoutRequest', this.$store.getters['user/highestPermissionAuthType']());
     }
 
     stashWorkingUri(): void {

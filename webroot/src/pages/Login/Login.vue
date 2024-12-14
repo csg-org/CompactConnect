@@ -6,7 +6,7 @@
 -->
 
 <template>
-    <div class="login-container">
+    <div v-if="!isUsingMockApi" class="login-container">
         <a
             :href="hostedLoginUriStaff"
             class="login-link"
@@ -19,6 +19,15 @@
         >
             Login as Provider
         </a>
+    </div>
+    <div v-else class="login-container">
+        <router-link
+            :to="{ name: 'Home' }"
+            class="login-link"
+            @click.prevent="setMockAuthTokens"
+        >
+            Mock Login
+        </router-link>
     </div>
 </template>
 

@@ -32,12 +32,15 @@ export default {
         commit(MutationTypes.LOGIN_FAILURE, error);
     },
     // LOGOUT
-    logoutRequest: ({ commit, dispatch }) => {
+    logoutRequest: ({ commit, dispatch }, authType) => {
         dispatch('clearSessionStores');
         dispatch('startLoading', null, { root: true });
+        let tokenType = AuthTypes.STAFF;
 
-        dispatch('clearAuthToken', AuthTypes.LICENSEE);
-        dispatch('clearAuthToken', AuthTypes.STAFF);
+        if (authType === AuthTypes.LICENSEE) {
+            tokenType = authType;
+        }
+        dispatch('clearAuthToken', tokenType);
         commit(MutationTypes.LOGOUT_REQUEST);
 
         /* istanbul ignore next */

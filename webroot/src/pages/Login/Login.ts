@@ -58,10 +58,28 @@ export default class Login extends Vue {
         return loginUri;
     }
 
+    get isUsingMockApi(): boolean {
+        return this.$envConfig.isUsingMockApi || false;
+    }
+
     //
     // Methods
     //
     redirectToHostedLogin(): void {
         window.location.replace(this.hostedLoginUriStaff);
+    }
+
+    setMockAuthTokens(): void {
+        const data = {
+            access_token: 'accessToken',
+            token_type: 'Bearer',
+            expires_in: '',
+            id_token: 'idToken',
+            refresh_token: 'refreshToken'
+        };
+
+        this.$store.dispatch('user/storeAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
+        this.$store.dispatch('user/storeAuthTokens', { tokenResponse: data, authType: AuthTypes.LICENSEE });
+        this.$store.dispatch('user/loginSuccess');
     }
 }
