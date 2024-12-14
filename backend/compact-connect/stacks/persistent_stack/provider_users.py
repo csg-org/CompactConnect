@@ -70,14 +70,11 @@ class ProviderUsers(UserPool):
             local_ui_port = environment_context.get('local_ui_port', '3018')
             logout_urls.append(f'http://localhost:{local_ui_port}/Login')
             logout_urls.append(f'http://localhost:{local_ui_port}/Logout')
-        if not callback_urls:
+        if not logout_urls:
             raise ValueError(
-                "This app requires a callback url for its authentication path. Either provide 'domain_name' or set "
+                "This app requires a logout url for its logout function. Either provide 'domain_name' or set "
                 "'allow_local_ui' to true in this environment's context."
             )
-        # Add in other cognito logout route
-        # print('cognito_domain_prefix', cognito_domain_prefix)
-
         # Create an app client to allow the front-end to authenticate.
         self.ui_client = self.add_ui_client(
             callback_urls=callback_urls,
