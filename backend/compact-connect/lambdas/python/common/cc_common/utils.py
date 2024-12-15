@@ -61,6 +61,7 @@ def api_handler(fn: Callable):
             'Incoming request',
             method=event['httpMethod'],
             path=event['requestContext']['resourcePath'],
+            identity={'user': event.get('authorizer', {}).get('claims', {}).get('sub')},
             query_params=event['queryStringParameters'],
             username=event['requestContext'].get('authorizer', {}).get('claims', {}).get('cognito:username'),
             context=context,
