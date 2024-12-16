@@ -111,7 +111,7 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema, ProviderPrivateSchema):
         return in_data
 
 
-class ProviderReadGeneralResponseSchema(ForgivingSchema):
+class GetProviderReadGeneralResponseSchema(ForgivingSchema):
     """
     Provider record fields that are available to view for users with the 'readGeneral' permission.
 
@@ -151,7 +151,6 @@ class ProviderReadGeneralResponseSchema(ForgivingSchema):
     providerDateOfUpdate = DateTime(required=True, allow_none=False)
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
 
-    # license readGeneralSchema
     licenses = List(Nested(LicenseGeneralResponseSchema(), required=True, allow_none=False))
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=True, allow_none=False))
     militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=True, allow_none=False))

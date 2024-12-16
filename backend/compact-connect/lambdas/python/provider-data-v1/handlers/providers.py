@@ -2,67 +2,39 @@ import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.data_model.schema.provider import ProviderReadGeneralResponseSchema
+from cc_common.data_model.schema.provider import GetProviderReadGeneralResponseSchema
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.utils import api_handler, authorize_compact, get_scopes_list_from_event
 
 from . import get_provider_information
 
 
-def _filter_provider_record_based_on_caller_read_level_for_provider(
-    compact: str, provider_information: dict, scopes: list[str]
-) -> dict:
-    """Returns a provider record with private information removed if the caller does not have the relevant 'readPrivate'
-     action.
-
-    If a provider has either a license record or a privilege record that matches the jurisdiction of the caller's
-    'readPrivate' action, the full provider record is returned. Otherwise, the provider record is filtered to remove
-    private information.
-
-    caller can view the private information of the provider.
-    :param str compact: The compact the user is trying to access.
-    :param dict provider_information: The provider record to filter.
-    :param set scopes: The caller's scopes from the request.
-    :return: The provider record with private information removed if the caller does not have the relevant 'readPrivate'
-        action.
-    :rtype: dict
-    """
-
-    # if the caller has 'readPrivate' at the compact level, they can view the private information
+def _user_had_private_read_access_for_provider(compact: str, provider_information: dict, scopes: list[str]) -> bool:
     if f'{compact}/{compact}.readPrivate' in scopes:
-        logger.info(
+        logger.debug(
             'User has readPrivate permission at compact level',
             compact=compact,
             provider_id=provider_information['providerId'],
         )
-        return provider_information
+        return True
 
-    provider_license_jurisdictions = [
-        license_record['jurisdiction'] for license_record in provider_information.get('licenses', [])
-    ]
-    provider_privilege_jurisdictions = [
-        privilege_record['jurisdiction'] for privilege_record in provider_information.get('privileges', [])
-    ]
-    provider_jurisdictions = set(provider_license_jurisdictions + provider_privilege_jurisdictions)
-    for jurisdiction in provider_jurisdictions:
+    # we need to check if the user has readPrivate permission at the jurisdiction level
+    # for any of the provider's licenses or privileges
+    relevant_provider_jurisdictions: set = provider_information['privilegeJurisdictions'].copy()
+    relevant_provider_jurisdictions.add(provider_information['licenseJurisdiction'])
+    for jurisdiction in relevant_provider_jurisdictions:
         if f'{compact}/{jurisdiction}.readPrivate' in scopes:
-            logger.info(
-                'User has readPrivate permission at matching jurisdiction level',
+            logger.debug(
+                'User has readPrivate permission at jurisdiction level',
                 compact=compact,
-                caller_jurisdiction_scope=f'{compact}/{jurisdiction}.readPrivate',
                 provider_id=provider_information['providerId'],
-                provider_jurisdictions=provider_jurisdictions,
+                jurisdiction=jurisdiction,
             )
-            # user has 'readPrivate' at matching jurisdiction level, they can view all information for provider.
-            return provider_information
+            return True
 
-    logger.debug(
-        'Caller does not have readPrivate at compact or jurisdiction level, removing private information',
-        provider_id=provider_information['providerId'],
-    )
-    provider_read_general_schema = ProviderReadGeneralResponseSchema()
-    # we dump the record to ensure that the schema is applied to the record to remove private fields
-    return provider_read_general_schema.dump(provider_information)
+    logger.debug('Caller does not have readPrivate permission at compact or jurisdiction level',
+                 provider_id=provider_information['providerId'])
+    return False
 
 
 @api_handler
@@ -143,6 +115,14 @@ def query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused
                 raise CCInvalidRequestException(f"Invalid sort key: '{sorting_key}'")
     # Convert generic field to more specific one for this API
     resp['providers'] = resp.pop('items', [])
+    # check if the caller has readPrivate permission for each provider
+    # if not, we remove the private SSN field
+    caller_scopes = get_scopes_list_from_event(event)
+    for provider in resp['providers']:
+        if not _user_had_private_read_access_for_provider(compact=compact,
+                                                          provider_information=provider,
+                                                          scopes=caller_scopes):
+            provider.pop('ssn', None)
     return resp
 
 
@@ -163,6 +143,18 @@ def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
 
     provider_information = get_provider_information(compact=compact, provider_id=provider_id)
 
-    return _filter_provider_record_based_on_caller_read_level_for_provider(
-        compact=compact, provider_information=provider_information, scopes=get_scopes_list_from_event(event)
+    if _user_had_private_read_access_for_provider(
+            compact=compact,
+            provider_information=provider_information,
+            scopes=get_scopes_list_from_event(event)
+    ):
+        # return full object since caller has 'readPrivate' access for provider
+        return provider_information
+
+    logger.debug(
+        'Caller does not have readPrivate at compact or jurisdiction level, removing private information',
+        provider_id=provider_information['providerId'],
     )
+    provider_read_general_schema = GetProviderReadGeneralResponseSchema()
+    # we dump the record to ensure that the schema is applied to the record to remove private fields
+    return provider_read_general_schema.dump(provider_information)

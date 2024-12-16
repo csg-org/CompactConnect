@@ -17,7 +17,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/aslp.readPrivate'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps({'query': {'ssn': '123-12-1234'}})
 
@@ -39,7 +39,37 @@ class TestQueryProviders(TstFunction):
             body,
         )
 
-    def test_query_by_provider_id(self):
+    def test_query_by_provider_id_with_read_private_permission(self):
+        self._load_provider_data()
+
+        from handlers.providers import query_providers
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has read permission for aslp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/aslp.readPrivate'
+        event['pathParameters'] = {'compact': 'aslp'}
+        event['body'] = json.dumps({'query': {'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}})
+
+        resp = query_providers(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        with open('../common/tests/resources/api/provider-response.json') as f:
+            expected_provider = json.load(f)
+
+        body = json.loads(resp['body'])
+        self.assertEqual(
+            {
+                'providers': [expected_provider],
+                'pagination': {'pageSize': 100, 'lastKey': None, 'prevLastKey': None},
+                'query': {'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'},
+            },
+            body,
+        )
+
+    def test_query_by_provider_id_without_read_private_permission(self):
         self._load_provider_data()
 
         from handlers.providers import query_providers
@@ -58,6 +88,7 @@ class TestQueryProviders(TstFunction):
 
         with open('../common/tests/resources/api/provider-response.json') as f:
             expected_provider = json.load(f)
+            expected_provider.pop('ssn')
 
         body = json.loads(resp['body'])
         self.assertEqual(
@@ -80,7 +111,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/aslp.readPrivate'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps(
             {'sorting': {'key': 'dateOfUpdate'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
