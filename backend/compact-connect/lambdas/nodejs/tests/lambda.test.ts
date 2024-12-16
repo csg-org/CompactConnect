@@ -161,7 +161,6 @@ describe('Nightly runs', () => {
         // Verify an event report was sent
         expect(mockSendReportEmail).toHaveBeenCalled();
         expect(mockSendAllsWellEmail).not.toHaveBeenCalled();
-        
     });
 
     it('should not send an email if there were no ingest events', async () => {

@@ -139,7 +139,7 @@ export class EventClient {
     }
 
     /*
-     * Queries the data event table for ingest successes and returns the first 100 matching records.
+     * Queries the data event table for ingest successes.
      *
      * This is used to determine if a jurisdiction has had any successful uploads within the
      * time window.
@@ -159,9 +159,9 @@ export class EventClient {
         const resp = await this.dynamoDBClient.send(new QueryCommand({
             TableName: environmentVariables.getDataEventTableName(),
             Select: 'ALL_ATTRIBUTES',
-            // We don't necessarily return all the matching records for this check
+            // We don't necessarily return all the matching records for this query
             // since we're just looking for the presence of any ingest successes
-            Limit: 100,
+            Limit: 1,
             KeyConditionExpression: 'pk = :pk and sk BETWEEN :skBegin and :skEnd',
             ExpressionAttributeValues: {
                 ':pk': { 'S': `COMPACT#${compact}#JURISDICTION#${jurisdiction}` },

@@ -112,7 +112,7 @@ def upload_licenses_record():
         raise SmokeTestFailureException('Failed to find provider record in provider table.')
     print(f'Provider record successfully added to provider table {provider_record}')
 
-    # Step 3: Verify the license record is recorded in the data events table.=
+    # Step 3: Verify the license record is recorded in the data events table.
 
     # we don't loop here because the record should be available in the data events table by the time the
     # provider table record is available
