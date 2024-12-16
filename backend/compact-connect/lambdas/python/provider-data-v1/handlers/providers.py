@@ -2,8 +2,10 @@ import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.data_model.schema.provider import GetProviderReadGeneralResponseSchema, \
-    QueryProvidersGeneralResponseSchema
+from cc_common.data_model.schema.provider import (
+    GetProviderReadGeneralResponseSchema,
+    QueryProvidersGeneralResponseSchema,
+)
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.utils import api_handler, authorize_compact, get_scopes_list_from_event
 
@@ -33,8 +35,10 @@ def _user_had_private_read_access_for_provider(compact: str, provider_informatio
             )
             return True
 
-    logger.debug('Caller does not have readPrivate permission at compact or jurisdiction level',
-                 provider_id=provider_information['providerId'])
+    logger.debug(
+        'Caller does not have readPrivate permission at compact or jurisdiction level',
+        provider_id=provider_information['providerId'],
+    )
     return False
 
 
@@ -122,14 +126,13 @@ def query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused
     for provider in pre_sanitized_providers:
         # check if the caller has readPrivate permission for each provider
         # if not, we remove the private fields
-        if _user_had_private_read_access_for_provider(compact=compact,
-                                                          provider_information=provider,
-                                                          scopes=caller_scopes):
+        if _user_had_private_read_access_for_provider(
+            compact=compact, provider_information=provider, scopes=caller_scopes
+        ):
             sanitized_providers.append(provider)
         else:
             # passing the data through the schema to remove all fields not allowed by schema definition
             sanitized_providers.append(QueryProvidersGeneralResponseSchema().dump(provider))
-
 
     resp['providers'] = sanitized_providers
 
@@ -154,9 +157,7 @@ def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
     provider_information = get_provider_information(compact=compact, provider_id=provider_id)
 
     if _user_had_private_read_access_for_provider(
-            compact=compact,
-            provider_information=provider_information,
-            scopes=get_scopes_list_from_event(event)
+        compact=compact, provider_information=provider_information, scopes=get_scopes_list_from_event(event)
     ):
         # return full object since caller has 'readPrivate' access for provider
         return provider_information
