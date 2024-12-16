@@ -347,10 +347,10 @@
     "navigation": {
         "login": "Login",
         "home": "Home",
-        "upload": "Upload",
-        "licensing": "Licensing",
+        "upload": "Upload data",
+        "licensing": "Search licensing data",
         "dashboard": "Dashboard",
-        "users": "Users",
+        "users": "Manage users",
         "compactSettings": "Compact Settings",
         "styleGuide": "Styleguide",
         "account": "Account",

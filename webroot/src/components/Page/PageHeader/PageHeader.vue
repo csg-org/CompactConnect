@@ -21,13 +21,14 @@
         <div v-if="$matches.phone.only" class="nav-toggle-container">
             <div
                 class="nav-toggle"
+                :class="{ expanded: $store.state.isNavExpanded }"
                 @click="navToggle"
                 @keyup.enter="navToggle"
                 role="button"
                 tabindex="0"
                 :aria-label="$t('common.toggleNav')"
             >
-                X
+                <span class="middle-bar"></span>
             </div>
         </div>
     </div>

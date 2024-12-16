@@ -54,4 +54,8 @@ router.beforeEach(async (to, from, next) => {
     }
 });
 
+router.afterEach(() => {
+    store.dispatch('collapseNavMenu');
+});
+
 export default router;

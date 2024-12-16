@@ -5,46 +5,123 @@
 //  Created by InspiringApps on 11/20/2020.
 //
 
+@navAnimation: 0.4s ease-out;
+
 .main-nav-container {
     position: fixed;
     top: @appHeaderHeight;
     left: 0;
     z-index: 5;
     display: flex;
+    flex-direction: column;
     width: 0;
-    height: 100vh;
+    height: ~"calc(100vh - @{appHeaderHeight})";
     overflow: hidden;
+    overflow-y: auto;
     background-color: @primaryColor;
-    transition: width 0.5s ease-out;
+    transition: width @navAnimation;
 
     @media @tabletWidth {
         top: 0;
         width: @navPartialExpandWidth;
+        height: 100vh;
+    }
+
+    .logo-container {
+        width: 100%;
+        max-width: 200px;
+        height: 100px;
+        margin: 1.6rem 0 1.2rem 0;
+
+        .logo {
+            display: inline-block;
+            width: 100%;
+        }
     }
 
     &.expanded {
         width: @navFullExpandWidth;
+
+        .logo-container {
+            width: 100%;
+            max-width: 200px;
+        }
     }
 
-    ul.main-nav {
+    ul.nav {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 1.6rem;
+
         li {
             display: flex;
             align-items: center;
             width: 100%;
-            padding: 0 0.6rem;
             cursor: pointer;
 
             &.page-nav {
                 a {
-                    padding: 1.2rem;
-                    color: lighten(@white, 50%);
+                    display: flex;
+                    align-items: center;
+                    padding: 1.2rem 1.6rem; // Bump the left-right padding depending on the @navPartialExpandWidth
+                    border-left: 3px solid transparent;
+                    color: fade(@white, 75%);
+
+                    .icon {
+                        width: 2.4rem;
+
+                        &.stroke-type {
+                            fill: none;
+                            stroke: @white;
+                            stroke-opacity: 0.75;
+                        }
+
+                        &.fill-type {
+                            fill: @white;
+                            fill-opacity: 0.75;
+                        }
+                    }
+
+                    .link-label {
+                        margin-left: 1.6rem;
+                        white-space: nowrap;
+                    }
 
                     &.router-link-active {
+                        border-left-color: @white;
                         color: @white;
                         font-weight: @fontWeightExtraBold;
+
+                        .icon {
+                            &.stroke-type {
+                                stroke-opacity: 1;
+                            }
+
+                            &.fill-type {
+                                fill-opacity: 1;
+                            }
+                        }
+                    }
+
+                    &:hover .icon {
+                        &.stroke-type {
+                            fill: none;
+                        }
+
+                        &.fill-type {
+                            fill: @white;
+                        }
                     }
                 }
             }
         }
+    }
+
+    .separator {
+        height: 1px;
+        margin: auto 10px 1.6rem 10px;
+        background-color: fade(@white, 50%);
+        transition: width @navAnimation;
     }
 }

@@ -5,22 +5,49 @@
 //  Created by InspiringApps on 11/20/2020.
 //
 
-import { reactive, computed } from 'vue';
+import {
+    reactive,
+    computed,
+    ComputedRef,
+    markRaw,
+    Raw
+} from 'vue';
 import { Component, Vue, toNative } from 'vue-facing-decorator';
 import { AuthTypes } from '@/app.config';
 // import CompactSelector from '@components/CompactSelector/CompactSelector.vue';
-import { Compact } from '@models/Compact/Compact.model';
+import UploadIcon from '@components/Icons/Upload/Upload.vue';
+import UsersIcon from '@components/Icons/Users/Users.vue';
+import LicenseSearchIcon from '@components/Icons/LicenseSearch/LicenseSearch.vue';
+import SettingsIcon from '@components/Icons/Settings/Settings.vue';
+import AccountIcon from '@components/Icons/Account/Account.vue';
+import LogoutIcon from '@components/Icons/Logout/Logout.vue';
+import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { CompactPermission } from '@models/StaffUser/StaffUser.model';
+
+export interface NavLink {
+    to: string;
+    params?: {
+        compact?: CompactType | null,
+    };
+    label?: string | ComputedRef,
+    iconComponent?: Raw<any>,
+    isEnabled?: boolean,
+    isExternal?: boolean,
+    isExactActive?: boolean,
+}
 
 @Component({
     name: 'PageMainNav',
+    components: {
+        UploadIcon,
+        UsersIcon,
+        LicenseSearchIcon,
+        SettingsIcon,
+        AccountIcon,
+        LogoutIcon,
+    }
 })
 class PageMainNav extends Vue {
-    //
-    // Data
-    //
-    isMainNavToggled = false;
-
     //
     // Computed
     //
@@ -87,28 +114,40 @@ class PageMainNav extends Vue {
         return hasWritePermissions;
     }
 
-    get mainLinks() {
+    get mainLinks(): Array<NavLink> {
         return reactive([
-            {
-                to: 'Licensing',
-                params: { compact: this.currentCompact?.type },
-                label: computed(() => this.$t('navigation.licensing')),
-                isEnabled: Boolean(this.currentCompact) && this.isLoggedInAsStaff,
-                isExternal: false,
-                isExactActive: false,
-            },
             {
                 to: 'StateUpload',
                 params: { compact: this.currentCompact?.type },
                 label: computed(() => this.$t('navigation.upload')),
+                iconComponent: markRaw(UploadIcon),
                 isEnabled: Boolean(this.currentCompact) && this.hasStateWritePermissions,
                 isExternal: false,
                 isExactActive: true,
             },
             {
+                to: 'Users',
+                params: { compact: this.currentCompact?.type },
+                label: computed(() => this.$t('navigation.users')),
+                iconComponent: markRaw(UsersIcon),
+                isEnabled: this.isAnyTypeOfAdmin,
+                isExternal: false,
+                isExactActive: false,
+            },
+            {
+                to: 'Licensing',
+                params: { compact: this.currentCompact?.type },
+                label: computed(() => this.$t('navigation.licensing')),
+                iconComponent: markRaw(LicenseSearchIcon),
+                isEnabled: Boolean(this.currentCompact) && this.isLoggedInAsStaff,
+                isExternal: false,
+                isExactActive: false,
+            },
+            {
                 to: 'CompactSettings',
                 params: { compact: this.currentCompact?.type },
                 label: computed(() => this.$t('navigation.compactSettings')),
+                iconComponent: markRaw(SettingsIcon),
                 isEnabled: Boolean(this.currentCompact) && this.isCompactAdmin,
                 isExternal: false,
                 isExactActive: false,
@@ -121,24 +160,23 @@ class PageMainNav extends Vue {
                 isExternal: false,
                 isExactActive: false,
             },
+        ].filter((link) => link.isEnabled));
+    }
+
+    get myLinks(): Array<NavLink> {
+        return reactive([
             {
                 to: 'Account',
                 label: computed(() => this.$t('navigation.account')),
+                iconComponent: markRaw(AccountIcon),
                 isEnabled: this.isLoggedIn,
-                isExternal: false,
-                isExactActive: false,
-            },
-            {
-                to: 'Users',
-                params: { compact: this.currentCompact?.type },
-                label: computed(() => this.$t('navigation.users')),
-                isEnabled: this.isAnyTypeOfAdmin,
                 isExternal: false,
                 isExactActive: false,
             },
             {
                 to: 'Logout',
                 label: computed(() => this.$t('navigation.logout')),
+                iconComponent: markRaw(LogoutIcon),
                 isEnabled: this.isLoggedIn,
                 isExternal: false,
                 isExactActive: true,
@@ -149,6 +187,10 @@ class PageMainNav extends Vue {
     //
     // Methods
     //
+    logoClick(): void {
+        this.$router.push({ name: 'Home' });
+    }
+
     navToggle(): void {
         if (this.globalStore.isNavExpanded) {
             this.$store.dispatch('collapseNavMenu');
