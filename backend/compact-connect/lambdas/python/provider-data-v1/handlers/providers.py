@@ -2,7 +2,8 @@ import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.data_model.schema.provider import GetProviderReadGeneralResponseSchema
+from cc_common.data_model.schema.provider import GetProviderReadGeneralResponseSchema, \
+    QueryProvidersGeneralResponseSchema
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.utils import api_handler, authorize_compact, get_scopes_list_from_event
 
@@ -113,16 +114,25 @@ def query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused
             case _:
                 # This shouldn't happen unless our api validation gets misconfigured
                 raise CCInvalidRequestException(f"Invalid sort key: '{sorting_key}'")
-    # Convert generic field to more specific one for this API
-    resp['providers'] = resp.pop('items', [])
-    # check if the caller has readPrivate permission for each provider
-    # if not, we remove the private SSN field
+    # Convert generic field to more specific one for this API and filter data based on caller's
+    # permissions
+    pre_sanitized_providers = resp.pop('items', [])
     caller_scopes = get_scopes_list_from_event(event)
-    for provider in resp['providers']:
-        if not _user_had_private_read_access_for_provider(compact=compact,
+    sanitized_providers = []
+    for provider in pre_sanitized_providers:
+        # check if the caller has readPrivate permission for each provider
+        # if not, we remove the private fields
+        if _user_had_private_read_access_for_provider(compact=compact,
                                                           provider_information=provider,
                                                           scopes=caller_scopes):
-            provider.pop('ssn', None)
+            sanitized_providers.append(provider)
+        else:
+            # passing the data through the schema to remove all fields not allowed by schema definition
+            sanitized_providers.append(QueryProvidersGeneralResponseSchema().dump(provider))
+
+
+    resp['providers'] = sanitized_providers
+
     return resp
 
 
