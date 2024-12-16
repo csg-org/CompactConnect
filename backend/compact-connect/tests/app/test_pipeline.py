@@ -50,6 +50,9 @@ class TestPipeline(TstAppABC, TestCase):
             self.app.pipeline_stack.prod_stage.persistent_stack, domain_name='app.compactconnect.org'
         )
 
+        for ui_stack in (self.app.pipeline_stack.test_stage.ui_stack, self.app.pipeline_stack.prod_stage.ui_stack):
+            self._inspect_ui_stack(ui_stack)
+
     def test_cognito_using_recommended_security_in_prod(self):
         stack = self.app.pipeline_stack.prod_stage.persistent_stack
         template = Template.from_stack(stack)
