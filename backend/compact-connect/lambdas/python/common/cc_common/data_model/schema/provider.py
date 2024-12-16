@@ -110,10 +110,12 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema, ProviderPrivateSchema):
         del in_data['providerFamGivMid']
         return in_data
 
+
 class CommonProviderGeneralResponseSchema(ForgivingSchema):
     """
     Common Provider record fields that are available to view for users with the 'readGeneral' permission.
     """
+
     providerId = UUID(required=True, allow_none=False)
     type = String(required=True, allow_none=False)
 
@@ -146,10 +148,12 @@ class CommonProviderGeneralResponseSchema(ForgivingSchema):
     providerDateOfUpdate = DateTime(required=True, allow_none=False)
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
 
+
 class QueryProvidersGeneralResponseSchema(CommonProviderGeneralResponseSchema):
     """
     Provider record fields that are returned from query endpoint for users with the 'readGeneral' permission.
     """
+
 
 class GetProviderReadGeneralResponseSchema(CommonProviderGeneralResponseSchema):
     """
@@ -158,6 +162,7 @@ class GetProviderReadGeneralResponseSchema(CommonProviderGeneralResponseSchema):
     This schema should be used by any endpoint that returns provider information to staff users (ie the query provider
     and GET provider endpoints).
     """
+
     licenses = List(Nested(LicenseGeneralResponseSchema(), required=True, allow_none=False))
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=True, allow_none=False))
     militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=True, allow_none=False))
