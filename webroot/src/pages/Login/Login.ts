@@ -7,10 +7,13 @@
 
 import { Component, Vue } from 'vue-facing-decorator';
 import { AuthTypes } from '@/app.config';
+import InputButton from '@components/Forms/InputButton/InputButton.vue';
 
 @Component({
     name: 'Login',
-    components: {}
+    components: {
+        InputButton
+    }
 })
 export default class Login extends Vue {
     //
@@ -69,17 +72,33 @@ export default class Login extends Vue {
         window.location.replace(this.hostedLoginUriStaff);
     }
 
-    setMockAuthTokens(): void {
+    async mockStaffLogin(): Promise<void> {
         const data = {
-            access_token: 'accessToken',
+            access_token: 'sjdkfslkjfhsdkjhfdskj',
             token_type: 'Bearer',
-            expires_in: '',
+            expires_in: '100000000',
             id_token: 'idToken',
             refresh_token: 'refreshToken'
         };
 
-        this.$store.dispatch('user/storeAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
-        this.$store.dispatch('user/storeAuthTokens', { tokenResponse: data, authType: AuthTypes.LICENSEE });
+        await this.$store.dispatch('user/storeAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
         this.$store.dispatch('user/loginSuccess');
+
+        this.$router.push({ name: 'Home' });
+    }
+
+    async mockLicenseeLogin(): Promise<void> {
+        const data = {
+            access_token: 'dflkjdfhwhefjhkfdkfshdlkjfs',
+            token_type: 'Bearer',
+            expires_in: '100000000',
+            id_token: 'idToken',
+            refresh_token: 'refreshToken'
+        };
+
+        await this.$store.dispatch('user/storeAuthTokens', { tokenResponse: data, authType: AuthTypes.LICENSEE });
+        this.$store.dispatch('user/loginSuccess');
+
+        this.$router.push({ name: 'Home' });
     }
 }

@@ -21,13 +21,18 @@
         </a>
     </div>
     <div v-else class="login-container">
-        <router-link
-            :to="{ name: 'Home' }"
-            class="login-link"
-            @click.prevent="setMockAuthTokens"
-        >
-            Mock Login
-        </router-link>
+        <InputButton
+            label="Mock Staff Login"
+            aria-label="Mock Login"
+            :isTextLike="true"
+            @click="mockStaffLogin"
+        />
+        <InputButton
+            label="Mock Licensee Login"
+            aria-label="Mock Licensee Login"
+            :isTextLike="true"
+            @click="mockLicenseeLogin"
+        />
     </div>
 </template>
 

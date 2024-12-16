@@ -31,6 +31,19 @@ export default class Logout extends Vue {
         return this.$route.query?.goto?.toString() || '';
     }
 
+    // get hostedLogoutUriStaff(): string {
+    //     const { domain, cognitoAuthDomainStaff, cognitoClientIdStaff } = this.$envConfig;
+    //     const logoutLink = encodeURIComponent(`${(domain as string)}/Logout`);
+    //     const logoutUriQuery = [
+    //         `?client_id=${cognitoClientIdStaff}`,
+    //         `&logout_uri=${logoutLink}`
+    //     ].join('');
+    //     const idpPath = '/logout';
+    //     const logoutUri = `${cognitoAuthDomainStaff}${idpPath}${logoutUriQuery}`;
+
+    //     return logoutUri;
+    // }
+
     get hostedLogoutUriStaff(): string {
         const { domain, cognitoAuthDomainStaff, cognitoClientIdStaff } = this.$envConfig;
         const logoutLink = encodeURIComponent(`${(domain as string)}/Logout`);
