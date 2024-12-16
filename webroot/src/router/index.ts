@@ -45,9 +45,7 @@ router.beforeEach(async (to, from, next) => {
 
     // If the route requires auth, check first
     if (isAuthGuardedRoute) {
-        const {
-            isLoggedIn,
-        } = store.getters['user/state'];
+        const { isLoggedIn } = store.getters['user/state'];
 
         if (!isLoggedIn) {
             next({ name: 'Logout' });
