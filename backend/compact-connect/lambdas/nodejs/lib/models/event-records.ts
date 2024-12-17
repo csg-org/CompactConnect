@@ -28,3 +28,17 @@ export interface IValidationErrorEventRecord {
     validData: object,
     errors: IValidationErrorEventErrors
 }
+
+export interface IIngestSuccessEventRecord {
+    pk: string,
+    sk: string,
+    eventType: string,
+    eventTime: string;
+    compact: string; 
+    jurisdiction: string; 
+    licenseType: string; 
+    status: 'active' | 'inactive'; 
+    dateOfIssuance: string;
+    dateOfRenewal: string;
+    dateOfExpiration: string; 
+}

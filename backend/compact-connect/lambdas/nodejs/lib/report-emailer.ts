@@ -18,6 +18,10 @@ interface ReportEmailerProperties {
     sesClient: SESClient;
 }
 
+const getEmailImageBaseUrl = () => {
+    return `${environmentVariableService.getUiBasePathUrl()}/img/email`;
+};
+
 
 /*
  * Integrates with AWS SES to send emails and with EmailBuilderJS to render JS object templates into HTML
@@ -44,12 +48,8 @@ export class ReportEmailer {
         this.sesClient = props.sesClient;
     }
 
-    public async sendReportEmail(events: IIngestEvents, compact: string, jurisdiction: string, recipients: string[]) {
-        this.logger.info('Sending report email', { recipients: recipients });
-
-        // Generate the HTML report
-        const htmlContent = this.generateReport(events, compact, jurisdiction);
-
+    private async sendEmail({ htmlContent, subject, recipients, errorMessage }:
+         {htmlContent: string, subject: string, recipients: string[], errorMessage: string}) {
         try {
             // Send the email
             const command = new SendEmailCommand({
@@ -65,7 +65,7 @@ export class ReportEmailer {
                     },
                     Subject: {
                         Charset: 'UTF-8',
-                        Data: `License Data Error Summary: ${compact} / ${jurisdiction}`
+                        Data: subject
                     }
                 },
                 // We're required by the IAM policy to use this display name
@@ -74,9 +74,24 @@ export class ReportEmailer {
 
             return (await this.sesClient.send(command)).MessageId;
         } catch (error) {
-            this.logger.error('Error sending report email', { error: error });
+            this.logger.error(errorMessage, { error: error });
             throw error;
         }
+    }
+
+
+    public async sendReportEmail(events: IIngestEvents, compact: string, jurisdiction: string, recipients: string[]) {
+        this.logger.info('Sending report email', { recipients: recipients });
+
+        // Generate the HTML report
+        const htmlContent = this.generateReport(events, compact, jurisdiction);
+
+        return this.sendEmail({ 
+            htmlContent, 
+            subject: `License Data Error Summary: ${compact} / ${jurisdiction}`, 
+            recipients, 
+            errorMessage: 'Error sending report email' 
+        });
     }
 
     public async sendAllsWellEmail(compact: string, jurisdiction: string, recipients: string[]) {
@@ -92,33 +107,33 @@ export class ReportEmailer {
 
         const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
 
-        try {
-            // Send the email
-            const command = new SendEmailCommand({
-                Destination: {
-                    ToAddresses: recipients,
-                },
-                Message: {
-                    Body: {
-                        Html: {
-                            Charset: 'UTF-8',
-                            Data: htmlContent
-                        }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: `License Data Summary: ${compact} / ${jurisdiction}`
-                    }
-                },
-                // We're required by the IAM policy to use this display name
-                Source: `Compact Connect <${environmentVariableService.getFromAddress()}>`,
-            });
+        return this.sendEmail({ 
+            htmlContent, 
+            subject: `License Data Summary: ${compact} / ${jurisdiction}`, 
+            recipients, 
+            errorMessage: 'Error sending alls well email' 
+        });
+    }
 
-            return (await this.sesClient.send(command)).MessageId;
-        } catch (error) {
-            this.logger.error('Error sending alls well email', { error: error });
-            throw error;
-        }
+    public async sendNoLicenseUpdatesEmail(compact: string, jurisdiction: string, recipients: string[]) {
+        this.logger.info('Sending no license updates email', { recipients: recipients });
+
+        // Generate the HTML report
+        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+
+        this.insertHeader(report, compact, jurisdiction, 'License Data Summary');
+        this.insertClockImage(report);
+        this.insertSubHeading(report, 'There have been no licenses uploaded in the last 7 days.');
+        this.insertFooter(report);
+
+        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+
+        return this.sendEmail({ 
+            htmlContent, 
+            subject: `No License Updates for Last 7 Days: ${compact} / ${jurisdiction}`, 
+            recipients, 
+            errorMessage: 'Error sending no license updates email' 
+        });
     }
 
     public generateReport(events: IIngestEvents, compact: string, jurisdiction: string): string {
@@ -488,7 +503,7 @@ export class ReportEmailer {
                 'props': {
                     'width': null,
                     'height': 100,
-                    'url': 'https://app.test.compactconnect.org/img/icons/mstile-310x150.png',
+                    'url': `${getEmailImageBaseUrl()}/compact-connect-logo-final.png`,
                     'alt': '',
                     'linkHref': null,
                     'contentAlignment': 'middle'
@@ -566,6 +581,35 @@ export class ReportEmailer {
         report['root']['data']['childrenIds'].push(blockId);
     }
 
+    private insertClockImage(report: TReaderDocument) {
+        const blockId = `block-clock-image`;
+
+        report[blockId] = {
+            'type': 'Image',
+            'data': {
+                'style': {
+                    'padding': {
+                        'top': 68,
+                        'bottom': 16,
+                        'right': 24,
+                        'left': 24
+                    },
+                    'textAlign': 'center'
+                },
+                'props': {
+                    'width': 100,
+                    'height': 100,
+                    'url': `${getEmailImageBaseUrl()}/ico-noupdates@2x.png`,
+                    'alt': 'Clock icon',
+                    'linkHref': null,
+                    'contentAlignment': 'middle'
+                }
+            }
+        };
+
+        report['root']['data']['childrenIds'].push(blockId);
+    }
+
     private insertNoErrorImage(report: TReaderDocument) {
         const blockId = `block-no-error-image`;
 
@@ -584,8 +628,8 @@ export class ReportEmailer {
                 'props': {
                     'width': 100,
                     'height': 100,
-                    'url': 'https://content.inspiringapps.com/assets/18771774-791a-4fad-9948-acad99874424.png',
-                    'alt': 'Sample product',
+                    'url': `${getEmailImageBaseUrl()}/ico-noerrors@2x.png`,
+                    'alt': 'Success icon',
                     'linkHref': null,
                     'contentAlignment': 'middle'
                 }

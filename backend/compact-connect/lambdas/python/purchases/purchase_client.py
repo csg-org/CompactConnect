@@ -118,11 +118,11 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         if hasattr(response, 'transactionResponse') and hasattr(response.transactionResponse, 'errors'):
             error_code = response.transactionResponse.errors.error[0].errorCode
             error_message = response.transactionResponse.errors.error[0].errorText
-            if error_code =='11' or error_message == 'A duplicate transaction has been submitted.':
+            if error_code == '11' or error_message == 'A duplicate transaction has been submitted.':
                 # This occurs if the user submitted duplicate transactions within the duplicate window
                 # we log the warning and return it as a user error
                 logger.warning(logger_message, error_code=error_code, error_message=error_message)
-                raise CCInvalidRequestException("Duplicate transaction detected for previously successful transaction.")
+                raise CCInvalidRequestException('Duplicate transaction detected for previously successful transaction.')
             logger.error(logger_message, error_code=error_code, error_message=error_message)
 
         else:
