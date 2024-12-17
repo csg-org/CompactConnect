@@ -31,6 +31,14 @@ class PageMainNav extends Vue {
         return !this.isDesktop;
     }
 
+    get globalStore(): any {
+        return this.$store.state;
+    }
+
+    get authType(): string {
+        return this.globalStore.authType;
+    }
+
     get isMainNavVisible(): boolean {
         return this.isDesktop || this.isMainNavToggled;
     }
@@ -48,7 +56,11 @@ class PageMainNav extends Vue {
     }
 
     get isLoggedInAsStaff(): boolean {
-        return this.isLoggedIn && this.$store.getters['user/highestPermissionAuthType']() === AuthTypes.STAFF;
+        return this.authType === AuthTypes.STAFF;
+    }
+
+    get isLoggedInAsLicensee(): boolean {
+        return this.authType === AuthTypes.LICENSEE;
     }
 
     get staffPermission(): CompactPermission | null {
@@ -120,7 +132,7 @@ class PageMainNav extends Vue {
                 to: 'LicenseeDashboard',
                 params: { compact: this.currentCompact?.type },
                 label: computed(() => this.$t('navigation.dashboard')),
-                isEnabled: Boolean(this.currentCompact) && !this.isLoggedInAsStaff,
+                isEnabled: Boolean(this.currentCompact) && this.isLoggedInAsLicensee,
                 isExternal: false,
                 isExactActive: false,
             },

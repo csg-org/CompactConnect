@@ -99,6 +99,25 @@ export default {
     resetStoreUser: ({ commit }) => {
         commit(MutationTypes.STORE_RESET_USER);
     },
+    updateAuthTokens: ({ dispatch }, { tokenResponse, authType }) => {
+        dispatch('clearAllNonAccessTokens');
+        dispatch('storeAuthTokens', { tokenResponse, authType });
+    },
+    clearAllNonAccessTokens: () => {
+        /* istanbul ignore next */
+        Object.keys(tokens[AuthTypes.STAFF]).forEach((key) => {
+            if (key !== 'AUTH_TOKEN') {
+                authStorage.removeItem(tokens[AuthTypes.STAFF][key]);
+            }
+        });
+
+        /* istanbul ignore next */
+        Object.keys(tokens[AuthTypes.LICENSEE]).forEach((key) => {
+            if (key !== 'AUTH_TOKEN') {
+                authStorage.removeItem(tokens[AuthTypes.LICENSEE][key]);
+            }
+        });
+    },
     storeAuthTokens: ({ dispatch }, { tokenResponse, authType }) => {
         const {
             access_token: accessToken,

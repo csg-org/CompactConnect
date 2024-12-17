@@ -81,7 +81,7 @@ export default class Login extends Vue {
             refresh_token: 'refreshToken'
         };
 
-        await this.$store.dispatch('user/storeAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
+        await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
         this.$store.dispatch('user/loginSuccess');
 
         this.$router.push({ name: 'Home' });
@@ -89,14 +89,14 @@ export default class Login extends Vue {
 
     async mockLicenseeLogin(): Promise<void> {
         const data = {
-            access_token: 'dflkjdfhwhefjhkfdkfshdlkjfs',
+            access_token: 'mock_access_token',
             token_type: 'Bearer',
             expires_in: '100000000',
             id_token: 'idToken',
             refresh_token: 'refreshToken'
         };
 
-        await this.$store.dispatch('user/storeAuthTokens', { tokenResponse: data, authType: AuthTypes.LICENSEE });
+        await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.LICENSEE });
         this.$store.dispatch('user/loginSuccess');
 
         this.$router.push({ name: 'Home' });
