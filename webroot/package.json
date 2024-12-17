@@ -10,7 +10,7 @@
     "test:unit:coverage": "export NODE_OPTIONS=--openssl-legacy-provider && nyc vue-cli-service test:unit 'src/**/*.spec.ts' --reporter progress",
     "test:e2e": "TZ=America/Denver vue-cli-service test:e2e",
     "lint": "vue-cli-service lint",
-    "audit:dependencies": "yarn audit --groups dependencies --level moderate"
+    "audit:dependencies": "/bin/bash -c 'yarn audit --groups dependencies --level moderate; [[ $? -ge 4 ]] && exit 1 || exit 0'"
   },
   "dependencies": {
     "@vue/compat": "3.4.21",
@@ -102,7 +102,8 @@
     "stylelint-config-rational-order/**/trim": "^0.0.3",
     "stylelint-config-rational-order/stylelint": "^13.3.0",
     "@vue/cli-plugin-unit-mocha/mocha/minimatch": "^3.0.5",
-    "@vue/cli-plugin-unit-mocha/mocha/nanoid": "^3.1.31"
+    "@vue/cli-plugin-unit-mocha/mocha/nanoid": "^3.1.31",
+    "@vue/cli-plugin-eslint/**/cross-spawn": "^6.0.6"
   },
   "gitHooks": {
     "pre-commit": "lint-staged"

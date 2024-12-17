@@ -14,7 +14,7 @@ from faker import Faker
 
 # We have to do some set-up before we can import everything we need
 # Add the provider data lambda runtime to our pythonpath
-provider_data_path = os.path.join('lambdas', 'provider-data-v1')
+provider_data_path = os.path.join('lambdas', 'python', 'common')
 sys.path.append(provider_data_path)
 
 with open('cdk.json') as context_file:
@@ -26,7 +26,7 @@ LICENSE_TYPES = _context['license_types']
 os.environ['COMPACTS'] = json.dumps(COMPACTS)
 os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 
-from data_model.schema.license import LicensePostSchema  # noqa: E402
+from cc_common.data_model.schema.license import LicensePostSchema  # noqa: E402
 
 # We'll grab three different localizations to provide a variety of names/characters
 name_faker = Faker(['en_US', 'ja_JP', 'es_MX'])

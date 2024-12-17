@@ -57,7 +57,7 @@ class Sorting extends mixins(MixinForm) {
         return this.sortingStore.sortingMap[this.listId]?.direction;
     }
 
-    get isPhone() {
+    get isPhone(): boolean {
         return this.$matches.phone.only;
     }
 

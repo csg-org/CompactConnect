@@ -5,7 +5,12 @@
 //  Created by InspiringApps on 9/12/2024.
 //
 
-import { Component, mixins, toNative } from 'vue-facing-decorator';
+import {
+    Component,
+    mixins,
+    Prop,
+    toNative
+} from 'vue-facing-decorator';
 import { reactive, computed } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputText from '@components/Forms/InputText/InputText.vue';
@@ -34,6 +39,8 @@ export interface LicenseSearch {
     emits: [ 'searchParams' ],
 })
 class LicenseeSearch extends mixins(MixinForm) {
+    @Prop({ default: {}}) searchParams!: LicenseSearch;
+
     //
     // Lifecycle
     //
@@ -81,6 +88,7 @@ class LicenseeSearch extends mixins(MixinForm) {
                 label: computed(() => this.$t('common.firstName')),
                 placeholder: computed(() => this.$t('licensing.searchPlaceholderName')),
                 validation: Joi.string().min(0).max(10).messages(this.joiMessages.string),
+                value: this.searchParams.firstName || '',
                 enforceMax: true,
             }),
             lastName: new FormInput({
@@ -89,6 +97,7 @@ class LicenseeSearch extends mixins(MixinForm) {
                 label: computed(() => this.$t('common.lastName')),
                 placeholder: computed(() => this.$t('licensing.searchPlaceholderName')),
                 validation: Joi.string().min(0).max(10).messages(this.joiMessages.string),
+                value: this.searchParams.lastName || '',
                 enforceMax: true,
             }),
             ssn: new FormInput({
@@ -100,12 +109,14 @@ class LicenseeSearch extends mixins(MixinForm) {
                     ...this.joiMessages.string,
                     'string.pattern.base': this.$t('inputErrors.ssnFormat'),
                 }),
+                value: this.searchParams.ssn || '',
             }),
             state: new FormInput({
                 id: 'state',
                 name: 'state',
                 label: computed(() => this.$t('common.stateJurisdiction')),
                 valueOptions: this.stateOptions,
+                value: this.searchParams.state || '',
             }),
             submit: new FormInput({
                 isSubmitInput: true,

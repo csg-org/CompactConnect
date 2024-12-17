@@ -34,7 +34,7 @@ describe('PrivilegePurchaseOption model', () => {
         expect(privilegePurchaseOption).to.be.an.instanceof(PrivilegePurchaseOption);
         expect(privilegePurchaseOption.jurisdiction).to.be.an.instanceof(State);
         expect(privilegePurchaseOption.jurisdiction.id).to.equal(null);
-        expect(privilegePurchaseOption.jurisdiction.abbrev).to.equal(null);
+        expect(privilegePurchaseOption.jurisdiction.abbrev).to.equal('');
         expect(privilegePurchaseOption.compactType).to.equal(null);
         expect(privilegePurchaseOption.fee).to.equal(0);
         expect(privilegePurchaseOption.isMilitaryDiscountActive).to.equal(false);

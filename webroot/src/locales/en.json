@@ -34,6 +34,7 @@
         "total": "Total",
         "saving": "Saving...",
         "loading": "Loading...",
+        "viewing": "Viewing",
         "firstName": "First Name",
         "middleName": "Middle Name",
         "lastName": "Last Name",
@@ -348,6 +349,7 @@
         "licensing": "Licensing",
         "dashboard": "Dashboard",
         "users": "Users",
+        "compactSettings": "Compact Settings",
         "styleGuide": "Styleguide",
         "account": "Account",
         "logout": "Logout"
@@ -434,6 +436,12 @@
             "key": "coun"
         }
     ],
+    "compact": {
+        "settingsTitle": "Compact settings",
+        "paymentProcessorCredentials": "Authorize.net credentials",
+        "paymentProcessorAccountId": "API login ID",
+        "paymentProcessorAccountKey": "Transaction key"
+    },
     "stateUpload": {
         "formTitle": "Compact data upload",
         "formSubtext": "Current uploads are for test purposes and the data will not be saved permanently",

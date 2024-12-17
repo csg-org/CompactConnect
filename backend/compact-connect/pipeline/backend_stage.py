@@ -4,6 +4,7 @@ from constructs import Construct
 from stacks.api_stack import ApiStack
 from stacks.ingest_stack import IngestStack
 from stacks.persistent_stack import PersistentStack
+from stacks.reporting_stack import ReportingStack
 from stacks.ui_stack import UIStack
 
 
@@ -63,3 +64,15 @@ class BackendStage(Stage):
             environment_name=environment_name,
             persistent_stack=self.persistent_stack,
         )
+
+        # Reporting depends on emails, which depend on having a domain name. If we don't configure a HostedZone
+        # we won't bother with this whole stack.
+        if self.persistent_stack.hosted_zone:
+            self.reporting_stack = ReportingStack(
+                self,
+                'ReportingStack',
+                env=environment,
+                environment_context=environment_context,
+                standard_tags=standard_tags,
+                persistent_stack=self.persistent_stack,
+            )

@@ -9,12 +9,11 @@ from aws_cdk.aws_cloudfront import (
     EdgeLambda,
     ErrorResponse,
     LambdaEdgeEventType,
-    OriginAccessIdentity,
     SecurityPolicyProtocol,
     SSLMethod,
     ViewerProtocolPolicy,
 )
-from aws_cdk.aws_cloudfront_origins import S3Origin
+from aws_cdk.aws_cloudfront_origins import S3BucketOrigin
 from aws_cdk.aws_lambda import Code, Function, Runtime
 from aws_cdk.aws_route53 import ARecord, RecordTarget
 from aws_cdk.aws_route53_targets import CloudFrontTarget
@@ -53,10 +52,6 @@ class UIDistribution(Distribution):
                 ),
             }
 
-        # Set up S3 access for CloudFront
-        origin_access_identity = OriginAccessIdentity(scope, 'OriginAccessIdentity')
-        ui_bucket.grant_read(origin_access_identity)
-
         web_acl = WebACL(
             scope,
             'DistributionAcl',
@@ -75,12 +70,12 @@ class UIDistribution(Distribution):
                 }
             ],
         )
-        with open(os.path.join('lambdas', 'cloudfront-csp', 'index.js')) as f:
+        with open(os.path.join('lambdas', 'nodejs', 'cloudfront-csp', 'index.js')) as f:
             csp_function = Function(
                 scope,
                 'CSPFunction',
                 code=Code.from_inline(f.read()),
-                runtime=Runtime.NODEJS_20_X,
+                runtime=Runtime.NODEJS_22_X,
                 handler='index.handler',
             )
         NagSuppressions.add_resource_suppressions_by_path(
@@ -119,7 +114,7 @@ class UIDistribution(Distribution):
                 # We will re-enable caching for pipelined environments. We just want it disabled for dev
                 # for faster refreshes of static content.
                 cache_policy=CachePolicy.CACHING_DISABLED,
-                origin=S3Origin(ui_bucket, origin_access_identity=origin_access_identity),
+                origin=S3BucketOrigin.with_origin_access_control(ui_bucket, origin_shield_enabled=False),
                 viewer_protocol_policy=ViewerProtocolPolicy.HTTPS_ONLY,
                 edge_lambdas=[
                     EdgeLambda(
@@ -131,7 +126,7 @@ class UIDistribution(Distribution):
                 'service-worker.js': BehaviorOptions(
                     cache_policy=CachePolicy.CACHING_DISABLED,
                     allowed_methods=AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
-                    origin=S3Origin(ui_bucket, origin_access_identity=origin_access_identity),
+                    origin=S3BucketOrigin.with_origin_access_control(ui_bucket, origin_shield_enabled=False),
                     viewer_protocol_policy=ViewerProtocolPolicy.HTTPS_ONLY,
                 )
             },

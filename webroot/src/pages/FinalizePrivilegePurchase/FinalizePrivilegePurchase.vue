@@ -18,7 +18,6 @@
                         </div>
                         <CollapseCaretButton
                             v-if="isPhone"
-                            class="collapse-button"
                             @toggleCollapse="togglePaymentCollapsed"
                         />
                     </div>

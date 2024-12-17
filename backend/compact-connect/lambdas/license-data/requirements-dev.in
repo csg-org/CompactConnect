@@ -1,1 +1,0 @@
-moto[dynamodb, s3]>=5.0.0, <6

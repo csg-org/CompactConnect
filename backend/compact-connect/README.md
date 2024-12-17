@@ -49,6 +49,13 @@ Python requirements are pinned in [`requirements.txt`](requirements.txt). Instal
 $ pip install -r requirements.txt
 ```
 
+Node.js requirements (for some selected Lambda runtimes) are defined in [`package.json`](./lambdas/nodejs). Install them using `yarn`.
+
+```shell
+$ cd lambdas/nodejs
+$ yarn install
+```
+
 At this point you can now synthesize the CloudFormation template(s) for this code.
 
 ```
@@ -89,7 +96,17 @@ tests are defined under the [tests](./tests) directory. Runtime code tests shoul
 lambda folders. Code that is common across all lambdas should be tested in the `common-python` directory, to reduce
 duplication and ensure consistency across the app.
 
-To execute the tests, simply run `bin/run_tests.sh` from the `backend` directory.
+To execute the tests, simply run `bin/sync_deps.sh` then `bin/run_tests.sh` from the `backend` directory.
+
+## Documentation
+[Back to top](#compact-connect---backend-developer-documentation)
+
+Keeping documentation current is an important part of feature development in this project. If the feature involves a non-trivial amount of architecture or other technical design, be sure that the design and considerations are captured in the [design documentation](./docs/design). If any updates are made to the API, be sure to follow these steps to keep the documentation current:
+1) Export a fresh api specification (OAS 3.0) is exported from API Gateway and used to update [the Open API Specification JSON file](./docs/api-specification/latest-oas30.json).
+2) Run `bin/trim_oas30.py` to organize and trim the API to include only supported API endpoints (and update the script itself, if needed).
+3) If you exported the api specification from somewhere other than the CSG Test environment, be sure to set the `servers[0].url` entry back to the correct base URL for the CSG Test environment.
+4) Update the change summary at the bottom of the [Technical User Docs](./docs/README.md).
+5) Update the [Postman Collection and Environment](./docs/postman) as appropriate.
 
 ## Deployment
 [Back to top](#compact-connect---backend-developer-documentation)
@@ -101,7 +118,7 @@ its environment:
    your app. See [About Route53 Hosted Zones](#about-route53-hosted-zones) for more. Note: Without this step, you will
    not be able to log in to the UI hosted in CloudFront. The Oauth2 authentication process requires a predictable
    callback url to be pre-configured, which the domain name provides. You can still run a local UI against this app,
-   so long as you leave the `allow_local_ui` context value set to `true` in your environment's context.
+   so long as you leave the `allow_local_ui` context value set to `true` in your environment's context. 
 2) *Optional if testing SES email notifications with custom domain:* By default, AWS does not allow sending emails to unverified email
    addresses. If you need to test SES email notifications and do not want to request AWS to remove your account from
    the SES sandbox, you will need to set up a verified SES email identity for each address you want to send emails to.
@@ -111,10 +128,11 @@ its environment:
    See [Default User Pool Email Settings](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-email.html#user-pool-email-default)
 3) Copy [cdk.context.sandbox-example.json](./cdk.context.sandbox-example.json) to `cdk.context.json`.
 4) At the top level of the JSON structure update the `"environment_name"` field to your own name.
-5) Update the environment entry under `ssm_context.environments` to your own name and your own AWS sandbox account id,
-   and domain name, if you set one up. If you opted not to create a HostedZone, just remove the `domain_name` field.
+5) Update the environment entry under `ssm_context.environments` to your own name and your own AWS sandbox account id (which you can find by following these [these instructions](https://docs.aws.amazon.com/accounts/latest/reference/manage-acct-identifiers.html#FindAccountId)),
+   and domain name, if you set one up. **If you opted not to create a HostedZone, remove the `domain_name` field.**
    The key under `environments` must match the value you put under `environment_name`.
-6) Configure your aws cli to authenticate against your own account.
+6) Configure your aws cli to authenticate against your own account. There are several ways to do this based on the
+   type of authentication you use to login to your account. See the [AWS CLI Configuration Guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html).
 7) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account.
 8) Run `cdk deploy 'Sandbox/*'` to get the initial stack resources deployed.
 

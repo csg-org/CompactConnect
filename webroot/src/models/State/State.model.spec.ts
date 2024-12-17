@@ -28,7 +28,7 @@ describe('State model', () => {
         // Test field values
         expect(state).to.be.an.instanceof(State);
         expect(state.id).to.equal(null);
-        expect(state.abbrev).to.equal(null);
+        expect(state.abbrev).to.equal('');
 
         // Test methods
         expect(state.name()).to.equal('Unknown');

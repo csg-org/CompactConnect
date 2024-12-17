@@ -51,15 +51,15 @@ const routes: Array<RouteConfig> = [
         meta: { requiresAuth: true },
     },
     {
-        path: '/:compact/Privileges/SelectPrivileges',
-        name: 'SelectPrivileges',
-        component: () => import(/* webpackChunkName: "selectPrivileges" */ '@pages/SelectPrivileges/SelectPrivileges.vue'),
-        meta: { requiresAuth: true },
-    },
-    {
         path: '/:compact/Licensing/:licenseeId',
         name: 'LicensingDetail',
         component: () => import(/* webpackChunkName: "licensing" */ '@pages/LicensingDetail/LicensingDetail.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/:compact/Settings',
+        name: 'CompactSettings',
+        component: () => import(/* webpackChunkName: "licensing" */ '@pages/CompactSettings/CompactSettings.vue'),
         meta: { requiresAuth: true },
     },
     {
@@ -78,6 +78,12 @@ const routes: Array<RouteConfig> = [
         path: '/:compact/LicenseeDashboard',
         name: 'LicenseeDashboard',
         component: () => import(/* webpackChunkName: "licenseeDashboard" */ '@pages/LicenseeDashboard/LicenseeDashboard.vue'),
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/:compact/Privileges/SelectPrivileges',
+        name: 'SelectPrivileges',
+        component: () => import(/* webpackChunkName: "privilegePurchase" */ '@pages/SelectPrivileges/SelectPrivileges.vue'),
         meta: { requiresAuth: true },
     },
     {

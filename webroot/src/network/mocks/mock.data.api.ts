@@ -67,6 +67,15 @@ export class DataApi {
         }));
     }
 
+    //
+    public updatePaymentProcessorConfig(compact: string, config: object) {
+        return this.wait(500).then(() => ({
+            message: 'success',
+            compact,
+            config,
+        }));
+    }
+
     // ========================================================================
     //                              LICENSE API
     // ========================================================================

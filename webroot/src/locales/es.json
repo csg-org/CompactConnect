@@ -34,6 +34,7 @@
         "saveAndClose": "Guardar y cerrar",
         "saving": "Guardando...",
         "loading": "Cargando...",
+        "viewing": "Viendo",
         "firstName": "Nombre",
         "firstname": "Nombre",
         "middleName": "Segundo nombre",
@@ -348,6 +349,7 @@
         "licensing": "Licencia",
         "dashboard": "Panel",
         "users": "Usuarios",
+        "compactSettings": "Configuraciones compactas",
         "styleGuide": "Guía de estilo",
         "account": "Cuenta",
         "logout": "Cerrar sesión"
@@ -434,6 +436,12 @@
             "key": "coun"
         }
     ],
+    "compact": {
+        "settingsTitle": "Configuraciones compactas",
+        "paymentProcessorCredentials": "Authorize.net cartas credenciales",
+        "paymentProcessorAccountId": "ID de cuenta API",
+        "paymentProcessorAccountKey": "Clave de transacción"
+    },
     "stateUpload": {
         "formTitle": "Carga de datos compacta",
         "formSubtext": "Las cargas actuales son para fines de prueba y los datos no se guardarán de forma permanente.",
