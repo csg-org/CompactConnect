@@ -19,16 +19,5 @@ export default {
         }
 
         return loggedInAsType;
-    },
-    loggedInAuthType: () => () => {
-        let loggedInAsType = '';
-
-        if (authStorage.getItem(tokens[AuthTypes.STAFF]?.AUTH_TOKEN)) {
-            loggedInAsType = AuthTypes.STAFF;
-        } else if (authStorage.getItem(tokens[AuthTypes.LICENSEE]?.AUTH_TOKEN)) {
-            loggedInAsType = AuthTypes.LICENSEE;
-        }
-
-        return loggedInAsType;
     }
 };

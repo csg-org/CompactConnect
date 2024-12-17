@@ -6,7 +6,12 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
-import { authStorage, AuthTypes, AUTH_LOGIN_GOTO_PATH } from '@/app.config';
+import {
+    authStorage,
+    AUTH_LOGIN_GOTO_PATH,
+    AuthTypes,
+    tokens
+} from '@/app.config';
 
 @Component({
     name: 'Logout',
@@ -67,19 +72,21 @@ export default class Logout extends Vue {
     //
     async logout(): Promise<void> {
         if (this.isLoggedIn) {
-            const isLoggedInAsLicenseeOnly = this.$store.getters['user/highestPermissionAuthType']() === AuthTypes.LICENSEE;
+            const isRemoteLoggedInAsLicenseeOnly = !!authStorage.getItem(tokens.staff.AUTH_TOKEN);
 
-            await this.logoutChecklist();
-            this.redirectToHighestPermissionHostedLogout(isLoggedInAsLicenseeOnly);
+            await this.logoutChecklist(isRemoteLoggedInAsLicenseeOnly);
+            this.beginLogoutRedirectChain(isRemoteLoggedInAsLicenseeOnly);
         } else {
             window.location.replace(this.loginURL);
         }
     }
 
-    async logoutChecklist(): Promise<void> {
+    async logoutChecklist(isRemoteLoggedInAsLicenseeOnly): Promise<void> {
+        const authType = isRemoteLoggedInAsLicenseeOnly ? AuthTypes.LICENSEE : AuthTypes.STAFF;
+
         this.$store.dispatch('user/clearRefreshTokenTimeout');
         this.stashWorkingUri();
-        await this.$store.dispatch('user/logoutRequest', this.$store.getters['user/highestPermissionAuthType']());
+        await this.$store.dispatch('user/logoutRequest', authType);
     }
 
     stashWorkingUri(): void {
@@ -94,10 +101,10 @@ export default class Logout extends Vue {
         return this.userStore.isLoggedIn;
     }
 
-    redirectToHighestPermissionHostedLogout(isLoggedInAsLicenseeOnly): void {
+    beginLogoutRedirectChain(isRemoteLoggedInAsLicenseeOnly): void {
         let logOutUrl = this.hostedLogoutUriStaff;
 
-        if (isLoggedInAsLicenseeOnly) {
+        if (isRemoteLoggedInAsLicenseeOnly) {
             logOutUrl = this.hostedLogoutUriLicensee;
         }
 

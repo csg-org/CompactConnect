@@ -176,8 +176,6 @@ class App extends Vue {
         if (!this.userStore.isLoggedIn) {
             this.$router.push({ name: 'Logout' });
         } else {
-            console.log('1');
-
             await this.handleAuth();
         }
     }
