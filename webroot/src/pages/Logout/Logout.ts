@@ -72,7 +72,7 @@ export default class Logout extends Vue {
     //
     async logout(): Promise<void> {
         if (this.isLoggedIn) {
-            const isRemoteLoggedInAsLicenseeOnly = !!authStorage.getItem(tokens.staff.AUTH_TOKEN);
+            const isRemoteLoggedInAsLicenseeOnly = !authStorage.getItem(tokens.staff.AUTH_TOKEN);
 
             await this.logoutChecklist(isRemoteLoggedInAsLicenseeOnly);
             this.beginLogoutRedirectChain(isRemoteLoggedInAsLicenseeOnly);
