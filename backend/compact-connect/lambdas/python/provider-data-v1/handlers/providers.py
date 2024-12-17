@@ -7,7 +7,7 @@ from cc_common.data_model.schema.provider import (
     QueryProvidersGeneralResponseSchema,
 )
 from cc_common.exceptions import CCInvalidRequestException
-from cc_common.utils import api_handler, authorize_compact, get_scopes_list_from_event
+from cc_common.utils import api_handler, authorize_compact, get_event_scopes
 
 from . import get_provider_information
 
@@ -121,7 +121,7 @@ def query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused
     # Convert generic field to more specific one for this API and filter data based on caller's
     # permissions
     pre_sanitized_providers = resp.pop('items', [])
-    caller_scopes = get_scopes_list_from_event(event)
+    caller_scopes = get_event_scopes(event)
     sanitized_providers = []
     for provider in pre_sanitized_providers:
         # check if the caller has readPrivate permission for each provider
@@ -157,7 +157,7 @@ def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
     provider_information = get_provider_information(compact=compact, provider_id=provider_id)
 
     if _user_had_private_read_access_for_provider(
-        compact=compact, provider_information=provider_information, scopes=get_scopes_list_from_event(event)
+        compact=compact, provider_information=provider_information, scopes=get_event_scopes(event)
     ):
         # return full object since caller has 'readPrivate' access for provider
         return provider_information

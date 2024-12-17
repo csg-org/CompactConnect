@@ -310,6 +310,12 @@ def get_allowed_jurisdictions(*, compact: str, scopes: set[str]) -> list[str] | 
 
 
 def get_event_scopes(event: dict):
+    """
+    Get the scopes from the event object and return them as a list.
+
+    :param dict event: The event object passed to the lambda function.
+    :return: The scopes from the event object.
+    """
     return set(event['requestContext']['authorizer']['claims']['scope'].split(' '))
 
 
@@ -391,13 +397,3 @@ def get_sub_from_user_attributes(attributes: list):
         if attribute['Name'] == 'sub':
             return attribute['Value']
     raise ValueError('Failed to find user sub!')
-
-
-def get_scopes_list_from_event(event: dict) -> list[str]:
-    """
-    Get the scopes from the event object and return them as a list.
-
-    :param dict event: The event object passed to the lambda function.
-    :return: The scopes from the event object.
-    """
-    return event['requestContext']['authorizer']['claims']['scope'].split(' ')
