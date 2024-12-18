@@ -74,5 +74,6 @@ class BackendStage(Stage):
                 env=environment,
                 environment_context=environment_context,
                 standard_tags=standard_tags,
+                environment_name=environment_name,
                 persistent_stack=self.persistent_stack,
             )

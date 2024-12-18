@@ -23,6 +23,7 @@ from stacks.persistent_stack.provider_users import ProviderUsers
 from stacks.persistent_stack.provider_users_bucket import ProviderUsersBucket
 from stacks.persistent_stack.ssn_table import SSNTable
 from stacks.persistent_stack.staff_users import StaffUsers
+from stacks.persistent_stack.transaction_history_table import TransactionHistoryTable
 from stacks.persistent_stack.user_email_notifications import UserEmailNotifications
 
 
@@ -224,8 +225,8 @@ class PersistentStack(AppStack):
         self.ssn_table = SSNTable(self, 'SSNTable', removal_policy=removal_policy)
 
         self.data_event_table = DataEventTable(
-            self,
-            'DataEventTable',
+            scope=self,
+            construct_id='DataEventTable',
             encryption_key=self.shared_encryption_key,
             event_bus=self.data_event_bus,
             alarm_topic=self.alarm_topic,
@@ -233,7 +234,17 @@ class PersistentStack(AppStack):
         )
 
         self.compact_configuration_table = CompactConfigurationTable(
-            self, 'CompactConfigurationTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
+            scope=self,
+            construct_id='CompactConfigurationTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy
+        )
+
+        self.transaction_history_table = TransactionHistoryTable(
+            scope=self,
+            construct_id='TransactionHistoryTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy
         )
 
         # bucket for holding documentation for providers
