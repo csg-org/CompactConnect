@@ -97,9 +97,9 @@ class App extends Vue {
     setAuthType() {
         let authType: AuthTypes;
 
-        if (authStorage.getItem(tokens.staff.AUTH_TYPE) === AuthTypes.STAFF) {
+        if (authStorage.getItem(tokens?.staff?.AUTH_TYPE) === AuthTypes.STAFF) {
             authType = AuthTypes.STAFF;
-        } else if (authStorage.getItem(tokens.licensee.AUTH_TYPE) === AuthTypes.LICENSEE) {
+        } else if (authStorage.getItem(tokens?.licensee?.AUTH_TYPE) === AuthTypes.LICENSEE) {
             authType = AuthTypes.LICENSEE;
         } else {
             authType = AuthTypes.PUBLIC;
