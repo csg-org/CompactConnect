@@ -25,8 +25,8 @@ export default {
     loginRequest: ({ commit }) => {
         commit(MutationTypes.LOGIN_REQUEST);
     },
-    loginSuccess: async ({ commit }) => {
-        commit(MutationTypes.LOGIN_SUCCESS);
+    loginSuccess: async ({ commit }, authType) => {
+        commit(MutationTypes.LOGIN_SUCCESS, authType);
     },
     loginFailure: async ({ commit }, error: Error) => {
         commit(MutationTypes.LOGIN_FAILURE, error);
@@ -98,6 +98,10 @@ export default {
     },
     resetStoreUser: ({ commit }) => {
         commit(MutationTypes.STORE_RESET_USER);
+    },
+    updateAuthTokens: ({ dispatch }, { tokenResponse, authType }) => {
+        dispatch('clearAllNonAccessTokens');
+        dispatch('storeAuthTokens', { tokenResponse, authType });
     },
     storeAuthTokens: ({ dispatch }, { tokenResponse, authType }) => {
         const {
@@ -191,6 +195,21 @@ export default {
         dispatch('pagination/resetStorePagination', null, { root: true });
         dispatch('sorting/resetStoreSorting', null, { root: true });
         dispatch('reset', null, { root: true });
+    },
+    clearAllNonAccessTokens: () => {
+        /* istanbul ignore next */
+        Object.keys(tokens[AuthTypes.STAFF]).forEach((key) => {
+            if (key !== 'AUTH_TOKEN') {
+                authStorage.removeItem(tokens[AuthTypes.STAFF][key]);
+            }
+        });
+
+        /* istanbul ignore next */
+        Object.keys(tokens[AuthTypes.LICENSEE]).forEach((key) => {
+            if (key !== 'AUTH_TOKEN') {
+                authStorage.removeItem(tokens[AuthTypes.LICENSEE][key]);
+            }
+        });
     },
     clearAuthToken: (def, authType) => {
         /* istanbul ignore next */

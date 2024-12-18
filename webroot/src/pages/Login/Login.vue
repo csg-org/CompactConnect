@@ -6,7 +6,7 @@
 -->
 
 <template>
-    <div class="login-container">
+    <div v-if="!isUsingMockApi" class="login-container">
         <a
             :href="hostedLoginUriStaff"
             class="login-link"
@@ -19,6 +19,20 @@
         >
             Login as Provider
         </a>
+    </div>
+    <div v-else class="login-container">
+        <InputButton
+            label="Mock Staff Login"
+            aria-label="Mock Login"
+            :isTextLike="true"
+            @click="mockStaffLogin"
+        />
+        <InputButton
+            label="Mock Licensee Login"
+            aria-label="Mock Licensee Login"
+            :isTextLike="true"
+            @click="mockLicenseeLogin"
+        />
     </div>
 </template>
 

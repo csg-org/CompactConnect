@@ -63,7 +63,7 @@ $ cdk synth
 ```
 
 For development work there are additional requirements in `requirements-dev.txt` to install with
-`pip install -r requirements.txt`.
+`pip install -r requirements-dev.txt`.
 
 To add additional dependencies, for example other CDK libraries, just add them to the `requirements.in` file and rerun
 `pip-compile requirements.in`, then `pip install -r requirements.txt` command.
@@ -118,7 +118,7 @@ its environment:
    your app. See [About Route53 Hosted Zones](#about-route53-hosted-zones) for more. Note: Without this step, you will
    not be able to log in to the UI hosted in CloudFront. The Oauth2 authentication process requires a predictable
    callback url to be pre-configured, which the domain name provides. You can still run a local UI against this app,
-   so long as you leave the `allow_local_ui` context value set to `true` in your environment's context. 
+   so long as you leave the `allow_local_ui` context value set to `true` and remove the `domain_name` param in your environment's context.
 2) *Optional if testing SES email notifications with custom domain:* By default, AWS does not allow sending emails to unverified email
    addresses. If you need to test SES email notifications and do not want to request AWS to remove your account from
    the SES sandbox, you will need to set up a verified SES email identity for each address you want to send emails to.

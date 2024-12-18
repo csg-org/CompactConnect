@@ -4,11 +4,11 @@
 #
 #    pip-compile --no-emit-index-url multi-account/requirements.in
 #
-attrs==24.2.0
+attrs==24.3.0
     # via
     #   cattrs
     #   jsii
-aws-cdk-asset-awscli-v1==2.2.212
+aws-cdk-asset-awscli-v1==2.2.215
     # via aws-cdk-lib
 aws-cdk-asset-kubectl-v20==2.1.3
     # via aws-cdk-lib
@@ -16,7 +16,7 @@ aws-cdk-asset-node-proxy-agent-v6==2.1.0
     # via aws-cdk-lib
 aws-cdk-cloud-assembly-schema==38.0.1
     # via aws-cdk-lib
-aws-cdk-lib==2.169.0
+aws-cdk-lib==2.173.1
     # via -r multi-account/requirements.in
 cattrs==24.1.2
     # via jsii
@@ -45,7 +45,7 @@ publication==0.0.3
     #   jsii
 python-dateutil==2.9.0.post0
     # via jsii
-six==1.16.0
+six==1.17.0
     # via python-dateutil
 typeguard==2.13.3
     # via

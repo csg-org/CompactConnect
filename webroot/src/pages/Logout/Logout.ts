@@ -6,7 +6,12 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
-import { authStorage, AuthTypes, AUTH_LOGIN_GOTO_PATH } from '@/app.config';
+import {
+    authStorage,
+    AUTH_LOGIN_GOTO_PATH,
+    AuthTypes,
+    tokens
+} from '@/app.config';
 
 @Component({
     name: 'Logout',
@@ -33,54 +38,59 @@ export default class Logout extends Vue {
 
     get hostedLogoutUriStaff(): string {
         const { domain, cognitoAuthDomainStaff, cognitoClientIdStaff } = this.$envConfig;
-        const loginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
-        const loginResponseType = 'code';
-        const loginRedirectPath = '/auth/callback';
-        const loginUriQuery = [
+        const logoutLink = encodeURIComponent(`${(domain as string)}/Logout`);
+        const logoutUriQuery = [
             `?client_id=${cognitoClientIdStaff}`,
-            `&response_type=${loginResponseType}`,
-            `&scope=${encodeURIComponent(loginScopes)}`,
-            `&state=${AuthTypes.STAFF}`,
-            `&redirect_uri=${encodeURIComponent(`${domain}${loginRedirectPath}`)}`,
+            `&logout_uri=${logoutLink}`
         ].join('');
         const idpPath = '/logout';
-        const loginUri = `${cognitoAuthDomainStaff}${idpPath}${loginUriQuery}`;
+        const logoutUri = `${cognitoAuthDomainStaff}${idpPath}${logoutUriQuery}`;
 
-        return loginUri;
+        return logoutUri;
+    }
+
+    get loginURL(): string {
+        const { domain } = this.$envConfig;
+
+        return `${(domain as string)}/Login`;
     }
 
     get hostedLogoutUriLicensee(): string {
-        const { domain, cognitoAuthDomainLicensee, cognitoClientIdLicensee } = this.$envConfig;
-        const loginScopes = 'email openid phone profile aws.cognito.signin.user.admin';
-        const loginResponseType = 'code';
-        const loginRedirectPath = '/auth/callback';
-        const loginUriQuery = [
+        const { cognitoAuthDomainLicensee, cognitoClientIdLicensee } = this.$envConfig;
+        const logoutUriQuery = [
             `?client_id=${cognitoClientIdLicensee}`,
-            `&response_type=${loginResponseType}`,
-            `&scope=${encodeURIComponent(loginScopes)}`,
-            `&state=${AuthTypes.LICENSEE}`,
-            `&redirect_uri=${encodeURIComponent(`${domain}${loginRedirectPath}`)}`,
+            `&logout_uri=${encodeURIComponent(this.loginURL)}`
         ].join('');
         const idpPath = '/logout';
-        const loginUri = `${cognitoAuthDomainLicensee}${idpPath}${loginUriQuery}`;
+        const logoutUri = `${cognitoAuthDomainLicensee}${idpPath}${logoutUriQuery}`;
 
-        return loginUri;
+        return logoutUri;
+    }
+
+    get isLoggedIn(): boolean {
+        return this.userStore.isLoggedIn;
     }
 
     //
     // Methods
     //
     async logout(): Promise<void> {
-        const isLoggedInAsLicenseeOnly = this.$store.getters['user/highestPermissionAuthType']() === AuthTypes.LICENSEE;
+        if (this.isLoggedIn) {
+            const isRemoteLoggedInAsLicenseeOnly = !authStorage.getItem(tokens.staff.AUTH_TOKEN);
 
-        await this.logoutChecklist();
-        this.redirectToHighestPermissionHostedLogout(isLoggedInAsLicenseeOnly);
+            await this.logoutChecklist(isRemoteLoggedInAsLicenseeOnly);
+            this.beginLogoutRedirectChain(isRemoteLoggedInAsLicenseeOnly);
+        } else {
+            window.location.replace(this.loginURL);
+        }
     }
 
-    async logoutChecklist(): Promise<void> {
+    async logoutChecklist(isRemoteLoggedInAsLicenseeOnly): Promise<void> {
+        const authType = isRemoteLoggedInAsLicenseeOnly ? AuthTypes.LICENSEE : AuthTypes.STAFF;
+
         this.$store.dispatch('user/clearRefreshTokenTimeout');
         this.stashWorkingUri();
-        await this.$store.dispatch('user/logoutRequest', this.$store.getters['user/highestPermissionAuthType']());
+        await this.$store.dispatch('user/logoutRequest', authType);
     }
 
     stashWorkingUri(): void {
@@ -91,10 +101,10 @@ export default class Logout extends Vue {
         }
     }
 
-    redirectToHighestPermissionHostedLogout(isLoggedInAsLicenseeOnly): void {
+    beginLogoutRedirectChain(isRemoteLoggedInAsLicenseeOnly): void {
         let logOutUrl = this.hostedLogoutUriStaff;
 
-        if (isLoggedInAsLicenseeOnly) {
+        if (isRemoteLoggedInAsLicenseeOnly) {
             logOutUrl = this.hostedLogoutUriLicensee;
         }
 

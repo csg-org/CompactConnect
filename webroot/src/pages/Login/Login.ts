@@ -7,10 +7,13 @@
 
 import { Component, Vue } from 'vue-facing-decorator';
 import { AuthTypes } from '@/app.config';
+import InputButton from '@components/Forms/InputButton/InputButton.vue';
 
 @Component({
     name: 'Login',
-    components: {}
+    components: {
+        InputButton
+    }
 })
 export default class Login extends Vue {
     //
@@ -58,10 +61,44 @@ export default class Login extends Vue {
         return loginUri;
     }
 
+    get isUsingMockApi(): boolean {
+        return this.$envConfig.isUsingMockApi || false;
+    }
+
     //
     // Methods
     //
     redirectToHostedLogin(): void {
         window.location.replace(this.hostedLoginUriStaff);
+    }
+
+    async mockStaffLogin(): Promise<void> {
+        const data = {
+            access_token: 'mock_access_token',
+            token_type: 'Bearer',
+            expires_in: '100000000',
+            id_token: 'mock_id_token',
+            refresh_token: 'mock_refresh_token'
+        };
+
+        await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
+        this.$store.dispatch('user/loginSuccess', AuthTypes.STAFF);
+
+        this.$router.push({ name: 'Home' });
+    }
+
+    async mockLicenseeLogin(): Promise<void> {
+        const data = {
+            access_token: 'mock_access_token',
+            token_type: 'Bearer',
+            expires_in: '100000000',
+            id_token: 'mock_id_token',
+            refresh_token: 'mock_refresh_token'
+        };
+
+        await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.LICENSEE });
+        this.$store.dispatch('user/loginSuccess', AuthTypes.LICENSEE);
+
+        this.$router.push({ name: 'Home' });
     }
 }

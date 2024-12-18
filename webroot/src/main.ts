@@ -26,8 +26,8 @@ const app = createApp(App);
 // Enable vue-devtools. Can make environment-specific if needed.
 app.config.performance = true;
 
-// Inject store into API interceptors (avoids circular dependency)
-network.dataApi.initInterceptors(store);
+// Inject router into API interceptors (avoids circular dependency)
+network.dataApi.initInterceptors(router);
 
 //
 // INJECT PLUGINS
