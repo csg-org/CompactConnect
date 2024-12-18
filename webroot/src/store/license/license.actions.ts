@@ -75,6 +75,12 @@ export default {
     setStoreLicensee: ({ commit }, licensee) => {
         commit(MutationTypes.STORE_UPDATE_LICENSEE, licensee);
     },
+    setStoreSearch: ({ commit }, search) => {
+        commit(MutationTypes.STORE_UPDATE_SEARCH, search);
+    },
+    resetStoreSearch: ({ commit }) => {
+        commit(MutationTypes.STORE_RESET_SEARCH);
+    },
     // RESET LICENSEES STORE STATE
     resetStoreLicense: ({ commit }) => {
         commit(MutationTypes.STORE_RESET_LICENSE);

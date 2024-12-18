@@ -24,8 +24,8 @@ import Joi from 'joi';
 export interface LicenseSearch {
     firstName?: string;
     lastName?: string;
-    ssn?: string,
-    state?: string,
+    ssn?: string;
+    state?: string;
 }
 
 @Component({

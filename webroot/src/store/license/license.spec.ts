@@ -137,12 +137,50 @@ describe('License Store Mutations', () => {
 
         expect(state.model).to.matchPattern([]);
     });
+    it('should successfully update license search values', () => {
+        const state = {};
+        const search = {
+            firstName: 'test',
+            lastName: 'test',
+            ssn: 'test',
+            state: 'test',
+        };
+
+        mutations[MutationTypes.STORE_UPDATE_SEARCH](state, search);
+
+        expect(state.search).to.matchPattern(search);
+    });
+    it('should successfully reset license search values', () => {
+        const state = {
+            search: {
+                firstName: 'test',
+                lastName: 'test',
+                ssn: 'test',
+                state: 'test',
+            },
+        };
+
+        mutations[MutationTypes.STORE_RESET_SEARCH](state);
+
+        expect(state.search).to.matchPattern({
+            firstName: '',
+            lastName: '',
+            ssn: '',
+            state: '',
+        });
+    });
     it('should successfully reset license store', () => {
         const state = {
             model: [{ id: 1 }],
             total: 1,
             isLoading: true,
             error: new Error(),
+            search: {
+                firstName: 'test',
+                lastName: 'test',
+                ssn: 'test',
+                state: 'test',
+            },
         };
 
         mutations[MutationTypes.STORE_RESET_LICENSE](state);
@@ -152,6 +190,12 @@ describe('License Store Mutations', () => {
             total: 0,
             isLoading: false,
             error: null,
+            search: {
+                firstName: '',
+                lastName: '',
+                ssn: '',
+                state: '',
+            },
         });
     });
 });
@@ -268,6 +312,23 @@ describe('License Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_UPDATE_LICENSEE, licensee]);
+    });
+    it('should successfully update search', () => {
+        const commit = sinon.spy();
+        const search = { firstName: 'test' };
+
+        actions.setStoreSearch({ commit }, search);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_UPDATE_SEARCH, search]);
+    });
+    it('should successfully reset search', () => {
+        const commit = sinon.spy();
+
+        actions.resetStoreSearch({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.STORE_RESET_SEARCH]);
     });
     it('should successfully reset store', () => {
         const commit = sinon.spy();

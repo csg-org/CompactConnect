@@ -4,6 +4,7 @@
 //
 //  Created by InspiringApps on 7/2/24.
 //
+import { LicenseSearch } from '@components/Licensee/LicenseeSearch/LicenseeSearch.vue';
 
 export enum MutationTypes {
     GET_LICENSEES_REQUEST = '[License] Get Licensees Request',
@@ -18,6 +19,8 @@ export enum MutationTypes {
     GET_LICENSEE_SUCCESS = '[License] Get Licensee Success',
     STORE_UPDATE_LICENSEE = '[License] Updated Licensee in store',
     STORE_REMOVE_LICENSEE = '[License] Remove Licensee from store',
+    STORE_UPDATE_SEARCH = '[License] Update search params',
+    STORE_RESET_SEARCH = '[License] Reset search params',
     STORE_RESET_LICENSE = '[License] Reset license store',
 }
 
@@ -91,10 +94,27 @@ export default {
             console.warn('Cannot remove Licensee with null ID from the store:');
         }
     },
+    [MutationTypes.STORE_UPDATE_SEARCH]: (state: any, search: LicenseSearch) => {
+        state.search = search;
+    },
+    [MutationTypes.STORE_RESET_SEARCH]: (state: any) => {
+        state.search = {
+            firstName: '',
+            lastName: '',
+            ssn: '',
+            state: '',
+        };
+    },
     [MutationTypes.STORE_RESET_LICENSE]: (state: any) => {
         state.model = null;
         state.total = 0;
         state.isLoading = false;
         state.error = null;
+        state.search = {
+            firstName: '',
+            lastName: '',
+            ssn: '',
+            state: '',
+        };
     },
 };
