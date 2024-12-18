@@ -74,11 +74,11 @@ export default class Login extends Vue {
 
     async mockStaffLogin(): Promise<void> {
         const data = {
-            access_token: 'sjdkfslkjfhsdkjhfdskj',
+            access_token: 'mock_access_token',
             token_type: 'Bearer',
             expires_in: '100000000',
-            id_token: 'idToken',
-            refresh_token: 'refreshToken'
+            id_token: 'mock_id_token',
+            refresh_token: 'mock_refresh_token'
         };
 
         await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
@@ -92,8 +92,8 @@ export default class Login extends Vue {
             access_token: 'mock_access_token',
             token_type: 'Bearer',
             expires_in: '100000000',
-            id_token: 'idToken',
-            refresh_token: 'refreshToken'
+            id_token: 'mock_id_token',
+            refresh_token: 'mock_refresh_token'
         };
 
         await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.LICENSEE });

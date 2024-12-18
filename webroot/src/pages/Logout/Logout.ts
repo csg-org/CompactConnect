@@ -67,6 +67,10 @@ export default class Logout extends Vue {
         return logoutUri;
     }
 
+    get isLoggedIn(): boolean {
+        return this.userStore.isLoggedIn;
+    }
+
     //
     // Methods
     //
@@ -95,10 +99,6 @@ export default class Logout extends Vue {
         if (workingUri) {
             authStorage.setItem(AUTH_LOGIN_GOTO_PATH, workingUri);
         }
-    }
-
-    get isLoggedIn(): boolean {
-        return this.userStore.isLoggedIn;
     }
 
     beginLogoutRedirectChain(isRemoteLoggedInAsLicenseeOnly): void {

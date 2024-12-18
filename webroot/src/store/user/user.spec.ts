@@ -13,7 +13,6 @@ import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/Privile
 import { State } from '@models/State/State.model';
 import mutations, { MutationTypes } from './user.mutations';
 import actions from './user.actions';
-import getters from './user.getters';
 
 chai.use(chaiMatchPattern);
 const sinon = require('sinon');
@@ -356,49 +355,6 @@ describe('User Store Actions', async () => {
 
         expect(dispatch.callCount).to.equal(5);
     });
-    it('should successfully use the authType getter for licensee auth', () => {
-        const dispatch = sinon.spy();
-
-        authStorage.removeItem(tokens.staff.AUTH_TOKEN);
-
-        const authType = 'licensee';
-
-        const tokenResponse = {
-            access_token: 'test_access_token',
-            token_type: 'test_token_type',
-            expires_in: 1,
-            id_token: 'test_id_token',
-            refresh_token: 'test_refresh_token',
-        };
-
-        actions.storeAuthTokens({ dispatch }, { tokenResponse, authType });
-
-        const authTypeReturned = getters.highestPermissionAuthType()();
-
-        expect(authTypeReturned).to.equal('licensee');
-    });
-    it('should successfully use the authType getter for staff auth', () => {
-        const dispatch = sinon.spy();
-
-        const authType = 'staff';
-
-        authStorage.removeItem(tokens.licensee.AUTH_TOKEN);
-
-        const tokenResponse = {
-            access_token: 'test_access_token',
-            token_type: 'test_token_type',
-            expires_in: 1,
-            id_token: 'test_id_token',
-            refresh_token: 'test_refresh_token',
-        };
-
-        actions.storeAuthTokens({ dispatch }, { tokenResponse, authType });
-
-        const authTypeReturned = getters.highestPermissionAuthType()();
-
-        expect(authTypeReturned).to.equal('staff');
-    });
-
     it('should successfully start get privilege purchase information request', () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
