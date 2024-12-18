@@ -88,7 +88,6 @@ class TestQueryProviders(TstFunction):
 
         with open('../common/tests/resources/api/provider-response.json') as f:
             expected_provider = json.load(f)
-            expected_provider.pop('ssn')
 
         body = json.loads(resp['body'])
         self.assertEqual(
@@ -353,10 +352,12 @@ class TestGetProvider(TstFunction):
         with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
             expected_provider.pop('ssn')
+            expected_provider.pop('dateOfBirth')
             # we do not return the military affiliation document keys if the caller does not have read private scope
             expected_provider['militaryAffiliations'][0].pop('documentKeys')
             # also remove the ssn from the license record
             expected_provider['licenses'][0].pop('ssn')
+            expected_provider['licenses'][0].pop('dateOfBirth')
 
         self._when_testing_get_provider_response_based_on_read_access(
             scopes='openid email aslp/readGeneral', expected_provider=expected_provider

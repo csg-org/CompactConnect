@@ -9,8 +9,8 @@ from uuid import UUID
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
-
 from cc_common.config import logger
+from cc_common.data_model.schema.provider import SanitizedProviderReadGeneralSchema
 from cc_common.exceptions import (
     CCAccessDeniedException,
     CCInvalidRequestException,
@@ -397,3 +397,55 @@ def get_sub_from_user_attributes(attributes: list):
         if attribute['Name'] == 'sub':
             return attribute['Value']
     raise ValueError('Failed to find user sub!')
+
+
+def _user_has_private_read_access_for_provider(compact: str, provider_information: dict, scopes: set[str]) -> bool:
+    if f'{compact}/{compact}.readPrivate' in scopes:
+        logger.debug(
+            'User has readPrivate permission at compact level',
+            compact=compact,
+            provider_id=provider_information['providerId'],
+        )
+        return True
+
+    # iterate through the users privileges and licenses and create a set out of all the jurisdictions
+    relevant_provider_jurisdictions = set()
+    for privilege in provider_information.get('privileges', []):
+        relevant_provider_jurisdictions.add(privilege['jurisdiction'])
+    for license_record in provider_information.get('licenses', []):
+        relevant_provider_jurisdictions.add(license_record['jurisdiction'])
+
+    for jurisdiction in relevant_provider_jurisdictions:
+        if f'{compact}/{jurisdiction}.readPrivate' in scopes:
+            logger.debug(
+                'User has readPrivate permission at jurisdiction level',
+                compact=compact,
+                provider_id=provider_information['providerId'],
+                jurisdiction=jurisdiction,
+            )
+            return True
+
+    logger.debug(
+        'Caller does not have readPrivate permission at compact or jurisdiction level',
+        provider_id=provider_information['providerId'],
+    )
+    return False
+
+
+def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, scopes: set[str]) -> dict:
+    """
+    Take a provider and a set of user scopes, then return a provider, with information sanitized, based on what the user is authorized to view.
+    """
+    if _user_has_private_read_access_for_provider(
+        compact=compact, provider_information=provider, scopes=scopes
+    ):
+        # return full object since caller has 'readPrivate' access for provider
+        return provider
+
+    logger.debug(
+        'Caller does not have readPrivate at compact or jurisdiction level, removing private information',
+        provider_id=provider['providerId'],
+    )
+    provider_read_general_schema = SanitizedProviderReadGeneralSchema()
+    # we dump the record to ensure that the schema is applied to the record to remove private fields
+    return provider_read_general_schema.dump(provider)

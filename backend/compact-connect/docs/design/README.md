@@ -95,7 +95,7 @@ their compact, so long as that user does not have permissions associated with a 
 
 Board ED level staff can have permission to read all generally available jurisdiction data, and if they have the 
 `readPrivate` permission they will be able to view all information for any licensee that has either a license or privilege
-within their jurisdiction. They can also write data to for their own jurisdiction, and to create more users that have 
+within their jurisdiction. They can also write data for their own jurisdiction, and create more users that have 
 permissions within their own jurisdiction. They can also delete any user within their jurisdiction, so long as that user
 does not have permissions associated with a different compact or jurisdiction.
 
