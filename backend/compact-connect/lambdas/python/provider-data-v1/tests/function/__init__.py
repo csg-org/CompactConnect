@@ -37,6 +37,7 @@ class TstFunction(TstLambdas):
     def build_resources(self):
         self._bucket = boto3.resource('s3').create_bucket(Bucket=os.environ['BULK_BUCKET_NAME'])
         self.create_provider_table()
+        self.create_ssn_table()
 
         boto3.client('events').create_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
@@ -71,10 +72,32 @@ class TstFunction(TstLambdas):
             ],
         )
 
+    def create_ssn_table(self):
+        self._ssn_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['SSN_TABLE_NAME'],
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+            GlobalSecondaryIndexes=[
+                {
+                    'IndexName': os.environ['SSN_INVERTED_INDEX_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'sk', 'KeyType': 'HASH'},
+                        {'AttributeName': 'pk', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+            ],
+        )
+
     def delete_resources(self):
         self._bucket.objects.delete()
         self._bucket.delete()
         self._provider_table.delete()
+        self._ssn_table.delete()
         boto3.client('events').delete_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
     def _load_provider_data(self):
@@ -91,7 +114,10 @@ class TstFunction(TstLambdas):
                 record = json.load(f, object_hook=privilege_jurisdictions_to_set, parse_float=Decimal)
 
             logger.debug('Loading resource, %s: %s', resource, str(record))
-            self._provider_table.put_item(Item=record)
+            if record['type'] == 'provider-ssn':
+                self._ssn_table.put_item(Item=record)
+            else:
+                self._provider_table.put_item(Item=record)
 
     def _generate_providers(self, *, home: str, privilege: str, start_serial: int, names: tuple[tuple[str, str]] = ()):
         """Generate 10 providers with one license and one privilege
