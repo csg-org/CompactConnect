@@ -44,7 +44,7 @@ class App extends Vue {
     //
     async created() {
         if (this.userStore.isLoggedIn) {
-            await this.handleAuth();
+            await this.handleAuth(true);
         }
 
         this.setRelativeTimeFormats();
@@ -84,8 +84,8 @@ class App extends Vue {
     //
     // Methods
     //
-    async handleAuth() {
-        const authType = this.setAuthType();
+    async handleAuth(isInitialLoad) {
+        const authType = this.setAuthType(isInitialLoad);
 
         if (authType !== AuthTypes.PUBLIC) {
             this.$store.dispatch('user/startRefreshTokenTimer', authType);
@@ -94,7 +94,7 @@ class App extends Vue {
         }
     }
 
-    setAuthType() {
+    setAuthType(isInitialLoad) {
         let authType: AuthTypes;
 
         if (authStorage.getItem(tokens.staff.AUTH_TYPE) === AuthTypes.STAFF) {
@@ -105,7 +105,9 @@ class App extends Vue {
             authType = AuthTypes.PUBLIC;
         }
 
-        this.$store.dispatch('setAuthType', authType);
+        if (isInitialLoad) {
+            this.$store.dispatch('setAuthType', authType);
+        }
 
         return authType;
     }
@@ -176,7 +178,15 @@ class App extends Vue {
         if (!this.userStore.isLoggedIn) {
             this.$router.push({ name: 'Logout' });
         } else {
-            await this.handleAuth();
+            await this.handleAuth(false);
+        }
+    }
+
+    @Watch('globalStore.authType') async loginSta() {
+        if (!this.userStore.isLoggedIn) {
+            this.$router.push({ name: 'Logout' });
+        } else {
+            await this.handleAuth(false);
         }
     }
 }
