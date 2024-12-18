@@ -59,17 +59,16 @@ class TestStaffUsersApi(TestApi):
             props={
                 'ParentId': {
                     # Verify the parent id matches the expected 'staff-users' resource
-                    'Ref': api_stack.get_logical_id(
-                        api_stack.api.v1_api.staff_users_admin_resource.node.default_child),
+                    'Ref': api_stack.get_logical_id(api_stack.api.v1_api.staff_users_admin_resource.node.default_child),
                 },
                 'PathPart': '{userId}',
             },
         )
 
-        patch_handler_properties = self.get_resource_properties_by_logical_id(logical_id=api_stack.get_logical_id(
-            api_stack.api.v1_api.staff_users.patch_user_handler.node.default_child
-        ),
-            resources=api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME))
+        patch_handler_properties = self.get_resource_properties_by_logical_id(
+            logical_id=api_stack.get_logical_id(api_stack.api.v1_api.staff_users.patch_user_handler.node.default_child),
+            resources=api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+        )
 
         self.assertEqual(
             'handlers.users.patch_user',
@@ -132,10 +131,9 @@ class TestStaffUsersApi(TestApi):
         api_stack = self.app.sandbox_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
-        post_user_handler_properties = self.get_resource_properties_by_logical_id(logical_id=api_stack.get_logical_id(
-            api_stack.api.v1_api.staff_users.post_user_handler.node.default_child
-        ),
-            resources=api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME)
+        post_user_handler_properties = self.get_resource_properties_by_logical_id(
+            logical_id=api_stack.get_logical_id(api_stack.api.v1_api.staff_users.post_user_handler.node.default_child),
+            resources=api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
         )
 
         self.assertEqual(

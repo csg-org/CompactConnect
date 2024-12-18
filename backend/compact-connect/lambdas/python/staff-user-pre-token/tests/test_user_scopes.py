@@ -26,7 +26,9 @@ class TestGetUserScopesFromDB(TstLambdas):
 
         scopes = UserScopes(self._user_sub)
 
-        self.assertEqual({'profile', 'aslp/readGeneral', 'aslp/admin', 'aslp/aslp.admin', 'aslp/aslp.readPrivate'}, scopes)
+        self.assertEqual(
+            {'profile', 'aslp/readGeneral', 'aslp/admin', 'aslp/aslp.admin', 'aslp/aslp.readPrivate'}, scopes
+        )
 
     def test_board_ed_user(self):
         from user_scopes import UserScopes
@@ -95,7 +97,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'octp/admin',
                 'octp/write',
                 'octp/al.admin',
-                'octp/al.write'
+                'octp/al.write',
             },
             scopes,
         )
