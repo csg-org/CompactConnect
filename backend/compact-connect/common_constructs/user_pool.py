@@ -126,8 +126,8 @@ class UserPool(CdkUserPool):
         """
         Creates an app client for the UI to authenticate with the user pool.
 
-        :param ui_domain_name: The ui domain name of the environment that Cognito allows the UI to redirect to after authentication or logging out.
-        :param environment_context: The environment context that we use to determine whether localhost is allowed as a redirect url.
+        :param ui_domain_name: The ui domain name used to determine acceptable redirects.
+        :param environment_context: The environment context used to determine acceptable redirects.
         :param read_attributes: The attributes that the UI can read.
         :param write_attributes: The attributes that the UI can write.
         :param ui_scopes: OAuth scopes that are allowed with this client
