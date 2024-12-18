@@ -110,6 +110,7 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema, ProviderPrivateSchema):
         del in_data['providerFamGivMid']
         return in_data
 
+
 class SanitizedProviderReadGeneralSchema(ForgivingSchema):
     """
     Provider record fields that are sanitized for users with the 'readGeneral' permission.
@@ -117,6 +118,7 @@ class SanitizedProviderReadGeneralSchema(ForgivingSchema):
     This schema should be used by any endpoint that returns provider information to staff users (ie the query provider
     and GET provider endpoints).
     """
+
     providerId = UUID(required=True, allow_none=False)
     type = String(required=True, allow_none=False)
 
