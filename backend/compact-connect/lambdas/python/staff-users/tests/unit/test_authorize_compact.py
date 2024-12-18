@@ -9,14 +9,14 @@ class TestAuthorizeCompact(TstLambdas):
     def test_authorize_compact(self):
         from cc_common.utils import authorize_compact
 
-        @authorize_compact(action='read')
+        @authorize_compact(action='readGeneral')
         def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
             return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/readGeneral'
         event['pathParameters'] = {
             'compact': 'aslp',
         }
@@ -27,13 +27,13 @@ class TestAuthorizeCompact(TstLambdas):
         from cc_common.exceptions import CCInvalidRequestException
         from cc_common.utils import authorize_compact
 
-        @authorize_compact(action='read')
+        @authorize_compact(action='readGeneral')
         def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
             return {'body': 'Hurray!'}
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/readGeneral'
         event['pathParameters'] = {}
 
         with self.assertRaises(CCInvalidRequestException):
@@ -43,7 +43,7 @@ class TestAuthorizeCompact(TstLambdas):
         from cc_common.exceptions import CCUnauthorizedException
         from cc_common.utils import authorize_compact
 
-        @authorize_compact(action='read')
+        @authorize_compact(action='readGeneral')
         def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
             return {'body': 'Hurray!'}
 
@@ -59,7 +59,7 @@ class TestAuthorizeCompact(TstLambdas):
         from cc_common.exceptions import CCAccessDeniedException
         from cc_common.utils import authorize_compact
 
-        @authorize_compact(action='read')
+        @authorize_compact(action='readGeneral')
         def example_entrypoint(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
             return {'body': 'Hurray!'}
 
