@@ -23,6 +23,7 @@
                 @click="logoClick"
                 @keyup.enter="logoClick"
                 role="button"
+                :aria-label="$t('common.appName')"
                 tabindex="0"
             />
         </div>
@@ -32,16 +33,20 @@
                 <router-link v-if="!link.isExternal && link.isExactActive"
                     :to="{ name: link.to, params: link.params || {}}"
                     exact
+                    :aria-label="link.label"
+                    tabindex="0"
                 >
-                    <component v-if="link.iconComponent" :is="link.iconComponent" />
-                    <span v-if="globalStore.isNavExpanded" class="link-label">{{ link.label }}</span>
+                    <component v-if="link.iconComponent" :is="link.iconComponent" class="link-icon" />
+                    <span v-if="isNavExpanded" class="link-label">{{ link.label }}</span>
                 </router-link>
                 <!-- All other internal links -->
                 <router-link v-else-if="!link.isExternal"
                     :to="{ name: link.to, params: link.params || {}}"
+                    :aria-label="link.label"
+                    tabindex="0"
                 >
-                    <component v-if="link.iconComponent" :is="link.iconComponent" />
-                    <span v-if="globalStore.isNavExpanded" class="link-label">{{ link.label }}</span>
+                    <component v-if="link.iconComponent" :is="link.iconComponent" class="link-icon" />
+                    <span v-if="isNavExpanded" class="link-label">{{ link.label }}</span>
                 </router-link>
                 <!-- External links (to another domain) -->
                 <a v-else
@@ -49,10 +54,11 @@
                     class="external-link"
                     target="_blank"
                     rel="noopener noreferrer"
+                    :aria-label="link.label"
                     tabindex="0"
                 >
-                    <component v-if="link.iconComponent" :is="link.iconComponent" />
-                    <span v-if="globalStore.isNavExpanded" class="link-label">{{ link.label }}</span>
+                    <component v-if="link.iconComponent" :is="link.iconComponent" class="link-icon" />
+                    <span v-if="isNavExpanded" class="link-label">{{ link.label }}</span>
                 </a>
             </li>
         </ul>
@@ -63,18 +69,20 @@
                 <router-link v-if="!link.isExternal && link.isExactActive"
                     :to="{ name: link.to, params: link.params || {}}"
                     exact
+                    :aria-label="link.label"
                     tabindex="0"
                 >
-                    <component v-if="link.iconComponent" :is="link.iconComponent" />
-                    <span v-if="globalStore.isNavExpanded" class="link-label">{{ link.label }}</span>
+                    <component v-if="link.iconComponent" :is="link.iconComponent" class="link-icon" />
+                    <span v-if="isNavExpanded" class="link-label">{{ link.label }}</span>
                 </router-link>
                 <!-- All other internal links -->
                 <router-link v-else-if="!link.isExternal"
                     :to="{ name: link.to, params: link.params || {}}"
+                    :aria-label="link.label"
                     tabindex="0"
                 >
-                    <component v-if="link.iconComponent" :is="link.iconComponent" />
-                    <span v-if="globalStore.isNavExpanded" class="link-label">{{ link.label }}</span>
+                    <component v-if="link.iconComponent" :is="link.iconComponent" class="link-icon" />
+                    <span v-if="isNavExpanded" class="link-label">{{ link.label }}</span>
                 </router-link>
                 <!-- External links (to another domain) -->
                 <a v-else
@@ -82,10 +90,11 @@
                     class="external-link"
                     target="_blank"
                     rel="noopener noreferrer"
+                    :aria-label="link.label"
                     tabindex="0"
                 >
-                    <component v-if="link.iconComponent" :is="link.iconComponent" />
-                    <span v-if="globalStore.isNavExpanded" class="link-label">{{ link.label }}</span>
+                    <component v-if="link.iconComponent" :is="link.iconComponent" class="link-icon" />
+                    <span v-if="isNavExpanded" class="link-label">{{ link.label }}</span>
                 </a>
             </li>
         </ul>

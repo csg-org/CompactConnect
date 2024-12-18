@@ -44,6 +44,11 @@ describe('PageMainNav component', async () => {
                         return mainNavLinks;
                     }
                 },
+                isNavExpanded: {
+                    get() {
+                        return true;
+                    }
+                }
             },
         });
         const links = wrapper.findAll('a');

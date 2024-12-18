@@ -36,6 +36,7 @@
         .logo {
             display: inline-block;
             width: 100%;
+            cursor: pointer;
         }
     }
 
@@ -60,6 +61,10 @@
             width: 100%;
             cursor: pointer;
 
+            &:hover {
+                background-color: darken(@primaryColor, 4%);
+            }
+
             &.page-nav {
                 a {
                     display: flex;
@@ -67,6 +72,10 @@
                     padding: 1.2rem 1.6rem; // Bump the left-right padding depending on the @navPartialExpandWidth
                     border-left: 3px solid transparent;
                     color: fade(@white, 75%);
+
+                    .link-icon {
+                        pointer-events: none;
+                    }
 
                     .icon {
                         width: 2.4rem;
@@ -86,6 +95,7 @@
                     .link-label {
                         margin-left: 1.6rem;
                         white-space: nowrap;
+                        pointer-events: none;
                     }
 
                     &.router-link-active {

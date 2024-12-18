@@ -448,7 +448,8 @@
         "formTitle": "Compact data upload",
         "formSubtext": "Current uploads are for test purposes and the data will not be saved permanently",
         "uploadHint": "Only 1 CSV",
-        "successTitle": "Your document has been uploaded successfully"
+        "successTitle": "Your document has been uploaded successfully",
+        "successSubTitle": "If your document encounters any errors during processing you will be notified via email"
     },
     "payment": {
         "firstNameOnCard": "Enter first name on card",

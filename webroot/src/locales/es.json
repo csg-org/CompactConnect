@@ -448,7 +448,8 @@
         "formTitle": "Carga de datos compacta",
         "formSubtext": "Las cargas actuales son para fines de prueba y los datos no se guardarán de forma permanente.",
         "uploadHint": "Sólo 1 archivo CSV",
-        "successTitle": "Su documento ha sido subido exitosamente"
+        "successTitle": "Su documento ha sido subido exitosamente",
+        "successSubTitle": "Si su documento encuentra algún error durante el procesamiento, se le notificará por correo electrónico."
     },
     "payment": {
         "apptUnitNumber": "Número de apto",

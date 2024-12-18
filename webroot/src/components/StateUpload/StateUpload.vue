@@ -13,7 +13,7 @@
             <Transition name="fade" :mode="elementTransitionMode">
                 <LoadingSpinner v-if="isInitializing" />
                 <div v-else-if="!isFormSuccessful" class="state-upload-form">
-                    <!-- <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" /> -->
+                    <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                     <div class="state-upload-form-container">
                         <form @submit.prevent="handleSubmit">
                             <InputSelect :formInput="formData.state" class="state-select" />
@@ -30,7 +30,8 @@
                     <div class="icon-container">
                         <CheckCircle />
                     </div>
-                    <h1>{{ $t('stateUpload.successTitle') }}</h1>
+                    <h1 class="success-title">{{ $t('stateUpload.successTitle') }}</h1>
+                    <div class="success-subtitle">{{ $t('stateUpload.successSubTitle') }}</div>
                     <div class="success-actions">
                         <button class="success-btn transparent" @click="resetForm">Upload another</button>
                         <button class="success-btn" @click="resetForm">Done</button>
