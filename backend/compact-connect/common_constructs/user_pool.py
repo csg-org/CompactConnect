@@ -117,7 +117,7 @@ class UserPool(CdkUserPool):
 
     def add_ui_client(
         self,
-        ui_domain_name,
+        ui_domain_name: str,
         environment_context: dict,
         read_attributes: ClientAttributes,
         write_attributes: ClientAttributes,
@@ -126,8 +126,8 @@ class UserPool(CdkUserPool):
         """
         Creates an app client for the UI to authenticate with the user pool.
 
-        :param callback_urls: The URLs that Cognito allows the UI to redirect to after authentication.
-        :param logout_urls: The URLs that Cognito allows the UI to redirect to after logout.
+        :param ui_domain_name: The ui domain name of the environment that Cognito allows the UI to redirect to after authentication or logging out.
+        :param environment_context: The environment context that we use to determine whether localhost is allowed as a redirect url.
         :param read_attributes: The attributes that the UI can read.
         :param write_attributes: The attributes that the UI can write.
         :param ui_scopes: OAuth scopes that are allowed with this client
