@@ -104,7 +104,7 @@ export default class AuthCallback extends Vue {
         const { data } = await axios.post(`${cognitoAuthDomainStaff}/oauth2/token`, params);
 
         await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
-        await this.$store.dispatch('user/loginSuccess');
+        await this.$store.dispatch('user/loginSuccess', AuthTypes.STAFF);
     }
 
     async getTokensLicensee(): Promise<void> {
@@ -119,7 +119,7 @@ export default class AuthCallback extends Vue {
         const { data } = await axios.post(`${cognitoAuthDomainLicensee}/oauth2/token`, params);
 
         await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.LICENSEE });
-        await this.$store.dispatch('user/loginSuccess');
+        await this.$store.dispatch('user/loginSuccess', AuthTypes.LICENSEE);
     }
 
     async redirectUser(): Promise<void> {

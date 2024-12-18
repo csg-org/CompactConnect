@@ -82,7 +82,7 @@ export default class Login extends Vue {
         };
 
         await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.STAFF });
-        this.$store.dispatch('user/loginSuccess');
+        this.$store.dispatch('user/loginSuccess', AuthTypes.STAFF);
 
         this.$router.push({ name: 'Home' });
     }
@@ -97,7 +97,7 @@ export default class Login extends Vue {
         };
 
         await this.$store.dispatch('user/updateAuthTokens', { tokenResponse: data, authType: AuthTypes.LICENSEE });
-        this.$store.dispatch('user/loginSuccess');
+        this.$store.dispatch('user/loginSuccess', AuthTypes.LICENSEE);
 
         this.$router.push({ name: 'Home' });
     }

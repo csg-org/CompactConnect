@@ -25,8 +25,8 @@ export default {
     loginRequest: ({ commit }) => {
         commit(MutationTypes.LOGIN_REQUEST);
     },
-    loginSuccess: async ({ commit }) => {
-        commit(MutationTypes.LOGIN_SUCCESS);
+    loginSuccess: async ({ commit }, authType) => {
+        commit(MutationTypes.LOGIN_SUCCESS, authType);
     },
     loginFailure: async ({ commit }, error: Error) => {
         commit(MutationTypes.LOGIN_FAILURE, error);
@@ -128,8 +128,6 @@ export default {
         } = tokenResponse || {};
 
         authStorage.setItem(tokens[authType].AUTH_TYPE, authType);
-
-        dispatch('setAuthType', authType, { root: true });
 
         if (accessToken) {
             authStorage.setItem(tokens[authType].AUTH_TOKEN, accessToken);

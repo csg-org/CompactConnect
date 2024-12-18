@@ -7,6 +7,7 @@
 import { Compact } from '@models/Compact/Compact.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { StaffUser } from '@/models/StaffUser/StaffUser.model';
+import { AuthTypes } from '@/app.config';
 
 export enum MutationTypes {
     LOGIN_REQUEST = '[User] Login Request',
@@ -45,8 +46,10 @@ export default {
         state.isLoadingAccount = false;
         state.error = error;
     },
-    [MutationTypes.LOGIN_SUCCESS]: (state: any) => {
+    [MutationTypes.LOGIN_SUCCESS]: (state: any, authType: AuthTypes) => {
         state.isLoggedIn = true;
+        state.isLoggedInAsLicensee = Boolean(authType === AuthTypes.LICENSEE);
+        state.isLoggedInAsStaff = Boolean(authType === AuthTypes.STAFF);
         state.isLoadingAccount = false;
         state.error = null;
     },

@@ -44,7 +44,7 @@ class App extends Vue {
     //
     async created() {
         if (this.userStore.isLoggedIn) {
-            await this.handleAuth(true);
+            await this.handleAuth();
         }
 
         this.setRelativeTimeFormats();
@@ -84,8 +84,8 @@ class App extends Vue {
     //
     // Methods
     //
-    async handleAuth(isInitialLoad) {
-        const authType = this.setAuthType(isInitialLoad);
+    async handleAuth() {
+        const authType = this.setAuthType();
 
         if (authType !== AuthTypes.PUBLIC) {
             this.$store.dispatch('user/startRefreshTokenTimer', authType);
@@ -94,7 +94,7 @@ class App extends Vue {
         }
     }
 
-    setAuthType(isInitialLoad) {
+    setAuthType() {
         let authType: AuthTypes;
 
         if (authStorage.getItem(tokens.staff.AUTH_TYPE) === AuthTypes.STAFF) {
@@ -105,9 +105,7 @@ class App extends Vue {
             authType = AuthTypes.PUBLIC;
         }
 
-        if (isInitialLoad) {
-            this.$store.dispatch('setAuthType', authType);
-        }
+        this.$store.dispatch('setAuthType', authType);
 
         return authType;
     }
@@ -174,19 +172,19 @@ class App extends Vue {
         this.body.style.overflow = (this.globalStore.isModalOpen) ? 'hidden' : 'visible';
     }
 
-    @Watch('userStore.isLoggedIn') async loginState() {
+    @Watch('userStore.isLoggedInAsLicensee') async handleLicenseeLogin() {
         if (!this.userStore.isLoggedIn) {
             this.$router.push({ name: 'Logout' });
-        } else {
-            await this.handleAuth(false);
+        } else if (this.userStore.isLoggedInAsLicensee) {
+            await this.handleAuth();
         }
     }
 
-    @Watch('globalStore.authType') async loginSta() {
+    @Watch('userStore.isLoggedInAsStaff') async handleStaffLogin() {
         if (!this.userStore.isLoggedIn) {
             this.$router.push({ name: 'Logout' });
-        } else {
-            await this.handleAuth(false);
+        } else if (this.userStore.isLoggedInAsStaff) {
+            await this.handleAuth();
         }
     }
 }
