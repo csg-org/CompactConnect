@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 
 from aws_cdk import Duration, RemovalPolicy
-from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
+from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Metric, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_dynamodb import Attribute, AttributeType, BillingMode, Table, TableEncryption
 from aws_cdk.aws_events import EventPattern, IEventBus, Match, Rule
@@ -98,7 +98,7 @@ class DataEventTable(Table):
             alarm_topic=alarm_topic,
         )
 
-        Rule(
+        event_receiver_rule = Rule(
             self,
             'EventReceiverRule',
             event_bus=event_bus,
@@ -107,6 +107,27 @@ class DataEventTable(Table):
             event_pattern=EventPattern(detail_type=Match.prefix('')),
             targets=[SqsQueue(self.event_processor.queue, dead_letter_queue=self.event_processor.dlq)],
         )
+
+        # We will want to alert on failure of this rule to deliver events to the data events queue
+        Alarm(
+            self,
+            'DataSourceRuleFailedInvocations',
+            metric=Metric(
+                namespace='AWS/Events',
+                metric_name='FailedInvocations',
+                dimensions_map={
+                    'EventBusName': stack.data_event_bus.event_bus_name,
+                    'RuleName': event_receiver_rule.rule_name,
+                },
+                period=Duration.minutes(5),
+                statistic='Sum',
+            ),
+            evaluation_periods=1,
+            threshold=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+        ).add_alarm_action(SnsAction(stack.alarm_topic))
+
         NagSuppressions.add_resource_suppressions(
             self,
             suppressions=[

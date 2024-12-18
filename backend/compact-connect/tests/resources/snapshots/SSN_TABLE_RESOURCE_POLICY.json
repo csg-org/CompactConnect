@@ -1,0 +1,22 @@
+{
+  "Statement": [
+    {
+      "Action": [
+        "dynamodb:BatchGetItem",
+        "dynamodb:BatchWriteItem",
+        "dynamodb:PartiQL*",
+        "dynamodb:Query",
+        "dynamodb:Scan"
+      ],
+      "Condition": {
+        "StringNotEquals": {
+          "aws:PrincipalServiceName": "dynamodb.amazonaws.com"
+        }
+      },
+      "Effect": "Deny",
+      "Principal": "*",
+      "Resource": "*"
+    }
+  ],
+  "Version": "2012-10-17"
+}
