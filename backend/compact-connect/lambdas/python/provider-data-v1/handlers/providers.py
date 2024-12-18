@@ -4,7 +4,12 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.provider import SanitizedProviderReadGeneralSchema
 from cc_common.exceptions import CCInvalidRequestException
-from cc_common.utils import api_handler, authorize_compact, get_event_scopes, sanitize_provider_data_based_on_caller_scopes
+from cc_common.utils import (
+    api_handler,
+    authorize_compact,
+    get_event_scopes,
+    sanitize_provider_data_based_on_caller_scopes,
+)
 
 from . import get_provider_information
 
@@ -114,6 +119,6 @@ def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
 
     provider_information = get_provider_information(compact=compact, provider_id=provider_id)
 
-    return sanitize_provider_data_based_on_caller_scopes(compact=compact,
-                                                         provider=provider_information,
-                                                         scopes=get_event_scopes(event))
+    return sanitize_provider_data_based_on_caller_scopes(
+        compact=compact, provider=provider_information, scopes=get_event_scopes(event)
+    )

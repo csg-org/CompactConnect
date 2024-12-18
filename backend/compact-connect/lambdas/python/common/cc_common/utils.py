@@ -9,6 +9,7 @@ from uuid import UUID
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
+
 from cc_common.config import logger
 from cc_common.data_model.schema.provider import SanitizedProviderReadGeneralSchema
 from cc_common.exceptions import (
@@ -434,11 +435,15 @@ def _user_has_private_read_access_for_provider(compact: str, provider_informatio
 
 def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, scopes: set[str]) -> dict:
     """
-    Take a provider and a set of user scopes, then return a provider, with information sanitized, based on what the user is authorized to view.
+    Take a provider and a set of user scopes, then return a provider, with information sanitized based on what
+    the user is authorized to view.
+
+    :param str compact: The compact the user is trying to access.
+    :param dict provider: The provider record to be sanitized.
+    :param set scopes: The user's scopes from the request.
+    :return: The provider record, sanitized based on the user's scopes.
     """
-    if _user_has_private_read_access_for_provider(
-        compact=compact, provider_information=provider, scopes=scopes
-    ):
+    if _user_has_private_read_access_for_provider(compact=compact, provider_information=provider, scopes=scopes):
         # return full object since caller has 'readPrivate' access for provider
         return provider
 
