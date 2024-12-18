@@ -115,6 +115,9 @@ class SanitizedProviderReadGeneralSchema(ForgivingSchema):
     """
     Provider record fields that are sanitized for users with the 'readGeneral' permission.
 
+    This schema is intended to be used to dump records from the database in order to remove all fields not defined here.
+    It should NEVER be used to load data into the database. Use the ProviderRecordSchema for that.
+
     This schema should be used by any endpoint that returns provider information to staff users (ie the query provider
     and GET provider endpoints).
     """
