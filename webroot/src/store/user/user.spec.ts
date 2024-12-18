@@ -5,7 +5,12 @@
 //  Created by InspiringApps on 6/12/24.
 //
 
-import { authStorage, tokens, FeeTypes } from '@/app.config';
+import {
+    authStorage,
+    tokens,
+    FeeTypes,
+    AuthTypes
+} from '@/app.config';
 import chaiMatchPattern from 'chai-match-pattern';
 import chai from 'chai';
 import { Compact } from '@models/Compact/Compact.model';
@@ -40,10 +45,12 @@ describe('Use Store Mutations', () => {
     it('should successfully get login success', () => {
         const state = {};
 
-        mutations[MutationTypes.LOGIN_SUCCESS](state);
+        mutations[MutationTypes.LOGIN_SUCCESS](state, AuthTypes.LICENSEE);
 
         expect(state.isLoadingAccount).to.equal(false);
         expect(state.isLoggedIn).to.equal(true);
+        expect(state.isLoggedInAsLicensee).to.equal(true);
+        expect(state.isLoggedInAsStaff).to.equal(false);
         expect(state.error).to.equal(null);
     });
     it('should successfully get login reset', () => {
@@ -168,10 +175,10 @@ describe('User Store Actions', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
 
-        await actions.loginSuccess({ commit, dispatch });
+        await actions.loginSuccess({ commit, dispatch }, AuthTypes.LICENSEE);
 
         expect(commit.calledOnce).to.equal(true);
-        expect(commit.firstCall.args).to.matchPattern([MutationTypes.LOGIN_SUCCESS]);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.LOGIN_SUCCESS, AuthTypes.LICENSEE]);
         expect(dispatch.calledOnce).to.equal(false);
     });
     it('should successfully start login failure', () => {
@@ -347,6 +354,22 @@ describe('User Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_REFRESH_TIMEOUT_ID, null]);
+    });
+    it('should successfully clear update auth tokens by clearing existing ones except for auth token, then storing', () => {
+        const dispatch = sinon.spy();
+        const authType = 'staff';
+
+        const tokenResponse = {
+            access_token: 'test_access_token',
+            token_type: 'test_token_type',
+            expires_in: 1,
+            id_token: 'test_id_token',
+            refresh_token: 'test_refresh_token',
+        };
+
+        actions.updateAuthTokens({ dispatch }, { tokenResponse, authType });
+
+        expect(dispatch.callCount).to.equal(2);
     });
     it('should successfully clear session stores', () => {
         const dispatch = sinon.spy();
