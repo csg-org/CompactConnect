@@ -14,21 +14,41 @@ from cc_common.data_model.schema.base_record import (
 )
 
 
-class LicensePublicSchema(ForgivingSchema):
-    """Schema for license data that can be shared with the public"""
+class LicenseReadGeneralSchema(ForgivingSchema):
+    """
+    License fields available for staff users with the 'readGeneral' permission.
 
-    birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
+    This schema is explicitly separated from the common schema to ensure we know what
+    fields are being returned for users with this permission.
+    """
+
+    providerId = UUID(required=True, allow_none=False)
+    type = String(required=True, allow_none=False)
+    dateOfUpdate = DateTime(required=True, allow_none=False)
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     licenseType = String(required=True, allow_none=False)
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
+    # These date values are determined by the license records uploaded by a state
+    # they do not include a timestamp, so we use the Date field type
     dateOfIssuance = Date(required=True, allow_none=False)
     dateOfRenewal = Date(required=True, allow_none=False)
     dateOfExpiration = Date(required=True, allow_none=False)
+    homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
+    homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
+    emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
+    phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
+    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+
+    militaryWaiver = Boolean(required=False, allow_none=False)
 
 
 class LicenseCommonSchema(ForgivingSchema):
@@ -131,40 +151,3 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
         in_data['sk'] = f'{in_data['compact']}#PROVIDER#license/{in_data['jurisdiction']}#{in_data['dateOfRenewal']}'
         return in_data
-
-
-class LicenseGeneralResponseSchema(ForgivingSchema):
-    """
-    License fields available for staff users with the 'readGeneral' permission.
-
-    This schema includes all the fields of the common schema, but we explicitly separated them to ensure we know what
-    fields are being returned for users with this permission.
-    """
-
-    providerId = UUID(required=True, allow_none=False)
-    type = String(required=True, allow_none=False)
-    dateOfUpdate = DateTime(required=True, allow_none=False)
-    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
-    licenseType = String(required=True, allow_none=False)
-    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
-    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
-    givenName = String(required=True, allow_none=False, validate=Length(1, 100))
-    middleName = String(required=False, allow_none=False, validate=Length(1, 100))
-    familyName = String(required=True, allow_none=False, validate=Length(1, 100))
-    suffix = String(required=False, allow_none=False, validate=Length(1, 100))
-    # These date values are determined by the license records uploaded by a state
-    # they do not include a timestamp, so we use the Date field type
-    dateOfIssuance = Date(required=True, allow_none=False)
-    dateOfRenewal = Date(required=True, allow_none=False)
-    dateOfExpiration = Date(required=True, allow_none=False)
-    homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
-    homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
-    homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
-    homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
-    homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
-    emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
-    phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
-
-    militaryWaiver = Boolean(required=False, allow_none=False)

@@ -15,7 +15,7 @@ from cc_common.data_model.schema.base_record import (
     SocialSecurityNumber,
 )
 from cc_common.data_model.schema.common import ensure_value_is_datetime
-from cc_common.data_model.schema.license import LicenseGeneralResponseSchema
+from cc_common.data_model.schema.license import LicenseReadGeneralSchema
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationGeneralResponseSchema
 from cc_common.data_model.schema.privilege import PrivilegeGeneralResponseSchema
 
@@ -152,6 +152,6 @@ class SanitizedProviderReadGeneralSchema(ForgivingSchema):
 
     # these records are present when getting provider information from the GET endpoint
     # so we check for them here and sanitize them if they are present
-    licenses = List(Nested(LicenseGeneralResponseSchema(), required=False, allow_none=False))
+    licenses = List(Nested(LicenseReadGeneralSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
     militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=False, allow_none=False))
