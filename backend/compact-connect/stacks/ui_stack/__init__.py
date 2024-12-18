@@ -61,18 +61,6 @@ class UIStack(AppStack):
             persistent_stack=persistent_stack,
         )
 
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            path=f'{self.distribution.node.path}/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-CFR7',
-                    'reason': 'We will upgrade to an Origin Access Control as part of this issue in our backlog:'
-                    'https://github.com/csg-org/CompactConnect/issues/238',
-                }
-            ],
-        )
-
         # Configure permission for GitHub Actions to deploy the UI
         github_actions = GitHubActionsAccess(
             self, 'GitHubActionsAccess', github_repo_string=github_repo_string, role_name='github_ui_push'

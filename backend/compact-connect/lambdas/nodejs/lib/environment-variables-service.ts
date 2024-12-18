@@ -2,6 +2,7 @@ export class EnvironmentVariablesService {
     private readonly compactsVariable = 'COMPACTS';
     private readonly compactConfigurationTableNameVariable = 'COMPACT_CONFIGURATION_TABLE_NAME';
     private readonly dataEventTableNameVariable = 'DATA_EVENT_TABLE_NAME';
+    private readonly uiBasePathUrlVariable = 'UI_BASE_PATH_URL';
     private readonly fromAddressVariable = 'FROM_ADDRESS';
     private readonly debugVariable = 'DEBUG';
 
@@ -12,6 +13,10 @@ export class EnvironmentVariablesService {
 
     public getDataEventTableName() {
         return this.getEnvVar(this.dataEventTableNameVariable);
+    }
+
+    public getUiBasePathUrl() {
+        return this.getEnvVar(this.uiBasePathUrlVariable);
     }
 
     public getCompactconfigurationTableName() {

@@ -23,6 +23,7 @@ describe('Report emailer', () => {
     beforeAll(async () => {
         process.env.DEBUG = 'true';
         process.env.FROM_ADDRESS = 'noreply@example.org';
+        process.env.UI_BASE_PATH_URL = 'https://app.test.compactconnect.org';
 
         mockSESClient = mockClient(SESClient);
 
@@ -154,6 +155,43 @@ describe('Report emailer', () => {
                     Subject: {
                         Charset: 'UTF-8',
                         Data: 'License Data Summary: aslp / ohio'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            }
+        );
+    });
+
+    it('should send a "no license updates" email with expected image url', async () => {
+        const logger = new Logger();
+        const sesClient = new SESClient();
+        const reportEmailer = new ReportEmailer({
+            logger: logger,
+            sesClient: sesClient
+        });
+        const messageId = await reportEmailer.sendNoLicenseUpdatesEmail(
+            'aslp',
+            'ohio',
+            [ 'operations@example.com' ]
+        );
+
+        expect(messageId).toEqual('message-id-123');
+        expect(mockSESClient).toHaveReceivedCommandWith(
+            SendEmailCommand,
+            {
+                Destination: {
+                    ToAddresses: ['operations@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('src=\"https://app.test.compactconnect.org/img/email/ico-noupdates@2x.png\"')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'No License Updates for Last 7 Days: aslp / ohio'
                     }
                 },
                 Source: 'Compact Connect <noreply@example.org>'
