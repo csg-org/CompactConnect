@@ -10,7 +10,7 @@
     "test:unit:coverage": "export NODE_OPTIONS=--openssl-legacy-provider && nyc vue-cli-service test:unit 'src/**/*.spec.ts' --reporter progress",
     "test:e2e": "TZ=America/Denver vue-cli-service test:e2e",
     "lint": "vue-cli-service lint",
-    "audit:dependencies": "/bin/bash -c 'yarn audit --groups dependencies --level moderate; [[ $? -ge 4 ]] && exit 0 || exit 0'"
+    "audit:dependencies": "/bin/bash -c 'yarn audit --groups dependencies --level moderate; [[ $? -ge 4 ]] && exit 1 || exit 0'"
   },
   "dependencies": {
     "@vue/compat": "3.4.21",
