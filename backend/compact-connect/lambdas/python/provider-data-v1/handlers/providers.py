@@ -2,44 +2,11 @@ import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.data_model.schema.provider import (
-    GetProviderReadGeneralResponseSchema,
-    QueryProvidersGeneralResponseSchema,
-)
+from cc_common.data_model.schema.provider import SanitizedProviderReadGeneralSchema
 from cc_common.exceptions import CCInvalidRequestException
-from cc_common.utils import api_handler, authorize_compact, get_event_scopes
+from cc_common.utils import api_handler, authorize_compact, get_event_scopes, sanitize_provider_data_based_on_caller_scopes
 
 from . import get_provider_information
-
-
-def _user_had_private_read_access_for_provider(compact: str, provider_information: dict, scopes: list[str]) -> bool:
-    if f'{compact}/{compact}.readPrivate' in scopes:
-        logger.debug(
-            'User has readPrivate permission at compact level',
-            compact=compact,
-            provider_id=provider_information['providerId'],
-        )
-        return True
-
-    # we need to check if the user has readPrivate permission at the jurisdiction level
-    # for any of the provider's licenses or privileges
-    relevant_provider_jurisdictions: set = provider_information['privilegeJurisdictions'].copy()
-    relevant_provider_jurisdictions.add(provider_information['licenseJurisdiction'])
-    for jurisdiction in relevant_provider_jurisdictions:
-        if f'{compact}/{jurisdiction}.readPrivate' in scopes:
-            logger.debug(
-                'User has readPrivate permission at jurisdiction level',
-                compact=compact,
-                provider_id=provider_information['providerId'],
-                jurisdiction=jurisdiction,
-            )
-            return True
-
-    logger.debug(
-        'Caller does not have readPrivate permission at compact or jurisdiction level',
-        provider_id=provider_information['providerId'],
-    )
-    return False
 
 
 @api_handler
@@ -121,18 +88,9 @@ def query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused
     # Convert generic field to more specific one for this API and filter data based on caller's
     # permissions
     pre_sanitized_providers = resp.pop('items', [])
-    caller_scopes = get_event_scopes(event)
-    sanitized_providers = []
-    for provider in pre_sanitized_providers:
-        # check if the caller has readPrivate permission for each provider
-        # if not, we remove the private fields
-        if _user_had_private_read_access_for_provider(
-            compact=compact, provider_information=provider, scopes=caller_scopes
-        ):
-            sanitized_providers.append(provider)
-        else:
-            # passing the data through the schema to remove all fields not allowed by schema definition
-            sanitized_providers.append(QueryProvidersGeneralResponseSchema().dump(provider))
+    # for the query endpoint, we only return generally available data, regardless of the caller's scopes
+    general_schema = SanitizedProviderReadGeneralSchema()
+    sanitized_providers = [general_schema.dump(provider) for provider in pre_sanitized_providers]
 
     resp['providers'] = sanitized_providers
 
@@ -156,16 +114,6 @@ def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
 
     provider_information = get_provider_information(compact=compact, provider_id=provider_id)
 
-    if _user_had_private_read_access_for_provider(
-        compact=compact, provider_information=provider_information, scopes=get_event_scopes(event)
-    ):
-        # return full object since caller has 'readPrivate' access for provider
-        return provider_information
-
-    logger.debug(
-        'Caller does not have readPrivate at compact or jurisdiction level, removing private information',
-        provider_id=provider_information['providerId'],
-    )
-    provider_read_general_schema = GetProviderReadGeneralResponseSchema()
-    # we dump the record to ensure that the schema is applied to the record to remove private fields
-    return provider_read_general_schema.dump(provider_information)
+    return sanitize_provider_data_based_on_caller_scopes(compact=compact,
+                                                         provider=provider_information,
+                                                         scopes=get_event_scopes(event))

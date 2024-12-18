@@ -33,7 +33,7 @@ class TestCustomizeScopes(TstLambdas):
         resp = customize_scopes(event, self.mock_context)
 
         self.assertEqual(
-            sorted(['profile', 'aslp/readGeneral', 'aslp/write', 'aslp/al.write', 'aslp/al.readGeneral']),
+            sorted(['profile', 'aslp/readGeneral', 'aslp/write', 'aslp/al.write']),
             sorted(resp['response']['claimsAndScopeOverrideDetails']['accessTokenGeneration']['scopesToAdd']),
         )
 

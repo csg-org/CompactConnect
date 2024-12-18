@@ -110,12 +110,13 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema, ProviderPrivateSchema):
         del in_data['providerFamGivMid']
         return in_data
 
-
-class CommonProviderGeneralResponseSchema(ForgivingSchema):
+class SanitizedProviderReadGeneralSchema(ForgivingSchema):
     """
-    Common Provider record fields that are available to view for users with the 'readGeneral' permission.
-    """
+    Provider record fields that are sanitized for users with the 'readGeneral' permission.
 
+    This schema should be used by any endpoint that returns provider information to staff users (ie the query provider
+    and GET provider endpoints).
+    """
     providerId = UUID(required=True, allow_none=False)
     type = String(required=True, allow_none=False)
 
@@ -129,10 +130,9 @@ class CommonProviderGeneralResponseSchema(ForgivingSchema):
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
-    # these dates are determined by the license records uploaded by a state
+    # This date is determined by the license records uploaded by a state
     # they do not include a timestamp, so we use the Date field type
     dateOfExpiration = Date(required=True, allow_none=False)
-    dateOfBirth = Date(required=True, allow_none=False)
     homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
     homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
@@ -145,24 +145,11 @@ class CommonProviderGeneralResponseSchema(ForgivingSchema):
 
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
-    providerDateOfUpdate = DateTime(required=True, allow_none=False)
+    providerDateOfUpdate = DateTime(required=False, allow_none=False)
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
 
-
-class QueryProvidersGeneralResponseSchema(CommonProviderGeneralResponseSchema):
-    """
-    Provider record fields that are returned from query endpoint for users with the 'readGeneral' permission.
-    """
-
-
-class GetProviderReadGeneralResponseSchema(CommonProviderGeneralResponseSchema):
-    """
-    Provider record fields that are available to view for users with the 'readGeneral' permission.
-
-    This schema should be used by any endpoint that returns provider information to staff users (ie the query provider
-    and GET provider endpoints).
-    """
-
-    licenses = List(Nested(LicenseGeneralResponseSchema(), required=True, allow_none=False))
-    privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=True, allow_none=False))
-    militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=True, allow_none=False))
+    # these records are present when getting provider information from the GET endpoint
+    # so we check for them here and sanitize them if they are present
+    licenses = List(Nested(LicenseGeneralResponseSchema(), required=False, allow_none=False))
+    privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
+    militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=False, allow_none=False))
