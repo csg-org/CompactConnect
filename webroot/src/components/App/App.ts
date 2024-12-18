@@ -123,7 +123,6 @@ class App extends Vue {
     async setCurrentCompact(): Promise<void> {
         const { authType } = this.globalStore;
         const { currentCompact, model: user } = this.userStore;
-
         let userDefaultCompact;
         let isCompactPartOfUserPermissions;
 

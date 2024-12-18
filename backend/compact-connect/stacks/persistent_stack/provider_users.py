@@ -46,39 +46,10 @@ class ProviderUsers(UserPool):
         )
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
 
-        callback_urls = []
-        if stack.ui_domain_name is not None:
-            callback_urls.append(f'https://{stack.ui_domain_name}/auth/callback')
-        # This toggle will allow front-end devs to point their local UI at this environment's user pool to support
-        # authenticated actions.
-        if environment_context.get('allow_local_ui', False):
-            local_ui_port = environment_context.get('local_ui_port', '3018')
-            callback_urls.append(f'http://localhost:{local_ui_port}/auth/callback')
-        if not callback_urls:
-            raise ValueError(
-                "This app requires a callback url for its authentication path. Either provide 'domain_name' or set "
-                "'allow_local_ui' to true in this environment's context."
-            )
-
-        logout_urls = []
-        if stack.ui_domain_name is not None:
-            logout_urls.append(f'https://{stack.ui_domain_name}/Login')
-            logout_urls.append(f'https://{stack.ui_domain_name}/Logout')
-        # This toggle will allow front-end devs to point their local UI at this environment's user pool to support
-        # authenticated actions.
-        if environment_context.get('allow_local_ui', False):
-            local_ui_port = environment_context.get('local_ui_port', '3018')
-            logout_urls.append(f'http://localhost:{local_ui_port}/Login')
-            logout_urls.append(f'http://localhost:{local_ui_port}/Logout')
-        if not logout_urls:
-            raise ValueError(
-                "This app requires a logout url for its logout function. Either provide 'domain_name' or set "
-                "'allow_local_ui' to true in this environment's context."
-            )
         # Create an app client to allow the front-end to authenticate.
         self.ui_client = self.add_ui_client(
-            callback_urls=callback_urls,
-            logout_urls=logout_urls,
+            ui_domain_name=stack.ui_domain_name,
+            environment_context=environment_context,
             # For now, we are allowing the user to read and update their email, given name, and family name.
             # we only allow the user to be able to see their providerId and compact, which are custom attributes.
             # If we ever want other attributes to be read or written, they must be added here.
