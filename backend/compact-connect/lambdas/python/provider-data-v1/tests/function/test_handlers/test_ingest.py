@@ -33,8 +33,6 @@ class TestIngest(TstFunction):
 
         with open('../common/tests/resources/api/provider-response.json') as f:
             expected_provider = json.load(f)
-            # caller does not have read private permission, so we expect the ssn field to be removed
-            del expected_provider['ssn']
 
         # The canned response resource assumes that the provider will be given a privilege in NE. We didn't do that,
         # so we'll reset the privilege array.

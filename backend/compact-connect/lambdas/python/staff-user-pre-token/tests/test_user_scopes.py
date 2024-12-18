@@ -20,13 +20,13 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'pk': f'USER#{self._user_sub}',
                 'sk': 'COMPACT#aslp',
                 'compact': 'aslp',
-                'permissions': {'actions': {'read', 'admin'}, 'jurisdictions': {}},
+                'permissions': {'actions': {'read', 'admin', 'readPrivate'}, 'jurisdictions': {}},
             }
         )
 
         scopes = UserScopes(self._user_sub)
 
-        self.assertEqual({'profile', 'aslp/readGeneral', 'aslp/admin', 'aslp/aslp.admin'}, scopes)
+        self.assertEqual({'profile', 'aslp/readGeneral', 'aslp/admin', 'aslp/aslp.admin', 'aslp/aslp.readPrivate'}, scopes)
 
     def test_board_ed_user(self):
         from user_scopes import UserScopes
@@ -37,7 +37,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'pk': f'USER#{self._user_sub}',
                 'sk': 'COMPACT#aslp',
                 'compact': 'aslp',
-                'permissions': {'jurisdictions': {'al': {'write', 'admin'}}},
+                'permissions': {'jurisdictions': {'al': {'write', 'admin', 'readPrivate'}}},
             }
         )
 
@@ -51,7 +51,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'aslp/write',
                 'aslp/al.admin',
                 'aslp/al.write',
-                'aslp/al.readGeneral',
+                'aslp/al.readPrivate',
             },
             scopes,
         )
@@ -91,13 +91,11 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'aslp/write',
                 'aslp/al.admin',
                 'aslp/al.write',
-                'aslp/al.readGeneral',
                 'octp/readGeneral',
                 'octp/admin',
                 'octp/write',
                 'octp/al.admin',
-                'octp/al.write',
-                'octp/al.readGeneral',
+                'octp/al.write'
             },
             scopes,
         )
@@ -121,7 +119,7 @@ class TestGetUserScopesFromDB(TstLambdas):
 
         scopes = UserScopes(self._user_sub)
 
-        self.assertEqual({'profile', 'aslp/readGeneral', 'aslp/write', 'aslp/al.write', 'aslp/al.readGeneral'}, scopes)
+        self.assertEqual({'profile', 'aslp/readGeneral', 'aslp/write', 'aslp/al.write'}, scopes)
 
     def test_missing_user(self):
         from user_scopes import UserScopes

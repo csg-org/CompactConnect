@@ -57,6 +57,10 @@ class UserScopes(set):
         # readGeneral is always added an implicit permission granted to all staff users at the compact level
         self.add(f'{compact_name}/readGeneral')
 
+        if 'readPrivate' in compact_actions:
+            # This action only has one level of authz, since there is no external scope for it
+            self.add(f'{compact_name}/{compact_name}.readPrivate')
+
         if 'admin' in compact_actions:
             # Two levels of authz for admin
             self.add(f'{compact_name}/admin')
@@ -82,9 +86,10 @@ class UserScopes(set):
                 f'{disallowed_actions}',
             )
         for action in jurisdiction_actions:
-            # Two levels of authz
-            self.add(f'{compact_name}/{action}')
-            self.add(f'{compact_name}/{jurisdiction_name}.{action}')
-
-        # readGeneral is always added an implicit permission granted to all staff users at their jurisdiction levels
-        self.add(f'{compact_name}/{jurisdiction_name}.readGeneral')
+            if action == 'readPrivate':
+                # This action only has one level of authz, since there is no external scope for it
+                self.add(f'{compact_name}/{jurisdiction_name}.readPrivate')
+            else:
+                # Two levels of authz
+                self.add(f'{compact_name}/{action}')
+                self.add(f'{compact_name}/{jurisdiction_name}.{action}')

@@ -158,7 +158,6 @@ class LicenseGeneralResponseSchema(ForgivingSchema):
     dateOfIssuance = Date(required=True, allow_none=False)
     dateOfRenewal = Date(required=True, allow_none=False)
     dateOfExpiration = Date(required=True, allow_none=False)
-    dateOfBirth = Date(required=True, allow_none=False)
     homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
     homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
