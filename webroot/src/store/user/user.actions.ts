@@ -129,6 +129,8 @@ export default {
 
         authStorage.setItem(tokens[authType].AUTH_TYPE, authType);
 
+        dispatch('setAuthType', authType, { root: true });
+
         if (accessToken) {
             authStorage.setItem(tokens[authType].AUTH_TOKEN, accessToken);
         }
