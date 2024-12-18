@@ -14,6 +14,8 @@ class TstLambdas(TestCase):
                 'DEBUG': 'true',
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'DATA_EVENT_TABLE_NAME': 'data-event-table',
+                'COMPACTS': '["aslp", "octp", "coun"]',
+                'JURISDICTIONS': '["ne", "oh", "ky"]',
             },
         )
         # Monkey-patch config object to be sure we have it based

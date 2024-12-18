@@ -4,7 +4,7 @@ import os
 import boto3
 from moto import mock_aws
 
-from .. import TstLambdas
+from tests import TstLambdas
 
 logger = logging.getLogger(__name__)
 logging.basicConfig()
