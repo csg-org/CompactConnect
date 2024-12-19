@@ -24,7 +24,7 @@ from smoke_common import (
 # 'smoke_tests_env_example.json' file as a template.
 
 
-TEST_STAFF_USER_EMAIL = 'testStaffUser@fakeemail.com'
+TEST_STAFF_USER_EMAIL = 'testStaffUserQuerySmokeTests@smokeTestFakeEmail.com'
 
 
 def get_general_provider_user_data_smoke_test():
@@ -81,8 +81,7 @@ def get_general_provider_user_data_smoke_test():
 
 def query_provider_user_smoke_test():
     """
-    Verifies that a provider record can be uploaded to the Compact Connect API and the appropriate
-    records are created in the provider table as well as the data events table.
+    Verifies that a provider record can be queried .
 
     Step 1: Get the provider id of the provider user profile information.
     Step 2: Have the staff user query for that provider using the profile information.
@@ -131,7 +130,65 @@ def query_provider_user_smoke_test():
 
     logger.info('Successfully queried expected provider record.')
 
+def get_provider_data_with_read_private_access_smoke_test(test_staff_user_id: str):
+    """
+    Verifies that a staff user can read private fields of a provider record if they have the 'readPrivate' permission.
 
+    Step 1: Update the staff user's permissions using the PATCH '/v1/staff-users/me/permissions' endpoint to include
+    the 'readPrivate' permission.
+    Step 2: Generate a new token and call the GET provider users endpoint with the new token.
+    Step 3: Verify the Provider response matches the profile.
+    """
+
+    # Step 1: Get the provider user profile information.
+    test_user_profile = call_provider_users_me_endpoint()
+    provider_id = provider_user_profile['providerId']
+    compact = provider_user_profile['compact']
+    # Step 1: Update the staff user's permissions using the PATCH '/v1/staff-users/me/permissions' endpoint.
+    staff_users_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
+    patch_body = {
+          "permissions": {
+            "aslp": {
+              "actions": {
+                "readPrivate": True
+              }
+          }
+          }
+    }
+    patch_response = requests.patch(
+        url=config.api_base_url + f'/v1/compacts/{compact}/staff-users/{test_staff_user_id}',
+        headers=staff_users_headers,
+        json=patch_body,
+        timeout=10,
+    )
+
+    if patch_response.status_code != 200:
+        raise SmokeTestFailureException(f'Failed to PATCH staff user permissions. Response: {patch_response.json()}')
+    logger.info('Successfully updated staff user permissions.')
+
+    # Step 2: Generate a new token and call the GET provider users endpoint with the new token.
+    staff_users_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
+    get_provider_response = requests.get(
+        url=config.api_base_url + f'/v1/compacts/{compact}/providers/{provider_id}',
+        headers=staff_users_headers,
+        timeout=10,
+    )
+
+    if get_provider_response.status_code != 200:
+        raise SmokeTestFailureException(f'Failed to GET staff user. Response: {get_provider_response.json()}')
+
+    logger.info('Received success response from GET endpoint')
+
+    # Step 3: Verify the Provider response matches the profile.
+    provider_object = get_provider_response.json()
+    if provider_object != test_user_profile:
+        raise SmokeTestFailureException(
+            f'Provider object does not match the profile.\n'
+            f'Profile response: {test_user_profile}\n'
+            f'Get Provider response: {provider_object}'
+        )
+
+    logger.info('Successfully fetched expected user profile.')
 
 if __name__ == '__main__':
     load_smoke_test_env()
@@ -143,6 +200,7 @@ if __name__ == '__main__':
     try:
         get_general_provider_user_data_smoke_test()
         query_provider_user_smoke_test()
+        get_provider_data_with_read_private_access_smoke_test(test_staff_user_id=test_user_sub)
         logger.info('Query provider smoke tests passed')
     except SmokeTestFailureException as e:
         logger.error(f'Query provider smoke tests failed: {str(e)}')
