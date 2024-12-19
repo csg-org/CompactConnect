@@ -6,6 +6,8 @@ from datetime import UTC, datetime, timedelta
 import requests
 from smoke_common import (
     SmokeTestFailureException,
+    create_test_staff_user,
+    delete_test_staff_user,
     get_api_base_url,
     get_data_events_dynamodb_table,
     get_provider_user_dynamodb_table,
@@ -19,8 +21,11 @@ JURISDICTION = 'ne'
 
 # This script can be run locally to test the license upload/ingest flow against a sandbox environment
 # of the Compact Connect API.
+# Your sandbox account must be deployed with the "security_profile": "VULNERABLE" setting in your cdk.context.json
 # To run this script, create a smoke_tests_env.json file in the same directory as this script using the
 # 'smoke_tests_env_example.json' file as a template.
+
+TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseUploader@smokeTestFakeEmail.com'
 
 
 def upload_licenses_record():
@@ -33,7 +38,7 @@ def upload_licenses_record():
     Step 3: Verify the license record is recorded in the data events table.
     """
 
-    headers = get_staff_user_auth_headers()
+    headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
 
     # Step 1: Upload a license record through the POST '/v1/compacts/aslp/jurisdictions/ne/licenses' endpoint.
     post_body = [
@@ -149,5 +154,18 @@ def upload_licenses_record():
 
 if __name__ == '__main__':
     load_smoke_test_env()
-    upload_licenses_record()
-    print('License record upload smoke test passed')
+    # Create staff user with permission to upload licenses
+    test_user_sub = create_test_staff_user(
+        email=TEST_STAFF_USER_EMAIL,
+        compact=COMPACT,
+        jurisdiction=JURISDICTION,
+        permissions={'actions': {'admin'}, 'jurisdictions': {JURISDICTION: {'write', 'admin'}}},
+    )
+    try:
+        upload_licenses_record()
+        print('License record upload smoke test passed')
+    except SmokeTestFailureException as e:
+        print(f'License record upload smoke test failed: {str(e)}')
+    finally:
+        # Clean up the test staff user
+        delete_test_staff_user(TEST_STAFF_USER_EMAIL, user_sub=test_user_sub, compact=COMPACT)

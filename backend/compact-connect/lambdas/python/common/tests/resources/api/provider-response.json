@@ -1,7 +1,6 @@
 {
   "type": "provider",
   "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
-  "ssn": "123-12-1234",
   "npi": "0608337260",
   "givenName": "Björk",
   "middleName": "Gunnar",
@@ -20,7 +19,6 @@
   "militaryWaiver": false,
   "emailAddress": "björk@example.com",
   "phoneNumber": "+13213214321",
-  "dateOfBirth": "2024-06-06",
   "dateOfUpdate": "2024-07-08T23:59:59+00:00",
   "dateOfExpiration": "2050-06-06",
   "birthMonthDay": "06-06"
