@@ -6,13 +6,12 @@ from functools import cached_property
 import boto3
 from aws_lambda_powertools import Logger
 
-
 logging.basicConfig()
 logger = Logger()
 logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false').lower() == 'true' else logging.INFO)
 
 
-class _Config():
+class _Config:
     @property
     def api_base_url(self):
         return os.environ['CC_TEST_API_BASE_URL']
@@ -57,10 +56,12 @@ class _Config():
     def cognito_client(self):
         return boto3.client('cognito-idp')
 
+
 def load_smoke_test_env():
     with open(os.path.join(os.path.dirname(__file__), 'smoke_tests_env.json')) as env_file:
         env_vars = json.load(env_file)
         os.environ.update(env_vars)
+
 
 load_smoke_test_env()
 config = _Config()
