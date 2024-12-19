@@ -6,11 +6,11 @@
 //
 
 div.checkbox-container {
-    @checkboxBGColor: @white;
+    @checkboxBGColor: transparent;
     @checkboxFontColor: @white;
-    @checkboxBorderColor: @inputBorderColor;
+    @checkboxBorderColor: @fontColor;
     @checkboxBorderWidth: @inputBorderWidth;
-    @checkboxBorderRadius: @inputBorderRadius;
+    @checkboxBorderRadius: 4px;
     @checkboxActiveBorderColor: @primaryColor;
     @checkboxSize: 20px;
     @checkboxFontSize: @checkboxSize - 2px;
@@ -37,6 +37,7 @@ div.checkbox-container {
         width: @checkboxSize;
         height: @checkboxSize;
         margin: 0;
+        padding: 0;
         cursor: pointer;
         opacity: 0;
 
@@ -46,6 +47,7 @@ div.checkbox-container {
             top: 0;
             left: 0;
             display: inline-block;
+            height: @checkboxSize;
             margin: 0;
             padding: 0;
 
@@ -69,17 +71,31 @@ div.checkbox-container {
             color: transparent;
             font-style: normal;
             background-color: @checkboxBGColor;
-            content: "\002E";
+            content: " ";
         }
 
         // Checked replacement
-        &:checked + .checkbox-replacement::before {
-            border: solid @checkboxBorderWidth @checkboxBorderColor;
-            border-radius: @checkboxBorderRadius;
-            color: @checkboxFontColor;
-            font-style: normal;
-            background-color: @primaryColor;
-            content: " \2713";
+        &:checked + .checkbox-replacement {
+            &::before {
+                border: solid @checkboxBorderWidth @checkboxBorderColor;
+                border-radius: @checkboxBorderRadius;
+                color: @checkboxFontColor;
+                font-style: normal;
+                background-color: @checkboxBGColor;
+                content: " ";
+            }
+
+            &::after {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 70%;
+                height: 70%;
+                border-radius: 2px;
+                background-color: @checkboxBorderColor;
+                transform: translate(-50%, -50%);
+                content: " ";
+            }
         }
 
         // Active focus replacement
@@ -90,7 +106,7 @@ div.checkbox-container {
         }
     }
 
-    label {
+    .input-label {
         cursor: pointer;
     }
 }

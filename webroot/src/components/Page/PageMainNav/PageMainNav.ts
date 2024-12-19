@@ -19,6 +19,8 @@ import UploadIcon from '@components/Icons/Upload/Upload.vue';
 import UsersIcon from '@components/Icons/Users/Users.vue';
 import LicenseSearchIcon from '@components/Icons/LicenseSearch/LicenseSearch.vue';
 import SettingsIcon from '@components/Icons/Settings/Settings.vue';
+import DashboardIcon from '@components/Icons/Dashboard/Dashboard.vue';
+import PurchaseIcon from '@components/Icons/Purchase/Purchase.vue';
 import AccountIcon from '@components/Icons/Account/Account.vue';
 import LogoutIcon from '@components/Icons/Logout/Logout.vue';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
@@ -43,6 +45,8 @@ export interface NavLink {
         UsersIcon,
         LicenseSearchIcon,
         SettingsIcon,
+        DashboardIcon,
+        PurchaseIcon,
         AccountIcon,
         LogoutIcon,
     }
@@ -156,6 +160,16 @@ class PageMainNav extends Vue {
                 to: 'LicenseeDashboard',
                 params: { compact: this.currentCompact?.type },
                 label: computed(() => this.$t('navigation.dashboard')),
+                iconComponent: markRaw(DashboardIcon),
+                isEnabled: Boolean(this.currentCompact) && !this.isLoggedInAsStaff,
+                isExternal: false,
+                isExactActive: false,
+            },
+            {
+                to: 'SelectPrivileges',
+                params: { compact: this.currentCompact?.type },
+                label: computed(() => this.$t('navigation.purchasePrivileges')),
+                iconComponent: markRaw(PurchaseIcon),
                 isEnabled: Boolean(this.currentCompact) && !this.isLoggedInAsStaff,
                 isExternal: false,
                 isExactActive: false,

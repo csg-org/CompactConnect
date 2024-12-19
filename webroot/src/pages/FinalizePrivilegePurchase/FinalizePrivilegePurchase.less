@@ -81,7 +81,7 @@
                 padding: 2rem;
                 border-radius: 20px;
                 color: white;
-                background-color: @primaryColor;
+                background-color: @darkBlue;
 
                 @media @tabletWidth {
                     width: 32rem;
@@ -92,7 +92,6 @@
 
                 @media @desktopWidth {
                     margin-top: 8rem;
-                    padding: 8rem 4rem;
                 }
 
                 :deep(.checkbox-container) {
@@ -108,7 +107,6 @@
                     .info-row {
                         display: flex;
                         flex-direction: row;
-                        justify-content: space-between;
                         margin: 1rem 0;
 
                         &.purchase-total {
@@ -117,7 +115,15 @@
                         }
 
                         .info-row-label {
-                            max-width: 16rem;
+                            width: 16rem;
+                        }
+
+                        .info-row-amount {
+                            margin-left: auto;
+
+                            @media @desktopWidth {
+                                margin-left: unset;
+                            }
                         }
                     }
 
