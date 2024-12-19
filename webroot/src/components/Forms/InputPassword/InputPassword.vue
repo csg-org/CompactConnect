@@ -52,12 +52,16 @@
             </div>
         </div>
         <span
-            v-if="!passwordRequirements.length && formInput.errorMessage"
+            v-if="(!passwordRequirements.length || !showRequirements) && formInput.errorMessage"
             class="form-field-error"
         >
             {{ formInput.errorMessage }}
         </span>
-        <div class="password-requirements" :tabindex="(passwordRequirements.length) ? 0 : -1">
+        <div
+            v-if="showRequirements"
+            class="password-requirements"
+            :tabindex="(passwordRequirements.length) ? 0 : -1"
+        >
             <div
                 v-for="{ description, isValid } in passwordRequirements"
                 :key="description"

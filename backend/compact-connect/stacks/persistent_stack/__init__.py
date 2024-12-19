@@ -15,16 +15,17 @@ from constructs import Construct
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.compact_configuration_table import CompactConfigurationTable
 from stacks.persistent_stack.compact_configuration_upload import CompactConfigurationUpload
+from stacks.persistent_stack.data_event_table import DataEventTable
 from stacks.persistent_stack.event_bus import EventBus
 from stacks.persistent_stack.license_table import LicenseTable
 from stacks.persistent_stack.provider_table import ProviderTable
 from stacks.persistent_stack.provider_users import ProviderUsers
+from stacks.persistent_stack.provider_users_bucket import ProviderUsersBucket
 from stacks.persistent_stack.staff_users import StaffUsers
 from stacks.persistent_stack.user_email_notifications import UserEmailNotifications
 
+
 # cdk leverages instance attributes to make resource exports accessible to other stacks
-
-
 class PersistentStack(AppStack):
     """
     The stack that holds long-lived resources such as license data and other things that should probably never
@@ -54,7 +55,7 @@ class PersistentStack(AppStack):
         self.common_python_lambda_layer = PythonLayerVersion(
             self,
             'CompactConnectCommonPythonLayer',
-            entry=os.path.join('lambdas', 'common-python'),
+            entry=os.path.join('lambdas', 'python', 'common'),
             compatible_runtimes=[Runtime.PYTHON_3_12],
             description='A layer for common code shared between python lambdas',
         )
@@ -109,6 +110,7 @@ class PersistentStack(AppStack):
             table=self.compact_configuration_table,
             master_key=self.shared_encryption_key,
             environment_name=environment_name,
+            environment_context=environment_context,
         )
 
         if self.hosted_zone:
@@ -179,14 +181,29 @@ class PersistentStack(AppStack):
             event_bus=self.data_event_bus,
         )
 
+        # These dummy exports are required until we remove dependencies from the api stack
+        # see https://github.com/aws/aws-cdk/issues/3414
+        self.export_value(self.mock_bulk_uploads_bucket.bucket_name)
+        self.export_value(self.mock_bulk_uploads_bucket.bucket_arn)
+
         self.mock_license_table = LicenseTable(
             self, 'MockLicenseTable', encryption_key=self.shared_encryption_key, removal_policy=RemovalPolicy.DESTROY
         )
+
+        # These dummy exports are required until we remove dependencies from the api stack
+        # see https://github.com/aws/aws-cdk/issues/3414
+        self.export_value(self.mock_license_table.table_name)
+        self.export_value(self.mock_license_table.table_arn)
 
     def _add_deprecated_data_resources(self):
         self.license_table = LicenseTable(
             self, 'LicenseTable', encryption_key=self.shared_encryption_key, removal_policy=RemovalPolicy.DESTROY
         )
+
+        # These dummy exports are required until we remove dependencies from the api stack
+        # see https://github.com/aws/aws-cdk/issues/3414
+        self.export_value(self.license_table.table_name)
+        self.export_value(self.license_table.table_arn)
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
         self.bulk_uploads_bucket = BulkUploadsBucket(
@@ -203,6 +220,25 @@ class PersistentStack(AppStack):
             self, 'ProviderTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
         )
 
+        self.data_event_table = DataEventTable(
+            self,
+            'DataEventTable',
+            encryption_key=self.shared_encryption_key,
+            event_bus=self.data_event_bus,
+            alarm_topic=self.alarm_topic,
+            removal_policy=removal_policy,
+        )
+
         self.compact_configuration_table = CompactConfigurationTable(
             self, 'CompactConfigurationTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
+        )
+
+        # bucket for holding documentation for providers
+        self.provider_users_bucket = ProviderUsersBucket(
+            self,
+            'ProviderUsersBucket',
+            access_logs_bucket=self.access_logs_bucket,
+            encryption_key=self.shared_encryption_key,
+            provider_table=self.provider_table,
+            removal_policy=removal_policy,
         )

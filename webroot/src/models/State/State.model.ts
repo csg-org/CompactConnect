@@ -22,7 +22,7 @@ export class State implements InterfaceStateCreate {
     public $tm?: any = () => [];
     public $t?: any = () => '';
     public id? = null;
-    public abbrev? = null;
+    public abbrev? = '';
 
     constructor(data?: InterfaceStateCreate) {
         const cleanDataObject = deleteUndefinedProperties(data);

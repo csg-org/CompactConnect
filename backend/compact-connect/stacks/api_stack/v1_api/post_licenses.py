@@ -59,7 +59,7 @@ class PostLicenses:
             self.api,
             'V1PostLicensesHandler',
             description='Post licenses handler',
-            entry=os.path.join('lambdas', 'provider-data-v1'),
+            lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'licenses.py'),
             handler='post_licenses',
             environment={'EVENT_BUS_NAME': event_bus.event_bus_name, **stack.common_env_vars},

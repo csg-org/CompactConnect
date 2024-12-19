@@ -25,6 +25,7 @@ import HidePasswordEye from '@components/Icons/HidePasswordEye/HidePasswordEye.v
 class InputPassword extends mixins(MixinInput) {
     @Prop({ required: true }) joiMessages!: any;
     @Prop({ default: false }) showEyeIcon?: boolean;
+    @Prop({ default: true }) showRequirements?: boolean;
 
     //
     // Data

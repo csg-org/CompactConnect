@@ -1,0 +1,13 @@
+{
+      "pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
+      "sk": "aslp#PROVIDER#military-affiliation#2024-11-08",
+      "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+      "compact": "aslp",
+      "type": "militaryAffiliation",
+      "documentKeys": ["/provider/<provider_id>/document-type/military-affiliations/2024-07-08/1234#military-waiver.pdf"],
+      "affiliationType": "militaryMember",
+      "fileNames": ["military-waiver.pdf"],
+      "status": "active",
+      "dateOfUpload": "2024-11-08T23:59:59+00:00",
+      "dateOfUpdate": "2024-11-08T23:59:59+00:00"
+}

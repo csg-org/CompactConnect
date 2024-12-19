@@ -7,6 +7,7 @@
 
 import { Component, mixins } from 'vue-facing-decorator';
 import { reactive, computed } from 'vue';
+import { stateList } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
@@ -16,6 +17,7 @@ import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputCreditCard from '@components/Forms/InputCreditCard/InputCreditCard.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import { Compact } from '@models/Compact/Compact.model';
+import { State } from '@models/State/State.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import { LicenseeUserPurchaseSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
@@ -139,11 +141,10 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     get stateOptions() {
         const stateOptions = [{ value: '', name: this.$t('common.select') }];
 
-        const states = this.$tm('common.states') as Array<any>;
-
-        states?.forEach((state) => {
-            const value = state?.abbrev?.source?.toLowerCase();
-            const name = state?.full?.source;
+        stateList?.forEach((state) => {
+            const stateObject = new State({ abbrev: state });
+            const value = stateObject?.abbrev?.toLowerCase();
+            const name = stateObject?.name();
 
             if (name && value) {
                 stateOptions.push({ value, name });
