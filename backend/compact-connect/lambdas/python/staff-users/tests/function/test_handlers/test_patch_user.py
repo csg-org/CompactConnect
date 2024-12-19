@@ -142,6 +142,42 @@ class TestPatchUser(TstFunction):
 
         self.assertEqual(api_user, user)
 
+    def test_patch_user_remove_all_actions(self):
+        from handlers.users import patch_user, post_user
+
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        with open('tests/resources/api/user-post.json') as f:
+            api_user = json.load(f)
+
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/aslp.admin'
+        event['pathParameters'] = {'compact': 'aslp'}
+        event['body'] = json.dumps(api_user)
+
+        resp = post_user(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+        user = json.loads(resp['body'])
+        user_id = user.pop('userId')
+
+        # Remove all the permissions from the user
+        event['pathParameters'] = {'compact': 'aslp', 'userId': user_id}
+        api_user['permissions'] = {
+            'aslp': {'actions': {'read': False}, 'jurisdictions': {'oh': {'actions': {'write': False}}}}
+        }
+        event['body'] = json.dumps(api_user)
+
+        resp = patch_user(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+        user = json.loads(resp['body'])
+
+        # Drop backend-generated fields from comparison
+        del user['userId']
+        del user['dateOfUpdate']
+
+        api_user['permissions'] = {'aslp': {'jurisdictions': {}}}
+        self.assertEqual(api_user, user)
+
     def test_patch_user_forbidden(self):
         self._load_user_data()
 
