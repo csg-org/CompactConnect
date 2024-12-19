@@ -165,7 +165,8 @@ class UserPool(CdkUserPool):
         return self.add_client(
             'UIClient',
             auth_flows=AuthFlow(
-                admin_user_password=False,
+                # we allow this in test environments for automated testing
+                admin_user_password=False if self.security_profile == SecurityProfile.RECOMMENDED else True,
                 custom=False,
                 user_srp=self.security_profile == SecurityProfile.VULNERABLE,
                 user_password=False,

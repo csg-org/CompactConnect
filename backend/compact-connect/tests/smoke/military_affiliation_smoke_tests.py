@@ -13,7 +13,8 @@ from smoke_common import (
 )
 
 # This script is used to test the military affiliations upload flow against a sandbox environment
-# # of the Compact Connect API.
+# of the Compact Connect API. It requires that you have a provider user set up in the sandbox environment.
+# Your sandbox account must also be deployed with the "security_profile": "VULNERABLE" setting in your cdk.context.json
 
 # To run this script, create a smoke_tests_env.json file in the same directory as this script using the
 # 'smoke_tests_env_example.json' file as a template.
