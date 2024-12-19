@@ -105,6 +105,43 @@ class TestPatchUser(TstFunction):
             user,
         )
 
+    def test_patch_user_add_to_empty_actions(self):
+        from handlers.users import patch_user, post_user
+
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        with open('tests/resources/api/user-post.json') as f:
+            api_user = json.load(f)
+        # Create a user with no compact read or admin, no actions in a jurisdiction
+        api_user['permissions'] = {'aslp': {'jurisdictions': {}}}
+        event['body'] = json.dumps(api_user)
+
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/aslp.admin'
+        event['pathParameters'] = {'compact': 'aslp'}
+
+        resp = post_user(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+        user = json.loads(resp['body'])
+        user_id = user.pop('userId')
+
+        # Add compact read and oh admin permissions to the user
+        event['pathParameters'] = {'compact': 'aslp', 'userId': user_id}
+        api_user['permissions'] = {
+            'aslp': {'actions': {'read': True}, 'jurisdictions': {'oh': {'actions': {'admin': True}}}}
+        }
+        event['body'] = json.dumps(api_user)
+
+        resp = patch_user(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+        user = json.loads(resp['body'])
+
+        # Drop backend-generated fields from comparison
+        del user['userId']
+        del user['dateOfUpdate']
+
+        self.assertEqual(api_user, user)
+
     def test_patch_user_forbidden(self):
         self._load_user_data()
 
