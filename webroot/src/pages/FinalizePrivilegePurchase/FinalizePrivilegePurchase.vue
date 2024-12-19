@@ -14,14 +14,12 @@
                         <div class="finalize-purchase-title">{{paymentTitleText}}</div>
                         <CollapseCaretButton v-if="isPhone" @toggleCollapse="togglePaymentCollapsed" />
                     </div>
+                    <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                     <div v-if="shouldShowPaymentSection || !isPhone" class="payment-core-form">
                         <div class="credit-card-section">
                             <div class="credit-card-title">{{creditCardTitleText}}</div>
                             <div class="form-row">
-                                <InputText :formInput="formData.firstName" />
-                            </div>
-                            <div class="form-row">
-                                <InputText :formInput="formData.lastName" />
+                                <InputText :formInput="formData.fullName" />
                             </div>
                             <div class="form-row">
                                 <InputCreditCard :formInput="formData.creditCard" @input="formatCreditCard()" />
@@ -54,13 +52,19 @@
                         <div class="billing-address-section">
                             <div class="billing-address-title">{{billingAddressTitleText}}</div>
                             <div class="form-row">
+                                <InputText :formInput="formData.firstName" />
+                            </div>
+                            <div class="form-row">
+                                <InputText :formInput="formData.lastName" />
+                            </div>
+                            <div class="form-row">
                                 <InputText :formInput="formData.streetAddress1" />
                             </div>
                             <div class="form-row">
                                 <InputText :formInput="formData.streetAddress2" />
                             </div>
                             <div class="state-zip-line form-row">
-                                <InputSelect :formInput="formData.stateSelect" />
+                                <InputSelect :formInput="formData.stateSelect" class="state-select" />
                                 <InputText
                                     :formInput="formData.zip"
                                     @input="handleZipInput(formData.cvv)"
@@ -74,7 +78,7 @@
                         <div class="selection-title">{{selectionText}}</div>
                         <ul>
                             <li
-                                v-for="(state) in seletedStatePurchaseDsiplayDataList"
+                                v-for="(state) in selectedStatePurchaseDisplayDataList"
                                 :key="state.jurisdiction.abbrev"
                                 class="selected-state-block"
                             >
@@ -97,7 +101,7 @@
                             <div class="info-row-amount total">${{totalPurchasePriceDisplay}}</div>
                         </div>
                     </div>
-                    <InputCheckbox :formInput="formData.noRefunds" />
+                    <InputCheckbox :formInput="formData.noRefunds" class="no-refunds-checkbox" />
                 </div>
             </div>
             <div v-if="formErrorMessage" class="form-error-message">{{formErrorMessage}}</div>
