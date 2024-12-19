@@ -124,4 +124,5 @@ class V1Api:
             self_resource=staff_users_self_resource,
             admin_scopes=admin_scopes,
             persistent_stack=persistent_stack,
+            api_model=self.api_model,
         )

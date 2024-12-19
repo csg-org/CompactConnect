@@ -35,6 +35,8 @@ class SocialSecurityNumber(String):
 class Set(List):
     """A Field that de/serializes to a Set (not compatible with JSON)"""
 
+    default_error_messages = {'invalid': 'Not a valid set.'}
+
     def _serialize(self, *args, **kwargs):
         return set(super()._serialize(*args, **kwargs))
 

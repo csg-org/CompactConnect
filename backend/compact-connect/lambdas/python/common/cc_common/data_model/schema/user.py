@@ -18,6 +18,19 @@ class CompactPermissionsRecordSchema(Schema):
         allow_none=False,
     )
 
+    @post_dump
+    def drop_empty_actions(self, data, **kwargs):  # noqa: ARG002 unused-kwargs
+        """
+        DynamoDB doesn't like empty sets, so we will make a point to drop an actions field entirely,
+        if it is empty.
+        """
+        if not data.get('actions', {}):
+            data.pop('actions', None)
+        empty_jurisdictions = [jurisdiction for jurisdiction, actions in data['jurisdictions'].items() if not actions]
+        for jurisdiction in empty_jurisdictions:
+            del data['jurisdictions'][jurisdiction]
+        return data
+
 
 class UserAttributesSchema(Schema):
     email = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -63,7 +76,7 @@ class CompactActionPermissionAPISchema(Schema):
     actions = Dict(
         keys=String(),  # Keys are actions
         values=Boolean(),
-        required=True,
+        required=False,
         allow_none=False,
     )
 
@@ -90,7 +103,7 @@ class UserAPISchema(Schema):
     dateOfUpdate = Raw(required=True, allow_none=False)
     attributes = Nested(UserAttributesSchema(), required=True, allow_none=False)
     permissions = Dict(
-        keys=String(validate=OneOf(config.compacts)),
+        keys=String(validate=OneOf(config.compacts)),  # Key is one compact
         values=Nested(CompactPermissionsAPISchema(), required=True, allow_none=False),
         validate=Length(equal=1),
     )
@@ -128,12 +141,14 @@ class UserAPISchema(Schema):
             data['compact'] = compact
 
         # { "actions": { "read": True } } -> { "actions": { "read" } }
-        data['permissions']['actions'] = {key for key, value in data['permissions']['actions'].items() if value is True}
+        data['permissions']['actions'] = {
+            key for key, value in data['permissions'].get('actions', {}).items() if value is True
+        }
 
         # { "oh": { "actions": { "write": True } } } -> { "oh": { "write" } }
         for jurisdiction, jurisdiction_permissions in data['permissions']['jurisdictions'].items():
             data['permissions']['jurisdictions'][jurisdiction] = {
-                key for key, value in jurisdiction_permissions['actions'].items() if value is True
+                key for key, value in jurisdiction_permissions.get('actions', {}).items() if value is True
             }
 
         return data
