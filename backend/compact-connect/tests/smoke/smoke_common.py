@@ -33,7 +33,6 @@ os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 # We have to import this after we've added the common lib to our path and environment
 from cc_common.data_model.schema.user import UserRecordSchema  # noqa: E402
 
-
 TEST_STAFF_USER_PASSWORD = 'TestPass123!'  # noqa: S105 test credential for test staff user
 
 
@@ -41,6 +40,7 @@ def _create_staff_user_in_cognito(*, email: str) -> str:
     """
     Creates a staff user in Cognito and returns the user's sub.
     """
+
     def get_sub_from_attributes(user_attributes: list):
         for attribute in user_attributes:
             if attribute['Name'] == 'sub':
@@ -52,7 +52,7 @@ def _create_staff_user_in_cognito(*, email: str) -> str:
             UserPoolId=config.cognito_staff_user_pool_id,
             Username=email,
             UserAttributes=[{'Name': 'email', 'Value': email}],
-            TemporaryPassword='TempPass123!'
+            TemporaryPassword='TempPass123!',
         )
         logger.info(f"Created staff user, '{email}'. Setting password.")
         # set this to simplify login flow for user
@@ -60,7 +60,7 @@ def _create_staff_user_in_cognito(*, email: str) -> str:
             UserPoolId=config.cognito_staff_user_pool_id,
             Username=email,
             Password=TEST_STAFF_USER_PASSWORD,
-            Permanent=True
+            Permanent=True,
         )
         logger.info(f"Set password for staff user, '{email}' in Cognito. New user data: {user_data}")
         return get_sub_from_attributes(user_data['User']['Attributes'])
@@ -68,11 +68,13 @@ def _create_staff_user_in_cognito(*, email: str) -> str:
     except ClientError as e:
         if e.response['Error']['Code'] == 'UsernameExistsException':
             logger.info(f"Staff user, '{email}', already exists in Cognito. Getting user data.")
-            user_data = config.cognito_client.admin_get_user(UserPoolId=config.cognito_staff_user_pool_id,
-                                                             Username=email)
+            user_data = config.cognito_client.admin_get_user(
+                UserPoolId=config.cognito_staff_user_pool_id, Username=email
+            )
             return get_sub_from_attributes(user_data['UserAttributes'])
 
         raise e
+
 
 def delete_test_staff_user(email, user_sub: str, compact: str):
     """
@@ -80,10 +82,7 @@ def delete_test_staff_user(email, user_sub: str, compact: str):
     """
     try:
         logger.info(f"Deleting staff user from cognito, '{email}'")
-        config.cognito_client.admin_delete_user(
-            UserPoolId=config.cognito_staff_user_pool_id,
-            Username=email
-        )
+        config.cognito_client.admin_delete_user(UserPoolId=config.cognito_staff_user_pool_id, Username=email)
         # now clean up the user record in DynamoDB
         pk = f'USER#{user_sub}'
         sk = f'COMPACT#{compact}'
@@ -114,9 +113,10 @@ def create_test_staff_user(*, email: str, compact: str, jurisdiction: str, permi
             },
         ),
     )
-    logger.info(f"Created staff user record in DynamoDB. User data: {user_attributes}")
+    logger.info(f'Created staff user record in DynamoDB. User data: {user_attributes}')
 
     return sub
+
 
 def get_user_tokens(email, password=TEST_STAFF_USER_PASSWORD, is_staff=False):
     """
@@ -134,23 +134,19 @@ def get_user_tokens(email, password=TEST_STAFF_USER_PASSWORD, is_staff=False):
     }
     """
     try:
-        logger.info("Getting tokens for user: " + email + " user type: " + ("staff" if is_staff else "provider"))
+        logger.info('Getting tokens for user: ' + email + ' user type: ' + ('staff' if is_staff else 'provider'))
         response = config.cognito_client.admin_initiate_auth(
             UserPoolId=config.cognito_staff_user_pool_id if is_staff else config.cognito_provider_user_pool_id,
             ClientId=config.cognito_staff_user_client_id if is_staff else config.cognito_provider_user_client_id,
             AuthFlow='ADMIN_USER_PASSWORD_AUTH',
-            AuthParameters={
-                'USERNAME': email,
-                'PASSWORD': password
-            }
+            AuthParameters={'USERNAME': email, 'PASSWORD': password},
         )
 
         return response['AuthenticationResult']
 
     except ClientError as e:
-        logger.info(f"Failed to get tokens for user {email}: {str(e)}")
+        logger.info(f'Failed to get tokens for user {email}: {str(e)}')
         raise e
-
 
 
 def get_provider_user_auth_headers():

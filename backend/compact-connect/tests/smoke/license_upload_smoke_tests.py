@@ -155,9 +155,12 @@ def upload_licenses_record():
 if __name__ == '__main__':
     load_smoke_test_env()
     # Create staff user with permission to upload licenses
-    test_user_sub = create_test_staff_user(email=TEST_STAFF_USER_EMAIL, compact=COMPACT, jurisdiction=JURISDICTION,
-                                           permissions={'actions': {'admin'},
-                                                        'jurisdictions': {JURISDICTION: {'write', 'admin'}}})
+    test_user_sub = create_test_staff_user(
+        email=TEST_STAFF_USER_EMAIL,
+        compact=COMPACT,
+        jurisdiction=JURISDICTION,
+        permissions={'actions': {'admin'}, 'jurisdictions': {JURISDICTION: {'write', 'admin'}}},
+    )
     try:
         upload_licenses_record()
         print('License record upload smoke test passed')
