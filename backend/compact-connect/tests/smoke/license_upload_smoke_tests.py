@@ -25,7 +25,7 @@ JURISDICTION = 'ne'
 # To run this script, create a smoke_tests_env.json file in the same directory as this script using the
 # 'smoke_tests_env_example.json' file as a template.
 
-TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseUploader@fakeemail.com'
+TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseUploader@smokeTestFakeEmail.com'
 
 
 def upload_licenses_record():
