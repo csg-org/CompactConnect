@@ -128,7 +128,7 @@ class TestPatchUser(TstFunction):
         # Add compact read and oh admin permissions to the user
         event['pathParameters'] = {'compact': 'aslp', 'userId': user_id}
         api_user['permissions'] = {
-            'aslp': {'actions': {'read': True}, 'jurisdictions': {'oh': {'actions': {'admin': True}}}}
+            'aslp': {'actions': {'readPrivate': True}, 'jurisdictions': {'oh': {'actions': {'admin': True}}}}
         }
         event['body'] = json.dumps(api_user)
 
@@ -163,7 +163,7 @@ class TestPatchUser(TstFunction):
         # Remove all the permissions from the user
         event['pathParameters'] = {'compact': 'aslp', 'userId': user_id}
         api_user['permissions'] = {
-            'aslp': {'actions': {'read': False}, 'jurisdictions': {'oh': {'actions': {'write': False}}}}
+            'aslp': {'actions': {'readPrivate': False}, 'jurisdictions': {'oh': {'actions': {'write': False}}}}
         }
         event['body'] = json.dumps(api_user)
 
