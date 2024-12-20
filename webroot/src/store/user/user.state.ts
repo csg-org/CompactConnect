@@ -8,7 +8,12 @@
 import { LicenseeUser } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { Compact } from '@models/Compact/Compact.model';
-import { authStorage, tokens, AuthTypes } from '@/app.config';
+import {
+    authStorage,
+    tokens,
+    AuthTypes,
+    AUTH_TYPE
+} from '@/app.config';
 
 export interface State {
     model: StaffUser | LicenseeUser | null;
@@ -27,8 +32,8 @@ export interface State {
 export const state: State = {
     model: null,
     isLoggedIn: (!!authStorage.getItem(tokens.staff.AUTH_TOKEN) || !!authStorage.getItem(tokens.licensee.AUTH_TOKEN)),
-    isLoggedInAsLicensee: Boolean(authStorage.getItem(tokens.licensee.AUTH_TYPE) === AuthTypes.LICENSEE),
-    isLoggedInAsStaff: Boolean(authStorage.getItem(tokens.staff.AUTH_TYPE) === AuthTypes.STAFF),
+    isLoggedInAsLicensee: Boolean(authStorage.getItem(AUTH_TYPE) === AuthTypes.LICENSEE),
+    isLoggedInAsStaff: Boolean(authStorage.getItem(AUTH_TYPE) === AuthTypes.STAFF),
     isLoadingAccount: false,
     isLoadingPrivilegePurchaseOptions: false,
     arePurchaseAttestationsAccepted: false,

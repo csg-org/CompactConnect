@@ -8,7 +8,7 @@
 import { createRouter, createWebHistory, RouteLocationNormalized as Route } from 'vue-router';
 import routes from '@router/routes';
 import store from '@/store';
-import { authStorage, tokens, AuthTypes } from '@/app.config';
+import { authStorage, AUTH_TYPE, AuthTypes } from '@/app.config';
 import { CompactSerializer } from '@models/Compact/Compact.model';
 
 const router = createRouter({
@@ -50,8 +50,8 @@ router.beforeEach(async (to, from, next) => {
         if (!isLoggedIn) {
             next({ name: 'Logout' });
         } else if ((isLicenseeRoute && isStaffRoute)
-        || (isLicenseeRoute && authStorage.getItem(tokens.licensee.AUTH_TYPE) === AuthTypes.LICENSEE)
-        || (isStaffRoute && authStorage.getItem(tokens.staff.AUTH_TYPE) === AuthTypes.STAFF)) {
+        || (isLicenseeRoute && authStorage.getItem(AUTH_TYPE) === AuthTypes.LICENSEE)
+        || (isStaffRoute && authStorage.getItem(AUTH_TYPE) === AuthTypes.STAFF)) {
             next();
         } else {
             next({ name: 'Home' });

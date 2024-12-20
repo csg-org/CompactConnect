@@ -7,7 +7,12 @@
 
 import { dataApi } from '@network/data.api';
 import { config } from '@plugins/EnvConfig/envConfig.plugin';
-import { authStorage, AuthTypes, tokens } from '@/app.config';
+import {
+    authStorage,
+    AuthTypes,
+    tokens,
+    AUTH_TYPE
+} from '@/app.config';
 import localStorage from '@store/local.storage';
 import { Compact } from '@models/Compact/Compact.model';
 import moment from 'moment';
@@ -112,7 +117,7 @@ export default {
             refresh_token: refreshToken,
         } = tokenResponse || {};
 
-        authStorage.setItem(tokens[authType].AUTH_TYPE, authType);
+        authStorage.setItem(AUTH_TYPE, authType);
 
         if (accessToken) {
             authStorage.setItem(tokens[authType].AUTH_TOKEN, accessToken);
@@ -197,6 +202,8 @@ export default {
         dispatch('reset', null, { root: true });
     },
     clearAllNonAccessTokens: () => {
+        authStorage.removeItem(AUTH_TYPE);
+
         /* istanbul ignore next */
         Object.keys(tokens[AuthTypes.STAFF]).forEach((key) => {
             if (key !== 'AUTH_TOKEN') {
@@ -212,6 +219,8 @@ export default {
         });
     },
     clearAuthToken: (def, authType) => {
+        authStorage.removeItem(AUTH_TYPE);
+
         /* istanbul ignore next */
         Object.keys(tokens[authType]).forEach((key) => {
             authStorage.removeItem(tokens[authType][key]);

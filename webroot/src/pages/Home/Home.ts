@@ -12,7 +12,7 @@ import {
     toNative
 } from 'vue-facing-decorator';
 import { Compact } from '@models/Compact/Compact.model';
-import { AuthTypes, authStorage, tokens } from '@/app.config';
+import { AuthTypes, authStorage, AUTH_TYPE } from '@/app.config';
 
 @Component({
     name: 'HomePage',
@@ -41,8 +41,7 @@ class Home extends Vue {
 
         if (currentCompact) {
             const compactType = currentCompact.type;
-            const authType = authStorage.getItem(tokens.staff.AUTH_TYPE)
-                || authStorage.getItem(tokens.licensee.AUTH_TYPE);
+            const authType = authStorage.getItem(AUTH_TYPE);
 
             if (authType === AuthTypes.STAFF) {
                 this.$router.push({ name: 'Licensing', params: { compact: compactType }});
