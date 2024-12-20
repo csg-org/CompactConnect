@@ -294,8 +294,11 @@ class ApiModel:
                     'actions': JsonSchema(
                         type=JsonSchemaType.OBJECT,
                         properties={
-                            'read': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                            'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
                             'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                            # TODO keeping 'read' action for backwards compatibility
+                            #  this should be removed after the frontend is updated
+                            'read': JsonSchema(type=JsonSchemaType.BOOLEAN),
                         },
                     ),
                     'jurisdictions': JsonSchema(
@@ -309,6 +312,7 @@ class ApiModel:
                                     properties={
                                         'write': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                         'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                                        'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                     },
                                 ),
                             },
