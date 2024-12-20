@@ -37,7 +37,6 @@ class IngestStack(AppStack):
                 'SSN_TABLE_NAME': persistent_stack.ssn_table.table_name,
                 'SSN_INVERTED_INDEX_NAME': persistent_stack.ssn_table.inverted_index_name,
                 **self.common_env_vars,
-                **self.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
         )

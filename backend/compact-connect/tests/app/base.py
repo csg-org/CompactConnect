@@ -191,7 +191,9 @@ class TstAppABC(ABC):
             {'KMSMasterKeyId': {'Fn::GetAtt': [ssn_key_logical_id, 'Arn']}, 'SSEEnabled': True, 'SSEType': 'KMS'},
         )
         self.compare_snapshot(
-            ssn_table_template['ResourcePolicy']['PolicyDocument'], 'SSN_TABLE_RESOURCE_POLICY', overwrite_snapshot=True
+            ssn_table_template['ResourcePolicy']['PolicyDocument'],
+            'SSN_TABLE_RESOURCE_POLICY',
+            overwrite_snapshot=False,
         )
 
     def _inspect_data_events_table(self, persistent_stack: PersistentStack, persistent_stack_template: Template):
