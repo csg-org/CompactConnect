@@ -249,5 +249,5 @@ Note that testing the **built** app locally will require a running web server; f
     second hosted login page after logging in normally to the first
     - When the user logs in as to the second user pool we record that the app should treat them as the second user type and save the initial access token
         - When the user logs out we check the existence of the access tokens to see which user pools we need to log out, and then chain logout redirects
-        to visist all necessary logout pages
+        to visit all necessary logout pages
 ---
