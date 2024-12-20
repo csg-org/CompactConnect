@@ -17,7 +17,7 @@ class TestClient(TstFunction):
         provider_ssn = record['ssn']
         expected_provider_id = record['providerId']
 
-        self._provider_table.put_item(
+        self._ssn_table.put_item(
             # We'll use the schema/serializer to populate index fields for us
             Item=record,
         )

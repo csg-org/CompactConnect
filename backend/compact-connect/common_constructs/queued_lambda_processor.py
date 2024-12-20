@@ -1,9 +1,9 @@
-from aws_cdk import Duration
+from aws_cdk import Duration, Names
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
+from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_lambda import IFunction
-from aws_cdk.aws_lambda_event_sources import SqsEventSource
 from aws_cdk.aws_logs import QueryDefinition, QueryString
 from aws_cdk.aws_sns import ITopic
 from aws_cdk.aws_sqs import DeadLetterQueue, IQueue, Queue, QueueEncryption
@@ -51,14 +51,46 @@ class QueuedLambdaProcessor(Construct):
             dead_letter_queue=DeadLetterQueue(max_receive_count=max_receive_count, queue=self.dlq),
         )
 
-        process_function.add_event_source(
-            SqsEventSource(
-                self.queue,
-                batch_size=batch_size,
-                max_batching_window=max_batching_window,
-                report_batch_item_failures=True,
-            ),
+        # The following section of code is equivalent to:
+        # process_function.add_event_source(
+        #     SqsEventSource(
+        #         self.queue,
+        #         batch_size=batch_size,
+        #         max_batching_window=max_batching_window,
+        #         report_batch_item_failures=True,
+        #     ),
+        # )
+        #
+        # Except that we are granting the lambda permission to consume SQS messages via resource policy
+        # on the queue, rather than the more conventional approach of principal policy on the IAM role.
+        #
+        # We use a lower-level add_event_source_mapping method here so that we can control how those
+        # permissions are granted. In this case, we need to grant permissions via resource policy on
+        # the Queue rather than principal policy on the role to avoid creating a dependency from the
+        # role on the queue. In some cases, adding the dependency on the role can cause a circular
+        # dependency.
+        process_function.add_event_source_mapping(
+            f'SqsEventSource:{Names.node_unique_id(self.queue.node)}',
+            batch_size=batch_size,
+            max_batching_window=max_batching_window,
+            report_batch_item_failures=True,
+            event_source_arn=self.queue.queue_arn,
         )
+        self.queue.add_to_resource_policy(
+            PolicyStatement(
+                effect=Effect.ALLOW,
+                principals=[process_function.role],
+                actions=[
+                    'sqs:ReceiveMessage',
+                    'sqs:ChangeMessageVisibility',
+                    'sqs:GetQueueUrl',
+                    'sqs:DeleteMessage',
+                    'sqs:GetQueueAttributes',
+                ],
+                resources=[self.queue.queue_arn],
+            )
+        )
+
         self._add_queue_alarms(
             retention_period=retention_period, queue=self.queue, dlq=self.dlq, alarm_topic=alarm_topic
         )

@@ -89,6 +89,7 @@ class V1Api:
             method_options=read_auth_method_options,
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
+            ssn_table=persistent_stack.ssn_table,
             api_model=self.api_model,
         )
 
