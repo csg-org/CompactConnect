@@ -355,7 +355,7 @@ describe('User Store Actions', async () => {
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_REFRESH_TIMEOUT_ID, null]);
     });
-    it('should successfully clear update auth tokens by clearing existing ones except for auth token, then storing', () => {
+    it('should successfully clear and update auth tokens by clearing existing ones except for auth token, then storing', () => {
         const dispatch = sinon.spy();
         const authType = 'staff';
 

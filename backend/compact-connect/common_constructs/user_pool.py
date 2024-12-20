@@ -161,8 +161,6 @@ class UserPool(CdkUserPool):
                 "This app requires a logout url for its logout function. Either provide 'domain_name' or set "
                 "'allow_local_ui' to true in this environment's context."
             )
-        # Do not allow resource server scopes via the client - they are assigned via token customization
-        # to allow for user attribute-based access
 
         return self.add_client(
             'UIClient',
