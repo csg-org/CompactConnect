@@ -242,14 +242,14 @@ class PersistentStack(AppStack):
             scope=self,
             construct_id='CompactConfigurationTable',
             encryption_key=self.shared_encryption_key,
-            removal_policy=removal_policy
+            removal_policy=removal_policy,
         )
 
         self.transaction_history_table = TransactionHistoryTable(
             scope=self,
             construct_id='TransactionHistoryTable',
             encryption_key=self.shared_encryption_key,
-            removal_policy=removal_policy
+            removal_policy=removal_policy,
         )
 
         # bucket for holding documentation for providers
@@ -271,7 +271,7 @@ class PersistentStack(AppStack):
         """
         # If there is no hosted zone, we don't have a domain name to send from
         # so we'll use a placeholder value which will cause the lambda to perform a no-op
-        from_address = "NONE"
+        from_address = 'NONE'
         if self.hosted_zone:
             from_address = f'noreply@{self.user_email_notifications.email_identity.email_identity_name}'
 

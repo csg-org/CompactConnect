@@ -5,6 +5,7 @@ from stacks.api_stack import ApiStack
 from stacks.ingest_stack import IngestStack
 from stacks.persistent_stack import PersistentStack
 from stacks.reporting_stack import ReportingStack
+from stacks.transaction_monitoring_stack import TransactionMonitoringStack
 from stacks.ui_stack import UIStack
 
 
@@ -74,6 +75,15 @@ class BackendStage(Stage):
                 env=environment,
                 environment_context=environment_context,
                 standard_tags=standard_tags,
-                environment_name=environment_name,
                 persistent_stack=self.persistent_stack,
             )
+
+        self.transaction_monitoring_stack = TransactionMonitoringStack(
+            self,
+            'TransactionMonitoringStack',
+            env=environment,
+            environment_name=environment_name,
+            environment_context=environment_context,
+            standard_tags=standard_tags,
+            persistent_stack=self.persistent_stack,
+        )
