@@ -11,23 +11,6 @@ import { Component, Vue, toNative } from 'vue-facing-decorator';
     name: 'Reports',
 })
 class Reports extends Vue {
-    // PROPS
-
-    //
-    // Data
-    //
-
-    //
-    // Lifecycle
-    //
-
-    //
-    // Computed
-    //
-
-    //
-    // Methods
-    //
 }
 
 export default toNative(Reports);

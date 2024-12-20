@@ -11,23 +11,6 @@ import { Component, Vue, toNative } from 'vue-facing-decorator';
     name: 'Upload',
 })
 class Upload extends Vue {
-    // PROPS
-
-    //
-    // Data
-    //
-
-    //
-    // Lifecycle
-    //
-
-    //
-    // Computed
-    //
-
-    //
-    // Methods
-    //
 }
 
 export default toNative(Upload);
