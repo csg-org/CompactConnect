@@ -33,4 +33,10 @@ export default {
     setAuthType: ({ commit }, type) => {
         commit(MutationTypes.SET_AUTH_TYPE, type);
     },
+    expandNavMenu: ({ commit }) => {
+        commit(MutationTypes.EXPAND_NAV_MENU);
+    },
+    collapseNavMenu: ({ commit }) => {
+        commit(MutationTypes.COLLAPSE_NAV_MENU);
+    },
 };

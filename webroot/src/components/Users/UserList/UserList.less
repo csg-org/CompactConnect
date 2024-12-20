@@ -6,41 +6,31 @@
 //
 
 .user-list-container {
-    background-color: @white;
+    background-color: transparent;
 
-    .list-actions-container {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        padding-bottom: 1.2rem;
+    .search-container {
+        margin-top: 1.2rem;
 
         @media @desktopWidth {
-            flex-direction: row;
+            margin-top: 0;
         }
 
-        .search-container {
-            width: 100%;
-            max-width: 80rem;
+        .user-search-submit {
+            .visually-hidden();
+        }
+    }
 
-            @media @desktopWidth {
-                width: 50%;
-            }
+    .invite-button-container {
+        display: flex;
+        margin-top: 2.4rem;
 
-            .user-search-submit {
-                .visually-hidden();
-            }
+        @media @desktopWidth {
+            margin-top: 0;
+            margin-left: 4rem;
         }
 
-        .invite-button-container {
-            display: flex;
-
-            @media @desktopWidth {
-                margin-left: auto;
-            }
-
-            .invite-user {
-                height: 4.0rem;
-            }
+        .invite-user {
+            height: 4rem;
         }
     }
 

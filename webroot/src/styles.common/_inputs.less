@@ -5,10 +5,14 @@
 //  Created by Inspiring Apps on 5/3/2024.
 //
 
+@inputBorderWidth: 1px;
+@inputBorderColor: @midGrey;
+@inputBorderRadius: 4px;
+
 .input-container {
     display: flex;
     flex-direction: column;
-    margin-bottom: 4rem;
+    margin-bottom: 2.4rem;
 
     &.no-margin {
         margin: 0;
@@ -21,7 +25,7 @@
         margin-bottom: 0.6rem;
         color: @fontColor;
         font-weight: @fontWeightBold;
-        font-size: @h4FontSize;
+        font-size: 1.6rem;
 
         .icon {
             padding-right: 0.6rem;
@@ -39,8 +43,8 @@
         box-sizing: border-box;
         min-height: 4rem;
         padding: 0 0.4rem;
-        border: 1px solid @black;
-        border-radius: 0;
+        border: @inputBorderWidth solid @inputBorderColor;
+        border-radius: @inputBorderRadius;
         font-size: @fontSize;
         font-family: @fontFamily;
         background-color: @white;

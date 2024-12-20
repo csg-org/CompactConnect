@@ -10,11 +10,8 @@
     flex-direction: column;
     width: 100%;
     min-height: 100vh;
-    background-color: #eee;
-
-    &.include-page-header {
-        padding-top: @appHeaderHeight;
-    }
+    padding-top: @appHeaderHeight;
+    background-color: @ambientGrey;
 
     header {
         position: fixed;
@@ -31,5 +28,9 @@
         flex-direction: column;
         flex-grow: 1;
         flex-shrink: 0;
+
+        @media @tabletWidth {
+            padding-left: @navPartialExpandWidth;
+        }
     }
 }

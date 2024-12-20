@@ -60,10 +60,12 @@
         background-color: @buttonTransparentBGColor;
 
         .icon {
+            transition: fill @transition;
             fill: @buttonTransparentTextColor;
         }
 
         &:hover {
+            border-color: @buttonTransparentHoverBGColor;
             color: @buttonTransparentHoverTextColor;
             background-color: @buttonTransparentHoverBGColor;
 

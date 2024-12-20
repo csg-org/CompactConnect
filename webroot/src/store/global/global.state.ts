@@ -14,6 +14,7 @@ export interface State {
     isModalOpen: boolean;
     isModalLogoutOnly: boolean;
     authType: AuthTypes;
+    isNavExpanded: boolean;
 }
 
 export const state: State = {
@@ -23,4 +24,5 @@ export const state: State = {
     isModalOpen: false,
     isModalLogoutOnly: false,
     authType: AuthTypes.PUBLIC,
+    isNavExpanded: false,
 };

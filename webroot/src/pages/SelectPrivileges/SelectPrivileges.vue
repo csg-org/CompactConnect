@@ -28,6 +28,7 @@
                             <div
                                 v-else
                                 class="state-select-unit"
+                                :class="{ selected: state.value }"
                             >
                                 <div
                                     @click.prevent="toggleStateSelected(state)"
@@ -39,16 +40,18 @@
                                     :formInput="state"
                                 />
                             </div>
-                            <SelectedStatePurchaseInformation
-                                v-if="isPhone && findStatePurchaseInformation(state)"
-                                class="selected-state-block"
-                                :selectedStatePurchaseData="findStatePurchaseInformation(state)"
-                                :jurisprudenceCheckInput="formData.jurisprudenceConfirmations[state.id]"
-                                @exOutState="deselectState"
-                            />
+                            <Transition name="fade">
+                                <SelectedStatePurchaseInformation
+                                    v-if="isPhone && findStatePurchaseInformation(state)"
+                                    class="selected-state-block"
+                                    :selectedStatePurchaseData="findStatePurchaseInformation(state)"
+                                    :jurisprudenceCheckInput="formData.jurisprudenceConfirmations[state.id]"
+                                    @exOutState="deselectState"
+                                />
+                            </Transition>
                         </li>
                     </ul>
-                    <ul v-if="!isPhone" class="selected-state-list">
+                    <TransitionGroup tag="ul" name="list" v-if="!isPhone" class="selected-state-list">
                         <SelectedStatePurchaseInformation
                             v-for="(state) in selectedStatePurchaseDataList"
                             :key="state.jurisdiction.abbrev"
@@ -57,7 +60,7 @@
                             :jurisprudenceCheckInput="formData.jurisprudenceConfirmations[state.jurisdiction.abbrev]"
                             @exOutState="deselectState"
                         />
-                    </ul>
+                    </TransitionGroup>
                 </div>
             </div>
             <div class="button-row">

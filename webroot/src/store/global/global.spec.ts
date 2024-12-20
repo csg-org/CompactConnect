@@ -107,6 +107,20 @@ describe('Global Store Mutations', () => {
 
         expect(state.authType).to.equal(authType);
     });
+    it('should successfully set nav menu expand', () => {
+        const state = {};
+
+        mutations[MutationTypes.EXPAND_NAV_MENU](state);
+
+        expect(state.isNavExpanded).to.equal(true);
+    });
+    it('should successfully set nav menu collapse', () => {
+        const state = {};
+
+        mutations[MutationTypes.COLLAPSE_NAV_MENU](state);
+
+        expect(state.isNavExpanded).to.equal(false);
+    });
 });
 describe('Global Store Actions', () => {
     it('should successfully start store loading', () => {
@@ -176,5 +190,21 @@ describe('Global Store Actions', () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_AUTH_TYPE, authType]);
+    });
+    it('should successfully set nav menu expand', () => {
+        const commit = sinon.spy();
+
+        actions.expandNavMenu({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.EXPAND_NAV_MENU]);
+    });
+    it('should successfully set nav menu collapse', () => {
+        const commit = sinon.spy();
+
+        actions.collapseNavMenu({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.COLLAPSE_NAV_MENU]);
     });
 });

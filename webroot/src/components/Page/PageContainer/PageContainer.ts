@@ -7,6 +7,7 @@
 
 import { Component, Vue, toNative } from 'vue-facing-decorator';
 import PageHeader from '@components/Page/PageHeader/PageHeader.vue';
+import PageNav from '@components/Page/PageNav/PageNav.vue';
 import PageLoadingMask from '@components/Page/PageLoadingMask/PageLoadingMask.vue';
 import PageFooter from '@components/Page/PageFooter/PageFooter.vue';
 
@@ -14,48 +15,40 @@ import PageFooter from '@components/Page/PageFooter/PageFooter.vue';
     name: 'PageContainer',
     components: {
         PageHeader,
+        PageNav,
         PageLoadingMask,
         PageFooter,
     }
 })
 class PageContainer extends Vue {
     //
-    // Data
-    //
-    globalStore: any = {};
-    userStore: any = {};
-
-    //
-    // Lifecycle
-    //
-    created() {
-        this.globalStore = this.$store.state;
-        this.userStore = this.$store.state.user;
-    }
-
-    //
     // Computed
     //
-    get includePageHeader(): boolean {
-        const currentRouteName = this.$route.name;
-        const nonHeaderRouteNames: Array<string> = [];
-
-        return (!nonHeaderRouteNames.includes((currentRouteName as string)));
+    get globalStore() {
+        return this.$store.state;
     }
 
-    get includePageFooter(): boolean {
-        const currentRouteName = this.$route.name;
-        const nonFooterRouteNames: Array<string> = [];
-
-        if (this.isPhone) {
-            nonFooterRouteNames.push('SelectPrivileges');
-        }
-
-        return (!nonFooterRouteNames.includes((currentRouteName as string)));
+    get userStore() {
+        return this.$store.state.user;
     }
 
     get isPhone(): boolean {
         return this.$matches.phone.only;
+    }
+
+    get includePageHeader(): boolean {
+        const { isLoggedIn } = this.userStore;
+        const currentRouteName: string = this.$route.name as string;
+        const nonHeaderRouteNames: Array<string> = [
+            'Login',
+            'Logout',
+        ];
+
+        return (isLoggedIn && this.isPhone && !nonHeaderRouteNames.includes(currentRouteName));
+    }
+
+    get includePageFooter(): boolean {
+        return false;
     }
 
     get isLoading(): boolean {

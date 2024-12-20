@@ -126,10 +126,15 @@
                             margin: 0.4rem;
                             padding: 0 1rem;
                             border: 1px solid @lightGrey;
-                            border-radius: 10px;
+                            border-radius: 12px;
 
                             @media @tabletWidth {
                                 margin: 1rem;
+                            }
+
+                            &.selected {
+                                border-color: @fontColor;
+                                background-color: @veryLightBlue;
                             }
 
                             :deep(.checkbox-container) {
@@ -145,7 +150,7 @@
                                 width: 100%;
                                 height: 100%;
                                 margin: 0 -1rem;
-                                border-radius: 10px;
+                                border-radius: 12px;
                                 cursor: pointer;
                                 opacity: 0.5;
                             }
@@ -156,7 +161,7 @@
                                 width: 100%;
                                 height: 100%;
                                 margin: 0 -1rem;
-                                border-radius: 10px;
+                                border-radius: 12px;
                                 background-color: @lightGrey;
                                 cursor: not-allowed;
                                 opacity: 0.5;

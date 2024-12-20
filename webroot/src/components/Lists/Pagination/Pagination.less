@@ -26,6 +26,7 @@
             justify-content: center;
             width: 3.2rem;
             height: 3.2rem;
+            border-radius: 4px;
             color: @black;
 
             &:not(:last-child) {
@@ -34,9 +35,9 @@
         }
 
         .selected {
-            border-color: @black;
+            border-color: @primaryColor;
             color: @white;
-            background-color: @black;
+            background-color: @primaryColor;
         }
 
         .clickable {
@@ -50,17 +51,17 @@
 
         .caret {
             &.previous {
-                width: 8.4rem;
+                width: 3.2rem;
             }
 
             &.next {
-                width: 6.4rem;
+                width: 3.2rem;
             }
 
             svg {
                 width: 1.2rem;
                 height: 1.2rem;
-                fill: @black;
+                fill: @primaryColor;
             }
         }
     }
