@@ -67,7 +67,8 @@ class QueuedLambdaProcessor(Construct):
         # We use a lower-level add_event_source_mapping method here so that we can control how those
         # permissions are granted. In this case, we need to grant permissions via resource policy on
         # the Queue rather than principal policy on the role to avoid creating a dependency from the
-        # role on the queue.
+        # role on the queue. In some cases, adding the dependency on the role can cause a circular
+        # dependency.
         process_function.add_event_source_mapping(
             f'SqsEventSource:{Names.node_unique_id(self.queue.node)}',
             batch_size=batch_size,

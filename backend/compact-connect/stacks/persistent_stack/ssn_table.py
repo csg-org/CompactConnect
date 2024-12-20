@@ -74,14 +74,17 @@ class SSNTable(Table):
             ),
             **kwargs,
         )
-        self.inverted_index_name = 'inverted'
 
+        # We create a GSI here in anticipation of a future change, where we will need to facilitate a lookup
+        # of provider_id -> ssn, in addition to our current ssn -> provider_id pattern.
+        self.inverted_index_name = 'inverted'
         self.add_global_secondary_index(
             index_name=self.inverted_index_name,
             partition_key=Attribute(name='sk', type=AttributeType.STRING),
             sort_key=Attribute(name='pk', type=AttributeType.STRING),
             projection_type=ProjectionType.ALL,
         )
+
         NagSuppressions.add_resource_suppressions(
             self,
             suppressions=[
