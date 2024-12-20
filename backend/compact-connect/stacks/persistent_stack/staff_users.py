@@ -57,24 +57,11 @@ class StaffUsers(UserPool):
         self._add_resource_servers()
         self._add_scope_customization(persistent_stack=stack)
 
-        callback_urls = []
-        if stack.ui_domain_name is not None:
-            callback_urls.append(f'https://{stack.ui_domain_name}/auth/callback')
-        # This toggle will allow front-end devs to point their local UI at this environment's user pool to support
-        # authenticated actions.
-        if environment_context.get('allow_local_ui', False):
-            local_ui_port = environment_context.get('local_ui_port', '3018')
-            callback_urls.append(f'http://localhost:{local_ui_port}/auth/callback')
-        if not callback_urls:
-            raise ValueError(
-                "This app requires a callback url for its authentication path. Either provide 'domain_name' or set "
-                "'allow_local_ui' to true in this environment's context.",
-            )
-
         # Do not allow resource server scopes via the client - they are assigned via token customization
         # to allow for user attribute-based access
         self.ui_client = self.add_ui_client(
-            callback_urls=callback_urls,
+            ui_domain_name=stack.ui_domain_name,
+            environment_context=environment_context,
             # We have to provide one True value or CFn will make every attribute writeable
             write_attributes=ClientAttributes().with_standard_attributes(email=True),
             # We want to limit the attributes that this app can read and write so only email is visible.

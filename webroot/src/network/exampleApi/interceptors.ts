@@ -6,7 +6,6 @@
 //
 
 import { config } from '@plugins/EnvConfig/envConfig.plugin';
-import { createResponseMessage } from '@network/helpers';
 
 // ============================================================================
 // =                           REQUEST INTERCEPTORS                           =
@@ -49,10 +48,10 @@ export const responseSuccess = () => (response) => {
 
 /**
  * Get Axios API response error interceptor.
- * @param  {Store} store      The app store context.
+ * @param  {Router} router      The vue router
  * @return {AxiosInterceptor} Function that extracts the incoming server API response (from within the Axios response wrapper).
  */
-export const responseError = (store) => (error) => {
+export const responseError = (router) => (error) => {
     const axiosResponse = error.response;
     let serverResponse = (axiosResponse) ? axiosResponse.data : null;
 
@@ -62,7 +61,7 @@ export const responseError = (store) => (error) => {
 
         switch (axiosResponse.status) {
         case 401:
-            store.dispatch('user/logoutRequest');
+            router.push({ name: 'Logout' });
             break;
         case 404: // Endpoint / object not found
             // Continue
@@ -70,7 +69,7 @@ export const responseError = (store) => (error) => {
             // We won't dispatch a UI alert, just let the components handle missing store data as appropriate
             break;
         default:
-            store.dispatch('addMessage', createResponseMessage(axiosResponse));
+            // Continue
         }
     } else {
         // API unavailable
