@@ -96,10 +96,10 @@ class UserClient:
         ```json
         {
           "permissions": {
-            "actions": { "admin" }
+            "actions": { "admin", "readPrivate" },
             "jurisdictions": {
               "oh": {
-                "actions": { "admin", "write" }
+                "actions": { "admin", "write", "readPrivate" }
               }
             }
           }

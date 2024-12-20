@@ -70,11 +70,11 @@ class StaffUsers(UserPool):
 
     def _add_resource_servers(self):
         """Add scopes for all compact/jurisdictions"""
-        # {compact}.write, {compact}.admin, {compact}.read for every compact
-        # Note: the .write and .admin scopes will control access to API endpoints via the Cognito authorizer, however
-        # there will be a secondary level of authorization within the business logic that controls further granularity
-        # of authorization (i.e. 'aslp/write' will grant access to POST license data, but the business logic inside
-        # the endpoint also expects an 'aslp/co.write' if the POST includes data for Colorado.)
+        # {compact}.write, {compact}.admin, {compact}.readGeneral for every compact
+        # Note: the .readGeneral .write and .admin scopes will control access to API endpoints via the Cognito
+        # authorizer, however there will be a secondary level of authorization within the business logic that controls
+        # further granularity of authorization (i.e. 'aslp/write' will grant access to POST license data, but the
+        # business logic inside the endpoint also expects an 'aslp/co.write' if the POST includes data for Colorado.)
         self.write_scope = ResourceServerScope(
             scope_name='write',
             scope_description='Write access for the compact, paired with a more specific scope',
@@ -83,7 +83,10 @@ class StaffUsers(UserPool):
             scope_name='admin',
             scope_description='Admin access for the compact, paired with a more specific scope',
         )
-        self.read_scope = ResourceServerScope(scope_name='read', scope_description='Read access for the compact')
+        self.read_scope = ResourceServerScope(
+            scope_name='readGeneral',
+            scope_description='Read access for generally available data (not private) in the compact',
+        )
 
         # One resource server for each compact
         self.resource_servers = {
