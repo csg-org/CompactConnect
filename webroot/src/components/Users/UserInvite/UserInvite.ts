@@ -482,6 +482,7 @@ class UserInvite extends mixins(MixinForm) {
         this.formData.email.value = `test@example.com`;
         this.formData.firstName.value = `Test`;
         this.formData.lastName.value = `User`;
+        this.validateAll({ asTouched: true });
     }
 }
 
