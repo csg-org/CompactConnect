@@ -296,7 +296,7 @@ class ApiModel:
                         properties={
                             'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
                             'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                            # TODO keeping 'read' action for backwards compatibility
+                            # TODO keeping 'read' action for backwards compatibility  # noqa: FIX002
                             #  this should be removed after the frontend is updated
                             'read': JsonSchema(type=JsonSchemaType.BOOLEAN),
                         },
