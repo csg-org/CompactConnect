@@ -492,7 +492,6 @@
         "state": "State",
         "issued": "Issued",
         "expirationDate": "Expiration date",
-        "militaryDiscountText": "Military Discount",
         "expireDate": "Expire Date",
         "expires": "Expires",
         "selectPrivileges": "Select privileges",
@@ -546,6 +545,11 @@
                 "key": "licensed professional clinical counselor"
             }
         ]
+    },
+    "military": {
+        "militaryStatusTitle": "Military status",
+        "viewMilitaryStatus": "View military status",
+        "militaryDiscountText": "Military Discount"
     },
     "account": {
         "accountTitle": "Account",

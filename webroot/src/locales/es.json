@@ -485,7 +485,6 @@
         "issueDate": "Fecha de asunto",
         "expireDate": "Fecha de caducidad",
         "expirationDate": "Fecha de caducidad",
-        "militaryDiscountText": "Descuento Militar",
         "lastUpdate": "Última carga",
         "license": "Licencia",
         "licenseExpiredMessage": "Su licencia ha caducado.",
@@ -546,6 +545,11 @@
                 "key": "licensed professional clinical counselor"
             }
         ]
+    },
+    "military": {
+        "militaryStatusTitle": "Estado militar",
+        "militaryDiscountText": "Descuento Militar",
+        "viewMilitaryStatus": "Ver estado militar"
     },
     "account": {
         "accountTitle": "Cuenta",

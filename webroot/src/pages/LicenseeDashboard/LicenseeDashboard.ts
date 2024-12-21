@@ -172,6 +172,12 @@ export default class LicenseeDashboard extends Vue {
         console.log('Starting Privilege Purchase Flow!');
     }
 
+    viewMilitaryStatus() {
+        this.$router.push({
+            name: 'MilitaryStatus'
+        });
+    }
+
     checkIfLicenseActive(license: License) {
         let isLicenseActive = false;
 

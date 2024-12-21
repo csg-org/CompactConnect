@@ -110,7 +110,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     }
 
     get militaryDiscountText(): string {
-        return this.$t('licensing.militaryDiscountText');
+        return this.$t('military.militaryDiscountText');
     }
 
     get jurisprudenceModalTitle(): string {
