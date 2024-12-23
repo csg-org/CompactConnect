@@ -76,7 +76,8 @@ class PythonFunction(CdkPythonFunction):
             ],
         )
 
-        # We only need to suppress this if a role is being created for this lambda
+        # If a role is provided from elsewhere for this lambda (role is not None), we don't need to run suppressions for
+        # the role that this construct normally creates.
         if role is None:
             NagSuppressions.add_resource_suppressions_by_path(
                 stack,
