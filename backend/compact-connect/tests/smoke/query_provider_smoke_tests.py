@@ -41,7 +41,6 @@ def get_general_provider_user_data_smoke_test():
     compact = provider_user_profile['compact']
 
     # Step 2: The staff user calls the GET provider users endpoint with the provider id.
-    # create staff user without 'readPrivate' permissions
     staff_users_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
 
     get_provider_response = requests.get(
@@ -108,7 +107,11 @@ def query_provider_user_smoke_test():
         raise SmokeTestFailureException(f'Failed to query provider. Response: {post_response.json()}')
     logger.info('Received success response from query endpoint')
     # Step 3: Verify the Provider response matches the profile.
-    provider_object = post_response.json()['providers'][0]
+    providers = post_response.json()['providers']
+    if not providers:
+        raise SmokeTestFailureException(f'No providers returned by query. Response: {post_response.json()}')
+
+    provider_object = providers[0]
 
     # verify the ssn is NOT in the response
     if 'ssn' in provider_object:
@@ -130,6 +133,7 @@ def query_provider_user_smoke_test():
 
     logger.info('Successfully queried expected provider record.')
 
+
 def get_provider_data_with_read_private_access_smoke_test(test_staff_user_id: str):
     """
     Verifies that a staff user can read private fields of a provider record if they have the 'readPrivate' permission.
@@ -146,15 +150,7 @@ def get_provider_data_with_read_private_access_smoke_test(test_staff_user_id: st
     compact = provider_user_profile['compact']
     # Step 1: Update the staff user's permissions using the PATCH '/v1/staff-users/me/permissions' endpoint.
     staff_users_headers = get_staff_user_auth_headers(TEST_STAFF_USER_EMAIL)
-    patch_body = {
-          "permissions": {
-            "aslp": {
-              "actions": {
-                "readPrivate": True
-              }
-          }
-          }
-    }
+    patch_body = {'permissions': {'aslp': {'actions': {'readPrivate': True}}}}
     patch_response = requests.patch(
         url=config.api_base_url + f'/v1/compacts/{compact}/staff-users/{test_staff_user_id}',
         headers=staff_users_headers,
@@ -190,13 +186,18 @@ def get_provider_data_with_read_private_access_smoke_test(test_staff_user_id: st
 
     logger.info('Successfully fetched expected user profile.')
 
+
 if __name__ == '__main__':
     load_smoke_test_env()
     provider_user_profile = call_provider_users_me_endpoint()
     provider_compact = provider_user_profile['compact']
     # ensure the test staff user is in the same compact as the test provider user without 'readPrivate' permissions
-    test_user_sub = create_test_staff_user(email=TEST_STAFF_USER_EMAIL, compact=provider_compact, jurisdiction='oh',
-                           permissions={'actions': {'admin'}, 'jurisdictions': {'oh': {'write', 'admin'}}})
+    test_user_sub = create_test_staff_user(
+        email=TEST_STAFF_USER_EMAIL,
+        compact=provider_compact,
+        jurisdiction='oh',
+        permissions={'actions': {'admin'}, 'jurisdictions': {'oh': {'write', 'admin'}}},
+    )
     try:
         get_general_provider_user_data_smoke_test()
         query_provider_user_smoke_test()
@@ -206,4 +207,3 @@ if __name__ == '__main__':
         logger.error(f'Query provider smoke tests failed: {str(e)}')
     finally:
         delete_test_staff_user(TEST_STAFF_USER_EMAIL, user_sub=test_user_sub, compact=provider_compact)
-

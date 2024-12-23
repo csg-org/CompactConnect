@@ -87,7 +87,10 @@ class UserScopes(set):
             )
         for action in jurisdiction_actions:
             if action == 'readPrivate':
-                # This action only has one level of authz, since there is no external scope for it
+                # For other actions, if you are granted to fine-grain permission at the jurisdiction level,
+                # you are also granted the course-grain scope permission to grant you access to call the api itself.
+                # In the case of reading, all staff users are implicitly granted the 'readGeneral' scope,
+                # so we do not need to add the course-grain scope explicitly here.
                 self.add(f'{compact_name}/{jurisdiction_name}.readPrivate')
             else:
                 # Two levels of authz

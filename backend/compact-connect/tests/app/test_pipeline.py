@@ -64,25 +64,22 @@ class TestPipeline(TstAppABC, TestCase):
 
         # Get the resource servers created in the persistent stack
         resource_servers = persistent_stack.staff_users.resource_servers
-        # this should match the number of compacts we have onboarded into the system
-        self.assertEqual(3, len(resource_servers))
+        # We must confirm that these scopes are being explicitly created for each compact
+        # which are absolutely critical to for the system to function as expected.
+        self.assertEqual(self.context['compacts'], list(resource_servers.keys()))
 
-        resource_server_cfn_properties = []
         for compact, resource_server in resource_servers.items():
             # for this test, we just get the 'aslp' compact resource server
-            if compact == 'aslp':
-                resource_server_cfn_properties.append(
-                    self.get_resource_properties_by_logical_id(
-                        persistent_stack.get_logical_id(resource_server.node.default_child),
-                        persistent_stack_template.find_resources(CfnUserPoolResourceServer.CFN_RESOURCE_TYPE_NAME),
-                    )
-                )
-
-        # Ensure the resource servers are created with the expected scopes
-        self.assertEqual(
-            ['admin', 'write', 'readGeneral'],
-            [scope['ScopeName'] for scope in resource_server_cfn_properties[0]['Scopes']],
-        )
+            resource_server_properties = self.get_resource_properties_by_logical_id(
+                persistent_stack.get_logical_id(resource_server.node.default_child),
+                persistent_stack_template.find_resources(CfnUserPoolResourceServer.CFN_RESOURCE_TYPE_NAME),
+            )
+            # Ensure the resource servers are created with the expected scopes
+            self.assertEqual(
+                ['admin', 'write', 'readGeneral'],
+                [scope['ScopeName'] for scope in resource_server_properties['Scopes']],
+                msg=f'Expected scopes for compact {compact} not found',
+            )
 
     def test_cognito_using_recommended_security_in_prod(self):
         stack = self.app.pipeline_stack.prod_stage.persistent_stack

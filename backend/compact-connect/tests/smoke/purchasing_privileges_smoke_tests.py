@@ -8,7 +8,7 @@ from config import config
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
-    get_provider_user_auth_headers,
+    get_provider_user_auth_headers_cached,
 )
 
 # This script can be run locally to test the privilege purchasing flow against a sandbox environment
@@ -66,7 +66,7 @@ def test_purchasing_privilege():
         'selectedJurisdictions': ['ne'],
     }
 
-    headers = get_provider_user_auth_headers()
+    headers = get_provider_user_auth_headers_cached()
     post_api_response = requests.post(
         url=config.api_base_url + '/v1/purchases/privileges', headers=headers, json=post_body, timeout=20
     )

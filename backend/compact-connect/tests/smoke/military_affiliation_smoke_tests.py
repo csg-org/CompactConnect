@@ -8,7 +8,7 @@ import requests
 from smoke_common import (
     SmokeTestFailureException,
     get_api_base_url,
-    get_provider_user_auth_headers,
+    get_provider_user_auth_headers_cached,
     load_smoke_test_env,
 )
 
@@ -27,7 +27,7 @@ def test_military_affiliation_upload():
     # Step 3: Verify that the test pdf file was uploaded successfully by checking the response status code.
     # Step 4: Get the provider data from the GET '/v1/provider-users/me' endpoint and verify that the military
     # affiliation record is active.
-    headers = get_provider_user_auth_headers()
+    headers = get_provider_user_auth_headers_cached()
 
     post_body = {
         'fileNames': ['military_affiliation.pdf'],
@@ -112,7 +112,7 @@ def test_military_affiliation_patch_update():
     # '/v1/provider-users/me/military-affiliation' endpoint.
     # Step 4: Get the provider data from the GET '/v1/provider-users/me' endpoint and verify that all the military
     # affiliation records are inactive.
-    headers = get_provider_user_auth_headers()
+    headers = get_provider_user_auth_headers_cached()
 
     patch_body = {
         'status': 'inactive',

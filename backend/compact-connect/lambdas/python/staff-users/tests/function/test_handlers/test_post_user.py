@@ -20,7 +20,7 @@ class TestPostUser(TstFunction):
 
         # The user has admin permission for aslp/oh
         event['requestContext']['authorizer']['claims']['scope'] = (
-            'openid email aslp/admin aslp/aslp.admin ' 'aslp/oh.admin'
+            'openid email aslp/admin aslp/aslp.admin aslp/oh.admin'
         )
         event['pathParameters'] = {'compact': 'aslp'}
 

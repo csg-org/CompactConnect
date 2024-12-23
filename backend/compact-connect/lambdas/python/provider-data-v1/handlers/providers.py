@@ -90,8 +90,7 @@ def query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused
             case _:
                 # This shouldn't happen unless our api validation gets misconfigured
                 raise CCInvalidRequestException(f"Invalid sort key: '{sorting_key}'")
-    # Convert generic field to more specific one for this API and filter data based on caller's
-    # permissions
+    # Convert generic field to more specific one for this API and sanitize data
     pre_sanitized_providers = resp.pop('items', [])
     # for the query endpoint, we only return generally available data, regardless of the caller's scopes
     general_schema = SanitizedProviderReadGeneralSchema()

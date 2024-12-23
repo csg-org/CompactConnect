@@ -215,7 +215,7 @@ class TestPatchUser(TstFunction):
                         'actions': {
                             'readPrivate': True,
                         },
-                        'jurisdictions': {'oh': {'actions': {'admin': True, 'readPrivate': True}}},
+                        'jurisdictions': {'oh': {'actions': {'readPrivate': True}}},
                     }
                 }
             }
@@ -232,7 +232,8 @@ class TestPatchUser(TstFunction):
                 'permissions': {
                     'aslp': {
                         'actions': {'readPrivate': True},
-                        'jurisdictions': {'oh': {'actions': {'admin': True, 'write': True, 'readPrivate': True}}},
+                        # test user starts with the write permission, so it should still be there
+                        'jurisdictions': {'oh': {'actions': {'write': True, 'readPrivate': True}}},
                     },
                 },
                 'type': 'user',

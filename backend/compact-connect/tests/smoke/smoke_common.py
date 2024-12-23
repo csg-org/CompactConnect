@@ -33,7 +33,8 @@ os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 # We have to import this after we've added the common lib to our path and environment
 from cc_common.data_model.schema.user import UserRecordSchema  # noqa: E402
 
-TEST_STAFF_USER_PASSWORD = 'TestPass123!'  # noqa: S105 test credential for test staff user
+_TEST_STAFF_USER_PASSWORD = 'TestPass123!'  # noqa: S105 test credential for test staff user
+_TEMP_STAFF_PASSWORD = 'TempPass123!'  # noqa: S105 temporary password for creating test staff users
 
 
 def _create_staff_user_in_cognito(*, email: str) -> str:
@@ -52,14 +53,14 @@ def _create_staff_user_in_cognito(*, email: str) -> str:
             UserPoolId=config.cognito_staff_user_pool_id,
             Username=email,
             UserAttributes=[{'Name': 'email', 'Value': email}],
-            TemporaryPassword='TempPass123!',
+            TemporaryPassword=_TEMP_STAFF_PASSWORD,
         )
         logger.info(f"Created staff user, '{email}'. Setting password.")
         # set this to simplify login flow for user
         config.cognito_client.admin_set_user_password(
             UserPoolId=config.cognito_staff_user_pool_id,
             Username=email,
-            Password=TEST_STAFF_USER_PASSWORD,
+            Password=_TEST_STAFF_USER_PASSWORD,
             Permanent=True,
         )
         logger.info(f"Set password for staff user, '{email}' in Cognito. New user data: {user_data}")
@@ -118,7 +119,7 @@ def create_test_staff_user(*, email: str, compact: str, jurisdiction: str, permi
     return sub
 
 
-def get_user_tokens(email, password=TEST_STAFF_USER_PASSWORD, is_staff=False):
+def get_user_tokens(email, password=_TEST_STAFF_USER_PASSWORD, is_staff=False):
     """
     Gets Cognito tokens for a user.
     {
@@ -149,7 +150,7 @@ def get_user_tokens(email, password=TEST_STAFF_USER_PASSWORD, is_staff=False):
         raise e
 
 
-def get_provider_user_auth_headers():
+def get_provider_user_auth_headers_cached():
     provider_token = os.environ.get('TEST_PROVIDER_USER_ID_TOKEN')
     if not provider_token:
         tokens = get_user_tokens(config.test_provider_user_username, config.test_provider_user_password, is_staff=False)
@@ -160,7 +161,7 @@ def get_provider_user_auth_headers():
     }
 
 
-def get_staff_user_auth_headers(username: str, password: str = TEST_STAFF_USER_PASSWORD):
+def get_staff_user_auth_headers(username: str, password: str = _TEST_STAFF_USER_PASSWORD):
     tokens = get_user_tokens(username, password, is_staff=True)
     return {
         'Authorization': 'Bearer ' + tokens['AccessToken'],
@@ -188,7 +189,7 @@ def load_smoke_test_env():
 def call_provider_users_me_endpoint():
     # Get the provider data from the GET '/v1/provider-users/me' endpoint.
     get_provider_data_response = requests.get(
-        url=config.api_base_url + '/v1/provider-users/me', headers=get_provider_user_auth_headers(), timeout=10
+        url=config.api_base_url + '/v1/provider-users/me', headers=get_provider_user_auth_headers_cached(), timeout=10
     )
     if get_provider_data_response.status_code != 200:
         raise SmokeTestFailureException(f'Failed to GET provider data. Response: {get_provider_data_response.json()}')
