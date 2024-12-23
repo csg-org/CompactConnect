@@ -136,9 +136,10 @@ private. The `write` and `admin` scopes, however, indicate only that the user is
 _something_ in the compact respectively, thus giving them access to the write or administrative API endpoints. We will 
 then rely on the API endpoint logic to refine their access based on the more fine-grained access scopes.
 
-In addition to the `readGeneral` scope, there is a `readPrivate` scope that is used to indicate that the user is allowed
-to read all of a compact's licensee data, so long as that licensee is within their compact or jurisdiction for which
-they have that permission.
+In addition to the `readGeneral` scope, there is a `readPrivate` scope, which can be granted at both compact and 
+jurisdiction levels. This permission indicates the user can read all of a compact's provider data (licenses and privileges),
+so long as the provider has at least one license or privilege within their jurisdiction or the user has compact-wide 
+permissions.
 
 To compliment each of the `write` and `admin` scopes, there will be at least one, more specific, scope, 
 to indicate _what_ within the compact they are allowed to write or administrate, respectively. In the case of `write` 
