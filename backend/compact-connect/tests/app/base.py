@@ -146,7 +146,7 @@ class TstAppABC(ABC):
         ssn_key_template = self.get_resource_properties_by_logical_id(
             ssn_key_logical_id, persistent_stack_template.find_resources(CfnKey.CFN_RESOURCE_TYPE_NAME)
         )
-        # This naming convention is important for opting into future organization access logging
+        # This naming convention is important for opting into future CloudTrail organization access logging
         self.assertTrue(ssn_table_template['TableName'].endswith('-DataEventsLog'))
         # Ensure our SSN Key is locked down by resource policy
         self.assertEqual(
