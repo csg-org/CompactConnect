@@ -71,7 +71,7 @@ class NodejsFunction(CdkNodejsFunction):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',
-                    'applies_to': [
+                    'appliesTo': [
                         'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
                     ],
                     'reason': 'The BasicExecutionRole policy is appropriate for these lambdas',
@@ -84,7 +84,9 @@ class NodejsFunction(CdkNodejsFunction):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',
-                    'applies_to': 'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',  # noqa: E501 line-too-long
+                    'appliesTo': [
+                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+                    ],  # noqa: E501 line-too-long
                     'reason': 'This policy is appropriate for the log retention lambda',
                 },
             ],
@@ -95,7 +97,7 @@ class NodejsFunction(CdkNodejsFunction):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
-                    'applies_to': ['Resource::*'],
+                    'appliesTo': ['Resource::*'],
                     'reason': 'This lambda needs to be able to configure log groups across the account, though the'
                     ' actions it is allowed are scoped specifically for this task.',
                 },

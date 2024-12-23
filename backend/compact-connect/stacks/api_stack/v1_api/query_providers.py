@@ -182,7 +182,11 @@ class QueryProviders:
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
-                    'applies_to': ['Action::kms:GenerateDataKey*', 'Action::kms:ReEncrypt*'],
+                    'appliesTo': [
+                        'Action::kms:GenerateDataKey*',
+                        'Action::kms:ReEncrypt*',
+                        'Resource::<ProviderTableEC5D0597.Arn>/index/*',
+                    ],
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
                 },

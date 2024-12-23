@@ -37,7 +37,7 @@ class SlackChannelConfiguration(CdkSlackChannelConfiguration):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',
-                    'applies_to': ['Policy::arn:<AWS::Partition>:iam::aws:policy/job-function/ViewOnlyAccess'],
+                    'appliesTo': ['Policy::arn:<AWS::Partition>:iam::aws:policy/job-function/ViewOnlyAccess'],
                     'reason': 'This role is general-purpose for operations integration and the AWS-managed '
                     'ViewOnlyAccess policy is suitable',
                 },

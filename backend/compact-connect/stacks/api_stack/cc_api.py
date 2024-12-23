@@ -211,7 +211,7 @@ class CCApi(RestApi):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',
-                    'applies_to': [
+                    'appliesTo': [
                         'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
                     ],
                     'reason': 'This policy is crafted specifically for the account-level role created here.',

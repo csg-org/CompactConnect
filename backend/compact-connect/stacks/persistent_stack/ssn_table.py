@@ -142,16 +142,31 @@ class SSNTable(Table):
         self.key.grant_encrypt_decrypt(self.ingest_role)
 
     def _role_suppressions(self, role: Role):
+        stack = Stack.of(role)
         NagSuppressions.add_resource_suppressions_by_path(
-            Stack.of(role),
+            stack,
             f'{role.node.path}/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',
-                    'applies_to': [
+                    'appliesTo': [
                         'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
                     ],
                     'reason': 'The BasicExecutionRole policy is appropriate for these lambdas',
+                },
+            ],
+        )
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            f'{role.node.path}/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'appliesTo': [f'Resource::<{stack.get_logical_id(self.node.default_child)}.Arn>/index/*'],
+                    'reason': """
+                    This policy contains wild-carded actions and resources but they are scoped to the
+                    specific actions, KMS key and Table that this lambda specifically needs access to.
+                    """,
                 },
             ],
         )
