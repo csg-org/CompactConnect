@@ -1,5 +1,7 @@
 {
   "CC_TEST_API_BASE_URL": "https://api.test.compactconnect.org",
   "CC_TEST_PROVIDER_DYNAMO_TABLE_NAME": "Sandbox-PersistentStack-ProviderTable12345",
-  "TEST_PROVIDER_USER_ID_TOKEN": "This can be fetched by logging into the Compact Connect UI of your test environment and copying the value of 'id_token_licensee' from the browser's local storage."
+  "CC_TEST_DATA_EVENT_DYNAMO_TABLE_NAME": "Sandbox-PersistentStack-DataEventTable1234",
+  "TEST_PROVIDER_USER_ID_TOKEN": "This can be fetched by logging in as a licensee into the Compact Connect UI of your test environment and copying the value of 'id_token_licensee' from the browser's local storage.",
+  "TEST_STAFF_USER_ACCESS_TOKEN": "This can be fetched by logging in as a staff user into the Compact Connect UI of your test environment and copying the value of 'auth_token_staff' from the browser's local storage."
 }

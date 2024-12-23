@@ -1,3 +1,36 @@
+export const SAMPLE_INGEST_SUCCESS_RECORD = {
+    'pk': {
+        'S': 'COMPACT#octp#JURISDICTION#oh'
+    },
+    'sk': {
+        'S': 'TYPE#license.ingest#TIME#1731618012#EVENT#08ff0b63-4492-89c6-4372-3e95f03e1234'
+    },
+    'compact': {
+        'S': 'octp'
+    },
+    'jurisdiction': {
+        'S': 'oh'
+    },
+    'licenseType': {
+        'S': 'occupational therapist'
+    },
+    'status': {
+        'S': 'active'
+    },
+    'dateOfIssuance': {
+        'S': '2023-01-01'
+    },
+    'dateOfRenewal': {
+        'S': '2024-01-01'
+    },
+    'dateOfExpiration': {
+        'S': '2025-01-01'
+    },
+    'eventTime': {
+        'S': '2024-11-14T21:00:12.382000+00:00'
+    }
+};
+
 export const SAMPLE_INGEST_FAILURE_ERROR_RECORD = {
     'pk': {
         'S': 'COMPACT#octp#JURISDICTION#oh'

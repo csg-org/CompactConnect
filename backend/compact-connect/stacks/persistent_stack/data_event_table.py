@@ -102,8 +102,9 @@ class DataEventTable(Table):
             self,
             'EventReceiverRule',
             event_bus=event_bus,
-            # We will ignore ingest events, since they have sensitive data, but will store everything else
-            event_pattern=EventPattern(detail_type=Match.anything_but('license.ingest')),
+            # match any event detail_type
+            # https://stackoverflow.com/a/62407802
+            event_pattern=EventPattern(detail_type=Match.prefix('')),
             targets=[SqsQueue(self.event_processor.queue, dead_letter_queue=self.event_processor.dlq)],
         )
 

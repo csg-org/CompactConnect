@@ -31,7 +31,14 @@ describe('EventClient', () => {
                     Items: [{ 'eventType': { 'S': 'license.ingest-failure' }}]
                 });
             }
-            throw Error('Unexpected query');
+            if (input?.ExpressionAttributeValues?.[':skBegin']['S']?.startsWith(
+                'TYPE#license.ingest#TIME#'
+            )) {
+                return Promise.resolve({
+                    Items: []
+                });
+            }
+            throw Error(`Unexpected query ${input}`);
         });
     };
 
@@ -46,6 +53,13 @@ describe('EventClient', () => {
                 'TYPE#license.ingest-failure#TIME#'
             )) {
                 return Promise.resolve({});
+            }
+            if (input?.ExpressionAttributeValues?.[':skBegin']['S']?.startsWith(
+                'TYPE#license.ingest#TIME#'
+            )) {
+                return Promise.resolve({
+                    Items: [{ 'eventType': { 'S': 'license.ingest' }}]
+                });
             }
             throw Error('Unexpected query');
         });
@@ -137,7 +151,33 @@ describe('EventClient', () => {
         expect(validationErrors).toEqual([]);
     });
 
-    it('should return ingest failures and validation errors from the getEvents method', async() => {
+    it('should return ingest successes', async () => {
+        withoutErrorsInDynamoDB();
+
+        const eventClient = new EventClient({
+            logger: new Logger(),
+            dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
+        });
+
+        const ingestSuccesses = await eventClient.getIngestSuccesses('aslp', 'oh', 0, 1);
+
+        expect(ingestSuccesses).toEqual([{ 'eventType': 'license.ingest' }]);
+    });
+
+    it('should return empty array if no ingest successes', async () => {
+        withErrorsInDynamoDB();
+
+        const eventClient = new EventClient({
+            logger: new Logger(),
+            dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
+        });
+
+        const ingestSuccesses = await eventClient.getIngestSuccesses('aslp', 'oh', 0, 1);
+
+        expect(ingestSuccesses).toEqual([]);
+    });
+
+    it('should return ingest failures, successes, and validation errors from the getEvents method when errors', async() => {
         withErrorsInDynamoDB();
 
         const eventClient = new EventClient({
@@ -149,7 +189,25 @@ describe('EventClient', () => {
 
         expect(ingestEvents).toEqual({
             ingestFailures: [{ 'eventType': 'license.ingest-failure' }],
-            validationErrors: [{ 'eventType': 'license.validation-error' }]
+            validationErrors: [{ 'eventType': 'license.validation-error' }],
+            ingestSuccesses: []
+        });
+    });
+
+    it('should return ingest failures, successes, and validation errors from the getEvents method when no errors', async() => {
+        withoutErrorsInDynamoDB();
+
+        const eventClient = new EventClient({
+            logger: new Logger(),
+            dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
+        });
+
+        const ingestEvents = await eventClient.getEvents('aslp', 'oh', 0, 1);
+
+        expect(ingestEvents).toEqual({
+            ingestFailures: [],
+            validationErrors: [],
+            ingestSuccesses: [{ 'eventType': 'license.ingest' }]
         });
     });
 });

@@ -117,7 +117,8 @@ class UserPool(CdkUserPool):
 
     def add_ui_client(
         self,
-        callback_urls: list[str],
+        ui_domain_name: str,
+        environment_context: dict,
         read_attributes: ClientAttributes,
         write_attributes: ClientAttributes,
         ui_scopes: list[OAuthScope] = None,
@@ -125,11 +126,42 @@ class UserPool(CdkUserPool):
         """
         Creates an app client for the UI to authenticate with the user pool.
 
-        :param callback_urls: The URLs that Cognito allows the UI to redirect to after authentication.
+        :param ui_domain_name: The ui domain name used to determine acceptable redirects.
+        :param environment_context: The environment context used to determine acceptable redirects.
         :param read_attributes: The attributes that the UI can read.
         :param write_attributes: The attributes that the UI can write.
         :param ui_scopes: OAuth scopes that are allowed with this client
         """
+        callback_urls = []
+        if ui_domain_name is not None:
+            callback_urls.append(f'https://{ui_domain_name}/auth/callback')
+        # This toggle will allow front-end devs to point their local UI at this environment's user pool to support
+        # authenticated actions.
+        if environment_context.get('allow_local_ui', False):
+            local_ui_port = environment_context.get('local_ui_port', '3018')
+            callback_urls.append(f'http://localhost:{local_ui_port}/auth/callback')
+        if not callback_urls:
+            raise ValueError(
+                "This app requires a callback url for its authentication path. Either provide 'domain_name' or set "
+                "'allow_local_ui' to true in this environment's context."
+            )
+
+        logout_urls = []
+        if ui_domain_name is not None:
+            logout_urls.append(f'https://{ui_domain_name}/Login')
+            logout_urls.append(f'https://{ui_domain_name}/Logout')
+        # This toggle will allow front-end devs to point their local UI at this environment's user pool to support
+        # authenticated actions.
+        if environment_context.get('allow_local_ui', False):
+            local_ui_port = environment_context.get('local_ui_port', '3018')
+            logout_urls.append(f'http://localhost:{local_ui_port}/Login')
+            logout_urls.append(f'http://localhost:{local_ui_port}/Logout')
+        if not logout_urls:
+            raise ValueError(
+                "This app requires a logout url for its logout function. Either provide 'domain_name' or set "
+                "'allow_local_ui' to true in this environment's context."
+            )
+
         return self.add_client(
             'UIClient',
             auth_flows=AuthFlow(
@@ -140,6 +172,7 @@ class UserPool(CdkUserPool):
             ),
             o_auth=OAuthSettings(
                 callback_urls=callback_urls,
+                logout_urls=logout_urls,
                 flows=OAuthFlows(authorization_code_grant=True, implicit_code_grant=False),
                 scopes=ui_scopes,
             ),

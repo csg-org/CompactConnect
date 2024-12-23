@@ -8,16 +8,19 @@ from unittest.mock import patch
 from app import CompactConnectApp
 from aws_cdk.assertions import Annotations, Match, Template
 from aws_cdk.aws_apigateway import CfnMethod
+from aws_cdk.aws_cloudfront import CfnDistribution
 from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolClient
 from aws_cdk.aws_dynamodb import CfnTable
 from aws_cdk.aws_events import CfnRule
 from aws_cdk.aws_kms import CfnKey
 from aws_cdk.aws_lambda import CfnEventSourceMapping
+from aws_cdk.aws_s3 import CfnBucket
 from aws_cdk.aws_sqs import CfnQueue
 from common_constructs.stack import Stack
 from pipeline import BackendStage
 from stacks.api_stack import ApiStack
 from stacks.persistent_stack import PersistentStack
+from stacks.ui_stack import UIStack
 
 
 class TstAppABC(ABC):
@@ -67,6 +70,19 @@ class TstAppABC(ABC):
             return resources[logical_id]['Properties']
         except KeyError as exc:
             raise RuntimeError(f'{logical_id} not found in resources!') from exc
+
+    def _inspect_ui_stack(self, ui_stack: UIStack):
+        with self.subTest(ui_stack.stack_name):
+            ui_stack_template = Template.from_stack(ui_stack)
+            # Ensure we have a CloudFront distribution
+            ui_stack_template.resource_count_is('AWS::CloudFront::Distribution', 1)
+            # This stack is not anticipated to do much changing, so we'll just snapshot-test key resources
+            ui_bucket = ui_stack_template.find_resources(CfnBucket.CFN_RESOURCE_TYPE_NAME)
+            self.assertEqual(len(ui_bucket), 1)
+            self.compare_snapshot(ui_bucket, snapshot_name=f'{ui_stack.stack_name}-UI_BUCKET', overwrite_snapshot=False)
+            distribution = ui_stack_template.find_resources(CfnDistribution.CFN_RESOURCE_TYPE_NAME)
+            self.assertEqual(len(distribution), 1)
+            self.compare_snapshot(distribution, f'{ui_stack.stack_name}-UI_DISTRIBUTION', overwrite_snapshot=False)
 
     def _inspect_persistent_stack(
         self,
@@ -293,7 +309,7 @@ class TstAppABC(ABC):
         if stage.persistent_stack.hosted_zone:
             self._check_no_stack_annotations(stage.reporting_stack)
 
-    def compare_snapshot(self, actual: dict, snapshot_name: str, overwrite_snapshot: bool = False):
+    def compare_snapshot(self, actual: Mapping, snapshot_name: str, overwrite_snapshot: bool = False):
         """
         Compare the actual dictionary to the snapshot with the given name.
         If overwrite_snapshot is True, overwrite the snapshot with the actual data.

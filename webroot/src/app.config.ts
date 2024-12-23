@@ -28,7 +28,6 @@ export enum FeeTypes {
 export const authStorage = sessionStorage;
 export const tokens = {
     staff: {
-        AUTH_TYPE: 'auth_type',
         AUTH_TOKEN: 'auth_token_staff',
         AUTH_TOKEN_TYPE: 'auth_token_type_staff',
         AUTH_TOKEN_EXPIRY: 'auth_token_expiry_staff',
@@ -36,7 +35,6 @@ export const tokens = {
         REFRESH_TOKEN: 'refresh_token_staff',
     },
     licensee: {
-        AUTH_TYPE: 'auth_type',
         AUTH_TOKEN: 'auth_token_licensee',
         AUTH_TOKEN_TYPE: 'auth_token_type_licensee',
         AUTH_TOKEN_EXPIRY: 'auth_token_expiry_licensee',
@@ -45,6 +43,7 @@ export const tokens = {
     },
 };
 export const AUTH_LOGIN_GOTO_PATH = 'login_goto';
+export const AUTH_TYPE = 'auth_type';
 
 // ====================
 // =  User Languages  =

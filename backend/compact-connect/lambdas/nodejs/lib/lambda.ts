@@ -96,7 +96,11 @@ export class Lambda implements LambdaInterface {
                             weekEndStamp
                         );
 
-                        if (!weeklyIngestEvents.ingestFailures.length && !weeklyIngestEvents.validationErrors.length) {
+                        // verify that the jurisdiction uploaded licenses within the last week without any errors
+                        if (!weeklyIngestEvents.ingestFailures.length
+                            && !weeklyIngestEvents.validationErrors.length
+                            && weeklyIngestEvents.ingestSuccesses.length
+                        ) {
                             const messageId = await this.reportEmailer.sendAllsWellEmail(
                                 compact,
                                 jurisdictionConfig.jurisdictionName,
@@ -105,6 +109,22 @@ export class Lambda implements LambdaInterface {
 
                             logger.info(
                                 'Sent alls well email',
+                                {
+                                    compact: compact,
+                                    jurisdiction: jurisdictionConfig.postalAbbreviation,
+                                    message_id: messageId
+                                }
+                            );
+                        }
+                        else if(!weeklyIngestEvents.ingestSuccesses.length) {
+                            const messageId = await this.reportEmailer.sendNoLicenseUpdatesEmail(
+                                compact,
+                                jurisdictionConfig.jurisdictionName,
+                                jurisdictionConfig.jurisdictionOperationsTeamEmails
+                            );
+
+                            logger.warn(
+                                'No licenses uploaded withinin the last week',
                                 {
                                     compact: compact,
                                     jurisdiction: jurisdictionConfig.postalAbbreviation,
