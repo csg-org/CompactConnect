@@ -72,32 +72,49 @@ the accompanying [architecture diagram](./users-arch-diagram.pdf) for an illustr
 
 ### Staff Users
 
-Staff users come with a variety of different permissions, depending on their role. There are Compact Executive
-Directors, Compact ED Staff, Board Executive Directors, Board ED Staff, and CSG Admins, each with different levels
-of ability to read and write data, and to administrate users. Read permissions are granted to a user for an entire
-compact or not at all. Data writing and user administration permissions can each be granted to a user per
-compact/jurisdiction combination. All of a compact user's permissions are stored in a DynamoDB record that is associated
-with their own Cognito user id. That record will be used to generate scopes in the Oauth2 token issued to them on login.
-See [Implementation of scopes](#implementation-of-scopes) for a detailed explanation of the design for exactly how
-permissions will be represented by scopes in an access token. See
+Staff users will be granted a variety of different permissions, depending on their role. Read permissions are granted 
+to a user for an entire compact or not at all. Data writing and user administration permissions can each be granted to 
+a user per compact/jurisdiction combination. All of a compact user's permissions are stored in a DynamoDB record that is
+associated with their own Cognito user id. That record will be used to generate scopes in the Oauth2 token issued to them
+on login. See [Implementation of scopes](#implementation-of-scopes) for a detailed explanation of the design for exactly
+how permissions will be represented by scopes in an access token. See 
 [Implementation of permissions](#implementation-of-permissions) for a detailed explanation of the design for exactly
 how permissions are stored and translated into scopes.
 
-#### Compact Executive Directors and Staff
+#### Common Staff User Types
+The system permissions are designed around several common types of staff users. It is important to note that these user
+types are an abstraction which do not correlate directly to specific roles or access within the system. All access is
+controlled by the specific permissions associated with a user. Still, these abstractions are useful for understanding
+the system's design.
 
-Compact ED level staff can have permission to read all generally available data for any compact, and if they have the 
-`readPrivate` permission they will be able to view all data for any licensee within the compact. They will also be able
-to create and manage users and their permissions. They can grant other users the ability to write data for a particular
+##### Compact Executive Directors and Staff
+
+Compact ED level staff will typically be granted the following permissions at the compact level:
+
+- `admin` - grants access to administrative functions for the compact, such as creating and managing users and their
+  permissions.
+- `readPrivate` - grants access to view all data for any licensee within the compact.
+
+With the `admin` permission, they can grant other users the ability to write data for a particular
 jurisdiction and to create more users associated with a particular jurisdiction. They can also delete any user within 
-their compact, so long as that user does not have permissions associated with a different compact.
+their compact, so long as that user does not have permissions associated with a different compact, in which case the
+permissions from the other compact would have to be removed first.
 
-#### Board Executive Directors and Staff
+Users granted any of these permissions will also be implicitly granted the `readGeneral` scope for the associated compact,
+which allows them to read any licensee data within that compact that is not considered private.
 
-Board ED level staff can have permission to read all generally available jurisdiction data, and if they have the 
-`readPrivate` permission they will be able to view all information for any licensee that has either a license or privilege
-within their jurisdiction. They can also write data for their own jurisdiction, and create more users that have 
-permissions within their own jurisdiction. They can also delete any user within their jurisdiction, so long as that user
-does not have permissions associated with a different compact or jurisdiction.
+##### Board Executive Directors and Staff
+
+Board ED level staff may be granted the following permissions at a jurisdiction level:
+
+- `admin` - grants access to administrative functions for the jurisdiction, such as creating and managing users and 
+their permissions.
+- `write` - grants access to write data for their particular jurisdiction (ie uploading license information).
+- `readPrivate` - grants access to view all information for any licensee that has either a license or privilege
+within their jurisdiction. 
+
+Users granted any of these permissions will also be implicitly granted the `readGeneral` scope for the associated compact,
+which allows them to read any licensee data that is not considered private.
 
 #### Implementation of Scopes
 
