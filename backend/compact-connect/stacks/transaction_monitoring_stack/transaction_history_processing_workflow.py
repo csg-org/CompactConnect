@@ -100,7 +100,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
                     'compact': compact,
                     'lastProcessedTransactionId': JsonPath.string_at('$.taskResult.Payload.lastProcessedTransactionId'),
                     'currentBatchId': JsonPath.string_at('$.taskResult.Payload.currentBatchId'),
-                    'processedBatchIds': JsonPath.array_at('$.taskResult.Payload.processedBatchIds'),
+                    'processedBatchIds': JsonPath.list_at('$.taskResult.Payload.processedBatchIds'),
                 }
             ),
             result_path='$.taskResult',

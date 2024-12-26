@@ -33,6 +33,7 @@ class TstFunction(TstLambdas):
     def build_resources(self):
         self.create_compact_configuration_table()
         self.create_provider_table()
+        self.create_transaction_history_table()
 
     def create_compact_configuration_table(self):
         self._compact_configuration_table = boto3.resource('dynamodb').create_table(
@@ -41,6 +42,17 @@ class TstFunction(TstLambdas):
                 {'AttributeName': 'sk', 'AttributeType': 'S'},
             ],
             TableName=os.environ['COMPACT_CONFIGURATION_TABLE_NAME'],
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+        )
+
+    def create_transaction_history_table(self):
+        self._transaction_history_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['TRANSACTION_HISTORY_TABLE_NAME'],
             KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
             BillingMode='PAY_PER_REQUEST',
         )
@@ -79,6 +91,7 @@ class TstFunction(TstLambdas):
     def delete_resources(self):
         self._compact_configuration_table.delete()
         self._provider_table.delete()
+        self._transaction_history_table.delete()
 
     def _load_compact_configuration_data(self):
         """Use the canned test resources to load compact and jurisdiction information into the DB"""

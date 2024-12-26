@@ -182,7 +182,7 @@ class _Config:
 
     @property
     def transaction_history_table(self):
-        return self.dynamodb_resource.Table(self.transaction_history_table_name)
+        return boto3.resource('dynamodb').Table(self.transaction_history_table_name)
 
 
 config = _Config()

@@ -8,7 +8,7 @@ from authorizenet.constants import constants
 from cc_common.config import config, logger
 from cc_common.data_model.schema.compact import Compact, CompactFeeType
 from cc_common.data_model.schema.jurisdiction import Jurisdiction, JurisdictionMilitaryDiscountType
-from cc_common.exceptions import CCFailedTransactionException, CCInternalException, CCInvalidRequestException
+from cc_common.exceptions import CCFailedTransactionException, CCInternalException, CCInvalidRequestException, TransactionBatchSettlementFailureException
 
 AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
 OK_TRANSACTION_MESSAGE_RESULT_CODE = 'Ok'
@@ -418,6 +418,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         :param end_time: UTC timestamp string for end of range
         :return: Response containing the list of settled batches
         :raises CCInternalException: If the API call fails
+        :raises TransactionBatchSettlementFailureException: If any batch has a settlement error
         """
         merchant_auth = apicontractsv1.merchantAuthenticationType()
         merchant_auth.name = self.api_login_id
@@ -440,6 +441,14 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
 
         if batch_response is None or batch_response.messages.resultCode != OK_TRANSACTION_MESSAGE_RESULT_CODE:
             raise CCInternalException('Failed to get settled batch list')
+
+        # Check for settlement errors in any batch
+        if hasattr(batch_response, 'batchList'):
+            for batch in batch_response.batchList.batch:
+                if batch.settlementState == 'settlementError':
+                    raise TransactionBatchSettlementFailureException(
+                        f'Settlement error found in batch {batch.batchId}'
+                    )
 
         return batch_response
 
@@ -536,11 +545,6 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         :param processed_batch_ids: Optional list of batch IDs that have already been processed
         :return: Dictionary containing transaction details and optional pagination info
         """
-        # Create merchant authentication
-        merchant_auth = apicontractsv1.merchantAuthenticationType()
-        merchant_auth.name = self.api_login_id
-        merchant_auth.transactionKey = self.transaction_key
-
         # Get settled batch list
         batch_response = self._get_settled_batch_list(start_time, end_time)
 

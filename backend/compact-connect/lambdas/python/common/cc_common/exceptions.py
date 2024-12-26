@@ -34,3 +34,9 @@ class CCAwsServiceException(CCBaseException):
 
 class CCConflictException(CCBaseException):
     """Client error in the request, corresponds to a 409 response"""
+
+
+class TransactionBatchSettlementFailureException(CCBaseException):
+    """Raised when a transaction batch has a settlement error."""
+
+    pass
