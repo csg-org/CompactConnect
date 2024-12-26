@@ -436,16 +436,24 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         else:
             batch_controller.setenvironment(constants.PRODUCTION)
 
+        logger.info('Getting settled batch list for timeframe', start_time=start_time, end_time=end_time)
         batch_controller.execute()
         batch_response = batch_controller.getresponse()
 
         if batch_response is None or batch_response.messages.resultCode != OK_TRANSACTION_MESSAGE_RESULT_CODE:
+            logger.error('Failed to get settled batch list')
             raise CCInternalException('Failed to get settled batch list')
 
         # Check for settlement errors in any batch
         if hasattr(batch_response, 'batchList'):
+            batch_ids = [str(batch.batchId) for batch in batch_response.batchList.batch]
+            logger.info('Found settled batches', batch_ids=batch_ids)
             for batch in batch_response.batchList.batch:
                 if batch.settlementState == 'settlementError':
+                    logger.info(
+                        "Settlement error found in batch. Raising exception to send error email.",
+                        batch_id=batch.batchId
+                    )
                     raise TransactionBatchSettlementFailureException(
                         f'Settlement error found in batch {batch.batchId}'
                     )
@@ -487,11 +495,16 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         else:
             transaction_controller.setenvironment(constants.PRODUCTION)
 
+        logger.info("Getting transaction list for batch", batch_id=batch_id, page_offset=page_offset)
         transaction_controller.execute()
         transaction_response = transaction_controller.getresponse()
 
         if transaction_response is None or transaction_response.messages.resultCode != OK_TRANSACTION_MESSAGE_RESULT_CODE:
+            logger.error('Failed to get transaction list', batch_id=batch_id, page_offset=page_offset, response=transaction_response)
             raise CCInternalException('Failed to get transaction list')
+
+        transaction_ids = [str(tx.transId) for tx in transaction_response.transactions.transaction]
+        logger.info('Found transactions in batch', batch_id=batch_id, transaction_ids=transaction_ids)
 
         return transaction_response
 
@@ -517,10 +530,12 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         else:
             details_controller.setenvironment(constants.PRODUCTION)
 
+        logger.info("Getting transaction details", transaction_id=transaction_id)
         details_controller.execute()
         details_response = details_controller.getresponse()
 
         if details_response is None or details_response.messages.resultCode != OK_TRANSACTION_MESSAGE_RESULT_CODE:
+            logger.error('Failed to get transaction details', transaction_id=transaction_id, response=details_response)
             raise CCInternalException('Failed to get transaction details')
 
         return details_response
@@ -567,6 +582,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                 # Skip batches until we find the current batch we were processing
                 if not found_current_batch:
                     if batch_id == current_batch_id:
+                        logger.info("Found current batch to process", batch_id=current_batch_id)
                         found_current_batch = True
                     else:
                         continue
@@ -587,17 +603,27 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                             # Skip transactions until we find the last processed one
                             if not found_last_processed:
                                 if str(transaction.transId) == last_processed_transaction_id:
+                                    logger.info(
+                                        "Found last processed transaction",
+                                        transaction_id=last_processed_transaction_id,
+                                        batch_id=batch_id
+                                    )
                                     found_last_processed = True
                                 continue
 
                             # Get detailed transaction information
                             details_response = self._get_transaction_details(str(transaction.transId))
+                            logger.debug(
+                                "Received transaction details",
+                                batch_id=batch_id,
+                                transaction_id=str(transaction.transId)
+                            )
                             tx = details_response.transaction
 
                             licensee_id = None
                             if hasattr(tx, 'order') and tx.order.description:
                                 # Extract licensee ID from order description (format: "LICENSEE#uuid#")
-                                parts = tx.order.description.split('#')
+                                parts = str(tx.order.description).split('#')
                                 if len(parts) >= 3 and parts[0] == 'LICENSEE':
                                     licensee_id = parts[1]
 
@@ -615,7 +641,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
 
                             transaction_data = {
                                 'transactionId': str(tx.transId),
-                                'submitTimeUTC': tx.submitTimeUTC.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                                'submitTimeUTC': tx.submitTimeUTC,
                                 'transactionType': tx.transactionType,
                                 'transactionStatus': tx.transactionStatus,
                                 'responseCode': str(tx.responseCode),
@@ -623,8 +649,8 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                                 'licensee_id': licensee_id,
                                 'batch': {
                                     'batch_id': str(batch.batchId),
-                                    'settlementTimeUTC': batch.settlementTimeUTC.strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-                                    'settlementTimeLocal': batch.settlementTimeLocal.strftime('%Y-%m-%dT%H:%M:%S'),
+                                    'settlementTimeUTC': batch.settlementTimeUTC,
+                                    'settlementTimeLocal': batch.settlementTimeLocal,
                                     'settlementState': batch.settlementState
                                 },
                                 'line_items': line_items
@@ -644,6 +670,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                     break
 
                 # If we've processed all transactions in this batch, add it to the processed list
+                logger.info('Finished processing batch', batch_id=batch_id)
                 processed_batch_ids.append(batch_id)
 
         response = {
@@ -707,6 +734,7 @@ class PurchaseClient:
         Get the payment processor credentials for a compact
         """
         secret_name = self._get_payment_processor_secret_name_for_compact(compact_name)
+        logger.info('Getting payment processor credentials for compact', compact_name=compact_name)
         secret = self.secrets_manager_client.get_secret_value(SecretId=secret_name)
 
         return PaymentProcessorClientFactory.create_payment_processor_client(json.loads(secret['SecretString']))
