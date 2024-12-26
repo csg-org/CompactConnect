@@ -16,7 +16,7 @@ certifi==2024.12.14
     # via requests
 charset-normalizer==3.4.0
     # via requests
-click==8.1.7
+click==8.1.8
     # via pip-tools
 coverage[toml]==7.6.9
     # via
@@ -86,7 +86,7 @@ requests==2.32.3
     #   pip-audit
 rich==13.9.4
     # via pip-audit
-ruff==0.8.3
+ruff==0.8.4
     # via -r compact-connect/requirements-dev.in
 six==1.17.0
     # via
@@ -96,7 +96,7 @@ sortedcontainers==2.4.0
     # via cyclonedx-python-lib
 toml==0.10.2
     # via pip-audit
-urllib3==2.2.3
+urllib3==2.3.0
     # via requests
 webencodings==0.5.1
     # via html5lib

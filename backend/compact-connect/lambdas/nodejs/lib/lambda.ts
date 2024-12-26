@@ -97,8 +97,8 @@ export class Lambda implements LambdaInterface {
                         );
 
                         // verify that the jurisdiction uploaded licenses within the last week without any errors
-                        if (!weeklyIngestEvents.ingestFailures.length 
-                            && !weeklyIngestEvents.validationErrors.length 
+                        if (!weeklyIngestEvents.ingestFailures.length
+                            && !weeklyIngestEvents.validationErrors.length
                             && weeklyIngestEvents.ingestSuccesses.length
                         ) {
                             const messageId = await this.reportEmailer.sendAllsWellEmail(
