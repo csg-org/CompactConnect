@@ -6,6 +6,7 @@ Look here for continued documentation of the back-end design, as it progresses.
 - **[Compacts and Jurisdictions](#compacts-and-jurisdictions)**
 - **[License Ingest](#license-ingest)**
 - **[User Architecture](#user-architecture)**
+- **[Data Model](#data-model)**
 
 ## Compacts and Jurisdictions
 
@@ -163,3 +164,54 @@ Licensee users permissions are much simpler as compared to Compact Users. Their 
 Once their identity has been verified and associated with a licensee in the license data system, they will only have
 permission to view system data that is specific to them. They will be able to apply for and renew privileges to practice
 across jurisdictions, subject to their eligibility.
+
+## Data Model
+[Back to top](#backend-design)
+
+Data for the licensed practitioners is housed primarily in a single noSQL (DynamoDB) table, using a
+[single table design](https://aws.amazon.com/blogs/database/single-table-vs-multi-table-design-in-amazon-dynamodb/).
+The design of the data model is built around expected access patterns for practitioner data, with two main priorities
+in mind:
+1) Compact data should always be partitioned. This means that, whenever querying the database, it should not be possible
+   to query for data that may contain records for more than one compact in the response. The intent here is that
+   CompactConnect should have a deliberately partitioned experience in its data, from the UI, to the API, and all the
+   way down to the database layer, where a user must always be explicit about which compact's data they are interacting
+   with.
+2) As much as is practical, an access pattern for retrieving practitioner data should be satisfied in a single query.
+   DynamoDB is designed to have single-millisecond latency for queries, at any scale. If we want a fast, performant
+   API, we should leverage that performance by deliberately crafting our records so that any set of records we expect
+   our users to want should be retrieved in a single query.
+
+### Provider records
+
+Provider (practitioner) records are stored in the database with each provider having their own partition key, for
+example: `"pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570"`. This allows for the partition to be retrieved
+if a user is armed with only a compact and the identifier for the provider. From there, the provider's data is split
+into records of multiple types that are distinguished by their sort key:
+
+Primary information about a provider, as deduced mostly from license data provided by states, is stored in their
+`provider` type record and includes things like their name, home address, and date of birth. The provider record uses
+a sort key like `"sk": "aslp#PROVIDER"`.
+
+Each license associated with a provider has the data submitted by a state saved in a record with a sort key like
+`"sk": "aslp#PROVIDER#license/oh"`. This example record would be for a license in Ohio. Each license a state uploads
+that is associated with this provider can then be returned by a query for that provider's partition, with a query
+key condition that specifies a sort key starting with `aslp#PROVIDER#license/`.
+
+Similarly, privileges to practice granted to the provider for a state are stored in a record with a sort key like
+`"sk": "aslp#PROVIDER#privilege/ne"`. This example record represents a privilege granted to practice in Nebraska.
+The sort key pattern for privileges allows all privilege records to be queried by a sort key starting with
+`aslp#PROVIDER#privilege/`.
+
+In addition to recording the current state of the provider, their licenses and privileges, CompactConnect also stores
+historical data for providers, starting the day they are first added to the system. This historical data allows
+interested parties to determine the status of a provider's ability to practice in any given member state on any given
+day in the past. Any time a provider's status, date of expiration, renewal, or other values like name are changed,
+a supporting record is created to track the change. For changes to a license, the record is stored with a sort key like
+`aslp#PROVIDER#license/oh#UPDATE#1735232821/1a812bc8f`. This sort key will uniquely represent one particular change,
+the time it was effective in the system, and the contents of that change. Similarly, a change to a privilege will be
+represented with a record stored with a sort key like `aslp#PROVIDER#privilege/ne#UPDATE#1735232821/1a812bc8f`.
+
+A query for a provider's partition and a sort key starting with `aslp#PROVIDER` would retrieve enough records to
+present represent all of the provider's licenses, privileges and their complete history from when they were created in
+the system.
