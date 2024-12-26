@@ -86,13 +86,10 @@ class UserScopes(set):
                 f'{disallowed_actions}',
             )
         for action in jurisdiction_actions:
-            if action == 'readPrivate':
-                # For other actions, if you are granted to fine-grain permission at the jurisdiction level,
-                # you are also granted the course-grain scope permission to grant you access to call the api itself.
-                # In the case of reading, all staff users are implicitly granted the 'readGeneral' scope,
-                # so we do not need to add the course-grain scope explicitly here.
-                self.add(f'{compact_name}/{jurisdiction_name}.readPrivate')
-            else:
-                # Two levels of authz
+            self.add(f'{compact_name}/{jurisdiction_name}.{action}')
+
+            # Grant coarse-grain scope, which provides access to the API itself
+            # Since `readGeneral` is implicitly granted to all users, we do not
+            # need to grant a coarse-grain scope for the `readPrivate` action.
+            if action != 'readPrivate':
                 self.add(f'{compact_name}/{action}')
-                self.add(f'{compact_name}/{jurisdiction_name}.{action}')
