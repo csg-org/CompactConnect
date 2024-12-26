@@ -127,10 +127,10 @@ class TestTransactionMonitoring(TstAppABC, TestCase):
                 'Next': 'aslp-CheckProcessingStatus',
                 'Parameters': {
                     'FunctionName': '${Token[TOKEN]}',
-                    'Payload': {
-                        'compact': 'aslp',
-                        'lastProcessedTransactionId.$': '$.taskResult.Payload.lastProcessedTransactionId',
-                    },
+                    'Payload': {'compact': 'aslp',
+                            'currentBatchId.$': '$.taskResult.Payload.currentBatchId',
+                            'lastProcessedTransactionId.$': '$.taskResult.Payload.lastProcessedTransactionId',
+                            'processedBatchIds.$': '$.taskResult.Payload.processedBatchIds'},
                 },
                 'Resource': 'arn:${Token[AWS.Partition]}:states:::lambda:invoke',
                 'ResultPath': '$.taskResult',

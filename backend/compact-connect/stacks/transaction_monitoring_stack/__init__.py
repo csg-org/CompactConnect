@@ -4,9 +4,10 @@ import json
 
 from common_constructs.stack import AppStack
 from constructs import Construct
-from transaction_monitoring_stack.transaction_history_processing_workflow import TransactionHistoryProcessingWorkflow
 
 from stacks import persistent_stack as ps
+
+from .transaction_history_processing_workflow import TransactionHistoryProcessingWorkflow
 
 
 class TransactionMonitoringStack(AppStack):

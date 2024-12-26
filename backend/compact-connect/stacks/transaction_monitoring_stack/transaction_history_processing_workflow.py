@@ -17,6 +17,8 @@ from aws_cdk.aws_stepfunctions import (
     JsonPath,
     LogLevel,
     LogOptions,
+    Pass,
+    Result,
     StateMachine,
     Succeed,
     TaskInput,
@@ -53,11 +55,13 @@ class TransactionHistoryProcessingWorkflow(Construct):
             handler='process_settled_transactions',
             timeout=Duration.minutes(15),
             environment={
-                'TRANSACTION_HISTORY_TABLE': persistent_stack.transaction_history_table.table_name,
+                'TRANSACTION_HISTORY_TABLE_NAME': persistent_stack.transaction_history_table.table_name,
                 'ENVIRONMENT_NAME': environment_name,
                 **stack.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
+            # required as this lambda is bundled with the authorize.net SDK which is large
+            memory_size=512,
         )
         persistent_stack.transaction_history_table.grant_write_data(self.transaction_processor_handler)
         persistent_stack.shared_encryption_key.grant_encrypt(self.transaction_processor_handler)
@@ -91,19 +95,24 @@ class TransactionHistoryProcessingWorkflow(Construct):
         )
 
         # Create Step Function definition
+        # set initial values for the process task to use
+        self.initialize_state = Pass(
+            self,
+            f'{compact}-InitializeState',
+            result=Result.from_object({
+                "Payload": {
+                "compact": compact,
+                "processedBatchIds": []
+                }
+            }),
+        )
+
         self.processor_task = LambdaInvoke(
             self,
             f'{compact}-ProcessTransactionHistory',
             lambda_function=self.transaction_processor_handler,
-            payload=TaskInput.from_object(
-                {
-                    'compact': compact,
-                    'lastProcessedTransactionId': JsonPath.string_at('$.taskResult.Payload.lastProcessedTransactionId'),
-                    'currentBatchId': JsonPath.string_at('$.taskResult.Payload.currentBatchId'),
-                    'processedBatchIds': JsonPath.list_at('$.taskResult.Payload.processedBatchIds'),
-                }
-            ),
-            result_path='$.taskResult',
+            input_path=JsonPath.string_at('$.Payload'),
+            result_path='$',
             task_timeout=Timeout.duration(Duration.minutes(15)),
         )
         self.check_status = Choice(self, f'{compact}-CheckProcessingStatus')
@@ -121,13 +130,14 @@ class TransactionHistoryProcessingWorkflow(Construct):
         fail = Fail(self, f'{compact}-ProcessingFailed', cause='Transaction processing failed')
 
         # Here we define the chaining between the steps in the state machine
+        self.initialize_state.next(self.processor_task)
         self.processor_task.next(self.check_status)
-        self.check_status.when(Condition.string_equals('$.taskResult.Payload.status', 'COMPLETE'), success)
+        self.check_status.when(Condition.string_equals('$.Payload.status', 'COMPLETE'), success)
         self.check_status.when(
-            Condition.string_equals('$.taskResult.Payload.status', 'IN_PROGRESS'), self.processor_task
+            Condition.string_equals('$.Payload.status', 'IN_PROGRESS'), self.processor_task
         )
         self.check_status.when(
-            Condition.string_equals('$.taskResult.Payload.status', 'BATCH_FAILURE'),
+            Condition.string_equals('$.Payload.status', 'BATCH_FAILURE'),
             self.email_notification_service_invoke_step,
         )
         self.check_status.otherwise(fail)
@@ -136,19 +146,31 @@ class TransactionHistoryProcessingWorkflow(Construct):
         # since that is the result of the external system and not a failure of the state machine
         self.email_notification_service_invoke_step.next(success)
 
+        state_machine_log_group = LogGroup(
+            self,
+            f'{compact}-TransactionHistoryStateMachineLogs',
+            retention=RetentionDays.ONE_MONTH,
+        )
+        NagSuppressions.add_resource_suppressions(
+            state_machine_log_group,
+            suppressions=[
+                {
+                    'id': 'HIPAA.Security-CloudWatchLogGroupEncrypted',
+                    'reason': 'This group will contain no PII or PHI and should be accessible by anyone with access'
+                              ' to the AWS account for basic operational support visibility. Encrypting is not '
+                              'appropriate here.',
+                }
+            ],
+        )
+
         # Create the state machine
         state_machine = StateMachine(
             self,
             f'{compact}-TransactionHistoryStateMachine',
-            definition_body=DefinitionBody.from_chainable(self.processor_task),
+            definition_body=DefinitionBody.from_chainable(self.initialize_state),
             timeout=Duration.hours(2),
             logs=LogOptions(
-                destination=LogGroup(
-                    self,
-                    f'{compact}-TransactionHistoryStateMachineLogs',
-                    retention=RetentionDays.ONE_MONTH,
-                    encryption_key=persistent_stack.shared_encryption_key,
-                ),
+                destination=state_machine_log_group,
                 level=LogLevel.ALL,
                 include_execution_data=True,
             ),

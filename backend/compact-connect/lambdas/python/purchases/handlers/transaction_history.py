@@ -50,19 +50,24 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
             config.transaction_client.store_transactions(compact, transaction_response['transactions'])
 
         # Return appropriate response based on whether there are more transactions to process
-        if 'lastProcessedTransactionId' in transaction_response:
-            return {
-                'status': 'IN_PROGRESS',
-                'lastProcessedTransactionId': transaction_response['lastProcessedTransactionId'],
-                'currentBatchId': transaction_response['currentBatchId'],
-                'processedBatchIds': transaction_response['processedBatchIds']
-            }
-
-        return {
-            'status': 'COMPLETE'
+        response = {
+            'compact': compact,  # Always include the compact name
+            'status': 'IN_PROGRESS' if 'lastProcessedTransactionId' in transaction_response else 'COMPLETE',
+            'processedBatchIds': transaction_response['processedBatchIds']
         }
+
+        # Only include pagination values if we're not done processing
+        if 'lastProcessedTransactionId' in transaction_response:
+            response.update({
+                'lastProcessedTransactionId': transaction_response['lastProcessedTransactionId'],
+                'currentBatchId': transaction_response['currentBatchId']
+            })
+
+        return response
+
     except TransactionBatchSettlementFailureException as e:
         return {
+            'compact': compact,
             'status': 'BATCH_FAILURE',
             'batchFailureErrorMessage': str(e)
         }
