@@ -3,18 +3,24 @@ from urllib.parse import quote
 
 from marshmallow import ValidationError, post_load, pre_dump, pre_load, validates_schema
 from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, List, Nested, String
-from marshmallow.validate import Length, OneOf, Regexp
+from marshmallow.validate import Length, Regexp
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import (
     BaseRecordSchema,
     CalculatedStatusRecordSchema,
     ForgivingSchema,
+)
+from cc_common.data_model.schema.common import ensure_value_is_datetime
+from cc_common.data_model.schema.fields import (
+    ActiveInactive,
+    Compact,
     ITUTE164PhoneNumber,
+    Jurisdiction,
+    NationalProviderIdentifier,
     Set,
     SocialSecurityNumber,
 )
-from cc_common.data_model.schema.common import ensure_value_is_datetime
 from cc_common.data_model.schema.license import LicenseReadGeneralSchema
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationGeneralResponseSchema
 from cc_common.data_model.schema.privilege import PrivilegeGeneralResponseSchema
@@ -27,12 +33,12 @@ class ProviderPrivateSchema(ForgivingSchema):
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
 
-    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    licenseJurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
+    compact = Compact(required=True, allow_none=False)
+    licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     ssn = SocialSecurityNumber(required=True, allow_none=False)
-    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseType = String(required=True, allow_none=False)
-    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -126,11 +132,11 @@ class SanitizedProviderReadGeneralSchema(ForgivingSchema):
     type = String(required=True, allow_none=False)
 
     dateOfUpdate = DateTime(required=True, allow_none=False)
-    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    licenseJurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
-    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
+    compact = Compact(required=True, allow_none=False)
+    licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseType = String(required=True, allow_none=False)
-    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -145,7 +151,7 @@ class SanitizedProviderReadGeneralSchema(ForgivingSchema):
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
     emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    status = ActiveInactive(required=True, allow_none=False)
     militaryWaiver = Boolean(required=False, allow_none=False)
 
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())

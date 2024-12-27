@@ -63,7 +63,6 @@
             "ssn": "123-12-1234",
             "npi": "0608337260",
             "licenseType": "speech-language pathologist",
-            "status": "active",
             "jurisdictionStatus": "active",
             "givenName": "Björk",
             "middleName": "Gunnar",
@@ -111,7 +110,6 @@
           "jurisdiction": "ne",
           "dateOfUpdate": "2020-05-05T12:59:59+00:00",
           "previous": {
-            "status": "active",
             "dateOfIssuance": "2016-05-05T12:59:59+00:00",
             "dateOfRenewal": "2016-05-05T12:59:59+00:00",
             "dateOfExpiration": "2020-06-06",

@@ -5,11 +5,12 @@ from abc import ABC
 from datetime import date, datetime
 
 from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump, pre_load
-from marshmallow.fields import UUID, DateTime, List, String
-from marshmallow.validate import OneOf, Regexp
+from marshmallow.fields import UUID, DateTime, String
+from marshmallow.validate import OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.common import ensure_value_is_datetime
+from cc_common.data_model.schema.fields import SocialSecurityNumber
 from cc_common.exceptions import CCInternalException
 
 
@@ -27,25 +28,8 @@ class ForgivingSchema(Schema):
         unknown = EXCLUDE
 
 
-class SocialSecurityNumber(String):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, validate=Regexp('^[0-9]{3}-[0-9]{2}-[0-9]{4}$'), **kwargs)
-
-
-class Set(List):
-    """A Field that de/serializes to a Set (not compatible with JSON)"""
-
-    default_error_messages = {'invalid': 'Not a valid set.'}
-
-    def _serialize(self, *args, **kwargs):
-        return set(super()._serialize(*args, **kwargs))
-
-    def _deserialize(self, *args, **kwargs):
-        return set(super()._deserialize(*args, **kwargs))
-
-
 class BaseRecordSchema(StrictSchema, ABC):
-    """Abstract base class, common to all records in the license data table"""
+    """Abstract base class, common to all records in the provider data table"""
 
     _record_type = None
     _registered_schema = {}
@@ -134,15 +118,6 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
         )
 
         return in_data
-
-
-class ITUTE164PhoneNumber(String):
-    """Phone number format consistent with ITU-T E.164:
-    https://www.itu.int/rec/T-REC-E.164-201011-I/en
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, validate=Regexp(r'^\+[0-9]{8,15}$'), **kwargs)
 
 
 class SSNIndexRecordSchema(StrictSchema):

@@ -1,16 +1,23 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 
 from marshmallow import ValidationError, pre_dump, pre_load, validates_schema
-from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, String
-from marshmallow.validate import Length, OneOf, Regexp
+from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, Nested, String
+from marshmallow.validate import Length
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import (
     BaseRecordSchema,
     CalculatedStatusRecordSchema,
     ForgivingSchema,
+)
+from cc_common.data_model.schema.fields import (
+    ActiveInactive,
+    Compact,
     ITUTE164PhoneNumber,
+    Jurisdiction,
+    NationalProviderIdentifier,
     SocialSecurityNumber,
+    UpdateType,
 )
 
 
@@ -25,11 +32,11 @@ class LicenseReadGeneralSchema(ForgivingSchema):
     providerId = UUID(required=True, allow_none=False)
     type = String(required=True, allow_none=False)
     dateOfUpdate = DateTime(required=True, allow_none=False)
-    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
-    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
-    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
+    jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -46,7 +53,7 @@ class LicenseReadGeneralSchema(ForgivingSchema):
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
     emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    status = ActiveInactive(required=True, allow_none=False)
 
     militaryWaiver = Boolean(required=False, allow_none=False)
 
@@ -57,8 +64,8 @@ class LicenseCommonSchema(ForgivingSchema):
     to both the external and internal representations of a license record.
     """
 
-    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
@@ -90,19 +97,19 @@ class LicensePostSchema(LicenseCommonSchema):
     """Schema for license data as posted by a board"""
 
     ssn = SocialSecurityNumber(required=True, allow_none=False)
-    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
     # This status field is required when posting a license record. It will be transformed into the
     # jurisdictionStatus field when the record is ingested.
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    status = ActiveInactive(required=True, allow_none=False)
 
 
 class SanitizedLicenseIngestDataEventSchema(ForgivingSchema):
     """Schema which removes all pii from the license ingest event for storing in the database"""
 
-    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    status = ActiveInactive(required=True, allow_none=False)
     dateOfIssuance = Date(required=True, allow_none=False)
     dateOfRenewal = Date(required=True, allow_none=False)
     dateOfExpiration = Date(required=True, allow_none=False)
@@ -113,12 +120,12 @@ class LicenseIngestSchema(LicenseCommonSchema):
     """Schema for converting the external license data to the internal format"""
 
     ssn = SocialSecurityNumber(required=True, allow_none=False)
-    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
     # When a license record is first uploaded into the system, we store the value of
     # 'status' under this field for backwards compatibility with the external contract.
     # this is used to calculate the actual 'status' used by the system in addition
     # to the expiration date of the license.
-    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
 
     @pre_load
     def pre_load_initialization(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
@@ -136,18 +143,75 @@ class LicenseIngestSchema(LicenseCommonSchema):
 
 @BaseRecordSchema.register_schema('license')
 class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
-    """Schema for license records in the license data table"""
+    """Schema for license records in the provider data table"""
 
     _record_type = 'license'
 
     ssn = SocialSecurityNumber(required=True, allow_none=False)
-    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
-    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
-        in_data['sk'] = f'{in_data['compact']}#PROVIDER#license/{in_data['jurisdiction']}#{in_data['dateOfRenewal']}'
+        in_data['sk'] = f'{in_data['compact']}#PROVIDER#license/{in_data['jurisdiction']}'
+        return in_data
+
+
+class LicenseUpdateRecordPreviousSchema(ForgivingSchema):
+    """A snapshot of a previous state of a license record"""
+
+    ssn = SocialSecurityNumber(required=True, allow_none=False)
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    givenName = String(required=True, allow_none=False, validate=Length(1, 100))
+    middleName = String(required=False, allow_none=False, validate=Length(1, 100))
+    familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    suffix = String(required=False, allow_none=False, validate=Length(1, 100))
+    # These date values are determined by the license records uploaded by a state
+    # they do not include a timestamp, so we use the Date field type
+    dateOfIssuance = Date(required=True, allow_none=False)
+    dateOfRenewal = Date(required=True, allow_none=False)
+    dateOfExpiration = Date(required=True, allow_none=False)
+    dateOfBirth = Date(required=True, allow_none=False)
+    homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
+    homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
+    homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
+    militaryWaiver = Boolean(required=False, allow_none=False)
+    emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
+    phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
+    jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
+
+    @validates_schema
+    def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
+        license_types = config.license_types_for_compact(data['compact'])
+        # We have to check for existence here to allow for the updatedValues partial case
+        if data.get('licenseType') and data['licenseType'] not in license_types:
+            raise ValidationError({'licenseType': [f'Must be one of: {', '.join(license_types)}.']})
+
+
+@BaseRecordSchema.register_schema('licenseUpdate')
+class LicenseUpdateRecordSchema(BaseRecordSchema):
+    """Schema for license update history records in the provider data table"""
+
+    _record_type = 'licenseUpdate'
+
+    updateType = UpdateType(required=True, allow_none=False)
+    providerId = UUID(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    previous = Nested(LicenseUpdateRecordPreviousSchema, required=True, allow_none=False)
+    # We'll allow any fields that can show up in the previous field to be here as well, but none are required
+    updatedValues = Nested(LicenseUpdateRecordPreviousSchema(partial=True), required=True, allow_none=False)
+
+    @pre_dump
+    def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
+        raise NotImplementedError('TODO: Implement this')
+        # This needs to include a POSIX timestamp (seconds) and a hash of the changes
+        in_data['sk'] = f'{in_data['compact']}#PROVIDER#license/{in_data['jurisdiction']}#UPDATE#<stamp>/<hash>'
         return in_data

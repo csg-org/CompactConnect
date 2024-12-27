@@ -1,12 +1,12 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 
 from marshmallow import pre_dump, pre_load
-from marshmallow.fields import UUID, Date, DateTime, String
-from marshmallow.validate import Length, OneOf
+from marshmallow.fields import UUID, Date, DateTime, Nested, String
+from marshmallow.validate import OneOf
 
-from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema, ForgivingSchema
 from cc_common.data_model.schema.common import ensure_value_is_datetime
+from cc_common.data_model.schema.fields import Compact, Jurisdiction, UpdateType
 
 
 @BaseRecordSchema.register_schema('privilege')
@@ -17,8 +17,8 @@ class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
 
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
-    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
     dateOfIssuance = DateTime(required=True, allow_none=False)
     dateOfRenewal = DateTime(required=True, allow_none=False)
     # this is determined by the license expiration date, which is a date field, so this is also a date field
@@ -26,16 +26,10 @@ class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
     # the id of the transaction that was made when the user purchased the privilege
     compactTransactionId = String(required=False, allow_none=False)
 
-    # Generated fields
-    pk = String(required=True, allow_none=False)
-    sk = String(required=True, allow_none=False, validate=Length(2, 100))
-
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
-        in_data['sk'] = (
-            f'{in_data['compact']}#PROVIDER#privilege/{in_data['jurisdiction']}#{in_data['dateOfRenewal'].date().isoformat()}'  # noqa: E501
-        )
+        in_data['sk'] = f'{in_data['compact']}#PROVIDER#privilege/{in_data['jurisdiction']}'  # noqa: E501
         return in_data
 
     @pre_load
@@ -56,8 +50,8 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     type = String(required=True, allow_none=False)
     dateOfUpdate = DateTime(required=True, allow_none=False)
     providerId = UUID(required=True, allow_none=False)
-    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
     dateOfIssuance = DateTime(required=True, allow_none=False)
     dateOfRenewal = DateTime(required=True, allow_none=False)
     # this is determined by the license expiration date, which is a date field, so this is also a date field
@@ -65,3 +59,36 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     # the id of the transaction that was made when the user purchased the privilege
     compactTransactionId = String(required=False, allow_none=False)
     status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+
+
+class PrivilegeUpdateRecordPreviousSchema(ForgivingSchema):
+    """A snapshot of a previous state of a privilege record"""
+
+    dateOfIssuance = DateTime(required=True, allow_none=False)
+    dateOfRenewal = DateTime(required=True, allow_none=False)
+    dateOfExpiration = Date(required=True, allow_none=False)
+    dateOfUpdate = DateTime(required=True, allow_none=False)
+    compactTransactionId = String(required=False, allow_none=False)
+
+
+@BaseRecordSchema.register_schema('privilegeUpdate')
+class PrivilegeUpdateRecordSchema(BaseRecordSchema):
+    """Schema for privilege update history records in the provider data table"""
+
+    _record_type = 'privilegeUpdate'
+
+    updateType = UpdateType(required=True, allow_none=False)
+    providerId = UUID(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    previous = Nested(PrivilegeUpdateRecordPreviousSchema, required=True, allow_none=False)
+    # We'll allow any fields that can show up in the previous field to be here as well, but none are required
+    updatedValues = Nested(PrivilegeUpdateRecordPreviousSchema(partial=True), required=True, allow_none=False)
+
+    @pre_dump
+    def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
+        raise NotImplementedError('TODO: Implement this')
+        # This needs to include a POSIX timestamp (seconds) and a hash of the changes
+        in_data['sk'] = f'{in_data['compact']}#PROVIDER#privilege/{in_data['jurisdiction']}#UPDATE#<stamp>/<hash>'
+        return in_data
