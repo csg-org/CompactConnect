@@ -17,12 +17,12 @@
   "homeAddressCity": "Columbus",
   "homeAddressState": "oh",
   "homeAddressPostalCode": "43004",
-  "militaryWaiver": false,
+  "militaryWaiver": true,
   "emailAddress": "björk@example.com",
   "phoneNumber": "+13213214321",
   "dateOfBirth": "2024-06-06",
   "dateOfUpdate": "2024-07-08T23:59:59+00:00",
-  "dateOfExpiration": "2050-06-06",
+  "dateOfExpiration": "2025-04-04",
   "birthMonthDay": "06-06",
   "licenses": [
     {
@@ -38,11 +38,11 @@
       "givenName": "Björk",
       "middleName": "Gunnar",
       "familyName": "Guðmundsdóttir",
-      "dateOfIssuance": "2024-06-06",
-      "dateOfRenewal": "2024-06-06",
-      "dateOfExpiration": "2050-06-06",
-      "dateOfBirth": "2024-06-06",
-      "dateOfUpdate": "2024-07-08T23:59:59+00:00",
+      "dateOfIssuance": "2010-06-06",
+      "dateOfRenewal": "2020-04-04",
+      "dateOfExpiration": "2025-04-04",
+      "dateOfBirth": "1985-06-06",
+      "dateOfUpdate": "2024-06-06T12:59:59+00:00",
       "homeAddressStreet1": "123 A St.",
       "homeAddressStreet2": "Apt 321",
       "homeAddressCity": "Columbus",
@@ -50,7 +50,44 @@
       "homeAddressPostalCode": "43004",
       "emailAddress": "björk@example.com",
       "phoneNumber": "+13213214321",
-      "militaryWaiver": false
+      "militaryWaiver": true,
+      "history": [
+        {
+          "type": "licenseUpdate",
+          "updateType": "renewal",
+          "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+          "compact": "aslp",
+          "jurisdiction": "oh",
+          "dateOfUpdate": "2020-04-07T12:59:59+00:00",
+          "previous": {
+            "ssn": "123-12-1234",
+            "npi": "0608337260",
+            "licenseType": "speech-language pathologist",
+            "status": "active",
+            "jurisdictionStatus": "active",
+            "givenName": "Björk",
+            "middleName": "Gunnar",
+            "familyName": "Guðmundsdóttir",
+            "dateOfIssuance": "2010-06-06",
+            "dateOfRenewal": "2015-06-06",
+            "dateOfExpiration": "2020-06-06",
+            "dateOfBirth": "1985-06-06",
+            "dateOfUpdate": "2020-06-06T12:59:59+00:00",
+            "homeAddressStreet1": "123 A St.",
+            "homeAddressStreet2": "Apt 321",
+            "homeAddressCity": "Columbus",
+            "homeAddressState": "oh",
+            "homeAddressPostalCode": "43004",
+            "emailAddress": "björk@example.com",
+            "phoneNumber": "+13213214321",
+            "militaryWaiver": true
+          },
+          "updatedValues": {
+            "dateOfRenewal": "2020-04-04",
+            "dateOfExpiration": "2025-04-04"
+          }
+        }
+      ]
     }
   ],
   "privileges": [
@@ -60,11 +97,34 @@
       "compact": "aslp",
       "jurisdiction": "ne",
       "status": "active",
-      "dateOfIssuance": "2024-06-06T23:59:59+00:00",
-      "dateOfRenewal": "2024-11-08T23:59:59+00:00",
-      "dateOfUpdate": "2024-07-01T23:59:59+00:00",
-      "dateOfExpiration": "2050-06-06",
-      "compactTransactionId": "1234567890"
+      "dateOfIssuance": "2016-05-05T12:59:59+00:00",
+      "dateOfRenewal": "2020-05-05T12:59:59+00:00",
+      "dateOfExpiration": "2025-04-04",
+      "dateOfUpdate": "2020-05-05T12:59:59+00:00",
+      "compactTransactionId": "1234567890",
+      "history": [
+        {
+          "type": "privilegeUpdate",
+          "updateType": "renewal",
+          "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+          "compact": "aslp",
+          "jurisdiction": "ne",
+          "dateOfUpdate": "2020-05-05T12:59:59+00:00",
+          "previous": {
+            "status": "active",
+            "dateOfIssuance": "2016-05-05T12:59:59+00:00",
+            "dateOfRenewal": "2016-05-05T12:59:59+00:00",
+            "dateOfExpiration": "2020-06-06",
+            "dateOfUpdate": "2016-05-05T12:59:59+00:00",
+            "compactTransactionId": "0123456789"
+          },
+          "updatedValues": {
+            "dateOfRenewal": "2020-05-05T12:59:59+00:00",
+            "dateOfExpiration": "2025-04-04",
+            "compactTransactionId": "1234567890"
+          }
+        }
+      ]
     }
   ],
   "militaryAffiliations": [
@@ -72,7 +132,7 @@
       "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
       "compact": "aslp",
       "type": "militaryAffiliation",
-      "documentKeys": ["/provider/<provider_id>/document-type/military-affiliations/2024-07-08/1234#military-waiver.pdf"],
+      "documentKeys": ["/provider/89a6377e-c3a5-40e5-bca5-317ec854c570/document-type/military-affiliations/2024-07-08/1234#military-waiver.pdf"],
       "affiliationType": "militaryMember",
       "fileNames": ["military-waiver.pdf"],
       "status": "active",
