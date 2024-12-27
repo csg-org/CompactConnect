@@ -180,10 +180,10 @@ export class EmailServiceTemplater {
         recipientType: RecipientType, 
         specificEmails?: string[]
     ): Promise<string[]> {
-        if (recipientType === 'SPECIFIC' && specificEmails) {
+        if (recipientType === 'SPECIFIC') {
             if (specificEmails) return specificEmails;
             
-            throw new Error(`SPECIFIC recipientType requested but none provided`);
+            throw new Error(`SPECIFIC recipientType requested but no specific email addresses provided`);
         }
 
         const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
@@ -200,7 +200,7 @@ export class EmailServiceTemplater {
         }
     }
 
-    public async transactionBatchSettlementFailure(compact: string, 
+    public async sendTransactionBatchSettlementFailureEmail(compact: string, 
         recipientType: RecipientType, 
         specificEmails?: string[]
     ): Promise<void> {

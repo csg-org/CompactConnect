@@ -39,7 +39,7 @@ export class Lambda implements LambdaInterface {
 
         switch (event.template) {
         case 'transactionBatchSettlementFailure':
-            await this.emailServiceTemplater.transactionBatchSettlementFailure(
+            await this.emailServiceTemplater.sendTransactionBatchSettlementFailureEmail(
                 event.compact,
                 event.recipientType,
                 event.specificEmails
