@@ -10,6 +10,14 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
     """
     Process settled transactions from the payment processor.
 
+    This lambda is invoked as part of the transaction history processing workflow. It retrieves settled transactions
+    from the payment processor and stores them in DynamoDB. It is designed to be invoked multiple times until all
+    transactions have been processed. The lambda will return a status of 'IN_PROGRESS' until all transactions have been
+    processed, at which point it will return a status of 'COMPLETE'.
+
+    If the payment processor reports that there was a settlement failure, the lambda will return a status of
+    'BATCH_FAILURE', which will cause the workflow to send an alert to the compact operations team.
+
     :param event: Lambda event containing:
         - compact: The compact name
         - lastProcessedTransactionId: Optional last processed transaction ID
@@ -38,6 +46,7 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
             compact=compact,
             start_time=start_time_str,
             end_time=end_time_str,
+            # we set the transaction limit to 500 to avoid hitting the 15-minute timeout for lambda
             transaction_limit=500,
             last_processed_transaction_id=last_processed_transaction_id,
             current_batch_id=current_batch_id,

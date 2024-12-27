@@ -33,6 +33,16 @@ export class Lambda implements LambdaInterface {
         });
     }
 
+    /**
+     * Lambda handler for email notification service
+     * 
+     * This handler sends an email notification based on the requested email template.
+     * See README in this directory for information on using this service.
+     *
+     * @param event - Email notification event
+     * @param context - Lambda context
+     * @returns Email notification response
+     */
     @logger.injectLambdaContext({ resetKeys: true })
     public async handler(event: EmailNotificationEvent, context: Context): Promise<EmailNotificationResponse> {
         logger.info('Processing event', { event: event });
