@@ -21,7 +21,7 @@ class UserScopes(set):
         user_data = self._get_user_data(sub)
         permissions = {
             compact_record['compact']: {
-                'actions': set(compact_record['permissions']['actions']),
+                'actions': set(compact_record['permissions'].get('actions', [])),
                 'jurisdictions': compact_record['permissions']['jurisdictions'],
             }
             for compact_record in user_data
@@ -48,13 +48,18 @@ class UserScopes(set):
         compact_actions = compact_permissions.get('actions', set())
 
         # Ensure included actions are limited to supported values
-        disallowed_actions = compact_actions - {'read', 'admin'}
+        # Note we are keeping in the 'read' permission for backwards compatibility
+        # Though we are not using it in the codebase
+        disallowed_actions = compact_actions - {'read', 'admin', 'readPrivate'}
         if disallowed_actions:
             raise ValueError(f'User {compact_name} permissions include disallowed actions: {disallowed_actions}')
 
-        # Read is the only truly compact-level permission
-        if 'read' in compact_actions:
-            self.add(f'{compact_name}/read')
+        # readGeneral is always added an implicit permission granted to all staff users at the compact level
+        self.add(f'{compact_name}/readGeneral')
+
+        if 'readPrivate' in compact_actions:
+            # This action only has one level of authz, since there is no external scope for it
+            self.add(f'{compact_name}/{compact_name}.readPrivate')
 
         if 'admin' in compact_actions:
             # Two levels of authz for admin
@@ -74,13 +79,17 @@ class UserScopes(set):
 
     def _process_jurisdiction_permissions(self, compact_name, jurisdiction_name, jurisdiction_actions):
         # Ensure included actions are limited to supported values
-        disallowed_actions = jurisdiction_actions - {'write', 'admin'}
+        disallowed_actions = jurisdiction_actions - {'write', 'admin', 'readPrivate'}
         if disallowed_actions:
             raise ValueError(
                 f'User {compact_name}/{jurisdiction_name} permissions include disallowed actions: '
                 f'{disallowed_actions}',
             )
         for action in jurisdiction_actions:
-            # Two levels of authz
-            self.add(f'{compact_name}/{action}')
             self.add(f'{compact_name}/{jurisdiction_name}.{action}')
+
+            # Grant coarse-grain scope, which provides access to the API itself
+            # Since `readGeneral` is implicitly granted to all users, we do not
+            # need to grant a coarse-grain scope for the `readPrivate` action.
+            if action != 'readPrivate':
+                self.add(f'{compact_name}/{action}')

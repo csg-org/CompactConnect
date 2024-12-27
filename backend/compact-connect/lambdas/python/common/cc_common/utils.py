@@ -11,6 +11,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 
 from cc_common.config import logger
+from cc_common.data_model.schema.provider import SanitizedProviderReadGeneralSchema
 from cc_common.exceptions import (
     CCAccessDeniedException,
     CCInvalidRequestException,
@@ -120,7 +121,7 @@ def api_handler(fn: Callable):
 
 
 class authorize_compact:  # noqa: N801 invalid-name
-    """Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/read)"""
+    """Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/readGeneral)"""
 
     def __init__(self, action: str):
         super().__init__()
@@ -165,8 +166,9 @@ def _authorize_compact_with_scope(event: dict, resource_parameter: str, scope_pa
     For each of these actions, specific rules apply to the scope required to perform the action, which are
     as follows:
 
-    Read - granted at compact level, allows read access to all jurisdictions within the compact.
-    i.e. aslp/read would allow read access to all jurisdictions within the aslp compact.
+    ReadGeneral - granted at compact level, allows read access to all generally available (not private) jurisdiction
+    data within the compact.
+    i.e. aslp/readGeneral would allow read access to all generally available jurisdiction data within the aslp compact.
 
     Write - granted at jurisdiction level, allows write access to a specific jurisdiction within the compact.
     i.e. aslp/oh.write would allow write access to the ohio jurisdiction within the aslp compact.
@@ -309,6 +311,12 @@ def get_allowed_jurisdictions(*, compact: str, scopes: set[str]) -> list[str] | 
 
 
 def get_event_scopes(event: dict):
+    """
+    Get the scopes from the event object and return them as a list.
+
+    :param dict event: The event object passed to the lambda function.
+    :return: The scopes from the event object.
+    """
     return set(event['requestContext']['authorizer']['claims']['scope'].split(' '))
 
 
@@ -345,6 +353,13 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
     for action, value in compact_changes.get('actions', {}).items():
         if action == 'admin' and f'{path_compact}/{path_compact}.admin' not in scopes:
             raise CCAccessDeniedException('Only compact admins can affect compact-level admin permissions')
+        if action == 'readPrivate' and f'{path_compact}/{path_compact}.admin' not in scopes:
+            raise CCAccessDeniedException('Only compact admins can affect compact-level access to private information')
+
+        # dropping the read action as this is now implicitly granted to all users
+        if action == 'read':
+            logger.info('Dropping "read" action as this is implicitly granted to all users')
+            continue
         # Any admin in the compact can affect read permissions, so no read-specific check is necessary here
         if value:
             compact_action_additions.add(action)
@@ -360,6 +375,11 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
             )
 
         for action, value in jurisdiction_changes.get('actions', {}).items():
+            # dropping the read action as this is now implicitly granted to all users
+            if action == 'read':
+                logger.info('Dropping "read" action as this is implicitly granted to all users')
+                continue
+
             if value:
                 jurisdiction_action_additions.setdefault(jurisdiction, set()).add(action)
             else:
@@ -378,3 +398,59 @@ def get_sub_from_user_attributes(attributes: list):
         if attribute['Name'] == 'sub':
             return attribute['Value']
     raise ValueError('Failed to find user sub!')
+
+
+def _user_has_private_read_access_for_provider(compact: str, provider_information: dict, scopes: set[str]) -> bool:
+    if f'{compact}/{compact}.readPrivate' in scopes:
+        logger.debug(
+            'User has readPrivate permission at compact level',
+            compact=compact,
+            provider_id=provider_information['providerId'],
+        )
+        return True
+
+    # iterate through the users privileges and licenses and create a set out of all the jurisdictions
+    relevant_provider_jurisdictions = set()
+    for privilege in provider_information.get('privileges', []):
+        relevant_provider_jurisdictions.add(privilege['jurisdiction'])
+    for license_record in provider_information.get('licenses', []):
+        relevant_provider_jurisdictions.add(license_record['jurisdiction'])
+
+    for jurisdiction in relevant_provider_jurisdictions:
+        if f'{compact}/{jurisdiction}.readPrivate' in scopes:
+            logger.debug(
+                'User has readPrivate permission at jurisdiction level',
+                compact=compact,
+                provider_id=provider_information['providerId'],
+                jurisdiction=jurisdiction,
+            )
+            return True
+
+    logger.debug(
+        'Caller does not have readPrivate permission at compact or jurisdiction level',
+        provider_id=provider_information['providerId'],
+    )
+    return False
+
+
+def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, scopes: set[str]) -> dict:
+    """
+    Take a provider and a set of user scopes, then return a provider, with information sanitized based on what
+    the user is authorized to view.
+
+    :param str compact: The compact the user is trying to access.
+    :param dict provider: The provider record to be sanitized.
+    :param set scopes: The user's scopes from the request.
+    :return: The provider record, sanitized based on the user's scopes.
+    """
+    if _user_has_private_read_access_for_provider(compact=compact, provider_information=provider, scopes=scopes):
+        # return full object since caller has 'readPrivate' access for provider
+        return provider
+
+    logger.debug(
+        'Caller does not have readPrivate at compact or jurisdiction level, removing private information',
+        provider_id=provider['providerId'],
+    )
+    provider_read_general_schema = SanitizedProviderReadGeneralSchema()
+    # we dump the record to ensure that the schema is applied to the record to remove private fields
+    return provider_read_general_schema.dump(provider)

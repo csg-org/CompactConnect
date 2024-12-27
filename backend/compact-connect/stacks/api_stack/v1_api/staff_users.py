@@ -51,10 +51,10 @@ class StaffUsers:
         self._add_get_users(self.admin_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
         self._add_post_user(self.admin_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
 
-        user_id_resource = self.admin_resource.add_resource('{userId}')
+        self.user_id_resource = self.admin_resource.add_resource('{userId}')
         # <base-url>/{userId}
-        self._add_get_user(user_id_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
-        self._add_patch_user(user_id_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
+        self._add_get_user(self.user_id_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
+        self._add_patch_user(self.user_id_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
 
         self.me_resource = self_resource.add_resource('me')
         # <base-url>/me
@@ -301,7 +301,7 @@ class StaffUsers:
         env_vars: dict,
         persistent_stack: ps.PersistentStack,
     ):
-        patch_user_handler = self._patch_user_handler(
+        self.patch_user_handler = self._patch_user_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
             users_table=persistent_stack.staff_users.user_table,
@@ -310,7 +310,7 @@ class StaffUsers:
         # Add the PATCH method to the me_resource
         user_resource.add_method(
             'PATCH',
-            integration=LambdaIntegration(patch_user_handler),
+            integration=LambdaIntegration(self.patch_user_handler),
             request_validator=self.api.parameter_body_validator,
             request_models={'application/json': self.api_model.patch_staff_user_model},
             method_responses=[
@@ -359,7 +359,7 @@ class StaffUsers:
         env_vars: dict,
         persistent_stack: ps.PersistentStack,
     ):
-        post_user_handler = self._post_user_handler(
+        self.post_user_handler = self._post_user_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
             users_table=persistent_stack.staff_users.user_table,
@@ -369,7 +369,7 @@ class StaffUsers:
         # Add the POST method to the me_resource
         users_resource.add_method(
             'POST',
-            integration=LambdaIntegration(post_user_handler),
+            integration=LambdaIntegration(self.post_user_handler),
             request_validator=self.api.parameter_body_validator,
             request_models={'application/json': self.api_model.post_staff_user_model},
             method_responses=[

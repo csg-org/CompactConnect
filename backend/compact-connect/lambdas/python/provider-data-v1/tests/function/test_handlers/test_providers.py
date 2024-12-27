@@ -17,7 +17,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/aslp.readPrivate'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps({'query': {'ssn': '123-12-1234'}})
 
@@ -39,7 +39,7 @@ class TestQueryProviders(TstFunction):
             body,
         )
 
-    def test_query_by_provider_id(self):
+    def test_query_by_provider_id_sanitizes_data_even_with_read_private_permission(self):
         self._load_provider_data()
 
         from handlers.providers import query_providers
@@ -48,7 +48,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/aslp.readPrivate'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps({'query': {'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}})
 
@@ -80,7 +80,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/aslp.readPrivate'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps(
             {'sorting': {'key': 'dateOfUpdate'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
@@ -109,7 +109,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps(
             {'sorting': {'key': 'familyName'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
@@ -143,7 +143,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps(
             {
@@ -175,7 +175,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps(
             {
@@ -201,7 +201,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps({'query': {}})
 
@@ -229,7 +229,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps({'query': {'jurisdiction': 'oh'}, 'sorting': {'key': 'invalid'}})
 
@@ -241,8 +241,7 @@ class TestQueryProviders(TstFunction):
 
 @mock_aws
 class TestGetProvider(TstFunction):
-    def test_get_provider(self):
-        """Provider detail response"""
+    def _when_testing_get_provider_response_based_on_read_access(self, scopes: str, expected_provider: dict):
         self._load_provider_data()
 
         from handlers.providers import get_provider
@@ -251,18 +250,38 @@ class TestGetProvider(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = scopes
         event['pathParameters'] = {'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
         event['queryStringParameters'] = None
-
-        with open('../common/tests/resources/api/provider-detail-response.json') as f:
-            expected_provider = json.load(f)
 
         resp = get_provider(event, self.mock_context)
 
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
         self.assertEqual(expected_provider, provider_data)
+
+    def _when_testing_get_provider_with_read_private_access(self, scopes: str):
+        with open('../common/tests/resources/api/provider-detail-response.json') as f:
+            expected_provider = json.load(f)
+
+        self._when_testing_get_provider_response_based_on_read_access(scopes, expected_provider)
+
+    def test_get_provider_with_compact_level_read_private_access(self):
+        self._when_testing_get_provider_with_read_private_access(
+            scopes='openid email aslp/readGeneral aslp/aslp.readPrivate',
+        )
+
+    def test_get_provider_with_matching_license_jurisdiction_level_read_private_access(self):
+        # test provider has a license in oh and a privilege in ne
+        self._when_testing_get_provider_with_read_private_access(
+            scopes='openid email aslp/readGeneral aslp/oh.readPrivate'
+        )
+
+    def test_get_provider_with_matching_privilege_jurisdiction_level_read_private_access(self):
+        # test provider has a license in oh and a privilege in ne
+        self._when_testing_get_provider_with_read_private_access(
+            scopes='openid email aslp/readGeneral aslp/ne.readPrivate'
+        )
 
     def test_get_provider_wrong_compact(self):
         """Provider detail response"""
@@ -274,7 +293,7 @@ class TestGetProvider(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         event['pathParameters'] = {'compact': 'octp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
         event['queryStringParameters'] = None
 
@@ -289,7 +308,7 @@ class TestGetProvider(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
         # providerId _should_ be included in these pathParameters. We're leaving it out for this test.
         event['pathParameters'] = {'compact': 'aslp'}
         event['queryStringParameters'] = None
@@ -297,3 +316,19 @@ class TestGetProvider(TstFunction):
         resp = get_provider(event, self.mock_context)
 
         self.assertEqual(400, resp['statusCode'])
+
+    def test_get_provider_returns_expected_general_response_when_caller_does_not_have_read_private_scope(self):
+        """Provider detail response"""
+        with open('../common/tests/resources/api/provider-detail-response.json') as f:
+            expected_provider = json.load(f)
+            expected_provider.pop('ssn')
+            expected_provider.pop('dateOfBirth')
+            # we do not return the military affiliation document keys if the caller does not have read private scope
+            expected_provider['militaryAffiliations'][0].pop('documentKeys')
+            # also remove the ssn from the license record
+            expected_provider['licenses'][0].pop('ssn')
+            expected_provider['licenses'][0].pop('dateOfBirth')
+
+        self._when_testing_get_provider_response_based_on_read_access(
+            scopes='openid email aslp/readGeneral', expected_provider=expected_provider
+        )

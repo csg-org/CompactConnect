@@ -22,7 +22,6 @@ class TestCustomizeScopes(TstLambdas):
                 'sk': 'COMPACT#aslp',
                 'compact': 'aslp',
                 'permissions': {
-                    'actions': {'read'},
                     'jurisdictions': {
                         # should correspond to the 'aslp/write' and 'aslp/al.write' scopes
                         'al': {'write'}
@@ -34,7 +33,7 @@ class TestCustomizeScopes(TstLambdas):
         resp = customize_scopes(event, self.mock_context)
 
         self.assertEqual(
-            sorted(['profile', 'aslp/read', 'aslp/write', 'aslp/al.write']),
+            sorted(['profile', 'aslp/readGeneral', 'aslp/write', 'aslp/al.write']),
             sorted(resp['response']['claimsAndScopeOverrideDetails']['accessTokenGeneration']['scopesToAdd']),
         )
 
