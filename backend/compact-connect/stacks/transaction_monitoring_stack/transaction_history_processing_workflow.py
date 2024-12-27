@@ -121,7 +121,11 @@ class TransactionHistoryProcessingWorkflow(Construct):
             self,
             f'{compact}-BatchFailureNotification',
             lambda_function=persistent_stack.email_notification_service_lambda,
-            payload=TaskInput.from_object({'compact': compact}),
+            payload=TaskInput.from_object({
+                'compact': compact,
+                'template': 'transactionBatchSettlementFailure',
+                'recipientType': 'COMPACT_OPERATIONS_TEAM',
+            }),
             result_path='$.notificationResult',
             task_timeout=Timeout.duration(Duration.minutes(15)),
         )
