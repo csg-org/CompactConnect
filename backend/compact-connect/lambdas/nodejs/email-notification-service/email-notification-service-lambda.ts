@@ -5,41 +5,53 @@ import { SESClient } from '@aws-sdk/client-ses';
 import { Context } from 'aws-lambda';
 
 import { EnvironmentVariablesService } from '../lib/environment-variables-service';
-import { JurisdictionClient } from '../lib/jurisdiction-client';
+import { CompactConfigurationClient } from '../lib/compact-configuration-client';
+import { EmailServiceTemplater } from '../lib/email-service-templater';
+import { EmailNotificationEvent, EmailNotificationResponse } from '../lib/models/email-notification-service-event';
 
 const environmentVariables = new EnvironmentVariablesService();
 const logger = new Logger({ logLevel: environmentVariables.getLogLevel() });
-
 
 interface LambdaProperties {
     dynamoDBClient: DynamoDBClient;
     sesClient: SESClient;
 }
 
-/*
- * Basic Lambda class to integrate the primary lambda entrypoint logic, logging, and error handling
- */
 export class Lambda implements LambdaInterface {
-    private readonly jurisdictionClient: JurisdictionClient;
+    private readonly emailServiceTemplater: EmailServiceTemplater;
 
     constructor(props: LambdaProperties) {
-        this.jurisdictionClient = new JurisdictionClient({
+        const compactConfigurationClient = new CompactConfigurationClient({
             logger: logger,
             dynamoDBClient: props.dynamoDBClient,
+        });
+
+        this.emailServiceTemplater = new EmailServiceTemplater({
+            logger: logger,
+            sesClient: props.sesClient,
+            compactConfigurationClient: compactConfigurationClient,
         });
     }
 
     @logger.injectLambdaContext({ resetKeys: true })
-    public async handler(event: any, context: Context): Promise<any> {
+    public async handler(event: EmailNotificationEvent, context: Context): Promise<EmailNotificationResponse> {
         logger.info('Processing event', { event: event });
 
-        // For now, just return a 200
+        switch (event.template) {
+        case 'transactionBatchSettlementFailure':
+            await this.emailServiceTemplater.transactionBatchSettlementFailure(
+                event.compact,
+                event.recipientType,
+                event.specificEmails
+            );
+            break;
+        default:
+            throw new Error(`Unsupported email template: ${event.template}`);
+        }
+
         logger.info('Completing handler');
         return {
-            statusCode: 200,
-            body: 'Success',
+            message: 'Email message sent'
         };
-
-
     }
 }
