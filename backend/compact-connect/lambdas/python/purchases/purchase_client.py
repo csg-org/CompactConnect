@@ -685,6 +685,8 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
 
                 if processed_transaction_count >= transaction_limit:
                     last_batch_id = batch_id
+                    logger.info("Transaction limit reached. Returning last processed transaction",
+                                last_processed_transaction_id=last_transaction_id, current_batch_id=batch_id)
                     break
 
                 # If we've processed all transactions in this batch, add it to the processed list
