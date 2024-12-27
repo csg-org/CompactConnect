@@ -8,7 +8,7 @@ authorizenet==1.1.5
     # via -r compact-connect/lambdas/python/purchases/requirements.in
 certifi==2024.12.14
     # via requests
-charset-normalizer==3.4.0
+charset-normalizer==3.4.1
     # via requests
 idna==3.10
     # via requests
