@@ -1,6 +1,7 @@
 import json
 from abc import ABC, abstractmethod
 from datetime import datetime
+import logging
 
 from authorizenet import apicontractsv1
 from authorizenet.apicontrollers import createTransactionController, getMerchantDetailsController, getSettledBatchListController, getTransactionListController, getTransactionDetailsController
@@ -14,6 +15,17 @@ AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
 OK_TRANSACTION_MESSAGE_RESULT_CODE = 'Ok'
 MAXIMUM_TRANSACTION_API_LIMIT = 1000
 
+# The authorizenet SDK emits many warnings due to a Pyxb issue that they will not address,
+# see https://github.com/AuthorizeNet/sdk-python/issues/133,
+# so we are ignoring warnings to reduce noise in our logging
+logging.getLogger('pyxb.binding.content').setLevel(logging.ERROR)
+
+# We also want to ignore a specific 'error' message from them that does not actually impact the system
+# see https://github.com/AuthorizeNet/sdk-python/issues/109
+class IgnoreContentNondeterminismFilter(logging.Filter):
+    def filter(self, record):
+        return 'ContentNondeterminismExceededError' not in record.getMessage()
+logging.getLogger('authorizenet.sdk').addFilter(IgnoreContentNondeterminismFilter())
 
 def _calculate_jurisdiction_fee(jurisdiction: Jurisdiction, user_active_military: bool) -> float:
     """
