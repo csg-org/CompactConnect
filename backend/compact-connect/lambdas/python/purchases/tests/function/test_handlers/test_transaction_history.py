@@ -48,7 +48,8 @@ def _generate_mock_transaction():
                 'taxable': False
             }
         ],
-        'compact': TEST_COMPACT
+        'compact': TEST_COMPACT,
+        'transactionProcessor': 'authorize.net'
     }
 
 @mock_aws
@@ -114,7 +115,7 @@ class TestProcessSettledTransactions(TstFunction):
         event = self._when_testing_non_paginated_event()
         resp = process_settled_transactions(event, self.mock_context)
 
-        self.assertEqual({'status': 'COMPLETE'}, resp)
+        self.assertEqual({'compact': 'aslp', 'processedBatchIds': [MOCK_BATCH_ID], 'status': 'COMPLETE'}, resp)
 
     @patch('handlers.transaction_history.PurchaseClient')
     def test_process_settled_transactions_passes_pagination_values_into_purchase_client(self,
@@ -174,7 +175,8 @@ class TestProcessSettledTransactions(TstFunction):
   'submitTimeUTC': MOCK_SUBMIT_TIME_UTC,
   'transactionId': MOCK_TRANSACTION_ID,
   'transactionStatus': 'settledSuccessfully',
-  'transactionType': 'authCaptureTransaction'} ], stored_transactions['Items'])
+  'transactionType': 'authCaptureTransaction',
+  'transactionProcessor': 'authorize.net'}], stored_transactions['Items'])
 
     @patch('handlers.transaction_history.PurchaseClient')
     def test_process_settled_transactions_returns_in_progress_status_with_pagination_values(
@@ -196,6 +198,7 @@ class TestProcessSettledTransactions(TstFunction):
         resp = process_settled_transactions(event, self.mock_context)
 
         self.assertEqual({
+            'compact': TEST_COMPACT,
             'status': 'IN_PROGRESS',
             'lastProcessedTransactionId': MOCK_LAST_PROCESSED_TRANSACTION_ID,
             'currentBatchId': MOCK_CURRENT_BATCH_ID,
@@ -219,5 +222,6 @@ class TestProcessSettledTransactions(TstFunction):
 
         self.assertEqual({
             'status': 'BATCH_FAILURE',
+            'compact': TEST_COMPACT,
             'batchFailureErrorMessage': f'Settlement error in batch {MOCK_BATCH_ID}'
         }, resp)

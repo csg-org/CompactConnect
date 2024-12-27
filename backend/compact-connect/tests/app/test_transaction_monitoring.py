@@ -123,33 +123,20 @@ class TestTransactionMonitoring(TstAppABC, TestCase):
         )
 
         self.assertEqual(
-            {
-                'Next': 'aslp-CheckProcessingStatus',
-                'Parameters': {
-                    'FunctionName': '${Token[TOKEN]}',
-                    'Payload': {'compact': 'aslp',
-                            'currentBatchId.$': '$.taskResult.Payload.currentBatchId',
-                            'lastProcessedTransactionId.$': '$.taskResult.Payload.lastProcessedTransactionId',
-                            'processedBatchIds.$': '$.taskResult.Payload.processedBatchIds'},
-                },
-                'Resource': 'arn:${Token[AWS.Partition]}:states:::lambda:invoke',
-                'ResultPath': '$.taskResult',
-                'Retry': [
-                    {
-                        'BackoffRate': 2,
-                        'ErrorEquals': [
-                            'Lambda.ClientExecutionTimeoutException',
-                            'Lambda.ServiceException',
-                            'Lambda.AWSLambdaException',
-                            'Lambda.SdkClientException',
-                        ],
+            {'InputPath': '${Token[Payload]}',
+             'Next': 'aslp-CheckProcessingStatus',
+             'Parameters': {'FunctionName': '${Token[TOKEN]}', 'Payload.$': '$'},
+             'Resource': 'arn:${Token[AWS.Partition]}:states:::lambda:invoke',
+             'ResultPath': '$',
+             'Retry': [{'BackoffRate': 2,
+                        'ErrorEquals': ['Lambda.ClientExecutionTimeoutException',
+                                        'Lambda.ServiceException',
+                                        'Lambda.AWSLambdaException',
+                                        'Lambda.SdkClientException'],
                         'IntervalSeconds': 2,
-                        'MaxAttempts': 6,
-                    }
-                ],
-                'TimeoutSeconds': 900,
-                'Type': 'Task',
-            },
+                        'MaxAttempts': 6}],
+             'TimeoutSeconds': 900,
+             'Type': 'Task'},
             self.remove_dynamic_tokens_numbers(
                 aslp_transaction_history_proccessing_workflow.processor_task.to_state_json()
             ),
@@ -166,17 +153,17 @@ class TestTransactionMonitoring(TstAppABC, TestCase):
                     {
                         'Next': 'aslp-ProcessingComplete',
                         'StringEquals': 'COMPLETE',
-                        'Variable': '$.taskResult.Payload.status',
+                        'Variable': '$.Payload.status',
                     },
                     {
                         'Next': 'aslp-ProcessTransactionHistory',
                         'StringEquals': 'IN_PROGRESS',
-                        'Variable': '$.taskResult.Payload.status',
+                        'Variable': '$.Payload.status',
                     },
                     {
                         'Next': 'aslp-BatchFailureNotification',
                         'StringEquals': 'BATCH_FAILURE',
-                        'Variable': '$.taskResult.Payload.status',
+                        'Variable': '$.Payload.status',
                     },
                 ],
                 'Default': 'aslp-ProcessingFailed',

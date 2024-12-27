@@ -631,29 +631,35 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                             if hasattr(tx, 'lineItems') and hasattr(tx.lineItems, 'lineItem'):
                                 for item in tx.lineItems.lineItem:
                                     line_items.append({
-                                        'itemId': item.itemId,
-                                        'name': item.name,
-                                        'description': item.description,
-                                        'quantity': item.quantity,
+                                        # we must cast these to strings, or they will cause an error when we
+                                        # try to serialize in other parts of the system
+                                        'itemId': str(item.itemId),
+                                        'name': str(item.name),
+                                        'description': str(item.description),
+                                        'quantity': str(item.quantity),
                                         'unitPrice': str(item.unitPrice),
-                                        'taxable': item.taxable
+                                        'taxable': str(item.taxable)
                                     })
 
                             transaction_data = {
+                                # we must cast these to strings, or they will cause an error when we try to serialize
+                                # in other parts of the system
                                 'transactionId': str(tx.transId),
-                                'submitTimeUTC': tx.submitTimeUTC,
-                                'transactionType': tx.transactionType,
-                                'transactionStatus': tx.transactionStatus,
+                                'submitTimeUTC': str(tx.submitTimeUTC),
+                                'transactionType': str(tx.transactionType),
+                                'transactionStatus': str(tx.transactionStatus),
                                 'responseCode': str(tx.responseCode),
                                 'settleAmount': str(tx.settleAmount),
-                                'licensee_id': licensee_id,
+                                'licenseeId': licensee_id,
                                 'batch': {
-                                    'batch_id': str(batch.batchId),
-                                    'settlementTimeUTC': batch.settlementTimeUTC,
-                                    'settlementTimeLocal': batch.settlementTimeLocal,
-                                    'settlementState': batch.settlementState
+                                    'batchId': str(batch.batchId),
+                                    'settlementTimeUTC': str(batch.settlementTimeUTC),
+                                    'settlementTimeLocal': str(batch.settlementTimeLocal),
+                                    'settlementState': str(batch.settlementState)
                                 },
-                                'line_items': line_items
+                                'lineItems': line_items,
+                                # this defines the type of transaction processor that processed the transaction
+                                'transactionProcessor': AUTHORIZE_DOT_NET_CLIENT_TYPE
                             }
                             transactions.append(transaction_data)
                             processed_transaction_count += 1

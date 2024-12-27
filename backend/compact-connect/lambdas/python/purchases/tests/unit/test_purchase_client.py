@@ -750,9 +750,9 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         transaction = response['transactions'][0]
         self.assertEqual(transaction['transactionId'], MOCK_TRANSACTION_ID)
         self.assertEqual(transaction['compact'], 'aslp')
-        self.assertEqual(transaction['licensee_id'], MOCK_LICENSEE_ID)
-        self.assertEqual(transaction['batch']['batch_id'], MOCK_BATCH_ID)
-        self.assertEqual(len(transaction['line_items']), 1)
+        self.assertEqual(transaction['licenseeId'], MOCK_LICENSEE_ID)
+        self.assertEqual(transaction['batch']['batchId'], MOCK_BATCH_ID)
+        self.assertEqual(len(transaction['lineItems']), 1)
 
     @patch('purchase_client.getSettledBatchListController')
     @patch('purchase_client.getTransactionListController')
