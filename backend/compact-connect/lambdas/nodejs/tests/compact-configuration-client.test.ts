@@ -7,7 +7,7 @@ import { CompactConfigurationClient } from '../lib/compact-configuration-client'
 const SAMPLE_COMPACT_CONFIGURATION = {
     'pk': { S: 'aslp#CONFIGURATION' },
     'sk': { S: 'aslp#CONFIGURATION' },
-    'compactAdverseActionsNotificationEmails': { L: [{ S: 'adverse@example.com' }] },
+    'compactAdverseActionsNotificationEmails': { L: [{ S: 'adverse@example.com' }]},
     'compactCommissionFee': {
         M: {
             'feeAmount': { N: '3.5' },
@@ -15,8 +15,8 @@ const SAMPLE_COMPACT_CONFIGURATION = {
         }
     },
     'compactName': { S: 'aslp' },
-    'compactOperationsTeamEmails': { L: [{ S: 'operations@example.com' }] },
-    'compactSummaryReportNotificationEmails': { L: [{ S: 'summary@example.com' }] },
+    'compactOperationsTeamEmails': { L: [{ S: 'operations@example.com' }]},
+    'compactSummaryReportNotificationEmails': { L: [{ S: 'summary@example.com' }]},
     'dateOfUpdate': { S: '2024-12-10T19:27:28+00:00' },
     'type': { S: 'compact' }
 };

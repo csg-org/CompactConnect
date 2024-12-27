@@ -297,7 +297,7 @@ class PersistentStack(AppStack):
         # if there is no domain name, we can't set up SES permissions
         # in this case the lambda will perform a no-op when invoked.
         if self.hosted_zone:
-            self.setup_ses_permissions_for_lambda(self.email_notification_service_lambda, self)
+            self.setup_ses_permissions_for_lambda(self.email_notification_service_lambda)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,

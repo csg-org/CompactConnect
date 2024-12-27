@@ -45,7 +45,7 @@ class ReportingStack(AppStack):
         )
         persistent_stack.data_event_table.grant_read_data(event_collector)
         persistent_stack.compact_configuration_table.grant_read_data(event_collector)
-        persistent_stack.setup_ses_permissions_for_lambda(event_collector, persistent_stack)
+        persistent_stack.setup_ses_permissions_for_lambda(event_collector)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
