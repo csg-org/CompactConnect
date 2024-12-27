@@ -31,14 +31,14 @@ def _generate_mock_transaction():
         'transactionStatus': 'settledSuccessfully',
         'responseCode': '1',
         'settleAmount': '100.00',
-        'licensee_id': MOCK_LICENSEE_ID,
+        'licenseeId': MOCK_LICENSEE_ID,
         'batch': {
-            'batch_id': MOCK_BATCH_ID,
+            'batchId': MOCK_BATCH_ID,
             'settlementTimeUTC': MOCK_SETTLEMENT_TIME_UTC,
             'settlementTimeLocal': MOCK_SETTLEMENT_TIME_LOCAL,
             'settlementState': 'settledSuccessfully'
         },
-        'line_items': [
+        'lineItems': [
             {
                 'itemId': 'aslp-oh',
                 'name': 'Ohio Compact Privilege',
@@ -155,14 +155,14 @@ class TestProcessSettledTransactions(TstFunction):
             ExpressionAttributeValues={':pk': f'COMPACT#{TEST_COMPACT}#TRANSACTIONS#MONTH#2024-01'}
         )
 
-        expected_epoch_timestamp = int(datetime.strptime(MOCK_SETTLEMENT_TIME_UTC, '%Y-%m-%dT%H:%M:%S.%fZ').timestamp())
-        self.assertEqual([{'batch': {'batch_id': MOCK_BATCH_ID,
+        expected_epoch_timestamp = int(datetime.fromisoformat(MOCK_SETTLEMENT_TIME_UTC).timestamp())
+        self.assertEqual([{'batch': {'batchId': MOCK_BATCH_ID,
             'settlementState': 'settledSuccessfully',
             'settlementTimeLocal': '2024-01-01T09:00:00',
             'settlementTimeUTC': '2024-01-01T13:00:00.000Z'},
   'compact': TEST_COMPACT,
-  'licensee_id': MOCK_LICENSEE_ID,
-  'line_items': [{'description': 'Compact Privilege for Ohio',
+  'licenseeId': MOCK_LICENSEE_ID,
+  'lineItems': [{'description': 'Compact Privilege for Ohio',
                   'itemId': 'aslp-oh',
                   'name': 'Ohio Compact Privilege',
                   'quantity': '1',

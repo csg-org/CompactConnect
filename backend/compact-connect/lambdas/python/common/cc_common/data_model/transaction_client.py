@@ -23,13 +23,13 @@ class TransactionClient:
                 # Convert UTC timestamp to epoch for sorting
                 transaction_processor = transaction['transactionProcessor']
                 if transaction_processor == AUTHORIZE_DOT_NET_CLIENT_TYPE:
-                    settlement_time = datetime.strptime(transaction['batch']['settlementTimeUTC'], '%Y-%m-%dT%H:%M:%S.%fZ')
+                    settlement_time = datetime.fromisoformat(transaction['batch']['settlementTimeUTC'])
                     epoch_timestamp = int(settlement_time.timestamp())
                     month_key = settlement_time.strftime('%Y-%m')
 
                     # Create the composite keys
                     pk = f'COMPACT#{compact}#TRANSACTIONS#MONTH#{month_key}'
-                    sk = f'COMPACT#{compact}#TIME#{epoch_timestamp}#BATCH#{transaction["batch"]["batch_id"]}#TX#{transaction["transactionId"]}'
+                    sk = f'COMPACT#{compact}#TIME#{epoch_timestamp}#BATCH#{transaction["batch"]["batchId"]}#TX#{transaction["transactionId"]}'
 
                     # Store the full transaction record along with the keys
                     item = {
