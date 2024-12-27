@@ -313,7 +313,7 @@ class PersistentStack(AppStack):
             ],
         )
 
-    def setup_ses_permissions_for_lambda(self, lambda_function: NodejsFunction, persistent_stack: 'PersistentStack'):
+    def setup_ses_permissions_for_lambda(self, lambda_function: NodejsFunction):
         """Used to allow a lambda to send emails using the user email notification SES identity."""
         ses_resources = [
             self.user_email_notifications.email_identity.email_identity_arn,

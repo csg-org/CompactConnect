@@ -99,12 +99,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
         self.initialize_state = Pass(
             self,
             f'{compact}-InitializeState',
-            result=Result.from_object({
-                "Payload": {
-                "compact": compact,
-                "processedBatchIds": []
-                }
-            }),
+            result=Result.from_object({'Payload': {'compact': compact, 'processedBatchIds': []}}),
         )
 
         self.processor_task = LambdaInvoke(
@@ -121,11 +116,13 @@ class TransactionHistoryProcessingWorkflow(Construct):
             self,
             f'{compact}-BatchFailureNotification',
             lambda_function=persistent_stack.email_notification_service_lambda,
-            payload=TaskInput.from_object({
-                'compact': compact,
-                'template': 'transactionBatchSettlementFailure',
-                'recipientType': 'COMPACT_OPERATIONS_TEAM',
-            }),
+            payload=TaskInput.from_object(
+                {
+                    'compact': compact,
+                    'template': 'transactionBatchSettlementFailure',
+                    'recipientType': 'COMPACT_OPERATIONS_TEAM',
+                }
+            ),
             result_path='$.notificationResult',
             task_timeout=Timeout.duration(Duration.minutes(15)),
         )
@@ -137,9 +134,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
         self.initialize_state.next(self.processor_task)
         self.processor_task.next(self.check_status)
         self.check_status.when(Condition.string_equals('$.Payload.status', 'COMPLETE'), success)
-        self.check_status.when(
-            Condition.string_equals('$.Payload.status', 'IN_PROGRESS'), self.processor_task
-        )
+        self.check_status.when(Condition.string_equals('$.Payload.status', 'IN_PROGRESS'), self.processor_task)
         self.check_status.when(
             Condition.string_equals('$.Payload.status', 'BATCH_FAILURE'),
             self.email_notification_service_invoke_step,
@@ -161,8 +156,8 @@ class TransactionHistoryProcessingWorkflow(Construct):
                 {
                     'id': 'HIPAA.Security-CloudWatchLogGroupEncrypted',
                     'reason': 'This group will contain no PII or PHI and should be accessible by anyone with access'
-                              ' to the AWS account for basic operational support visibility. Encrypting is not '
-                              'appropriate here.',
+                    ' to the AWS account for basic operational support visibility. Encrypting is not '
+                    'appropriate here.',
                 }
             ],
         )

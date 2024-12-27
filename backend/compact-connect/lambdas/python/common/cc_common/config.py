@@ -175,7 +175,7 @@ class _Config:
         from cc_common.data_model.transaction_client import TransactionClient
 
         return TransactionClient(self)
-    
+
     @property
     def transaction_history_table_name(self):
         return os.environ['TRANSACTION_HISTORY_TABLE_NAME']

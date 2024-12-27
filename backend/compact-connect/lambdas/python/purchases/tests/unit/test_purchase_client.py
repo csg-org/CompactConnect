@@ -1,7 +1,6 @@
 # ruff: noqa: ARG001 unused-argument
 import json
 from decimal import Decimal
-from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
 from cc_common.config import config
@@ -45,10 +44,10 @@ SUCCESSFUL_SETTLED_STATE = 'settledSuccessfully'
 AUTH_CAPTURE_TRANSACTION_TYPE = 'authCaptureTransaction'
 
 # Test timestamps
-MOCK_SETTLEMENT_TIME_UTC = datetime(2024, 1, 1, 12, 0, tzinfo=timezone.utc)
-MOCK_SETTLEMENT_TIME_LOCAL = datetime(2024, 1, 1, 8, 0)
-MOCK_SETTLEMENT_TIME_UTC_2 = datetime(2024, 1, 1, 13, 0, tzinfo=timezone.utc)
-MOCK_SETTLEMENT_TIME_LOCAL_2 = datetime(2024, 1, 1, 9, 0)
+MOCK_SETTLEMENT_TIME_UTC = '2024-12-27T17:49:20.757Z'
+MOCK_SETTLEMENT_TIME_LOCAL = '2024-12-27T13:49:20.757'
+MOCK_SETTLEMENT_TIME_UTC_2 = '2024-12-26T15:15:20.007Z'
+MOCK_SETTLEMENT_TIME_LOCAL_2 = '2024-12-26T11:15:20.007Z'
 
 
 def json_to_magic_mock(json_obj):
@@ -621,17 +620,6 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         self.assertIn('Failed to verify credentials', str(context.exception.message))
 
-    def _setup_mock_transaction_controller_paginated_response(self, mock_transaction_controller,
-                                                              response_bodies: list[dict]):
-        mock_responses = []
-        for response_body in response_bodies:
-            mock_responses.append(json_to_magic_mock(response_body))
-        mock_transaction_controller = MagicMock()
-        mock_transaction_controller.getresponse.return_value = mock_responses
-
-        mock_transaction_controller.return_value = mock_transaction_controller
-        return mock_transaction_controller
-
     def _when_authorize_dot_net_batch_list_is_successful(self, mock_controller):
         mock_response = {
             'messages': {
@@ -646,7 +634,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                         'settlementState': SUCCESSFUL_SETTLED_STATE,
                     }
                 ]
-            }
+            },
         }
         return self._setup_mock_transaction_controller(mock_controller, mock_response)
 
@@ -677,13 +665,14 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                     {
                         'transId': transaction_id,
                         'transactionStatus': SUCCESSFUL_SETTLED_STATE,
-                    } for transaction_id in transaction_ids
+                    }
+                    for transaction_id in transaction_ids
                 ]
             },
             'totalNumInResultSet': 1,
         }
 
-    def _generate_mock_transaction_detail_response(self,  transaction_id: str):
+    def _generate_mock_transaction_detail_response(self, transaction_id: str):
         return {
             'messages': {
                 'resultCode': SUCCESSFUL_RESULT_CODE,
@@ -695,9 +684,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                 'transactionStatus': SUCCESSFUL_SETTLED_STATE,
                 'responseCode': '1',
                 'settleAmount': MOCK_ITEM_PRICE,
-                'order': {
-                    'description': f'LICENSEE#{MOCK_LICENSEE_ID}#'
-                },
+                'order': {'description': f'LICENSEE#{MOCK_LICENSEE_ID}#'},
                 'lineItems': {
                     'lineItem': [
                         {
@@ -706,11 +693,11 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                             'description': MOCK_ITEM_DESCRIPTION,
                             'quantity': MOCK_ITEM_QUANTITY,
                             'unitPrice': MOCK_ITEM_PRICE,
-                            'taxable': 'false'
+                            'taxable': 'false',
                         }
                     ]
-                }
-            }
+                },
+            },
         }
 
     def _when_authorize_dot_net_transaction_details_are_successful(self, mock_controller):
@@ -727,6 +714,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         mock_batch_controller,
     ):
         from purchase_client import PurchaseClient
+
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
         self._when_authorize_dot_net_batch_list_is_successful(mock_batch_controller)
         self._when_authorize_dot_net_transaction_list_is_successful(mock_transaction_controller)
@@ -764,43 +752,51 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         mock_batch_controller,
     ):
         from purchase_client import PurchaseClient
+
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
 
         # Setup multiple batches
-        mock_batch_response = json_to_magic_mock({
-            'messages': {
-                'resultCode': SUCCESSFUL_RESULT_CODE,
-            },
-            'batchList': {
-                'batch': [
-                    {
-                        'batchId': MOCK_BATCH_ID,
-                        'settlementTimeUTC': MOCK_SETTLEMENT_TIME_UTC,
-                        'settlementTimeLocal': MOCK_SETTLEMENT_TIME_LOCAL,
-                        'settlementState': SUCCESSFUL_SETTLED_STATE,
-                    },
-                    {
-                        'batchId': MOCK_BATCH_ID_2,
-                        'settlementTimeUTC': MOCK_SETTLEMENT_TIME_UTC_2,
-                        'settlementTimeLocal': MOCK_SETTLEMENT_TIME_LOCAL_2,
-                        'settlementState': SUCCESSFUL_SETTLED_STATE,
-                    }
-                ]
+        mock_batch_response = json_to_magic_mock(
+            {
+                'messages': {
+                    'resultCode': SUCCESSFUL_RESULT_CODE,
+                },
+                'batchList': {
+                    'batch': [
+                        {
+                            'batchId': MOCK_BATCH_ID,
+                            'settlementTimeUTC': MOCK_SETTLEMENT_TIME_UTC,
+                            'settlementTimeLocal': MOCK_SETTLEMENT_TIME_LOCAL,
+                            'settlementState': SUCCESSFUL_SETTLED_STATE,
+                        },
+                        {
+                            'batchId': MOCK_BATCH_ID_2,
+                            'settlementTimeUTC': MOCK_SETTLEMENT_TIME_UTC_2,
+                            'settlementTimeLocal': MOCK_SETTLEMENT_TIME_LOCAL_2,
+                            'settlementState': SUCCESSFUL_SETTLED_STATE,
+                        },
+                    ]
+                },
             }
-        })
+        )
         mock_batch_controller.return_value.getresponse.return_value = mock_batch_response
 
         mock_transaction_list_responses = [
             # first batch returns one transaction
             json_to_magic_mock(self._generate_mock_transaction_list_response([MOCK_TRANSACTION_ID_1_BATCH_1])),
             # second api call returns two transactions from second call
-            json_to_magic_mock(self._generate_mock_transaction_list_response([
-                MOCK_TRANSACTION_ID_1_BATCH_2, MOCK_TRANSACTION_ID_2_BATCH_2])),
+            json_to_magic_mock(
+                self._generate_mock_transaction_list_response(
+                    [MOCK_TRANSACTION_ID_1_BATCH_2, MOCK_TRANSACTION_ID_2_BATCH_2]
+                )
+            ),
             # third api call should be called for second batch again to process remaining transactions,
             # with same transaction list returned
-            json_to_magic_mock(self._generate_mock_transaction_list_response([
-                MOCK_TRANSACTION_ID_1_BATCH_2, MOCK_TRANSACTION_ID_2_BATCH_2])),
-
+            json_to_magic_mock(
+                self._generate_mock_transaction_list_response(
+                    [MOCK_TRANSACTION_ID_1_BATCH_2, MOCK_TRANSACTION_ID_2_BATCH_2]
+                )
+            ),
         ]
         mock_transaction_controller.return_value.getresponse.side_effect = mock_transaction_list_responses
 
@@ -836,7 +832,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             transaction_limit=2,
             last_processed_transaction_id=response['lastProcessedTransactionId'],
             current_batch_id=response['currentBatchId'],
-            processed_batch_ids=response['processedBatchIds']
+            processed_batch_ids=response['processedBatchIds'],
         )
 
         # Verify no pagination info is returned
@@ -848,21 +844,21 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self.assertEqual(1, len(response['transactions']))
         self.assertEqual(MOCK_TRANSACTION_ID_2_BATCH_2, response['transactions'][0]['transactionId'])
 
-
     @patch('purchase_client.getSettledBatchListController')
     def test_purchase_client_handles_no_batches_for_settled_transactions(self, mock_batch_controller):
         from purchase_client import PurchaseClient
+
         mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
 
         # Return empty batch list
-        mock_response = json_to_magic_mock({
-            'messages': {
-                'resultCode': SUCCESSFUL_RESULT_CODE,
-            },
-            'batchList': {
-                'batch': []
+        mock_response = json_to_magic_mock(
+            {
+                'messages': {
+                    'resultCode': SUCCESSFUL_RESULT_CODE,
+                },
+                'batchList': {'batch': []},
             }
-        })
+        )
         mock_batch_controller.return_value.getresponse.return_value = mock_response
 
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)

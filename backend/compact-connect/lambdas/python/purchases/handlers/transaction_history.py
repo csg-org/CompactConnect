@@ -1,7 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-
 from cc_common.config import config
 from cc_common.exceptions import TransactionBatchSettlementFailureException
 from purchase_client import PurchaseClient
@@ -53,21 +52,19 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
         response = {
             'compact': compact,  # Always include the compact name
             'status': 'IN_PROGRESS' if 'lastProcessedTransactionId' in transaction_response else 'COMPLETE',
-            'processedBatchIds': transaction_response['processedBatchIds']
+            'processedBatchIds': transaction_response['processedBatchIds'],
         }
 
         # Only include pagination values if we're not done processing
         if 'lastProcessedTransactionId' in transaction_response:
-            response.update({
-                'lastProcessedTransactionId': transaction_response['lastProcessedTransactionId'],
-                'currentBatchId': transaction_response['currentBatchId']
-            })
+            response.update(
+                {
+                    'lastProcessedTransactionId': transaction_response['lastProcessedTransactionId'],
+                    'currentBatchId': transaction_response['currentBatchId'],
+                }
+            )
 
         return response
 
     except TransactionBatchSettlementFailureException as e:
-        return {
-            'compact': compact,
-            'status': 'BATCH_FAILURE',
-            'batchFailureErrorMessage': str(e)
-        }
+        return {'compact': compact, 'status': 'BATCH_FAILURE', 'batchFailureErrorMessage': str(e)}

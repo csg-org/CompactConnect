@@ -29,14 +29,13 @@ class TransactionClient:
 
                     # Create the composite keys
                     pk = f'COMPACT#{compact}#TRANSACTIONS#MONTH#{month_key}'
-                    sk = f'COMPACT#{compact}#TIME#{epoch_timestamp}#BATCH#{transaction["batch"]["batchId"]}#TX#{transaction["transactionId"]}'
+                    sk = (
+                        f'COMPACT#{compact}#TIME#{epoch_timestamp}#BATCH#{transaction["batch"]["batchId"]}'
+                        f'#TX#{transaction["transactionId"]}'
+                    )
 
                     # Store the full transaction record along with the keys
-                    item = {
-                        'pk': pk,
-                        'sk': sk,
-                        **transaction
-                    }
+                    item = {'pk': pk, 'sk': sk, **transaction}
                     batch.put_item(Item=item)
                 else:
                     raise ValueError(f'Unsupported transaction processor: {transaction_processor}')

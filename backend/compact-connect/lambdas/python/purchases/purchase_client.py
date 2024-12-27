@@ -1,15 +1,25 @@
 import json
-from abc import ABC, abstractmethod
-from datetime import datetime
 import logging
+from abc import ABC, abstractmethod
 
 from authorizenet import apicontractsv1
-from authorizenet.apicontrollers import createTransactionController, getMerchantDetailsController, getSettledBatchListController, getTransactionListController, getTransactionDetailsController
+from authorizenet.apicontrollers import (
+    createTransactionController,
+    getMerchantDetailsController,
+    getSettledBatchListController,
+    getTransactionDetailsController,
+    getTransactionListController,
+)
 from authorizenet.constants import constants
 from cc_common.config import config, logger
 from cc_common.data_model.schema.compact import Compact, CompactFeeType
 from cc_common.data_model.schema.jurisdiction import Jurisdiction, JurisdictionMilitaryDiscountType
-from cc_common.exceptions import CCFailedTransactionException, CCInternalException, CCInvalidRequestException, TransactionBatchSettlementFailureException
+from cc_common.exceptions import (
+    CCFailedTransactionException,
+    CCInternalException,
+    CCInvalidRequestException,
+    TransactionBatchSettlementFailureException,
+)
 
 AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
 OK_TRANSACTION_MESSAGE_RESULT_CODE = 'Ok'
@@ -20,12 +30,16 @@ MAXIMUM_TRANSACTION_API_LIMIT = 1000
 # so we are ignoring warnings to reduce noise in our logging
 logging.getLogger('pyxb.binding.content').setLevel(logging.ERROR)
 
+
 # We also want to ignore a specific 'error' message from them that does not actually impact the system
 # see https://github.com/AuthorizeNet/sdk-python/issues/109
 class IgnoreContentNondeterminismFilter(logging.Filter):
     def filter(self, record):
         return 'ContentNondeterminismExceededError' not in record.getMessage()
+
+
 logging.getLogger('authorizenet.sdk').addFilter(IgnoreContentNondeterminismFilter())
+
 
 def _calculate_jurisdiction_fee(jurisdiction: Jurisdiction, user_active_military: bool) -> float:
     """
@@ -439,8 +453,8 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         batch_request = apicontractsv1.getSettledBatchListRequest()
         batch_request.merchantAuthentication = merchant_auth
         batch_request.includeStatistics = True
-        batch_request.firstSettlementDate = datetime.strptime(start_time, '%Y-%m-%dT%H:%M:%SZ')
-        batch_request.lastSettlementDate = datetime.strptime(end_time, '%Y-%m-%dT%H:%M:%SZ')
+        batch_request.firstSettlementDate = start_time
+        batch_request.lastSettlementDate = end_time
 
         batch_controller = getSettledBatchListController(batch_request)
         if config.environment_name != 'prod':
@@ -463,12 +477,10 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
             for batch in batch_response.batchList.batch:
                 if batch.settlementState == 'settlementError':
                     logger.info(
-                        "Settlement error found in batch. Raising exception to send error email.",
-                        batch_id=batch.batchId
+                        'Settlement error found in batch. Raising exception to send error email.',
+                        batch_id=batch.batchId,
                     )
-                    raise TransactionBatchSettlementFailureException(
-                        f'Settlement error found in batch {batch.batchId}'
-                    )
+                    raise TransactionBatchSettlementFailureException(f'Settlement error found in batch {batch.batchId}')
 
         return batch_response
 
@@ -507,12 +519,20 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         else:
             transaction_controller.setenvironment(constants.PRODUCTION)
 
-        logger.info("Getting transaction list for batch", batch_id=batch_id, page_offset=page_offset)
+        logger.info('Getting transaction list for batch', batch_id=batch_id, page_offset=page_offset)
         transaction_controller.execute()
         transaction_response = transaction_controller.getresponse()
 
-        if transaction_response is None or transaction_response.messages.resultCode != OK_TRANSACTION_MESSAGE_RESULT_CODE:
-            logger.error('Failed to get transaction list', batch_id=batch_id, page_offset=page_offset, response=transaction_response)
+        if (
+            transaction_response is None
+            or transaction_response.messages.resultCode != OK_TRANSACTION_MESSAGE_RESULT_CODE
+        ):
+            logger.error(
+                'Failed to get transaction list',
+                batch_id=batch_id,
+                page_offset=page_offset,
+                response=transaction_response,
+            )
             raise CCInternalException('Failed to get transaction list')
 
         transaction_ids = [str(tx.transId) for tx in transaction_response.transactions.transaction]
@@ -542,7 +562,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         else:
             details_controller.setenvironment(constants.PRODUCTION)
 
-        logger.info("Getting transaction details", transaction_id=transaction_id)
+        logger.info('Getting transaction details', transaction_id=transaction_id)
         details_controller.execute()
         details_response = details_controller.getresponse()
 
@@ -586,7 +606,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         if hasattr(batch_response, 'batchList'):
             for batch in batch_response.batchList.batch:
                 batch_id = str(batch.batchId)
-                
+
                 # Skip batches we've already processed
                 if batch_id in processed_batch_ids:
                     continue
@@ -594,7 +614,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                 # Skip batches until we find the current batch we were processing
                 if not found_current_batch:
                     if batch_id == current_batch_id:
-                        logger.info("Found current batch to process", batch_id=current_batch_id)
+                        logger.info('Found current batch to process', batch_id=current_batch_id)
                         found_current_batch = True
                     else:
                         continue
@@ -616,9 +636,9 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                             if not found_last_processed:
                                 if str(transaction.transId) == last_processed_transaction_id:
                                     logger.info(
-                                        "Found last processed transaction",
+                                        'Found last processed transaction',
                                         transaction_id=last_processed_transaction_id,
-                                        batch_id=batch_id
+                                        batch_id=batch_id,
                                     )
                                     found_last_processed = True
                                 continue
@@ -626,9 +646,9 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                             # Get detailed transaction information
                             details_response = self._get_transaction_details(str(transaction.transId))
                             logger.debug(
-                                "Received transaction details",
+                                'Received transaction details',
                                 batch_id=batch_id,
-                                transaction_id=str(transaction.transId)
+                                transaction_id=str(transaction.transId),
                             )
                             tx = details_response.transaction
 
@@ -642,16 +662,18 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                             line_items = []
                             if hasattr(tx, 'lineItems') and hasattr(tx.lineItems, 'lineItem'):
                                 for item in tx.lineItems.lineItem:
-                                    line_items.append({
-                                        # we must cast these to strings, or they will cause an error when we
-                                        # try to serialize in other parts of the system
-                                        'itemId': str(item.itemId),
-                                        'name': str(item.name),
-                                        'description': str(item.description),
-                                        'quantity': str(item.quantity),
-                                        'unitPrice': str(item.unitPrice),
-                                        'taxable': str(item.taxable)
-                                    })
+                                    line_items.append(
+                                        {
+                                            # we must cast these to strings, or they will cause an error when we
+                                            # try to serialize in other parts of the system
+                                            'itemId': str(item.itemId),
+                                            'name': str(item.name),
+                                            'description': str(item.description),
+                                            'quantity': str(item.quantity),
+                                            'unitPrice': str(item.unitPrice),
+                                            'taxable': str(item.taxable),
+                                        }
+                                    )
 
                             transaction_data = {
                                 # we must cast these to strings, or they will cause an error when we try to serialize
@@ -667,11 +689,11 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                                     'batchId': str(batch.batchId),
                                     'settlementTimeUTC': str(batch.settlementTimeUTC),
                                     'settlementTimeLocal': str(batch.settlementTimeLocal),
-                                    'settlementState': str(batch.settlementState)
+                                    'settlementState': str(batch.settlementState),
                                 },
                                 'lineItems': line_items,
                                 # this defines the type of transaction processor that processed the transaction
-                                'transactionProcessor': AUTHORIZE_DOT_NET_CLIENT_TYPE
+                                'transactionProcessor': AUTHORIZE_DOT_NET_CLIENT_TYPE,
                             }
                             transactions.append(transaction_data)
                             processed_transaction_count += 1
@@ -679,24 +701,23 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                                 last_transaction_id = str(tx.transId)
                                 break
 
-
                     # Check if we need to get the next page of transactions
                     page_offset += 1
 
                 if processed_transaction_count >= transaction_limit:
                     last_batch_id = batch_id
-                    logger.info("Transaction limit reached. Returning last processed transaction",
-                                last_processed_transaction_id=last_transaction_id, current_batch_id=batch_id)
+                    logger.info(
+                        'Transaction limit reached. Returning last processed transaction',
+                        last_processed_transaction_id=last_transaction_id,
+                        current_batch_id=batch_id,
+                    )
                     break
 
                 # If we've processed all transactions in this batch, add it to the processed list
                 logger.info('Finished processing batch', batch_id=batch_id)
                 processed_batch_ids.append(batch_id)
 
-        response = {
-            'transactions': transactions,
-            'processedBatchIds': processed_batch_ids
-        }
+        response = {'transactions': transactions, 'processedBatchIds': processed_batch_ids}
 
         if last_transaction_id and last_batch_id:
             response['lastProcessedTransactionId'] = last_transaction_id

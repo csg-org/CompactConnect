@@ -38,5 +38,3 @@ class CCConflictException(CCBaseException):
 
 class TransactionBatchSettlementFailureException(CCBaseException):
     """Raised when a transaction batch has a settlement error."""
-
-    pass
