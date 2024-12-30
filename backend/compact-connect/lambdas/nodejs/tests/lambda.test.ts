@@ -4,7 +4,7 @@ import { Context, EventBridgeEvent } from 'aws-lambda';
 import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
 
-import { Lambda } from '../lib/lambda';
+import { Lambda } from '../ingest-event-reporter/lambda';
 import { ReportEmailer } from '../lib/report-emailer';
 import { IEventBridgeEvent } from '../lib/models/event-bridge-event-detail';
 import {

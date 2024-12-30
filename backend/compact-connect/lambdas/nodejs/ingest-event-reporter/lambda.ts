@@ -4,11 +4,11 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { SESClient } from '@aws-sdk/client-ses';
 import { Context } from 'aws-lambda';
 
-import { EnvironmentVariablesService } from './environment-variables-service';
-import { JurisdictionClient } from './jurisdiction-client';
-import { IEventBridgeEvent } from './models/event-bridge-event-detail';
-import { ReportEmailer } from './report-emailer';
-import { EventClient } from './event-client';
+import { EnvironmentVariablesService } from '../lib/environment-variables-service';
+import { JurisdictionClient } from '../lib/jurisdiction-client';
+import { IEventBridgeEvent } from '../lib/models/event-bridge-event-detail';
+import { ReportEmailer } from '../lib/report-emailer';
+import { EventClient } from '../lib/event-client';
 
 const environmentVariables = new EnvironmentVariablesService();
 const logger = new Logger({ logLevel: environmentVariables.getLogLevel() });
