@@ -3,8 +3,11 @@ import * as crypto from 'crypto';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
 import { renderToStaticMarkup, TReaderDocument } from '@usewaypoint/email-builder';
+import { CompactConfigurationClient } from './compact-configuration-client';
 import { EnvironmentVariablesService } from './environment-variables-service';
 import { IIngestFailureEventRecord, IValidationErrorEventRecord } from './models';
+import { RecipientType } from './models/email-notification-service-event';
+
 
 const environmentVariableService = new EnvironmentVariablesService();
 
@@ -13,9 +16,10 @@ interface IIngestEvents {
     validationErrors: IValidationErrorEventRecord[];
 }
 
-interface ReportEmailerProperties {
+interface EmailServiceProperties {
     logger: Logger;
     sesClient: SESClient;
+    compactConfigurationClient: CompactConfigurationClient;
 }
 
 const getEmailImageBaseUrl = () => {
@@ -27,9 +31,10 @@ const getEmailImageBaseUrl = () => {
  * Integrates with AWS SES to send emails and with EmailBuilderJS to render JS object templates into HTML
  * content that is expected to be consistently rendered across common email clients.
  */
-export class ReportEmailer {
+export class EmailService {
     private readonly logger: Logger;
     private readonly sesClient: SESClient;
+    private readonly compactConfigurationClient: CompactConfigurationClient;
     private readonly emailTemplate: TReaderDocument = {
         'root': {
             'type': 'EmailLayout',
@@ -43,9 +48,10 @@ export class ReportEmailer {
         }
     };
 
-    public constructor(props: ReportEmailerProperties) {
+    public constructor(props: EmailServiceProperties) {
         this.logger = props.logger;
         this.sesClient = props.sesClient;
+        this.compactConfigurationClient = props.compactConfigurationClient;
     }
 
     private async sendEmail({ htmlContent, subject, recipients, errorMessage }:
@@ -100,7 +106,7 @@ export class ReportEmailer {
         // Generate the HTML report
         const report = JSON.parse(JSON.stringify(this.emailTemplate));
 
-        this.insertHeader(report, compact, jurisdiction, 'License Data Summary');
+        this.insertHeaderWithJurisdiction(report, compact, jurisdiction, 'License Data Summary');
         this.insertNoErrorImage(report);
         this.insertSubHeading(report, 'There have been no license data errors this week!');
         this.insertFooter(report);
@@ -121,7 +127,7 @@ export class ReportEmailer {
         // Generate the HTML report
         const report = JSON.parse(JSON.stringify(this.emailTemplate));
 
-        this.insertHeader(report, compact, jurisdiction, 'License Data Summary');
+        this.insertHeaderWithJurisdiction(report, compact, jurisdiction, 'License Data Summary');
         this.insertClockImage(report);
         this.insertSubHeading(report, 'There have been no licenses uploaded in the last 7 days.');
         this.insertFooter(report);
@@ -139,7 +145,7 @@ export class ReportEmailer {
     public generateReport(events: IIngestEvents, compact: string, jurisdiction: string): string {
         const report = JSON.parse(JSON.stringify(this.emailTemplate));
 
-        this.insertHeader(
+        this.insertHeaderWithJurisdiction(
             report,
             compact,
             jurisdiction,
@@ -177,6 +183,51 @@ export class ReportEmailer {
             }
         });
         return validationErrors;
+    }
+
+    private async getRecipients(compact: string, 
+        recipientType: RecipientType, 
+        specificEmails?: string[]
+    ): Promise<string[]> {
+        if (recipientType === 'SPECIFIC') {
+            if (specificEmails) return specificEmails;
+            
+            throw new Error(`SPECIFIC recipientType requested but no specific email addresses provided`);
+        }
+
+        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
+        
+        switch (recipientType) {
+        case 'COMPACT_OPERATIONS_TEAM':
+            return compactConfig.compactOperationsTeamEmails;
+        default:
+            throw new Error(`Unsupported recipient type for compact configuration: ${recipientType}`);
+        }
+    }
+
+    public async sendTransactionBatchSettlementFailureEmail(compact: string, 
+        recipientType: RecipientType, 
+        specificEmails?: string[]
+    ): Promise<void> {
+        const recipients = await this.getRecipients(compact, recipientType, specificEmails);
+        
+        if (recipients.length === 0) {
+            throw new Error(`No recipients found for compact ${compact} with recipient type ${recipientType}`);
+        }
+
+        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        const subject = `Transactions Failed to Settle for ${compact.toUpperCase()} Payment Processor`;
+        const bodyText = 'A transaction settlement error was detected within the payment processing account for the compact. ' +
+            'Please reach out to your payment processing representative to determine the cause. ' +
+            'Transactions made in the account will not be able to be settled until the issue is addressed.';
+
+        this.insertHeader(report, subject);
+        this.insertBody(report, bodyText);
+        this.insertFooter(report);
+
+        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send transaction batch settlement failure email' });
     }
 
     private insertIngestFailure(report: TReaderDocument, ingestFailure: IIngestFailureEventRecord) {
@@ -482,7 +533,11 @@ export class ReportEmailer {
         report['root']['data']['childrenIds'].push(blockDivId);
     }
 
-    private insertHeader(report: TReaderDocument, compact: string, jurisdiction: string, heading: string) {
+    private insertHeaderWithJurisdiction(report: TReaderDocument, 
+        compact: string, 
+        jurisdiction: string, 
+        heading: string) {
+
         const blockLogoId = 'block-logo';
         const blockHeaderId = 'block-header';
         const blockJurisdictionId = 'block-jurisdiction';
@@ -661,6 +716,94 @@ export class ReportEmailer {
                 },
                 'props': {
                     'text': '© 2024 CompactConnect'
+                }
+            }
+        };
+
+        report['root']['data']['childrenIds'].push(blockId);
+    }
+
+    /**
+     * Adds a standard header block with Compact Connect logo to the report.
+     * 
+     * @param report The report object to insert the block into.
+     * @param heading The text to insert into the block.
+     */
+    private insertHeader(report: TReaderDocument, heading: string) {
+        const blockLogoId = 'block-logo';
+        const blockHeaderId = 'block-header';
+
+        report[blockLogoId] = {
+            'type': 'Image',
+            'data': {
+                'style': {
+                    'padding': {
+                        'top': 40,
+                        'bottom': 8,
+                        'right': 68,
+                        'left': 68
+                    },
+                    'backgroundColor': null,
+                    'textAlign': 'center'
+                },
+                'props': {
+                    'width': null,
+                    'height': 100,
+                    'url': `${getEmailImageBaseUrl()}/compact-connect-logo-final.png`,
+                    'alt': '',
+                    'linkHref': null,
+                    'contentAlignment': 'middle'
+                }
+            }
+        };
+
+        report[blockHeaderId] = {
+            'type': 'Heading',
+            'data': {
+                'props': {
+                    'text': heading,
+                    'level': 'h1'
+                },
+                'style': {
+                    'textAlign': 'center',
+                    'padding': {
+                        'top': 28,
+                        'bottom': 12,
+                        'right': 24,
+                        'left': 24
+                    }
+                }
+            }
+        };
+
+        report['root']['data']['childrenIds'].push(blockLogoId);
+        report['root']['data']['childrenIds'].push(blockHeaderId);
+    }
+
+    /**
+     * Inserts a body text block into the report.
+     * 
+     * @param report The report object to insert the block into.
+     * @param bodyText The text to insert into the block.
+     */
+    private insertBody(report: TReaderDocument, bodyText: string) {
+        const blockId = `block-body`;
+
+        report[blockId] = {
+            'type': 'Text',
+            'data': {
+                'style': {
+                    'fontSize': 16,
+                    'fontWeight': 'normal',
+                    'padding': {
+                        'top': 24,
+                        'bottom': 24,
+                        'right': 40,
+                        'left': 40
+                    }
+                },
+                'props': {
+                    'text': bodyText
                 }
             }
         };

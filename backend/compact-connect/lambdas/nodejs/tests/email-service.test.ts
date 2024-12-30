@@ -2,8 +2,14 @@ import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
-import { EmailServiceTemplater } from '../lib/email-service-templater';
+import { IValidationErrorEventRecord } from '../lib/models';
+import { EmailService } from '../lib/email-service';
 import { CompactConfigurationClient } from '../lib/compact-configuration-client';
+import {
+    SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS,
+    SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD,
+    SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD
+} from './sample-records';
 
 const SAMPLE_COMPACT_CONFIG = {
     pk: 'aslp#CONFIGURATION',
@@ -26,10 +32,10 @@ const SAMPLE_COMPACT_CONFIG = {
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESClient;
 
-describe('EmailServiceTemplater', () => {
+describe('Email Service', () => {
     let mockSESClient: ReturnType<typeof mockClient>;
     let mockCompactConfigurationClient: jest.Mocked<CompactConfigurationClient>;
-    let emailServiceTemplater: EmailServiceTemplater;
+    let emailService: EmailService;
 
     beforeAll(async () => {
         process.env.DEBUG = 'true';
@@ -48,18 +54,146 @@ describe('EmailServiceTemplater', () => {
             MessageId: 'message-id-123'
         });
 
-        emailServiceTemplater = new EmailServiceTemplater({
+        emailService = new EmailService({
             logger: new Logger(),
             sesClient: asSESClient(mockSESClient),
             compactConfigurationClient: mockCompactConfigurationClient
         });
     });
 
-    describe('transactionBatchSettlementFailure', () => {
+    it('should render an html document', async () => {
+        const template = emailService.generateReport(
+            {
+                ingestFailures: [ SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD ],
+                validationErrors: [ SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD ]
+            },
+            'aslp',
+            'ohio'
+        );
+
+        // Any HTML document would start with a '<' and end with a '>'
+        expect(template.charAt(0)).toBe('<');
+        expect(template.charAt(template.length - 1)).toBe('>');
+    });
+
+    it('should send a report email', async () => {
+        const messageId = await emailService.sendReportEmail(
+            {
+                ingestFailures: [ SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD ],
+                validationErrors: [ SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD ]
+            },
+            'aslp',
+            'ohio',
+            [
+                'operations@example.com'
+            ]
+        );
+
+        expect(messageId).toEqual('message-id-123');
+        expect(mockSESClient).toHaveReceivedCommandWith(
+            SendEmailCommand,
+            {
+                Destination: {
+                    ToAddresses: ['operations@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('<!DOCTYPE html>')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'License Data Error Summary: aslp / ohio'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            }
+        );
+    });
+
+    it('should sort validation errors by record number then time', async () => {
+        const sorted = emailService['sortValidationErrors'](
+            SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS
+        );
+
+        const flattenedErrors: string[] = sorted.flatMap((record) => record.errors.dateOfRenewal);
+
+        expect(flattenedErrors).toEqual([
+            'Row 4, 5:47',
+            'Row 5, 4:47',
+            'Row 5, 5:47'
+        ]);
+    });
+
+    it('should send an alls well email', async () => {
+        const messageId = await emailService.sendAllsWellEmail(
+            'aslp',
+            'ohio',
+            [ 'operations@example.com' ]
+        );
+
+        expect(messageId).toEqual('message-id-123');
+        expect(mockSESClient).toHaveReceivedCommandWith(
+            SendEmailCommand,
+            {
+                Destination: {
+                    ToAddresses: ['operations@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('<!DOCTYPE html>')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'License Data Summary: aslp / ohio'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            }
+        );
+    });
+
+    it('should send a "no license updates" email with expected image url', async () => {
+        const messageId = await emailService.sendNoLicenseUpdatesEmail(
+            'aslp',
+            'ohio',
+            [ 'operations@example.com' ]
+        );
+
+        expect(messageId).toEqual('message-id-123');
+        expect(mockSESClient).toHaveReceivedCommandWith(
+            SendEmailCommand,
+            {
+                Destination: {
+                    ToAddresses: ['operations@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('src=\"https://app.test.compactconnect.org/img/email/ico-noupdates@2x.png\"')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'No License Updates for Last 7 Days: aslp / ohio'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            }
+        );
+    });
+
+    describe('Transaction Batch Settlement Failure', () => {
         it('should send email using compact operations team emails', async () => {
             mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
 
-            await emailServiceTemplater.sendTransactionBatchSettlementFailureEmail(
+            await emailService.sendTransactionBatchSettlementFailureEmail(
                 'aslp',
                 'COMPACT_OPERATIONS_TEAM'
             );
@@ -88,7 +222,7 @@ describe('EmailServiceTemplater', () => {
         });
 
         it('should send email using specific emails', async () => {
-            await emailServiceTemplater.sendTransactionBatchSettlementFailureEmail(
+            await emailService.sendTransactionBatchSettlementFailureEmail(
                 'aslp',
                 'SPECIFIC',
                 ['specific@example.com']
@@ -112,21 +246,21 @@ describe('EmailServiceTemplater', () => {
                 compactOperationsTeamEmails: []
             });
 
-            await expect(emailServiceTemplater.sendTransactionBatchSettlementFailureEmail(
+            await expect(emailService.sendTransactionBatchSettlementFailureEmail(
                 'aslp',
                 'COMPACT_OPERATIONS_TEAM'
             )).rejects.toThrow('No recipients found for compact aslp with recipient type COMPACT_OPERATIONS_TEAM');
         });
 
         it('should throw error for specific recipient type without emails', async () => {
-            await expect(emailServiceTemplater.sendTransactionBatchSettlementFailureEmail(
+            await expect(emailService.sendTransactionBatchSettlementFailureEmail(
                 'aslp',
                 'SPECIFIC'
             )).rejects.toThrow('SPECIFIC recipientType requested but no specific email addresses provided');
         });
 
         it('should throw error for unsupported recipient type', async () => {
-            await expect(emailServiceTemplater.sendTransactionBatchSettlementFailureEmail(
+            await expect(emailService.sendTransactionBatchSettlementFailureEmail(
                 'aslp',
                 'JURISDICTION_OPERATIONS_TEAM'
             )).rejects.toThrow('Unsupported recipient type for compact configuration: JURISDICTION_OPERATIONS_TEAM');
@@ -135,12 +269,11 @@ describe('EmailServiceTemplater', () => {
         it('should include logo in email', async () => {
             mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
 
-            await emailServiceTemplater.sendTransactionBatchSettlementFailureEmail(
+            await emailService.sendTransactionBatchSettlementFailureEmail(
                 'aslp',
                 'COMPACT_OPERATIONS_TEAM'
             );
 
-            
             expect(mockSESClient).toHaveReceivedCommandWith(
                 SendEmailCommand,
                 {

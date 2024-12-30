@@ -6,7 +6,7 @@ import { Context } from 'aws-lambda';
 
 import { EnvironmentVariablesService } from '../lib/environment-variables-service';
 import { CompactConfigurationClient } from '../lib/compact-configuration-client';
-import { EmailServiceTemplater } from '../lib/email-service-templater';
+import { EmailService } from '../lib/email-service';
 import { EmailNotificationEvent, EmailNotificationResponse } from '../lib/models/email-notification-service-event';
 
 const environmentVariables = new EnvironmentVariablesService();
@@ -18,7 +18,7 @@ interface LambdaProperties {
 }
 
 export class Lambda implements LambdaInterface {
-    private readonly emailServiceTemplater: EmailServiceTemplater;
+    private readonly emailService: EmailService;
 
     constructor(props: LambdaProperties) {
         const compactConfigurationClient = new CompactConfigurationClient({
@@ -26,7 +26,7 @@ export class Lambda implements LambdaInterface {
             dynamoDBClient: props.dynamoDBClient,
         });
 
-        this.emailServiceTemplater = new EmailServiceTemplater({
+        this.emailService = new EmailService({
             logger: logger,
             sesClient: props.sesClient,
             compactConfigurationClient: compactConfigurationClient,
@@ -57,7 +57,7 @@ export class Lambda implements LambdaInterface {
 
         switch (event.template) {
         case 'transactionBatchSettlementFailure':
-            await this.emailServiceTemplater.sendTransactionBatchSettlementFailureEmail(
+            await this.emailService.sendTransactionBatchSettlementFailureEmail(
                 event.compact,
                 event.recipientType,
                 event.specificEmails
