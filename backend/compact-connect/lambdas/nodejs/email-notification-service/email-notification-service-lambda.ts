@@ -47,6 +47,14 @@ export class Lambda implements LambdaInterface {
     public async handler(event: EmailNotificationEvent, context: Context): Promise<EmailNotificationResponse> {
         logger.info('Processing event', { event: event });
 
+        // Check if FROM_ADDRESS is configured
+        if (environmentVariables.getFromAddress() === 'NONE') {
+            logger.info('No from address configured for environment');
+            return {
+                message: 'No from address configured for environment, unable to send email'
+            };
+        }
+
         switch (event.template) {
         case 'transactionBatchSettlementFailure':
             await this.emailServiceTemplater.sendTransactionBatchSettlementFailureEmail(
@@ -56,6 +64,7 @@ export class Lambda implements LambdaInterface {
             );
             break;
         default:
+            logger.info('Unsupported email template provided', { template: event.template });
             throw new Error(`Unsupported email template: ${event.template}`);
         }
 
