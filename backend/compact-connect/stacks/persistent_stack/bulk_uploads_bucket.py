@@ -27,7 +27,6 @@ class BulkUploadsBucket(Bucket):
         *,
         access_logs_bucket: AccessLogsBucket,
         encryption_key: IKey,
-        mock_bucket: bool = False,
         event_bus: EventBus,
         **kwargs,
     ):
@@ -49,8 +48,7 @@ class BulkUploadsBucket(Bucket):
         )
         self.log_groups = []
 
-        if not mock_bucket:
-            self._add_v1_ingest_object_events(event_bus)
+        self._add_v1_ingest_object_events(event_bus)
 
         QueryDefinition(
             self,
