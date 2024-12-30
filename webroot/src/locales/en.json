@@ -553,7 +553,8 @@
         "affiliationType": "Affiliation Type",
         "previouslyUploadedDocuments": "Previously Uploaded Documents",
         "endMilitaryAffiliation": "End military affiliation",
-        "editInfo": "Edit info"
+        "editInfo": "Edit info",
+        "noUploadedDocuments": "No uploaded documents"
     },
     "account": {
         "accountTitle": "Account",

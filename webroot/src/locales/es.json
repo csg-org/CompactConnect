@@ -553,7 +553,8 @@
         "affiliationType": "Tipo de afiliación",
         "previouslyUploadedDocuments": "Previously Uploaded Documents",
         "endMilitaryAffiliation": "Parar afiliación militar",
-        "editInfo": "Editar información"
+        "editInfo": "Editar información",
+        "noUploadedDocuments": "No documentos cargados"
     },
     "account": {
         "accountTitle": "Cuenta",

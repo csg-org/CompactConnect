@@ -31,7 +31,36 @@
             </div>
             <div class="chunk">
                 <div class="chunk-title">{{previouslyUploadedTitle}}</div>
-                <div class="prev-doc-table"></div>
+                <div class="prev-doc-table">
+                    <ListContainer
+                        :listId="listId"
+                        :listData="this.militaryDocuments"
+                        :listSize="this.militaryDocuments.length"
+                        :sortOptions="sortOptions"
+                        :sortChange="sortingChange"
+                        :pageChange="paginationChange"
+                        :excludeSorting="true"
+                        :excludeTopPagination="true"
+                        :excludeBottomPagination="true"
+                        :isServerPaging="false"
+                        :emptyListMessage="$t('military.noUploadedDocuments')"
+                        :isLoading="$store.state.styleguide.isLoading"
+                    >
+                        <template v-slot:headers>
+                            <MilitaryDocumentRow
+                                :item="militaryDocumentHeader"
+                                :isHeaderRow="true"
+                            />
+                        </template>
+                        <template v-slot:list>
+                            <MilitaryDocumentRow
+                                v-for="(record, index) in this.militaryDocuments"
+                                :key="index"
+                                :item="record"
+                            />
+                        </template>
+                    </ListContainer>
+                </div>
             </div>
             <div class="button-row">
                 <InputButton
@@ -40,7 +69,7 @@
                     :isTextLike="true"
                     :shouldHideMargin="true"
                     class="end-aff-button"
-                    @click="endAffiliation"
+                    @click="startEndAffiliationFlow"
                 />
                 <InputButton
                     :label="$t('military.editInfo')"
@@ -51,6 +80,35 @@
                 />
             </div>
         </div>
+         <Modal
+            v-if="shouldShowEndAffilifationModal"
+            class="end-affiliation-modal"
+            :closeOnBackgroundClick="true"
+            :showActions="false"
+            :title="jurisprudenceModalTitle"
+            @close-modal="closeAndInvalidateCheckbox"
+        >
+            <template v-slot:content>
+                <div class="jurisprudence-modal-content">
+                    {{jurisprudenceModalContent}}
+                    <form @submit.prevent="confirmEndMilitaryAffiliation">
+                        <div class="action-button-row">
+                            <InputButton
+                                class="back-button"
+                                :label="backText"
+                                :isTransparent="true"
+                                :onClick="closeAndInvalidateCheckbox"
+                            />
+                            <InputSubmit
+                                class="understand-button"
+                                :formInput="formData.submitUnderstanding"
+                                :label="iUnderstandText"
+                            />
+                        </div>
+                    </form>
+                </div>
+            </template>
+        </Modal>
    </div>
 </template>
 
