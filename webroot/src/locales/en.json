@@ -549,7 +549,11 @@
     "military": {
         "militaryStatusTitle": "Military status",
         "viewMilitaryStatus": "View military status",
-        "militaryDiscountText": "Military Discount"
+        "militaryDiscountText": "Military Discount",
+        "affiliationType": "Affiliation Type",
+        "previouslyUploadedDocuments": "Previously Uploaded Documents",
+        "endMilitaryAffiliation": "End military affiliation",
+        "editInfo": "Edit info"
     },
     "account": {
         "accountTitle": "Account",
