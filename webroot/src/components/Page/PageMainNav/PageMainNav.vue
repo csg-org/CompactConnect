@@ -64,11 +64,11 @@
             </li>
         </ul>
         <div class="compact-selector">
-            <!-- <CompactSelector
+            <CompactSelector
                 v-if="isLoggedInAsStaff && isNavExpanded"
                 :isPermissionBased="true"
                 :hideIfNotMultiple="true"
-            /> -->
+            />
         </div>
         <div class="separator"></div>
         <ul class="nav my-nav">
