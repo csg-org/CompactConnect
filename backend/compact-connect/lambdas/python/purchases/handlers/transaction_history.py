@@ -22,7 +22,8 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
         - compact: The compact name
         - lastProcessedTransactionId: Optional last processed transaction ID
         - currentBatchId: Optional current batch ID being processed
-        - processedBatchIds: Optional list of batch IDs that have been processed
+        - processedBatchIds: Optional list of batch IDs that have been processed, this ensures we don't process the same
+            batch multiple times.
     :param context: Lambda context
     :return: Dictionary indicating processing status and optional pagination info
     """

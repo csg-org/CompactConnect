@@ -96,8 +96,8 @@ class TestProcessSettledTransactions(TstFunction):
             {
                 'transactions': [_generate_mock_transaction()],
                 'processedBatchIds': [MOCK_BATCH_ID],
-                'lastProcessedTransactionId': MOCK_TRANSACTION_ID,
-                'currentBatchId': MOCK_BATCH_ID,
+                'lastProcessedTransactionId': MOCK_LAST_PROCESSED_TRANSACTION_ID,
+                'currentBatchId': MOCK_CURRENT_BATCH_ID,
             },
             # Second call returns final page
             {'transactions': [_generate_mock_transaction()], 'processedBatchIds': [MOCK_BATCH_ID]},
@@ -201,14 +201,9 @@ class TestProcessSettledTransactions(TstFunction):
         """Test that method returns IN_PROGRESS status with pagination values when more transactions are available."""
         from handlers.transaction_history import process_settled_transactions
 
-        mock_purchase_client = MagicMock()
-        mock_purchase_client_constructor.return_value = mock_purchase_client
-        mock_purchase_client.get_settled_transactions.return_value = {
-            'transactions': [_generate_mock_transaction()],
-            'processedBatchIds': [MOCK_BATCH_ID],
-            'lastProcessedTransactionId': MOCK_LAST_PROCESSED_TRANSACTION_ID,
-            'currentBatchId': MOCK_CURRENT_BATCH_ID,
-        }
+        self._when_purchase_client_returns_paginated_transactions(
+            mock_purchase_client_constructor
+        )
 
         event = self._when_testing_non_paginated_event()
         resp = process_settled_transactions(event, self.mock_context)

@@ -331,7 +331,7 @@ class PersistentStack(AppStack):
         if self.node.try_get_context('sandbox'):
             # SES Sandboxed accounts require that the sending principal also be explicitly granted permission to send
             # emails to the SES identity they configured for testing. Because we don't know that identity in advance,
-            # We'll have to allow the principal to use any SES identity configured in the account.
+            # we'll have to allow the principal to use any SES identity configured in the account.
             # arn:aws:ses:{region}:{account}:identity/*
             ses_resources.append(
                 self.format_arn(
