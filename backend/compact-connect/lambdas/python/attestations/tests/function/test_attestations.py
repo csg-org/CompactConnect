@@ -20,7 +20,6 @@ class TestGetAttestation(TstFunction):
 
         return event
 
-
     def test_get_latest_attestation(self):
         """Test getting the latest version of an attestation."""
         from handlers.attestations import attestations
@@ -32,18 +31,22 @@ class TestGetAttestation(TstFunction):
 
         # The TstFunction class sets up 4 versions of this attestation, we expect the endpoint to return version 4
         # as it's the latest
-        self.assertEqual({'attestationId': 'jurisprudence-confirmation',
-                     'compact': 'aslp',
-                     'dateCreated': '2024-06-06T23:59:59+00:00',
-                     'dateOfUpdate': '2024-06-06T23:59:59+00:00',
-                     'description': 'For displaying the jurisprudence confirmation',
-                     'displayName': 'Jurisprudence Confirmation',
-                     'required': True,
-                     'text': 'You attest that you have read and understand the jurisprudence '
-                             'requirements for all states you are purchasing privileges for.',
-                     'type': 'attestation',
-                     'version': '4'
-        }, response_body)
+        self.assertEqual(
+            {
+                'attestationId': 'jurisprudence-confirmation',
+                'compact': 'aslp',
+                'dateCreated': '2024-06-06T23:59:59+00:00',
+                'dateOfUpdate': '2024-06-06T23:59:59+00:00',
+                'description': 'For displaying the jurisprudence confirmation',
+                'displayName': 'Jurisprudence Confirmation',
+                'required': True,
+                'text': 'You attest that you have read and understand the jurisprudence '
+                'requirements for all states you are purchasing privileges for.',
+                'type': 'attestation',
+                'version': '4',
+            },
+            response_body,
+        )
 
     def test_get_nonexistent_attestation(self):
         """Test getting an attestation that doesn't exist."""

@@ -32,7 +32,7 @@ class Attestations:
 
         stack: Stack = Stack.of(resource)
         lambda_environment = {
-            "COMPACT_CONFIGURATION_TABLE_NAME": persistent_stack.compact_configuration_table.table_name,
+            'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
             **stack.common_env_vars,
         }
 
@@ -72,16 +72,13 @@ class Attestations:
         self,
         attestations_function: PythonFunction,
     ):
-
         self.attestation_id_resource.add_method(
             'GET',
             LambdaIntegration(attestations_function),
             method_responses=[
                 MethodResponse(
                     status_code='200',
-                    response_models={
-                        'application/json': self.api_model.get_attestations_response_model
-                    },
+                    response_models={'application/json': self.api_model.get_attestations_response_model},
                 ),
             ],
             request_parameters={'method.request.header.Authorization': True},

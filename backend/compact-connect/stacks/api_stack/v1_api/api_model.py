@@ -995,16 +995,16 @@ class ApiModel:
             'V1GetAttestationsResponseModel',
             description='Get attestations response model',
             schema=JsonSchema(
-                    type=JsonSchemaType.OBJECT,
-                    properties={
-                        'type': JsonSchema(type=JsonSchemaType.STRING, enum=['attestation']),
-                        'attestationType': JsonSchema(type=JsonSchemaType.STRING),
-                        'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
-                        'version': JsonSchema(type=JsonSchemaType.STRING),
-                        'dateCreated': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
-                        'text': JsonSchema(type=JsonSchemaType.STRING),
-                        'required': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                    },
-                ),
+                type=JsonSchemaType.OBJECT,
+                properties={
+                    'type': JsonSchema(type=JsonSchemaType.STRING, enum=['attestation']),
+                    'attestationType': JsonSchema(type=JsonSchemaType.STRING),
+                    'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                    'version': JsonSchema(type=JsonSchemaType.STRING),
+                    'dateCreated': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
+                    'text': JsonSchema(type=JsonSchemaType.STRING),
+                    'required': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                },
+            ),
         )
         return self.api._v1_get_attestations_response_model

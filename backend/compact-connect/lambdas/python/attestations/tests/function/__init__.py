@@ -40,7 +40,7 @@ class TstFunction(TstLambdas):
         with open('../common/tests/resources/dynamo/attestation.json') as f:
             json_data = json.load(f)
             # adding four versions of the same attestation to test getting the latest version
-            for i in range(1,5):
+            for i in range(1, 5):
                 json_data['version'] = str(i)
                 self._compact_configuration_table.put_item(Item=json_data)
 
