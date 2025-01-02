@@ -86,11 +86,11 @@ export class ReportEmailer {
         // Generate the HTML report
         const htmlContent = this.generateReport(events, compact, jurisdiction);
 
-        return this.sendEmail({ 
-            htmlContent, 
-            subject: `License Data Error Summary: ${compact} / ${jurisdiction}`, 
-            recipients, 
-            errorMessage: 'Error sending report email' 
+        return this.sendEmail({
+            htmlContent,
+            subject: `License Data Error Summary: ${compact} / ${jurisdiction}`,
+            recipients,
+            errorMessage: 'Error sending report email'
         });
     }
 
@@ -107,11 +107,11 @@ export class ReportEmailer {
 
         const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
 
-        return this.sendEmail({ 
-            htmlContent, 
-            subject: `License Data Summary: ${compact} / ${jurisdiction}`, 
-            recipients, 
-            errorMessage: 'Error sending alls well email' 
+        return this.sendEmail({
+            htmlContent,
+            subject: `License Data Summary: ${compact} / ${jurisdiction}`,
+            recipients,
+            errorMessage: 'Error sending alls well email'
         });
     }
 
@@ -128,11 +128,11 @@ export class ReportEmailer {
 
         const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
 
-        return this.sendEmail({ 
-            htmlContent, 
-            subject: `No License Updates for Last 7 Days: ${compact} / ${jurisdiction}`, 
-            recipients, 
-            errorMessage: 'Error sending no license updates email' 
+        return this.sendEmail({
+            htmlContent,
+            subject: `No License Updates for Last 7 Days: ${compact} / ${jurisdiction}`,
+            recipients,
+            errorMessage: 'Error sending no license updates email'
         });
     }
 

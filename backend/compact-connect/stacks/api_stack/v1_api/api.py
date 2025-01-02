@@ -25,7 +25,7 @@ class V1Api:
         self.api: cc_api.CCApi = root.api
         self.api_model = ApiModel(api=self.api)
         read_scopes = [
-            f'{resource_server}/read' for resource_server in persistent_stack.staff_users.resource_servers.keys()
+            f'{resource_server}/readGeneral' for resource_server in persistent_stack.staff_users.resource_servers.keys()
         ]
         write_scopes = [
             f'{resource_server}/write' for resource_server in persistent_stack.staff_users.resource_servers.keys()
@@ -89,6 +89,7 @@ class V1Api:
             method_options=read_auth_method_options,
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
+            ssn_table=persistent_stack.ssn_table,
             api_model=self.api_model,
         )
 
@@ -111,17 +112,17 @@ class V1Api:
         )
 
         # /v1/staff-users
-        staff_users_admin_resource = self.compact_resource.add_resource('staff-users')
-        staff_users_self_resource = self.resource.add_resource('staff-users')
+        self.staff_users_admin_resource = self.compact_resource.add_resource('staff-users')
+        self.staff_users_self_resource = self.resource.add_resource('staff-users')
         # GET    /v1/staff-users/me
         # PATCH  /v1/staff-users/me
         # GET    /v1/compacts/{compact}/staff-users
         # POST   /v1/compacts/{compact}/staff-users
         # GET    /v1/compacts/{compact}/staff-users/{userId}
         # PATCH  /v1/compacts/{compact}/staff-users/{userId}
-        StaffUsers(
-            admin_resource=staff_users_admin_resource,
-            self_resource=staff_users_self_resource,
+        self.staff_users = StaffUsers(
+            admin_resource=self.staff_users_admin_resource,
+            self_resource=self.staff_users_self_resource,
             admin_scopes=admin_scopes,
             persistent_stack=persistent_stack,
             api_model=self.api_model,

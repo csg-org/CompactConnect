@@ -86,15 +86,13 @@ class TestPurchasesApi(TestApi):
         )
 
         # We need to ensure the lambda can read these secrets, else all transactions will fail
+        # sort the compact names to ensure the order is consistent
+        self.context['compacts'].sort()
         self.assertIn(
             {
                 'Action': 'secretsmanager:GetSecretValue',
                 'Effect': 'Allow',
-                'Resource': [
-                    _generate_expected_secret_arn('aslp'),
-                    _generate_expected_secret_arn('coun'),
-                    _generate_expected_secret_arn('octp'),
-                ],
+                'Resource': [_generate_expected_secret_arn(compact) for compact in self.context['compacts']],
             },
             policy['Properties']['PolicyDocument']['Statement'],
         )

@@ -5,7 +5,7 @@ from marshmallow.fields import UUID, Date, DateTime, String
 from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
-from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema
+from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema, ForgivingSchema
 from cc_common.data_model.schema.common import ensure_value_is_datetime
 
 
@@ -50,3 +50,18 @@ class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
         in_data['dateOfIssuance'] = ensure_value_is_datetime(in_data['dateOfIssuance'])
 
         return in_data
+
+
+class PrivilegeGeneralResponseSchema(ForgivingSchema):
+    type = String(required=True, allow_none=False)
+    dateOfUpdate = DateTime(required=True, allow_none=False)
+    providerId = UUID(required=True, allow_none=False)
+    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
+    jurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
+    dateOfIssuance = DateTime(required=True, allow_none=False)
+    dateOfRenewal = DateTime(required=True, allow_none=False)
+    # this is determined by the license expiration date, which is a date field, so this is also a date field
+    dateOfExpiration = Date(required=True, allow_none=False)
+    # the id of the transaction that was made when the user purchased the privilege
+    compactTransactionId = String(required=False, allow_none=False)
+    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))

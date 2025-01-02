@@ -84,7 +84,7 @@ class UIDistribution(Distribution):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',
-                    'applies_to': [
+                    'appliesTo': [
                         'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
                     ],
                     'reason': 'This policy enables CloudWatch logging and is appropriate for this lambda',

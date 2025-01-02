@@ -8,6 +8,7 @@
 - **[Local Development](#local-development)**
 - **[Tests](#tests)**
 - **[Build](#build)**
+- **[Auth](#auth)**
 
 ---
 ## Key
@@ -226,4 +227,27 @@ Note that testing the **built** app locally will require a running web server; f
 - Testing the **built** app should always be done with a Private / Incognito browser window
     - _Otherwise the PWA will get cached and testing a clean state or volatile in-progress work will require lots of manual cache storage clearing._
 
+---
+## Auth
+- We use two cognito user pools with hosted login pages to authenticate users as Provider users and Staff users respectively
+- Cognito's somewhat opinionated functionality combined with this set up introduces some complexity to make the app function in a secure and expected way
+
+- **Cognito's functionality:**
+    - When a user logs in to Cognito, it saves an http only cookie allowing the user to log back in without entering credentials for an hour
+    - Cognito has no way to totally log a user out except for visiting the hosted logout url in the browser
+        - Using the token revocation endpoint, the user can invalidate their reresh token, but the http only cookie is not removed so if
+        they logged in within the last hour they are not totally logged out
+
+- **Two user pools with their own hosted login pages:**
+    - If a user is logged in to one user pool, they can still log in to the second as they are not aware of each other
+    - The downstream effect of this point is that the app needs to handle users being logged in to both user pools in an expected and secure way:
+        - When a user logs out they must be logged out from all user pools they are logged into
+        - When a user logs in to the second user pool, the app must treat them as only logged into the second user pool
+
+- **How the app handles this situation:**
+    - Firstly, the user being logged into both pools is very unlikely as there is not natural way to do this within the app, they would need to manually visit the
+    second hosted login page after logging in normally to the first
+    - When the user logs in as to the second user pool we record that the app should treat them as the second user type and save the initial access token
+        - When the user logs out we check the existence of the access tokens to see which user pools we need to log out, and then chain logout redirects
+        to visit all necessary logout pages
 ---

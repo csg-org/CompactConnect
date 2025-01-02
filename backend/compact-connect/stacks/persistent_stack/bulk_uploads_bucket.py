@@ -132,7 +132,7 @@ class BulkUploadsBucket(Bucket):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
-                    'applies_to': ['Resource::*'],
+                    'appliesTo': ['Resource::*'],
                     'reason': """
                     The lambda policy is scoped specifically to the PutBucketNotification action, which
                     suits its purpose.
@@ -146,7 +146,7 @@ class BulkUploadsBucket(Bucket):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',
-                    'applies_to': [
+                    'appliesTo': [
                         'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
                     ],
                     'reason': 'The BasicExecutionRole policy is appropriate for this lambda',
