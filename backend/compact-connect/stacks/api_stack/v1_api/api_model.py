@@ -983,3 +983,28 @@ class ApiModel:
                 'pageSize': JsonSchema(type=JsonSchemaType.INTEGER, minimum=5, maximum=100),
             },
         )
+
+    @property
+    def get_attestations_response_model(self) -> Model:
+        """Return the attestations response model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_get_attestations_response_model'):
+            return self.api._v1_get_attestations_response_model
+
+        stack: AppStack = AppStack.of(self.api)
+        self.api._v1_get_attestations_response_model = self.api.add_model(
+            'V1GetAttestationsResponseModel',
+            description='Get attestations response model',
+            schema=JsonSchema(
+                    type=JsonSchemaType.OBJECT,
+                    properties={
+                        'type': JsonSchema(type=JsonSchemaType.STRING, enum=['attestation']),
+                        'attestationType': JsonSchema(type=JsonSchemaType.STRING),
+                        'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                        'version': JsonSchema(type=JsonSchemaType.STRING),
+                        'dateCreated': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
+                        'text': JsonSchema(type=JsonSchemaType.STRING),
+                        'required': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                    },
+                ),
+        )
+        return self.api._v1_get_attestations_response_model

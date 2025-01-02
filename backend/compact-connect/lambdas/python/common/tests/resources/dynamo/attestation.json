@@ -1,0 +1,11 @@
+{
+  "pk": "COMPACT#aslp#ATTESTATIONS",
+  "sk": "COMPACT#aslp#ATTESTATION#jurisprudence-confirmation#VERSION#1",
+  "type": "attestation",
+  "attestationType": "jurisprudence-confirmation",
+  "compact": "aslp",
+  "version": "4",
+  "dateCreated": "2024-06-06T23:59:59+00:00",
+  "text": "You attest that you have read and understand the jurisprudence requirements for all states you are purchasing privileges for.",
+  "required": true
+}
