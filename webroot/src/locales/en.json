@@ -488,6 +488,7 @@
         "privileges": "Privileges",
         "noRefundsMessage": "All compact privilege purchases are final. Refunds will not be issued.",
         "ssn": "SSN",
+        "deselectState": "Deselect state",
         "commissionFee": "Commission Fee",
         "jurisdictionFee": "Jurisdiction Fee",
         "adverseActions": "Adverse actions",

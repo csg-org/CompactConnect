@@ -100,14 +100,6 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         return this.$t('payment.creditCardTitle');
     }
 
-    get nameOnCardInputLabel(): string {
-        return this.$t('payment.fullNameOnCard');
-    }
-
-    get nameOnCardPlaceholderText(): string {
-        return this.$t('payment.enterFullNameOnCard');
-    }
-
     get cardNumberLabel(): string {
         return this.$t('payment.cardNumber');
     }
@@ -316,18 +308,8 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     //
     // Methods
     //
-    initFormInputs() {
+    initFormInputs(): void {
         this.formData = reactive({
-            fullName: new FormInput({
-                id: 'full-name',
-                name: 'full-name',
-                label: this.nameOnCardInputLabel,
-                shouldHideLabel: false,
-                shouldHideMargin: true,
-                autocomplete: 'cc-name',
-                placeholder: this.nameOnCardPlaceholderText,
-                validation: Joi.string().required().messages(this.joiMessages.string),
-            }),
             creditCard: new FormInput({
                 id: 'card',
                 name: 'card',
@@ -451,7 +433,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         this.watchFormInputs();
     }
 
-    async handleSubmit() {
+    async handleSubmit(): Promise<void> {
         this.validateAll({ asTouched: true });
 
         if (this.isFormValid) {
@@ -480,7 +462,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         }
     }
 
-    handleCancelClicked() {
+    handleCancelClicked(): void {
         if (this.currentCompactType) {
             this.$router.push({
                 name: 'LicenseeDashboard',
@@ -489,7 +471,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         }
     }
 
-    handleBackClicked() {
+    handleBackClicked(): void {
         if (this.currentCompactType) {
             this.$router.push({
                 name: 'SelectPrivileges',
@@ -498,15 +480,15 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         }
     }
 
-    handleExpYearRefEmitted(inputData) {
+    handleExpYearRefEmitted(inputData): void {
         this.expYearRef = inputData.ref;
     }
 
-    handleCVVRefEmitted(inputData) {
+    handleCVVRefEmitted(inputData): void {
         this.cvvRef = inputData.ref;
     }
 
-    togglePaymentCollapsed() {
+    togglePaymentCollapsed(): void {
         this.shouldShowPaymentSection = !this.shouldShowPaymentSection;
     }
 
@@ -532,7 +514,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         creditCard.value = format(creditCard.value);
     }
 
-    handleExpMonthInput(formInput) {
+    handleExpMonthInput(formInput): void {
         // Remove all non-numerals
         formInput.value = formInput.value.replace(/[^\d]/g, '');
 
@@ -541,7 +523,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         }
     }
 
-    handleExpYearInput(formInput) {
+    handleExpYearInput(formInput): void {
         // Remove all non-numerals
         formInput.value = formInput.value.replace(/[^\d]/g, '');
 
@@ -550,18 +532,17 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         }
     }
 
-    handleCVVInput(formInput) {
+    handleCVVInput(formInput): void {
         // Remove all non-numerals
         formInput.value = formInput.value.replace(/[^\d]/g, '');
     }
 
-    handleZipInput(formInput) {
+    handleZipInput(formInput): void {
         // Remove all non-numerals
         formInput.value = formInput.value.replace(/[^\d]/g, '');
     }
 
     mockPopulate(): void {
-        this.formData.fullName.value = `Test User`;
         this.formData.creditCard.value = `5424 0000 0000 0015`;
         this.formData.expMonth.value = `01`;
         this.formData.expYear.value = `29`;

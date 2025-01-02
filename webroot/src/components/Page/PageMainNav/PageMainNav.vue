@@ -14,6 +14,7 @@
         @focusin="!$matches.phone.only && navExpand()"
         @mouseleave="!$matches.phone.only && navCollapse($event)"
         @focusout="!$matches.phone.only && navCollapse()"
+        v-click-outside="clickOutside"
     >
         <div v-if="$matches.tablet.min" class="logo-container">
             <img
@@ -62,6 +63,13 @@
                 </a>
             </li>
         </ul>
+        <div class="compact-selector">
+            <!-- <CompactSelector
+                v-if="isLoggedInAsStaff && isNavExpanded"
+                :isPermissionBased="true"
+                :hideIfNotMultiple="true"
+            /> -->
+        </div>
         <div class="separator"></div>
         <ul class="nav my-nav">
             <li v-for="link in myLinks" :key="link.label" class="page-nav my-links">

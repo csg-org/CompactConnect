@@ -10,9 +10,7 @@
         <header>
             <PageHeader v-if="includePageHeader"></PageHeader>
         </header>
-        <nav>
-            <PageNav />
-        </nav>
+        <PageNav />
         <div class="page-content" role="main">
             <transition name="fade">
                 <PageLoadingMask v-show="isLoading"></PageLoadingMask>

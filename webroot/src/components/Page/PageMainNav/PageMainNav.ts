@@ -14,7 +14,6 @@ import {
 } from 'vue';
 import { Component, Vue, toNative } from 'vue-facing-decorator';
 import { AuthTypes } from '@/app.config';
-// import CompactSelector from '@components/CompactSelector/CompactSelector.vue';
 import UploadIcon from '@components/Icons/Upload/Upload.vue';
 import UsersIcon from '@components/Icons/Users/Users.vue';
 import LicenseSearchIcon from '@components/Icons/LicenseSearch/LicenseSearch.vue';
@@ -23,6 +22,7 @@ import DashboardIcon from '@components/Icons/Dashboard/Dashboard.vue';
 import PurchaseIcon from '@components/Icons/Purchase/Purchase.vue';
 import AccountIcon from '@components/Icons/Account/Account.vue';
 import LogoutIcon from '@components/Icons/Logout/Logout.vue';
+import CompactSelector from '@components/CompactSelector/CompactSelector.vue';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { CompactPermission } from '@models/StaffUser/StaffUser.model';
 
@@ -49,6 +49,7 @@ export interface NavLink {
         PurchaseIcon,
         AccountIcon,
         LogoutIcon,
+        CompactSelector,
     }
 })
 class PageMainNav extends Vue {
@@ -227,6 +228,12 @@ class PageMainNav extends Vue {
 
     navCollapse(): void {
         this.$store.dispatch('collapseNavMenu');
+    }
+
+    clickOutside(event): void {
+        if (!event.target.closest('.main-nav-container, .nav-toggle')) {
+            this.navCollapse();
+        }
     }
 }
 

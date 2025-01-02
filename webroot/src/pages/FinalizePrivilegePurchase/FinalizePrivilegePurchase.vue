@@ -19,9 +19,6 @@
                         <div class="credit-card-section">
                             <div class="credit-card-title">{{creditCardTitleText}}</div>
                             <div class="form-row">
-                                <InputText :formInput="formData.fullName" />
-                            </div>
-                            <div class="form-row">
                                 <InputCreditCard :formInput="formData.creditCard" @input="formatCreditCard()" />
                             </div>
                             <div class="cc-dets form-row">

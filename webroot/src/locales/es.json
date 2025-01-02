@@ -487,6 +487,7 @@
         "noRefundsMessage": "Todas las compras de privilegios compactos son definitivas. No se emitirán reembolsos.",
         "adverseActions": "Acciones adversas",
         "status": "Estado",
+        "deselectState": "Deseleccionar estado",
         "issueDate": "Fecha de asunto",
         "expireDate": "Fecha de caducidad",
         "expirationDate": "Fecha de caducidad",
