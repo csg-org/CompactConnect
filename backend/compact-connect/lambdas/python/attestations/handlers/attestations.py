@@ -23,7 +23,7 @@ def _get_attestations(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     :return: The latest version of the attestation record
     """
     compact = event['pathParameters']['compact']
-    attestation_type = event['pathParameters']['attestationType']
+    attestation_type = event['pathParameters']['attestationId']
 
     logger.info('Getting attestation', compact=compact, attestation_type=attestation_type)
 

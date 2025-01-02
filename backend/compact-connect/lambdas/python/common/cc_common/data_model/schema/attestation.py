@@ -17,18 +17,21 @@ class AttestationRecordSchema(BaseRecordSchema):
     _record_type = ATTESTATION_TYPE
 
     # Provided fields
-    attestationType = String(required=True, allow_none=False)
+    attestationId = String(required=True, allow_none=False)
     compact = String(required=True, allow_none=False)
+    # verify that version is a string of digits
     version = String(required=True, allow_none=False, validate=Regexp(r'^\d+$'))
     dateCreated = String(required=True, allow_none=False)
     text = String(required=True, allow_none=False)
     required = Boolean(required=True, allow_none=False)
+    displayName = String(required=True, allow_none=False)
+    description = String(required=True, allow_none=False)
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         """Generate the pk and sk fields for the attestation record"""
         in_data['pk'] = f'COMPACT#{in_data["compact"]}#ATTESTATIONS'
         in_data['sk'] = (
-            f'COMPACT#{in_data["compact"]}#ATTESTATION#{in_data["attestationType"]}#VERSION#{in_data["version"]}'
+            f'COMPACT#{in_data["compact"]}#ATTESTATION#{in_data["attestationId"]}#VERSION#{in_data["version"]}'
         )
         return in_data

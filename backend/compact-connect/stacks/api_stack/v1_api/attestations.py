@@ -62,8 +62,8 @@ class Attestations:
             ],
         )
 
-        # GET /v1/compacts/{compact}/attestations/{attestationType}
-        self.attestation_type_resource = self.resource.add_resource('{attestationType}')
+        # GET /v1/compacts/{compact}/attestations/{attestationId}
+        self.attestation_id_resource = self.resource.add_resource('{attestationId}')
         self._add_get_attestation(
             attestations_function=self.attestations_function,
         )
@@ -73,7 +73,7 @@ class Attestations:
         attestations_function: PythonFunction,
     ):
 
-        self.attestation_type_resource.add_method(
+        self.attestation_id_resource.add_method(
             'GET',
             LambdaIntegration(attestations_function),
             method_responses=[
