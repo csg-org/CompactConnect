@@ -85,24 +85,26 @@
             class="end-affiliation-modal"
             :closeOnBackgroundClick="true"
             :showActions="false"
-            :title="jurisprudenceModalTitle"
-            @close-modal="closeAndInvalidateCheckbox"
+            :title="endAffiliationModalTitle"
+            @close-modal="closeEndAffilifationModal"
         >
             <template v-slot:content>
-                <div class="jurisprudence-modal-content">
-                    {{jurisprudenceModalContent}}
+                <div class="end-affiliation-modal-content">
+                    {{endAffiliationModalContent}}
                     <form @submit.prevent="confirmEndMilitaryAffiliation">
                         <div class="action-button-row">
                             <InputButton
-                                class="back-button"
+                                class="no-back-button"
                                 :label="backText"
+                                :aria-label="backText"
                                 :isTransparent="true"
-                                :onClick="closeAndInvalidateCheckbox"
+                                :onClick="closeEndAffilifationModal"
                             />
                             <InputSubmit
                                 class="understand-button"
-                                :formInput="formData.submitUnderstanding"
-                                :label="iUnderstandText"
+                                :formInput="formData.submitEnd"
+                                :label="yesEndText"
+                                :aria-label="yesEndText"
                             />
                         </div>
                     </form>

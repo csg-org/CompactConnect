@@ -82,14 +82,30 @@ export default class MilitaryStatus extends mixins(MixinForm) {
         return { name: 'File name', date: 'Date uploaded' };
     }
 
+    get endAffiliationModalTitle(): string {
+        return this.$t('military.endAffiliationModalTitle');
+    }
+
+    get endAffiliationModalContent(): string {
+        return this.$t('military.endAffiliationModalContent');
+    }
+
+    get backText(): string {
+        return this.$t('military.noGoBack');
+    }
+
+    get yesEndText(): string {
+        return this.$t('military.yesEnd');
+    }
+
     //
     // Methods
     //
     initFormInputs(): void {
         const initFormData: any = {
-            submitUnderstanding: new FormInput({
+            submitEnd: new FormInput({
                 isSubmitInput: true,
-                id: 'submit-understanding',
+                id: 'submit-end',
             }),
         };
 
@@ -102,6 +118,16 @@ export default class MilitaryStatus extends mixins(MixinForm) {
 
     startEndAffiliationFlow() {
         this.shouldShowEndAffilifationModal = true;
+    }
+
+    closeEndAffilifationModal() {
+        this.shouldShowEndAffilifationModal = false;
+        this.$store.dispatch('setModalIsOpen', false);
+    }
+
+    confirmEndMilitaryAffiliation() {
+        // dispatch end affiliation request
+        this.closeEndAffilifationModal();
     }
 
     async sortingChange() {

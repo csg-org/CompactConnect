@@ -554,7 +554,11 @@
         "previouslyUploadedDocuments": "Previously Uploaded Documents",
         "endMilitaryAffiliation": "Parar afiliación militar",
         "editInfo": "Editar información",
-        "noUploadedDocuments": "No documentos cargados"
+        "noUploadedDocuments": "No documentos cargados",
+        "endAffiliationModalTitle": "¿Está seguro de que desea poner fin a su afiliación militar?",
+        "endAffiliationModalContent" : "Esta acción no se puede deshacer, pero si es necesario, puedes volver a realizar el proceso de confirmación.",
+        "noGoBack": "No, regresa",
+        "yesEnd": "Sí, terminar mi afiliación"
     },
     "account": {
         "accountTitle": "Cuenta",

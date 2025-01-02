@@ -554,7 +554,11 @@
         "previouslyUploadedDocuments": "Previously Uploaded Documents",
         "endMilitaryAffiliation": "End military affiliation",
         "editInfo": "Edit info",
-        "noUploadedDocuments": "No uploaded documents"
+        "noUploadedDocuments": "No uploaded documents",
+        "endAffiliationModalTitle": "Are you sure you want to end your military affiliation?",
+        "endAffiliationModalContent" : "This action cannot be undone, but if needed, you can go through the confirmation process again.",
+        "noGoBack": "No, go back",
+        "yesEnd": "Yes, end my affiliation"
     },
     "account": {
         "accountTitle": "Account",

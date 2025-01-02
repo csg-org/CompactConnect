@@ -248,4 +248,13 @@ export default {
     postPrivilegePurchasesFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE, error);
     },
+    endMilitaryAffiliationRequest: ({ commit }) => {
+        commit(MutationTypes.LOGIN_REQUEST);
+    },
+    endMilitaryAffiliationSuccess: async ({ commit }) => {
+        commit(MutationTypes.LOGIN_SUCCESS);
+    },
+    endMilitaryAffiliationFailure: async ({ commit }, error: Error) => {
+        commit(MutationTypes.LOGIN_FAILURE, error);
+    },
 };
