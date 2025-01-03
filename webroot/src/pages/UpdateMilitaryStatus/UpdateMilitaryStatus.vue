@@ -20,14 +20,20 @@
                 {{ $t('military.updateMilitaryStatusTitle') }}
             </div>
             <div class="core-info-block">
-                <div class="button-row">
-                    <InputSubmit
-                        class="understand-button"
-                        :formInput="formData.submit"
-                        :label="$t('common.submit')"
-                        :aria-label="$t('common.submit')"
-                    />
+                <div class="title-row">
+                    {{attestationTitleText}}
                 </div>
+                <form @submit.prevent="handleSubmit">
+                    <InputRadioGroup :formInput="formData.status" />
+                    <div class="button-row">
+                        <InputSubmit
+                            class="understand-button"
+                            :formInput="formData.submit"
+                            :label="$t('common.submit')"
+                            :aria-label="$t('common.submit')"
+                        />
+                    </div>
+                </form>
             </div>
         </div>
    </div>
