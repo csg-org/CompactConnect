@@ -20,8 +20,8 @@ def get_provider_information(compact: str, provider_id: str) -> dict:
         raise CCInternalException('Unexpected provider data')
 
     provider = None
-    privileges = []
-    licenses = []
+    privileges = {}
+    licenses = {}
     military_affiliations = []
     for record in provider_data['items']:
         match record['type']:
@@ -30,10 +30,18 @@ def get_provider_information(compact: str, provider_id: str) -> dict:
                 provider = record
             case 'license':
                 logger.debug('Identified license record', provider_id=provider_id)
-                licenses.append(record)
+                licenses[record['jurisdiction']] = record
+                licenses[record['jurisdiction']].setdefault('history', [])
+            case 'licenseUpdate':
+                logger.debug('Identified license update record', provider_id=provider_id)
+                licenses[record['jurisdiction']]['history'].append(record)
             case 'privilege':
                 logger.debug('Identified privilege record', provider_id=provider_id)
-                privileges.append(record)
+                privileges[record['jurisdiction']] = record
+                privileges[record['jurisdiction']].setdefault('history', [])
+            case 'privilegeUpdate':
+                logger.debug('Identified privilege update record', provider_id=provider_id)
+                privileges[record['jurisdiction']]['history'].append(record)
             case 'militaryAffiliation':
                 logger.debug('Identified military affiliation record', provider_id=provider_id)
                 military_affiliations.append(record)
@@ -42,7 +50,7 @@ def get_provider_information(compact: str, provider_id: str) -> dict:
         logger.error("Failed to find a provider's primary record!", provider_id=provider_id)
         raise CCInternalException('Unexpected provider data')
 
-    provider['licenses'] = licenses
-    provider['privileges'] = privileges
+    provider['licenses'] = list(licenses.values())
+    provider['privileges'] = list(privileges.values())
     provider['militaryAffiliations'] = military_affiliations
     return provider

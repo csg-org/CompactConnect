@@ -2,12 +2,15 @@ from collections.abc import Iterable
 
 from boto3.dynamodb.types import TypeSerializer
 from cc_common.config import config, logger
-from cc_common.data_model.schema.license import LicenseIngestSchema, LicenseRecordSchema
-from cc_common.data_model.schema.provider import ProviderRecordSchema
+from cc_common.data_model.schema import LicenseRecordSchema, ProviderRecordSchema
+from cc_common.data_model.schema.common import Status, UpdateCategory
+from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
+from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
 from cc_common.exceptions import CCNotFoundException
 from cc_common.utils import sqs_handler
 
 license_schema = LicenseIngestSchema()
+license_update_schema = LicenseUpdateRecordSchema()
 
 
 @sqs_handler
@@ -65,6 +68,13 @@ def ingest_license_message(message: dict):
     # If at least one active: last issued active license
     # If all inactive: last issued inactive license
     # Set (or replace) the posted license for its jurisdiction
+    existing_license = licenses.get(license_post['jurisdiction'])
+    if existing_license is not None:
+        process_license_update(
+            existing_license=existing_license,
+            new_license=license_post,
+            dynamo_transactions=dynamo_transactions,
+        )
     licenses[license_post['jurisdiction']] = license_post
     best_license = find_best_license(licenses.values())
     if best_license is license_post:
@@ -94,6 +104,60 @@ def populate_provider_record(*, provider_id: str, license_post: dict, privilege_
                 **license_post,
             },
         ),
+    )['M']
+
+
+def process_license_update(*, existing_license: dict, new_license: dict, dynamo_transactions: list):
+    """
+    Examine the differences between existing_license and new_license, categorize the change, and add
+    a licenseUpdate record to the transaction if appropriate.
+    :param dict existing_license: The existing license record
+    :param dict new_license: The newly-uploaded license record
+    :param list dynamo_transactions: The dynamodb transaction array to append records to
+    """
+    if existing_license == new_license:
+        # No change, do nothing
+        return
+    # Categorize the update
+    update_record = populate_update_record(existing_license=existing_license, new_license=new_license)
+    dynamo_transactions.append({'Put': {'TableName': config.provider_table_name, 'Item': update_record}})
+
+
+def populate_update_record(*, existing_license: dict, new_license: dict) -> dict:
+    """
+    Categorize the update between existing and new license records.
+    :param dict existing_license: The existing license record
+    :param dict new_license: The newly-uploaded license record
+    :return: The update type, one of 'update', 'revoke', or 'reinstate'
+    """
+    # dateOfUpdate won't show up as a change because the field isn't in new_license, yet
+    updated_values = {key: value for key, value in new_license.items() if value != existing_license[key]}
+    update_type = None
+    if {'dateOfExpiration', 'dateOfRenewal'} == updated_values.keys():
+        original_values = {key: value for key, value in existing_license.items() if key in updated_values}
+        if (
+            updated_values['dateOfExpiration'] > original_values['dateOfExpiration']
+            and updated_values['dateOfRenewal'] > original_values['dateOfRenewal']
+        ):
+            update_type = UpdateCategory.RENEWAL
+    elif updated_values == {'jurisdictionStatus': Status.INACTIVE}:
+        update_type = UpdateCategory.DEACTIVATION
+    if update_type is None:
+        update_type = UpdateCategory.OTHER
+
+    dynamodb_serializer = TypeSerializer()
+    return dynamodb_serializer.serialize(
+        license_update_schema.dump(
+            {
+                'type': 'licenseUpdate',
+                'updateType': update_type,
+                'providerId': existing_license['providerId'],
+                'compact': existing_license['compact'],
+                'jurisdiction': existing_license['jurisdiction'],
+                'previous': existing_license,
+                'updatedValues': updated_values,
+            }
+        )
     )['M']
 
 

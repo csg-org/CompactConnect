@@ -1,7 +1,7 @@
 {
   "pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
   "sk": "aslp#PROVIDER#privilege/ne#UPDATE#1735232821/1a812bc8f",
-  "type": "privilege",
+  "type": "privilegeUpdate",
   "updateType": "renewal",
   "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
   "compact": "aslp",

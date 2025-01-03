@@ -1,11 +1,11 @@
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 
 from marshmallow import Schema
 from marshmallow.fields import Dict, String, Url
 
 
-class CCEnum(Enum):
+class CCEnum(StrEnum):
     """
     Base class for Compact Connect enums
 
@@ -57,3 +57,14 @@ def ensure_value_is_datetime(value: str):
 
     # Not a date string, return the original
     return value
+
+
+class UpdateCategory(CCEnum):
+    RENEWAL = 'renewal'
+    DEACTIVATION = 'deactivation'
+    OTHER = 'other'
+
+
+class Status(CCEnum):
+    ACTIVE = 'active'
+    INACTIVE = 'inactive'

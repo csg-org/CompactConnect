@@ -241,6 +241,13 @@ class TestQueryProviders(TstFunction):
 
 @mock_aws
 class TestGetProvider(TstFunction):
+    @staticmethod
+    def _get_sensitive_hash():
+        with open('../common/tests/resources/dynamo/license-update.json') as f:
+            sk = json.load(f)['sk']
+        # The actual sensitive part is the hash at the end of the key
+        return sk.split('/')[-1]
+
     def _when_testing_get_provider_response_based_on_read_access(self, scopes: str, expected_provider: dict):
         self._load_provider_data()
 
@@ -259,6 +266,12 @@ class TestGetProvider(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
         self.assertEqual(expected_provider, provider_data)
+
+        # The sk for a license-update record is sensitive so we'll do an extra, pretty broad, check just to make sure
+        # we guard against future changes that might accidentally send the key out via the API. See discussion on
+        # key generation in the LicenseUpdateRecordSchema for details.
+        sensitive_hash = self._get_sensitive_hash()
+        self.assertNotIn(sensitive_hash, resp['body'])
 
     def _when_testing_get_provider_with_read_private_access(self, scopes: str):
         with open('../common/tests/resources/api/provider-detail-response.json') as f:
@@ -318,7 +331,6 @@ class TestGetProvider(TstFunction):
         self.assertEqual(400, resp['statusCode'])
 
     def test_get_provider_returns_expected_general_response_when_caller_does_not_have_read_private_scope(self):
-        """Provider detail response"""
         with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
             expected_provider.pop('ssn')
@@ -326,8 +338,10 @@ class TestGetProvider(TstFunction):
             # we do not return the military affiliation document keys if the caller does not have read private scope
             expected_provider['militaryAffiliations'][0].pop('documentKeys')
             # also remove the ssn from the license record
-            expected_provider['licenses'][0].pop('ssn')
-            expected_provider['licenses'][0].pop('dateOfBirth')
+            del expected_provider['licenses'][0]['ssn']
+            del expected_provider['licenses'][0]['dateOfBirth']
+            del expected_provider['licenses'][0]['history'][0]['previous']['ssn']
+            del expected_provider['licenses'][0]['history'][0]['previous']['dateOfBirth']
 
         self._when_testing_get_provider_response_based_on_read_access(
             scopes='openid email aslp/readGeneral', expected_provider=expected_provider

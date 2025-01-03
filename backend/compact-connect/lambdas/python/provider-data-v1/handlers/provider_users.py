@@ -6,10 +6,10 @@ from cc_common.config import config, logger
 from cc_common.data_model.schema.military_affiliation import (
     MILITARY_AFFILIATIONS_DOCUMENT_TYPE_KEY_NAME,
     SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS,
-    MilitaryAffiliationRecordSchema,
     MilitaryAffiliationType,
-    PostMilitaryAffiliationResponseSchema,
 )
+from cc_common.data_model.schema.military_affiliation.api import PostMilitaryAffiliationResponseSchema
+from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException, CCNotFoundException
 from cc_common.utils import api_handler
 

@@ -23,16 +23,17 @@ JURISDICTIONS = _context['jurisdictions']
 COMPACTS = _context['compacts']
 LICENSE_TYPES = _context['license_types']
 
+
 os.environ['COMPACTS'] = json.dumps(COMPACTS)
 os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 
-from cc_common.data_model.schema.license import LicensePostSchema  # noqa: E402
+from cc_common.data_model.schema.license.api import LicensePostRequestSchema  # noqa: E402
 
 # We'll grab three different localizations to provide a variety of names/characters
 name_faker = Faker(['en_US', 'ja_JP', 'es_MX'])
 faker = Faker(['en_US'])
 
-schema = LicensePostSchema()
+schema = LicensePostRequestSchema()
 
 FIELDS = (
     'ssn',

@@ -42,6 +42,6 @@ class TestDataClient(TstLambdas):
         mock_batch_writer.delete_item.assert_called_with(
             Key={
                 'pk': 'aslp#PROVIDER#test_provider_id',
-                'sk': 'aslp#PROVIDER#privilege/ca#2024-11-08',
+                'sk': 'aslp#PROVIDER#privilege/ca',
             }
         )

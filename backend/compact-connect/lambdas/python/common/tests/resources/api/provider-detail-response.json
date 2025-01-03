@@ -17,10 +17,10 @@
   "homeAddressCity": "Columbus",
   "homeAddressState": "oh",
   "homeAddressPostalCode": "43004",
-  "militaryWaiver": true,
+  "militaryWaiver": false,
   "emailAddress": "björk@example.com",
   "phoneNumber": "+13213214321",
-  "dateOfBirth": "2024-06-06",
+  "dateOfBirth": "1985-06-06",
   "dateOfUpdate": "2024-07-08T23:59:59+00:00",
   "dateOfExpiration": "2025-04-04",
   "birthMonthDay": "06-06",
@@ -50,7 +50,7 @@
       "homeAddressPostalCode": "43004",
       "emailAddress": "björk@example.com",
       "phoneNumber": "+13213214321",
-      "militaryWaiver": true,
+      "militaryWaiver": false,
       "history": [
         {
           "type": "licenseUpdate",
@@ -79,7 +79,7 @@
             "homeAddressPostalCode": "43004",
             "emailAddress": "björk@example.com",
             "phoneNumber": "+13213214321",
-            "militaryWaiver": true
+            "militaryWaiver": false
           },
           "updatedValues": {
             "dateOfRenewal": "2020-04-04",

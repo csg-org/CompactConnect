@@ -87,7 +87,7 @@ class TestTransformations(TstFunction):
             provider_id=provider_id,
             # using values in expected privilege json file
             jurisdiction_postal_abbreviations=['ne'],
-            license_expiration_date=date(2050, 6, 6),
+            license_expiration_date=date(2025, 4, 4),
             compact_transaction_id='1234567890',
             existing_privileges=[],
         )
@@ -101,7 +101,7 @@ class TestTransformations(TstFunction):
             affiliation_type=MilitaryAffiliationType.MILITARY_MEMBER,
             file_names=['military-waiver.pdf'],
             document_keys=[
-                '/provider/<provider_id>/document-type/military-affiliations/2024-07-08/1234#military-waiver.pdf'
+                f'/provider/{provider_id}/document-type/military-affiliations/2024-07-08/1234#military-waiver.pdf'
             ],
         )
 
@@ -111,7 +111,7 @@ class TestTransformations(TstFunction):
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
             & Key('sk').begins_with('aslp#PROVIDER'),
         )
-        # One record for reach of: provider, license, privilege, militaryAffiliation
+        # One record for each of: provider, license, privilege, militaryAffiliation
         self.assertEqual(4, len(resp['Items']))
         records = {item['type']: item for item in resp['Items']}
 
@@ -199,6 +199,11 @@ class TestTransformations(TstFunction):
         del expected_provider['privileges'][0]['dateOfRenewal']
         del expected_provider['militaryAffiliations'][0]['dateOfUpload']
         del expected_provider['militaryAffiliations'][0]['dateOfUpdate']
+
+        # This lengthy test does not include change records for licenses or privileges, so we'll blank out the
+        # sample history from our expected_provider
+        expected_provider['licenses'][0]['history'] = []
+        expected_provider['privileges'][0]['history'] = []
 
         # Phew! We've loaded the data all the way in via the ingest chain and back out via the API!
         self.assertEqual(expected_provider, provider_data)

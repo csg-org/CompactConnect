@@ -2,7 +2,7 @@ import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.data_model.schema.provider import SanitizedProviderReadGeneralSchema
+from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
 from cc_common.exceptions import CCInvalidRequestException
 from cc_common.utils import (
     api_handler,
@@ -93,7 +93,7 @@ def query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused
     # Convert generic field to more specific one for this API and sanitize data
     pre_sanitized_providers = resp.pop('items', [])
     # for the query endpoint, we only return generally available data, regardless of the caller's scopes
-    general_schema = SanitizedProviderReadGeneralSchema()
+    general_schema = ProviderGeneralResponseSchema()
     sanitized_providers = [general_schema.dump(provider) for provider in pre_sanitized_providers]
 
     resp['providers'] = sanitized_providers

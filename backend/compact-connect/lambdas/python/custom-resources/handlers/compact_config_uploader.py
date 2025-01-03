@@ -4,8 +4,7 @@ from decimal import Decimal
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.data_model.schema.compact import CompactRecordSchema
-from cc_common.data_model.schema.jurisdiction import JurisdictionRecordSchema
+from cc_common.data_model.schema import CompactRecordSchema, JurisdictionRecordSchema
 
 
 def on_event(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument

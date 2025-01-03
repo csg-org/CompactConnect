@@ -11,10 +11,10 @@ from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
 from cc_common.data_model.schema.military_affiliation import (
-    MilitaryAffiliationRecordSchema,
     MilitaryAffiliationStatus,
     MilitaryAffiliationType,
 )
+from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 from cc_common.exceptions import CCAwsServiceException, CCNotFoundException
 
 

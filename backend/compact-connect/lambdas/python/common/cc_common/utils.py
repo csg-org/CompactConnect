@@ -11,7 +11,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 
 from cc_common.config import logger
-from cc_common.data_model.schema.provider import SanitizedProviderReadGeneralSchema
+from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
 from cc_common.exceptions import (
     CCAccessDeniedException,
     CCInvalidRequestException,
@@ -451,6 +451,6 @@ def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, 
         'Caller does not have readPrivate at compact or jurisdiction level, removing private information',
         provider_id=provider['providerId'],
     )
-    provider_read_general_schema = SanitizedProviderReadGeneralSchema()
-    # we dump the record to ensure that the schema is applied to the record to remove private fields
-    return provider_read_general_schema.dump(provider)
+    provider_read_general_schema = ProviderGeneralResponseSchema()
+    # we filter the record to ensure that the schema is applied to the record to remove private fields
+    return provider_read_general_schema.load(provider)
