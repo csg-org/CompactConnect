@@ -18,9 +18,10 @@ from smoke_common import (
 
 
 def test_purchasing_privilege():
-    # Step 1: Purchase a privilege through the POST '/v1/purchases/privileges' endpoint.
-    # Step 2: Verify a transaction id is returned in the response body.
-    # Step 3: Load records for provider and verify that the privilege is added to the provider's record.
+    # Step 1: Get latest versions of required attestations - GET '/v1/compact/{compact}/attestations/{attestationId}'.
+    # Step 2: Purchase a privilege through the POST '/v1/purchases/privileges' endpoint.
+    # Step 3: Verify a transaction id is returned in the response body.
+    # Step 4: Load records for provider and verify that the privilege is added to the provider's record.
 
     # first cleaning up user's existing privileges to start in a clean state
     original_provider_data = call_provider_users_me_endpoint()
@@ -45,6 +46,21 @@ def test_purchasing_privilege():
             # give dynamodb time to propagate
             time.sleep(1)
 
+    # Get the latest attestation version
+    compact = original_provider_data.get('compact')
+    attestation_id = 'jurisprudence-confirmation'
+    get_attestation_response = requests.get(
+        url=f'{config.api_base_url}/v1/compacts/{compact}/attestations/{attestation_id}',
+        headers=get_provider_user_auth_headers_cached(),
+        timeout=10
+    )
+
+    if get_attestation_response.status_code != 200:
+        raise SmokeTestFailureException(f'Failed to get attestation. Response: {get_attestation_response.json()}')
+
+    attestation = get_attestation_response.json()
+    attestation_version = attestation.get('version')
+
     post_body = {
         'orderInformation': {
             'card': {
@@ -64,6 +80,12 @@ def test_purchasing_privilege():
             },
         },
         'selectedJurisdictions': ['ne'],
+        'attestations': [
+            {
+                'attestationId': attestation_id,
+                'version': attestation_version
+            }
+        ]
     }
 
     headers = get_provider_user_auth_headers_cached()
@@ -93,6 +115,12 @@ def test_purchasing_privilege():
         raise SmokeTestFailureException(f'No privilege record found for today ({today})')
     if matching_privilege['compactTransactionId'] != transaction_id:
         raise SmokeTestFailureException('Privilege record does not match transaction id')
+    if not matching_privilege.get('attestations'):
+        raise SmokeTestFailureException('No attestations found in privilege record')
+    if matching_privilege['attestations'][0]['attestationId'] != attestation_id:
+        raise SmokeTestFailureException('Attestation ID in privilege record does not match')
+    if matching_privilege['attestations'][0]['version'] != attestation_version:
+        raise SmokeTestFailureException('Attestation version in privilege record does not match')
 
     print(f'Successfully purchased privilege record: {matching_privilege}')
 
