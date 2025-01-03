@@ -5,13 +5,21 @@
 //  Created by InspiringApps on 12/20/2024.
 //
 
-import { Component, Vue } from 'vue-facing-decorator';
+import { Component, mixins } from 'vue-facing-decorator';
+import { reactive } from 'vue';
+import MixinForm from '@components/Forms/_mixins/form.mixin';
+import InputButton from '@components/Forms/InputButton/InputButton.vue';
+import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import { FormInput } from '@/models/FormInput/FormInput.model';
 
 @Component({
     name: 'UpdateMilitaryStatus',
-    components: {}
+    components: {
+        InputSubmit,
+        InputButton
+    }
 })
-export default class UpdateMilitaryStatus extends Vue {
+export default class MilitaryStatus extends mixins(MixinForm) {
     //
     // Data
     //
@@ -19,6 +27,9 @@ export default class UpdateMilitaryStatus extends Vue {
     //
     // Lifecycle
     //
+    created() {
+        this.initFormInputs();
+    }
 
     //
     // Computed
@@ -27,4 +38,18 @@ export default class UpdateMilitaryStatus extends Vue {
     //
     // Methods
     //
+    initFormInputs(): void {
+        const initFormData: any = {
+            submitEnd: new FormInput({
+                isSubmitInput: true,
+                id: 'submit-end',
+            }),
+        };
+
+        this.formData = reactive(initFormData);
+    }
+
+    goBack() {
+        console.log('go back');
+    }
 }

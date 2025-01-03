@@ -7,6 +7,7 @@
 
 <template>
    <div class="military-status-container">
+    <div class="military-status-content-container">
         <InputButton
             :label="$t('common.back')"
             :aria-label="$t('common.back')"
@@ -80,8 +81,9 @@
                 />
             </div>
         </div>
+    </div>
          <Modal
-            v-if="shouldShowEndAffilifationModal"
+            v-if="shouldShowEndAffiliationModal"
             class="end-affiliation-modal"
             :closeOnBackgroundClick="true"
             :showActions="false"

@@ -30,7 +30,7 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     //
     // Data
     //
-    shouldShowEndAffilifationModal = false;
+    shouldShowEndAffiliationModal = false;
 
     //
     // Lifecycle
@@ -117,11 +117,11 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     }
 
     startEndAffiliationFlow() {
-        this.shouldShowEndAffilifationModal = true;
+        this.shouldShowEndAffiliationModal = true;
     }
 
     closeEndAffilifationModal() {
-        this.shouldShowEndAffilifationModal = false;
+        this.shouldShowEndAffiliationModal = false;
         this.$store.dispatch('setModalIsOpen', false);
     }
 
