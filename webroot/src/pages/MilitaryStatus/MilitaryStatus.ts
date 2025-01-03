@@ -113,7 +113,12 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     }
 
     goBack() {
-        console.log('go back');
+        if (this.currentCompactType) {
+            this.$router.push({
+                name: 'LicenseeDashboard',
+                params: { compact: this.currentCompactType }
+            });
+        }
     }
 
     startEndAffiliationFlow() {

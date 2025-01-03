@@ -472,6 +472,7 @@
     "licensing": {
         "licensingListTitle": "Datos de licencia",
         "searchTitle": "Iniciar una búsqueda",
+        "attestation": "Atestación",
         "searchSubtext": "Introduzca al menos un campo para buscar datos de licencia.",
         "searchLabel": "Buscar",
         "searchPlaceholderName": "Introducir nombre",
@@ -548,6 +549,7 @@
     },
     "military": {
         "militaryStatusTitle": "Estado militar",
+        "updateMilitaryStatusTitle": "Actualizar el estado militar",
         "militaryDiscountText": "Descuento Militar",
         "viewMilitaryStatus": "Ver estado militar",
         "affiliationType": "Tipo de afiliación",

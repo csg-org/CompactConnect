@@ -10,6 +10,7 @@ import { reactive } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import { Compact } from '@models/Compact/Compact.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 
 @Component({
@@ -34,15 +35,26 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     //
     // Computed
     //
+    get currentCompact(): Compact | null {
+        return this.userStore?.currentCompact || null;
+    }
+
+    get currentCompactType(): string | null {
+        return this.currentCompact?.type || null;
+    }
+
+    get userStore(): any {
+        return this.$store.state.user;
+    }
 
     //
     // Methods
     //
     initFormInputs(): void {
         const initFormData: any = {
-            submitEnd: new FormInput({
+            submit: new FormInput({
                 isSubmitInput: true,
-                id: 'submit-end',
+                id: 'submit',
             }),
         };
 
@@ -50,6 +62,11 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     }
 
     goBack() {
-        console.log('go back');
+        if (this.currentCompactType) {
+            this.$router.push({
+                name: 'MilitaryStatus',
+                params: { compact: this.currentCompactType }
+            });
+        }
     }
 }

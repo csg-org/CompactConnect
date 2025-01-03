@@ -10,57 +10,38 @@
     align-items: center;
     padding: 2rem;
 
-    .end-affiliation-modal {
-        :deep(.modal-container) {
-            max-width: 90vw;
-            padding: 2rem;
-
-            @media @tabletWidth {
-                max-width: 60rem;
-                padding: 4rem;
-            }
-
-            .end-affiliation-modal-content {
-                padding-top: 1rem;
-                overflow-y: hidden;
-                color: black;
-
-                .action-button-row {
-                    display: flex;
-                    flex-direction: row;
-                    justify-content: flex-end;
-                    margin-top: 4rem;
-                    margin-bottom: -3rem;
-
-                    .understand-button {
-                        margin-left: 1rem;
-                    }
-                }
-            }
-        }
+    @media @tabletWidth {
+        padding: 4rem;
     }
 
-    .update-military-status-title {
-        margin-bottom: 1.4rem;
-        font-size: @h1FontSize;
-    }
+    .update-military-status-content-container {
+        width: 100%;
 
-    .core-info-block {
-        display: flex;
-        flex-direction: column;
-        max-width: 60rem;
-        padding: 1rem;
-        border-radius: 14px;
-        background-color: white;
-
-        @media @tabletWidth {
-            width: 69rem;
+        @media @desktopWidth {
+            width: unset;
         }
 
-        .button-row {
+        .update-military-status-title {
+            margin-bottom: 1.4rem;
+            font-size: @h1FontSize;
+        }
+
+        .core-info-block {
             display: flex;
-            flex-direction: row;
-            justify-content: space-between;
+            flex-direction: column;
+            padding: 1rem;
+            border-radius: 14px;
+            background-color: white;
+
+            @media @desktopWidth {
+                width: 69rem;
+            }
+
+            .button-row {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+            }
         }
     }
 }

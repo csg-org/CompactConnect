@@ -17,15 +17,15 @@
                 @click="goBack"
             />
             <div class="update-military-status-title">
-                {{ $t('military.militaryStatusTitle') }}
+                {{ $t('military.updateMilitaryStatusTitle') }}
             </div>
             <div class="core-info-block">
                 <div class="button-row">
                     <InputSubmit
                         class="understand-button"
-                        :formInput="formData.submitEnd"
-                        :label="yesEndText"
-                        :aria-label="yesEndText"
+                        :formInput="formData.submit"
+                        :label="$t('common.submit')"
+                        :aria-label="$t('common.submit')"
                     />
                 </div>
             </div>

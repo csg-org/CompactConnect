@@ -472,6 +472,7 @@
     "licensing": {
         "license": "License",
         "licensingListTitle": "Licensing Data",
+        "attestation": "Attestation",
         "searchTitle": "Begin a search",
         "searchSubtext": "Enter at least one field to search for licensing data.",
         "licenseExpiredMessage": "Your license has expired.",
@@ -548,6 +549,7 @@
     },
     "military": {
         "militaryStatusTitle": "Military status",
+        "updateMilitaryStatusTitle": "Update military status",
         "viewMilitaryStatus": "View military status",
         "militaryDiscountText": "Military Discount",
         "affiliationType": "Affiliation Type",
