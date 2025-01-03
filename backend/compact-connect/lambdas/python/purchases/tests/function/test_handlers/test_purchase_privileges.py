@@ -413,6 +413,11 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(TEST_PROVIDER_ID, str(privilege_record['providerId']))
         self.assertEqual('active', privilege_record['status'])
         self.assertEqual('privilege', privilege_record['type'])
+        self.assertEqual([
+            {
+                'attestationId': JURISPRUDENCE_CONFIRMATION_ATTESTATION_ID,
+                'version': '1'
+             }], privilege_record['attestations'])
         # make sure we are tracking the transaction id
         self.assertEqual(MOCK_TRANSACTION_ID, privilege_record['compactTransactionId'])
 
@@ -505,3 +510,24 @@ class TestPostPurchasePrivileges(TstFunction):
             {'message': 'Attestations do not match required list.'},
             response_body,
         )
+
+    @patch('handlers.privileges.PurchaseClient')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    def test_post_purchase_privileges_stores_attestations_in_privilege_record(self, mock_purchase_client_constructor):
+        """Test that attestations are stored in the privilege record."""
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date='2050-01-01')
+        test_attestations = [{'attestationId': JURISPRUDENCE_CONFIRMATION_ATTESTATION_ID, 'version': '1'}]
+        event['body'] = _generate_test_request_body(attestations=test_attestations)
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+
+        # check that the privilege record for ky was created with attestations
+        provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
+        privilege_record = next(record for record in provider_records['items'] if record['type'] == 'privilege')
+
+        self.assertEqual(test_attestations, privilege_record['attestations'])

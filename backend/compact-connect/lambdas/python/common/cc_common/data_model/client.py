@@ -176,6 +176,7 @@ class DataClient:
         jurisdiction_postal_abbreviation: str,
         license_expiration_date: date,
         compact_transaction_id: str,
+        attestations: list[dict],
         original_issuance_date: datetime | None = None,
     ):
         current_datetime = config.current_standard_datetime
@@ -187,6 +188,7 @@ class DataClient:
             'dateOfRenewal': current_datetime,
             'dateOfExpiration': license_expiration_date,
             'compactTransactionId': compact_transaction_id,
+            'attestations': attestations,
         }
         schema = PrivilegeRecordSchema()
         return schema.dump(privilege_object)
@@ -199,6 +201,7 @@ class DataClient:
         license_expiration_date: date,
         compact_transaction_id: str,
         existing_privileges: list[dict],
+        attestations: list[dict],
     ):
         """
         Create privilege records for a provider in the database.
@@ -214,6 +217,7 @@ class DataClient:
         :param compact_transaction_id: The compact transaction id
         :param existing_privileges: The list of existing privileges for this user. Used to track the original issuance
         date of the privilege.
+        :param attestations: List of attestations that were accepted when purchasing the privileges
         """
         logger.info(
             'Creating provider privileges',
@@ -242,6 +246,7 @@ class DataClient:
                         jurisdiction_postal_abbreviation=postal_abbreviation,
                         license_expiration_date=license_expiration_date,
                         compact_transaction_id=compact_transaction_id,
+                        attestations=attestations,
                         original_issuance_date=original_privilege_issuance_date,
                     )
                     batch.put_item(Item=privilege_record)
@@ -266,6 +271,7 @@ class DataClient:
                         jurisdiction_postal_abbreviation=postal_abbreviation,
                         license_expiration_date=license_expiration_date,
                         compact_transaction_id=compact_transaction_id,
+                        attestations=attestations,
                     )
                     # this transaction is idempotent, so we can safely delete the records even if they weren't created
                     delete_batch.delete_item(Key={'pk': privilege_record['pk'], 'sk': privilege_record['sk']})
