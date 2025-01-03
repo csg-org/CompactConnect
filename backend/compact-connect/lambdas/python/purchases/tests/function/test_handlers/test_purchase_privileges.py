@@ -13,11 +13,15 @@ TEST_COMPACT = 'aslp'
 TEST_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
 
 MOCK_TRANSACTION_ID = '1234'
+JURISPRUDENCE_CONFIRMATION_ATTESTATION_ID = 'jurisprudence-confirmation'
+REQUIRED_ATTESTATION_IDS = [JURISPRUDENCE_CONFIRMATION_ATTESTATION_ID]
 
 
-def _generate_test_request_body(selected_jurisdictions: list[str] = None):
+def _generate_test_request_body(selected_jurisdictions: list[str] = None, attestations: list[dict] = None):
     if not selected_jurisdictions:
         selected_jurisdictions = ['ky']
+    if attestations is None:
+        attestations = [{'attestationId': JURISPRUDENCE_CONFIRMATION_ATTESTATION_ID, 'version': '1'}]
 
     return json.dumps(
         {
@@ -33,6 +37,7 @@ def _generate_test_request_body(selected_jurisdictions: list[str] = None):
                     'zip': '12345',
                 },
             },
+            'attestations': attestations,
         }
     )
 
@@ -43,6 +48,16 @@ class TestPostPurchasePrivileges(TstFunction):
     In this test setup, we simulate having a licensee that has a license in ohio and is
     purchasing a privilege in kentucky.
     """
+
+    def setUp(self):
+        super().setUp()
+        # Load test attestation data
+        with open('../common/tests/resources/dynamo/attestation.json') as f:
+            test_attestation = json.load(f)
+            # put in one attestation records for each required attestation type
+            for attestation_id in REQUIRED_ATTESTATION_IDS:
+                test_attestation['attestationId'] = attestation_id
+                self.config.compact_configuration_table.put_item(Item=test_attestation)
 
     def _load_test_jurisdiction(self):
         with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
@@ -426,4 +441,67 @@ class TestPostPurchasePrivileges(TstFunction):
         # verify that the transaction was voided
         mock_purchase_client.void_privilege_purchase_transaction.assert_called_once_with(
             compact_name=TEST_COMPACT, order_information={'transactionId': MOCK_TRANSACTION_ID}
+        )
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_validates_attestation_version(self, mock_purchase_client_constructor):
+        """Test that the endpoint validates attestation versions."""
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        # Use an old version number
+        event['body'] = _generate_test_request_body(attestations=[
+            {'attestationId': JURISPRUDENCE_CONFIRMATION_ATTESTATION_ID, 'version': '0'}])
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual(
+            {
+                'message': 'Attestation "jurisprudence-confirmation" version 0 is not the latest version (1)'
+            },
+            response_body,
+        )
+        mock_purchase_client_constructor.assert_not_called()
+
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_validates_attestation_in_list_of_required_attestations(self, mock_purchase_client_constructor):
+        """Test that the endpoint validates attestation existence."""
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body(attestations=[{'attestationId': 'nonexistent-attestation', 'version': '1'}])
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual(
+            {'message': 'Invalid attestation provided: "nonexistent-attestation"'},
+            response_body,
+        )
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_validates_all_required_attestations_present(self, mock_purchase_client_constructor):
+        """Test that the endpoint validates attestation existence."""
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body(attestations=[])
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual(
+            {'message': 'Attestations do not match required list.'},
+            response_body,
         )

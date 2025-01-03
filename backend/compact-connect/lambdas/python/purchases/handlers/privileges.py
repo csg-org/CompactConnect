@@ -20,6 +20,8 @@ from cc_common.exceptions import (
 from cc_common.utils import api_handler
 from purchase_client import PurchaseClient
 
+REQUIRED_ATTESTATION_IDS = ['jurisprudence-confirmation']
+
 
 def _get_caller_compact_custom_attribute(event: dict) -> str:
     try:
@@ -109,30 +111,61 @@ def _determine_military_affiliation_status(provider_records: list[dict]) -> bool
     return latest_military_affiliation['status'] == MilitaryAffiliationStatus.ACTIVE.value
 
 
+def _validate_attestations(compact: str, attestations: list[dict]):
+    """
+    Validate that all attestations in the request are the latest version.
+
+    :param compact: The compact name
+    :param attestations: List of attestations from the request body
+    :raises CCInvalidRequestException: If any attestation is not found or not the latest version
+    """
+    # first make sure the user isn't missing any required attestations
+    if len(attestations) != len(REQUIRED_ATTESTATION_IDS):
+        raise CCInvalidRequestException('Attestations do not match required list.')
+
+    for attestation in attestations:
+        if attestation['attestationId'] not in REQUIRED_ATTESTATION_IDS:
+            raise CCInvalidRequestException(f'Invalid attestation provided: "{attestation["attestationId"]}"')
+
+        latest_attestation = config.compact_configuration_client.get_attestation(
+            compact=compact,
+            attestation_type=attestation['attestationId'],
+        )
+        if latest_attestation['version'] != attestation['version']:
+            raise CCInvalidRequestException(
+                f'Attestation "{attestation["attestationId"]}" version {attestation["version"]} '
+                f'is not the latest version ({latest_attestation["version"]})'
+            )
+
+
 @api_handler
 def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
     This endpoint allows a provider to purchase privileges.
 
-    The request body should include the selected jurisdiction privileges to purchase and billing information
-    in the following format:
+    The request body should include the selected jurisdiction privileges to purchase, billing information,
+    and attestations in the following format:
     {
         "selectedJurisdictions": ["<jurisdiction postal abbreviations>"],
         "orderInformation": {
-        "card": {
-            "number": "<card number>",
-            "expiration": "<expiration date>",
-            "cvv": "<cvv>"
+            "card": {
+                "number": "<card number>",
+                "expiration": "<expiration date>",
+                "cvv": "<cvv>"
+            },
+            "billing":  {
+                "firstName": "testFirstName",
+                "lastName": "testLastName",
+                "streetAddress": "123 Test St",
+                "streetAddress2": "", # optional
+                "state": "OH",
+                "zip": "12345",
+            }
         },
-        "billing":  {
-            "firstName": "testFirstName",
-            "lastName": "testLastName",
-            "streetAddress": "123 Test St",
-            "streetAddress2": "", # optional
-            "state": "OH",
-            "zip": "12345",
-        }
-      }
+        "attestations": [{
+            "attestationId": "jurisprudence-confirmation",
+            "version": "1"
+        }]
     }
 
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
@@ -212,6 +245,9 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
     license_expiration_date: date = license_record['dateOfExpiration']
     user_active_military = _determine_military_affiliation_status(user_provider_data['items'])
+
+    # Validate attestations are the latest versions before proceeding with the purchase
+    _validate_attestations(compact_name, body['attestations'])
 
     purchase_client = PurchaseClient()
     transaction_response = None

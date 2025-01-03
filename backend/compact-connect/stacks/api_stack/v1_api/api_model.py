@@ -468,27 +468,7 @@ class ApiModel:
 
     @property
     def post_purchase_privileges_request_model(self) -> Model:
-        """Return the purchase privilege request model, which should only be created once per API
-        create a schema that defines the following object example:
-            {
-                "selectedJurisdictions": ["<jurisdiction postal abbreviations>"],
-                "orderInformation": {
-                "card": {
-                    "number": "<card number>",
-                    "expiration": "<expiration date>",
-                    "cvv": "<cvv>"
-                },
-                "billing":  {
-                    "firstName": "testFirstName",
-                    "lastName": "testLastName",
-                    "streetAddress": "123 Test St",
-                    "streetAddress2": "", # optional
-                    "state": "OH",
-                    "zip": "12345",
-                }
-              }
-            }
-        """
+        """Return the purchase privilege request model, which should only be created once per API"""
         if hasattr(self.api, '_v1_post_purchase_privileges_request_model'):
             return self.api._v1_post_purchase_privileges_request_model
         self.api._v1_post_purchase_privileges_request_model = self.api.add_model(
@@ -496,7 +476,7 @@ class ApiModel:
             description='Post purchase privileges request model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['selectedJurisdictions', 'orderInformation'],
+                required=['selectedJurisdictions', 'orderInformation', 'attestations'],
                 properties={
                     'selectedJurisdictions': JsonSchema(
                         type=JsonSchemaType.ARRAY,
@@ -581,6 +561,25 @@ class ApiModel:
                                 },
                             ),
                         },
+                    ),
+                    'attestations': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of attestations that the user has agreed to',
+                        items=JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            required=['attestationId', 'version'],
+                            properties={
+                                'attestationId': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    description='The ID of the attestation',
+                                ),
+                                'version': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    description='The version of the attestation',
+                                    pattern=r'^\d+$',
+                                ),
+                            },
+                        ),
                     ),
                 },
             ),
