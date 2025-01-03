@@ -52,6 +52,7 @@ def test_purchasing_privilege():
     get_attestation_response = requests.get(
         url=f'{config.api_base_url}/v1/compacts/{compact}/attestations/{attestation_id}',
         headers=get_provider_user_auth_headers_cached(),
+        params={'locale': 'en'},
         timeout=10,
     )
 

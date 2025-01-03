@@ -27,6 +27,7 @@ class TestGetAttestation(TstFunction):
         event = self._generate_test_event('GET', 'jurisprudence-confirmation')
 
         response = attestations(event, self.mock_context)
+        self.assertEqual(200, response['statusCode'], msg=json.loads(response['body']))
         response_body = json.loads(response['body'])
 
         # The TstFunction class sets up 4 versions of this attestation, we expect the endpoint to return version 4
@@ -36,7 +37,8 @@ class TestGetAttestation(TstFunction):
                 'attestationId': 'jurisprudence-confirmation',
                 'compact': 'aslp',
                 'dateCreated': '2024-06-06T23:59:59+00:00',
-                'dateOfUpdate': '2024-06-06T23:59:59+00:00',
+                # this field is dynamic, so setting it to match the actual response
+                'dateOfUpdate': response_body['dateOfUpdate'],
                 'description': 'For displaying the jurisprudence confirmation',
                 'displayName': 'Jurisprudence Confirmation',
                 'required': True,
@@ -44,6 +46,7 @@ class TestGetAttestation(TstFunction):
                 'requirements for all states you are purchasing privileges for.',
                 'type': 'attestation',
                 'version': '4',
+                'locale': 'en',
             },
             response_body,
         )

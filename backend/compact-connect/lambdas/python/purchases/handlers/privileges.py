@@ -129,7 +129,7 @@ def _validate_attestations(compact: str, attestations: list[dict]):
 
         latest_attestation = config.compact_configuration_client.get_attestation(
             compact=compact,
-            attestation_type=attestation['attestationId'],
+            attestation_id=attestation['attestationId'],
         )
         if latest_attestation['version'] != attestation['version']:
             raise CCInvalidRequestException(

@@ -9,12 +9,12 @@ def attestations(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
     """Handle attestation requests."""
     # handle GET method
     if event['httpMethod'] == 'GET':
-        return _get_attestations(event, context)
+        return _get_attestation(event, context)
 
     raise CCInvalidRequestException('Invalid HTTP method')
 
 
-def _get_attestations(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+def _get_attestation(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
     Endpoint to get the latest version of an attestation by type.
 
@@ -23,11 +23,20 @@ def _get_attestations(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     :return: The latest version of the attestation record
     """
     compact = event['pathParameters']['compact']
-    attestation_type = event['pathParameters']['attestationId']
+    attestation_id = event['pathParameters']['attestationId']
+    # If no query string parameters are provided, APIGW will set the value to None, which we need to handle here
+    query_string_params = event.get('queryStringParameters') if event.get('queryStringParameters') is not None else {}
+    locale = query_string_params.get('locale', 'en')
 
-    logger.info('Getting attestation', compact=compact, attestation_type=attestation_type)
+    logger.info(
+        'Getting attestation',
+        compact=compact,
+        attestation_id=attestation_id,
+        locale=locale,
+    )
 
     return config.compact_configuration_client.get_attestation(
         compact=compact,
-        attestation_type=attestation_type,
+        attestation_id=attestation_id,
+        locale=locale,
     )
