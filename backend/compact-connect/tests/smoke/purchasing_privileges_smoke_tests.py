@@ -52,7 +52,7 @@ def test_purchasing_privilege():
     get_attestation_response = requests.get(
         url=f'{config.api_base_url}/v1/compacts/{compact}/attestations/{attestation_id}',
         headers=get_provider_user_auth_headers_cached(),
-        timeout=10
+        timeout=10,
     )
 
     if get_attestation_response.status_code != 200:
@@ -80,12 +80,7 @@ def test_purchasing_privilege():
             },
         },
         'selectedJurisdictions': ['ne'],
-        'attestations': [
-            {
-                'attestationId': attestation_id,
-                'version': attestation_version
-            }
-        ]
+        'attestations': [{'attestationId': attestation_id, 'version': attestation_version}],
     }
 
     headers = get_provider_user_auth_headers_cached()
