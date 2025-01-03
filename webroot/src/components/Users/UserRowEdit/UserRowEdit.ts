@@ -37,13 +37,13 @@ interface PermissionOption {
 
 enum Permission {
     NONE = 'none',
-    READ = 'read',
+    READ_PRIVATE = 'readPrivate',
     WRITE = 'write',
     ADMIN = 'admin',
 }
 
 interface PermissionObject {
-    isRead?: boolean;
+    isReadPrivate?: boolean;
     isWrite?: boolean;
     isAdmin?: boolean;
 }
@@ -145,7 +145,7 @@ class UserRowEdit extends mixins(MixinForm) {
     get userPermissionOptionsCompact(): Array<PermissionOption> {
         return [
             { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
-            { value: Permission.READ, name: this.$t('account.accessLevel.read') },
+            { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
             { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
         ];
     }
@@ -163,6 +163,7 @@ class UserRowEdit extends mixins(MixinForm) {
     get userPermissionOptionsState(): Array<PermissionOption> {
         return [
             { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
+            { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
             { value: Permission.WRITE, name: this.$t('account.accessLevel.write') },
             { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
         ];
@@ -347,8 +348,8 @@ class UserRowEdit extends mixins(MixinForm) {
         if (compactPermission) {
             if (compactPermission.isAdmin) {
                 permission = Permission.ADMIN;
-            } else if (compactPermission.isRead) {
-                permission = Permission.READ;
+            } else if (compactPermission.isReadPrivate) {
+                permission = Permission.READ_PRIVATE;
             }
         }
 
@@ -360,15 +361,15 @@ class UserRowEdit extends mixins(MixinForm) {
 
         switch (permission) {
         case Permission.NONE:
-            response.isRead = false;
+            response.isReadPrivate = false;
             response.isAdmin = false;
             break;
-        case Permission.READ:
-            response.isRead = true;
+        case Permission.READ_PRIVATE:
+            response.isReadPrivate = true;
             response.isAdmin = false;
             break;
         case Permission.ADMIN:
-            response.isRead = true;
+            response.isReadPrivate = true;
             response.isAdmin = true;
             break;
         default:
@@ -386,6 +387,8 @@ class UserRowEdit extends mixins(MixinForm) {
                 permission = Permission.ADMIN;
             } else if (statePermission.isWrite) {
                 permission = Permission.WRITE;
+            } else if (statePermission.isReadPrivate) {
+                permission = Permission.READ_PRIVATE;
             }
         }
 
@@ -397,14 +400,22 @@ class UserRowEdit extends mixins(MixinForm) {
 
         switch (permission) {
         case Permission.NONE:
+            response.isReadPrivate = false;
+            response.isWrite = false;
+            response.isAdmin = false;
+            break;
+        case Permission.READ_PRIVATE:
+            response.isReadPrivate = true;
             response.isWrite = false;
             response.isAdmin = false;
             break;
         case Permission.WRITE:
+            response.isReadPrivate = true;
             response.isWrite = true;
             response.isAdmin = false;
             break;
         case Permission.ADMIN:
+            response.isReadPrivate = true;
             response.isWrite = true;
             response.isAdmin = true;
             break;
@@ -458,15 +469,44 @@ class UserRowEdit extends mixins(MixinForm) {
         };
         const stateKeys = Object.keys(formValues).filter((key) => key.startsWith('state-option'));
 
+        // Server endpoints are not idempotent so the frontend needs to handle statefulness;
+        // e.g. if the user's server permisson is already false, we will get a server error if we try to send false again.
+        const existingCompactPermission = this.getCompactPermission(this.rowUserCompactPermission);
+
+        if (existingCompactPermission !== Permission.READ_PRIVATE && !compactData.isReadPrivate) {
+            delete compactData.isReadPrivate;
+        }
+        if (existingCompactPermission !== Permission.ADMIN && !compactData.isAdmin) {
+            delete compactData.isAdmin;
+        }
+        // End: Handle compact statefulness
+
         stateKeys.forEach((stateKey) => {
             const keyNum = stateKey.split('-').pop();
             const stateAbbrev = formValues[`state-option-${keyNum}`];
             const statePermission = formValues[`state-permission-${keyNum}`];
-
-            compactData.states.push({
+            const stateData = {
                 abbrev: stateAbbrev,
                 ...this.setStatePermission(statePermission),
-            });
+            };
+
+            // Server endpoints are not idempotent so the frontend needs to handle statefulness;
+            // e.g. if the user's server permisson is already false, we will get a server error if we try to send false again.
+            const existingStatePermission = this.getStatePermission(this.userStatePermissions.find((permission) =>
+                permission.state?.abbrev === stateAbbrev) || null);
+
+            if (existingStatePermission !== Permission.READ_PRIVATE && !stateData.isReadPrivate) {
+                delete stateData.isReadPrivate;
+            }
+            if (existingStatePermission !== Permission.WRITE && !stateData.isWrite) {
+                delete stateData.isWrite;
+            }
+            if (existingStatePermission !== Permission.ADMIN && !stateData.isAdmin) {
+                delete stateData.isAdmin;
+            }
+            // End: Handle state statefulness
+
+            compactData.states.push(stateData);
         });
 
         return compactData;
