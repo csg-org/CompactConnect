@@ -255,6 +255,18 @@ export class UserDataApi implements DataApiInterface {
 
         return serverResponse;
     }
+
+    /**
+     * PATCH Cancel Military Affiliation.
+     * @return {Promise<object>} Purchase response object.
+     */
+    public async endMilitaryAffiliation() {
+        const serverResponse: any = await this.api.patch(`/v1/provider-users/me/military-affiliation`, {
+            status: 'inactive'
+        });
+
+        return serverResponse;
+    }
 }
 
 export const userDataApi = new UserDataApi();

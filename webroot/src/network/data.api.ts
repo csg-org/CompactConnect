@@ -173,6 +173,14 @@ export class DataApi {
         return userDataApi.postPrivilegePurchases(data);
     }
 
+    /**
+     * PATCH Cancel Military Affiliation.
+     * @return {Promise<object>} Purchase response object.
+     */
+    public endMilitaryAffiliation() {
+        return userDataApi.endMilitaryAffiliation();
+    }
+
     // ========================================================================
     //                              EXAMPLE API
     // ========================================================================

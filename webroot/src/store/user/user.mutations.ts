@@ -33,7 +33,10 @@ export enum MutationTypes {
     SET_ATTESTATIONS_ACCEPTED = '[User] Set Attestations Accepted',
     POST_PRIVILEGE_PURCHASE_REQUEST = '[User] Post Privilege Purchase Request',
     POST_PRIVILEGE_PURCHASE_SUCCESS = '[User] Post Privilege Purchase Success',
-    POST_PRIVILEGE_PURCHASE_FAILURE = '[User] Post Privilege Purchase Failure'
+    POST_PRIVILEGE_PURCHASE_FAILURE = '[User] Post Privilege Purchase Failure',
+    END_MILITARY_AFFILIATION_REQUEST = '[User] Patch Military Affiliation Request',
+    END_MILITARY_AFFILIATION_SUCCESS = '[User] Patch Military Affiliation Request',
+    END_MILITARY_AFFILIATION_FAILURE = '[User] Patch Military Affiliation Request'
 }
 
 export default {
@@ -141,6 +144,20 @@ export default {
     },
     [MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE]: (state: any, error: Error) => {
         state.isLoadingPrivilegePurchaseOptions = false;
+        state.error = error;
+    },
+    [MutationTypes.END_MILITARY_AFFILIATION_REQUEST]: (state: any) => {
+        state.isLoadingAccount = true;
+        state.error = null;
+    },
+    [MutationTypes.END_MILITARY_AFFILIATION_SUCCESS]: (state: any) => {
+        state.isLoadingAccount = false;
+        state.selectedPrivilegesToPurchase = null;
+        state.arePurchaseAttestationsAccepted = false;
+        state.error = null;
+    },
+    [MutationTypes.END_MILITARY_AFFILIATION_FAILURE]: (state: any, error: Error) => {
+        state.isLoadingAccount = false;
         state.error = error;
     },
 };

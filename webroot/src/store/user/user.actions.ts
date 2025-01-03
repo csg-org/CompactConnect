@@ -248,13 +248,20 @@ export default {
     postPrivilegePurchasesFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE, error);
     },
-    endMilitaryAffiliationRequest: ({ commit }) => {
-        commit(MutationTypes.LOGIN_REQUEST);
+    endMilitaryAffiliationRequest: ({ commit, dispatch }) => {
+        commit(MutationTypes.END_MILITARY_AFFILIATION_REQUEST);
+        return dataApi.endMilitaryAffiliation().then((serverResponse) => {
+            dispatch('endMilitaryAffiliationSuccess');
+            return serverResponse;
+        }).catch((error) => {
+            dispatch('endMilitaryAffiliationFailure', error);
+            return error;
+        });
     },
     endMilitaryAffiliationSuccess: async ({ commit }) => {
-        commit(MutationTypes.LOGIN_SUCCESS);
+        commit(MutationTypes.END_MILITARY_AFFILIATION_SUCCESS);
     },
     endMilitaryAffiliationFailure: async ({ commit }, error: Error) => {
-        commit(MutationTypes.LOGIN_FAILURE, error);
+        commit(MutationTypes.END_MILITARY_AFFILIATION_FAILURE, error);
     },
 };
