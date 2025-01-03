@@ -413,11 +413,10 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(TEST_PROVIDER_ID, str(privilege_record['providerId']))
         self.assertEqual('active', privilege_record['status'])
         self.assertEqual('privilege', privilege_record['type'])
-        self.assertEqual([
-            {
-                'attestationId': JURISPRUDENCE_CONFIRMATION_ATTESTATION_ID,
-                'version': '1'
-             }], privilege_record['attestations'])
+        self.assertEqual(
+            [{'attestationId': JURISPRUDENCE_CONFIRMATION_ATTESTATION_ID, 'version': '1'}],
+            privilege_record['attestations'],
+        )
         # make sure we are tracking the transaction id
         self.assertEqual(MOCK_TRANSACTION_ID, privilege_record['compactTransactionId'])
 
@@ -457,31 +456,33 @@ class TestPostPurchasePrivileges(TstFunction):
 
         event = self._when_testing_provider_user_event_with_custom_claims()
         # Use an old version number
-        event['body'] = _generate_test_request_body(attestations=[
-            {'attestationId': JURISPRUDENCE_CONFIRMATION_ATTESTATION_ID, 'version': '0'}])
+        event['body'] = _generate_test_request_body(
+            attestations=[{'attestationId': JURISPRUDENCE_CONFIRMATION_ATTESTATION_ID, 'version': '0'}]
+        )
 
         resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
         self.assertEqual(
-            {
-                'message': 'Attestation "jurisprudence-confirmation" version 0 is not the latest version (1)'
-            },
+            {'message': 'Attestation "jurisprudence-confirmation" version 0 is not the latest version (1)'},
             response_body,
         )
         mock_purchase_client_constructor.assert_not_called()
 
-
     @patch('handlers.privileges.PurchaseClient')
-    def test_post_purchase_privileges_validates_attestation_in_list_of_required_attestations(self, mock_purchase_client_constructor):
+    def test_post_purchase_privileges_validates_attestation_in_list_of_required_attestations(
+        self, mock_purchase_client_constructor
+    ):
         """Test that the endpoint validates attestation existence."""
         from handlers.privileges import post_purchase_privileges
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
 
         event = self._when_testing_provider_user_event_with_custom_claims()
-        event['body'] = _generate_test_request_body(attestations=[{'attestationId': 'nonexistent-attestation', 'version': '1'}])
+        event['body'] = _generate_test_request_body(
+            attestations=[{'attestationId': 'nonexistent-attestation', 'version': '1'}]
+        )
 
         resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
@@ -493,7 +494,9 @@ class TestPostPurchasePrivileges(TstFunction):
         )
 
     @patch('handlers.privileges.PurchaseClient')
-    def test_post_purchase_privileges_validates_all_required_attestations_present(self, mock_purchase_client_constructor):
+    def test_post_purchase_privileges_validates_all_required_attestations_present(
+        self, mock_purchase_client_constructor
+    ):
         """Test that the endpoint validates attestation existence."""
         from handlers.privileges import post_purchase_privileges
 

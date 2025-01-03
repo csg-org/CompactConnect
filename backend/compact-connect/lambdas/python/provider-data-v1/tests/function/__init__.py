@@ -181,6 +181,5 @@ class TstFunction(TstLambdas):
                 compact_transaction_id='1234567890',
                 existing_privileges=[],
                 # this is defined in the expected privilege json file
-                attestations=[{'attestationId': 'jurisprudence-confirmation',
-                                   'version': '1'}]
+                attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
             )

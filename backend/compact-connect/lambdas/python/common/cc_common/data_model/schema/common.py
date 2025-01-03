@@ -36,6 +36,7 @@ class AttestationVersionSchema(Schema):
 
     This schema is intended to be used as a nested field in other schemas.
     """
+
     attestationId = String(required=True, allow_none=False)
     version = String(required=True, allow_none=False)
 
