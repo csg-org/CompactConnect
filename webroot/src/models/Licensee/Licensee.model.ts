@@ -176,18 +176,7 @@ export class Licensee implements InterfaceLicensee {
     }
 
     public occupationName(): string {
-        let occupations = this.$tm('licensing.occupations') || [];
-
-        /* istanbul ignore next */ // i18n translations are not functions in the test runner environment, so this block won't be traversed
-        if (typeof occupations[0]?.key === 'function') {
-            const normalize = ([value]) => value;
-
-            occupations = occupations.map((translate) => ({
-                key: translate.key({ normalize }),
-                name: translate.name({ normalize }),
-            }));
-        }
-
+        const occupations = this.$tm('licensing.occupations') || [];
         const occupation = occupations.find((translate) => translate.key === this.occupation);
         const occupationName = occupation?.name || '';
 

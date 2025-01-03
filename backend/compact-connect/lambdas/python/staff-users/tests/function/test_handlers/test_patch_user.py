@@ -30,7 +30,7 @@ class TestPatchUser(TstFunction):
                 'dateOfUpdate': '2024-09-12T23:59:59+00:00',
                 'permissions': {
                     'aslp': {
-                        'actions': {'read': True},
+                        'actions': {'readPrivate': True},
                         'jurisdictions': {'oh': {'actions': {'admin': True, 'write': True}}},
                     },
                 },
@@ -105,6 +105,79 @@ class TestPatchUser(TstFunction):
             user,
         )
 
+    def test_patch_user_add_to_empty_actions(self):
+        from handlers.users import patch_user, post_user
+
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        with open('tests/resources/api/user-post.json') as f:
+            api_user = json.load(f)
+        # Create a user with no compact read or admin, no actions in a jurisdiction
+        api_user['permissions'] = {'aslp': {'jurisdictions': {}}}
+        event['body'] = json.dumps(api_user)
+
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/aslp.admin'
+        event['pathParameters'] = {'compact': 'aslp'}
+
+        resp = post_user(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+        user = json.loads(resp['body'])
+        user_id = user.pop('userId')
+
+        # Add compact read and oh admin permissions to the user
+        event['pathParameters'] = {'compact': 'aslp', 'userId': user_id}
+        api_user['permissions'] = {
+            'aslp': {'actions': {'readPrivate': True}, 'jurisdictions': {'oh': {'actions': {'admin': True}}}}
+        }
+        event['body'] = json.dumps(api_user)
+
+        resp = patch_user(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+        user = json.loads(resp['body'])
+
+        # Drop backend-generated fields from comparison
+        del user['userId']
+        del user['dateOfUpdate']
+
+        self.assertEqual(api_user, user)
+
+    def test_patch_user_remove_all_actions(self):
+        from handlers.users import patch_user, post_user
+
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        with open('tests/resources/api/user-post.json') as f:
+            api_user = json.load(f)
+
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/aslp.admin'
+        event['pathParameters'] = {'compact': 'aslp'}
+        event['body'] = json.dumps(api_user)
+
+        resp = post_user(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+        user = json.loads(resp['body'])
+        user_id = user.pop('userId')
+
+        # Remove all the permissions from the user
+        event['pathParameters'] = {'compact': 'aslp', 'userId': user_id}
+        api_user['permissions'] = {
+            'aslp': {'actions': {'readPrivate': False}, 'jurisdictions': {'oh': {'actions': {'write': False}}}}
+        }
+        event['body'] = json.dumps(api_user)
+
+        resp = patch_user(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+        user = json.loads(resp['body'])
+
+        # Drop backend-generated fields from comparison
+        del user['userId']
+        del user['dateOfUpdate']
+
+        api_user['permissions'] = {'aslp': {'jurisdictions': {}}}
+        self.assertEqual(api_user, user)
+
     def test_patch_user_forbidden(self):
         self._load_user_data()
 
@@ -121,3 +194,50 @@ class TestPatchUser(TstFunction):
         resp = patch_user(event, self.mock_context)
 
         self.assertEqual(403, resp['statusCode'])
+
+    def test_patch_user_allows_adding_read_private_permission(self):
+        self._load_user_data()
+
+        from handlers.users import patch_user
+
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has admin permission for aslp/oh
+        event['requestContext']['authorizer']['claims']['scope'] = (
+            'openid email aslp/admin aslp/oh.admin aslp/aslp.admin'
+        )
+        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['body'] = json.dumps(
+            {
+                'permissions': {
+                    'aslp': {
+                        'actions': {
+                            'readPrivate': True,
+                        },
+                        'jurisdictions': {'oh': {'actions': {'readPrivate': True}}},
+                    }
+                }
+            }
+        )
+
+        resp = patch_user(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        user = json.loads(resp['body'])
+        self.assertEqual(
+            {
+                'attributes': {'email': 'justin@example.org', 'familyName': 'Williams', 'givenName': 'Justin'},
+                'dateOfUpdate': '2024-09-12T23:59:59+00:00',
+                'permissions': {
+                    'aslp': {
+                        'actions': {'readPrivate': True},
+                        # test user starts with the write permission, so it should still be there
+                        'jurisdictions': {'oh': {'actions': {'write': True, 'readPrivate': True}}},
+                    },
+                },
+                'type': 'user',
+                'userId': 'a4182428-d061-701c-82e5-a3d1d547d797',
+            },
+            user,
+        )

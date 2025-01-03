@@ -172,6 +172,170 @@ class ApiModel:
         return self.api.bulk_upload_response_model
 
     @property
+    def post_staff_user_model(self):
+        """Return the Post User Model, which should only be created once per API"""
+        if hasattr(self.api, 'v1_post_user_request_model'):
+            return self.api.v1_post_user_request_model
+
+        self.api.v1_post_user_request_model = self.api.add_model(
+            'V1PostUserRequestModel',
+            description='Post user request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=['attributes', 'permissions'],
+                additional_properties=False,
+                properties=self._common_staff_user_properties,
+            ),
+        )
+        return self.api.v1_post_user_request_model
+
+    @property
+    def get_staff_user_me_model(self):
+        """Return the Get Me Model, which should only be created once per API"""
+        if hasattr(self.api, 'v1_get_me_model'):
+            return self.api.v1_get_me_model
+
+        self.api.v1_get_me_model = self.api.add_model(
+            'V1GetMeModel',
+            description='Get me response model',
+            schema=self._staff_user_response_schema,
+        )
+        return self.api.v1_get_me_model
+
+    @property
+    def get_staff_users_response_model(self):
+        """Return the Get Users Model, which should only be created once per API"""
+        if hasattr(self.api, 'v1_get_staff_users_response_model'):
+            return self.api.v1_get_staff_users_response_model
+
+        self.api.v1_get_staff_users_response_model = self.api.add_model(
+            'V1GetStaffUsersModel',
+            description='Get staff users response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                properties={
+                    'users': JsonSchema(type=JsonSchemaType.ARRAY, items=self._staff_user_response_schema),
+                    'pagination': self._pagination_response_schema,
+                },
+            ),
+        )
+        return self.api.v1_get_staff_users_response_model
+
+    @property
+    def patch_staff_user_me_model(self):
+        """Return the Get Me Model, which should only be created once per API"""
+        if hasattr(self.api, 'v1_patch_me_request_model'):
+            return self.api.v1_patch_me_request_model
+
+        self.api.v1_patch_me_request_model = self.api.add_model(
+            'V1PatchMeRequestModel',
+            description='Patch me request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                properties={
+                    'attributes': self._staff_user_patch_attributes_schema,
+                },
+            ),
+        )
+        return self.api.v1_patch_me_request_model
+
+    @property
+    def patch_staff_user_model(self):
+        """Return the Patch User Model, which should only be created once per API"""
+        if hasattr(self.api, 'v1_patch_user_request_model'):
+            return self.api.v1_patch_user_request_model
+
+        self.api.v1_patch_user_request_model = self.api.add_model(
+            'V1PatchUserRequestModel',
+            description='Patch user request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                properties={'permissions': self._staff_user_permissions_schema},
+            ),
+        )
+        return self.api.v1_patch_user_request_model
+
+    @property
+    def _staff_user_attributes_schema(self):
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            required=['email', 'givenName', 'familyName'],
+            additional_properties=False,
+            properties={
+                'email': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=100),
+                'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            },
+        )
+
+    @property
+    def _staff_user_patch_attributes_schema(self):
+        """No support for changing a user's email address."""
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            additional_properties=False,
+            properties={
+                'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+                'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            },
+        )
+
+    @property
+    def _staff_user_permissions_schema(self):
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            additional_properties=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                properties={
+                    'actions': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        properties={
+                            'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                            'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                            # TODO keeping 'read' action for backwards compatibility  # noqa: FIX002
+                            #  this should be removed after the frontend is updated
+                            'read': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                        },
+                    ),
+                    'jurisdictions': JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        additional_properties=JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            properties={
+                                'actions': JsonSchema(
+                                    type=JsonSchemaType.OBJECT,
+                                    additional_properties=False,
+                                    properties={
+                                        'write': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                                        'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                                        'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                                    },
+                                ),
+                            },
+                        ),
+                    ),
+                },
+            ),
+        )
+
+    @property
+    def _common_staff_user_properties(self):
+        return {'attributes': self._staff_user_attributes_schema, 'permissions': self._staff_user_permissions_schema}
+
+    @property
+    def _staff_user_response_schema(self):
+        return JsonSchema(
+            type=JsonSchemaType.OBJECT,
+            required=['userId', 'attributes', 'permissions'],
+            additional_properties=False,
+            properties={'userId': JsonSchema(type=JsonSchemaType.STRING), **self._common_staff_user_properties},
+        )
+
+    @property
     def post_provider_user_military_affiliation_request_model(self) -> Model:
         """Return the post payment processor credentials request model, which should only be created once per API"""
         if hasattr(self.api, '_v1_post_provider_user_military_affiliation_request_model'):

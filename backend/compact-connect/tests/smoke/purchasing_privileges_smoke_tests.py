@@ -1,15 +1,14 @@
 # ruff: noqa: T201  we use print statements for smoke testing
 #!/usr/bin/env python3
+import time
 from datetime import UTC, datetime
 
 import requests
+from config import config
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
-    get_api_base_url,
-    get_provider_user_auth_headers,
-    get_provider_user_dynamodb_table,
-    load_smoke_test_env,
+    get_provider_user_auth_headers_cached,
 )
 
 # This script can be run locally to test the privilege purchasing flow against a sandbox environment
@@ -29,16 +28,22 @@ def test_purchasing_privilege():
     if original_privileges:
         provider_id = original_provider_data.get('providerId')
         compact = original_provider_data.get('compact')
-        dynamodb_table = get_provider_user_dynamodb_table()
+        dynamodb_table = config.provider_user_dynamodb_table
         for privilege in original_privileges:
-            print(f'Deleting privilege record: {privilege}')
+            privilege_pk = f'{compact}#PROVIDER#{provider_id}'
+            privilege_sk = (
+                f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}#'
+                f'{datetime.fromisoformat(privilege["dateOfRenewal"]).date().isoformat()}'
+            )
+            print(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
             dynamodb_table.delete_item(
                 Key={
-                    'pk': f'{compact}#PROVIDER#{provider_id}',
-                    'sk': f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}'
-                    f'#{datetime.fromisoformat(privilege["dateOfRenewal"]).date().isoformat()}',
+                    'pk': privilege_pk,
+                    'sk': privilege_sk,
                 }
             )
+            # give dynamodb time to propagate
+            time.sleep(1)
 
     post_body = {
         'orderInformation': {
@@ -61,9 +66,9 @@ def test_purchasing_privilege():
         'selectedJurisdictions': ['ne'],
     }
 
-    headers = get_provider_user_auth_headers()
+    headers = get_provider_user_auth_headers_cached()
     post_api_response = requests.post(
-        url=get_api_base_url() + '/v1/purchases/privileges', headers=headers, json=post_body, timeout=20
+        url=config.api_base_url + '/v1/purchases/privileges', headers=headers, json=post_body, timeout=20
     )
 
     if post_api_response.status_code != 200:
@@ -93,5 +98,4 @@ def test_purchasing_privilege():
 
 
 if __name__ == '__main__':
-    load_smoke_test_env()
     test_purchasing_privilege()

@@ -16,7 +16,7 @@ import {
     authStorage,
     AuthTypes,
     relativeTimeFormats,
-    tokens
+    AUTH_TYPE
 } from '@/app.config';
 import { CompactType } from '@models/Compact/Compact.model';
 import PageContainer from '@components/Page/PageContainer/PageContainer.vue';
@@ -97,9 +97,9 @@ class App extends Vue {
     setAuthType() {
         let authType: AuthTypes;
 
-        if (authStorage.getItem(tokens?.staff?.AUTH_TOKEN)) {
+        if (authStorage.getItem(AUTH_TYPE) === AuthTypes.STAFF) {
             authType = AuthTypes.STAFF;
-        } else if (authStorage.getItem(tokens?.licensee?.AUTH_TOKEN)) {
+        } else if (authStorage.getItem(AUTH_TYPE) === AuthTypes.LICENSEE) {
             authType = AuthTypes.LICENSEE;
         } else {
             authType = AuthTypes.PUBLIC;
@@ -171,10 +171,18 @@ class App extends Vue {
         this.body.style.overflow = (this.globalStore.isModalOpen) ? 'hidden' : 'visible';
     }
 
-    @Watch('userStore.isLoggedIn') async loginState() {
+    @Watch('userStore.isLoggedInAsLicensee') async handleLicenseeLogin() {
         if (!this.userStore.isLoggedIn) {
             this.$router.push({ name: 'Logout' });
-        } else {
+        } else if (this.userStore.isLoggedInAsLicensee) {
+            await this.handleAuth();
+        }
+    }
+
+    @Watch('userStore.isLoggedInAsStaff') async handleStaffLogin() {
+        if (!this.userStore.isLoggedIn) {
+            this.$router.push({ name: 'Logout' });
+        } else if (this.userStore.isLoggedInAsStaff) {
             await this.handleAuth();
         }
     }

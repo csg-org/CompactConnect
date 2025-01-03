@@ -8,12 +8,13 @@ import requests
 from smoke_common import (
     SmokeTestFailureException,
     get_api_base_url,
-    get_provider_user_auth_headers,
+    get_provider_user_auth_headers_cached,
     load_smoke_test_env,
 )
 
 # This script is used to test the military affiliations upload flow against a sandbox environment
-# # of the Compact Connect API.
+# of the Compact Connect API. It requires that you have a provider user set up in the sandbox environment.
+# Your sandbox account must also be deployed with the "security_profile": "VULNERABLE" setting in your cdk.context.json
 
 # To run this script, create a smoke_tests_env.json file in the same directory as this script using the
 # 'smoke_tests_env_example.json' file as a template.
@@ -26,7 +27,7 @@ def test_military_affiliation_upload():
     # Step 3: Verify that the test pdf file was uploaded successfully by checking the response status code.
     # Step 4: Get the provider data from the GET '/v1/provider-users/me' endpoint and verify that the military
     # affiliation record is active.
-    headers = get_provider_user_auth_headers()
+    headers = get_provider_user_auth_headers_cached()
 
     post_body = {
         'fileNames': ['military_affiliation.pdf'],
@@ -111,7 +112,7 @@ def test_military_affiliation_patch_update():
     # '/v1/provider-users/me/military-affiliation' endpoint.
     # Step 4: Get the provider data from the GET '/v1/provider-users/me' endpoint and verify that all the military
     # affiliation records are inactive.
-    headers = get_provider_user_auth_headers()
+    headers = get_provider_user_auth_headers_cached()
 
     patch_body = {
         'status': 'inactive',

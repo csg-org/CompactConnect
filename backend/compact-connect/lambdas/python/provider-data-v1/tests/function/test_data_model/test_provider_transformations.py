@@ -21,7 +21,7 @@ class TestTransformations(TstFunction):
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_ssn = json.load(f)
 
-        self._provider_table.put_item(Item=provider_ssn)
+        self._ssn_table.put_item(Item=provider_ssn)
         expected_provider_id = provider_ssn['providerId']
 
         # license data as it comes in from a board, in this case, as POSTed through the API
@@ -165,7 +165,7 @@ class TestTransformations(TstFunction):
             event = json.load(f)
 
         event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/aslp.readPrivate'
 
         resp = get_provider(event, self.mock_context)
 

@@ -116,14 +116,13 @@ class CCApi(RestApi):
                         {
                             'source_ip': '$context.identity.sourceIp',
                             'identity': {
-                                'caller': '$context.identity.caller',
-                                'user': '$context.identity.user',
+                                'user': '$context.authorizer.claims.sub',
                                 'user_agent': '$context.identity.userAgent',
                             },
                             'level': 'INFO',
                             'message': 'API Access log',
                             'request_time': '[$context.requestTime]',
-                            'http_method': '$context.httpMethod',
+                            'method': '$context.httpMethod',
                             'domain_name': '$context.domainName',
                             'resource_path': '$context.resourcePath',
                             'path': '$context.path',
@@ -131,6 +130,9 @@ class CCApi(RestApi):
                             'status': '$context.status',
                             'response_length': '$context.responseLength',
                             'request_id': '$context.requestId',
+                            'xray_trace_id': '$context.xrayTraceId',
+                            'waf_evaluation': '$context.wafResponseCode',
+                            'waf_status': '$context.waf.status',
                         }
                     )
                 ),
@@ -195,7 +197,7 @@ class CCApi(RestApi):
             'RuntimeQuery',
             query_definition_name=f'{construct_id}/Lambdas',
             query_string=QueryString(
-                fields=['@timestamp', '@log', 'level', 'status', 'message', 'http_method', 'path', '@message'],
+                fields=['@timestamp', '@log', 'level', 'status', 'message', 'method', 'path', '@message'],
                 filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
                 sort='@timestamp desc',
             ),
@@ -209,7 +211,7 @@ class CCApi(RestApi):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',
-                    'applies_to': [
+                    'appliesTo': [
                         'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
                     ],
                     'reason': 'This policy is crafted specifically for the account-level role created here.',
@@ -234,7 +236,10 @@ class CCApi(RestApi):
     @cached_property
     def staff_users_authorizer(self):
         return CognitoUserPoolsAuthorizer(
-            self, 'StaffPoolsAuthorizer', cognito_user_pools=[self._persistent_stack.staff_users]
+            self,
+            'StaffPoolsAuthorizer',
+            cognito_user_pools=[self._persistent_stack.staff_users],
+            results_cache_ttl=Duration.minutes(5),  # Default ttl is 5 minutes. We're setting this just to be explicit
         )
 
     @cached_property

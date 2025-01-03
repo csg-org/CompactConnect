@@ -14,13 +14,13 @@ import { PaymentProcessorConfig } from '@models/Compact/Compact.model';
 export class DataApi {
     /**
      * Initialize API Axios interceptors with injected store context.
-     * @param {Store} store
+     * @param {Router} router
      */
-    public initInterceptors(store) {
-        stateDataApi.initInterceptors(store);
-        licenseDataApi.initInterceptors(store);
-        userDataApi.initInterceptors(store);
-        exampleDataApi.initInterceptors(store);
+    public initInterceptors(router) {
+        stateDataApi.initInterceptors(router);
+        licenseDataApi.initInterceptors(router);
+        userDataApi.initInterceptors(router);
+        exampleDataApi.initInterceptors(router);
     }
 
     // ========================================================================

@@ -34,11 +34,11 @@ export interface IIngestSuccessEventRecord {
     sk: string,
     eventType: string,
     eventTime: string;
-    compact: string; 
-    jurisdiction: string; 
-    licenseType: string; 
-    status: 'active' | 'inactive'; 
+    compact: string;
+    jurisdiction: string;
+    licenseType: string;
+    status: 'active' | 'inactive';
     dateOfIssuance: string;
     dateOfRenewal: string;
-    dateOfExpiration: string; 
+    dateOfExpiration: string;
 }

@@ -29,7 +29,7 @@ class DataClient:
         """Get all records associated with a given SSN."""
         logger.info('Getting provider id by ssn')
         try:
-            resp = self.config.provider_table.get_item(
+            resp = self.config.ssn_table.get_item(
                 Key={'pk': f'{compact}#SSN#{ssn}', 'sk': f'{compact}#SSN#{ssn}'},
                 ConsistentRead=True,
             )['Item']
@@ -44,7 +44,7 @@ class DataClient:
         # This is an 'ask forgiveness' approach to provider id assignment:
         # Try to create a new provider, conditional on it not already existing
         try:
-            self.config.provider_table.put_item(
+            self.config.ssn_table.put_item(
                 Item={
                     'pk': f'{compact}#SSN#{ssn}',
                     'sk': f'{compact}#SSN#{ssn}',
@@ -61,6 +61,8 @@ class DataClient:
                 # The provider already exists, so grab their providerId
                 provider_id = TypeDeserializer().deserialize(e.response['Item']['providerId'])
                 logger.info('Found existing provider', provider_id=provider_id)
+            else:
+                raise
         return provider_id
 
     @paginated_query

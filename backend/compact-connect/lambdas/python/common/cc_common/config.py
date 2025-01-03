@@ -65,6 +65,10 @@ class _Config:
     def provider_table(self):
         return boto3.resource('dynamodb').Table(self.provider_table_name)
 
+    @cached_property
+    def ssn_table(self):
+        return boto3.resource('dynamodb').Table(self.ssn_table_name)
+
     @property
     def compact_configuration_table_name(self):
         return os.environ['COMPACT_CONFIGURATION_TABLE_NAME']
@@ -93,12 +97,20 @@ class _Config:
         return os.environ['PROVIDER_TABLE_NAME']
 
     @property
+    def ssn_table_name(self):
+        return os.environ['SSN_TABLE_NAME']
+
+    @property
     def fam_giv_mid_index_name(self):
         return os.environ['PROV_FAM_GIV_MID_INDEX_NAME']
 
     @property
     def date_of_update_index_name(self):
         return os.environ['PROV_DATE_OF_UPDATE_INDEX_NAME']
+
+    @property
+    def ssn_inverted_index_name(self):
+        return os.environ['SSN_INVERTED_INDEX_NAME']
 
     @property
     def bulk_bucket_name(self):
