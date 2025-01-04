@@ -257,6 +257,24 @@ export class UserDataApi implements DataApiInterface {
     }
 
     /**
+     * POST Upload Military Document Intent for Authenticated Licensee user.
+     * @return {Promise<object>} Intent response object containing presigned S3 url and necessary params to upload document.
+     */
+    public async postUploadMilitaryDocumentIntent(data: any) {
+        const serverResponse: any = await this.api.post(`/v1/provider-users/me/military-affiliation`, data);
+
+        return serverResponse;
+    }
+
+    /**
+     * POST Upload Military Affiliation Document for Authenticated Licensee user.
+     * @return {Promise<object>} Document upload response object.
+     */
+    public async postUploadMilitaryAffiliationDocument(postUrl: string, documentUploadData: any) {
+        return this.api.postForm(postUrl, documentUploadData);
+    }
+
+    /**
      * PATCH Cancel Military Affiliation.
      * @return {Promise<object>} Purchase response object.
      */

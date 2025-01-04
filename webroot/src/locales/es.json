@@ -560,7 +560,18 @@
         "endAffiliationModalTitle": "¿Está seguro de que desea poner fin a su afiliación militar?",
         "endAffiliationModalContent" : "Esta acción no se puede deshacer, pero si es necesario, puedes volver a realizar el proceso de confirmación.",
         "noGoBack": "No, regresa",
-        "yesEnd": "Sí, terminar mi afiliación"
+        "yesEnd": "Sí, terminar mi afiliación",
+        "affiliationAttestationOptions": [
+            {
+                "name": "Por la presente doy fe y afirmo que soy un miembro militar en servicio activo, definido como una persona con un estado de servicio de tiempo completo en el servicio uniformado activo de los Estados Unidos, incluidos los miembros de la Guardia Nacional y la Reserva en servicio activo.",
+                "value": "militaryMember"
+            },
+            {
+                "name": "Por la presente doy fe y afirmo que soy el cónyuge legal de un miembro militar en servicio activo, definido como una persona con estatus de servicio de tiempo completo en el servicio uniformado activo de los Estados Unidos, incluidos los miembros de la Guardia Nacional y la Reserva en activo. órdenes de servicio.",
+                "value": "militaryMemberSpouse"
+            }
+        ],
+        "documentProofLabel": "Cargar prueba de afiliación militar"
     },
     "account": {
         "accountTitle": "Cuenta",

@@ -20,7 +20,8 @@ export const requestSuccess = () => async (requestConfig) => {
     const licenseeUserEndPoints = [
         '/v1/provider-users/me',
         '/v1/purchases/privileges/options',
-        '/v1/purchases/privileges'
+        '/v1/purchases/privileges',
+        '/v1/provider-users/me/military-affiliation'
     ];
     const { headers, url } = requestConfig;
     let authToken;

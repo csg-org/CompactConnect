@@ -24,7 +24,12 @@
                     {{attestationTitleText}}
                 </div>
                 <form @submit.prevent="handleSubmit">
-                    <InputRadioGroup :formInput="formData.status" />
+                    <div class="attestation-section">
+                        <InputRadioGroup :formInput="formData.affiliationType" />
+                    </div>
+                    <div class="document-section">
+                        <InputFile :formInput="formData.document" />
+                    </div>
                     <div class="button-row">
                         <InputSubmit
                             class="understand-button"

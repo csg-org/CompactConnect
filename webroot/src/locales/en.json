@@ -560,7 +560,18 @@
         "endAffiliationModalTitle": "Are you sure you want to end your military affiliation?",
         "endAffiliationModalContent" : "This action cannot be undone, but if needed, you can go through the confirmation process again.",
         "noGoBack": "No, go back",
-        "yesEnd": "Yes, end my affiliation"
+        "yesEnd": "Yes, end my affiliation",
+        "affiliationAttestationOptions": [
+            {
+                "name": "I hereby attest and affirm that I am an active-duty military member, defined as a person with a full-time duty status in the active uniformed service of the United States, including members of the National Guard and Reserve on active duty orders.",
+                "value": "militaryMember"
+            },
+            {
+                "name": "I hereby attest and affirm that I am the legal spouse of an active-duty military member, defined as a person with a full-time duty status in the active uniformed service of the United States, including members of the National Guard and Reserve on active duty orders.",
+                "value": "militaryMemberSpouse"
+            }
+        ],
+        "documentProofLabel": "Upload proof of military affiliation"
     },
     "account": {
         "accountTitle": "Account",

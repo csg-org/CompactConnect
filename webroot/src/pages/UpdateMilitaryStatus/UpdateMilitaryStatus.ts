@@ -11,6 +11,7 @@ import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import InputRadioGroup from '@components/Forms/InputRadioGroup/InputRadioGroup.vue';
+import InputFile from '@components/Forms/InputFile/InputFile.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import Joi from 'joi';
@@ -20,10 +21,11 @@ import Joi from 'joi';
     components: {
         InputSubmit,
         InputRadioGroup,
+        InputFile,
         InputButton
     }
 })
-export default class MilitaryStatus extends mixins(MixinForm) {
+export default class UpdateMilitaryStatus extends mixins(MixinForm) {
     //
     // Data
     //
@@ -55,7 +57,11 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     }
 
     get statusOptions(): any {
-        return [];
+        return this.$tm('styleGuide.statusOptions');
+    }
+
+    get affiliationTypeOptions(): any {
+        return this.$tm('military.affiliationAttestationOptions');
     }
 
     //
@@ -63,13 +69,27 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     //
     initFormInputs(): void {
         const initFormData: any = {
-            status: new FormInput({
-                id: 'status',
-                name: 'status',
+            affiliationType: new FormInput({
+                id: 'affiliation-type',
+                name: 'affiliation-type',
                 shouldHideLabel: true,
                 label: computed(() => this.$t('military.affiliationType')),
-                validation: Joi.string().required().messages(this.joiMessages.string),
-                valueOptions: this.statusOptions.map((option) => ({ ...option })),
+                validation: Joi.string().required(),
+                valueOptions: this.affiliationTypeOptions.map((option) => ({ ...option })),
+            }),
+            document: new FormInput({
+                id: 'document',
+                name: 'document',
+                label: computed(() => this.$t('military.documentProofLabel')),
+                placeholder: computed(() => this.$t('military.documentProofLabel')),
+                value: [],
+                validation: Joi.array().min(1).max(1),
+                fileConfig: {
+                    accepts: [`application/pdf`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`, `image/png`, `image/jpeg`],
+                    allowMultiple: false,
+                    maxSizeMbPer: 100,
+                    maxSizeMbAll: 100,
+                },
             }),
             submit: new FormInput({
                 isSubmitInput: true,
@@ -90,6 +110,18 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     }
 
     handleSubmit() {
-        console.log('submit', this.formData);
+        const documentUploadData = this.transformFormDataToUploadIntent(this.formData);
+
+        console.log('documentUploadData', documentUploadData);
+
+        this.$store.dispatch('user/uploadMilitaryAffiliationRequest', documentUploadData);
+    }
+
+    transformFormDataToUploadIntent(formData) {
+        console.log('formData', formData);
+        const affiliationType = formData.affiliationType.value;
+        const fileNames = [ formData.document.value[0].name ];
+
+        return { affiliationType, fileNames };
     }
 }
