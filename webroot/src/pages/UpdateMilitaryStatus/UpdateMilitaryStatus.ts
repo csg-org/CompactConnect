@@ -120,8 +120,9 @@ export default class UpdateMilitaryStatus extends mixins(MixinForm) {
     transformFormDataToUploadIntent(formData) {
         console.log('formData', formData);
         const affiliationType = formData.affiliationType.value;
-        const fileNames = [ formData.document.value[0].name ];
+        const document = formData.document.value[0];
+        const fileNames = [ document.name ];
 
-        return { affiliationType, fileNames };
+        return { affiliationType, fileNames, document };
     }
 }

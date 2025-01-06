@@ -270,8 +270,30 @@ export class UserDataApi implements DataApiInterface {
      * POST Upload Military Affiliation Document for Authenticated Licensee user.
      * @return {Promise<object>} Document upload response object.
      */
-    public async postUploadMilitaryAffiliationDocument(postUrl: string, documentUploadData: any) {
-        return this.api.postForm(postUrl, documentUploadData);
+    public async postUploadMilitaryAffiliationDocument(postUrl: string, documentUploadData: any, file: File) {
+        const formData = new FormData();
+        const s3FieldOrder = [ // S3 is picky about the order of the FormData fields
+            'key',
+            'x-amz-algorithm',
+            'x-amz-credential',
+            'x-amz-date',
+            'x-amz-signature',
+            'x-amz-security-token',
+            'policy',
+        ];
+
+        s3FieldOrder.forEach((field) => {
+            formData.append(field, documentUploadData[field]);
+        });
+        formData.append('file', file);
+
+        return axios.post(postUrl, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                Accept: '*/*',
+
+            }
+        });
     }
 
     /**

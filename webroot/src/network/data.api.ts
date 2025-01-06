@@ -185,8 +185,8 @@ export class DataApi {
      * POST Upload Military Affiliation Document for Authenticated Licensee user.
      * @return {Promise<object>} Document upload response object.
      */
-    public postUploadMilitaryAffiliationDocument(postUrl: string, documentUploadData: any) {
-        return userDataApi.postUploadMilitaryAffiliationDocument(postUrl, documentUploadData);
+    public postUploadMilitaryAffiliationDocument(postUrl: string, documentUploadData: any, file: File) {
+        return userDataApi.postUploadMilitaryAffiliationDocument(postUrl, documentUploadData, file);
     }
 
     /**

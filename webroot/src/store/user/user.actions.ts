@@ -279,7 +279,10 @@ export default {
     uploadMilitaryAffiliationRequest: async ({ commit, dispatch }, documentData) => {
         // TODO: seems like I need to pass document.value in and use that instead of documentData.document
         commit(MutationTypes.UPLOAD_MILITARY_AFFILIATION_REQUEST);
-        await dataApi.postUploadMilitaryDocumentIntent(documentData).then((intentServerResponse) => {
+        const documentIntentData = { ...documentData };
+
+        delete documentIntentData.document;
+        await dataApi.postUploadMilitaryDocumentIntent(documentIntentData).then((intentServerResponse) => {
             console.log('intentServerResponse', intentServerResponse);
             const postUrl = intentServerResponse.documentUploadFields[0].url;
             const uploadFields = intentServerResponse.documentUploadFields[0].fields;
@@ -290,22 +293,21 @@ export default {
             console.log('documentData.document', documentData.document);
 
             if (postUrl && uploadFields && documentData.document) {
-                const documentUploadData = { file: documentData.document, ...uploadFields };
+                const documentUploadData = { ...uploadFields };
 
-                return dataApi.postUploadMilitaryAffiliationDocument(postUrl, documentUploadData)
+                return dataApi.postUploadMilitaryAffiliationDocument(postUrl, documentUploadData, documentData.document)
                     .then((uploadServerResponse) => {
                         console.log('uploadServerResponse', uploadServerResponse);
-                        return uploadServerResponse;
-                        // if (uploadServerResponse) {
-                        //     dispatch('uploadMilitaryAffiliationSuccess');
-                        //     return uploadServerResponse;
-                        // } else {
-                        //     return new Error();
-                        // }
+                        if (uploadServerResponse?.status === 204) {
+                            dispatch('uploadMilitaryAffiliationSuccess');
+                            return uploadServerResponse;
+                        }
+
+                        return new Error();
                     });
             }
 
-            return null;
+            return new Error();
         }).catch((error) => {
             console.log('errorHere', error);
 
