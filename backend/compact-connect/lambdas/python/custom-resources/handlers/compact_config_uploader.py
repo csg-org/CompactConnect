@@ -79,11 +79,14 @@ def _upload_attestation_configuration(compact_configuration: dict) -> None:
                     locale=attestation['locale'],
                 )
                 # Check if any content fields have changed
-                content_changed = any(
-                    # Compare stripped values to ignore leading and trailing whitespace changes
-                    latest_attestation[field].strip() != attestation[field].strip()
-                    for field in ['displayName', 'description', 'text']
-                ) or latest_attestation['required'] != attestation['required']
+                content_changed = (
+                    any(
+                        # Compare stripped values to ignore leading and trailing whitespace changes
+                        latest_attestation[field].strip() != attestation[field].strip()
+                        for field in ['displayName', 'description', 'text']
+                    )
+                    or latest_attestation['required'] != attestation['required']
+                )
                 if content_changed:
                     # Increment version if content changed
                     attestation['version'] = str(int(latest_attestation['version']) + 1)

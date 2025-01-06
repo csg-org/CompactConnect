@@ -18,7 +18,8 @@ def generate_mock_attestation():
         'attestationId': 'jurisprudence-confirmation',
         'displayName': 'Jurisprudence Confirmation',
         'description': 'For displaying the jurisprudence confirmation',
-        'text': 'You attest that you have read and understand the jurisprudence requirements for all states you are purchasing privileges for.',
+        'text': 'You attest that you have read and understand the jurisprudence requirements '
+        'for all states you are purchasing privileges for.',
         'required': True,
         'locale': 'en',
     }
@@ -220,7 +221,7 @@ class TestCompactConfigurationUploader(TstFunction):
         attestation_response = self.config.compact_configuration_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq('COMPACT#aslp#ATTESTATIONS')
-                                   & Key('sk').begins_with('COMPACT#aslp#ATTESTATION#jurisprudence-confirmation'),
+            & Key('sk').begins_with('COMPACT#aslp#ATTESTATION#jurisprudence-confirmation'),
         )
 
         self.assertEqual(1, len(attestation_response['Items']))
@@ -228,7 +229,7 @@ class TestCompactConfigurationUploader(TstFunction):
 
         expected_attestation = {
             'pk': 'COMPACT#aslp#ATTESTATIONS',
-            'sk': "COMPACT#aslp#ATTESTATION#jurisprudence-confirmation#LOCALE#en#VERSION#1",
+            'sk': 'COMPACT#aslp#ATTESTATION#jurisprudence-confirmation#LOCALE#en#VERSION#1',
             'type': 'attestation',
             'attestationId': 'jurisprudence-confirmation',
             'displayName': 'Jurisprudence Confirmation',
@@ -237,7 +238,7 @@ class TestCompactConfigurationUploader(TstFunction):
             'dateCreated': MOCK_CURRENT_TIMESTAMP,
             'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
             'text': 'You attest that you have read and understand the jurisprudence requirements for all '
-                    'states you are purchasing privileges for.',
+            'states you are purchasing privileges for.',
             'required': True,
             'locale': 'en',
             'compact': 'aslp',
@@ -262,7 +263,6 @@ class TestCompactConfigurationUploader(TstFunction):
 
         with self.assertRaises(ValidationError):
             on_event(event, self.mock_context)
-
 
     def _when_testing_attestation_field_updates(self, field_to_change, new_value):
         from handlers.compact_config_uploader import on_event
@@ -293,7 +293,7 @@ class TestCompactConfigurationUploader(TstFunction):
         attestation_response = self.config.compact_configuration_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq('COMPACT#aslp#ATTESTATIONS')
-                                   & Key('sk').begins_with('COMPACT#aslp#ATTESTATION#jurisprudence-confirmation'),
+            & Key('sk').begins_with('COMPACT#aslp#ATTESTATION#jurisprudence-confirmation'),
         )
 
         # Should have two versions
@@ -304,10 +304,7 @@ class TestCompactConfigurationUploader(TstFunction):
 
         # Check version 1
         self.assertEqual('1', attestations[0]['version'])
-        self.assertEqual(
-            original_attestation[field_to_change],
-            attestations[0][field_to_change]
-        )
+        self.assertEqual(original_attestation[field_to_change], attestations[0][field_to_change])
 
         # Check version 2
         self.assertEqual('2', attestations[1]['version'])
@@ -360,7 +357,7 @@ class TestCompactConfigurationUploader(TstFunction):
         attestation_response = self.config.compact_configuration_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq('COMPACT#aslp#ATTESTATIONS')
-                                   & Key('sk').begins_with('COMPACT#aslp#ATTESTATION#jurisprudence-confirmation'),
+            & Key('sk').begins_with('COMPACT#aslp#ATTESTATION#jurisprudence-confirmation'),
         )
 
         # Should still only have one version
