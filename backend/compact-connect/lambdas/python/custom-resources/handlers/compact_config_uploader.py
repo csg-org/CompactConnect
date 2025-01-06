@@ -4,8 +4,10 @@ from decimal import Decimal
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
+from cc_common.data_model.schema.attestation import AttestationRecordSchema
 from cc_common.data_model.schema.compact import CompactRecordSchema
 from cc_common.data_model.schema.jurisdiction import JurisdictionRecordSchema
+from cc_common.exceptions import CCNotFoundException
 
 
 def on_event(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -40,6 +42,9 @@ def upload_configuration(properties: dict):
     compact_configuration = json.loads(properties['compact_configuration'], parse_float=Decimal)
     logger.info('Uploading compact configuration')
 
+    # upload attestations for each compact
+    _upload_attestation_configuration(compact_configuration)
+
     # upload the root compact configuration
     _upload_compact_root_configuration(compact_configuration)
 
@@ -47,6 +52,66 @@ def upload_configuration(properties: dict):
     _upload_jurisdiction_configuration(compact_configuration)
 
     logger.info('Configuration upload successful')
+
+
+def _upload_attestation_configuration(compact_configuration: dict) -> None:
+    """Upload attestation configurations to the provider table.
+    :param compact_configuration: The compact configuration
+    """
+    attestation_record_schema = AttestationRecordSchema()
+    for compact in compact_configuration['compacts']:
+        compact_name = compact['compactName']
+        if 'attestations' not in compact:
+            continue
+
+        logger.info('Loading attestations', compact=compact_name)
+        for attestation in compact['attestations']:
+            attestation['compact'] = compact_name
+            attestation['type'] = 'attestation'
+            # set the dateCreated to the current date
+            attestation['dateCreated'] = config.current_standard_datetime.isoformat()
+
+            # Try to get the latest version of this attestation
+            try:
+                latest_attestation = config.compact_configuration_client.get_attestation(
+                    compact=compact_name,
+                    attestation_id=attestation['attestationId'],
+                    locale=attestation['locale'],
+                )
+                # Check if any content fields have changed
+                content_changed = any(
+                    # Compare stripped values to ignore leading and trailing whitespace changes
+                    latest_attestation[field].strip() != attestation[field].strip()
+                    for field in ['displayName', 'description', 'text']
+                ) or latest_attestation['required'] != attestation['required']
+                if content_changed:
+                    # Increment version if content changed
+                    attestation['version'] = str(int(latest_attestation['version']) + 1)
+                    logger.info(
+                        'Content changed, incrementing version',
+                        attestation_id=attestation['attestationId'],
+                        new_version=attestation['version'],
+                    )
+                else:
+                    # No changes, skip upload
+                    logger.info(
+                        'No content changes detected, skipping upload',
+                        attestation_id=attestation['attestationId'],
+                    )
+                    continue
+            except CCNotFoundException:
+                # No existing attestation, use version 1
+                attestation['version'] = '1'
+                logger.info(
+                    'No existing attestation found, inserting attestation using version 1',
+                    attestation_id=attestation['attestationId'],
+                )
+
+            serialized_attestation = attestation_record_schema.dump(attestation)
+            # Force validation before uploading
+            attestation_record_schema.load(serialized_attestation)
+
+            config.compact_configuration_table.put_item(Item=serialized_attestation)
 
 
 def _upload_compact_root_configuration(compact_configuration: dict) -> None:
@@ -60,6 +125,8 @@ def _upload_compact_root_configuration(compact_configuration: dict) -> None:
         compact['type'] = 'compact'
         # remove the activeEnvironments field as it's an implementation detail
         compact.pop('activeEnvironments')
+        # remove attestations as they are handled separately
+        compact.pop('attestations', None)
 
         serialized_compact = schema.dump(compact)
 

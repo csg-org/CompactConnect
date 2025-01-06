@@ -7,3 +7,11 @@ compactOperationsTeamEmails: []
 compactAdverseActionsNotificationEmails: []
 compactSummaryReportNotificationEmails: []
 activeEnvironments: ["test"]
+
+attestations:
+  - attestationId: "jurisprudence-confirmation"
+    displayName: "Jurisprudence Confirmation"
+    description: "For displaying the jurisprudence confirmation"
+    text: "You attest that you have read and understand the jurisprudence requirements for all states you are purchasing privileges for."
+    required: true
+    locale: "en"
