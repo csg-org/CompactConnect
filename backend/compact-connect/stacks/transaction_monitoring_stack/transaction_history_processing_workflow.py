@@ -201,17 +201,20 @@ class TransactionHistoryProcessingWorkflow(Construct):
         )
 
         # Create alarm for failed step function executions
-        Alarm(
-            self,
-            f'{compact}-StateMachineExecutionFailedAlarm',
-            metric=state_machine.metric_failed(),
-            evaluation_periods=1,
-            threshold=1,
-            actions_enabled=True,
-            alarm_description=f'{state_machine.node.path} failed to collect transactions',
-            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
-            treat_missing_data=TreatMissingData.NOT_BREACHING,
-        ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
+        # TODO: we have been asked to disable this until all compacts have valid authorize.net accounts put into
+        #       place to avoid unnecessary alerting. Once the system is ready to go live, this alarm should be
+        #       re-enabled.
+        # Alarm(
+        #     self,
+        #     f'{compact}-StateMachineExecutionFailedAlarm',
+        #     metric=state_machine.metric_failed(),
+        #     evaluation_periods=1,
+        #     threshold=1,
+        #     actions_enabled=True,
+        #     alarm_description=f'{state_machine.node.path} failed to collect transactions',
+        #     comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+        #     treat_missing_data=TreatMissingData.NOT_BREACHING,
+        # ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
 
     def _get_secrets_manager_compact_payment_processor_arn_for_compact(
         self, compact: str, environment_name: str
