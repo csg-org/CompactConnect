@@ -9,6 +9,7 @@
     <div class="input-container input-button-container" :class="{ 'no-margin': shouldHideMargin }">
         <input
             type="button"
+            :id="id"
             class="input-button"
             :class="{
                 'no-text-transform': !shouldTransformText,
