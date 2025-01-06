@@ -20,7 +20,6 @@ from stacks.persistent_stack.compact_configuration_table import CompactConfigura
 from stacks.persistent_stack.compact_configuration_upload import CompactConfigurationUpload
 from stacks.persistent_stack.data_event_table import DataEventTable
 from stacks.persistent_stack.event_bus import EventBus
-from stacks.persistent_stack.license_table import LicenseTable
 from stacks.persistent_stack.provider_table import ProviderTable
 from stacks.persistent_stack.provider_users import ProviderUsers
 from stacks.persistent_stack.provider_users_bucket import ProviderUsersBucket
@@ -102,11 +101,6 @@ class PersistentStack(AppStack):
 
         self.data_event_bus = EventBus(self, 'DataEventBus')
 
-        # Both of these are slated for deprecation/deletion soon, so we'll mark included resources for removal
-        self._add_mock_data_resources()
-        self._add_deprecated_data_resources()
-
-        # The new data resources
         self._add_data_resources(removal_policy=removal_policy)
 
         self.compact_configuration_upload = CompactConfigurationUpload(
@@ -175,42 +169,6 @@ class PersistentStack(AppStack):
             self.staff_users.node.add_dependency(self.user_email_notifications.dmarc_record)
             self.provider_users.node.add_dependency(self.user_email_notifications.email_identity)
             self.provider_users.node.add_dependency(self.user_email_notifications.dmarc_record)
-
-    def _add_mock_data_resources(self):
-        self.mock_bulk_uploads_bucket = BulkUploadsBucket(
-            self,
-            'MockBulkUploadsBucket',
-            mock_bucket=True,
-            access_logs_bucket=self.access_logs_bucket,
-            encryption_key=self.shared_encryption_key,
-            removal_policy=RemovalPolicy.DESTROY,
-            auto_delete_objects=True,
-            event_bus=self.data_event_bus,
-        )
-
-        # These dummy exports are required until we remove dependencies from the api stack
-        # see https://github.com/aws/aws-cdk/issues/3414
-        self.export_value(self.mock_bulk_uploads_bucket.bucket_name)
-        self.export_value(self.mock_bulk_uploads_bucket.bucket_arn)
-
-        self.mock_license_table = LicenseTable(
-            self, 'MockLicenseTable', encryption_key=self.shared_encryption_key, removal_policy=RemovalPolicy.DESTROY
-        )
-
-        # These dummy exports are required until we remove dependencies from the api stack
-        # see https://github.com/aws/aws-cdk/issues/3414
-        self.export_value(self.mock_license_table.table_name)
-        self.export_value(self.mock_license_table.table_arn)
-
-    def _add_deprecated_data_resources(self):
-        self.license_table = LicenseTable(
-            self, 'LicenseTable', encryption_key=self.shared_encryption_key, removal_policy=RemovalPolicy.DESTROY
-        )
-
-        # These dummy exports are required until we remove dependencies from the api stack
-        # see https://github.com/aws/aws-cdk/issues/3414
-        self.export_value(self.license_table.table_name)
-        self.export_value(self.license_table.table_arn)
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
         self.bulk_uploads_bucket = BulkUploadsBucket(
