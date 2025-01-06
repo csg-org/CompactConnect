@@ -1,6 +1,6 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { SESClient } from '@aws-sdk/client-ses';
-import { Lambda } from './lambda';
+import { Lambda } from './email-notification-service-lambda';
 
 
 const lambda = new Lambda({
@@ -8,4 +8,4 @@ const lambda = new Lambda({
     sesClient: new SESClient(),
 });
 
-export const collectEvents = lambda.handler.bind(lambda);
+export const sendEmail = lambda.handler.bind(lambda);

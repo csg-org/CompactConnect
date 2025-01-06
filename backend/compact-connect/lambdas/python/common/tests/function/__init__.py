@@ -71,7 +71,7 @@ class TstFunction(TstLambdas):
         cognito_client.delete_user_pool(UserPoolId=self._user_pool_id)
 
     def _load_user_data(self) -> str:
-        with open('../common/tests/resources/dynamo/user.json') as f:
+        with open('tests/resources/dynamo/user.json') as f:
             # This item is saved in its serialized form, so we have to deserialize it first
             item = TypeDeserializer().deserialize({'M': json.load(f)})
 

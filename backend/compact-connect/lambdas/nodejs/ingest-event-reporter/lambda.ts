@@ -4,11 +4,12 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { SESClient } from '@aws-sdk/client-ses';
 import { Context } from 'aws-lambda';
 
-import { EnvironmentVariablesService } from './environment-variables-service';
-import { JurisdictionClient } from './jurisdiction-client';
-import { IEventBridgeEvent } from './models/event-bridge-event-detail';
-import { ReportEmailer } from './report-emailer';
-import { EventClient } from './event-client';
+import { EnvironmentVariablesService } from '../lib/environment-variables-service';
+import { CompactConfigurationClient } from '../lib/compact-configuration-client';
+import { JurisdictionClient } from '../lib/jurisdiction-client';
+import { IEventBridgeEvent } from '../lib/models/event-bridge-event-detail';
+import { EmailService } from '../lib/email-service';
+import { EventClient } from '../lib/event-client';
 
 const environmentVariables = new EnvironmentVariablesService();
 const logger = new Logger({ logLevel: environmentVariables.getLogLevel() });
@@ -25,20 +26,27 @@ interface LambdaProperties {
 export class Lambda implements LambdaInterface {
     private readonly jurisdictionClient: JurisdictionClient;
     private readonly eventClient: EventClient;
-    private readonly reportEmailer: ReportEmailer;
+    private readonly emailService: EmailService;
 
     constructor(props: LambdaProperties) {
         this.jurisdictionClient = new JurisdictionClient({
             logger: logger,
             dynamoDBClient: props.dynamoDBClient,
         });
+
+        const compactConfigurationClient = new CompactConfigurationClient({
+            logger: logger,
+            dynamoDBClient: props.dynamoDBClient,
+        });
+
         this.eventClient = new EventClient({
             logger: logger,
             dynamoDBClient: props.dynamoDBClient,
         });
-        this.reportEmailer = new ReportEmailer({
+        this.emailService = new EmailService({
             logger: logger,
             sesClient: props.sesClient,
+            compactConfigurationClient: compactConfigurationClient,
         });
     }
 
@@ -61,7 +69,7 @@ export class Lambda implements LambdaInterface {
 
                 // If there were any issues, send a report email summarizing them
                 if (ingestEvents.ingestFailures.length || ingestEvents.validationErrors.length) {
-                    const messageId = await this.reportEmailer.sendReportEmail(
+                    const messageId = await this.emailService.sendReportEmail(
                         ingestEvents,
                         compact,
                         jurisdictionConfig.jurisdictionName,
@@ -101,7 +109,7 @@ export class Lambda implements LambdaInterface {
                             && !weeklyIngestEvents.validationErrors.length
                             && weeklyIngestEvents.ingestSuccesses.length
                         ) {
-                            const messageId = await this.reportEmailer.sendAllsWellEmail(
+                            const messageId = await this.emailService.sendAllsWellEmail(
                                 compact,
                                 jurisdictionConfig.jurisdictionName,
                                 jurisdictionConfig.jurisdictionOperationsTeamEmails
@@ -117,7 +125,7 @@ export class Lambda implements LambdaInterface {
                             );
                         }
                         else if(!weeklyIngestEvents.ingestSuccesses.length) {
-                            const messageId = await this.reportEmailer.sendNoLicenseUpdatesEmail(
+                            const messageId = await this.emailService.sendNoLicenseUpdatesEmail(
                                 compact,
                                 jurisdictionConfig.jurisdictionName,
                                 jurisdictionConfig.jurisdictionOperationsTeamEmails
