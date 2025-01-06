@@ -1,10 +1,9 @@
-# ruff: noqa: T201  we use print statements for smoke testing
 #!/usr/bin/env python3
 import time
 from datetime import UTC, datetime
 
 import requests
-from config import config
+from config import config, logger
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
@@ -36,7 +35,7 @@ def test_purchasing_privilege():
                 f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}#'
                 f'{datetime.fromisoformat(privilege["dateOfRenewal"]).date().isoformat()}'
             )
-            print(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
+            logger.info(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
             dynamodb_table.delete_item(
                 Key={
                     'pk': privilege_pk,
@@ -58,6 +57,7 @@ def test_purchasing_privilege():
 
     if get_attestation_response.status_code != 200:
         raise SmokeTestFailureException(f'Failed to get attestation. Response: {get_attestation_response.json()}')
+    logger.info(f'Received attestation response: {get_attestation_response.json()}')
 
     attestation = get_attestation_response.json()
     attestation_version = attestation.get('version')
@@ -118,7 +118,7 @@ def test_purchasing_privilege():
     if matching_privilege['attestations'][0]['version'] != attestation_version:
         raise SmokeTestFailureException('Attestation version in privilege record does not match')
 
-    print(f'Successfully purchased privilege record: {matching_privilege}')
+    logger.info(f'Successfully purchased privilege record: {matching_privilege}')
 
 
 if __name__ == '__main__':
