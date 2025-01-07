@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import UTC, date, datetime
 from unittest.mock import MagicMock, patch
 
@@ -80,6 +81,9 @@ class TestPostPurchasePrivileges(TstFunction):
         from cc_common.data_model.schema.attestation import AttestationRecordSchema
 
         super().setUp()
+        # set the feature flag to enable the attestation validation feature
+        # this should be removed when the feature is enabled by default
+        os.environ.update({'ENFORCE_ATTESTATIONS': 'true'})
         # Load test attestation data
         with open('../common/tests/resources/dynamo/attestation.json') as f:
             test_attestation = json.load(f)
@@ -596,6 +600,25 @@ class TestPostPurchasePrivileges(TstFunction):
             {'attestationId': 'military-affiliation-confirmation-attestation', 'version': '1'}
         )
         event['body'] = json.dumps(event_body)
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'], resp['body'])
+
+    # TODO - remove this test once the feature flag is removed # noqa: FIX002
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_should_not_validate_attestations_if_flag_not_set(
+        self, mock_purchase_client_constructor
+    ):
+        """Test that military attestation is required when user has active military affiliation."""
+        from handlers.privileges import post_purchase_privileges
+
+        os.environ.update({'ENFORCE_ATTESTATIONS': 'false'})
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+        self._load_military_affiliation_record_data(status='active')
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body(attestations=[])
 
         resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'], resp['body'])
