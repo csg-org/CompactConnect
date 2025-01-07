@@ -175,8 +175,8 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     }
 
     async confirmEndMilitaryAffiliation() {
-        await this.$store.dispatch('user/endMilitaryAffiliationRequest');
         this.closeEndAffilifationModal();
+        await this.$store.dispatch('user/endMilitaryAffiliationRequest');
         await this.$store.dispatch('user/getLicenseeAccountRequest');
     }
 

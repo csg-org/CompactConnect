@@ -34,10 +34,17 @@
                     flex-direction: row;
                     justify-content: flex-end;
                     margin-top: 4rem;
-                    margin-bottom: -3rem;
+                    margin-bottom: -2rem;
 
                     .understand-button {
                         margin-left: 1rem;
+
+                        &.input-container {
+                            input {
+                                border: @errorRed;
+                                background-color: @errorRed;
+                            }
+                        }
                     }
                 }
             }
@@ -100,7 +107,7 @@
                     margin-left: 1rem;
 
                     &:deep(input) {
-                        color: @midRed;
+                        color: @errorRed;
                         font-size: 1.5rem;
                         text-decoration: underline;
                     }
