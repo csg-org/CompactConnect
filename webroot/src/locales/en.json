@@ -571,6 +571,11 @@
                 "value": "militaryMemberSpouse"
             }
         ],
+        "affiliationTypes": {
+            "militaryMember": "Active-duty military member",
+            "militaryMemberSpouse": "Active-duty military spouse",
+            "none": "N/A"
+        },
         "documentProofLabel": "Upload proof of military affiliation"
     },
     "account": {

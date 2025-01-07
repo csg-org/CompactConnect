@@ -53,8 +53,6 @@ export default class MilitaryStatus extends mixins(MixinForm) {
         let militaryStatus = '';
 
         if (this.licensee) {
-            console.log('this.licensee', this.licensee);
-
             militaryStatus = this.licensee.isMilitary() ? this.$t('licensing.statusOptions.active') : this.$t('licensing.statusOptions.inactive');
         }
 
@@ -66,7 +64,22 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     }
 
     get affiliationType(): string {
-        return 'Active-duty military member';
+        let militaryStatus = '';
+
+        if (this.licensee) {
+            const activeAffiliation = this.licensee.aciveMilitaryAffiliation() as any;
+            const isMilitary = this.licensee.isMilitary();
+
+            if (isMilitary && activeAffiliation?.affiliationType === 'militaryMember') {
+                militaryStatus = this.$tm('military.affiliationTypes.militaryMember');
+            } else if (isMilitary && activeAffiliation?.affiliationType === 'militaryMemberSpouse') {
+                militaryStatus = this.$tm('military.affiliationTypes.militaryMemberSpouse');
+            } else {
+                militaryStatus = this.$tm('military.affiliationTypes.none');
+            }
+        }
+
+        return militaryStatus;
     }
 
     get previouslyUploadedTitle(): string {
@@ -161,9 +174,10 @@ export default class MilitaryStatus extends mixins(MixinForm) {
         this.$store.dispatch('setModalIsOpen', false);
     }
 
-    confirmEndMilitaryAffiliation() {
-        // dispatch end affiliation request
+    async confirmEndMilitaryAffiliation() {
+        await this.$store.dispatch('user/endMilitaryAffiliationRequest');
         this.closeEndAffilifationModal();
+        await this.$store.dispatch('user/getLicenseeAccountRequest');
     }
 
     async sortingChange() {

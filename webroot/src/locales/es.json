@@ -571,6 +571,11 @@
                 "value": "militaryMemberSpouse"
             }
         ],
+        "affiliationTypes": {
+            "militaryMember": "Miembro militar en servicio activo",
+            "militaryMemberSpouse": "Esposo militar en servicio activo",
+            "none": "N/A"
+        },
         "documentProofLabel": "Cargar prueba de afiliación militar"
     },
     "account": {
