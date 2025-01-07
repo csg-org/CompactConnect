@@ -277,7 +277,6 @@ export default {
         commit(MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE, error);
     },
     uploadMilitaryAffiliationRequest: async ({ commit, dispatch }, documentData) => {
-        // TODO: seems like I need to pass document.value in and use that instead of documentData.document
         commit(MutationTypes.UPLOAD_MILITARY_AFFILIATION_REQUEST);
         const documentIntentData = { ...documentData };
 
@@ -297,9 +296,10 @@ export default {
 
                 return dataApi.postUploadMilitaryAffiliationDocument(postUrl, documentUploadData, documentData.document)
                     .then((uploadServerResponse) => {
-                        console.log('uploadServerResponse', uploadServerResponse);
                         if (uploadServerResponse?.status === 204) {
+                            // Add active to end off array and deactivate all others
                             dispatch('uploadMilitaryAffiliationSuccess');
+
                             return uploadServerResponse;
                         }
 

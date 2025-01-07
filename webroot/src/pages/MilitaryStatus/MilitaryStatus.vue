@@ -35,8 +35,8 @@
                 <div class="prev-doc-table">
                     <ListContainer
                         :listId="listId"
-                        :listData="this.militaryDocuments"
-                        :listSize="this.militaryDocuments.length"
+                        :listData="this.affiliations"
+                        :listSize="this.affiliations.length"
                         :sortOptions="sortOptions"
                         :sortChange="sortingChange"
                         :pageChange="paginationChange"
@@ -55,7 +55,7 @@
                         </template>
                         <template v-slot:list>
                             <MilitaryDocumentRow
-                                v-for="(record, index) in this.militaryDocuments"
+                                v-for="(record, index) in this.affiliations"
                                 :key="index"
                                 :item="record"
                             />
