@@ -221,7 +221,7 @@ class TestCompactConfigurationUploader(TstFunction):
         attestation_response = self.config.compact_configuration_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq('COMPACT#aslp#ATTESTATIONS')
-            & Key('sk').begins_with('COMPACT#aslp#ATTESTATION#jurisprudence-confirmation'),
+            & Key('sk').begins_with('COMPACT#aslp#LOCALE#en#ATTESTATION#jurisprudence-confirmation'),
         )
 
         self.assertEqual(1, len(attestation_response['Items']))
@@ -229,7 +229,7 @@ class TestCompactConfigurationUploader(TstFunction):
 
         expected_attestation = {
             'pk': 'COMPACT#aslp#ATTESTATIONS',
-            'sk': 'COMPACT#aslp#ATTESTATION#jurisprudence-confirmation#LOCALE#en#VERSION#1',
+            'sk': 'COMPACT#aslp#LOCALE#en#ATTESTATION#jurisprudence-confirmation#VERSION#1',
             'type': 'attestation',
             'attestationId': 'jurisprudence-confirmation',
             'displayName': 'Jurisprudence Confirmation',
@@ -293,7 +293,7 @@ class TestCompactConfigurationUploader(TstFunction):
         attestation_response = self.config.compact_configuration_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq('COMPACT#aslp#ATTESTATIONS')
-            & Key('sk').begins_with('COMPACT#aslp#ATTESTATION#jurisprudence-confirmation'),
+            & Key('sk').begins_with('COMPACT#aslp#LOCALE#en#ATTESTATION#jurisprudence-confirmation'),
         )
 
         # Should have two versions
@@ -353,11 +353,11 @@ class TestCompactConfigurationUploader(TstFunction):
         }
         on_event(event, self.mock_context)
 
-        # Query for all attestations in the aslp compact
+        # Query for attestations
         attestation_response = self.config.compact_configuration_table.query(
             Select='ALL_ATTRIBUTES',
             KeyConditionExpression=Key('pk').eq('COMPACT#aslp#ATTESTATIONS')
-            & Key('sk').begins_with('COMPACT#aslp#ATTESTATION#jurisprudence-confirmation'),
+            & Key('sk').begins_with('COMPACT#aslp#LOCALE#en#ATTESTATION#jurisprudence-confirmation'),
         )
 
         # Should still only have one version

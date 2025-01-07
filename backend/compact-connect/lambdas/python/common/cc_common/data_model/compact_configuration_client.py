@@ -25,7 +25,7 @@ class CompactConfigurationClient:
         logger.info('Getting attestation', compact=compact, attestation_type=attestation_id, locale=locale)
 
         pk = f'COMPACT#{compact}#ATTESTATIONS'
-        sk_prefix = f'COMPACT#{compact}#ATTESTATION#{attestation_id}#LOCALE#{locale}#VERSION#'
+        sk_prefix = f'COMPACT#{compact}#LOCALE#{locale}#ATTESTATION#{attestation_id}#VERSION#'
         response = self.config.compact_configuration_table.query(
             KeyConditionExpression=Key('pk').eq(pk) & Key('sk').begins_with(sk_prefix),
             ScanIndexForward=False,  # Sort in descending order

@@ -1,6 +1,6 @@
 {
   "pk": "COMPACT#aslp#ATTESTATIONS",
-  "sk": "COMPACT#aslp#ATTESTATION#jurisprudence-confirmation#LOCALE#en#VERSION#1",
+  "sk": "COMPACT#aslp#LOCALE#en#ATTESTATION#jurisprudence-confirmation#VERSION#1",
   "type": "attestation",
   "attestationId": "jurisprudence-confirmation",
   "displayName": "Jurisprudence Confirmation",

@@ -34,7 +34,7 @@ class AttestationRecordSchema(BaseRecordSchema):
         """Generate the pk and sk fields for the attestation record"""
         in_data['pk'] = f'COMPACT#{in_data["compact"]}#ATTESTATIONS'
         in_data['sk'] = (
-            f'COMPACT#{in_data["compact"]}#ATTESTATION#{in_data["attestationId"]}#LOCALE#'
-            f'{in_data["locale"]}#VERSION#{in_data["version"]}'
+            f'COMPACT#{in_data["compact"]}#LOCALE#{in_data["locale"]}#ATTESTATION#'
+            f'{in_data["attestationId"]}#VERSION#{in_data["version"]}'
         )
         return in_data
