@@ -359,21 +359,23 @@ class UserRowEdit extends mixins(MixinForm) {
     setCompactPermission(permission: Permission): PermissionObject {
         const response: PermissionObject = {};
 
-        switch (permission) {
-        case Permission.NONE:
-            response.isReadPrivate = false;
-            response.isAdmin = false;
-            break;
-        case Permission.READ_PRIVATE:
-            response.isReadPrivate = true;
-            response.isAdmin = false;
-            break;
-        case Permission.ADMIN:
-            response.isReadPrivate = true;
-            response.isAdmin = true;
-            break;
-        default:
-            break;
+        if (this.isCurrentUserCompactAdmin) {
+            switch (permission) {
+            case Permission.NONE:
+                response.isReadPrivate = false;
+                response.isAdmin = false;
+                break;
+            case Permission.READ_PRIVATE:
+                response.isReadPrivate = true;
+                response.isAdmin = false;
+                break;
+            case Permission.ADMIN:
+                response.isReadPrivate = true;
+                response.isAdmin = true;
+                break;
+            default:
+                break;
+            }
         }
 
         return response;
@@ -469,8 +471,8 @@ class UserRowEdit extends mixins(MixinForm) {
         };
         const stateKeys = Object.keys(formValues).filter((key) => key.startsWith('state-option'));
 
-        // Server endpoints are not idempotent so the frontend needs to handle statefulness;
-        // e.g. if the user's server permisson is already false, we will get a server error if we try to send false again.
+        // Server endpoints may not be idempotent so the frontend needs to handle statefulness;
+        // e.g. if the user's server permisson is already false, we may get a server error if we try to send false again.
         const existingCompactPermission = this.getCompactPermission(this.rowUserCompactPermission);
 
         if (existingCompactPermission !== Permission.READ_PRIVATE && !compactData.isReadPrivate) {
@@ -490,8 +492,8 @@ class UserRowEdit extends mixins(MixinForm) {
                 ...this.setStatePermission(statePermission),
             };
 
-            // Server endpoints are not idempotent so the frontend needs to handle statefulness;
-            // e.g. if the user's server permisson is already false, we will get a server error if we try to send false again.
+            // Server endpoints may not be idempotent so the frontend needs to handle statefulness;
+            // e.g. if the user's server permisson is already false, we may get a server error if we try to send false again.
             const existingStatePermission = this.getStatePermission(this.userStatePermissions.find((permission) =>
                 permission.state?.abbrev === stateAbbrev) || null);
 

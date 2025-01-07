@@ -362,21 +362,23 @@ class UserInvite extends mixins(MixinForm) {
     setCompactPermission(permission: Permission): PermissionObject {
         const response: PermissionObject = {};
 
-        switch (permission) {
-        case Permission.NONE:
-            response.isReadPrivate = false;
-            response.isAdmin = false;
-            break;
-        case Permission.READ_PRIVATE:
-            response.isReadPrivate = true;
-            response.isAdmin = false;
-            break;
-        case Permission.ADMIN:
-            response.isReadPrivate = true;
-            response.isAdmin = true;
-            break;
-        default:
-            break;
+        if (this.isCurrentUserCompactAdmin) {
+            switch (permission) {
+            case Permission.NONE:
+                response.isReadPrivate = false;
+                response.isAdmin = false;
+                break;
+            case Permission.READ_PRIVATE:
+                response.isReadPrivate = true;
+                response.isAdmin = false;
+                break;
+            case Permission.ADMIN:
+                response.isReadPrivate = true;
+                response.isAdmin = true;
+                break;
+            default:
+                break;
+            }
         }
 
         return response;
