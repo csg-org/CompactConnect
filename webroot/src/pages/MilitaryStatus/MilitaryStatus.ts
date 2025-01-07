@@ -181,12 +181,11 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     }
 
     async sortingChange() {
-        console.log('sort');
+        console.log('sort changed');
     }
 
-    // Match pageChange() @Prop signature from /components/Lists/Pagination/Pagination.ts
     async paginationChange() {
-        console.log('pag');
+        console.log('page changed');
     }
 
     editInfo() {

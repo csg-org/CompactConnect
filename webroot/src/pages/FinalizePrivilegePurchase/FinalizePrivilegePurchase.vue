@@ -102,7 +102,7 @@
                         <div class="selection-title">{{selectionText}}</div>
                         <ul>
                             <li
-                                v-for="(state) in seletedStatePurchaseDsiplayDataList"
+                                v-for="(state) in seletedStatePurchaseDisplayDataList"
                                 :key="state.jurisdiction.abbrev"
                                 class="selected-state-block"
                             >

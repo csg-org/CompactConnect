@@ -30,7 +30,7 @@
                 <div class="info-row-label">{{commissionFeeText}}</div>
                 <div class="expire-date-value">${{currentCompactCommissionFeeDisplay}}</div>
             </div>
-            <div v-if="selectedStatePurchaseData.isMilitaryDiscountActive" class="info-row sub-row">
+            <div v-if="shouldApplyMilitaryDiscount" class="info-row sub-row">
                 <div class="info-row-label">{{militaryDiscountText}}</div>
                 <div class="expire-date-value">-${{militaryDiscountAmountDisplay}}</div>
             </div>

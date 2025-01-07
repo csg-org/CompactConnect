@@ -138,7 +138,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         return this.$t('payment.cardNumber');
     }
 
-    get stateOptions() {
+    get stateOptions(): Array <any> {
         const stateOptions = [{ value: '', name: this.$t('common.select') }];
 
         stateList?.forEach((state) => {
@@ -192,7 +192,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
         });
     }
 
-    get seletedStatePurchaseDsiplayDataList(): Array<object> {
+    get seletedStatePurchaseDisplayDataList(): Array<object> {
         return this.selectedStatePurchaseDataList.map((state) => {
             const stateFeeText = `${state?.jurisdiction?.name()} ${this.compactPrivilegeStateFeeText}`;
             const stateMilitaryPurchaseText = `${state?.jurisdiction?.name()} ${this.militaryDiscountText}`;

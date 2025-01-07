@@ -149,8 +149,18 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         return this.selectedStatePurchaseData?.isMilitaryDiscountActive || false;
     }
 
+    get shouldApplyMilitaryDiscount(): boolean {
+        let shouldApply = false;
+
+        if (this.licensee) {
+            shouldApply = this.isMilitaryDiscountActive && this.licensee.isMilitary();
+        }
+
+        return shouldApply;
+    }
+
     get subTotal(): string {
-        const militaryDiscount = this.isMilitaryDiscountActive
+        const militaryDiscount = this.shouldApplyMilitaryDiscount
             && this.selectedStatePurchaseData?.militaryDiscountAmount
             ? this.selectedStatePurchaseData?.militaryDiscountAmount : 0;
 
