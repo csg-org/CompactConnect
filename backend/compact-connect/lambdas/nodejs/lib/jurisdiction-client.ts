@@ -31,7 +31,7 @@ export class JurisdictionClient {
         compactAbbr: string
     ): Promise<IJurisdiction[]> {
         const resp = await this.dynamoDBClient.send(new QueryCommand({
-            TableName: environmentVariables.getCompactconfigurationTableName(),
+            TableName: environmentVariables.getCompactConfigurationTableName(),
             Select: 'ALL_ATTRIBUTES',
             KeyConditionExpression: 'pk = :pk and begins_with (sk, :sk)',
             ExpressionAttributeValues: {

@@ -170,5 +170,19 @@ class _Config:
         """
         return datetime.now(tz=UTC).replace(microsecond=0)
 
+    @cached_property
+    def transaction_client(self):
+        from cc_common.data_model.transaction_client import TransactionClient
+
+        return TransactionClient(self)
+
+    @property
+    def transaction_history_table_name(self):
+        return os.environ['TRANSACTION_HISTORY_TABLE_NAME']
+
+    @property
+    def transaction_history_table(self):
+        return boto3.resource('dynamodb').Table(self.transaction_history_table_name)
+
 
 config = _Config()

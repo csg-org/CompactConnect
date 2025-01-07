@@ -11,50 +11,25 @@
             <div class="finalize-purchase-container">
                 <div class="finalize-purchase-core-container">
                     <div class="finalize-purchase-title-row">
-                        <div
-                            class="finalize-purchase-title"
-                        >
-                            {{paymentTitleText}}
-                        </div>
-                        <CollapseCaretButton
-                            v-if="isPhone"
-                            @toggleCollapse="togglePaymentCollapsed"
-                        />
+                        <div class="finalize-purchase-title">{{paymentTitleText}}</div>
+                        <CollapseCaretButton v-if="isPhone" @toggleCollapse="togglePaymentCollapsed" />
                     </div>
+                    <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                     <div v-if="shouldShowPaymentSection || !isPhone" class="payment-core-form">
                         <div class="credit-card-section">
-                            <div class="credit-card-title">
-                                {{creditCardTitleText}}
-                            </div>
+                            <div class="credit-card-title">{{creditCardTitleText}}</div>
                             <div class="form-row">
-                                <InputText
-                                    :formInput="formData.firstName"
-                                />
-                            </div>
-                            <div class="form-row">
-                                <InputText
-                                    :formInput="formData.lastName"
-                                />
-                            </div>
-                            <div class="form-row">
-                                <InputCreditCard
-                                    :formInput="formData.creditCard"
-                                    @input="formatCreditCard()"
-                                />
+                                <InputCreditCard :formInput="formData.creditCard" @input="formatCreditCard()" />
                             </div>
                             <div class="cc-dets form-row">
                                 <div class="exp-chunk">
-                                    <div class="exp-chunk-title">
-                                        {{expirationDateText}} *
-                                    </div>
+                                    <div class="exp-chunk-title">{{expirationDateText}} *</div>
                                     <div class="exp-chunk-input">
                                         <InputText
                                             :formInput="formData.expMonth"
                                             @input="handleExpMonthInput(formData.expMonth)"
                                         />
-                                        <div class="slash">
-                                            /
-                                        </div>
+                                        <div class="slash">/</div>
                                         <InputText
                                             :formInput="formData.expYear"
                                             @input="handleExpYearInput(formData.expYear)"
@@ -72,23 +47,21 @@
                             </div>
                         </div>
                         <div class="billing-address-section">
-                            <div class="billing-address-title">
-                                {{billingAddressTitleText}}
+                            <div class="billing-address-title">{{billingAddressTitleText}}</div>
+                            <div class="form-row">
+                                <InputText :formInput="formData.firstName" />
                             </div>
                             <div class="form-row">
-                                <InputText
-                                    :formInput="formData.streetAddress1"
-                                />
+                                <InputText :formInput="formData.lastName" />
                             </div>
                             <div class="form-row">
-                                <InputText
-                                    :formInput="formData.streetAddress2"
-                                />
+                                <InputText :formInput="formData.streetAddress1" />
+                            </div>
+                            <div class="form-row">
+                                <InputText :formInput="formData.streetAddress2" />
                             </div>
                             <div class="state-zip-line form-row">
-                                <InputSelect
-                                    :formInput="formData.stateSelect"
-                                />
+                                <InputSelect :formInput="formData.stateSelect" class="state-select" />
                                 <InputText
                                     :formInput="formData.zip"
                                     @input="handleZipInput(formData.cvv)"
@@ -102,43 +75,33 @@
                         <div class="selection-title">{{selectionText}}</div>
                         <ul>
                             <li
-                                v-for="(state) in seletedStatePurchaseDisplayDataList"
+                                v-for="(state) in selectedStatePurchaseDisplayDataList"
                                 :key="state.jurisdiction.abbrev"
                                 class="selected-state-block"
                             >
                                 <div class="info-row">
-                                    <div class="info-row-label">
-                                        {{state.stateFeeText}}
-                                    </div>
-                                    <div class="expire-date-value">${{state.stateFeeDisplay}}</div>
+                                    <div class="info-row-label">{{state.stateFeeText}}</div>
+                                    <div class="info-row-amount">${{state.stateFeeDisplay}}</div>
                                 </div>
                                 <div v-if="state.isMilitaryDiscountActive" class="info-row">
-                                    <div class="info-row-label">
-                                        {{state.stateMilitaryPurchaseText}}
-                                    </div>
-                                    <div class="expire-date-value">-${{state.stateMilitaryDiscountAmountDisplay}}</div>
+                                    <div class="info-row-label">{{state.stateMilitaryPurchaseText}}</div>
+                                    <div class="info-row-amount">-${{state.stateMilitaryDiscountAmountDisplay}}</div>
                                 </div>
                             </li>
                         </ul>
                         <div class="compact-commission-fee info-row">
-                            <div class="info-row-label">
-                                {{compactCommissionFeeText}}
-                            </div>
-                            <div class="expire-date-value">${{totalCompactCommissionFeeDisplay}}</div>
+                            <div class="info-row-label">{{compactCommissionFeeText}}</div>
+                            <div class="info-row-amount">${{totalCompactCommissionFeeDisplay}}</div>
                         </div>
                         <div class="purchase-total info-row">
-                            <div class="info-row-label total">
-                                {{totalTitle}}
-                            </div>
-                            <div class="expire-date-value total">${{totalPurchasePriceDisplay}}</div>
+                            <div class="info-row-label total">{{totalTitle}}</div>
+                            <div class="info-row-amount total">${{totalPurchasePriceDisplay}}</div>
                         </div>
                     </div>
-                    <InputCheckbox :formInput="formData.noRefunds" />
+                    <InputCheckbox :formInput="formData.noRefunds" class="no-refunds-checkbox" />
                 </div>
             </div>
-            <div v-if="formErrorMessage" class="form-error-message">
-                {{formErrorMessage}}
-            </div>
+            <div v-if="formErrorMessage" class="form-error-message">{{formErrorMessage}}</div>
             <div class="button-row">
                 <InputButton
                     :label="cancelText"

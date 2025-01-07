@@ -22,6 +22,33 @@ MOCK_LICENSEE_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
 
 EXPECTED_TOTAL_FEE_AMOUNT = 150.50
 
+# Test constants for transaction history tests
+MOCK_BATCH_ID = '12345'
+MOCK_BATCH_ID_2 = '12346'
+MOCK_PROCESSED_BATCH_ID = '12344'
+MOCK_PREVIOUS_TRANSACTION_ID = '67889'
+MOCK_ITEM_ID = 'ITEM001'
+MOCK_ITEM_NAME = 'Test Item'
+MOCK_ITEM_DESCRIPTION = 'Test Description'
+MOCK_ITEM_QUANTITY = '1'
+MOCK_ITEM_PRICE = '10.00'
+
+# these transaction ids must be numeric to match the authorize.net SDK response
+MOCK_TRANSACTION_ID_1_BATCH_1 = '11'
+MOCK_TRANSACTION_ID_1_BATCH_2 = '12'
+MOCK_TRANSACTION_ID_2_BATCH_2 = '22'
+
+# Test constants for transaction states and types
+SUCCESSFUL_RESULT_CODE = 'Ok'
+SUCCESSFUL_SETTLED_STATE = 'settledSuccessfully'
+AUTH_CAPTURE_TRANSACTION_TYPE = 'authCaptureTransaction'
+
+# Test timestamps
+MOCK_SETTLEMENT_TIME_UTC = '2024-12-27T17:49:20.757Z'
+MOCK_SETTLEMENT_TIME_LOCAL = '2024-12-27T13:49:20.757'
+MOCK_SETTLEMENT_TIME_UTC_2 = '2024-12-26T15:15:20.007Z'
+MOCK_SETTLEMENT_TIME_LOCAL_2 = '2024-12-26T11:15:20.007Z'
+
 
 def json_to_magic_mock(json_obj):
     """
@@ -592,3 +619,256 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             )
 
         self.assertIn('Failed to verify credentials', str(context.exception.message))
+
+    def _when_authorize_dot_net_batch_list_is_successful(self, mock_controller):
+        mock_response = {
+            'messages': {
+                'resultCode': SUCCESSFUL_RESULT_CODE,
+            },
+            'batchList': {
+                'batch': [
+                    {
+                        'batchId': MOCK_BATCH_ID,
+                        'settlementTimeUTC': MOCK_SETTLEMENT_TIME_UTC,
+                        'settlementTimeLocal': MOCK_SETTLEMENT_TIME_LOCAL,
+                        'settlementState': SUCCESSFUL_SETTLED_STATE,
+                    }
+                ]
+            },
+        }
+        return self._setup_mock_transaction_controller(mock_controller, mock_response)
+
+    def _when_authorize_dot_net_transaction_list_is_successful(self, mock_controller):
+        mock_response = {
+            'messages': {
+                'resultCode': SUCCESSFUL_RESULT_CODE,
+            },
+            'transactions': {
+                'transaction': [
+                    {
+                        'transId': MOCK_TRANSACTION_ID,
+                        'transactionStatus': SUCCESSFUL_SETTLED_STATE,
+                    }
+                ]
+            },
+            'totalNumInResultSet': 1,
+        }
+        return self._setup_mock_transaction_controller(mock_controller, mock_response)
+
+    def _generate_mock_transaction_list_response(self, transaction_ids: list[str]):
+        return {
+            'messages': {
+                'resultCode': SUCCESSFUL_RESULT_CODE,
+            },
+            'transactions': {
+                'transaction': [
+                    {
+                        'transId': transaction_id,
+                        'transactionStatus': SUCCESSFUL_SETTLED_STATE,
+                    }
+                    for transaction_id in transaction_ids
+                ]
+            },
+            'totalNumInResultSet': 1,
+        }
+
+    def _generate_mock_transaction_detail_response(self, transaction_id: str):
+        return {
+            'messages': {
+                'resultCode': SUCCESSFUL_RESULT_CODE,
+            },
+            'transaction': {
+                'transId': transaction_id,
+                'submitTimeUTC': MOCK_SETTLEMENT_TIME_UTC,
+                'transactionType': AUTH_CAPTURE_TRANSACTION_TYPE,
+                'transactionStatus': SUCCESSFUL_SETTLED_STATE,
+                'responseCode': '1',
+                'settleAmount': MOCK_ITEM_PRICE,
+                'order': {'description': f'LICENSEE#{MOCK_LICENSEE_ID}#'},
+                'lineItems': {
+                    'lineItem': [
+                        {
+                            'itemId': MOCK_ITEM_ID,
+                            'name': MOCK_ITEM_NAME,
+                            'description': MOCK_ITEM_DESCRIPTION,
+                            'quantity': MOCK_ITEM_QUANTITY,
+                            'unitPrice': MOCK_ITEM_PRICE,
+                            'taxable': 'false',
+                        }
+                    ]
+                },
+            },
+        }
+
+    def _when_authorize_dot_net_transaction_details_are_successful(self, mock_controller):
+        mock_response = self._generate_mock_transaction_detail_response(MOCK_TRANSACTION_ID)
+        return self._setup_mock_transaction_controller(mock_controller, mock_response)
+
+    @patch('purchase_client.getSettledBatchListController')
+    @patch('purchase_client.getTransactionListController')
+    @patch('purchase_client.getTransactionDetailsController')
+    def test_purchase_client_gets_settled_transactions_successfully(
+        self,
+        mock_details_controller,
+        mock_transaction_controller,
+        mock_batch_controller,
+    ):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_batch_list_is_successful(mock_batch_controller)
+        self._when_authorize_dot_net_transaction_list_is_successful(mock_transaction_controller)
+        self._when_authorize_dot_net_transaction_details_are_successful(mock_details_controller)
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+        response = test_purchase_client.get_settled_transactions(
+            compact='aslp',
+            start_time='2024-01-01T00:00:00Z',
+            end_time='2024-01-02T00:00:00Z',
+            transaction_limit=500,
+        )
+
+        # Verify response structure
+        self.assertIn('transactions', response)
+        self.assertEqual(len(response['transactions']), 1)
+        self.assertIn('processedBatchIds', response)
+        self.assertEqual(len(response['processedBatchIds']), 1)
+
+        # Verify transaction data
+        transaction = response['transactions'][0]
+        self.assertEqual(transaction['transactionId'], MOCK_TRANSACTION_ID)
+        self.assertEqual(transaction['compact'], 'aslp')
+        self.assertEqual(transaction['licenseeId'], MOCK_LICENSEE_ID)
+        self.assertEqual(transaction['batch']['batchId'], MOCK_BATCH_ID)
+        self.assertEqual(len(transaction['lineItems']), 1)
+
+    @patch('purchase_client.getSettledBatchListController')
+    @patch('purchase_client.getTransactionListController')
+    @patch('purchase_client.getTransactionDetailsController')
+    def test_purchase_client_handles_pagination_for_settled_transactions(
+        self,
+        mock_details_controller,
+        mock_transaction_controller,
+        mock_batch_controller,
+    ):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+
+        # Setup multiple batches
+        mock_batch_response = json_to_magic_mock(
+            {
+                'messages': {
+                    'resultCode': SUCCESSFUL_RESULT_CODE,
+                },
+                'batchList': {
+                    'batch': [
+                        {
+                            'batchId': MOCK_BATCH_ID,
+                            'settlementTimeUTC': MOCK_SETTLEMENT_TIME_UTC,
+                            'settlementTimeLocal': MOCK_SETTLEMENT_TIME_LOCAL,
+                            'settlementState': SUCCESSFUL_SETTLED_STATE,
+                        },
+                        {
+                            'batchId': MOCK_BATCH_ID_2,
+                            'settlementTimeUTC': MOCK_SETTLEMENT_TIME_UTC_2,
+                            'settlementTimeLocal': MOCK_SETTLEMENT_TIME_LOCAL_2,
+                            'settlementState': SUCCESSFUL_SETTLED_STATE,
+                        },
+                    ]
+                },
+            }
+        )
+        mock_batch_controller.return_value.getresponse.return_value = mock_batch_response
+
+        mock_transaction_list_responses = [
+            # first batch returns one transaction
+            json_to_magic_mock(self._generate_mock_transaction_list_response([MOCK_TRANSACTION_ID_1_BATCH_1])),
+            # second api call returns two transactions from second call
+            json_to_magic_mock(
+                self._generate_mock_transaction_list_response(
+                    [MOCK_TRANSACTION_ID_1_BATCH_2, MOCK_TRANSACTION_ID_2_BATCH_2]
+                )
+            ),
+            # third api call should be called for second batch again to process remaining transactions,
+            # with same transaction list returned
+            json_to_magic_mock(
+                self._generate_mock_transaction_list_response(
+                    [MOCK_TRANSACTION_ID_1_BATCH_2, MOCK_TRANSACTION_ID_2_BATCH_2]
+                )
+            ),
+        ]
+        mock_transaction_controller.return_value.getresponse.side_effect = mock_transaction_list_responses
+
+        mock_details_responses = [
+            json_to_magic_mock(self._generate_mock_transaction_detail_response(MOCK_TRANSACTION_ID_1_BATCH_1)),
+            json_to_magic_mock(self._generate_mock_transaction_detail_response(MOCK_TRANSACTION_ID_1_BATCH_2)),
+            json_to_magic_mock(self._generate_mock_transaction_detail_response(MOCK_TRANSACTION_ID_2_BATCH_2)),
+        ]
+        mock_details_controller.return_value.getresponse.side_effect = mock_details_responses
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+        response = test_purchase_client.get_settled_transactions(
+            compact='aslp',
+            start_time='2024-01-01T00:00:00Z',
+            end_time='2024-01-02T00:00:00Z',
+            transaction_limit=2,
+        )
+
+        # Verify pagination info is returned
+        self.assertEqual(MOCK_TRANSACTION_ID_1_BATCH_2, response['lastProcessedTransactionId'])
+        self.assertEqual(MOCK_BATCH_ID_2, response['currentBatchId'])
+        self.assertEqual([MOCK_BATCH_ID], response['processedBatchIds'])
+        # Verify transaction data
+        self.assertEqual(2, len(response['transactions']))
+        self.assertEqual(response['transactions'][0]['transactionId'], MOCK_TRANSACTION_ID_1_BATCH_1)
+        self.assertEqual(response['transactions'][1]['transactionId'], MOCK_TRANSACTION_ID_1_BATCH_2)
+
+        # now fetch the remaining results
+        response = test_purchase_client.get_settled_transactions(
+            compact='aslp',
+            start_time='2024-01-01T00:00:00Z',
+            end_time='2024-01-02T00:00:00Z',
+            transaction_limit=2,
+            last_processed_transaction_id=response['lastProcessedTransactionId'],
+            current_batch_id=response['currentBatchId'],
+            processed_batch_ids=response['processedBatchIds'],
+        )
+
+        # Verify no pagination info is returned
+        self.assertNotIn('lastProcessedTransactionId', response)
+        self.assertNotIn('currentBatchId', response)
+
+        # assert that the second transaction is returned, the first being skipped
+        self.assertEqual([MOCK_BATCH_ID, MOCK_BATCH_ID_2], response['processedBatchIds'])
+        self.assertEqual(1, len(response['transactions']))
+        self.assertEqual(MOCK_TRANSACTION_ID_2_BATCH_2, response['transactions'][0]['transactionId'])
+
+    @patch('purchase_client.getSettledBatchListController')
+    def test_purchase_client_handles_no_batches_for_settled_transactions(self, mock_batch_controller):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+
+        # Return empty batch list
+        mock_response = json_to_magic_mock(
+            {
+                'messages': {
+                    'resultCode': SUCCESSFUL_RESULT_CODE,
+                },
+                'batchList': {'batch': []},
+            }
+        )
+        mock_batch_controller.return_value.getresponse.return_value = mock_response
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+        response = test_purchase_client.get_settled_transactions(
+            compact='aslp',
+            start_time='2024-01-01T00:00:00Z',
+            end_time='2024-01-02T00:00:00Z',
+            transaction_limit=500,
+        )
+
+        # Verify empty response is returned when no batches exist
+        self.assertEqual(len(response['transactions']), 0)
+        self.assertEqual(len(response['processedBatchIds']), 0)

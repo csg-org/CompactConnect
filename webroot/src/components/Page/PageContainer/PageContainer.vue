@@ -6,10 +6,11 @@
 -->
 
 <template>
-    <div class="page-container" :class="{ 'include-page-header': includePageHeader }">
-        <header v-if="includePageHeader" v-show="!isLoading">
-            <PageHeader></PageHeader>
+    <div class="page-container">
+        <header>
+            <PageHeader v-if="includePageHeader"></PageHeader>
         </header>
+        <PageNav />
         <div class="page-content" role="main">
             <transition name="fade">
                 <PageLoadingMask v-show="isLoading"></PageLoadingMask>

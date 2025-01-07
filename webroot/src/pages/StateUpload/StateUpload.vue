@@ -6,7 +6,7 @@
 -->
 
 <template>
-    <Section class="state-upload-container">
+    <Section class="state-upload-page-container">
         <StateUpload class="state-upload-component-container" />
     </Section>
 </template>

@@ -1,2 +1,0 @@
-boto3>=1.34, <2
-aws-lambda-powertools>=2.29.1, <3

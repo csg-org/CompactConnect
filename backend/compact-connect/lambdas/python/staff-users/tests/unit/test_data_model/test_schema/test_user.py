@@ -13,7 +13,7 @@ class TestUserRecordSchema(TstLambdas):
         with open('tests/resources/api/user-post.json') as f:
             api_user = json.load(f)
 
-        with open('tests/resources/dynamo/user.json') as f:
+        with open('../common/tests/resources/dynamo/user.json') as f:
             dynamo_user = TypeDeserializer().deserialize({'M': json.load(f)})
 
         schema = UserAPISchema()
@@ -30,7 +30,7 @@ class TestUserRecordSchema(TstLambdas):
         with open('tests/resources/api/user-post.json') as f:
             api_user = json.load(f)
 
-        with open('tests/resources/dynamo/user.json') as f:
+        with open('../common/tests/resources/dynamo/user.json') as f:
             dynamo_user = UserRecordSchema().load(TypeDeserializer().deserialize({'M': json.load(f)}))
 
         schema = UserAPISchema()
@@ -45,7 +45,7 @@ class TestUserRecordSchema(TstLambdas):
         """Test round-trip serialization/deserialization of user records"""
         from cc_common.data_model.schema.user import UserRecordSchema
 
-        with open('tests/resources/dynamo/user.json') as f:
+        with open('../common/tests/resources/dynamo/user.json') as f:
             expected_user = TypeDeserializer().deserialize({'M': json.load(f)})
 
         schema = UserRecordSchema()
@@ -60,7 +60,7 @@ class TestUserRecordSchema(TstLambdas):
     def test_invalid_record(self):
         from cc_common.data_model.schema.user import UserRecordSchema
 
-        with open('tests/resources/dynamo/user.json') as f:
+        with open('../common/tests/resources/dynamo/user.json') as f:
             user_data = TypeDeserializer().deserialize({'M': json.load(f)})
         user_data.pop('attributes')
 
