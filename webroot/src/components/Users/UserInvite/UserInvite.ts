@@ -9,12 +9,12 @@ import { Component, mixins, toNative } from 'vue-facing-decorator';
 import { reactive, computed, ComputedRef } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Card from '@components/Card/Card.vue';
-import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
+import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import {
@@ -495,6 +495,7 @@ class UserInvite extends mixins(MixinForm) {
         this.formData.email.value = `test@example.com`;
         this.formData.firstName.value = `Test`;
         this.formData.lastName.value = `User`;
+        this.validateAll({ asTouched: true });
     }
 }
 

@@ -7,32 +7,32 @@
 
 <template>
     <div class="licensee-list-container">
-        <h1 class="list-title">{{ $t('licensing.licensingListTitle') }}</h1>
         <transition name="fade-slow" mode="out-in">
-            <div v-if="!hasSearched" class="search-initial-container">
-                <LicenseeSearch :searchParams="searchParams" @searchParams="handleSearch" />
-            </div>
-            <div v-else-if="shouldShowSearchModal" class="search-modal-container">
+            <div v-if="!hasSearched || shouldShowSearchModal" class="search-initial-container">
+                <h1 class="list-title">{{ $t('licensing.licensingListTitle') }}</h1>
                 <LicenseeSearch :searchParams="searchParams" @searchParams="handleSearch" />
             </div>
             <div v-else class="licesee-list-container">
-                <div class="search-toggle-container">
-                    <div v-if="searchDisplayAll" class="search-tag">
-                        <span class="title">{{ $t('common.viewing') }}:</span>
-                        <span class="search-terms">{{ searchDisplayAll }}</span>
-                        <CloseX
-                            class="search-terms-reset"
-                            @click="resetSearch()"
+                <div class="list-actions-container">
+                    <h1 class="list-title no-margin">{{ $t('licensing.licensingListTitle') }}</h1>
+                    <div class="search-toggle-container">
+                        <div v-if="searchDisplayAll" class="search-tag">
+                            <span class="title">{{ $t('common.viewing') }}:</span>
+                            <span class="search-terms">{{ searchDisplayAll }}</span>
+                            <CloseX
+                                class="search-terms-reset"
+                                @click="resetSearch()"
+                                tabindex="0"
+                            />
+                        </div>
+                        <button
+                            class="search-toggle"
+                            @click="toggleSearch()"
                             tabindex="0"
-                        />
+                        >
+                            {{ $t('licensing.searchLabel') }}
+                        </button>
                     </div>
-                    <button
-                        class="search-toggle"
-                        @click="toggleSearch()"
-                        tabindex="0"
-                    >
-                        {{ $t('licensing.searchLabel') }}
-                    </button>
                 </div>
                 <ListContainer
                     :listId="listId"

@@ -5,7 +5,6 @@ from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissin
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import Rule, RuleTargetInput, Schedule
 from aws_cdk.aws_events_targets import LambdaFunction
-from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_logs import QueryDefinition, QueryString
 from cdk_nag import NagSuppressions
 from common_constructs.nodejs_function import NodejsFunction
@@ -23,11 +22,7 @@ class ReportingStack(AppStack):
     def _add_ingest_event_reporting_chain(self, persistent_stack: ps.PersistentStack):
         from_address = f'noreply@{persistent_stack.user_email_notifications.email_identity.email_identity_name}'
         # we host email image assets in the UI bucket, so we'll use the UI domain name if it's available
-        if self.ui_domain_name is not None:
-            ui_base_path_url = f'https://{self.ui_domain_name}'
-        else:
-            # default to csg test environment
-            ui_base_path_url = 'https://app.test.compactconnect.org'
+        ui_base_path_url = self._get_ui_base_path_url()
 
         # We use a Node.js function in this case because the tool we identified for email report generation,
         # EmailBuilderJS, is in Node.js. To make utilizing the tool as simple as possible, we opted to not mix
@@ -50,50 +45,7 @@ class ReportingStack(AppStack):
         )
         persistent_stack.data_event_table.grant_read_data(event_collector)
         persistent_stack.compact_configuration_table.grant_read_data(event_collector)
-
-        ses_resources = [
-            persistent_stack.user_email_notifications.email_identity.email_identity_arn,
-            self.format_arn(
-                partition=self.partition,
-                service='ses',
-                region=self.region,
-                account=self.account,
-                resource='configuration-set',
-                resource_name=persistent_stack.user_email_notifications.config_set.configuration_set_name,
-            ),
-        ]
-        # We'll assume that, if it is a sandbox environment, they're in the Simple Email Service (SES) sandbox
-        if self.node.try_get_context('sandbox'):
-            # SES Sandboxed accounts require that the sending principal also be explicitly granted permission to send
-            # emails to the SES identity they configured for testing. Because we don't know that identity in advance,
-            # We'll have to allow the principal to use any SES identity configured in the account.
-            # arn:aws:ses:{region}:{account}:identity/*
-            ses_resources.append(
-                self.format_arn(
-                    partition=self.partition,
-                    service='ses',
-                    region=self.region,
-                    account=self.account,
-                    resource='identity',
-                    resource_name='*',
-                ),
-            )
-
-        event_collector.role.add_to_principal_policy(
-            PolicyStatement(
-                actions=['ses:SendEmail', 'ses:SendRawEmail'],
-                resources=ses_resources,
-                effect=Effect.ALLOW,
-                conditions={
-                    # To mitigate the pretty open resources section for sandbox environments, we'll restrict the use of
-                    # this action by specifying what From address and display name the principal must use.
-                    'StringEquals': {
-                        'ses:FromAddress': from_address,
-                        'ses:FromDisplayName': 'Compact Connect',
-                    }
-                },
-            )
-        )
+        persistent_stack.setup_ses_permissions_for_lambda(event_collector)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
@@ -163,3 +115,11 @@ class ReportingStack(AppStack):
             ),
             log_groups=[event_collector.log_group],
         )
+
+    def _get_ui_base_path_url(self) -> str:
+        """Returns the base URL for the UI."""
+        if self.ui_domain_name is not None:
+            return f'https://{self.ui_domain_name}'
+
+        # default to csg test environment
+        return 'https://app.test.compactconnect.org'

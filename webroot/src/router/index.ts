@@ -61,4 +61,10 @@ router.beforeEach(async (to, from, next) => {
     }
 });
 
+router.afterEach(() => {
+    if (window.innerWidth < 770) {
+        store.dispatch('collapseNavMenu');
+    }
+});
+
 export default router;

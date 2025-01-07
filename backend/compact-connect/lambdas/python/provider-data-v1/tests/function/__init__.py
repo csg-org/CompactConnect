@@ -111,6 +111,9 @@ class TstFunction(TstLambdas):
 
         for resource in test_resources:
             with open(resource) as f:
+                if resource.endswith('user.json'):
+                    # skip the staff user test data, as it is not stored in the provider table
+                    continue
                 record = json.load(f, object_hook=privilege_jurisdictions_to_set, parse_float=Decimal)
 
             logger.debug('Loading resource, %s: %s', resource, str(record))
