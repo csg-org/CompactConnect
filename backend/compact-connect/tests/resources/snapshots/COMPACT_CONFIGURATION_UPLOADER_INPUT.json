@@ -86,14 +86,6 @@
           "locale": "en"
         },
         {
-          "attestationId": "provision-of-true-information-attestation",
-          "displayName": "Provision of True Information Attestation",
-          "description": "For declaring that the applicant has provided true information.",
-          "text": "I hereby attest and affirm that all information contained in this privilege application is true to the best of my knowledge.",
-          "required": true,
-          "locale": "en"
-        },
-        {
           "attestationId": "military-affiliation-confirmation-attestation",
           "displayName": "Military Affiliation Confirmation Attestation",
           "description": "For declaring that the applicant's military affiliation documentation is accurate.",
@@ -177,14 +169,6 @@
           "displayName": "No Discipline Encumbrance For Prior Two Yeats Attestation",
           "description": "For declaring that the applicant has no encumbrances on any state license within the last two years.",
           "text": "I hereby attest and affirm that I have not had any encumbrance on ANY state license within the previous two years from date of this application for a Compact Privilege.",
-          "required": true,
-          "locale": "en"
-        },
-        {
-          "attestationId": "provision-of-true-information-attestation",
-          "displayName": "Provision of True Information Attestation",
-          "description": "For declaring that the applicant has provided true information.",
-          "text": "I hereby attest and affirm that all information contained in this privilege application is true to the best of my knowledge.",
           "required": true,
           "locale": "en"
         },
