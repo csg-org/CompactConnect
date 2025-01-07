@@ -24,7 +24,6 @@ ALL_ATTESTATION_IDS = [
     'provision-of-true-information-attestation',
     'not-under-investigation-attestation',
     'military-affiliation-confirmation-attestation',
-    'not-under-investigation-attestation',
     'under-investigation-attestation',
 ]
 

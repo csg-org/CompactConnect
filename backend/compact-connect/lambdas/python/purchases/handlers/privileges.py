@@ -147,7 +147,7 @@ def _validate_attestations(compact: str, attestations: list[dict], has_active_mi
     #       to pass them in the request body. For now, we will simply check whatever
     #       attestation is passed in to make sure it is the latest version. This conditional
     #       should be removed once the frontend is updated to pass in all required attestations.
-    if os.environ.get('ENFORCE_ATTESTATIONS').lower() == 'true':
+    if os.environ.get('ENFORCE_ATTESTATIONS') == 'true':
         # Build list of required attestations
         required_ids = REQUIRED_ATTESTATION_IDS.copy()
         if has_active_military_affiliation:
