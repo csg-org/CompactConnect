@@ -55,8 +55,6 @@ export class MilitaryAffiliation implements InterfaceMilitaryAffiliationCreate {
 // ========================================================
 export class MilitaryAffiliationSerializer {
     static fromServer(json: any): MilitaryAffiliation {
-        console.log('json', json);
-
         const data: any = {
             affiliationType: json.affiliationType,
             compact: json.compact,

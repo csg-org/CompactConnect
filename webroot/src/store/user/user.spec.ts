@@ -628,4 +628,41 @@ describe('User Store Actions', async () => {
             [MutationTypes.END_MILITARY_AFFILIATION_FAILURE, error]
         );
     });
+    it('should successfully start upload military affiliation document request', () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const documentData = {
+            affiliationType: 'militaryMemberSpouse',
+            document: {
+                name: 'WyldPets_Backdrop1.jpeg'
+            },
+            fileNames: ['WyldPets_Backdrop1.jpeg']
+        };
+
+        actions.uploadMilitaryAffiliationRequest({ commit, dispatch }, documentData);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPLOAD_MILITARY_AFFILIATION_REQUEST]);
+    });
+    it('should successfully start upload military affiliation document success', () => {
+        const commit = sinon.spy();
+
+        actions.uploadMilitaryAffiliationSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern(
+            [MutationTypes.UPLOAD_MILITARY_AFFILIATION_SUCCESS]
+        );
+    });
+    it('should successfully start upload military affiliation document failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.uploadMilitaryAffiliationFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern(
+            [MutationTypes.UPLOAD_MILITARY_AFFILIATION_FAILURE, error]
+        );
+    });
 });

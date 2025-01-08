@@ -27,11 +27,6 @@ import Joi from 'joi';
 })
 export default class UpdateMilitaryStatus extends mixins(MixinForm) {
     //
-    // Data
-    //
-    isSubmitSuccessful;
-
-    //
     // Lifecycle
     //
     created() {
@@ -125,8 +120,6 @@ export default class UpdateMilitaryStatus extends mixins(MixinForm) {
             const documentUploadData = this.transformFormDataToUploadIntent(this.formData);
 
             if (!this.isFormError) {
-                console.log('documentUploadData', documentUploadData);
-
                 uploadResponse = await this.$store.dispatch('user/uploadMilitaryAffiliationRequest', documentUploadData);
             }
 
@@ -141,8 +134,6 @@ export default class UpdateMilitaryStatus extends mixins(MixinForm) {
     }
 
     resetForm(isSuccessful) {
-        console.log('this.formData.document.value', this.formData.document.value);
-
         this.formData.document.value.length = 0;
         this.formData.affiliationType.value = null;
         this.isFormLoading = false;
@@ -157,7 +148,6 @@ export default class UpdateMilitaryStatus extends mixins(MixinForm) {
     }
 
     transformFormDataToUploadIntent(formData) {
-        console.log('formData', formData);
         const affiliationType = formData.affiliationType.value;
         const document = formData.document.value[0];
         const fileNames = [ document.name ];

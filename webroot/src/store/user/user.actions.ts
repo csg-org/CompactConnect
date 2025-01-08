@@ -278,18 +278,13 @@ export default {
     },
     uploadMilitaryAffiliationRequest: ({ commit, dispatch }, documentData) => {
         commit(MutationTypes.UPLOAD_MILITARY_AFFILIATION_REQUEST);
+
         const documentIntentData = { ...documentData };
 
         delete documentIntentData.document;
         return dataApi.postUploadMilitaryDocumentIntent(documentIntentData).then((intentServerResponse) => {
-            console.log('intentServerResponse', intentServerResponse);
             const postUrl = intentServerResponse.documentUploadFields[0].url;
             const uploadFields = intentServerResponse.documentUploadFields[0].fields;
-
-            console.log('postUrl', postUrl);
-            console.log('uploadFields', uploadFields);
-            console.log('documentData', documentData);
-            console.log('documentData.document', documentData.document);
 
             if (postUrl && uploadFields && documentData.document) {
                 const documentUploadData = { ...uploadFields };
@@ -297,7 +292,6 @@ export default {
                 return dataApi.postUploadMilitaryAffiliationDocument(postUrl, documentUploadData, documentData.document)
                     .then((uploadServerResponse) => {
                         if (uploadServerResponse?.status === 204) {
-                            // Add active to end off array and deactivate all others
                             dispatch('uploadMilitaryAffiliationSuccess');
 
                             return uploadServerResponse;
@@ -309,8 +303,6 @@ export default {
 
             throw new Error('Missing fields for Document upload');
         }).catch((error) => {
-            console.log('errorHere', error);
-
             dispatch('uploadMilitaryAffiliationFailure', error);
             return error;
         });

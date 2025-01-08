@@ -20,7 +20,6 @@
                 {{ $t('military.updateMilitaryStatusTitle') }}
             </div>
             <div class="core-info-block">
-
                 <form @submit.prevent="handleSubmit">
                     <div class="title-row">
                         {{attestationTitleText}}
