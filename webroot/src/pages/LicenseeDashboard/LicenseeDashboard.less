@@ -45,7 +45,35 @@
             margin-top: 2rem;
 
             .view-military-btn {
-                margin-right: 2rem;
+                margin-right: 1rem;
+
+                &:deep(input) {
+                    padding-right: 1rem;
+                    padding-left: 1rem;
+                }
+
+                @media @tabletWidth {
+                    margin-right: 2rem;
+
+                    &:deep(input) {
+                        padding-right: 2.4rem;
+                        padding-left: 2.4rem;
+                    }
+                }
+            }
+
+            .obtain-priv-btn {
+                &:deep(input) {
+                    padding-right: 1rem;
+                    padding-left: 1rem;
+                }
+
+                @media @tabletWidth {
+                    &:deep(input) {
+                        padding-right: 2.4rem;
+                        padding-left: 2.4rem;
+                    }
+                }
             }
         }
     }

@@ -303,11 +303,11 @@ export default {
                             return uploadServerResponse;
                         }
 
-                        return new Error();
+                        throw new Error('Document Upload Failed');
                     });
             }
 
-            return new Error();
+            throw new Error('Missing fields for Document upload');
         }).catch((error) => {
             console.log('errorHere', error);
 

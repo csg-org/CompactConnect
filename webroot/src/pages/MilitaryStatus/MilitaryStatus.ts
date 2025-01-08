@@ -119,7 +119,7 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     }
 
     get yesEndText(): string {
-        return this.$t('military.yesEnd');
+        return this.$matches.phone.only ? this.$t('common.yes') : this.$t('military.yesEnd');
     }
 
     get licensee(): Licensee | null {

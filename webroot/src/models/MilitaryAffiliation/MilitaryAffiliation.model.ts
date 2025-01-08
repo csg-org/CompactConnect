@@ -1,5 +1,5 @@
 //
-//  user.model.ts
+//  MilitaryAffiliation.model.ts
 //  InspiringApps modules
 //
 //  Created by InspiringApps on 4/12/20.
@@ -26,8 +26,6 @@ export interface InterfaceMilitaryAffiliationCreate {
 // =                        Model                         =
 // ========================================================
 export class MilitaryAffiliation implements InterfaceMilitaryAffiliationCreate {
-    public $tm?: any = () => [];
-    public $t?: any = () => '';
     public affiliationType? = null;
     public compact? = null;
     public dateOfUpdate? = null;
@@ -39,12 +37,6 @@ export class MilitaryAffiliation implements InterfaceMilitaryAffiliationCreate {
     constructor(data?: InterfaceMilitaryAffiliationCreate) {
         const cleanDataObject = deleteUndefinedProperties(data);
         const global = window as any;
-        const { $tm, $t } = global.Vue?.config?.globalProperties || {};
-
-        if ($tm) {
-            this.$tm = $tm;
-            this.$t = $t;
-        }
 
         Object.assign(this, cleanDataObject);
     }
@@ -66,7 +58,7 @@ export class MilitaryAffiliationSerializer {
     static fromServer(json: any): MilitaryAffiliation {
         console.log('json', json);
 
-        const userData: any = {
+        const data: any = {
             affiliationType: json.affiliationType,
             compact: json.compact,
             dateOfUpdate: json.dateOfUpdate,
@@ -76,6 +68,6 @@ export class MilitaryAffiliationSerializer {
             status: json.status
         };
 
-        return new MilitaryAffiliation(userData);
+        return new MilitaryAffiliation(data);
     }
 }
