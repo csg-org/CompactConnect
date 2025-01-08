@@ -36,7 +36,6 @@ export class MilitaryAffiliation implements InterfaceMilitaryAffiliationCreate {
 
     constructor(data?: InterfaceMilitaryAffiliationCreate) {
         const cleanDataObject = deleteUndefinedProperties(data);
-        const global = window as any;
 
         Object.assign(this, cleanDataObject);
     }

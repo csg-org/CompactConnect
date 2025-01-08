@@ -101,7 +101,7 @@ export const staffAccount = {
     },
 };
 
-export const stateUploadRequestData = {
+export const uploadRequestData = {
     upload: {
         url: `https://example.com`,
         fields: {

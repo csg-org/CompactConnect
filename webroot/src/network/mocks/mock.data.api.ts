@@ -13,7 +13,7 @@ import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOpti
 import {
     userData,
     staffAccount,
-    stateUploadRequestData,
+    uploadRequestData,
     licensees,
     users,
     pets,
@@ -52,7 +52,7 @@ export class DataApi {
     // Get state upload request configuration.
     public getStateUploadRequestConfig(compact: string, state: string) {
         return this.wait(500).then(() => ({
-            ...stateUploadRequestData,
+            ...uploadRequestData,
             compact,
             state,
         }));
@@ -183,6 +183,28 @@ export class DataApi {
     // Post Privilege Purchases for Licensee User
     public postPrivilegePurchases() {
         return this.wait(500).then(() => ({ message: 'Successfully processed charge', transactionId: '120044154134' }));
+    }
+
+    // Post Upload Military Document Intent
+    public postUploadMilitaryDocumentIntent(data) {
+        return this.wait(500).then(() => ({
+            ...data,
+        }));
+    }
+
+    // Post Upload Military Document
+    public postUploadMilitaryAffiliationDocument(postUrl: string, documentUploadData: any, file: File) {
+        return this.wait(500).then(() => ({
+            status: 204,
+            postUrl,
+            documentUploadData,
+            file
+        }));
+    }
+
+    // Patch end military affiliation
+    public endMilitaryAffiliation() {
+        return this.wait(500).then(() => ({ success: true }));
     }
 
     // ========================================================================
