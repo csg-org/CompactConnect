@@ -65,6 +65,10 @@ export default class UpdateMilitaryStatus extends mixins(MixinForm) {
         return this.$tm('military.affiliationAttestationOptions');
     }
 
+    get documentProofLabel(): any {
+        return this.$t('military.documentProofLabel');
+    }
+
     //
     // Methods
     //
@@ -75,7 +79,7 @@ export default class UpdateMilitaryStatus extends mixins(MixinForm) {
                 name: 'affiliation-type',
                 shouldHideLabel: true,
                 label: computed(() => this.$t('military.affiliationType')),
-                validation: Joi.string().required(),
+                validation: Joi.string().required().messages(this.joiMessages.radio),
                 valueOptions: this.affiliationTypeOptions.map((option) => ({ ...option })),
             }),
             document: new FormInput({
@@ -84,7 +88,8 @@ export default class UpdateMilitaryStatus extends mixins(MixinForm) {
                 label: computed(() => this.$t('military.documentProofLabel')),
                 placeholder: computed(() => this.$t('military.documentProofLabel')),
                 value: [],
-                validation: Joi.array().min(1).max(1),
+                shouldHideLabel: true,
+                validation: Joi.array().min(1).max(1).messages(this.joiMessages.files),
                 fileConfig: {
                     accepts: [`application/pdf`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`, `image/png`, `image/jpeg`],
                     allowMultiple: false,

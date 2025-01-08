@@ -20,14 +20,21 @@
                 {{ $t('military.updateMilitaryStatusTitle') }}
             </div>
             <div class="core-info-block">
-                <div class="title-row">
-                    {{attestationTitleText}}
-                </div>
+
                 <form @submit.prevent="handleSubmit">
+                    <div class="title-row">
+                        {{attestationTitleText}}
+                    </div>
                     <div class="attestation-section">
                         <InputRadioGroup :formInput="formData.affiliationType" />
                     </div>
                     <div class="document-section">
+                        <div class="title-row">
+                            {{documentProofLabel}}
+                        </div>
+                        <div class="file-instructions">
+                            {{ $t('military.fileInstructions') }}
+                        </div>
                         <InputFile :formInput="formData.document" />
                     </div>
                     <div class="button-row">
