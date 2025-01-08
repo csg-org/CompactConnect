@@ -582,7 +582,9 @@
             "militaryMemberSpouse": "Esposo militar en servicio activo",
             "none": "N/A"
         },
-        "documentProofLabel": "Cargar prueba de afiliación militar"
+        "documentProofLabel": "Cargar prueba de afiliación militar",
+        "successLongProcess": "Enviado correctamente, su estado puede tardar un minuto en procesarse",
+        "submitFail": "Error al cargar el documento"
     },
     "account": {
         "accountTitle": "Cuenta",

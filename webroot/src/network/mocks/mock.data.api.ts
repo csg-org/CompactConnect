@@ -189,6 +189,12 @@ export class DataApi {
     public postUploadMilitaryDocumentIntent(data) {
         return this.wait(500).then(() => ({
             ...data,
+            documentUploadFields: [{
+                url: 'url.com',
+                fields: {
+                    some: 'asd'
+                }
+            }]
         }));
     }
 

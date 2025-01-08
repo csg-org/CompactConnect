@@ -276,12 +276,12 @@ export default {
     postPrivilegePurchasesFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE, error);
     },
-    uploadMilitaryAffiliationRequest: async ({ commit, dispatch }, documentData) => {
+    uploadMilitaryAffiliationRequest: ({ commit, dispatch }, documentData) => {
         commit(MutationTypes.UPLOAD_MILITARY_AFFILIATION_REQUEST);
         const documentIntentData = { ...documentData };
 
         delete documentIntentData.document;
-        await dataApi.postUploadMilitaryDocumentIntent(documentIntentData).then((intentServerResponse) => {
+        return dataApi.postUploadMilitaryDocumentIntent(documentIntentData).then((intentServerResponse) => {
             console.log('intentServerResponse', intentServerResponse);
             const postUrl = intentServerResponse.documentUploadFields[0].url;
             const uploadFields = intentServerResponse.documentUploadFields[0].fields;

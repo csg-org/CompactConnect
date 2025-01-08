@@ -32,7 +32,6 @@
                     </div>
                     <div class="button-row">
                         <InputSubmit
-                            class="understand-button"
                             :formInput="formData.submit"
                             :label="$t('common.submit')"
                             :aria-label="$t('common.submit')"

@@ -29,6 +29,7 @@ export default class UpdateMilitaryStatus extends mixins(MixinForm) {
     //
     // Data
     //
+    isSubmitSuccessful;
 
     //
     // Lifecycle
@@ -109,12 +110,45 @@ export default class UpdateMilitaryStatus extends mixins(MixinForm) {
         }
     }
 
-    handleSubmit() {
-        const documentUploadData = this.transformFormDataToUploadIntent(this.formData);
+    async handleSubmit() {
+        this.validateAll({ asTouched: true });
 
-        console.log('documentUploadData', documentUploadData);
+        if (this.isFormValid) {
+            this.startFormLoading();
+            let uploadResponse;
 
-        this.$store.dispatch('user/uploadMilitaryAffiliationRequest', documentUploadData);
+            const documentUploadData = this.transformFormDataToUploadIntent(this.formData);
+
+            if (!this.isFormError) {
+                console.log('documentUploadData', documentUploadData);
+
+                uploadResponse = await this.$store.dispatch('user/uploadMilitaryAffiliationRequest', documentUploadData);
+            }
+
+            if (!this.isFormError) {
+                this.isFormSuccessful = true;
+            }
+
+            this.endFormLoading();
+
+            this.resetForm(uploadResponse?.status === 204);
+        }
+    }
+
+    resetForm(isSuccessful) {
+        console.log('this.formData.document.value', this.formData.document.value);
+
+        this.formData.document.value.length = 0;
+        this.formData.affiliationType.value = null;
+        this.isFormLoading = false;
+        this.isFormSuccessful = false;
+        this.isFormError = false;
+
+        if (isSuccessful) {
+            this.updateFormSubmitSuccess(this.$t('military.successLongProcess'));
+        } else {
+            this.updateFormSubmitError(this.$t('military.submitFail'));
+        }
     }
 
     transformFormDataToUploadIntent(formData) {

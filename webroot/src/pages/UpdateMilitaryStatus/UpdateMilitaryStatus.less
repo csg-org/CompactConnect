@@ -29,7 +29,7 @@
         .core-info-block {
             display: flex;
             flex-direction: column;
-            padding: 2rem;
+            padding: 2rem 2rem 0 2rem;
             border-radius: 14px;
             background-color: white;
 
@@ -45,7 +45,13 @@
             .button-row {
                 display: flex;
                 flex-direction: row;
-                justify-content: space-between;
+                justify-content: flex-end;
+
+                :deep(.input-submit-container) {
+                    display: flex;
+                    align-items: flex-end;
+                    justify-content: center;
+                }
             }
         }
     }

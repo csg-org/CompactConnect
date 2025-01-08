@@ -582,7 +582,9 @@
             "militaryMemberSpouse": "Active-duty military spouse",
             "none": "N/A"
         },
-        "documentProofLabel": "Upload proof of military affiliation"
+        "documentProofLabel": "Upload proof of military affiliation",
+        "successLongProcess": "Submit successful, your status may take a minute to process",
+        "submitFail": "Error uploading document"
     },
     "account": {
         "accountTitle": "Account",
