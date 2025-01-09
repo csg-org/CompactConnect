@@ -8,9 +8,9 @@
 import { Component, mixins } from 'vue-facing-decorator';
 import { reactive } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
+import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
-import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
 import MilitaryDocumentRow from '@components/MilitaryDocumentRow/MilitaryDocumentRow.vue';
 import Modal from '@components/Modal/Modal.vue';
 import { Compact } from '@models/Compact/Compact.model';
@@ -18,6 +18,7 @@ import { FormInput } from '@/models/FormInput/FormInput.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { Licensee } from '@/models/Licensee/Licensee.model';
 import { MilitaryAffiliation } from '@/models/MilitaryAffiliation/MilitaryAffiliation.model';
+
 
 @Component({
     name: 'MilitaryStatus',

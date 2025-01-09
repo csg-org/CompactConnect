@@ -89,7 +89,7 @@ const routes: Array<RouteConfig> = [
     {
         path: '/:compact/MilitaryStatus/Update',
         name: 'UpdateMilitaryStatus',
-        component: () => import(/* webpackChunkName: "militaryStatus" */ '@pages/UpdateMilitaryStatus/UpdateMilitaryStatus.vue'),
+        component: () => import(/* webpackChunkName: "updateMilitaryStatus" */ '@pages/UpdateMilitaryStatus/UpdateMilitaryStatus.vue'),
         meta: { requiresAuth: true, licenseeAccess: true, },
     },
     {
