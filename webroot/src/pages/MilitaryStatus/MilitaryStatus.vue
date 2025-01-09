@@ -45,7 +45,7 @@
                         :excludeBottomPagination="true"
                         :isServerPaging="false"
                         :emptyListMessage="$t('military.noUploadedDocuments')"
-                        :isLoading="$store.state.styleguide.isLoading"
+                        :isLoading="$store.state.user.isLoadingAccount"
                     >
                         <template v-slot:headers>
                             <MilitaryDocumentRow

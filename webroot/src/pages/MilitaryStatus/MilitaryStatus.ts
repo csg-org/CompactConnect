@@ -45,6 +45,26 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     //
     // Computed
     //
+    get userStore(): any {
+        return this.$store.state.user;
+    }
+
+    get user(): LicenseeUser {
+        return this.userStore?.model;
+    }
+
+    get currentCompact(): Compact | null {
+        return this.userStore?.currentCompact || null;
+    }
+
+    get currentCompactType(): string | null {
+        return this.currentCompact?.type || null;
+    }
+
+    get licensee(): Licensee | null {
+        return this.user?.licensee || null;
+    }
+
     get statusTitleText(): string {
         return this.$t('licensing.status').toUpperCase();
     }
@@ -86,22 +106,6 @@ export default class MilitaryStatus extends mixins(MixinForm) {
         return this.$t('military.previouslyUploadedDocuments').toUpperCase();
     }
 
-    get currentCompact(): Compact | null {
-        return this.userStore?.currentCompact || null;
-    }
-
-    get currentCompactType(): string | null {
-        return this.currentCompact?.type || null;
-    }
-
-    get userStore(): any {
-        return this.$store.state.user;
-    }
-
-    get user(): LicenseeUser {
-        return this.userStore?.model;
-    }
-
     get militaryDocumentHeader(): any {
         return { name: this.$t('military.fileName'), date: this.$t('military.dateUploaded') };
     }
@@ -122,15 +126,12 @@ export default class MilitaryStatus extends mixins(MixinForm) {
         return this.$matches.phone.only ? this.$t('common.yes') : this.$t('military.yesEnd');
     }
 
-    get licensee(): Licensee | null {
-        return this.user?.licensee || null;
-    }
-
     get listId(): string {
         return 'military-affiliations';
     }
 
     get sortOptions(): Array<any> {
+        // Sorting not API supported
         return [];
     }
 
@@ -138,13 +139,17 @@ export default class MilitaryStatus extends mixins(MixinForm) {
         let affiliations: any = [];
 
         if (this.licensee && this.licensee?.militaryAffiliations) {
-            affiliations = (this.licensee.militaryAffiliations as Array<MilitaryAffiliation>).map((f) => {
-                if (f.fileNames) {
-                    return { name: f.fileNames[0] || null, date: f.dateOfUploadDisplay() };
-                }
+            affiliations = (this.licensee.militaryAffiliations as Array<MilitaryAffiliation>)
+                .map((militaryAffiliation) => {
+                    if (militaryAffiliation.fileNames) {
+                        return {
+                            name: militaryAffiliation.fileNames[0] || null,
+                            date: militaryAffiliation.dateOfUploadDisplay()
+                        };
+                    }
 
-                return { name: '' || null, date: '' };
-            });
+                    return { name: '' || null, date: '' };
+                });
         }
 
         return affiliations;
@@ -154,14 +159,12 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     // Methods
     //
     initFormInputs(): void {
-        const initFormData: any = {
+        this.formData = reactive({
             submitEnd: new FormInput({
                 isSubmitInput: true,
                 id: 'submit-end',
             }),
-        };
-
-        this.formData = reactive(initFormData);
+        });
     }
 
     goBack() {
@@ -188,12 +191,14 @@ export default class MilitaryStatus extends mixins(MixinForm) {
         await this.$store.dispatch('user/getLicenseeAccountRequest');
     }
 
-    async sortingChange() {
-        console.log('sort changed');
+    sortingChange() {
+        // Sorting not API supported
+        return false;
     }
 
-    async paginationChange() {
-        console.log('page changed');
+    paginationChange() {
+        // Pagination not API supported
+        return false;
     }
 
     editInfo() {

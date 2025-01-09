@@ -150,13 +150,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     }
 
     get shouldApplyMilitaryDiscount(): boolean {
-        let shouldApply = false;
-
-        if (this.licensee) {
-            shouldApply = this.isMilitaryDiscountActive && this.licensee.isMilitary();
-        }
-
-        return shouldApply;
+        return Boolean(this.isMilitaryDiscountActive && this.licensee?.isMilitary());
     }
 
     get subTotal(): string {

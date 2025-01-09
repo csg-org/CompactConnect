@@ -36,16 +36,16 @@ export default class UpdateMilitaryStatus extends mixins(MixinForm) {
     //
     // Computed
     //
+    get userStore(): any {
+        return this.$store.state.user;
+    }
+
     get currentCompact(): Compact | null {
         return this.userStore?.currentCompact || null;
     }
 
     get currentCompactType(): string | null {
         return this.currentCompact?.type || null;
-    }
-
-    get userStore(): any {
-        return this.$store.state.user;
     }
 
     get attestationTitleText(): any {
@@ -68,13 +68,13 @@ export default class UpdateMilitaryStatus extends mixins(MixinForm) {
     // Methods
     //
     initFormInputs(): void {
-        const initFormData: any = {
+        this.formData = reactive({
             affiliationType: new FormInput({
                 id: 'affiliation-type',
                 name: 'affiliation-type',
                 shouldHideLabel: true,
                 label: computed(() => this.$t('military.affiliationType')),
-                validation: Joi.string().required().messages(this.joiMessages.radio),
+                validation: Joi.string().required().messages(this.joiMessages.string['string.empty']),
                 valueOptions: this.affiliationTypeOptions.map((option) => ({ ...option })),
             }),
             document: new FormInput({
@@ -96,9 +96,9 @@ export default class UpdateMilitaryStatus extends mixins(MixinForm) {
                 isSubmitInput: true,
                 id: 'submit',
             }),
-        };
+        });
 
-        this.formData = reactive(initFormData);
+        this.watchFormInputs();
     }
 
     goBack() {
@@ -141,9 +141,13 @@ export default class UpdateMilitaryStatus extends mixins(MixinForm) {
         this.isFormError = false;
 
         if (isSuccessful) {
-            this.updateFormSubmitSuccess(this.$t('military.successLongProcess'));
+            this.$nextTick(() => {
+                this.updateFormSubmitSuccess(this.$t('military.successLongProcess'));
+            });
         } else {
-            this.updateFormSubmitError(this.$t('military.submitFail'));
+            this.$nextTick(() => {
+                this.updateFormSubmitError(this.$t('military.submitFail'));
+            });
         }
     }
 
