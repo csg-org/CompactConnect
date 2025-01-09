@@ -71,7 +71,7 @@ class TestTransformations(TstFunction):
         # This should fully ingest the license, which will result in it being written to the DB
         ingest_license_message(event, self.mock_context)
 
-        from cc_common.data_model.client import DataClient
+        from cc_common.data_model.data_client import DataClient
 
         # We'll use the data client to get the resulting provider id
         client = DataClient(self.config)
@@ -80,11 +80,13 @@ class TestTransformations(TstFunction):
             ssn=license_ssn,
         )
         self.assertEqual(expected_provider_id, provider_id)
+        provider_record = client.get_provider(compact='aslp', provider_id=provider_id, detail=False)
 
         # Add a privilege to practice in Nebraska
         client.create_provider_privileges(
             compact_name='aslp',
             provider_id=provider_id,
+            provider_record=provider_record,
             # using values in expected privilege json file
             jurisdiction_postal_abbreviations=['ne'],
             license_expiration_date=date(2025, 4, 4),

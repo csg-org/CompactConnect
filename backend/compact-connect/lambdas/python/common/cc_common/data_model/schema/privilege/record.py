@@ -1,9 +1,10 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow import pre_dump, pre_load
+from marshmallow import post_dump, pre_dump, pre_load
 from marshmallow.fields import UUID, Date, DateTime, Nested, String
 
+from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema, ForgivingSchema
-from cc_common.data_model.schema.common import ensure_value_is_datetime
+from cc_common.data_model.schema.common import ChangeHashMixin, ensure_value_is_datetime
 from cc_common.data_model.schema.fields import Compact, Jurisdiction, UpdateType
 
 
@@ -32,7 +33,7 @@ class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
-        in_data['sk'] = f'{in_data['compact']}#PROVIDER#privilege/{in_data['jurisdiction']}'  # noqa: E501
+        in_data['sk'] = f'{in_data['compact']}#PROVIDER#privilege/{in_data['jurisdiction']}#'
         return in_data
 
     @pre_load
@@ -65,7 +66,7 @@ class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
 
 
 @BaseRecordSchema.register_schema('privilegeUpdate')
-class PrivilegeUpdateRecordSchema(BaseRecordSchema):
+class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     """
     Schema for privilege update history records in the provider data table
 
@@ -83,10 +84,15 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema):
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(PrivilegeUpdatePreviousRecordSchema(partial=True), required=True, allow_none=False)
 
-    @pre_dump
+    @post_dump  # Must be _post_ dump so we have values that are more easily hashed
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
-        raise NotImplementedError('TODO: Implement this')
         # This needs to include a POSIX timestamp (seconds) and a hash of the changes
-        in_data['sk'] = f'{in_data['compact']}#PROVIDER#privilege/{in_data['jurisdiction']}#UPDATE#<stamp>/<hash>'
+        # to the record. We'll use the current time and the hash of the updatedValues
+        # field for this. We'll use the same hash for both the pk and sk, since we
+        # don't need to query on the sk for this record type.
+        change_hash = self.hash_changes(in_data)
+        in_data['sk'] = (
+            f'{in_data['compact']}#PROVIDER#privilege/{in_data['jurisdiction']}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'
+        )
         return in_data

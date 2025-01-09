@@ -1,8 +1,12 @@
+from base64 import b64encode
 from datetime import UTC, datetime
 from enum import StrEnum
+from hashlib import md5
 
 from marshmallow import Schema
 from marshmallow.fields import Dict, String, Url
+
+from cc_common.exceptions import CCInternalException
 
 
 class CCEnum(StrEnum):
@@ -68,3 +72,56 @@ class UpdateCategory(CCEnum):
 class Status(CCEnum):
     ACTIVE = 'active'
     INACTIVE = 'inactive'
+
+
+class ChangeHashMixin:
+    """
+    Provides change hash methods for *UpdateRecordSchema
+    """
+
+    @classmethod
+    def hash_changes(cls, in_data) -> str:
+        """
+        Generate a hash of the previous record and updated values, to produce a deterministic sort key segment
+        that will be unique among updates to this particular license.
+        """
+        # We don't need a cryptographically secure hash, just one that is reasonably cheap and reasonably unique
+        # Within the scope of a single provider
+        change_hash = md5()  # noqa: S324
+        cls._feed_dict_to_hash(in_data['previous'], change_hash)
+        cls._feed_dict_to_hash(in_data['updatedValues'], change_hash)
+
+        return change_hash.hexdigest()
+
+    @classmethod
+    def _feed_dict_to_hash(cls, in_dict: dict, change_hash):
+        for key, value in cls._prep_dict_for_hashing(in_dict):
+            if not isinstance(value, str):
+                raise CCInternalException(f'Unsupported value type in dict: {type(value)}')
+            # We'll hash keys and values in a predictable order, base64 encoded to control what characters go into
+            # each segment, with distinct separators that eliminate the possibility of ambiguity in the hash
+            # if a field name and its value somehow overlap. For example:
+            # "homeAddress": "Street 123"
+            # "homeAddressStreet": "123"
+            # Could produce the same hash without a separator indicating where key ends and value begins.
+            change_hash.update(cls._b64encode_str(key))
+            # Between keys and values, we'll hash a slash ('/')
+            change_hash.update(b'/')
+            change_hash.update(cls._b64encode_str(value))
+            # After each item, we'll hash a dash ('-')
+            change_hash.update(b'-')
+        # After each dict, we'll hash a hash ('#')
+        change_hash.update(b'#')
+
+    @staticmethod
+    def _prep_dict_for_hashing(in_dict: dict[str, str | bool]) -> tuple[tuple[str, str], ...]:
+        """
+        Sort the keys, values in the dictionary so they are hashed in a predictable order
+        """
+        sorted_keys = sorted(in_dict.keys())
+        return tuple((str(key), str(in_dict[key])) for key in sorted_keys)
+
+    @staticmethod
+    def _b64encode_str(value: str) -> bytes:
+        # We control the 62nd and 63rd b64 chars with `altchars` to prevent clashing with our separators
+        return b64encode(value.encode('utf-8'), altchars=b'+_')

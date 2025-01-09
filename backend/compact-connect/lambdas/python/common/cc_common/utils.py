@@ -10,7 +10,7 @@ from uuid import UUID
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 
-from cc_common.config import logger
+from cc_common.config import logger, metrics
 from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
 from cc_common.exceptions import (
     CCAccessDeniedException,
@@ -52,6 +52,7 @@ def api_handler(fn: Callable):
     """
 
     @wraps(fn)
+    @metrics.log_metrics
     @logger.inject_lambda_context
     def caught_handler(event, context: LambdaContext):
         # We have to jump through extra hoops to handle the case where APIGW sets headers to null
@@ -263,6 +264,7 @@ def sqs_handler(fn: Callable):
     """
 
     @wraps(fn)
+    @metrics.log_metrics
     @logger.inject_lambda_context
     def process_messages(event, context: LambdaContext):  # noqa: ARG001 unused-argument
         records = event['Records']

@@ -125,7 +125,7 @@ class TstFunction(TstLambdas):
         :param privilege: The jurisdiction for the privilege
         :param start_serial: Starting number for last portion of the provider's SSN
         """
-        from cc_common.data_model.client import DataClient
+        from cc_common.data_model.data_client import DataClient
         from handlers.ingest import ingest_license_message
 
         with open('../common/tests/resources/ingest/message.json') as f:
@@ -170,9 +170,11 @@ class TstFunction(TstLambdas):
                 )
             # Add a privilege
             provider_id = data_client.get_provider_id(compact='aslp', ssn=ssn)
+            provider_record = data_client.get_provider(compact='aslp', provider_id=provider_id, detail=False)
             data_client.create_provider_privileges(
                 compact_name='aslp',
                 provider_id=provider_id,
+                provider_record=provider_record,
                 jurisdiction_postal_abbreviations=[privilege],
                 license_expiration_date=date(2050, 6, 6),
                 compact_transaction_id='1234567890',

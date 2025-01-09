@@ -1,7 +1,4 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from base64 import b64encode
-from hashlib import md5
-
 from marshmallow import ValidationError, post_dump, pre_dump, validates_schema
 from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, Nested, String
 from marshmallow.validate import Length
@@ -12,6 +9,7 @@ from cc_common.data_model.schema.base_record import (
     CalculatedStatusRecordSchema,
     StrictSchema,
 )
+from cc_common.data_model.schema.common import ChangeHashMixin
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
@@ -22,7 +20,6 @@ from cc_common.data_model.schema.fields import (
     UpdateType,
 )
 from cc_common.data_model.schema.license import LicenseCommonSchema
-from cc_common.exceptions import CCInternalException
 
 
 @BaseRecordSchema.register_schema('license')
@@ -45,7 +42,7 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
-        in_data['sk'] = f'{in_data['compact']}#PROVIDER#license/{in_data['jurisdiction']}'
+        in_data['sk'] = f'{in_data['compact']}#PROVIDER#license/{in_data['jurisdiction']}#'
         return in_data
 
 
@@ -83,7 +80,7 @@ class LicenseUpdateRecordPreviousSchema(StrictSchema):
 
 
 @BaseRecordSchema.register_schema('licenseUpdate')
-class LicenseUpdateRecordSchema(BaseRecordSchema):
+class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     """
     Schema for license update history records in the provider data table
 
@@ -120,53 +117,6 @@ class LicenseUpdateRecordSchema(BaseRecordSchema):
             f'{in_data['compact']}#PROVIDER#license/{in_data['jurisdiction']}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'
         )
         return in_data
-
-    @classmethod
-    def hash_changes(cls, in_data) -> str:
-        """
-        Generate a hash of the previous record and updated values, to produce a deterministic sort key segment
-        that will be unique among updates to this particular license.
-        """
-        # We don't need a cryptographically secure hash, just one that is reasonably cheap and reasonably unique
-        # Within the scope of a single provider
-        change_hash = md5()  # noqa: S324
-        cls._feed_dict_to_hash(in_data['previous'], change_hash)
-        cls._feed_dict_to_hash(in_data['updatedValues'], change_hash)
-
-        return change_hash.hexdigest()
-
-    @classmethod
-    def _feed_dict_to_hash(cls, in_dict: dict, change_hash):
-        for key, value in cls._prep_dict_for_hashing(in_dict):
-            if not isinstance(value, str):
-                raise CCInternalException(f'Unsupported value type in dict: {type(value)}')
-            # We'll hash keys and values in a predictable order, base64 encoded to control what characters go into
-            # each segment, with distinct separators that eliminate the possibility of ambiguity in the hash
-            # if a field name and its value somehow overlap. For example:
-            # "homeAddress": "Street 123"
-            # "homeAddressStreet": "123"
-            # Could produce the same hash without a separator indicating where key ends and value begins.
-            change_hash.update(cls._b64encode_str(key))
-            # Between keys and values, we'll hash a slash ('/')
-            change_hash.update(b'/')
-            change_hash.update(cls._b64encode_str(value))
-            # After each item, we'll hash a dash ('-')
-            change_hash.update(b'-')
-        # After each dict, we'll hash a hash ('#')
-        change_hash.update(b'#')
-
-    @staticmethod
-    def _prep_dict_for_hashing(in_dict: dict[str, str | bool]) -> tuple[tuple[str, str], ...]:
-        """
-        Sort the keys, values in the dictionary so they are hashed in a predictable order
-        """
-        sorted_keys = sorted(in_dict.keys())
-        return tuple((str(key), str(in_dict[key])) for key in sorted_keys)
-
-    @staticmethod
-    def _b64encode_str(value: str) -> bytes:
-        # We control the 62nd and 63rd b64 chars with `altchars` to prevent clashing with our separators
-        return b64encode(value.encode('utf-8'), altchars=b'+_')
 
     @validates_schema
     def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument

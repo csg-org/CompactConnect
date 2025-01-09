@@ -2,11 +2,12 @@ from datetime import date, datetime
 from urllib.parse import quote
 from uuid import uuid4
 
+from aws_lambda_powertools.metrics import MetricUnit
 from boto3.dynamodb.conditions import Attr, Key
-from boto3.dynamodb.types import TypeDeserializer
+from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from botocore.exceptions import ClientError
 
-from cc_common.config import _Config, config, logger
+from cc_common.config import _Config, config, logger, metrics
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
@@ -15,6 +16,7 @@ from cc_common.data_model.schema.military_affiliation import (
     MilitaryAffiliationType,
 )
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
+from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
 from cc_common.exceptions import CCAwsServiceException, CCNotFoundException
 
 
@@ -179,7 +181,7 @@ class DataClient:
         original_issuance_date: datetime | None = None,
     ):
         current_datetime = config.current_standard_datetime
-        privilege_object = {
+        return {
             'providerId': provider_id,
             'compact': compact_name,
             'jurisdiction': jurisdiction_postal_abbreviation.lower(),
@@ -188,8 +190,6 @@ class DataClient:
             'dateOfExpiration': license_expiration_date,
             'compactTransactionId': compact_transaction_id,
         }
-        schema = PrivilegeRecordSchema()
-        return schema.dump(privilege_object)
 
     def create_provider_privileges(
         self,
@@ -198,6 +198,7 @@ class DataClient:
         jurisdiction_postal_abbreviations: list[str],
         license_expiration_date: date,
         compact_transaction_id: str,
+        provider_record: dict,
         existing_privileges: list[dict],
     ):
         """
@@ -212,6 +213,7 @@ class DataClient:
         :param jurisdiction_postal_abbreviations: The list of jurisdiction postal codes
         :param license_expiration_date: The license expiration date
         :param compact_transaction_id: The compact transaction id
+        :param provider_record: The original provider record
         :param existing_privileges: The list of existing privileges for this user. Used to track the original issuance
         date of the privilege.
         """
@@ -223,53 +225,207 @@ class DataClient:
         )
 
         try:
-            # the batch writer handles retries and sending the requests in batches
-            with self.config.provider_table.batch_writer() as batch:
-                for postal_abbreviation in jurisdiction_postal_abbreviations:
-                    # get the original privilege issuance date from an existing privilege record if it exists
-                    original_privilege_issuance_date = next(
-                        (
-                            record['dateOfIssuance']
-                            for record in existing_privileges
-                            if record['jurisdiction'].lower() == postal_abbreviation.lower()
-                        ),
-                        None,
+            # We'll collect all the record changes into a transaction to protect data consistency
+            transactions = []
+            processed_transactions = []
+            privilege_update_records = []
+
+            for postal_abbreviation in jurisdiction_postal_abbreviations:
+                # get the original privilege issuance date from an existing privilege record if it exists
+                original_privilege = next(
+                    (
+                        record
+                        for record in existing_privileges
+                        if record['jurisdiction'].lower() == postal_abbreviation.lower()
+                    ),
+                    None,
+                )
+                original_issuance_date = original_privilege['dateOfIssuance'] if original_privilege else None
+
+                privilege_record = self._generate_privilege_record(
+                    compact_name=compact_name,
+                    provider_id=provider_id,
+                    jurisdiction_postal_abbreviation=postal_abbreviation,
+                    license_expiration_date=license_expiration_date,
+                    compact_transaction_id=compact_transaction_id,
+                    original_issuance_date=original_issuance_date,
+                )
+
+                # Create privilege update record if this is updating an existing privilege
+                if original_privilege:
+                    update_record = {
+                        'type': 'privilegeUpdate',
+                        'updateType': 'renewal',
+                        'providerId': provider_id,
+                        'compact': compact_name,
+                        'jurisdiction': postal_abbreviation.lower(),
+                        'previous': original_privilege,
+                        'updatedValues': {
+                            'dateOfRenewal': privilege_record['dateOfRenewal'],
+                            'dateOfExpiration': privilege_record['dateOfExpiration'],
+                            'compactTransactionId': compact_transaction_id,
+                        },
+                    }
+                    privilege_update_records.append(update_record)
+                    transactions.append(
+                        {
+                            'Put': {
+                                'TableName': self.config.provider_table_name,
+                                'Item': TypeSerializer().serialize(PrivilegeUpdateRecordSchema().dump(update_record))[
+                                    'M'
+                                ],
+                            }
+                        }
                     )
 
-                    privilege_record = self._generate_privilege_record(
-                        compact_name=compact_name,
-                        provider_id=provider_id,
-                        jurisdiction_postal_abbreviation=postal_abbreviation,
-                        license_expiration_date=license_expiration_date,
-                        compact_transaction_id=compact_transaction_id,
-                        original_issuance_date=original_privilege_issuance_date,
-                    )
-                    batch.put_item(Item=privilege_record)
+                transactions.append(
+                    {
+                        'Put': {
+                            'TableName': self.config.provider_table_name,
+                            'Item': TypeSerializer().serialize(PrivilegeRecordSchema().dump(privilege_record))['M'],
+                        }
+                    }
+                )
 
-            # finally we need to update the provider record to include the new privilege jurisdictions
-            # batch writer can't perform updates, so we'll use a transact_write_items call
-            self.config.provider_table.update_item(
-                Key={'pk': f'{compact_name}#PROVIDER#{provider_id}', 'sk': f'{compact_name}#PROVIDER'},
-                UpdateExpression='ADD #privilegeJurisdictions :newJurisdictions',
-                ExpressionAttributeNames={'#privilegeJurisdictions': 'privilegeJurisdictions'},
-                ExpressionAttributeValues={':newJurisdictions': set(jurisdiction_postal_abbreviations)},
+            transactions.append(
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table_name,
+                        'Key': {
+                            'pk': {'S': f'{compact_name}#PROVIDER#{provider_id}'},
+                            'sk': {'S': f'{compact_name}#PROVIDER'},
+                        },
+                        'UpdateExpression': 'ADD #privilegeJurisdictions :newJurisdictions',
+                        'ExpressionAttributeNames': {'#privilegeJurisdictions': 'privilegeJurisdictions'},
+                        'ExpressionAttributeValues': {':newJurisdictions': {'SS': jurisdiction_postal_abbreviations}},
+                    }
+                }
             )
+
+            # Unfortunately, we can't guarantee that the number of transactions is below the 100 action limit
+            # for extremely large purchases. To handle those large purchases, we will have to break our transactions
+            # up and handle a multi-transaction roll-back on failure.
+            # We'll collect data for sizes, just so we can keep an eye on them and understand user behavior
+            metrics.add_metric(
+                name='privilege-purchase-transaction-size', unit=MetricUnit.Count, value=len(transactions)
+            )
+            metrics.add_metric(
+                name='privileges-purchased', unit=MetricUnit.Count, value=len(jurisdiction_postal_abbreviations)
+            )
+            # 100 is the maximum transaction size
+            batch_size = 100
+            # Iterate over the transactions until they are empty
+            while transaction_batch := transactions[:batch_size]:
+                try:
+                    self.config.dynamodb_client.transact_write_items(TransactItems=transaction_batch)
+                    processed_transactions.extend(transaction_batch)
+                    transactions = transactions[batch_size:]
+                    if transactions:
+                        logger.info(
+                            'Breaking privilege updates into multiple transactions',
+                            provider_id=provider_id,
+                            privlige_jurisdictions=jurisdiction_postal_abbreviations,
+                            compact_transaction_id=compact_transaction_id,
+                        )
+                except ClientError as e:
+                    # Roll back any successful transactions
+                    self._rollback_privilege_transactions(
+                        processed_transactions=processed_transactions,
+                        provider_record=provider_record,
+                        existing_privileges=existing_privileges,
+                    )
+                    raise CCAwsServiceException('Unable to create all provider privileges') from e
+
         except ClientError as e:
             message = 'Unable to create all provider privileges. Rolling back transaction.'
             logger.info(message, error=str(e))
-            # we must rollback and delete the privilege records that were created
-            with self.config.provider_table.batch_writer() as delete_batch:
-                for postal_abbreviation in jurisdiction_postal_abbreviations:
-                    privilege_record = self._generate_privilege_record(
-                        compact_name=compact_name,
-                        provider_id=provider_id,
-                        jurisdiction_postal_abbreviation=postal_abbreviation,
-                        license_expiration_date=license_expiration_date,
-                        compact_transaction_id=compact_transaction_id,
-                    )
-                    # this transaction is idempotent, so we can safely delete the records even if they weren't created
-                    delete_batch.delete_item(Key={'pk': privilege_record['pk'], 'sk': privilege_record['sk']})
+            self._rollback_privilege_transactions(
+                processed_transactions=processed_transactions,
+                provider_record=provider_record,
+                existing_privileges=existing_privileges,
+            )
             raise CCAwsServiceException(message) from e
+
+    def _rollback_privilege_transactions(
+        self,
+        processed_transactions: list[dict],
+        provider_record: dict,
+        existing_privileges: list[dict],
+    ):
+        """Roll back successful privilege transactions after a failure."""
+        rollback_transactions = []
+
+        # Create a lookup of existing privileges by jurisdiction
+        existing_privileges_by_jurisdiction = {
+            privilege['jurisdiction']: privilege for privilege in existing_privileges
+        }
+
+        # Delete all privilege update records and handle privilege records appropriately
+        privilege_record_schema = PrivilegeRecordSchema()
+        for transaction in processed_transactions:
+            if transaction.get('Put'):
+                item = TypeDeserializer().deserialize({'M': transaction['Put']['Item']})
+                if item.get('type') == 'privilegeUpdate':
+                    # Always delete update records as they are always new
+                    rollback_transactions.append(
+                        {
+                            'Delete': {
+                                'TableName': self.config.provider_table_name,
+                                'Key': {
+                                    'pk': {'S': item['pk']},
+                                    'sk': {'S': item['sk']},
+                                },
+                            }
+                        }
+                    )
+                elif item.get('type') == 'privilege':
+                    # For privilege records, check if it was an update or new creation
+                    original_privilege = existing_privileges_by_jurisdiction.get(item['jurisdiction'])
+                    if original_privilege:
+                        # If it was an update, restore the original record
+                        rollback_transactions.append(
+                            {
+                                'Put': {
+                                    'TableName': self.config.provider_table_name,
+                                    'Item': TypeSerializer().serialize(
+                                        privilege_record_schema.dump(original_privilege)
+                                    )['M'],
+                                }
+                            }
+                        )
+                    else:
+                        # If it was a new creation, delete it
+                        rollback_transactions.append(
+                            {
+                                'Delete': {
+                                    'TableName': self.config.provider_table_name,
+                                    'Key': {
+                                        'pk': {'S': item['pk']},
+                                        'sk': {'S': item['sk']},
+                                    },
+                                }
+                            }
+                        )
+
+        # Restore the original provider record
+        rollback_transactions.append(
+            {
+                'Put': {
+                    'TableName': self.config.provider_table_name,
+                    'Item': TypeSerializer().serialize(provider_record)['M'],
+                }
+            }
+        )
+
+        # Execute rollback in batches of 100
+        batch_size = 100
+        while rollback_batch := rollback_transactions[:batch_size]:
+            try:
+                self.config.dynamodb_client.transact_write_items(TransactItems=rollback_batch)
+                rollback_transactions = rollback_transactions[batch_size:]
+            except ClientError as e:
+                logger.error('Failed to roll back privilege transactions', error=str(e))
+                raise CCAwsServiceException('Failed to roll back privilege transactions') from e
 
     def _get_military_affiliation_records_by_status(
         self, compact: str, provider_id: str, status: MilitaryAffiliationStatus

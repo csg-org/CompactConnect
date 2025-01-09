@@ -232,6 +232,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             jurisdiction_postal_abbreviations=selected_jurisdictions_postal_abbreviations,
             license_expiration_date=license_expiration_date,
             compact_transaction_id=transaction_response['transactionId'],
+            provider_record=provider_record,
             existing_privileges=existing_privileges,
         )
 
