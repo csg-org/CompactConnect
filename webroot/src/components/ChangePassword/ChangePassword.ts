@@ -102,9 +102,6 @@ class ChangePassword extends mixins(MixinForm) {
                     .min(12)
                     .doesNotInclude([
                         this.user.email,
-                        this.user.firstName,
-                        this.user.lastName,
-                        'password',
                     ])
                     .messages({
                         ...this.joiMessages.string,
