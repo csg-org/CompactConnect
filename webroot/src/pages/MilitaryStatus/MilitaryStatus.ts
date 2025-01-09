@@ -126,6 +126,14 @@ export default class MilitaryStatus extends mixins(MixinForm) {
         return this.user?.licensee || null;
     }
 
+    get listId(): string {
+        return 'military-affiliations';
+    }
+
+    get sortOptions(): Array<any> {
+        return [];
+    }
+
     get affiliations(): Array<any> {
         let affiliations: any = [];
 
