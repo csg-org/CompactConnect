@@ -194,12 +194,12 @@ Primary information about a provider, as deduced mostly from license data provid
 a sort key like `"sk": "aslp#PROVIDER"`.
 
 Each license associated with a provider has the data submitted by a state saved in a record with a sort key like
-`"sk": "aslp#PROVIDER#license/oh"`. This example record would be for a license in Ohio. Each license a state uploads
+`"sk": "aslp#PROVIDER#license/oh#"`. This example record would be for a license in Ohio. Each license a state uploads
 that is associated with this provider can then be returned by a query for that provider's partition, with a query
 key condition that specifies a sort key starting with `aslp#PROVIDER#license/`.
 
 Similarly, privileges to practice granted to the provider for a state are stored in a record with a sort key like
-`"sk": "aslp#PROVIDER#privilege/ne"`. This example record represents a privilege granted to practice in Nebraska.
+`"sk": "aslp#PROVIDER#privilege/ne#"`. This example record represents a privilege granted to practice in Nebraska.
 The sort key pattern for privileges allows all privilege records to be queried by a sort key starting with
 `aslp#PROVIDER#privilege/`.
 

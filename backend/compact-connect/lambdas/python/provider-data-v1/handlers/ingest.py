@@ -27,7 +27,7 @@ def ingest_license_message(message: dict):
     jurisdiction = license_post['jurisdiction']
 
     provider_id = config.data_client.get_or_create_provider_id(compact=compact, ssn=license_post['ssn'])
-    logger.info('Updating license data', provider_id=provider_id, compact=compact, jurisdiction=jurisdiction)
+    logger.info('Ingesting license data', provider_id=provider_id, compact=compact, jurisdiction=jurisdiction)
 
     # Start preparing our db transactions
     dynamo_transactions = [
@@ -78,7 +78,8 @@ def ingest_license_message(message: dict):
     licenses[license_post['jurisdiction']] = license_post
     best_license = find_best_license(licenses.values())
     if best_license is license_post:
-        logger.info('Updating provider data', provider_id=provider_id, compact=compact)
+        logger.info('Updating provider data', provider_id=provider_id, compact=compact, jurisdiction=jurisdiction)
+
         provider_record = populate_provider_record(
             provider_id=provider_id,
             license_post=license_post,
@@ -130,6 +131,12 @@ def populate_update_record(*, existing_license: dict, new_license: dict) -> dict
     :param dict new_license: The newly-uploaded license record
     :return: The update type, one of 'update', 'revoke', or 'reinstate'
     """
+    logger.info(
+        'Processing license update',
+        provider_id=existing_license['providerId'],
+        compact=existing_license['compact'],
+        jurisdiction=existing_license['jurisdiction'],
+    )
     # dateOfUpdate won't show up as a change because the field isn't in new_license, yet
     updated_values = {key: value for key, value in new_license.items() if value != existing_license[key]}
     update_type = None
