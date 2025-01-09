@@ -585,7 +585,9 @@
         "documentProofLabel": "Upload proof of military affiliation*",
         "successLongProcess": "Submit successful, your status may take a minute to process",
         "submitFail": "Error uploading document",
-        "fileInstructions": "Only 1 file (PDF, docx, png, jpeg only)"
+        "fileInstructions": "Only 1 file (PDF, docx, png, jpeg only)",
+        "fileName": "File name",
+        "dateUploaded": "Date uploaded"
     },
     "account": {
         "accountTitle": "Account",

@@ -25,7 +25,7 @@
                     <div class="chunk-title">{{statusTitleText}}</div>
                     <div class="chunk-text">{{status}}</div>
                 </div>
-                <div class="chunk">
+                <div class="chunk affiliation-type">
                     <div class="chunk-title">{{affiliationTypeTitle}}</div>
                     <div class="chunk-text">{{affiliationType}}</div>
                 </div>

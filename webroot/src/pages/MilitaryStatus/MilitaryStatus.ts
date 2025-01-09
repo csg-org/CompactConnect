@@ -103,7 +103,7 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     }
 
     get militaryDocumentHeader(): any {
-        return { name: 'File name', date: 'Date uploaded' };
+        return { name: this.$t('military.fileName'), date: this.$t('military.dateUploaded') };
     }
 
     get endAffiliationModalTitle(): string {

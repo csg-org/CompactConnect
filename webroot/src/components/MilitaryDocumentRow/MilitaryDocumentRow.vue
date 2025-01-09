@@ -8,11 +8,11 @@
 <template>
     <li class="example-row">
         <div class="cell name" :class="{ 'is-header': isHeaderRow }">
-            <span v-if="$matches.phone.only" class="cell-title">{{ $t('styleGuide.list.isEvil') }}:</span>
+            <span v-if="$matches.phone.only" class="cell-title">{{ $t('military.fileName') }}:</span>
             {{ item.name }}
         </div>
         <div class="cell size" :class="{ 'is-header': isHeaderRow }">
-            <span v-if="$matches.phone.only" class="cell-title">{{ $t('styleGuide.list.isEvil') }}:</span>
+            <span v-if="$matches.phone.only" class="cell-title">{{ $t('military.dateUploaded') }}:</span>
             {{ item.date }}
         </div>
     </li>

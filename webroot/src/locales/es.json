@@ -585,7 +585,9 @@
         "documentProofLabel": "Cargar prueba de afiliación militar",
         "successLongProcess": "Enviado correctamente, su estado puede tardar un minuto en procesarse",
         "submitFail": "Error al cargar el documento",
-        "fileInstructions": "Sólo 1 archivo (sólo PDF, docx, png, jpeg)"
+        "fileInstructions": "Sólo 1 archivo (sólo PDF, docx, png, jpeg)",
+        "fileName": "Nombre del archivo",
+        "dateUploaded": "Fecha de carga"
     },
     "account": {
         "accountTitle": "Cuenta",
