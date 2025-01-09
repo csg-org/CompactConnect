@@ -22,7 +22,7 @@ class TstLambdas(TestCase):
                 'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
                 'FAM_GIV_INDEX_NAME': 'famGiv',
                 'USER_POOL_ID': 'us-east-1-12345',
-                'USERS_TABLE_NAME': 'provider-table',
+                'USERS_TABLE_NAME': 'users-table',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',

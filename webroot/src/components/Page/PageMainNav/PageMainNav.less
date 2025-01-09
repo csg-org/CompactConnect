@@ -5,88 +5,145 @@
 //  Created by InspiringApps on 11/20/2020.
 //
 
+@navAnimation: 0.4s ease-out;
+
 .main-nav-container {
+    position: fixed;
+    top: @appHeaderHeight;
+    left: 0;
+    z-index: 5;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    width: 0;
+    height: ~"calc(100vh - @{appHeaderHeight})";
+    overflow: hidden;
+    overflow-y: auto;
+    background-color: @primaryColor;
+    transition: width @navAnimation;
 
-    .nav-toggle {
-        width: 3.6rem;
-        cursor: pointer;
+    @media @tabletWidth {
+        top: 0;
+        width: @navPartialExpandWidth;
+        height: 100vh;
+    }
 
-        & > div {
+    .logo-container {
+        width: 100%;
+        max-width: 200px;
+        height: 100px;
+        margin: 1.6rem 0 1.2rem 0;
+
+        .logo {
+            display: inline-block;
             width: 100%;
-            height: 0.6rem;
-            border-radius: @borderRadiusSmall;
-            background-color: @primaryColor;
-
-            &:not(:first-child) {
-                margin-top: 0.6rem;
-            }
+            cursor: pointer;
         }
     }
 
-    ul.main-nav {
-        position: absolute;
-        top: 100%;
-        right: 0;
-        z-index: 1;
-        width: 70vw;
-        background-color: @white;
-        box-shadow: -0.8rem 0.8rem 2.0rem 0.4rem fadeout(@black, 90%);
+    &.expanded {
+        width: @navFullExpandWidth;
 
-        @media @desktopWidth {
-            position: relative;
-            top: initial;
-            right: initial;
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: flex-end;
-            width: auto;
-            overflow: visible;
-            background-color: transparent;
-            box-shadow: none;
+        .logo-container {
+            width: 100%;
+            max-width: 200px;
         }
+    }
+
+    ul.nav {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 1.6rem;
 
         li {
             display: flex;
             align-items: center;
-            justify-content: center;
             width: 100%;
-            padding: 0 0.6rem;
             cursor: pointer;
+
+            &:hover {
+                background-color: darken(@primaryColor, 4%);
+            }
 
             &.page-nav {
                 a {
-                    padding: 1.2rem;
-                    color: @fontColor;
+                    display: flex;
+                    align-items: center;
+                    padding: 1.2rem 1.6rem; // Bump the left-right padding depending on the @navPartialExpandWidth
+                    border-left: 3px solid transparent;
+                    color: fade(@white, 75%);
+
+                    .link-icon {
+                        pointer-events: none;
+                    }
+
+                    .icon {
+                        width: 2.4rem;
+
+                        &.stroke-type {
+                            fill: none;
+                            stroke: @white;
+                            stroke-opacity: 0.75;
+                        }
+
+                        &.fill-type {
+                            fill: @white;
+                            fill-opacity: 0.75;
+                        }
+                    }
+
+                    .link-label {
+                        margin-left: 1.6rem;
+                        white-space: nowrap;
+                        pointer-events: none;
+                    }
 
                     &.router-link-active {
-                        font-weight: @fontWeightBold;
+                        border-left-color: @white;
+                        color: @white;
+                        font-weight: @fontWeightExtraBold;
+
+                        .icon {
+                            &.stroke-type {
+                                stroke-opacity: 1;
+                            }
+
+                            &.fill-type {
+                                fill-opacity: 1;
+                            }
+                        }
+                    }
+
+                    &:hover .icon {
+                        &.stroke-type {
+                            fill: none;
+                        }
+
+                        &.fill-type {
+                            fill: @white;
+                        }
                     }
                 }
             }
         }
     }
-}
 
-// Nav menu slide transition
-.nav-slide-enter,
-.nav-slide-leave-to {
-    max-height: 0;
-    opacity: 0;
-}
+    .compact-selector {
+        margin: auto 3.2rem 1.6rem 1.6rem;
 
-.nav-slide-enter-to,
-.nav-slide-leave {
-    max-height: 40.0rem;
-    opacity: 1;
-}
+        &:deep(.select-dropdown) {
+            border-color: @white;
+            border-radius: 0;
+            color: @white;
+            background-color: transparent;
+            background-image: url('@assets/icons/ico-select-arrow-alt.svg');
+        }
+    }
 
-.nav-slide-enter-active {
-    transition: all 0.25s linear;
-}
-
-.nav-slide-leave-active {
-    transition: all 0.25s linear;
+    .separator {
+        height: 1px;
+        margin: 1.6rem 10px;
+        background-color: fade(@white, 50%);
+        transition: width @navAnimation;
+    }
 }

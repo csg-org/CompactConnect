@@ -14,11 +14,11 @@ cachecontrol[filecache]==0.14.1
     #   pip-audit
 certifi==2024.12.14
     # via requests
-charset-normalizer==3.4.0
+charset-normalizer==3.4.1
     # via requests
 click==8.1.8
     # via pip-tools
-coverage[toml]==7.6.9
+coverage[toml]==7.6.10
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov

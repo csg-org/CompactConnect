@@ -29,8 +29,9 @@
                 tabindex="0"
                 class="pagination-item caret clickable next"
                 :aria-label="$t('paging.nextPage')"
+                role="button"
             >
-                <span>{{ $t('paging.nextPage') }} <RightCaretIcon /></span>
+                <RightCaretIcon />
             </li>
         </ul>
         <InputSelect

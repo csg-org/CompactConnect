@@ -4,8 +4,8 @@ import { Context, EventBridgeEvent } from 'aws-lambda';
 import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
 
-import { Lambda } from '../lib/lambda';
-import { ReportEmailer } from '../lib/report-emailer';
+import { Lambda } from '../ingest-event-reporter/lambda';
+import { EmailService } from '../lib/email-service';
 import { IEventBridgeEvent } from '../lib/models/event-bridge-event-detail';
 import {
     SAMPLE_INGEST_FAILURE_ERROR_RECORD,
@@ -49,7 +49,7 @@ const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESClient;
 
 
-jest.mock('../lib/report-emailer');
+jest.mock('../lib/email-service');
 
 const mockSendReportEmail = jest.fn(
     (events, recipients: string[]) => Promise.resolve('message-id-123')
@@ -62,7 +62,7 @@ const mockSendNoLicenseUpdatesEmail = jest.fn(
     (recipients: string[]) => Promise.resolve('message-id-no-license-updates')
 );
 
-(ReportEmailer as jest.Mock) = jest.fn().mockImplementation(() => ({
+(EmailService as jest.Mock) = jest.fn().mockImplementation(() => ({
     sendReportEmail: mockSendReportEmail,
     sendAllsWellEmail: mockSendAllsWellEmail,
     sendNoLicenseUpdatesEmail: mockSendNoLicenseUpdatesEmail
@@ -71,7 +71,7 @@ const mockSendNoLicenseUpdatesEmail = jest.fn(
 
 describe('Nightly runs', () => {
     let mockSESClient: ReturnType<typeof mockClient>;
-    let mockReportEmailer: jest.Mocked<ReportEmailer>;
+    let mockEmailService: jest.Mocked<EmailService>;
     let lambda: Lambda;
 
     beforeAll(async () => {
