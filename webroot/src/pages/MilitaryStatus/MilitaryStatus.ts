@@ -19,7 +19,6 @@ import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { Licensee } from '@/models/Licensee/Licensee.model';
 import { MilitaryAffiliation } from '@/models/MilitaryAffiliation/MilitaryAffiliation.model';
 
-
 @Component({
     name: 'MilitaryStatus',
     components: {
