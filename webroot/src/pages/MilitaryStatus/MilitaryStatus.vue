@@ -88,6 +88,8 @@
             :closeOnBackgroundClick="true"
             :showActions="false"
             :title="endAffiliationModalTitle"
+            @keydown.tab="focusTrap($event)"
+            @keyup.esc="closeEndAffilifationModal"
             @close-modal="closeEndAffilifationModal"
         >
             <template v-slot:content>
@@ -96,6 +98,7 @@
                     <form @submit.prevent="confirmEndMilitaryAffiliation">
                         <div class="action-button-row">
                             <InputButton
+                                id="no-back-button"
                                 class="no-back-button"
                                 :label="backText"
                                 :aria-label="backText"
@@ -103,7 +106,7 @@
                                 :onClick="closeEndAffilifationModal"
                             />
                             <InputSubmit
-                                class="understand-button"
+                                class="yes-end-button"
                                 :formInput="formData.submitEnd"
                                 :label="yesEndText"
                                 :aria-label="yesEndText"

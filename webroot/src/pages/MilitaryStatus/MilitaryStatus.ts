@@ -140,15 +140,15 @@ export default class MilitaryStatus extends mixins(MixinForm) {
 
         if (this.licensee && this.licensee?.militaryAffiliations) {
             affiliations = (this.licensee.militaryAffiliations as Array<MilitaryAffiliation>)
-                .map((militaryAffiliation) => {
-                    if (militaryAffiliation.fileNames) {
-                        return {
-                            name: militaryAffiliation.fileNames[0] || null,
-                            date: militaryAffiliation.dateOfUploadDisplay()
-                        };
+                .map((militaryAffiliation: MilitaryAffiliation) => {
+                    const affiliationDisplay = { name: '', date: '' };
+
+                    if (militaryAffiliation.fileNames && (militaryAffiliation.fileNames as Array<string>).length) {
+                        affiliationDisplay.name = militaryAffiliation.fileNames[0] || '';
+                        affiliationDisplay.date = militaryAffiliation.dateOfUploadDisplay();
                     }
 
-                    return { name: '' || null, date: '' };
+                    return affiliationDisplay;
                 });
         }
 
@@ -207,6 +207,23 @@ export default class MilitaryStatus extends mixins(MixinForm) {
                 name: 'UpdateMilitaryStatus',
                 params: { compact: this.currentCompactType }
             });
+        }
+    }
+
+    focusTrap(event: KeyboardEvent): void {
+        const firstTabIndex = document.getElementById('no-back-button');
+        const lastTabIndex = document.getElementById(this.formData.submitEnd.id);
+
+        if (event.shiftKey) {
+            // shift + tab to last input
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+                event.preventDefault();
+            }
+        } else if (document.activeElement === lastTabIndex) {
+            // Tab to first input
+            firstTabIndex?.focus();
+            event.preventDefault();
         }
     }
 }
