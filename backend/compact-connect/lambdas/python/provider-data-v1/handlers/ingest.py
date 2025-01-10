@@ -116,15 +116,16 @@ def process_license_update(*, existing_license: dict, new_license: dict, dynamo_
     :param dict new_license: The newly-uploaded license record
     :param list dynamo_transactions: The dynamodb transaction array to append records to
     """
-    if existing_license == new_license:
-        # No change, do nothing
+    # dateOfUpdate won't show up as a change because the field isn't in new_license, yet
+    updated_values = {key: value for key, value in new_license.items() if value != existing_license[key]}
+    if not updated_values:
         return
     # Categorize the update
-    update_record = populate_update_record(existing_license=existing_license, new_license=new_license)
+    update_record = populate_update_record(existing_license=existing_license, updated_values=updated_values)
     dynamo_transactions.append({'Put': {'TableName': config.provider_table_name, 'Item': update_record}})
 
 
-def populate_update_record(*, existing_license: dict, new_license: dict) -> dict:
+def populate_update_record(*, existing_license: dict, updated_values: dict) -> dict:
     """
     Categorize the update between existing and new license records.
     :param dict existing_license: The existing license record
@@ -137,8 +138,6 @@ def populate_update_record(*, existing_license: dict, new_license: dict) -> dict
         compact=existing_license['compact'],
         jurisdiction=existing_license['jurisdiction'],
     )
-    # dateOfUpdate won't show up as a change because the field isn't in new_license, yet
-    updated_values = {key: value for key, value in new_license.items() if value != existing_license[key]}
     update_type = None
     if {'dateOfExpiration', 'dateOfRenewal'} == updated_values.keys():
         original_values = {key: value for key, value in existing_license.items() if key in updated_values}

@@ -289,8 +289,8 @@ class TestIngest(TstFunction):
         expected_provider['privileges'] = []
         expected_provider['militaryAffiliations'] = []
         for license_data in expected_provider['licenses']:
-            # We uploaded a 'deactivation' by just switching 'status' to 'inactive', so this change
-            # should show up in the license history
+            # We uploaded a 'renewal' by just updating the dateOfRenewal and dateOfExpiration
+            # This should show up in the license history
             license_data['history'] = [
                 {
                     'type': 'licenseUpdate',
@@ -371,8 +371,8 @@ class TestIngest(TstFunction):
         expected_provider['privileges'] = []
         expected_provider['militaryAffiliations'] = []
         for license_data in expected_provider['licenses']:
-            # We uploaded a 'deactivation' by just switching 'status' to 'inactive', so this change
-            # should show up in the license history
+            # We uploaded a 'name change' by just updating the familyName
+            # This should show up in the license history
             license_data['history'] = [
                 {
                     'type': 'licenseUpdate',
@@ -406,6 +406,49 @@ class TestIngest(TstFunction):
                     },
                 }
             ]
+
+        # Removing/setting dynamic fields for comparison
+        del expected_provider['dateOfUpdate']
+        del provider_data['dateOfUpdate']
+        expected_provider['providerId'] = provider_id
+        for license_data in expected_provider['licenses']:
+            del license_data['dateOfUpdate']
+            license_data['providerId'] = provider_id
+        for license_data in provider_data['licenses']:
+            del license_data['dateOfUpdate']
+            for hist in license_data['history']:
+                del hist['dateOfUpdate']
+                del hist['previous']['dateOfUpdate']
+
+        self.assertEqual(expected_provider, provider_data)
+
+    def test_existing_provider_no_change(self):
+        from handlers.ingest import ingest_license_message
+
+        provider_id = self._with_ingested_license()
+
+        with open('../common/tests/resources/ingest/message.json') as f:
+            message = json.load(f)
+
+        # What happens if their license is uploaded again with no change?
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        with open('../common/tests/resources/api/provider-detail-response.json') as f:
+            expected_provider = json.load(f)
+
+        # The license status and provider should remain unchanged
+        provider_data = self._get_provider_via_api(provider_id)
+
+        # The canned response resource assumes that the provider will be given a privilege, military affiliation, and
+        # one license renewal. We didn't do any of that here, so we'll reset that data
+        expected_provider['privilegeJurisdictions'] = []
+        expected_provider['privileges'] = []
+        expected_provider['militaryAffiliations'] = []
+        for license_data in expected_provider['licenses']:
+            # No changes should show up in the license history
+            license_data['history'] = []
 
         # Removing/setting dynamic fields for comparison
         del expected_provider['dateOfUpdate']
