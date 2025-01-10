@@ -153,10 +153,12 @@
         "properties": {
           "attestationId": {
             "description": "The ID of the attestation",
+            "maxLength": 100,
             "type": "string"
           },
           "version": {
             "description": "The version of the attestation",
+            "maxLength": 10,
             "pattern": "^\\d+$",
             "type": "string"
           }
