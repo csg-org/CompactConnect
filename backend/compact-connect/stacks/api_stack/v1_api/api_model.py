@@ -571,10 +571,12 @@ class ApiModel:
                             properties={
                                 'attestationId': JsonSchema(
                                     type=JsonSchemaType.STRING,
+                                    max_length=100,
                                     description='The ID of the attestation',
                                 ),
                                 'version': JsonSchema(
                                     type=JsonSchemaType.STRING,
+                                    max_length=10,
                                     description='The version of the attestation',
                                     pattern=r'^\d+$',
                                 ),
