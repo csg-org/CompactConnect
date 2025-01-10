@@ -18,13 +18,14 @@ import { User, InterfaceUserCreate } from '@models/User/User.model';
 // ========================================================
 export interface StatePermission {
     state: State;
+    isReadPrivate: boolean;
     isWrite: boolean;
     isAdmin: boolean;
 }
 
 export interface CompactPermission {
     compact: Compact;
-    isRead: boolean;
+    isReadPrivate: boolean;
     isAdmin: boolean;
     states: Array<StatePermission>;
 }
@@ -55,7 +56,7 @@ export class StaffUser extends User implements InterfaceStaffUserCreate {
 
     public permissionsShortDisplay(currentCompactType?: CompactType): string {
         let { permissions } = this;
-        let isReadUsed = false;
+        let isReadPrivateUsed = false;
         let isWriteUsed = false;
         let isAdminUsed = false;
         let display = '';
@@ -67,20 +68,20 @@ export class StaffUser extends User implements InterfaceStaffUserCreate {
 
         permissions?.forEach((compactPermission: CompactPermission) => {
             const {
-                isRead,
-                isAdmin,
+                isReadPrivate: isCompactReadPrivate,
+                isAdmin: isCompactAdmin,
                 states
             } = compactPermission;
 
-            if (isRead || isAdmin) {
+            if (isCompactReadPrivate || isCompactAdmin) {
                 // If the user has compact-level permissions
-                if (isRead && !isReadUsed) {
-                    const readDisplay = this.$t('account.accessLevel.read');
+                if (isCompactReadPrivate && !isReadPrivateUsed) {
+                    const readPrivateDisplay = this.$t('account.accessLevel.readPrivate');
 
-                    display += (display) ? `, ${readDisplay}` : readDisplay;
-                    isReadUsed = true;
+                    display += (display) ? `, ${readPrivateDisplay}` : readPrivateDisplay;
+                    isReadPrivateUsed = true;
                 }
-                if (isAdmin && !isAdminUsed) {
+                if (isCompactAdmin && !isAdminUsed) {
                     const adminDisplay = this.$t('account.accessLevel.admin');
 
                     display += (display) ? `, ${adminDisplay}` : adminDisplay;
@@ -89,9 +90,19 @@ export class StaffUser extends User implements InterfaceStaffUserCreate {
             } else {
                 // Otherwise look for state-level permissions
                 states?.forEach((statePermission) => {
-                    const { isWrite, isAdmin: isStateAdmin } = statePermission;
+                    const {
+                        isReadPrivate: isStateReadPrivate,
+                        isWrite: isStateWrite,
+                        isAdmin: isStateAdmin
+                    } = statePermission;
 
-                    if (isWrite && !isWriteUsed) {
+                    if (isStateReadPrivate && !isReadPrivateUsed) {
+                        const readPrivateDisplay = this.$t('account.accessLevel.readPrivate');
+
+                        display += (display) ? `, ${readPrivateDisplay}` : readPrivateDisplay;
+                        isReadPrivateUsed = true;
+                    }
+                    if (isStateWrite && !isWriteUsed) {
                         const writeDisplay = this.$t('account.accessLevel.write');
 
                         display += (display) ? `, ${writeDisplay}` : writeDisplay;
@@ -122,18 +133,18 @@ export class StaffUser extends User implements InterfaceStaffUserCreate {
         permissions?.forEach((compactPermission: CompactPermission) => {
             const {
                 compact,
-                isRead,
-                isAdmin,
+                isReadPrivate: isCompactReadPrivate,
+                isAdmin: isCompactAdmin,
                 states
             } = compactPermission;
 
-            if (isRead || isAdmin) {
+            if (isCompactReadPrivate || isCompactAdmin) {
                 let accessLevels = '';
 
-                if (isRead) {
-                    accessLevels += this.$t('account.accessLevel.read');
+                if (isCompactReadPrivate) {
+                    accessLevels += this.$t('account.accessLevel.readPrivate');
                 }
-                if (isAdmin) {
+                if (isCompactAdmin) {
                     const adminAccess = this.$t('account.accessLevel.admin');
 
                     accessLevels += (accessLevels) ? `, ${adminAccess}` : adminAccess;
@@ -143,11 +154,21 @@ export class StaffUser extends User implements InterfaceStaffUserCreate {
             }
 
             states?.forEach((statePermission) => {
-                const { state, isWrite, isAdmin: isStateAdmin } = statePermission;
+                const {
+                    state,
+                    isReadPrivate: isStateReadPrivate,
+                    isWrite: isStateWrite,
+                    isAdmin: isStateAdmin
+                } = statePermission;
                 let stateAccessLevels = '';
 
-                if (isWrite) {
-                    stateAccessLevels += this.$t('account.accessLevel.write');
+                if (isStateReadPrivate) {
+                    stateAccessLevels += this.$t('account.accessLevel.readPrivate');
+                }
+                if (isStateWrite) {
+                    const stateWriteAccess = this.$t('account.accessLevel.write');
+
+                    stateAccessLevels += (stateAccessLevels) ? `, ${stateWriteAccess}` : stateWriteAccess;
                 }
                 if (isStateAdmin) {
                     const stateAdminAccess = this.$t('account.accessLevel.admin');
@@ -193,12 +214,12 @@ export class StaffUser extends User implements InterfaceStaffUserCreate {
         permissions?.forEach((compactPermission: CompactPermission) => {
             const {
                 compact,
-                isRead,
-                isAdmin,
+                isReadPrivate: isCompactReadPrivate,
+                isAdmin: isCompactAdmin,
                 states
             } = compactPermission as CompactPermission;
 
-            if (isRead || isAdmin) {
+            if (isCompactReadPrivate || isCompactAdmin) {
                 // If the user has compact-level permissions
                 const compactAbbrev = compact.abbrev();
 
@@ -206,10 +227,14 @@ export class StaffUser extends User implements InterfaceStaffUserCreate {
             } else {
                 // Otherwise look for state-level permissions
                 states?.forEach((statePermission) => {
-                    const { isWrite, isAdmin: isStateAdmin } = statePermission;
+                    const {
+                        isReadPrivate: isStateReadPrivate,
+                        isWrite: isStateWrite,
+                        isAdmin: isStateAdmin
+                    } = statePermission;
                     const stateName = statePermission.state.name();
 
-                    if ((isWrite || isStateAdmin) && !stateNames.includes(stateName)) {
+                    if ((isStateReadPrivate || isStateWrite || isStateAdmin) && !stateNames.includes(stateName)) {
                         stateNames.push(statePermission.state.name());
                     }
                 });
@@ -239,10 +264,10 @@ export class StaffUser extends User implements InterfaceStaffUserCreate {
             const { states } = compactPermission as CompactPermission;
 
             states?.forEach((statePermission) => {
-                const { isWrite, isAdmin } = statePermission;
+                const { isReadPrivate, isWrite, isAdmin } = statePermission;
                 const stateName = statePermission.state.name();
 
-                if ((isWrite || isAdmin) && !stateNames.includes(stateName)) {
+                if ((isReadPrivate || isWrite || isAdmin) && !stateNames.includes(stateName)) {
                     stateNames.push(statePermission.state.name());
                 }
             });
@@ -275,7 +300,7 @@ export class StaffUserSerializer {
             const { actions = {}, jurisdictions = {}} = json.permissions?.[compactType] || {};
             const compactPermission: CompactPermission = {
                 compact: CompactSerializer.fromServer({ type: compactType }),
-                isRead: actions?.read || false,
+                isReadPrivate: actions?.readPrivate || false,
                 isAdmin: actions?.admin || false,
                 states: [],
             };
@@ -283,6 +308,7 @@ export class StaffUserSerializer {
             Object.keys(jurisdictions).forEach((stateCode) => {
                 compactPermission.states.push({
                     state: new State({ abbrev: stateCode }),
+                    isReadPrivate: jurisdictions[stateCode]?.actions?.readPrivate || false,
                     isWrite: jurisdictions[stateCode]?.actions?.write || false,
                     isAdmin: jurisdictions[stateCode]?.actions?.admin || false,
                 });
@@ -298,14 +324,18 @@ export class StaffUserSerializer {
         const serverData: any = {};
         // Prepare state permissions for server request
         const deserializeStatePermission = (statePermission, jurisdictions) => {
+            const hasStateReadPrivateSetting = Object.prototype.hasOwnProperty.call(statePermission, 'isReadPrivate');
             const hasStateWriteSetting = Object.prototype.hasOwnProperty.call(statePermission, 'isWrite');
             const hasStateAdminSetting = Object.prototype.hasOwnProperty.call(statePermission, 'isAdmin');
 
-            if (hasStateWriteSetting || hasStateAdminSetting) {
+            if (hasStateReadPrivateSetting || hasStateWriteSetting || hasStateAdminSetting) {
                 const actions: any = {};
 
                 jurisdictions[statePermission.abbrev] = { actions };
 
+                if (hasStateReadPrivateSetting) {
+                    actions.readPrivate = statePermission.isReadPrivate;
+                }
                 if (hasStateWriteSetting) {
                     actions.write = statePermission.isWrite;
                 }
@@ -316,17 +346,17 @@ export class StaffUserSerializer {
         };
         // Prepare compact permissions for server request
         const deserializeCompactPermission = (compactPermission) => {
-            const hasCompactReadSetting = Object.prototype.hasOwnProperty.call(compactPermission, 'isRead');
+            const hasCompactReadPrivateSetting = Object.prototype.hasOwnProperty.call(compactPermission, 'isReadPrivate');
             const hasCompactAdminSetting = Object.prototype.hasOwnProperty.call(compactPermission, 'isAdmin');
             const hasStates = Boolean(compactPermission.states?.length);
 
-            if (hasCompactReadSetting || hasCompactAdminSetting) {
+            if (hasCompactReadPrivateSetting || hasCompactAdminSetting) {
                 const actions: any = {};
 
                 serverData.permissions[compactPermission.compact] = { actions };
 
-                if (hasCompactReadSetting) {
-                    actions.read = compactPermission.isRead;
+                if (hasCompactReadPrivateSetting) {
+                    actions.readPrivate = compactPermission.isReadPrivate;
                 }
                 if (hasCompactAdminSetting) {
                     actions.admin = compactPermission.isAdmin;
@@ -349,6 +379,7 @@ export class StaffUserSerializer {
             serverData.permissions = {};
 
             data.permissions.forEach((compactPermission) => {
+                serverData.permissions[compactPermission.compact] = {};
                 deserializeCompactPermission(compactPermission);
             });
         }

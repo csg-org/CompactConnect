@@ -142,7 +142,7 @@ export class Licensee implements InterfaceLicensee {
         let stateNames: Array<string> = [];
 
         if (this.licenses?.length) {
-            stateNames = this.licenses.map((license: License) => license.issueState?.name() || '');
+            stateNames = this.licenses.map((license: License) => license?.issueState?.name() || '');
         } else {
             stateNames = this.licenseStates?.map((state: State) => state.name()) || [];
         }
@@ -155,7 +155,7 @@ export class Licensee implements InterfaceLicensee {
         let stateNames: Array<string> = [];
 
         if (this.privileges?.length) {
-            stateNames = this.privileges.map((privilege: License) => privilege.issueState?.name() || '');
+            stateNames = this.privileges.map((privilege: License) => privilege?.issueState?.name() || '');
         } else {
             stateNames = this.privilegeStates?.map((state: State) => state.name()) || [];
         }
@@ -167,7 +167,7 @@ export class Licensee implements InterfaceLicensee {
         let stateNames: Array<string> = [];
 
         if (this.privileges?.length) {
-            stateNames = this.privileges.map((privilege: License) => privilege.issueState?.name() || '');
+            stateNames = this.privileges.map((privilege: License) => privilege?.issueState?.name() || '');
         } else {
             stateNames = this.privilegeStates?.map((state: State) => state.name()) || [];
         }

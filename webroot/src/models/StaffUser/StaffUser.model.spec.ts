@@ -17,7 +17,7 @@ chai.use(chaiMatchPattern);
 
 const { expect } = chai;
 
-describe('User model', () => {
+describe('Staff User model', () => {
     before(() => {
         const { tm: $tm, t: $t } = i18n.global;
 
@@ -64,11 +64,12 @@ describe('User model', () => {
             permissions: [
                 {
                     compact: new Compact({ type: CompactType.ASLP }),
-                    isRead: true,
+                    isReadPrivate: true,
                     isAdmin: true,
                     states: [
                         {
                             state: new State({ abbrev: 'co' }),
+                            isReadPrivate: true,
                             isWrite: true,
                             isAdmin: true,
                         },
@@ -89,10 +90,11 @@ describe('User model', () => {
         expect(user.permissions).to.matchPattern([
             {
                 compact: new Compact({ type: CompactType.ASLP }),
-                isRead: true,
+                isReadPrivate: true,
                 isAdmin: true,
                 states: [
                     {
+                        isReadPrivate: true,
                         isWrite: true,
                         isAdmin: true,
                         '...': '',
@@ -103,10 +105,10 @@ describe('User model', () => {
         expect(user.accountStatus).to.equal(data.accountStatus);
         expect(user.getFullName()).to.equal(`${data.firstName} ${data.lastName}`);
         expect(user.getInitials()).to.equal('FL');
-        expect(user.permissionsShortDisplay()).to.equal('Read, Admin');
+        expect(user.permissionsShortDisplay()).to.equal('Read Private, Admin');
         expect(user.permissionsFullDisplay()).to.matchPattern([
-            'ASLP: Read, Admin',
-            'Colorado: Write, Admin',
+            'ASLP: Read Private, Admin',
+            'Colorado: Read Private, Write, Admin',
         ]);
         expect(user.affiliationDisplay()).to.equal('ASLP');
         expect(user.statesDisplay()).to.equal('Colorado');
@@ -117,7 +119,6 @@ describe('User model', () => {
             permissions: [
                 {
                     compact: new Compact({ type: CompactType.ASLP }),
-                    isRead: false,
                     isAdmin: true,
                     states: [
                         {
@@ -145,11 +146,10 @@ describe('User model', () => {
             permissions: [
                 {
                     compact: new Compact({ type: CompactType.ASLP }),
-                    isRead: false,
-                    isAdmin: false,
                     states: [
                         {
                             state: new State({ abbrev: 'co' }),
+                            isReadPrivate: true,
                             isWrite: true,
                             isAdmin: true,
                         },
@@ -160,9 +160,9 @@ describe('User model', () => {
         const user = new StaffUser(data);
 
         expect(user).to.be.an.instanceof(StaffUser);
-        expect(user.permissionsShortDisplay(CompactType.ASLP)).to.equal('Write, Admin');
+        expect(user.permissionsShortDisplay(CompactType.ASLP)).to.equal('Read Private, Write, Admin');
         expect(user.permissionsFullDisplay()).to.matchPattern([
-            'Colorado: Write, Admin',
+            'Colorado: Read Private, Write, Admin',
         ]);
         expect(user.affiliationDisplay(CompactType.ASLP)).to.equal('Colorado');
         expect(user.statesDisplay(CompactType.ASLP)).to.equal('Colorado');
@@ -172,22 +172,17 @@ describe('User model', () => {
             permissions: [
                 {
                     compact: new Compact({ type: CompactType.ASLP }),
-                    isRead: false,
-                    isAdmin: false,
                     states: [
                         {
                             state: new State({ abbrev: 'xx' }),
-                            isWrite: false,
                             isAdmin: true,
                         },
                         {
                             state: new State({ abbrev: 'co' }),
-                            isWrite: false,
                             isAdmin: true,
                         },
                         {
                             state: new State({ abbrev: 'md' }),
-                            isWrite: false,
                             isAdmin: true,
                         },
                     ],
@@ -218,12 +213,13 @@ describe('User model', () => {
             permissions: {
                 aslp: {
                     actions: {
-                        read: true,
+                        readPrivate: true,
                         admin: true,
                     },
                     jurisdictions: {
                         co: {
                             actions: {
+                                readPrivate: true,
                                 write: true,
                                 admin: true,
                             },
@@ -249,10 +245,11 @@ describe('User model', () => {
                     })),
                     '...': '',
                 },
-                isRead: true,
+                isReadPrivate: true,
                 isAdmin: true,
                 states: [
                     {
+                        isReadPrivate: true,
                         isWrite: true,
                         isAdmin: true,
                         '...': '',
@@ -265,10 +262,10 @@ describe('User model', () => {
         expect(user.userType).to.equal(AuthTypes.STAFF);
         expect(user.getFullName()).to.equal(`${data.attributes.givenName} ${data.attributes.familyName}`);
         expect(user.getInitials()).to.equal('FL');
-        expect(user.permissionsShortDisplay()).to.equal('Read, Admin');
+        expect(user.permissionsShortDisplay()).to.equal('Read Private, Admin');
         expect(user.permissionsFullDisplay()).to.matchPattern([
-            'ASLP: Read, Admin',
-            'Colorado: Write, Admin',
+            'ASLP: Read Private, Admin',
+            'Colorado: Read Private, Write, Admin',
         ]);
         expect(user.affiliationDisplay()).to.equal('ASLP');
         expect(user.statesDisplay()).to.equal('Colorado');
@@ -279,11 +276,12 @@ describe('User model', () => {
             permissions: [
                 {
                     compact: CompactType.ASLP,
-                    isRead: true,
+                    isReadPrivate: true,
                     isAdmin: true,
                     states: [
                         {
                             abbrev: 'co',
+                            isReadPrivate: true,
                             isWrite: true,
                             isAdmin: true,
                         },
@@ -302,12 +300,13 @@ describe('User model', () => {
             permissions: {
                 [CompactType.ASLP]: {
                     actions: {
-                        read: true,
+                        readPrivate: true,
                         admin: true,
                     },
                     jurisdictions: {
                         co: {
                             actions: {
+                                readPrivate: true,
                                 write: true,
                                 admin: true,
                             },

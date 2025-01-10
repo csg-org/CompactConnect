@@ -566,6 +566,7 @@
         "accessLevel": {
             "none": "None",
             "read": "Read",
+            "readPrivate": "Read Private",
             "write": "Write",
             "admin": "Admin"
         },

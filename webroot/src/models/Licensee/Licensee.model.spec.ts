@@ -242,4 +242,44 @@ describe('Licensee model', () => {
 
         expect(transmit.id).to.equal(licensee.id);
     });
+    it('should create a Licensee with null address fallbacks', () => {
+        const data = {
+            address: null,
+        };
+        const licensee = new Licensee(data);
+
+        // Test field values
+        expect(licensee.address).equal(data.address);
+
+        // Test methods
+        expect(licensee.residenceLocation()).to.equal('');
+    });
+    it('should create a Licensee with empty state name fallbacks', () => {
+        const licensee = new Licensee();
+
+        // Test methods
+        expect(licensee.getStateListDisplay(['', '', ''])).to.equal('');
+    });
+    it('should create a Licensee with empty license & privilege object state name fallbacks', () => {
+        const licensee = new Licensee({
+            licenses: [null],
+            privileges: [null],
+        });
+
+        // Test methods
+        expect(licensee.licenseStatesDisplay()).to.equal('');
+        expect(licensee.privilegeStatesDisplay()).to.equal('');
+        expect(licensee.privilegeStatesAllDisplay()).to.equal('');
+    });
+    it('should create a Licensee with empty license & privilege string state name fallbacks', () => {
+        const licensee = new Licensee({
+            licenseStates: null,
+            privilegeStates: null,
+        });
+
+        // Test methods
+        expect(licensee.licenseStatesDisplay()).to.equal('');
+        expect(licensee.privilegeStatesDisplay()).to.equal('');
+        expect(licensee.privilegeStatesAllDisplay()).to.equal('');
+    });
 });

@@ -566,6 +566,7 @@
         "accessLevel": {
             "none": "Ninguno",
             "read": "Lectura",
+            "readPrivate": "Leer datos privados",
             "write": "Escritura",
             "admin": "Administración"
         },
