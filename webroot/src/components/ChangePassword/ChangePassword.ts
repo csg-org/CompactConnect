@@ -100,15 +100,8 @@ class ChangePassword extends mixins(MixinForm) {
                 validation: joiPassword
                     .string()
                     .min(12)
-                    .minOfSpecialCharacters(1)
-                    .minOfLowercase(1)
-                    .minOfUppercase(1)
-                    .minOfNumeric(1)
                     .doesNotInclude([
                         this.user.email,
-                        this.user.firstName,
-                        this.user.lastName,
-                        'password',
                     ])
                     .messages({
                         ...this.joiMessages.string,
