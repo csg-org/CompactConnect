@@ -51,6 +51,7 @@ def create_cognito_user(*, email: str, compact: str, provider_id: str):
         if e.response['Error']['Code'] == 'UsernameExistsException':
             user_data = cognito_client.admin_get_user(UserPoolId=USER_POOL_ID, Username=email)
             return get_sub_from_attributes(user_data['UserAttributes'])
+        raise
 
 
 if __name__ == '__main__':
