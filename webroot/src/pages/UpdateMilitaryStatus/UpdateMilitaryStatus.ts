@@ -74,7 +74,7 @@ export default class UpdateMilitaryStatus extends mixins(MixinForm) {
                 name: 'affiliation-type',
                 shouldHideLabel: true,
                 label: computed(() => this.$t('military.affiliationType')),
-                validation: Joi.string().required().messages(this.joiMessages.string['string.empty']),
+                validation: Joi.string().required().messages({ 'string.empty': this.joiMessages.string['string.empty'] }),
                 valueOptions: this.affiliationTypeOptions.map((option) => ({ ...option })),
             }),
             document: new FormInput({
