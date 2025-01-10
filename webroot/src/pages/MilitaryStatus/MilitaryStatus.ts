@@ -204,7 +204,7 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     editInfo() {
         if (this.currentCompactType) {
             this.$router.push({
-                name: 'UpdateMilitaryStatus',
+                name: 'MilitaryStatusUpdate',
                 params: { compact: this.currentCompactType }
             });
         }

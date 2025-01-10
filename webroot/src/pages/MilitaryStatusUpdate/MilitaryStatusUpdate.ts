@@ -1,5 +1,5 @@
 //
-//  UpdateMilitaryStatus.ts
+//  MilitaryStatusUpdate.ts
 //  CompactConnect
 //
 //  Created by InspiringApps on 12/20/2024.
@@ -17,7 +17,7 @@ import { FormInput } from '@/models/FormInput/FormInput.model';
 import Joi from 'joi';
 
 @Component({
-    name: 'UpdateMilitaryStatus',
+    name: 'MilitaryStatusUpdate',
     components: {
         InputSubmit,
         InputRadioGroup,
@@ -25,7 +25,7 @@ import Joi from 'joi';
         InputButton
     }
 })
-export default class UpdateMilitaryStatus extends mixins(MixinForm) {
+export default class MilitaryStatusUpdate extends mixins(MixinForm) {
     //
     // Lifecycle
     //

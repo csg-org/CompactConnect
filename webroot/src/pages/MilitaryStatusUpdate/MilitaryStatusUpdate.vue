@@ -1,5 +1,5 @@
 <!--
-    UpdateMilitaryStatus.vue
+    MilitaryStatusUpdate.vue
     CompactConnect
 
     Created by InspiringApps on 12/20/2024.
@@ -49,5 +49,5 @@
    </div>
 </template>
 
-<script lang="ts" src="./UpdateMilitaryStatus.ts"></script>
-<style scoped lang="less" src="./UpdateMilitaryStatus.less"></style>
+<script lang="ts" src="./MilitaryStatusUpdate.ts"></script>
+<style scoped lang="less" src="./MilitaryStatusUpdate.less"></style>
