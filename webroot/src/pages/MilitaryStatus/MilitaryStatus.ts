@@ -139,7 +139,7 @@ export default class MilitaryStatus extends mixins(MixinForm) {
         let affiliations: any = [];
 
         if (this.licensee && this.licensee?.militaryAffiliations) {
-            affiliations = (this.licensee.militaryAffiliations as Array<MilitaryAffiliation>)
+            affiliations = (this.licensee.militaryAffiliations)
                 .map((militaryAffiliation: MilitaryAffiliation) => {
                     const affiliationDisplay = { name: '', date: '' };
 

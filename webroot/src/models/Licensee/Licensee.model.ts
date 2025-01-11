@@ -12,6 +12,12 @@ import { License, LicenseOccupation, LicenseSerializer } from '@models/License/L
 import { MilitaryAffiliation, MilitaryAffiliationSerializer } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
 import { State } from '@models/State/State.model';
 
+/**
+ * This model is used to represent both get one and get all server responses
+ * the params: licenses, privileges and militaryAffiliations are not present on get all responses
+ * those params will be therefore be empty arrays on such objects
+ */
+
 // ========================================================
 // =                       Interface                      =
 // ========================================================
