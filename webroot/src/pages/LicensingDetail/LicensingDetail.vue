@@ -28,7 +28,49 @@
                 </div>
             </div>
         </div>
-        <div class="licensee-section licenses">
+        <div class="license-section">
+            <div class="license-section-title-row">
+                <div class="license-logo-container">
+                    <img class="home-state-img" src="@assets/images/black-ellipse.svg" alt="License List Logo" />
+                </div>
+                <div class="license-title">
+                    {{licenseDetails}}
+                </div>
+            </div>
+            <div class="license-card-list-container">
+                <div
+                    v-for="(license, index) in licenseList"
+                    :key="'license'+index"
+                    class="no-touch-item license-chunk"
+                >
+                    <LicenseCard
+                        :license="license"
+                    />
+                    <div v-if="!checkIfLicenseActive(license)" class="license-expired-message">
+                        {{licenseExpiredMessage}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="privilege-section">
+            <div class="privilege-section-title-row">
+                <div class="privilege-logo-container">
+                    <img class="home-state-img" src="@assets/images/black-ellipse.svg" alt="Privilege List Logo" />
+                </div>
+                <div class="privilege-title">
+                    {{recentPrivilegesTitle}}
+                </div>
+            </div>
+            <div class="privilege-card-list-container">
+                <PrivilegeCard
+                    v-for="(privilege, index) in privilegeList"
+                    :key="'privilege'+index"
+                    :privilege="privilege"
+                    class="no-touch-item"
+                />
+            </div>
+        </div>
+        <!-- <div class="licensee-section licenses">
             <div class="licensee-section-title">Licenses</div>
             <div v-if="$matches.tablet.min" class="license-row headers">
                 <div class="license-row-cell residence-location header">{{ $t('licensing.residenceLocation') }}</div>
@@ -69,34 +111,7 @@
                     {{ license.expireDateDisplay() }}
                 </div>
             </div>
-        </div>
-        <div class="licensee-section adverse-actions">
-            <div class="licensee-section-title">Adverse Actions</div>
-            <div class="adverse-action-container">
-                <div class="icon"></div>
-                <div class="adverse-action">
-                    <div class="adverse-action-title">Lorem ipsum dolor</div>
-                    <div class="adverse-action-description">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tincidunt, magna non
-                        vestibulum pulvinar, nunc felis laoreet sem, nec elementum tellus mi quis erat. Cras sit
-                        amet tellus lorem. Integer est felis, commodo a molestie id, congue sit amet lorem. Nunc
-                        pulvinar lorem id tellus ve.
-                    </div>
-                </div>
-            </div>
-            <div class="adverse-action-container">
-                <div class="icon"></div>
-                <div class="adverse-action">
-                    <div class="adverse-action-title">Lorem ipsum dolor</div>
-                    <div class="adverse-action-description">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse tincidunt, magna non
-                        vestibulum pulvinar, nunc felis laoreet sem, nec elementum tellus mi quis erat. Cras sit
-                        amet tellus lorem. Integer est felis, commodo a molestie id, congue sit amet lorem. Nunc
-                        pulvinar lorem id tellus ve.
-                    </div>
-                </div>
-            </div>
-        </div>
+        </div> -->
     </div>
 </template>
 

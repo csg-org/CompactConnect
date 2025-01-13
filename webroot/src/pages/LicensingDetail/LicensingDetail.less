@@ -7,16 +7,23 @@
 
 .licensee-detail-container {
     @spacingMobile: 2.4rem;
+    @spacingTablet: 4.8rem;
     @spacingDesktop: 12rem;
 
     .licensee-header {
         display: flex;
         flex-direction: column;
         padding: @spacingMobile;
-        background-color: #f2f2f2;
+        background-color: @white;
+
+        @media @tabletWidth {
+            margin-top: -9rem;
+            padding: 9rem @spacingTablet @spacingTablet @spacingTablet;
+        }
 
         @media @desktopWidth {
-            padding: @spacingMobile @spacingDesktop;
+            margin-top: -9rem;
+            padding: 9rem @spacingDesktop @spacingMobile @spacingDesktop;
         }
 
         .breadcrumbs {
@@ -48,110 +55,216 @@
         }
     }
 
-    .licensee-section {
-        display: flex;
-        flex-direction: column;
+    .license-section {
         padding: @spacingMobile;
-        background-color: @white;
+
+        @media @tabletWidth {
+            padding: @spacingMobile @spacingTablet;
+        }
 
         @media @desktopWidth {
             padding: @spacingMobile @spacingDesktop;
         }
 
-        .licensee-section-title {
-            padding-bottom: @spacingMobile;
-            font-weight: @fontWeightBold;
-            font-size: 1.8rem;
+        .license-section-title-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-bottom: 1rem;
+
+            .license-title {
+                padding-left: 1rem;
+                font-size: @fontSizeLarger;
+            }
         }
 
-        .license-row {
+        .license-card-list-container {
             display: flex;
             flex-direction: column;
-            width: 100%;
+            align-items: center;
+            justify-content: center;
 
             @media @tabletWidth {
                 flex-direction: row;
+                flex-wrap: wrap;
+                align-items: flex-start;
+                justify-content: flex-start;
+                width: 100%;
+            }
+
+            .license-chunk {
+                .license-expired-message {
+                    margin-top: 1rem;
+                    color: @midRed;
+                }
             }
         }
 
-        .license-row-cell {
-            width: 100%;
-
-            @media @tabletWidth {
-                &:not(:first-child) {
-                    margin-left: 7%;
-                }
-
-                &.header {
-                    padding-top: @spacingMobile;
-                    padding-bottom: 4px;
-                    border-top: 1px solid @lightGrey;
-                    color: @lightTextGrey;
-                }
-
-                &.residence-location {
-                    flex-basis: 15%;
-                }
-
-                &.home-state {
-                    flex-basis: 15%;
-                }
-
-                &.privilege-states {
-                    flex-basis: 55%;
-                }
-
-                &.issue-date {
-                    flex-basis: 15%;
-                }
-
-                &.expire-date {
-                    flex-basis: 15%;
-                }
-            }
-
-            .cell-title {
-                color: @lightTextGrey;
-            }
-        }
-    }
-
-    .adverse-action-container {
-        display: flex;
-        margin-bottom: 3.2rem;
-
-        .icon {
-            @size: 40px;
-
-            display: none;
-            flex-basis: @size;
-            width: @size;
-            height: @size;
-            border-radius: 4px;
-            background-color: @veryLightGrey;
-
-            @media @tabletWidth {
-                display: flex;
-            }
-        }
-
-        .adverse-action {
+        .home-state-section {
             display: flex;
-            flex-basis: 100%;
             flex-direction: column;
 
-            @media @tabletWidth {
-                flex-basis: ~"calc(60% - 50px)";
-                margin-left: 1.6rem;
+            .home-state-list {
+                display: flex;
+                flex-direction: column;
+
+                @media @tabletWidth {
+                    flex-direction: row;
+                }
             }
 
-            .adverse-action-title {
-                font-weight: @fontWeightBold;
-            }
+            .homestate-error-text {
+                max-width: 20rem;
+                padding: 0 1rem;
+                color: @midRed;
+                text-overflow: wrap;
 
-            .adverse-action-description {
-                font-size: 1.4rem;
+                @media @tabletWidth {
+                    max-width: 40rem;
+                }
             }
         }
     }
+
+    .privilege-section {
+        padding: @spacingMobile;
+        border-top: 1px solid @lightGrey;
+
+        @media @tabletWidth {
+            padding: @spacingMobile @spacingTablet;
+        }
+
+        @media @desktopWidth {
+            padding: @spacingMobile @spacingDesktop;
+        }
+
+        .privilege-section-title-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-bottom: 1rem;
+
+            .privilege-title {
+                padding-left: 1rem;
+                font-size: @fontSizeLarger;
+            }
+        }
+
+        .privilege-card-list-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            @media @tabletWidth {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+        }
+    }
+    // .licensee-section {
+    //     display: flex;
+    //     flex-direction: column;
+    //     padding: @spacingMobile;
+    //     background-color: @white;
+
+    //     @media @desktopWidth {
+    //         padding: @spacingMobile @spacingDesktop;
+    //     }
+
+    //     .licensee-section-title {
+    //         padding-bottom: @spacingMobile;
+    //         font-weight: @fontWeightBold;
+    //         font-size: 1.8rem;
+    //     }
+
+    //     .license-row {
+    //         display: flex;
+    //         flex-direction: column;
+    //         width: 100%;
+
+    //         @media @tabletWidth {
+    //             flex-direction: row;
+    //         }
+    //     }
+
+    //     .license-row-cell {
+    //         width: 100%;
+
+    //         @media @tabletWidth {
+    //             &:not(:first-child) {
+    //                 margin-left: 7%;
+    //             }
+
+    //             &.header {
+    //                 padding-top: @spacingMobile;
+    //                 padding-bottom: 4px;
+    //                 border-top: 1px solid @white;
+    //                 color: @lightTextGrey;
+    //             }
+
+    //             &.residence-location {
+    //                 flex-basis: 15%;
+    //             }
+
+    //             &.home-state {
+    //                 flex-basis: 15%;
+    //             }
+
+    //             &.privilege-states {
+    //                 flex-basis: 55%;
+    //             }
+
+    //             &.issue-date {
+    //                 flex-basis: 15%;
+    //             }
+
+    //             &.expire-date {
+    //                 flex-basis: 15%;
+    //             }
+    //         }
+
+    //         .cell-title {
+    //             color: @lightTextGrey;
+    //         }
+    //     }
+    // }
+
+    // .adverse-action-container {
+    //     display: flex;
+    //     margin-bottom: 3.2rem;
+
+    //     .icon {
+    //         @size: 40px;
+
+    //         display: none;
+    //         flex-basis: @size;
+    //         width: @size;
+    //         height: @size;
+    //         border-radius: 4px;
+    //         background-color: @veryLightGrey;
+
+    //         @media @tabletWidth {
+    //             display: flex;
+    //         }
+    //     }
+
+    //     .adverse-action {
+    //         display: flex;
+    //         flex-basis: 100%;
+    //         flex-direction: column;
+
+    //         @media @tabletWidth {
+    //             flex-basis: ~"calc(60% - 50px)";
+    //             margin-left: 1.6rem;
+    //         }
+
+    //         .adverse-action-title {
+    //             font-weight: @fontWeightBold;
+    //         }
+
+    //         .adverse-action-description {
+    //             font-size: 1.4rem;
+    //         }
+    //     }
+    // }
 }

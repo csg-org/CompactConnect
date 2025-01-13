@@ -6,12 +6,18 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
+import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
+import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
 import { Licensee } from '@models/Licensee/Licensee.model';
-import { License } from '@models/License/License.model';
+import { License, LicenseStatus } from '@models/License/License.model';
+import moment from 'moment';
 
 @Component({
     name: 'LicensingDetail',
-    components: {}
+    components: {
+        LicenseCard,
+        PrivilegeCard
+    }
 })
 export default class LicensingDetail extends Vue {
     //
@@ -50,6 +56,8 @@ export default class LicensingDetail extends Vue {
             storeRecord = this.$store.getters['license/licenseeById'](licenseeId);
         }
 
+        console.log('storeRecord', storeRecord);
+
         return storeRecord;
     }
 
@@ -69,6 +77,72 @@ export default class LicensingDetail extends Vue {
         return this.licensee?.licenses || [];
     }
 
+    get licenseePrivileges(): Array<License> {
+        return this.licensee?.privileges || [];
+    }
+
+    get privilegeList(): Array<License> {
+        // From list of all privileges associated with user (independent of status),
+        // returns only most recent privilege fetched associated with each state
+        // to positively and most clearly display user's status in each state
+        const privilegeList: Array<License> = [];
+
+        this.licenseePrivileges.forEach((privilege) => {
+            const previousEntryOfStateIndex = privilegeList.findIndex((state) =>
+                state?.issueState?.abbrev === privilege?.issueState?.abbrev);
+            const previousEntryOfState = privilegeList[previousEntryOfStateIndex];
+
+            // If no existing entry of state add to array
+            if (previousEntryOfStateIndex === -1) {
+                privilegeList.push(privilege);
+            // If currently observed privilege is newer than saved entry replace existing entry
+            } else if (
+                privilege.renewalDate
+                && previousEntryOfState.renewalDate
+                && moment(privilege.renewalDate).isAfter(moment(previousEntryOfState.renewalDate))
+            ) {
+                privilegeList[previousEntryOfStateIndex] = privilege;
+            }
+        });
+
+        return privilegeList;
+    }
+
+    get licenseList(): Array<License> {
+        // From list of all licenses associated with user (independent of status),
+        // returns only most recent license fetched associated with each state
+        // to positively and most clearly display user's status in each state
+        const licenseList: Array<License> = [];
+
+        this.licenseeLicenses.forEach((license) => {
+            const previousEntryOfStateIndex = licenseList.findIndex((state) =>
+                state?.issueState?.abbrev === license?.issueState?.abbrev);
+            const previousEntryOfState = licenseList[previousEntryOfStateIndex];
+
+            // If no existing entry of state add to array
+            if (previousEntryOfStateIndex === -1) {
+                licenseList.push(license);
+            // If currently observed license is newer than saved entry replace existing entry
+            } else if (
+                license.renewalDate
+                && previousEntryOfState.renewalDate
+                && moment(license.renewalDate).isAfter(moment(previousEntryOfState.renewalDate))
+            ) {
+                licenseList[previousEntryOfStateIndex] = license;
+            }
+        });
+
+        return licenseList;
+    }
+
+    get recentPrivilegesTitle(): string {
+        return this.$t('licensing.recentPrivilegesTitle');
+    }
+
+    get licenseDetails(): string {
+        return this.$t('licensing.licenseDetails');
+    }
+
     //
     // Methods
     //
@@ -76,5 +150,15 @@ export default class LicensingDetail extends Vue {
         const { licenseeId } = this;
 
         await this.$store.dispatch('license/getLicenseeRequest', { compact: this.compact, licenseeId });
+    }
+
+    checkIfLicenseActive(license: License) {
+        let isLicenseActive = false;
+
+        if (license && license.statusState === LicenseStatus.ACTIVE) {
+            isLicenseActive = true;
+        }
+
+        return isLicenseActive;
     }
 }

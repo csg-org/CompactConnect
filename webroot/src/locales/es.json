@@ -483,6 +483,8 @@
         "homeState": "Estado de origen",
         "residenceLocation": "Ubicación de la residencia",
         "privileges": "Privilegios",
+        "recentPrivilegesTitle": "Privilegios recientes",
+        "licenseDetails": "Detalles de la licencia",
         "ssn": "SSN",
         "noRefundsMessage": "Todas las compras de privilegios compactos son definitivas. No se emitirán reembolsos.",
         "adverseActions": "Acciones adversas",

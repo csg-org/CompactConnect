@@ -43,18 +43,20 @@ export default {
     // GET LICENSEE
     getLicenseeRequest: async ({ commit, dispatch }, { compact, licenseeId }: any) => {
         commit(MutationTypes.GET_LICENSEE_REQUEST);
-        await dataApi.getLicensee(compact, licenseeId).then(async ({ licensee }) => {
-            if (licensee) {
-                // Only update the store if we received a response
-                await dispatch('setStoreLicensee', licensee);
-            }
+        console.log('getting?');
+
+        await dataApi.getLicensee(compact, licenseeId).then((licensee) => {
             dispatch('getLicenseeSuccess', licensee);
         }).catch((error) => {
             dispatch('getLicenseeFailure', error);
         });
     },
-    getLicenseeSuccess: ({ commit }) => {
+    getLicenseeSuccess: ({ commit, dispatch }, licensee) => {
         commit(MutationTypes.GET_LICENSEE_SUCCESS);
+
+        if (licensee) {
+            dispatch('setStoreLicensee', licensee);
+        }
     },
     getLicenseeFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_LICENSEE_FAILURE, error);
