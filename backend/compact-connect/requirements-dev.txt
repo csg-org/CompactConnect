@@ -64,9 +64,9 @@ pluggy==1.5.0
     # via pytest
 py-serializable==1.1.2
     # via cyclonedx-python-lib
-pygments==2.18.0
+pygments==2.19.0
     # via rich
-pyparsing==3.2.0
+pyparsing==3.2.1
     # via pip-requirements-parser
 pyproject-hooks==1.2.0
     # via
@@ -86,7 +86,7 @@ requests==2.32.3
     #   pip-audit
 rich==13.9.4
     # via pip-audit
-ruff==0.8.4
+ruff==0.8.6
     # via -r compact-connect/requirements-dev.in
 six==1.17.0
     # via

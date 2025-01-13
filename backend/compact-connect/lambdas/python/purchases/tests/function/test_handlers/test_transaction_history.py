@@ -201,9 +201,7 @@ class TestProcessSettledTransactions(TstFunction):
         """Test that method returns IN_PROGRESS status with pagination values when more transactions are available."""
         from handlers.transaction_history import process_settled_transactions
 
-        self._when_purchase_client_returns_paginated_transactions(
-            mock_purchase_client_constructor
-        )
+        self._when_purchase_client_returns_paginated_transactions(mock_purchase_client_constructor)
 
         event = self._when_testing_non_paginated_event()
         resp = process_settled_transactions(event, self.mock_context)

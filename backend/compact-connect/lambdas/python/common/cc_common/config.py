@@ -40,6 +40,12 @@ class _Config:
         return DataClient(self)
 
     @cached_property
+    def compact_configuration_client(self):
+        from cc_common.data_model.compact_configuration_client import CompactConfigurationClient
+
+        return CompactConfigurationClient(self)
+
+    @cached_property
     def user_client(self):
         from cc_common.data_model.user_client import UserClient
 

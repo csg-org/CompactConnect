@@ -3,8 +3,8 @@ from __future__ import annotations
 import os
 
 from aws_cdk import ArnFormat, Duration
-from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, TreatMissingData
-from aws_cdk.aws_cloudwatch_actions import SnsAction
+from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, TreatMissingData  # noqa: F401 temporarily unused
+from aws_cdk.aws_cloudwatch_actions import SnsAction  # noqa: F401 temporarily unused
 from aws_cdk.aws_events import Rule, Schedule
 from aws_cdk.aws_events_targets import SfnStateMachine
 from aws_cdk.aws_iam import Effect, PolicyStatement
@@ -211,7 +211,11 @@ class TransactionHistoryProcessingWorkflow(Construct):
             alarm_description=f'{state_machine.node.path} failed to collect transactions',
             comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
-        ).add_alarm_action(SnsAction(persistent_stack.alarm_topic))
+        )
+         # TODO: we have been asked to disable this until all compacts have valid authorize.net # noqa: FIX002
+         #  accounts put into place to avoid unnecessary alerting. Once the system is ready to
+         #  go live, this alarm action should be re-enabled.
+         # .add_alarm_action(SnsAction(persistent_stack.alarm_topic)))
 
     def _get_secrets_manager_compact_payment_processor_arn_for_compact(
         self, compact: str, environment_name: str

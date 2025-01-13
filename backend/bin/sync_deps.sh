@@ -8,6 +8,8 @@ pip-sync \
   multi-account/requirements.txt \
   compact-connect/requirements-dev.txt \
   compact-connect/requirements.txt \
+  compact-connect/lambdas/python/attestations/requirements-dev.txt \
+  compact-connect/lambdas/python/attestations/requirements.txt \
   compact-connect/lambdas/python/common/requirements-dev.txt \
   compact-connect/lambdas/python/common/requirements.txt \
   compact-connect/lambdas/python/custom-resources/requirements-dev.txt \

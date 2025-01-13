@@ -172,9 +172,71 @@ compactOperationsTeamEmails: ["<email address>"]
 compactAdverseActionsNotificationEmails: ["<email address>"]
 compactSummaryReportNotificationEmails: ["<email address>"]
 activeEnvironments: ["sandbox", "test"]
+attestations:                                       # Required attestations for the compact
+  - attestationId: "<id>"
+    displayName: "<name>"
+    description: "<description>"
+    text: "<attestation text>"
+    required: true|false
+    locale: "en"
 ```
 At deploy time, if the environment name matches one of the files in the `activeEnvironments` list, these configuration
 files will be written to the database and accessible by the system.
+
+### Configure Compact Attestations
+Each compact must define a set of attestations that providers must accept when purchasing privileges. Attestations are legally binding statements that providers must agree to, and they are versioned to ensure providers always see and accept the most current version. The attestations must be defined in the compact configuration file under the `attestations` field.
+
+The following attestations must be defined for each compact:
+
+1. **Jurisprudence Confirmation** (`jurisprudence-confirmation`)
+   - Confirms understanding that attestations are legally binding and false information may result in license/privilege loss
+
+2. **Scope of Practice** (`scope-of-practice-attestation`)
+   - Confirms understanding and agreement to abide by the state's scope of practice and applicable laws
+   - Acknowledges that violations may result in privilege revocation and two-year prohibition
+
+3. **Personal Information - Home State** (`personal-information-home-state-attestation`)
+   - Confirms residency in the declared home state
+   - Verifies personal and licensure information accuracy
+
+4. **Personal Information - Address** (`personal-information-address-attestation`)
+   - Confirms current address accuracy and consent to service of process
+   - Acknowledges requirement to notify Commission of address changes
+   - Confirms understanding of home state eligibility requirements
+
+5. **Discipline - No Current Encumbrance** (`discipline-no-current-encumbrance-attestation`)
+   - Confirms no current disciplinary restrictions on any state license
+   - Includes probation, supervision, program completion, and CE requirements
+
+6. **Discipline - No Prior Encumbrance** (`discipline-no-prior-encumbrance-attestation`)
+   - Confirms no disciplinary restrictions on any state license within the past two years
+
+7. **Provision of True Information** (`provision-of-true-information-attestation`)
+   - General attestation that all provided information is true and accurate
+
+8. **Not Under Investigation** (`not-under-investigation-attestation`)
+   - Confirms no current investigations by any board or regulatory body
+
+9. **Under Investigation** (`under-investigation-attestation`)
+   - Declares current investigation status
+   - Acknowledges that disciplinary action may result in privilege revocation
+
+10. **Military Affiliation** (`military-affiliation-confirmation-attestation`)
+    - Required only for providers with active military affiliation
+    - Confirms accuracy of uploaded military status documentation
+
+Each attestation in the configuration must include:
+```yaml
+attestations:
+  - attestationId: "<id>"           # Unique identifier for the attestation
+    displayName: "<name>"           # Human-readable name
+    description: "<description>"    # Brief description of the attestation's purpose
+    text: "<attestation text>"     # The full text of the attestation
+    required: true|false           # Whether the attestation is required
+    locale: "en"                   # Language code (currently only "en" supported)
+```
+
+The system automatically handles versioning of attestations. When the text, displayName, description, or required status of an attestation changes, the system will automatically increment the version number. Providers must always accept the latest version of each attestation when purchasing privileges.
 
 
 ## Updating Snapshot Tests to match Configuration Changes

@@ -9,14 +9,8 @@ look [here](./design/README.md).
 The Audiology and Speech Language Pathology, Counseling, and Occupational Therapy compact commissions are collectively building a system to share professional licensure data between their state licensing boards to facilitate participation in their respective occupational licensure compacts. To date, this system is solely composed of a mock API.
 
 ## Table of Contents
-- **[Mock API](#mock-api)**
 - **[How to use the API bulk-upload feature](#how-to-use-the-api-bulk-upload-feature)**
 - **[Open API Specification](#open-api-specification)**
-
-## Mock API
-[Back to top](#compact-connect---technical-user-guide)
-
-This system includes a mock license data API that has two functions: A synchronous license data validation endpoint that can allow users to test their data against the expected data schema and an asynchronous bulk upload function that can allow for uploading a large file to be asynchronously processed. Currently, neither endpoint has any back-end processing and data is immediately discarded. If you wish to test out these endpoints, **please make a point to only send artificial data**.
 
 ## How to use the API bulk-upload feature
 [Back to top](#compact-connect---technical-user-guide)
