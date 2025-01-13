@@ -143,6 +143,19 @@ export default class LicensingDetail extends Vue {
         return this.$t('licensing.licenseDetails');
     }
 
+    get personalInformationTitle(): string {
+        return this.$t('licensing.personalInformation');
+    }
+
+    get licenseExpiredMessage(): string {
+        return this.$t('licensing.licenseExpired');
+    }
+
+    get homeState(): string {
+        console.log('this.licensee', this.licensee);
+        return 'Colorado';
+    }
+
     //
     // Methods
     //

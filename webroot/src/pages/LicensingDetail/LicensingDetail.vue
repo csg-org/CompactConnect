@@ -28,6 +28,42 @@
                 </div>
             </div>
         </div>
+        <div class="personal-information-section">
+            <div class="personal-information-section-title-row">
+                <div class="license-logo-container">
+                    <img
+                        class="home-state-img"
+                        src="@assets/images/black-ellipse.svg"
+                        alt="Personal Informational List Logo"
+                    />
+                </div>
+                <div class="personal-information-title">
+                    {{personalInformationTitle}}
+                </div>
+            </div>
+            <div class="vitals-container">
+                <div class="info-item-container">
+                    <div class="info-item-title">{{$t('licensing.homeState')}}</div>
+                    <div class="info-item">{{homeState}}</div>
+                </div>
+                <div class="info-item-container">
+                    <div class="info-item-title">{{$t('common.address')}}</div>
+                    <div class="info-item">{{address}}</div>
+                </div>
+                <div class="info-item-container">
+                    <div class="info-item-title">{{$t('licensing.driversLicense')}}</div>
+                    <div class="info-item">{{licenseNumber}}</div>
+                </div>
+                <div class="info-item-container">
+                    <div class="info-item-title">{{$t('common.dateOfBirthShort')}}</div>
+                    <div class="info-item">{{dob}}</div>
+                </div>
+                <div class="info-item-container">
+                    <div class="info-item-title">{{$t('licensing.ssn')}}</div>
+                    <div class="info-item">{{ssn}}</div>
+                </div>
+            </div>
+        </div>
         <div class="license-section">
             <div class="license-section-title-row">
                 <div class="license-logo-container">

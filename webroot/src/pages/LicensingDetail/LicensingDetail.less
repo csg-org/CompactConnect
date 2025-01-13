@@ -55,6 +55,50 @@
         }
     }
 
+    .personal-information-section {
+        padding: @spacingMobile;
+
+        @media @tabletWidth {
+            padding: @spacingMobile @spacingTablet;
+        }
+
+        @media @desktopWidth {
+            padding: @spacingMobile @spacingDesktop;
+        }
+
+        .personal-information-section-title-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            margin-bottom: 1rem;
+
+            .personal-information-title {
+                padding-left: 1rem;
+                font-size: @fontSizeLarger;
+            }
+        }
+
+        .vitals-container {
+            display: flex;
+            flex-direction: row;
+
+            .info-item-container {
+                padding: 2rem;
+
+                .info-item-title {
+                    font-weight: @fontWeightBold;
+                    font-size: 1.4rem;
+                    line-height: 2.1rem;
+                }
+
+                .info-item {
+                    font-size: 1.4rem;
+                    line-height: 2.1rem;
+                }
+            }
+        }
+    }
+
     .license-section {
         padding: @spacingMobile;
 
@@ -161,6 +205,11 @@
             }
         }
     }
+
+    .no-touch-item {
+        margin: 1rem;
+    }
+
     // .licensee-section {
     //     display: flex;
     //     flex-direction: column;
