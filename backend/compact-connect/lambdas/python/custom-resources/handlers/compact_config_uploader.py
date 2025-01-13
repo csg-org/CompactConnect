@@ -61,8 +61,6 @@ def _upload_attestation_configuration(compact_configuration: dict) -> None:
     attestation_record_schema = AttestationRecordSchema()
     for compact in compact_configuration['compacts']:
         compact_name = compact['compactName']
-        if 'attestations' not in compact:
-            continue
 
         logger.info('Loading attestations', compact=compact_name)
         for attestation in compact['attestations']:
