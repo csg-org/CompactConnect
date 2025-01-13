@@ -21,6 +21,8 @@ class AttestationRecordSchema(BaseRecordSchema):
     attestationId = String(required=True, allow_none=False)
     compact = String(required=True, allow_none=False)
     # verify that version is a string of digits
+    # we store the version as a string, rather than an integer, to avoid
+    # type casting between DynamoDB's Decimal and Python's int types
     version = String(required=True, allow_none=False, validate=Regexp(r'^\d+$'))
     dateCreated = String(required=True, allow_none=False)
     text = String(required=True, allow_none=False)

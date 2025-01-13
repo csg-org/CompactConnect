@@ -575,6 +575,8 @@ class ApiModel:
                                     description='The ID of the attestation',
                                 ),
                                 'version': JsonSchema(
+                                    # we store the version as a string, rather than an integer, to avoid
+                                    # type casting between DynamoDB's Decimal and Python's int
                                     type=JsonSchemaType.STRING,
                                     max_length=10,
                                     description='The version of the attestation',
