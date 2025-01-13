@@ -276,4 +276,57 @@ export default {
     postPrivilegePurchasesFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE, error);
     },
+    uploadMilitaryAffiliationRequest: ({ commit, dispatch }, documentData) => {
+        commit(MutationTypes.UPLOAD_MILITARY_AFFILIATION_REQUEST);
+
+        const documentIntentData = { ...documentData };
+
+        delete documentIntentData.document;
+        return dataApi.postUploadMilitaryDocumentIntent(documentIntentData).then((intentServerResponse) => {
+            const postUrl = intentServerResponse.documentUploadFields[0].url;
+            const uploadFields = intentServerResponse.documentUploadFields[0].fields;
+
+            if (postUrl && uploadFields && documentData.document) {
+                const documentUploadData = { ...uploadFields };
+
+                return dataApi.postUploadMilitaryAffiliationDocument(postUrl, documentUploadData, documentData.document)
+                    .then((uploadServerResponse) => {
+                        if (uploadServerResponse?.status === 204) {
+                            dispatch('uploadMilitaryAffiliationSuccess');
+
+                            return uploadServerResponse;
+                        }
+
+                        throw new Error('Document Upload Failed');
+                    });
+            }
+
+            throw new Error('Missing fields for Document upload');
+        }).catch((error) => {
+            dispatch('uploadMilitaryAffiliationFailure', error);
+            return error;
+        });
+    },
+    uploadMilitaryAffiliationSuccess: async ({ commit }) => {
+        commit(MutationTypes.UPLOAD_MILITARY_AFFILIATION_SUCCESS);
+    },
+    uploadMilitaryAffiliationFailure: async ({ commit }, error: Error) => {
+        commit(MutationTypes.UPLOAD_MILITARY_AFFILIATION_FAILURE, error);
+    },
+    endMilitaryAffiliationRequest: ({ commit, dispatch }) => {
+        commit(MutationTypes.END_MILITARY_AFFILIATION_REQUEST);
+        return dataApi.endMilitaryAffiliation().then((serverResponse) => {
+            dispatch('endMilitaryAffiliationSuccess');
+            return serverResponse;
+        }).catch((error) => {
+            dispatch('endMilitaryAffiliationFailure', error);
+            return error;
+        });
+    },
+    endMilitaryAffiliationSuccess: async ({ commit }) => {
+        commit(MutationTypes.END_MILITARY_AFFILIATION_SUCCESS);
+    },
+    endMilitaryAffiliationFailure: async ({ commit }, error: Error) => {
+        commit(MutationTypes.END_MILITARY_AFFILIATION_FAILURE, error);
+    },
 };

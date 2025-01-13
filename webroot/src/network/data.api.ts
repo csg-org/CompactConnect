@@ -173,6 +173,30 @@ export class DataApi {
         return userDataApi.postPrivilegePurchases(data);
     }
 
+    /**
+     * POST Upload Military Document Intent for Authenticated Licensee user.
+     * @return {Promise<object>} Intent response object containing presigned S3 url and necessary params to upload document.
+     */
+    public postUploadMilitaryDocumentIntent(data: any) {
+        return userDataApi.postUploadMilitaryDocumentIntent(data);
+    }
+
+    /**
+     * POST Upload Military Affiliation Document for Authenticated Licensee user.
+     * @return {Promise<object>} Document upload response object.
+     */
+    public postUploadMilitaryAffiliationDocument(postUrl: string, documentUploadData: any, file: File) {
+        return userDataApi.postUploadMilitaryAffiliationDocument(postUrl, documentUploadData, file);
+    }
+
+    /**
+     * PATCH Cancel Military Affiliation.
+     * @return {Promise<object>} Purchase response object.
+     */
+    public endMilitaryAffiliation() {
+        return userDataApi.endMilitaryAffiliation();
+    }
+
     // ========================================================================
     //                              EXAMPLE API
     // ========================================================================

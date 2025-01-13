@@ -110,7 +110,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     }
 
     get militaryDiscountText(): string {
-        return this.$t('licensing.militaryDiscountText');
+        return this.$t('military.militaryDiscountText');
     }
 
     get jurisprudenceModalTitle(): string {
@@ -149,8 +149,12 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         return this.selectedStatePurchaseData?.isMilitaryDiscountActive || false;
     }
 
+    get shouldApplyMilitaryDiscount(): boolean {
+        return Boolean(this.isMilitaryDiscountActive && this.licensee?.isMilitary());
+    }
+
     get subTotal(): string {
-        const militaryDiscount = this.isMilitaryDiscountActive
+        const militaryDiscount = this.shouldApplyMilitaryDiscount
             && this.selectedStatePurchaseData?.militaryDiscountAmount
             ? this.selectedStatePurchaseData?.militaryDiscountAmount : 0;
 

@@ -9,13 +9,22 @@
     <div class="licensee-dashboard-container">
         <div class="top-block">
             <div class="welcome-user">{{welcomeText}}, {{ userFullName }}</div>
-            <InputButton
-                :label="obtainPrivButtonLabel"
-                aria-label="obtatin privilege"
-                class="obtain-priv-btn"
-                :isEnabled="!isPrivilegePurchaseDisabled"
-                @click="startPrivPurchaseFlow"
-            />
+            <div class="button-block">
+                <InputButton
+                    :label="$t('military.viewMilitaryStatus')"
+                    :aria-label="$t('military.viewMilitaryStatus')"
+                    :isTransparent="true"
+                    class="view-military-btn"
+                    @click="viewMilitaryStatus"
+                />
+                <InputButton
+                    :label="obtainPrivButtonLabel"
+                    :aria-label="$t('licensing.obtainPrivileges')"
+                    class="obtain-priv-btn"
+                    :isEnabled="!isPrivilegePurchaseDisabled"
+                    @click="startPrivPurchaseFlow"
+                />
+            </div>
         </div>
         <div class="license-section">
             <div class="home-state-section">
