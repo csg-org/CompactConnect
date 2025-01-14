@@ -98,32 +98,48 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     
     return {'message': 'reports sent successfully'}
 
+def _get_jurisdiction_postal_abbreviations(jurisdiction_configs: List[dict]) -> set[str]:
+    """Get the postal abbreviations for all jurisdictions."""
+    return {j['postalAbbreviation'].lower() for j in jurisdiction_configs}
+
 
 def generate_compact_summary_report(transactions: List[dict], compact_config: Compact, jurisdiction_configs: List[dict]) -> str:
     """Generate the compact financial summary report CSV."""
-    total_transactions = len(transactions)
-    compact_fees = sum(
-        float(item['unitPrice']) * float(item['quantity'])
-        for t in transactions
-        for item in t['lineItems']
-        if item['itemId'].endswith('-compact-fee')
-    ) if transactions else 0
-    
-    # Calculate state fees per jurisdiction
-    jurisdiction_fees = {}
-    for jurisdiction in jurisdiction_configs:
-        jurisdiction_postal = jurisdiction['postalAbbreviation'].lower()
-        jurisdiction_fees[jurisdiction_postal] = sum(
-            float(item['unitPrice']) * float(item['quantity'])
-            for t in transactions
-            for item in t['lineItems']
-            if item['itemId'].endswith(f'-{jurisdiction_postal}')
+    # Initialize variables
+    compact_fees = 0
+    configured_jurisdictions = _get_jurisdiction_postal_abbreviations(jurisdiction_configs)
+    jurisdiction_fees: dict[str, float] = {j['postalAbbreviation'].lower(): 0 for j in jurisdiction_configs}
+    unknown_jurisdictions = set()
+
+    # Single pass through transactions to calculate all fees
+    for transaction in transactions:
+        for item in transaction['lineItems']:
+            fee = float(item['unitPrice']) * float(item['quantity'])
+            
+            if item['itemId'].endswith('-compact-fee'):
+                compact_fees += fee
+            else:
+                jurisdiction = item['itemId'].split('-')[1]
+                if jurisdiction not in configured_jurisdictions:
+                    unknown_jurisdictions.add(jurisdiction)
+                    if jurisdiction not in jurisdiction_fees:
+                        jurisdiction_fees[jurisdiction] = fee
+                        continue
+
+                # Add fee to jurisdiction
+                jurisdiction_fees[jurisdiction] += fee
+
+    if unknown_jurisdictions:
+        logger.error(
+            'Unknown jurisdictions found in transactions.',
+            jurisdictions=list(unknown_jurisdictions),
+            compact=compact_config.compact_name
         )
     
     # Generate CSV
     output = StringIO()
     writer = csv.writer(output, lineterminator='\n')
-    writer.writerow(['Total Transactions', total_transactions])
+    writer.writerow(['Total Transactions', len(transactions)])
     writer.writerow(['Total Compact Fees', f'${compact_fees:.2f}'])
     
     for jurisdiction in jurisdiction_configs:
@@ -132,6 +148,11 @@ def generate_compact_summary_report(transactions: List[dict], compact_config: Co
         writer.writerow([
             f'State Fees ({jurisdiction["jurisdictionName"].capitalize()})',
             f'${fee_value:.2f}'
+        ])
+    for jurisdiction in unknown_jurisdictions:
+        writer.writerow([
+            f'State Fees (UNKNOWN ({jurisdiction}))',
+            f'${jurisdiction_fees[jurisdiction]:.2f}'
         ])
     
     return output.getvalue()
@@ -173,8 +194,8 @@ def generate_compact_transaction_report(transactions: List[dict], providers: Dic
             state = item['itemId'].split('-')[1].upper()
             
             writer.writerow([
-                provider.get('givenName', ''),
-                provider.get('familyName', ''),
+                provider.get('givenName', 'UNKNOWN'),
+                provider.get('familyName', 'UNKNOWN'),
                 transaction['licenseeId'],
                 transaction_date,
                 state,
@@ -246,8 +267,8 @@ def generate_jurisdiction_reports(
             )
             
             writer.writerow([
-                provider.get('givenName', ''),
-                provider.get('familyName', ''),
+                provider.get('givenName', 'UNKNOWN'),
+                provider.get('familyName', 'UNKNOWN'),
                 transaction['licenseeId'],
                 transaction_date,
                 item['unitPrice'],

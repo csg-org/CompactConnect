@@ -424,3 +424,47 @@ class TestGenerateTransactionReports(TstFunction):
 
         self.assertIn('Compact configuration not found', str(exc_info.exception.message))
 
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-02T23:59:59+00:00'))
+    @patch('handlers.transaction_reporting.config.lambda_client')
+    def test_generate_report_handles_unknown_jurisdiction(self, mock_lambda_client):
+        """Test handling of transactions with jurisdictions not in configuration.
+
+        This is unlikely to happen in practice, but we should handle it gracefully.
+        """
+        from handlers.transaction_reporting import generate_transaction_reports
+        self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
+        
+        mock_user = self.add_mock_provider_to_db('12345', 'John', 'Doe')
+        # Create a transaction with a jurisdiction not in the configuration
+        self.add_mock_transaction_to_db(
+            jurisdictions=['oh', 'ky', 'xx'],  # 'xx' is not a configured jurisdiction
+            licensee_id=mock_user['providerId'],
+            month_iso_string='2025-03',
+            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-30T12:00:00+00:00')
+        )
+
+        generate_transaction_reports(generate_mock_event(), self.mock_context)
+
+        calls_args = mock_lambda_client.invoke.call_args_list
+        compact_call_payload = json.loads(calls_args[0][1]['Payload'])
+        
+        # Verify compact summary includes unknown jurisdiction
+        self.assertEqual(
+            'Total Transactions,1\n'
+            'Total Compact Fees,$31.50\n'  # $10.50 x 3 privileges
+            'State Fees (Kentucky),$100.00\n'
+            'State Fees (Ohio),$100.00\n'
+            'State Fees (UNKNOWN (xx)),$100.00\n',
+            compact_call_payload['templateVariables']['compactFinancialSummaryReportCSV']
+        )
+
+        # Verify we only sent reports for known jurisdictions
+        jurisdiction_calls = [
+            call for call in calls_args[1:]
+            if json.loads(call[1]['Payload'])['template'] == 'JurisdictionTransactionReporting'
+        ]
+        self.assertEqual(2, len(jurisdiction_calls))  # Only OH and KY should get reports
+        
+        jurisdiction_report_payloads = [json.loads(call[1]['Payload']) for call in jurisdiction_calls]
+        reported_jurisdictions = {payload['jurisdiction'] for payload in jurisdiction_report_payloads}
+        self.assertEqual({'oh', 'ky'}, reported_jurisdictions)  # Verify only OH and KY got reports
