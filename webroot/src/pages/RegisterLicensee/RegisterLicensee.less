@@ -1,0 +1,92 @@
+//
+//  RegisterLicensee.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 1/14/2025.
+//
+
+.register-licensee-section-container {
+    align-items: center;
+    width: 90%;
+    max-width: 40rem;
+    margin: 0 auto;
+
+    .register-licensee-logo-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 12.8rem;
+        margin-bottom: 3.2rem;
+        text-align: center;
+
+        .register-licensee-logo {
+            display: inline-block;
+            width: auto;
+            height: 100%;
+        }
+    }
+
+    .register-licensee-title {
+        margin-bottom: 1.8rem;
+    }
+
+    .register-licensee-card {
+        width: 100%;
+    }
+
+    .register-licensee-form-container {
+        width: 100%;
+    }
+
+    .input-submit:deep(.input-submit) {
+        width: 100%;
+    }
+
+    .register-licensee-success-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 3.2rem 0;
+
+        .icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 6.4rem;
+            height: 6.4rem;
+            margin-bottom: 1.6rem;
+            border-radius: 50%;
+            overflow: hidden;
+            background-color: @lightGreen;
+
+            .icon-check-circle {
+                width: 100%;
+                fill: @white;
+            }
+        }
+
+        .register-licensee-success-title {
+            font-weight: @fontWeightBold;
+            font-size: 2.6rem;
+            text-align: center;
+        }
+
+        .register-licensee-success-subtext {
+            margin-top: 1.2rem;
+            text-align: center;
+        }
+    }
+
+    &:deep(.mock-populate) {
+        width: fit-content;
+    }
+
+    .clear-form {
+        display: inline-block;
+        margin-bottom: 1.2rem;
+        font-style: italic;
+        cursor: pointer;
+    }
+}

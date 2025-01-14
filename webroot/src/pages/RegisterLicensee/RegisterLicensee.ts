@@ -1,0 +1,228 @@
+//
+//  RegisterLicensee.ts
+//  CompactConnect
+//
+//  Created by InspiringApps on 1/14/2025.
+//
+
+import { Component, mixins, toNative } from 'vue-facing-decorator';
+import { reactive, computed, ComputedRef } from 'vue';
+import { stateList } from '@/app.config';
+import MixinForm from '@components/Forms/_mixins/form.mixin';
+import Section from '@components/Section/Section.vue';
+import Card from '@components/Card/Card.vue';
+import InputText from '@components/Forms/InputText/InputText.vue';
+import InputDate from '@components/Forms/InputDate/InputDate.vue';
+import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
+import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import CheckCircle from '@components/Icons/CheckCircle/CheckCircle.vue';
+import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
+import { State } from '@models/State/State.model';
+import { FormInput } from '@models/FormInput/FormInput.model';
+import Joi from 'joi';
+
+interface SelectOption {
+    value: string | number;
+    name: string | ComputedRef<string>;
+}
+
+@Component({
+    name: 'RegisterLicensee',
+    components: {
+        Section,
+        Card,
+        InputText,
+        InputDate,
+        InputSelect,
+        InputSubmit,
+        CheckCircle,
+        MockPopulate,
+    }
+})
+class RegisterLicensee extends mixins(MixinForm) {
+    //
+    // Lifecycle
+    //
+    created() {
+        this.initFormInputs();
+    }
+
+    //
+    // Computed
+    //
+    get stateOptions(): Array<SelectOption> {
+        const options = [{ value: '', name: this.$t('common.select') }];
+
+        stateList?.forEach((state) => {
+            const stateObject = new State({ abbrev: state });
+            const value = stateObject?.abbrev?.toLowerCase();
+            const name = stateObject?.name();
+
+            if (name && value) {
+                options.push({ value, name });
+            }
+        });
+
+        return options;
+    }
+
+    get occupationOptions(): Array<SelectOption> {
+        const options = [{ value: '', name: this.$t('common.select') }];
+        const occupations = this.$tm('licensing.occupations') || [];
+
+        occupations.forEach((occupation) => {
+            options.push({
+                value: occupation.key,
+                name: occupation.name,
+            });
+        });
+
+        return options;
+    }
+
+    get submitLabel(): string {
+        let label = this.$t('account.requestAccount');
+
+        if (this.isFormLoading) {
+            label = this.$t('common.loading');
+        }
+
+        return label;
+    }
+
+    get isMockPopulateEnabled(): boolean {
+        return Boolean(this.$envConfig.isDevelopment);
+    }
+
+    get elementTransitionMode(): string {
+        // Test utils have a bug with transition modes; this only includes the mode in non-test contexts.
+        return (this.$envConfig.isTest) ? '' : 'out-in';
+    }
+
+    //
+    // Methods
+    //
+    initFormInputs(): void {
+        this.formData = reactive({
+            firstName: new FormInput({
+                id: 'first-name',
+                name: 'first-name',
+                label: computed(() => this.$t('common.givenName')),
+                placeholder: computed(() => this.$t('common.givenName')),
+                autocomplete: 'given-name',
+                validation: Joi.string().required().messages(this.joiMessages.string),
+            }),
+            lastName: new FormInput({
+                id: 'last-name',
+                name: 'last-name',
+                label: computed(() => this.$t('common.familyName')),
+                placeholder: computed(() => this.$t('common.familyName')),
+                autocomplete: 'family-name',
+                validation: Joi.string().required().messages(this.joiMessages.string),
+            }),
+            email: new FormInput({
+                id: 'email',
+                name: 'email',
+                label: computed(() => this.$t('common.emailAddress')),
+                placeholder: computed(() => this.$t('common.emailAddress')),
+                autocomplete: 'email',
+                validation: Joi.string().email({ tlds: false }).messages(this.joiMessages.string),
+            }),
+            ssnLastFour: new FormInput({
+                id: 'ssn-last-four',
+                name: 'ssn-last-four',
+                label: computed(() => this.$t('licensing.ssnLastFour')),
+                placeholder: computed(() => this.$t('licensing.ssnLastFour')),
+                validation: Joi.string().length(4).required().messages(this.joiMessages.string),
+            }),
+            dob: new FormInput({
+                id: 'dob',
+                name: 'dob',
+                label: computed(() => this.$t('common.dateOfBirth')),
+                placeholder: computed(() => this.$t('common.dateOfBirth')),
+                autocomplete: 'bday',
+                validation: Joi.string().required().messages(this.joiMessages.string),
+            }),
+            licenseState: new FormInput({
+                id: 'license-state',
+                name: 'license-state',
+                label: computed(() => this.$t('licensing.stateOfHomeLicense')),
+                autocomplete: 'address-level1',
+                validation: Joi.string().required().messages(this.joiMessages.string),
+                valueOptions: this.stateOptions,
+            }),
+            licenseType: new FormInput({
+                id: 'license-type',
+                name: 'license-type',
+                label: computed(() => this.$t('licensing.licenseType')),
+                validation: Joi.string().required().messages(this.joiMessages.string),
+                valueOptions: this.occupationOptions,
+            }),
+            submit: new FormInput({
+                isSubmitInput: true,
+                id: 'submit',
+            }),
+        });
+        this.watchFormInputs(); // Important if you want automated form validation
+    }
+
+    formatSsn(): void {
+        const { ssnLastFour } = this.formData;
+        const format = (ssnInputVal) => {
+            // Remove all non-dash and non-numerals
+            const formatted = ssnInputVal.replace(/[^\d]/g, '');
+
+            // Enforce max length
+            return formatted.substring(0, 4);
+        };
+
+        ssnLastFour.value = format(ssnLastFour.value);
+    }
+
+    async handleSubmit(): Promise<void> {
+        this.validateAll({ asTouched: true });
+
+        if (this.isFormValid) {
+            this.startFormLoading();
+
+            // @TODO
+            console.log(this.formValues);
+
+            if (!this.isFormError) {
+                this.isFormSuccessful = true;
+            }
+
+            this.endFormLoading();
+        }
+    }
+
+    resetForm(): void {
+        this.formData.firstName.value = '';
+        this.formData.lastName.value = '';
+        this.formData.email.value = '';
+        this.formData.ssnLastFour.value = '';
+        this.formData.dob.value = '';
+        this.formData.licenseState.value = '';
+        this.formData.licenseType.value = '';
+        this.isFormLoading = false;
+        this.isFormSuccessful = false;
+        this.isFormError = false;
+        this.updateFormSubmitSuccess('');
+        this.updateFormSubmitError('');
+    }
+
+    mockPopulate(): void {
+        this.formData.firstName.value = 'Test';
+        this.formData.lastName.value = 'User';
+        this.formData.email.value = 'test@example.com';
+        this.formData.ssnLastFour.value = '1234';
+        this.formData.dob.value = '2000-01-01';
+        this.formData.licenseState.value = this.stateOptions[1]?.value || 'co';
+        this.formData.licenseType.value = this.occupationOptions[1]?.value || 'audiologist';
+        this.validateAll({ asTouched: true });
+    }
+}
+
+export default toNative(RegisterLicensee);
+
+// export default RegisterLicensee;
