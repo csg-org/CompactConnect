@@ -1,4 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
+from marshmallow import Schema
 from marshmallow.fields import List, Nested, Raw, String
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
@@ -39,6 +40,21 @@ class PrivilegeUpdateGeneralResponseSchema(ForgivingSchema):
     updatedValues = Nested(PrivilegeUpdatePreviousGeneralResponseSchema(partial=True), required=True, allow_none=False)
 
 
+class AttestationVersionResponseSchema(Schema):
+    """
+    This schema is intended to be used by any api response in the system which needs to track which attestations have
+    been accepted by a user (i.e. when purchasing privileges).
+
+    This schema is intended to be used as a nested field in other schemas.
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    attestationId = String(required=True, allow_none=False)
+    version = String(required=True, allow_none=False)
+
+
 class PrivilegeGeneralResponseSchema(ForgivingSchema):
     """
     A snapshot of a previous state of a privilege object
@@ -59,3 +75,5 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     compactTransactionId = String(required=False, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
     history = List(Nested(PrivilegeUpdateGeneralResponseSchema, required=False, allow_none=False))
+    # list of attestations that were accepted when purchasing this privilege
+    attestations = List(Nested(AttestationVersionResponseSchema()), required=False, allow_none=False)

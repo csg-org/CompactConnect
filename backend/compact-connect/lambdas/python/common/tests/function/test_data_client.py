@@ -10,6 +10,8 @@ from tests.function import TstFunction
 
 @mock_aws
 class TestDataClient(TstFunction):
+    sample_privilege_attestations = [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}]
+
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_data_client_created_privilege_record(self):
         from cc_common.data_model.data_client import DataClient
@@ -24,6 +26,7 @@ class TestDataClient(TstFunction):
             provider_record={},
             existing_privileges=[],
             compact_transaction_id='test_transaction_id',
+            attestations=self.sample_privilege_attestations,
         )
 
         # Verify that the privilege record was created
@@ -43,6 +46,7 @@ class TestDataClient(TstFunction):
                 'dateOfExpiration': '2024-10-31',
                 'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                 'compactTransactionId': 'test_transaction_id',
+                'attestations': self.sample_privilege_attestations,
             },
             new_privilege,
         )
@@ -72,6 +76,7 @@ class TestDataClient(TstFunction):
             'dateOfExpiration': '2024-10-31',
             'dateOfUpdate': '2023-11-08T23:59:59+00:00',
             'compactTransactionId': '1234567890',
+            'attestations': self.sample_privilege_attestations,
         }
         self._provider_table.put_item(Item=original_privilege)
 
@@ -89,6 +94,7 @@ class TestDataClient(TstFunction):
             },
             existing_privileges=[PrivilegeRecordSchema().load(original_privilege)],
             compact_transaction_id='test_transaction_id',
+            attestations=self.sample_privilege_attestations,
         )
 
         # Verify that the privilege record was created
@@ -113,11 +119,12 @@ class TestDataClient(TstFunction):
                     'dateOfExpiration': '2025-10-31',
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'compactTransactionId': 'test_transaction_id',
+                    'attestations': self.sample_privilege_attestations,
                 },
                 # A new history record
                 {
                     'pk': 'aslp#PROVIDER#test_provider_id',
-                    'sk': 'aslp#PROVIDER#privilege/ky#UPDATE#1731110399/2c634c2f077189a662ec0e001a50e64a',
+                    'sk': 'aslp#PROVIDER#privilege/ky#UPDATE#1731110399/c5f01c55b874ab68fd3b98900926763c',
                     'type': 'privilegeUpdate',
                     'updateType': 'renewal',
                     'providerId': 'test_provider_id',
@@ -130,6 +137,7 @@ class TestDataClient(TstFunction):
                         'dateOfExpiration': '2024-10-31',
                         'dateOfUpdate': '2023-11-08T23:59:59+00:00',
                         'compactTransactionId': '1234567890',
+                        'attestations': self.sample_privilege_attestations,
                     },
                     'updatedValues': {
                         'dateOfRenewal': '2024-11-08T23:59:59+00:00',
@@ -192,6 +200,7 @@ class TestDataClient(TstFunction):
             },
             existing_privileges=original_privileges,
             compact_transaction_id='test_transaction_id',
+            attestations=self.sample_privilege_attestations,
         )
 
         # Verify that all privileges were updated
@@ -290,6 +299,7 @@ class TestDataClient(TstFunction):
                 provider_record=original_provider,
                 existing_privileges=original_privileges,
                 compact_transaction_id='test_transaction_id',
+                attestations=self.sample_privilege_attestations,
             )
 
         # Verify that all privileges were restored to their original state

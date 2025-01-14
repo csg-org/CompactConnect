@@ -4,6 +4,7 @@ from aws_cdk.aws_apigateway import AuthorizationType, IResource, MethodOptions
 
 from stacks import persistent_stack as ps
 from stacks.api_stack import cc_api
+from stacks.api_stack.v1_api.attestations import Attestations
 from stacks.api_stack.v1_api.bulk_upload_url import BulkUploadUrl
 from stacks.api_stack.v1_api.provider_users import ProviderUsers
 from stacks.api_stack.v1_api.purchases import Purchases
@@ -72,6 +73,14 @@ class V1Api:
         self.compacts_resource = self.resource.add_resource('compacts')
         # /v1/compacts/{compact}
         self.compact_resource = self.compacts_resource.add_resource('{compact}')
+
+        # /v1/compacts/{compact}/attestations
+        self.attestations_resource = self.compact_resource.add_resource('attestations')
+        self.attestations = Attestations(
+            resource=self.attestations_resource,
+            persistent_stack=persistent_stack,
+            api_model=self.api_model,
+        )
 
         # /v1/compacts/{compact}/credentials
         credentials_resource = self.compact_resource.add_resource('credentials')

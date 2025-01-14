@@ -5,7 +5,11 @@
 //  Created by InspiringApps on 7/8/2020.
 //
 
-import { Component, mixins, toNative } from 'vue-facing-decorator';
+import {
+    Component,
+    mixins,
+    toNative
+} from 'vue-facing-decorator';
 import { reactive } from 'vue';
 import MixinInput from '@components/Forms/_mixins/input.mixin';
 import UploadFileIcon from '@components/Icons/UploadFile/UploadFile.vue';

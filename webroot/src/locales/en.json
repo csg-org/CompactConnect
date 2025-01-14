@@ -477,6 +477,7 @@
     "licensing": {
         "license": "License",
         "licensingListTitle": "Licensing Data",
+        "attestation": "Attestation",
         "searchTitle": "Begin a search",
         "searchSubtext": "Enter at least one field to search for licensing data.",
         "licenseExpiredMessage": "Your license has expired.",
@@ -498,7 +499,6 @@
         "state": "State",
         "issued": "Issued",
         "expirationDate": "Expiration date",
-        "militaryDiscountText": "Military Discount",
         "expireDate": "Expire Date",
         "expires": "Expires",
         "selectPrivileges": "Select privileges",
@@ -553,6 +553,42 @@
             }
         ]
     },
+    "military": {
+        "militaryStatusTitle": "Military status",
+        "updateMilitaryStatusTitle": "Update military status",
+        "viewMilitaryStatus": "View military status",
+        "militaryDiscountText": "Military Discount",
+        "affiliationType": "Affiliation Type",
+        "previouslyUploadedDocuments": "Previously Uploaded Documents",
+        "endMilitaryAffiliation": "End military affiliation",
+        "editInfo": "Edit info",
+        "noUploadedDocuments": "No uploaded documents",
+        "endAffiliationModalTitle": "Are you sure you want to end your military affiliation?",
+        "endAffiliationModalContent" : "This action cannot be undone, but if needed, you can go through the confirmation process again.",
+        "noGoBack": "No, go back",
+        "yesEnd": "Yes, end my affiliation",
+        "affiliationAttestationOptions": [
+            {
+                "name": "I hereby attest and affirm that I am an active-duty military member, defined as a person with a full-time duty status in the active uniformed service of the United States, including members of the National Guard and Reserve on active duty orders.",
+                "value": "militaryMember"
+            },
+            {
+                "name": "I hereby attest and affirm that I am the legal spouse of an active-duty military member, defined as a person with a full-time duty status in the active uniformed service of the United States, including members of the National Guard and Reserve on active duty orders.",
+                "value": "militaryMemberSpouse"
+            }
+        ],
+        "affiliationTypes": {
+            "militaryMember": "Active-duty military member",
+            "militaryMemberSpouse": "Active-duty military spouse",
+            "none": "N/A"
+        },
+        "documentProofLabel": "Upload proof of military affiliation*",
+        "successLongProcess": "Submit successful, your status may take a minute to process",
+        "submitFail": "Error uploading document",
+        "fileInstructions": "Only 1 file (PDF, docx, png, jpeg only)",
+        "fileName": "File name",
+        "dateUploaded": "Date uploaded"
+    },
     "account": {
         "accountTitle": "Account",
         "usersListTitle": "Users",
@@ -566,6 +602,7 @@
         "accessLevel": {
             "none": "None",
             "read": "Read",
+            "readPrivate": "Read Private",
             "write": "Write",
             "admin": "Admin"
         },

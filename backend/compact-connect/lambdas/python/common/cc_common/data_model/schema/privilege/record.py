@@ -1,11 +1,26 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow import post_dump, pre_dump, pre_load
-from marshmallow.fields import UUID, Date, DateTime, Nested, String
+from marshmallow import Schema, post_dump, pre_dump, pre_load
+from marshmallow.fields import UUID, Date, DateTime, List, Nested, String
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema, ForgivingSchema
 from cc_common.data_model.schema.common import ChangeHashMixin, ensure_value_is_datetime
 from cc_common.data_model.schema.fields import Compact, Jurisdiction, UpdateType
+
+
+class AttestationVersionRecordSchema(Schema):
+    """
+    This schema is intended to be used by any record in the system which needs to track which attestations have been
+    accepted by a user (i.e. when purchasing privileges).
+
+    This schema is intended to be used as a nested field in other schemas.
+
+    Serialization direction:
+    DB -> load() -> Python
+    """
+
+    attestationId = String(required=True, allow_none=False)
+    version = String(required=True, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('privilege')
@@ -29,6 +44,8 @@ class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
     dateOfExpiration = Date(required=True, allow_none=False)
     # the id of the transaction that was made when the user purchased the privilege
     compactTransactionId = String(required=False, allow_none=False)
+    # list of attestations that were accepted when purchasing this privilege
+    attestations = List(Nested(AttestationVersionRecordSchema()), required=False, allow_none=False)
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
@@ -63,6 +80,7 @@ class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfUpdate = DateTime(required=True, allow_none=False)
     compactTransactionId = String(required=False, allow_none=False)
+    attestations = List(Nested(AttestationVersionRecordSchema()), required=False, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('privilegeUpdate')

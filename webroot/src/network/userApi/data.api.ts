@@ -255,6 +255,58 @@ export class UserDataApi implements DataApiInterface {
 
         return serverResponse;
     }
+
+    /**
+     * POST Upload Military Document Intent for Authenticated Licensee user.
+     * @return {Promise<object>} Intent response object containing presigned S3 url and necessary params to upload document.
+     */
+    public async postUploadMilitaryDocumentIntent(data: any) {
+        const serverResponse: any = await this.api.post(`/v1/provider-users/me/military-affiliation`, data);
+
+        return serverResponse;
+    }
+
+    /**
+     * POST Upload Military Affiliation Document for Authenticated Licensee user.
+     * @return {Promise<object>} Document upload response object.
+     */
+    public async postUploadMilitaryAffiliationDocument(postUrl: string, documentUploadData: any, file: File) {
+        const formData = new FormData();
+        const s3FieldOrder = [ // S3 is picky about the order of the FormData fields
+            'key',
+            'x-amz-algorithm',
+            'x-amz-credential',
+            'x-amz-date',
+            'x-amz-signature',
+            'x-amz-security-token',
+            'policy',
+        ];
+
+        s3FieldOrder.forEach((field) => {
+            formData.append(field, documentUploadData[field]);
+        });
+        formData.append('file', file);
+
+        return axios.post(postUrl, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+                Accept: '*/*',
+
+            }
+        });
+    }
+
+    /**
+     * PATCH Cancel Military Affiliation.
+     * @return {Promise<object>} Purchase response object.
+     */
+    public async endMilitaryAffiliation() {
+        const serverResponse: any = await this.api.patch(`/v1/provider-users/me/military-affiliation`, {
+            status: 'inactive'
+        });
+
+        return serverResponse;
+    }
 }
 
 export const userDataApi = new UserDataApi();

@@ -92,6 +92,7 @@ class TestTransformations(TstFunction):
             license_expiration_date=date(2025, 4, 4),
             compact_transaction_id='1234567890',
             existing_privileges=[],
+            attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
         )
 
         from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationType

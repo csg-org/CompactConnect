@@ -122,6 +122,12 @@
             "compactTransactionId": "1234567890"
           }
         }
+      ],
+      "attestations": [
+        {
+          "attestationId": "jurisprudence-confirmation",
+          "version": "1"
+        }
       ]
     }
   ],

@@ -20,7 +20,8 @@ import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
-import { LicenseeUserPurchaseSerializer } from '@models/LicenseeUser/LicenseeUser.model';
+import { LicenseeUser, LicenseeUserPurchaseSerializer } from '@models/LicenseeUser/LicenseeUser.model';
+import { Licensee } from '@models/Licensee/Licensee.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import Joi from 'joi';
 
@@ -62,6 +63,14 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     //
     get userStore(): any {
         return this.$store.state.user;
+    }
+
+    get user(): LicenseeUser | null {
+        return this.userStore.model;
+    }
+
+    get licensee(): Licensee | null {
+        return this.user?.licensee || null;
     }
 
     get currentCompact(): Compact | null {
@@ -191,7 +200,8 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
             }
 
             return includes;
-        });
+        }).map((option) =>
+            ({ ...option, isMilitaryDiscountActive: option.isMilitaryDiscountActive && this.licensee?.isMilitary() }));
     }
 
     get selectedStatePurchaseDisplayDataList(): Array<object> {
@@ -250,7 +260,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     }
 
     get militaryDiscountText(): string {
-        return this.$t('licensing.militaryDiscountText');
+        return this.$t('military.militaryDiscountText');
     }
 
     get totalPurchasePrice(): number {

@@ -7,6 +7,7 @@ Look here for continued documentation of the back-end design, as it progresses.
 - **[License Ingest](#license-ingest)**
 - **[User Architecture](#user-architecture)**
 - **[Data Model](#data-model)**
+- **[Attestations](#attestations)**
 
 ## Compacts and Jurisdictions
 
@@ -215,3 +216,47 @@ represented with a record stored with a sort key like `aslp#PROVIDER#privilege/n
 A query for a provider's partition and a sort key starting with `aslp#PROVIDER` would retrieve enough records to
 represent all of the provider's licenses, privileges and their complete history from when they were created in
 the system.
+
+## Attestations
+[Back to top](#backend-design)
+
+Attestations are statements that providers must agree to when performing certain actions within the system, such as purchasing privileges. The attestation system is designed to support versioned, localized attestation text that providers must explicitly accept.
+
+### Storage and Versioning
+
+Attestations are stored in the compact configuration table with a composite key structure that enables efficient querying of the latest version for a given attestation type and locale:
+
+```
+PK: {compact}#CONFIGURATION
+SK: {compact}#ATTESTATION#{attestationId}#LOCALE#{locale}#VERSION#{version}
+```
+
+This structure allows us to:
+1. Group all attestations for a compact together (via PK)
+2. Sort attestations by type, locale, and version (via SK)
+3. Query for the latest version of a specific attestation in a given locale using a begins_with condition on the SK
+
+### Retrieval and Validation
+
+The system provides a `GET /v1/compacts/{compact}/attestations/{attestationId}` endpoint that returns the latest version of an attestation. This endpoint:
+1. Accepts an optional `locale` query parameter (defaults to 'en').
+2. Returns a 404 if no attestation is found for the given type/locale.
+3. Always returns the latest version of the attestation.
+
+When providers perform actions that require attestations (like purchasing privileges), they must:
+1. Fetch the latest version of each required attestation
+2. Include the attestation IDs and versions in their request
+3. The system validates that:
+   - All required attestations are present
+   - The provided versions match the latest versions
+   - No invalid attestation types are included
+
+### Usage in Privilege Purchases
+
+When purchasing privileges, providers must accept all required attestations. The purchase endpoint:
+1. Validates the attestations array in the request body
+2. Verifies each attestation is the latest version
+3. Stores the accepted attestations with the privilege record
+4. Returns a 400 error if any attestation is invalid or outdated
+
+This ensures that providers always see and accept the most current version of required attestations, and we maintain an audit trail of which attestation versions were accepted for each privilege purchase.

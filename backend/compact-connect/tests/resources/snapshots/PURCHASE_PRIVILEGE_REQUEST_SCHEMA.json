@@ -146,11 +146,36 @@
         "billing"
       ],
       "type": "object"
+    },
+    "attestations": {
+      "description": "List of attestations that the user has agreed to",
+      "items": {
+        "properties": {
+          "attestationId": {
+            "description": "The ID of the attestation",
+            "maxLength": 100,
+            "type": "string"
+          },
+          "version": {
+            "description": "The version of the attestation",
+            "maxLength": 10,
+            "pattern": "^\\d+$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "attestationId",
+          "version"
+        ],
+        "type": "object"
+      },
+      "type": "array"
     }
   },
   "required": [
     "selectedJurisdictions",
-    "orderInformation"
+    "orderInformation",
+    "attestations"
   ],
   "type": "object",
   "$schema": "http://json-schema.org/draft-04/schema#"

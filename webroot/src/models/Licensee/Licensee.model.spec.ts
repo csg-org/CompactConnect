@@ -11,6 +11,7 @@ import { CompactType } from '@models/Compact/Compact.model';
 import { Licensee, LicenseeStatus, LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { Address } from '@models/Address/Address.model';
 import { License, LicenseOccupation, LicenseStatus } from '@models/License/License.model';
+import { MilitaryAffiliation } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
 import { State } from '@models/State/State.model';
 import i18n from '@/i18n';
 import moment from 'moment';
@@ -41,17 +42,19 @@ describe('Licensee model', () => {
         expect(licensee.address).to.be.an.instanceof(Address);
         expect(licensee.dob).to.equal(null);
         expect(licensee.ssn).to.equal(null);
-        expect(licensee.isMilitary).to.equal(false);
         expect(licensee.occupation).to.equal(null);
         expect(licensee.licenseStates).to.be.an('array').that.is.empty;
         expect(licensee.licenses).to.be.an('array').that.is.empty;
         expect(licensee.privilegeStates).to.be.an('array').that.is.empty;
         expect(licensee.privileges).to.be.an('array').that.is.empty;
+        expect(licensee.militaryAffiliations).to.be.an('array').that.is.empty;
         expect(licensee.lastUpdated).to.equal(null);
         expect(licensee.status).to.equal(LicenseeStatus.INACTIVE);
 
         // Test methods
         expect(licensee.nameDisplay()).to.equal('');
+        expect(licensee.isMilitary()).to.equal(false);
+        expect(licensee.aciveMilitaryAffiliation()).to.equal(null);
         expect(licensee.residenceLocation()).to.equal('Unknown');
         expect(licensee.dobDisplay()).to.equal('');
         expect(licensee.ssnMaskedFull()).to.equal('');
@@ -74,7 +77,7 @@ describe('Licensee model', () => {
             address: new Address(),
             dob: '2020-01-01',
             ssn: 'test-ssn',
-            isMilitary: true,
+            militaryAffiliations: [new MilitaryAffiliation()],
             occupation: LicenseOccupation.AUDIOLOGIST,
             licenseStates: [new State()],
             licenses: [
@@ -101,7 +104,6 @@ describe('Licensee model', () => {
         expect(licensee.address).to.be.an.instanceof(Address);
         expect(licensee.dob).to.equal(data.dob);
         expect(licensee.ssn).to.equal(data.ssn);
-        expect(licensee.isMilitary).to.equal(data.isMilitary);
         expect(licensee.occupation).to.equal(data.occupation);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
@@ -117,6 +119,8 @@ describe('Licensee model', () => {
         // Test methods
         expect(licensee.nameDisplay()).to.equal(`${data.firstName} ${data.lastName}`);
         expect(licensee.residenceLocation()).to.equal('Unknown');
+        expect(licensee.isMilitary()).to.equal(false);
+        expect(licensee.aciveMilitaryAffiliation()).to.equal(null);
         expect(licensee.dobDisplay()).to.equal('1/1/2020');
         expect(licensee.ssnMaskedFull()).to.equal(data.ssn);
         expect(licensee.ssnMaskedPartial()).to.equal('test-ss-ssn');
@@ -128,7 +132,7 @@ describe('Licensee model', () => {
         expect(licensee.privilegeStatesDisplay()).to.equal('Unknown');
         expect(licensee.occupationName()).to.equal('Audiologist');
     });
-    it('should create a Licensee with specific values through serializer', () => {
+    it('should create a Licensee with specific values (active military) through serializer', () => {
         const data = {
             providerId: 'test-id',
             npi: 'test-npi',
@@ -142,9 +146,17 @@ describe('Licensee model', () => {
             homeAddressPostalCode: 'test-zip',
             dateOfBirth: moment().format(serverDateFormat),
             ssn: '000-00-0000',
-            militaryWaiver: true,
             licenseType: LicenseOccupation.AUDIOLOGIST,
             licenseJurisdiction: 'co',
+            militaryAffiliations: [{
+                affiliationType: 'affiliationType',
+                compact: 'aslp',
+                dateOfUpdate: '2025-01-07T23:50:17+00:00',
+                dateOfUpload: '2025-01-03T23:50:17+00:00',
+                documentKeys: ['key'],
+                fileNames: ['file.png'],
+                status: 'active'
+            }],
             licenses: [
                 {
                     id: 'test-id',
@@ -186,7 +198,6 @@ describe('Licensee model', () => {
         expect(licensee.lastName).to.equal(data.familyName);
         expect(licensee.dob).to.equal(data.dateOfBirth);
         expect(licensee.ssn).to.equal(data.ssn);
-        expect(licensee.isMilitary).to.equal(data.militaryWaiver);
         expect(licensee.occupation).to.equal(data.licenseType);
         expect(licensee.address).to.be.an.instanceof(Address);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
@@ -198,9 +209,131 @@ describe('Licensee model', () => {
         expect(licensee.privileges).to.be.an('array').with.length(1);
         expect(licensee.privileges[0]).to.be.an.instanceof(License);
         expect(licensee.lastUpdated).to.equal(data.dateOfUpdate);
+        expect(licensee.militaryAffiliations).to.be.an('array').with.length(1);
+        expect(licensee.militaryAffiliations[0]).to.be.an.instanceof(MilitaryAffiliation);
         expect(licensee.status).to.equal(data.status);
 
         // Test methods
+        expect(licensee.isMilitary()).to.equal(true);
+        expect(licensee.aciveMilitaryAffiliation()).to.matchPattern({
+            affiliationType: 'affiliationType',
+            compact: 'aslp',
+            dateOfUpdate: '2025-01-07T23:50:17+00:00',
+            dateOfUpload: '2025-01-03T23:50:17+00:00',
+            documentKeys: ['key'],
+            fileNames: ['file.png'],
+            status: 'active'
+        });
+        expect(licensee.nameDisplay()).to.equal(`${data.givenName} ${data.familyName}`);
+        expect(licensee.residenceLocation()).to.equal('Colorado');
+        expect(licensee.dobDisplay()).to.equal(
+            moment(data.dateOfBirth, serverDateFormat).format(displayDateFormat)
+        );
+        expect(licensee.ssnMaskedFull()).to.equal(`###-##-####`);
+        expect(licensee.ssnMaskedPartial()).to.equal(`###-##-0000`);
+        expect(licensee.lastUpdatedDisplay()).to.equal(
+            moment(data.dateOfUpdate, serverDateFormat).format(displayDateFormat)
+        );
+        expect(licensee.lastUpdatedDisplayRelative()).to.be.a('string').that.is.not.empty;
+        expect(licensee.licenseStatesDisplay()).to.equal('Colorado');
+        expect(licensee.privilegeStatesAllDisplay()).to.equal('Colorado');
+        expect(licensee.privilegeStatesDisplay()).to.equal('Colorado');
+        expect(licensee.occupationName()).to.equal('Audiologist');
+    });
+    it('should create a Licensee with specific values (inactive military) through serializer', () => {
+        const data = {
+            providerId: 'test-id',
+            npi: 'test-npi',
+            givenName: 'test-firstName',
+            middleName: 'test-middleName',
+            familyName: 'test-lastName',
+            homeAddressStreet1: 'test-street1',
+            homeAddressStreet2: 'test-street2',
+            homeAddressCity: 'test-city',
+            homeAddressState: 'co',
+            homeAddressPostalCode: 'test-zip',
+            dateOfBirth: moment().format(serverDateFormat),
+            ssn: '000-00-0000',
+            licenseType: LicenseOccupation.AUDIOLOGIST,
+            licenseJurisdiction: 'co',
+            militaryAffiliations: [{
+                affiliationType: 'affiliationType',
+                compact: 'aslp',
+                dateOfUpdate: '2025-01-07T23:50:17+00:00',
+                dateOfUpload: '2025-01-03T23:50:17+00:00',
+                documentKeys: ['key'],
+                fileNames: ['file.png'],
+                status: 'inactive'
+            },
+            {
+                affiliationType: 'affiliationType',
+                compact: 'aslp',
+                dateOfUpdate: '2025-02-07T23:50:17+00:00',
+                dateOfUpload: '2025-02-03T23:50:17+00:00',
+                documentKeys: ['key'],
+                fileNames: ['file.png'],
+                status: 'inactive'
+            }],
+            licenses: [
+                {
+                    id: 'test-id',
+                    compact: CompactType.ASLP,
+                    type: 'license-home',
+                    jurisdiction: 'co',
+                    issueDate: moment().format(serverDateFormat),
+                    renewalDate: moment().format(serverDateFormat),
+                    expireDate: moment().subtract(1, 'day').format(serverDateFormat),
+                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    status: LicenseStatus.ACTIVE,
+                },
+            ],
+            privilegeJurisdictions: ['co'],
+            privileges: [
+                {
+                    id: 'test-id',
+                    compact: CompactType.ASLP,
+                    type: 'privilege',
+                    jurisdiction: 'co',
+                    issueDate: moment().format(serverDateFormat),
+                    renewalDate: moment().format(serverDateFormat),
+                    expireDate: moment().subtract(1, 'day').format(serverDateFormat),
+                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    status: LicenseStatus.ACTIVE,
+                },
+            ],
+            dateOfUpdate: moment().format(serverDateFormat),
+            status: LicenseeStatus.ACTIVE,
+        };
+        const licensee = LicenseeSerializer.fromServer(data);
+
+        // Test field values
+        expect(licensee).to.be.an.instanceof(Licensee);
+        expect(licensee.id).to.equal(data.providerId);
+        expect(licensee.npi).to.equal(data.npi);
+        expect(licensee.firstName).to.equal(data.givenName);
+        expect(licensee.middleName).to.equal(data.middleName);
+        expect(licensee.lastName).to.equal(data.familyName);
+        expect(licensee.dob).to.equal(data.dateOfBirth);
+        expect(licensee.ssn).to.equal(data.ssn);
+        expect(licensee.occupation).to.equal(data.licenseType);
+        expect(licensee.address).to.be.an.instanceof(Address);
+        expect(licensee.licenseStates).to.be.an('array').with.length(1);
+        expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
+        expect(licensee.licenses).to.be.an('array').with.length(1);
+        expect(licensee.licenses[0]).to.be.an.instanceof(License);
+        expect(licensee.privilegeStates).to.be.an('array').with.length(1);
+        expect(licensee.privilegeStates[0]).to.be.an.instanceof(State);
+        expect(licensee.privileges).to.be.an('array').with.length(1);
+        expect(licensee.privileges[0]).to.be.an.instanceof(License);
+        expect(licensee.lastUpdated).to.equal(data.dateOfUpdate);
+        expect(licensee.militaryAffiliations).to.be.an('array').with.length(2);
+        expect(licensee.militaryAffiliations[0]).to.be.an.instanceof(MilitaryAffiliation);
+        expect(licensee.militaryAffiliations[1]).to.be.an.instanceof(MilitaryAffiliation);
+        expect(licensee.status).to.equal(data.status);
+
+        // Test methods
+        expect(licensee.isMilitary()).to.equal(false);
+        expect(licensee.aciveMilitaryAffiliation()).to.equal(null);
         expect(licensee.nameDisplay()).to.equal(`${data.givenName} ${data.familyName}`);
         expect(licensee.residenceLocation()).to.equal('Colorado');
         expect(licensee.dobDisplay()).to.equal(
@@ -241,5 +374,45 @@ describe('Licensee model', () => {
         const transmit = LicenseeSerializer.toServer(licensee);
 
         expect(transmit.id).to.equal(licensee.id);
+    });
+    it('should create a Licensee with null address fallbacks', () => {
+        const data = {
+            address: null,
+        };
+        const licensee = new Licensee(data);
+
+        // Test field values
+        expect(licensee.address).equal(data.address);
+
+        // Test methods
+        expect(licensee.residenceLocation()).to.equal('');
+    });
+    it('should create a Licensee with empty state name fallbacks', () => {
+        const licensee = new Licensee();
+
+        // Test methods
+        expect(licensee.getStateListDisplay(['', '', ''])).to.equal('');
+    });
+    it('should create a Licensee with empty license & privilege object state name fallbacks', () => {
+        const licensee = new Licensee({
+            licenses: [null],
+            privileges: [null],
+        });
+
+        // Test methods
+        expect(licensee.licenseStatesDisplay()).to.equal('');
+        expect(licensee.privilegeStatesDisplay()).to.equal('');
+        expect(licensee.privilegeStatesAllDisplay()).to.equal('');
+    });
+    it('should create a Licensee with empty license & privilege string state name fallbacks', () => {
+        const licensee = new Licensee({
+            licenseStates: null,
+            privilegeStates: null,
+        });
+
+        // Test methods
+        expect(licensee.licenseStatesDisplay()).to.equal('');
+        expect(licensee.privilegeStatesDisplay()).to.equal('');
+        expect(licensee.privilegeStatesAllDisplay()).to.equal('');
     });
 });

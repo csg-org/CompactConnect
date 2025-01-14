@@ -178,6 +178,7 @@ class DataClient:
         jurisdiction_postal_abbreviation: str,
         license_expiration_date: date,
         compact_transaction_id: str,
+        attestations: list[dict],
         original_issuance_date: datetime | None = None,
     ):
         current_datetime = config.current_standard_datetime
@@ -189,6 +190,7 @@ class DataClient:
             'dateOfRenewal': current_datetime,
             'dateOfExpiration': license_expiration_date,
             'compactTransactionId': compact_transaction_id,
+            'attestations': attestations,
         }
 
     def create_provider_privileges(
@@ -200,6 +202,7 @@ class DataClient:
         compact_transaction_id: str,
         provider_record: dict,
         existing_privileges: list[dict],
+        attestations: list[dict],
     ):
         """
         Create privilege records for a provider in the database.
@@ -216,6 +219,7 @@ class DataClient:
         :param provider_record: The original provider record
         :param existing_privileges: The list of existing privileges for this user. Used to track the original issuance
         date of the privilege.
+        :param attestations: List of attestations that were accepted when purchasing the privileges
         """
         logger.info(
             'Creating provider privileges',
@@ -250,6 +254,7 @@ class DataClient:
                     license_expiration_date=license_expiration_date,
                     compact_transaction_id=compact_transaction_id,
                     original_issuance_date=original_issuance_date,
+                    attestations=attestations,
                 )
 
                 # Create privilege update record if this is updating an existing privilege

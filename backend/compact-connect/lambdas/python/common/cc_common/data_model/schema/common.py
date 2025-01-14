@@ -1,3 +1,4 @@
+# ruff: noqa: N815 invalid-name
 from base64 import b64encode
 from datetime import UTC, datetime
 from enum import StrEnum

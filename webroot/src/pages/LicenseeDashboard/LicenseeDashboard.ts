@@ -10,6 +10,7 @@ import HomeStateBlock from '@/components/HomeStateBlock/HomeStateBlock.vue';
 import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
+import { Compact } from '@models/Compact/Compact.model';
 import { License, LicenseStatus } from '@models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { State } from '@models/State/State.model';
@@ -47,6 +48,14 @@ export default class LicenseeDashboard extends Vue {
 
     get licenseeLicenses(): Array<License> {
         return this.licensee.licenses || [];
+    }
+
+    get currentCompact(): Compact | null {
+        return this.userStore?.currentCompact || null;
+    }
+
+    get currentCompactType(): string | null {
+        return this.currentCompact?.type || null;
     }
 
     get userFullName(): string {
@@ -170,6 +179,13 @@ export default class LicenseeDashboard extends Vue {
         // The feature is stubbed off at this point, please
         // manually navigate to the select privilege screen
         console.log('Starting Privilege Purchase Flow!');
+    }
+
+    viewMilitaryStatus() {
+        this.$router.push({
+            name: 'MilitaryStatus',
+            params: { compact: this.currentCompactType }
+        });
     }
 
     checkIfLicenseActive(license: License) {
