@@ -175,7 +175,7 @@ class TstFunction(TstLambdas):
             provider_id = data_client.get_provider_id(compact='aslp', ssn=ssn)
             provider_record = data_client.get_provider(compact='aslp', provider_id=provider_id, detail=False)
             data_client.create_provider_privileges(
-                compact_name='aslp',
+                compact='aslp',
                 provider_id=provider_id,
                 provider_record=provider_record,
                 jurisdiction_postal_abbreviations=[privilege],

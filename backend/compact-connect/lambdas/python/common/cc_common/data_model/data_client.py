@@ -173,7 +173,7 @@ class DataClient:
 
     def _generate_privilege_record(
         self,
-        compact_name: str,
+        compact: str,
         provider_id: str,
         jurisdiction_postal_abbreviation: str,
         license_expiration_date: date,
@@ -183,7 +183,7 @@ class DataClient:
         current_datetime = config.current_standard_datetime
         return {
             'providerId': provider_id,
-            'compact': compact_name,
+            'compact': compact,
             'jurisdiction': jurisdiction_postal_abbreviation.lower(),
             'dateOfIssuance': original_issuance_date if original_issuance_date else current_datetime,
             'dateOfRenewal': current_datetime,
@@ -193,7 +193,7 @@ class DataClient:
 
     def create_provider_privileges(
         self,
-        compact_name: str,
+        compact: str,
         provider_id: str,
         jurisdiction_postal_abbreviations: list[str],
         license_expiration_date: date,
@@ -208,7 +208,7 @@ class DataClient:
         the entire transaction will be rolled back. As this is usually performed after a provider has purchased
         one or more privileges, it is important that all records are created successfully.
 
-        :param compact_name: The compact name
+        :param compact: The compact name
         :param provider_id: The provider id
         :param jurisdiction_postal_abbreviations: The list of jurisdiction postal codes
         :param license_expiration_date: The license expiration date
@@ -220,6 +220,7 @@ class DataClient:
         logger.info(
             'Creating provider privileges',
             provider_id=provider_id,
+            compact=compact,
             privlige_jurisdictions=jurisdiction_postal_abbreviations,
             compact_transaction_id=compact_transaction_id,
         )
@@ -243,7 +244,7 @@ class DataClient:
                 original_issuance_date = original_privilege['dateOfIssuance'] if original_privilege else None
 
                 privilege_record = self._generate_privilege_record(
-                    compact_name=compact_name,
+                    compact=compact,
                     provider_id=provider_id,
                     jurisdiction_postal_abbreviation=postal_abbreviation,
                     license_expiration_date=license_expiration_date,
@@ -257,7 +258,7 @@ class DataClient:
                         'type': 'privilegeUpdate',
                         'updateType': 'renewal',
                         'providerId': provider_id,
-                        'compact': compact_name,
+                        'compact': compact,
                         'jurisdiction': postal_abbreviation.lower(),
                         'previous': original_privilege,
                         'updatedValues': {
@@ -287,13 +288,15 @@ class DataClient:
                     }
                 )
 
+            # We save this update till last so that it is least likely to be changed in the event of a failure in one of
+            # the other transactions.
             transactions.append(
                 {
                     'Update': {
                         'TableName': self.config.provider_table_name,
                         'Key': {
-                            'pk': {'S': f'{compact_name}#PROVIDER#{provider_id}'},
-                            'sk': {'S': f'{compact_name}#PROVIDER'},
+                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                            'sk': {'S': f'{compact}#PROVIDER'},
                         },
                         'UpdateExpression': 'ADD #privilegeJurisdictions :newJurisdictions',
                         'ExpressionAttributeNames': {'#privilegeJurisdictions': 'privilegeJurisdictions'},
@@ -316,25 +319,17 @@ class DataClient:
             batch_size = 100
             # Iterate over the transactions until they are empty
             while transaction_batch := transactions[:batch_size]:
-                try:
-                    self.config.dynamodb_client.transact_write_items(TransactItems=transaction_batch)
-                    processed_transactions.extend(transaction_batch)
-                    transactions = transactions[batch_size:]
-                    if transactions:
-                        logger.info(
-                            'Breaking privilege updates into multiple transactions',
-                            provider_id=provider_id,
-                            privlige_jurisdictions=jurisdiction_postal_abbreviations,
-                            compact_transaction_id=compact_transaction_id,
-                        )
-                except ClientError as e:
-                    # Roll back any successful transactions
-                    self._rollback_privilege_transactions(
-                        processed_transactions=processed_transactions,
-                        provider_record=provider_record,
-                        existing_privileges=existing_privileges,
+                self.config.dynamodb_client.transact_write_items(TransactItems=transaction_batch)
+                processed_transactions.extend(transaction_batch)
+                transactions = transactions[batch_size:]
+                if transactions:
+                    logger.info(
+                        'Breaking privilege updates into multiple transactions',
+                        compact=compact,
+                        provider_id=provider_id,
+                        privlige_jurisdictions=jurisdiction_postal_abbreviations,
+                        compact_transaction_id=compact_transaction_id,
                     )
-                    raise CCAwsServiceException('Unable to create all provider privileges') from e
 
         except ClientError as e:
             message = 'Unable to create all provider privileges. Rolling back transaction.'
@@ -354,6 +349,9 @@ class DataClient:
     ):
         """Roll back successful privilege transactions after a failure."""
         rollback_transactions = []
+
+        compact = provider_record['compact']
+        provider_id = provider_record['providerId']
 
         # Create a lookup of existing privileges by jurisdiction
         existing_privileges_by_jurisdiction = {
@@ -382,6 +380,12 @@ class DataClient:
                     # For privilege records, check if it was an update or new creation
                     original_privilege = existing_privileges_by_jurisdiction.get(item['jurisdiction'])
                     if original_privilege:
+                        logger.info(
+                            'Restoring original privilege record',
+                            provider_id=provider_id,
+                            compact=compact,
+                            jurisdiction=item['jurisdiction'],
+                        )
                         # If it was an update, restore the original record
                         rollback_transactions.append(
                             {
@@ -395,6 +399,12 @@ class DataClient:
                         )
                     else:
                         # If it was a new creation, delete it
+                        logger.info(
+                            'Deleting new privilege record',
+                            provider_id=provider_id,
+                            compact=compact,
+                            jurisdiction=item['jurisdiction'],
+                        )
                         rollback_transactions.append(
                             {
                                 'Delete': {
@@ -421,11 +431,13 @@ class DataClient:
         batch_size = 100
         while rollback_batch := rollback_transactions[:batch_size]:
             try:
+                logger.info('Submitting rollback transaction', provider_id=provider_id, compact=compact)
                 self.config.dynamodb_client.transact_write_items(TransactItems=rollback_batch)
                 rollback_transactions = rollback_transactions[batch_size:]
             except ClientError as e:
                 logger.error('Failed to roll back privilege transactions', error=str(e))
                 raise CCAwsServiceException('Failed to roll back privilege transactions') from e
+        logger.info('Privilege rollback complete', provider_id=provider_id, compact=compact)
 
     def _get_military_affiliation_records_by_status(
         self, compact: str, provider_id: str, status: MilitaryAffiliationStatus

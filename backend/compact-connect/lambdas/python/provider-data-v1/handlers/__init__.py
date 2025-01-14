@@ -23,6 +23,7 @@ def get_provider_information(compact: str, provider_id: str) -> dict:
     privileges = {}
     licenses = {}
     military_affiliations = []
+
     for record in provider_data['items']:
         match record['type']:
             case 'provider':
@@ -32,19 +33,23 @@ def get_provider_information(compact: str, provider_id: str) -> dict:
                 logger.debug('Identified license record', provider_id=provider_id)
                 licenses[record['jurisdiction']] = record
                 licenses[record['jurisdiction']].setdefault('history', [])
-            case 'licenseUpdate':
-                logger.debug('Identified license update record', provider_id=provider_id)
-                licenses[record['jurisdiction']]['history'].append(record)
             case 'privilege':
                 logger.debug('Identified privilege record', provider_id=provider_id)
                 privileges[record['jurisdiction']] = record
                 privileges[record['jurisdiction']].setdefault('history', [])
-            case 'privilegeUpdate':
-                logger.debug('Identified privilege update record', provider_id=provider_id)
-                privileges[record['jurisdiction']]['history'].append(record)
             case 'militaryAffiliation':
                 logger.debug('Identified military affiliation record', provider_id=provider_id)
                 military_affiliations.append(record)
+
+    # Process update records after all base records have been identified
+    for record in provider_data['items']:
+        match record['type']:
+            case 'licenseUpdate':
+                logger.debug('Identified license update record', provider_id=provider_id)
+                licenses[record['jurisdiction']]['history'].append(record)
+            case 'privilegeUpdate':
+                logger.debug('Identified privilege update record', provider_id=provider_id)
+                privileges[record['jurisdiction']]['history'].append(record)
 
     if provider is None:
         logger.error("Failed to find a provider's primary record!", provider_id=provider_id)

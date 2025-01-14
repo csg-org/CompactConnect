@@ -213,5 +213,5 @@ the time it was effective in the system, and the contents of that change. Simila
 represented with a record stored with a sort key like `aslp#PROVIDER#privilege/ne#UPDATE#1735232821/1a812bc8f`.
 
 A query for a provider's partition and a sort key starting with `aslp#PROVIDER` would retrieve enough records to
-present represent all of the provider's licenses, privileges and their complete history from when they were created in
+represent all of the provider's licenses, privileges and their complete history from when they were created in
 the system.

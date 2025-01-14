@@ -17,7 +17,7 @@ class TestDataClient(TstFunction):
         test_data_client = DataClient(self.config)
 
         test_data_client.create_provider_privileges(
-            compact_name='aslp',
+            compact='aslp',
             provider_id='test_provider_id',
             jurisdiction_postal_abbreviations=['ca'],
             license_expiration_date=date.fromisoformat('2024-10-31'),
@@ -79,7 +79,7 @@ class TestDataClient(TstFunction):
 
         # Now, renew the privilege
         test_data_client.create_provider_privileges(
-            compact_name='aslp',
+            compact='aslp',
             provider_id='test_provider_id',
             jurisdiction_postal_abbreviations=['ky'],
             license_expiration_date=date.fromisoformat('2025-10-31'),
@@ -117,7 +117,7 @@ class TestDataClient(TstFunction):
                 # A new history record
                 {
                     'pk': 'aslp#PROVIDER#test_provider_id',
-                    'sk': 'aslp#PROVIDER#privilege/ky#UPDATE#1731110399/4824f8db7a379e18c65d1550ff0f43d7',
+                    'sk': 'aslp#PROVIDER#privilege/ky#UPDATE#1731110399/2c634c2f077189a662ec0e001a50e64a',
                     'type': 'privilegeUpdate',
                     'updateType': 'renewal',
                     'providerId': 'test_provider_id',
@@ -181,7 +181,7 @@ class TestDataClient(TstFunction):
 
         # Now update all privileges
         test_data_client.create_provider_privileges(
-            compact_name='aslp',
+            compact='aslp',
             provider_id=provider_uuid,
             jurisdiction_postal_abbreviations=jurisdictions,
             license_expiration_date=date.fromisoformat('2025-10-31'),
@@ -258,6 +258,8 @@ class TestDataClient(TstFunction):
         original_provider = {
             'pk': f'aslp#PROVIDER#{provider_uuid}',
             'sk': 'aslp#PROVIDER',
+            'providerId': provider_uuid,
+            'compact': 'aslp',
             'privilegeJurisdictions': set(jurisdictions),
         }
         self._provider_table.put_item(Item=original_provider)
@@ -281,7 +283,7 @@ class TestDataClient(TstFunction):
         # Attempt to update all privileges (should fail)
         with self.assertRaises(CCAwsServiceException):
             test_data_client.create_provider_privileges(
-                compact_name='aslp',
+                compact='aslp',
                 provider_id=provider_uuid,
                 jurisdiction_postal_abbreviations=jurisdictions,
                 license_expiration_date=date.fromisoformat('2025-10-31'),

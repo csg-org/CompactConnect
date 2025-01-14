@@ -70,17 +70,17 @@ def ingest_license_message(message: dict):
     # Set (or replace) the posted license for its jurisdiction
     existing_license = licenses.get(license_post['jurisdiction'])
     if existing_license is not None:
-        process_license_update(
+        _process_license_update(
             existing_license=existing_license,
             new_license=license_post,
             dynamo_transactions=dynamo_transactions,
         )
     licenses[license_post['jurisdiction']] = license_post
-    best_license = find_best_license(licenses.values())
+    best_license = _find_best_license(licenses.values())
     if best_license is license_post:
         logger.info('Updating provider data', provider_id=provider_id, compact=compact, jurisdiction=jurisdiction)
 
-        provider_record = populate_provider_record(
+        provider_record = _populate_provider_record(
             provider_id=provider_id,
             license_post=license_post,
             privilege_jurisdictions=privilege_jurisdictions,
@@ -92,7 +92,7 @@ def ingest_license_message(message: dict):
     config.dynamodb_client.transact_write_items(TransactItems=dynamo_transactions)
 
 
-def populate_provider_record(*, provider_id: str, license_post: dict, privilege_jurisdictions: set) -> dict:
+def _populate_provider_record(*, provider_id: str, license_post: dict, privilege_jurisdictions: set) -> dict:
     dynamodb_serializer = TypeSerializer()
     return dynamodb_serializer.serialize(
         ProviderRecordSchema().dump(
@@ -108,7 +108,7 @@ def populate_provider_record(*, provider_id: str, license_post: dict, privilege_
     )['M']
 
 
-def process_license_update(*, existing_license: dict, new_license: dict, dynamo_transactions: list):
+def _process_license_update(*, existing_license: dict, new_license: dict, dynamo_transactions: list):
     """
     Examine the differences between existing_license and new_license, categorize the change, and add
     a licenseUpdate record to the transaction if appropriate.
@@ -121,11 +121,11 @@ def process_license_update(*, existing_license: dict, new_license: dict, dynamo_
     if not updated_values:
         return
     # Categorize the update
-    update_record = populate_update_record(existing_license=existing_license, updated_values=updated_values)
+    update_record = _populate_update_record(existing_license=existing_license, updated_values=updated_values)
     dynamo_transactions.append({'Put': {'TableName': config.provider_table_name, 'Item': update_record}})
 
 
-def populate_update_record(*, existing_license: dict, updated_values: dict) -> dict:
+def _populate_update_record(*, existing_license: dict, updated_values: dict) -> dict:
     """
     Categorize the update between existing and new license records.
     :param dict existing_license: The existing license record
@@ -167,7 +167,7 @@ def populate_update_record(*, existing_license: dict, updated_values: dict) -> d
     )['M']
 
 
-def find_best_license(all_licenses: Iterable) -> dict:
+def _find_best_license(all_licenses: Iterable) -> dict:
     # Last issued active license, if there are any active licenses
     latest_active_licenses = sorted(
         [license_data for license_data in all_licenses if license_data['jurisdictionStatus'] == 'active'],

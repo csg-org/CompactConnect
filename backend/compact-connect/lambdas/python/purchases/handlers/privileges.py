@@ -227,7 +227,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
         # transaction was successful, now we create privilege records for the selected jurisdictions
         config.data_client.create_provider_privileges(
-            compact_name=compact_name,
+            compact=compact_name,
             provider_id=provider_id,
             jurisdiction_postal_abbreviations=selected_jurisdictions_postal_abbreviations,
             license_expiration_date=license_expiration_date,

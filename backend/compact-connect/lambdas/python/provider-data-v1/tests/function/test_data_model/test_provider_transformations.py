@@ -84,7 +84,7 @@ class TestTransformations(TstFunction):
 
         # Add a privilege to practice in Nebraska
         client.create_provider_privileges(
-            compact_name='aslp',
+            compact='aslp',
             provider_id=provider_id,
             provider_record=provider_record,
             # using values in expected privilege json file

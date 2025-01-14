@@ -86,7 +86,7 @@ class ChangeHashMixin:
         that will be unique among updates to this particular license.
         """
         # We don't need a cryptographically secure hash, just one that is reasonably cheap and reasonably unique
-        # Within the scope of a single provider
+        # Within the scope of a single provider for a single second.
         change_hash = md5()  # noqa: S324
         cls._feed_dict_to_hash(in_data['previous'], change_hash)
         cls._feed_dict_to_hash(in_data['updatedValues'], change_hash)
@@ -105,11 +105,11 @@ class ChangeHashMixin:
             # "homeAddressStreet": "123"
             # Could produce the same hash without a separator indicating where key ends and value begins.
             change_hash.update(cls._b64encode_str(key))
-            # Between keys and values, we'll hash a slash ('/')
-            change_hash.update(b'/')
-            change_hash.update(cls._b64encode_str(value))
-            # After each item, we'll hash a dash ('-')
+            # Between keys and values, we'll hash a dash ('-')
             change_hash.update(b'-')
+            change_hash.update(cls._b64encode_str(value))
+            # After each item, we'll hash underscore ('_')
+            change_hash.update(b'_')
         # After each dict, we'll hash a hash ('#')
         change_hash.update(b'#')
 
@@ -123,5 +123,6 @@ class ChangeHashMixin:
 
     @staticmethod
     def _b64encode_str(value: str) -> bytes:
-        # We control the 62nd and 63rd b64 chars with `altchars` to prevent clashing with our separators
-        return b64encode(value.encode('utf-8'), altchars=b'+_')
+        # Using the default b64 alphabet, which uses + and / as the 62nd and 63rd characters
+        # https://datatracker.ietf.org/doc/html/rfc4648#section-4
+        return b64encode(value.encode('utf-8'))
