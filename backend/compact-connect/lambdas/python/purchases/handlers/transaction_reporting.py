@@ -5,7 +5,7 @@ from typing import Dict, List, Tuple
 import json
 
 from cc_common.data_model.schema.compact import COMPACT_TYPE, Compact
-from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE, Jurisdiction
+from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.exceptions import CCNotFoundException
@@ -106,7 +106,7 @@ def generate_compact_summary_report(transactions: List[dict], compact_config: Co
         float(item['unitPrice']) * float(item['quantity'])
         for t in transactions
         for item in t['lineItems']
-        if item['itemId'].endswith('-compact fee')
+        if item['itemId'].endswith('-compact-fee')
     ) if transactions else 0
     
     # Calculate state fees per jurisdiction
@@ -122,7 +122,7 @@ def generate_compact_summary_report(transactions: List[dict], compact_config: Co
     
     # Generate CSV
     output = StringIO()
-    writer = csv.writer(output)
+    writer = csv.writer(output, lineterminator='\n')
     writer.writerow(['Total Transactions', total_transactions])
     writer.writerow(['Total Compact Fees', f'${compact_fees:.2f}'])
     
@@ -140,7 +140,7 @@ def generate_compact_summary_report(transactions: List[dict], compact_config: Co
 def generate_compact_transaction_report(transactions: List[dict], providers: Dict[str, dict]) -> str:
     """Generate the compact transaction report CSV."""
     output = StringIO()
-    writer = csv.writer(output)
+    writer = csv.writer(output, lineterminator='\n')
     writer.writerow([
         'Licensee First Name',
         'Licensee Last Name',
@@ -161,12 +161,12 @@ def generate_compact_transaction_report(transactions: List[dict], providers: Dic
         transaction_date = datetime.fromisoformat(transaction['batch']['settlementTimeUTC']).strftime('%m-%d-%Y')
         compact_fee_item = next(
             item for item in transaction['lineItems'] 
-            if item['itemId'].endswith('-compact fee')
+            if item['itemId'].endswith('-compact-fee')
         )
         
         # Write a row for each state privilege in the transaction
         for item in transaction['lineItems']:
-            if item['itemId'].endswith('-compact fee'):
+            if item['itemId'].endswith('-compact-fee'):
                 continue
                 
             # Extract state from itemId (format: compact-state)
@@ -190,7 +190,6 @@ def generate_jurisdiction_reports(
     transactions: List[dict],
     providers: Dict[str, dict],
     jurisdiction_configurations: List[dict]
-
 ) -> Dict[str, str]:
     """Generate transaction reports for each jurisdiction."""
     jurisdiction_transactions: Dict[str, List[Tuple[dict, dict]]] = {
@@ -201,7 +200,7 @@ def generate_jurisdiction_reports(
     # Group transactions by jurisdiction
     for transaction in transactions:
         for item in transaction['lineItems']:
-            if item['itemId'].endswith('-compact fee'):
+            if item['itemId'].endswith('-compact-fee'):
                 continue
                 
             state = item['itemId'].split('-')[1]
@@ -212,7 +211,7 @@ def generate_jurisdiction_reports(
     reports = {}
     for jurisdiction, trans_items in jurisdiction_transactions.items():
         output = StringIO()
-        writer = csv.writer(output)
+        writer = csv.writer(output, lineterminator='\n')
         writer.writerow([
             'First Name',
             'Last Name',
@@ -243,7 +242,7 @@ def generate_jurisdiction_reports(
             
             compact_fee_item = next(
                 i for i in transaction['lineItems']
-                if i['itemId'].endswith('-compact fee')
+                if i['itemId'].endswith('-compact-fee')
             )
             
             writer.writerow([

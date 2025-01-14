@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from cc_common.config import _Config
 
@@ -40,21 +40,18 @@ class TransactionClient:
                 else:
                     raise ValueError(f'Unsupported transaction processor: {transaction_processor}')
 
-    def get_transactions_in_range(self, compact: str, start_epoch: int, end_epoch: int) -> dict:
+    def get_transactions_in_range(self, compact: str, start_epoch: int, end_epoch: int) -> list[dict]:
         """
         Get all transactions for a compact within a given epoch timestamp range.
 
         :param compact: The compact name
         :param start_epoch: Start epoch timestamp (inclusive)
         :param end_epoch: End epoch timestamp (inclusive)
-        :return: Dict containing transactions
+        :return: List of transactions
         """
         # Calculate the month keys we need to query based on the epoch timestamps
-        start_date = datetime.fromtimestamp(start_epoch)
-        end_date = datetime.fromtimestamp(end_epoch)
-        
-        start_month = start_date.strftime('%Y-%m')
-        end_month = end_date.strftime('%Y-%m')
+        start_date = datetime.fromtimestamp(start_epoch, tz=UTC)
+        end_date = datetime.fromtimestamp(end_epoch, tz=UTC)
 
         # Build query parameters
         query_params = {
@@ -64,26 +61,27 @@ class TransactionClient:
 
         all_items = []
         
-        # Query start month
-        start_month_items = self._query_transactions_for_month(
-            compact=compact,
-            month=start_month,
-            start_epoch=start_epoch,
-            end_epoch=end_epoch,
-            query_params=query_params
-        )
-        all_items.extend(start_month_items)
+        # Generate list of months to query
+        current_date = start_date.replace(day=1)
+        months_to_query = []
+        while current_date <= end_date:
+            months_to_query.append(current_date.strftime('%Y-%m'))
+            # Move to first day of next month
+            if current_date.month == 12:
+                current_date = current_date.replace(year=current_date.year + 1, month=1)
+            else:
+                current_date = current_date.replace(month=current_date.month + 1)
 
-        # If end month is different, query that month as well
-        if end_month != start_month:
-            end_month_items = self._query_transactions_for_month(
+        # Query each month in the range
+        for month in months_to_query:
+            month_items = self._query_transactions_for_month(
                 compact=compact,
-                month=end_month,
+                month=month,
                 start_epoch=start_epoch,
                 end_epoch=end_epoch,
                 query_params=query_params
             )
-            all_items.extend(end_month_items)
+            all_items.extend(month_items)
 
         return all_items
 
@@ -94,7 +92,7 @@ class TransactionClient:
         start_epoch: int,
         end_epoch: int,
         query_params: dict,
-    ) -> None:
+    ) -> list[dict]:
         """
         Query transactions for a specific month with pagination.
 
@@ -103,7 +101,7 @@ class TransactionClient:
         :param start_epoch: Start epoch timestamp
         :param end_epoch: End epoch timestamp
         :param query_params: Query parameters dict
-        :param all_items: List to append results to
+        :return: List of transactions for the month
         """
         all_matching_transactions = []
         last_evaluated_key = None
@@ -122,9 +120,9 @@ class TransactionClient:
                 },
                 **query_params
             )
-            
+
             all_matching_transactions.extend(response.get('Items', []))
-            
+
             last_evaluated_key = response.get('LastEvaluatedKey')
             if not last_evaluated_key:
                 break
