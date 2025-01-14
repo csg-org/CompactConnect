@@ -557,3 +557,49 @@ class DataClient:
                 record['status'] = MilitaryAffiliationStatus.INACTIVE.value
                 serialized_record = schema.dump(record)
                 batch.put_item(Item=serialized_record)
+
+    def batch_get_providers_by_id(self, compact: str, provider_ids: list[str]) -> list[dict]:
+        """
+        Get provider records by their IDs in batches.
+        
+        :param compact: The compact name
+        :param provider_ids: List of provider IDs to fetch
+        :return: List of provider records
+        """
+        providers = []
+        # DynamoDB batch_get_item has a limit of 100 items per request
+        batch_size = 100
+        
+        # Process provider IDs in batches
+        for i in range(0, len(provider_ids), batch_size):
+            batch_ids = provider_ids[i:i + batch_size]
+            request_items = {
+                self.config.provider_table.table_name: {
+                    'Keys': [
+                        {
+                            'pk': f'{compact}#PROVIDER#{provider_id}',
+                            'sk': f'{compact}#PROVIDER'
+                        }
+                        for provider_id in batch_ids
+                    ],
+                    'ConsistentRead': True
+                }
+            }
+            
+            response = self.config.provider_table.meta.client.batch_get_item(
+                RequestItems=request_items
+            )
+            
+            # Add the returned items to our results
+            if response['Responses']:
+                providers.extend(response['Responses'][self.config.provider_table.table_name])
+            
+            # Handle any unprocessed keys by retrying
+            while response.get('UnprocessedKeys'):
+                response = self.config.provider_table.meta.client.batch_get_item(
+                    RequestItems=response['UnprocessedKeys']
+                )
+                if response['Responses']:
+                    providers.extend(response['Responses'][self.config.provider_table.table_name])
+        
+        return providers
