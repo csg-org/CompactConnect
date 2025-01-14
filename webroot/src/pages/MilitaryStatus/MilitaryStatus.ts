@@ -167,30 +167,6 @@ export default class MilitaryStatus extends mixins(MixinForm) {
         });
     }
 
-    goBack() {
-        if (this.currentCompactType) {
-            this.$router.push({
-                name: 'LicenseeDashboard',
-                params: { compact: this.currentCompactType }
-            });
-        }
-    }
-
-    startEndAffiliationFlow() {
-        this.shouldShowEndAffiliationModal = true;
-    }
-
-    closeEndAffilifationModal() {
-        this.shouldShowEndAffiliationModal = false;
-        this.$store.dispatch('setModalIsOpen', false);
-    }
-
-    async confirmEndMilitaryAffiliation() {
-        this.closeEndAffilifationModal();
-        await this.$store.dispatch('user/endMilitaryAffiliationRequest');
-        await this.$store.dispatch('user/getLicenseeAccountRequest');
-    }
-
     sortingChange() {
         // Sorting not API supported
         return false;
@@ -208,6 +184,30 @@ export default class MilitaryStatus extends mixins(MixinForm) {
                 params: { compact: this.currentCompactType }
             });
         }
+    }
+
+    async confirmEndMilitaryAffiliation() {
+        this.closeEndAffilifationModal();
+        await this.$store.dispatch('user/endMilitaryAffiliationRequest');
+        await this.$store.dispatch('user/getLicenseeAccountRequest');
+    }
+
+    goBack() {
+        if (this.currentCompactType) {
+            this.$router.push({
+                name: 'LicenseeDashboard',
+                params: { compact: this.currentCompactType }
+            });
+        }
+    }
+
+    startEndAffiliationFlow() {
+        this.shouldShowEndAffiliationModal = true;
+    }
+
+    closeEndAffilifationModal() {
+        this.shouldShowEndAffiliationModal = false;
+        this.$store.dispatch('setModalIsOpen', false);
     }
 
     focusTrap(event: KeyboardEvent): void {

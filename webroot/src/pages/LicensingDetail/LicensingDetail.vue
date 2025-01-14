@@ -19,11 +19,11 @@
                 <span v-else>{{ licenseeNameDisplay }}</span>
             </div>
             <div class="tags">
-                <div class="tag">
+                <div v-if="licenseeHomeStateDisplay" class="tag">
                     <div class="tag-icon-container">
                         <img
                             class="tag-icon"
-                            src="@assets/icons/home-icon.svg"
+                            src="@assets/icons/ico-home.svg"
                             alt="House Icon"
                         />
                     </div>
@@ -39,7 +39,7 @@
                     <div class="tag-icon-container">
                         <img
                             class="tag-icon"
-                            src="@assets/icons/home-icon.svg"
+                            src="@assets/icons/ico-license.svg"
                             alt="License Icon"
                         />
                     </div>
@@ -75,19 +75,78 @@
                     </div>
                     <div class="info-item-container">
                         <div class="info-item-title">{{$t('common.address')}}</div>
-                        <div class="info-item">{{address}}</div>
+                        <div class="info-item">
+                            <div class="address-line">
+                                {{addressLine1}}
+                            </div>
+                            <div v-if="addressLine2" class="address-line">
+                                {{addressLine2}}
+                            </div>
+                            <div class="address-line">
+                                {{addressLine3}}
+                            </div>
+                        </div>
                     </div>
                     <div class="info-item-container">
                         <div class="info-item-title">{{$t('licensing.driversLicense')}}</div>
                         <div class="info-item">{{licenseNumber}}</div>
                     </div>
-                    <div class="info-item-container">
+                    <div v-if="dob" class="info-item-container">
                         <div class="info-item-title">{{$t('common.dateOfBirthShort')}}</div>
                         <div class="info-item">{{dob}}</div>
+                    </div>
+                    <div v-else-if="birthMonthDay" class="info-item-container">
+                        <div class="info-item-title">{{$t('licensing.birthMonthDay')}}</div>
+                        <div class="info-item">{{birthMonthDay}}</div>
                     </div>
                     <div class="info-item-container">
                         <div class="info-item-title">{{$t('licensing.ssn')}}</div>
                         <div class="info-item">{{ssn}}</div>
+                    </div>
+                </div>
+                <div class="core-info-block">
+                    <div class="info-row">
+                        <div class="chunk">
+                            <div class="chunk-title">{{statusTitleText}}</div>
+                            <div class="chunk-text">{{status}}</div>
+                        </div>
+                        <div class="chunk affiliation-type">
+                            <div class="chunk-title">{{affiliationTypeTitle}}</div>
+                            <div class="chunk-text">{{affiliationType}}</div>
+                        </div>
+                    </div>
+                    <div class="chunk">
+                        <div class="chunk-title">{{militaryAffilitionDocs}}</div>
+                        <div class="prev-doc-table">
+                            <ListContainer
+                                :listId="listId"
+                                :listData="this.affiliations"
+                                :listSize="this.affiliations.length"
+                                :sortOptions="sortOptions"
+                                :sortChange="sortingChange"
+                                :pageChange="paginationChange"
+                                :excludeSorting="true"
+                                :excludeTopPagination="true"
+                                :excludeBottomPagination="true"
+                                :isServerPaging="false"
+                                :emptyListMessage="$t('military.noUploadedDocuments')"
+                                :isLoading="$store.state.user.isLoadingAccount"
+                            >
+                                <template v-slot:headers>
+                                    <MilitaryDocumentRow
+                                        :item="militaryDocumentHeader"
+                                        :isHeaderRow="true"
+                                    />
+                                </template>
+                                <template v-slot:list>
+                                    <MilitaryDocumentRow
+                                        v-for="(record, index) in this.affiliations"
+                                        :key="index"
+                                        :item="record"
+                                    />
+                                </template>
+                            </ListContainer>
+                        </div>
                     </div>
                 </div>
             </div>

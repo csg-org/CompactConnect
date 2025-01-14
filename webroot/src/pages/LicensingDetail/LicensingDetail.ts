@@ -8,9 +8,12 @@
 import { Component, Vue } from 'vue-facing-decorator';
 import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
+import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
+import MilitaryDocumentRow from '@components/MilitaryDocumentRow/MilitaryDocumentRow.vue';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { License, LicenseStatus } from '@models/License/License.model';
+import { MilitaryAffiliation } from '@/models/MilitaryAffiliation/MilitaryAffiliation.model';
 import moment from 'moment';
 
 @Component({
@@ -18,7 +21,9 @@ import moment from 'moment';
     components: {
         LicenseCard,
         PrivilegeCard,
-        CollapseCaretButton
+        CollapseCaretButton,
+        ListContainer,
+        MilitaryDocumentRow
     }
 })
 export default class LicensingDetail extends Vue {
@@ -89,6 +94,36 @@ export default class LicensingDetail extends Vue {
 
     get licenseePrivileges(): Array<License> {
         return this.licensee?.privileges || [];
+    }
+
+    get dob(): string {
+        return this.licensee?.dobDisplay() || '';
+    }
+
+    get ssn(): string {
+        // Task stubbed off here, later ticket will get this value
+        return '';
+    }
+
+    get licenseNumber(): string {
+        // Task stubbed off here, later ticket will get this value
+        return '';
+    }
+
+    get birthMonthDay(): string {
+        return this.licensee?.birthMonthDay || '';
+    }
+
+    get addressLine1(): string {
+        return this.licensee?.address?.street1 || '';
+    }
+
+    get addressLine2(): string {
+        return this.licensee?.address?.street2 || '';
+    }
+
+    get addressLine3(): string {
+        return `${this.licensee?.address?.city}, ${this.licensee?.address?.state?.abbrev} ${this.licensee?.address?.zip}`;
     }
 
     get privilegeList(): Array<License> {
@@ -165,9 +200,83 @@ export default class LicensingDetail extends Vue {
         return this.$t('licensing.licenseExpired');
     }
 
+    get statusTitleText(): string {
+        return this.$t('licensing.status').toUpperCase();
+    }
+
+    get status(): string {
+        let militaryStatus = '';
+
+        if (this.licensee) {
+            militaryStatus = this.licensee.isMilitary() ? this.$t('licensing.statusOptions.active') : this.$t('licensing.statusOptions.inactive');
+        }
+
+        return militaryStatus;
+    }
+
+    get affiliationTypeTitle(): string {
+        return this.$t('military.affiliationType').toUpperCase();
+    }
+
+    get affiliationType(): string {
+        let militaryStatus = '';
+
+        if (this.licensee) {
+            const activeAffiliation = this.licensee.aciveMilitaryAffiliation() as any;
+            const isMilitary = this.licensee.isMilitary();
+
+            if (isMilitary && activeAffiliation?.affiliationType === 'militaryMember') {
+                militaryStatus = this.$tm('military.affiliationTypes.militaryMember');
+            } else if (isMilitary && activeAffiliation?.affiliationType === 'militaryMemberSpouse') {
+                militaryStatus = this.$tm('military.affiliationTypes.militaryMemberSpouse');
+            } else {
+                militaryStatus = this.$tm('military.affiliationTypes.none');
+            }
+        }
+
+        return militaryStatus;
+    }
+
+    get militaryAffilitionDocs(): string {
+        return this.$t('licensing.militaryAffilitionDocs').toUpperCase();
+    }
+
+    get militaryDocumentHeader(): any {
+        return { name: this.$t('military.fileName'), date: this.$t('military.dateUploaded') };
+    }
+
+    get listId(): string {
+        return 'military-affiliations';
+    }
+
+    get sortOptions(): Array<any> {
+        // Sorting not API supported
+        return [];
+    }
+
+    get affiliations(): Array<any> {
+        let affiliations: any = [];
+
+        if (this.licensee && this.licensee?.militaryAffiliations) {
+            affiliations = (this.licensee.militaryAffiliations)
+                .map((militaryAffiliation: MilitaryAffiliation) => {
+                    const affiliationDisplay = { name: '', date: '' };
+
+                    if (militaryAffiliation.fileNames && (militaryAffiliation.fileNames as Array<string>).length) {
+                        affiliationDisplay.name = militaryAffiliation.fileNames[0] || '';
+                        affiliationDisplay.date = militaryAffiliation.dateOfUploadDisplay();
+                    }
+
+                    return affiliationDisplay;
+                });
+        }
+
+        return affiliations;
+    }
+
     get homeState(): string {
         console.log('this.licensee', this.licensee);
-        return 'Colorado';
+        return this.licensee?.address?.state?.name() || '';
     }
 
     //
@@ -203,5 +312,15 @@ export default class LicensingDetail extends Vue {
 
     togglePastPrivsCollapsed() {
         this.isPastPrivsCollapsed = !this.isPastPrivsCollapsed;
+    }
+
+    sortingChange() {
+        // Sorting not API supported
+        return false;
+    }
+
+    paginationChange() {
+        // Pagination not API supported
+        return false;
     }
 }

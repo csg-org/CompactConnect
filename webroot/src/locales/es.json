@@ -489,6 +489,8 @@
         "licenseDetails": "Detalles de la licencia",
         "licenseExpired": "Licencia caducada",
         "driversLicense": "Licencia de conducir #",
+        "militaryAffilitionDocs": "documentos de afiliación militar",
+        "birthMonthDay": "Birth month-day",
         "personalInformation": "Información personal",
         "ssn": "SSN",
         "noRefundsMessage": "Todas las compras de privilegios compactos son definitivas. No se emitirán reembolsos.",

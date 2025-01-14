@@ -34,6 +34,7 @@ export interface InterfaceLicensee {
     lastName?: string | null;
     address?: Address;
     dob?: string | null;
+    birthMonthDay?: string | null;
     ssn?: string | null;
     occupation?: LicenseOccupation | null;
     militaryAffiliations?: Array <MilitaryAffiliation>;
@@ -58,6 +59,7 @@ export class Licensee implements InterfaceLicensee {
     public lastName? = null;
     public address? = new Address();
     public dob? = null;
+    public birthMonthDay? = null;
     public ssn? = null;
     public occupation? = null;
     public licenseStates? = [];
@@ -96,6 +98,10 @@ export class Licensee implements InterfaceLicensee {
     public dobDisplay(): string {
         return dateDisplay(this.dob);
     }
+
+    // public birthMonthDateDisplay(): string {
+    //     return dateDisplay(this.birthMonthDay);
+    // }
 
     public ssnMaskedFull(): string {
         const { ssn } = this;
@@ -228,6 +234,7 @@ export class LicenseeSerializer {
                 zip: json.homeAddressPostalCode,
             }),
             dob: json.dateOfBirth,
+            birthMonthDay: json.birthMonthDay,
             ssn: json.ssn,
             occupation: json.licenseType,
             licenseStates: [] as Array<State>,

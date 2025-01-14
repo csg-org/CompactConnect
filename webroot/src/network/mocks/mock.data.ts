@@ -427,6 +427,15 @@ export const licensees = {
             licenseJurisdiction: 'co',
             compact: 'aslp',
             homeAddressStreet2: '',
+            militaryAffiliations: [{
+                affiliationType: 'militaryMember',
+                compact: 'aslp',
+                dateOfUpdate: '2024-08-29',
+                dateOfUpload: '2024-08-29',
+                documentKeys: 'key',
+                fileNames: ['military-document.pdf'],
+                status: 'active'
+            }],
             npi: '6944447281',
             homeAddressPostalCode: '',
             givenName: 'Janet',
