@@ -477,6 +477,7 @@
     "licensing": {
         "licensingListTitle": "Datos de licencia",
         "searchTitle": "Iniciar una búsqueda",
+        "attestation": "Atestación",
         "searchSubtext": "Introduzca al menos un campo para buscar datos de licencia.",
         "searchLabel": "Buscar",
         "searchPlaceholderName": "Introducir nombre",
@@ -497,7 +498,6 @@
         "issueDate": "Fecha de asunto",
         "expireDate": "Fecha de caducidad",
         "expirationDate": "Fecha de caducidad",
-        "militaryDiscountText": "Descuento Militar",
         "lastUpdate": "Última carga",
         "license": "Licencia",
         "licenseExpiredMessage": "Su licencia ha caducado.",
@@ -558,6 +558,42 @@
                 "key": "licensed professional clinical counselor"
             }
         ]
+    },
+    "military": {
+        "militaryStatusTitle": "Estado militar",
+        "updateMilitaryStatusTitle": "Actualizar el estado militar",
+        "militaryDiscountText": "Descuento Militar",
+        "viewMilitaryStatus": "Ver estado militar",
+        "affiliationType": "Tipo de afiliación",
+        "previouslyUploadedDocuments": "Previously Uploaded Documents",
+        "endMilitaryAffiliation": "Parar afiliación militar",
+        "editInfo": "Editar información",
+        "noUploadedDocuments": "No documentos cargados",
+        "endAffiliationModalTitle": "¿Está seguro de que desea poner fin a su afiliación militar?",
+        "endAffiliationModalContent" : "Esta acción no se puede deshacer, pero si es necesario, puedes volver a realizar el proceso de confirmación.",
+        "noGoBack": "No, regresa",
+        "yesEnd": "Sí, terminar mi afiliación",
+        "affiliationAttestationOptions": [
+            {
+                "name": "Por la presente doy fe y afirmo que soy un miembro militar en servicio activo, definido como una persona con un estado de servicio de tiempo completo en el servicio uniformado activo de los Estados Unidos, incluidos los miembros de la Guardia Nacional y la Reserva en servicio activo.",
+                "value": "militaryMember"
+            },
+            {
+                "name": "Por la presente doy fe y afirmo que soy el cónyuge legal de un miembro militar en servicio activo, definido como una persona con estatus de servicio de tiempo completo en el servicio uniformado activo de los Estados Unidos, incluidos los miembros de la Guardia Nacional y la Reserva en activo. órdenes de servicio.",
+                "value": "militaryMemberSpouse"
+            }
+        ],
+        "affiliationTypes": {
+            "militaryMember": "Miembro militar en servicio activo",
+            "militaryMemberSpouse": "Esposo militar en servicio activo",
+            "none": "N/A"
+        },
+        "documentProofLabel": "Cargar prueba de afiliación militar",
+        "successLongProcess": "Enviado correctamente, su estado puede tardar un minuto en procesarse",
+        "submitFail": "Error al cargar el documento",
+        "fileInstructions": "Sólo 1 archivo (sólo PDF, docx, png, jpeg)",
+        "fileName": "Nombre del archivo",
+        "dateUploaded": "Fecha de carga"
     },
     "account": {
         "accountTitle": "Cuenta",

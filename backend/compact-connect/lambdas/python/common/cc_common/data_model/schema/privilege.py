@@ -1,12 +1,12 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 
 from marshmallow import pre_dump, pre_load
-from marshmallow.fields import UUID, Date, DateTime, String
+from marshmallow.fields import UUID, Date, DateTime, List, Nested, String
 from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema, ForgivingSchema
-from cc_common.data_model.schema.common import ensure_value_is_datetime
+from cc_common.data_model.schema.common import AttestationVersionSchema, ensure_value_is_datetime
 
 
 @BaseRecordSchema.register_schema('privilege')
@@ -25,6 +25,8 @@ class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
     dateOfExpiration = Date(required=True, allow_none=False)
     # the id of the transaction that was made when the user purchased the privilege
     compactTransactionId = String(required=False, allow_none=False)
+    # list of attestations that were accepted when purchasing this privilege
+    attestations = List(Nested(AttestationVersionSchema()), required=False, allow_none=False)
 
     # Generated fields
     pk = String(required=True, allow_none=False)
@@ -65,3 +67,5 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     # the id of the transaction that was made when the user purchased the privilege
     compactTransactionId = String(required=False, allow_none=False)
     status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    # list of attestations that were accepted when purchasing this privilege
+    attestations = List(Nested(AttestationVersionSchema()), required=False, allow_none=False)

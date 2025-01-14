@@ -1,3 +1,5 @@
+# ruff: noqa: N815 invalid-name
+
 from datetime import UTC, datetime
 from enum import Enum
 
@@ -25,6 +27,18 @@ class S3PresignedPostSchema(Schema):
 
     url = Url(schemes=['https'], required=True, allow_none=False)
     fields = Dict(keys=String(), values=String(), required=True, allow_none=False)
+
+
+class AttestationVersionSchema(Schema):
+    """
+    This schema is intended to be used by any object in the system which needs to track which attestations have been
+    accepted by a user (i.e. when purchasing privileges).
+
+    This schema is intended to be used as a nested field in other schemas.
+    """
+
+    attestationId = String(required=True, allow_none=False)
+    version = String(required=True, allow_none=False)
 
 
 def ensure_value_is_datetime(value: str):

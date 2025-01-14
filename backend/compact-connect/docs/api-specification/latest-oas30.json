@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2024-12-02T19:04:58Z"
+    "version": "2025-01-03T17:38:01Z"
   },
   "servers": [
     {
@@ -42,6 +42,133 @@
         "parameters": [
           {
             "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "204 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/v1/compacts/{compact}/attestations": {
+      "options": {
+        "parameters": [
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "204 response",
+            "headers": {
+              "Access-Control-Allow-Origin": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Methods": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Access-Control-Allow-Headers": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {}
+          }
+        }
+      }
+    },
+    "/v1/compacts/{compact}/attestations/{attestationId}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attestationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenxwmHa2Q438IJ"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiProviderUsersPoolAuthorizerEB7523BA": []
+          }
+        ]
+      },
+      "options": {
+        "parameters": [
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "attestationId",
             "in": "path",
             "required": true,
             "schema": {
@@ -561,9 +688,9 @@
         "security": [
           {
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
-              "aslp/read",
-              "octp/read",
-              "coun/read"
+              "aslp/readGeneral",
+              "octp/readGeneral",
+              "coun/readGeneral"
             ]
           }
         ]
@@ -647,9 +774,9 @@
         "security": [
           {
             "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
-              "aslp/read",
-              "octp/read",
-              "coun/read"
+              "aslp/readGeneral",
+              "octp/readGeneral",
+              "coun/readGeneral"
             ]
           }
         ]
@@ -1758,6 +1885,9 @@
                 "actions": {
                   "type": "object",
                   "properties": {
+                    "readPrivate": {
+                      "type": "boolean"
+                    },
                     "read": {
                       "type": "boolean"
                     },
@@ -1774,6 +1904,9 @@
                       "actions": {
                         "type": "object",
                         "properties": {
+                          "readPrivate": {
+                            "type": "boolean"
+                          },
                           "admin": {
                             "type": "boolean"
                           },
@@ -2002,6 +2135,9 @@
                       "actions": {
                         "type": "object",
                         "properties": {
+                          "readPrivate": {
+                            "type": "boolean"
+                          },
                           "read": {
                             "type": "boolean"
                           },
@@ -2018,6 +2154,9 @@
                             "actions": {
                               "type": "object",
                               "properties": {
+                                "readPrivate": {
+                                  "type": "boolean"
+                                },
                                 "admin": {
                                   "type": "boolean"
                                 },
@@ -2085,6 +2224,9 @@
                 "actions": {
                   "type": "object",
                   "properties": {
+                    "readPrivate": {
+                      "type": "boolean"
+                    },
                     "read": {
                       "type": "boolean"
                     },
@@ -2101,6 +2243,9 @@
                       "actions": {
                         "type": "object",
                         "properties": {
+                          "readPrivate": {
+                            "type": "boolean"
+                          },
                           "admin": {
                             "type": "boolean"
                           },
@@ -2432,6 +2577,9 @@
                 "actions": {
                   "type": "object",
                   "properties": {
+                    "readPrivate": {
+                      "type": "boolean"
+                    },
                     "read": {
                       "type": "boolean"
                     },
@@ -2448,6 +2596,9 @@
                       "actions": {
                         "type": "object",
                         "properties": {
+                          "readPrivate": {
+                            "type": "boolean"
+                          },
                           "admin": {
                             "type": "boolean"
                           },
@@ -3066,6 +3217,41 @@
           }
         }
       },
+      "SandboLicenxwmHa2Q438IJ": {
+        "type": "object",
+        "properties": {
+          "dateCreated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "compact": {
+            "type": "string",
+            "enum": [
+              "aslp",
+              "octp",
+              "coun"
+            ]
+          },
+          "attestationType": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "attestation"
+            ]
+          },
+          "version": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          }
+        }
+      },
       "SandboLicenZpJMDau4cDdN": {
         "required": [
           "message"
@@ -3217,11 +3403,34 @@
       },
       "SandboLicenGA3a6Jf5sr6W": {
         "required": [
+          "attestations",
           "orderInformation",
           "selectedJurisdictions"
         ],
         "type": "object",
         "properties": {
+          "attestations": {
+            "type": "array",
+            "description": "List of attestations that the user has agreed to",
+            "items": {
+              "required": [
+                "attestationId",
+                "version"
+              ],
+              "type": "object",
+              "properties": {
+                "attestationId": {
+                  "type": "string",
+                  "description": "The ID of the attestation"
+                },
+                "version": {
+                  "pattern": "^\\d+$",
+                  "type": "string",
+                  "description": "The version of the attestation"
+                }
+              }
+            }
+          },
           "orderInformation": {
             "required": [
               "billing",
@@ -3239,7 +3448,7 @@
                 "properties": {
                   "number": {
                     "maxLength": 19,
-                    "minLength": 15,
+                    "minLength": 13,
                     "type": "string",
                     "description": "The card number"
                   },

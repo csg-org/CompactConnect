@@ -84,6 +84,7 @@ class TestDataClient(TstLambdas):
                 jurisdiction_postal_abbreviations=['CA'],
                 license_expiration_date=date.fromisoformat('2024-10-31'),
                 existing_privileges=[],
+                attestations=[],
                 compact_transaction_id='test_transaction_id',
             )
 

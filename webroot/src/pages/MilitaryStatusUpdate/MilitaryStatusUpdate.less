@@ -1,0 +1,74 @@
+//
+//  MilitaryStatusUpdate.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 12/20/2024.
+//
+.update-military-status-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+
+    @media @tabletWidth {
+        padding: 4rem;
+    }
+
+    .update-military-status-content-container {
+        width: 100%;
+
+        @media @desktopWidth {
+            width: unset;
+        }
+
+        .update-military-status-title {
+            margin-bottom: 1.4rem;
+            font-size: @h1FontSize;
+        }
+
+        .core-info-block {
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 2rem 0 2rem;
+            border-radius: 14px;
+            background-color: @white;
+
+            @media @desktopWidth {
+                padding: 3rem 3rem 1rem 3rem;
+            }
+
+            @media @desktopWidth {
+                width: 69rem;
+            }
+
+            .document-section {
+                padding-top: 4rem;
+                border-top: 1px solid @lightGrey;
+            }
+
+            .title-row {
+                padding-bottom: 2rem;
+                font-weight: @fontWeightBold;
+                font-size: 2.4rem;
+            }
+
+            .file-instructions {
+                margin-top: -1.4rem;
+                padding-bottom: 2rem;
+                color: @veryDarkGrey;
+            }
+
+            .button-row {
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-end;
+
+                :deep(.input-submit-container) {
+                    display: flex;
+                    align-items: flex-end;
+                    justify-content: center;
+                }
+            }
+        }
+    }
+}

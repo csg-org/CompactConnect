@@ -9,7 +9,14 @@ import deleteUndefinedProperties from '@models/_helpers';
 import { dateDisplay, relativeFromNowDisplay } from '@models/_formatters/date';
 import { Address, AddressSerializer } from '@models/Address/Address.model';
 import { License, LicenseOccupation, LicenseSerializer } from '@models/License/License.model';
+import { MilitaryAffiliation, MilitaryAffiliationSerializer } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
 import { State } from '@models/State/State.model';
+
+/**
+ * This model is used to represent both get one and get all server responses
+ * the params: licenses, privileges and militaryAffiliations are not present on get all responses
+ * those params will be therefore be empty arrays on such objects
+ */
 
 // ========================================================
 // =                       Interface                      =
@@ -28,8 +35,8 @@ export interface InterfaceLicensee {
     address?: Address;
     dob?: string | null;
     ssn?: string | null;
-    isMilitary?: boolean;
     occupation?: LicenseOccupation | null;
+    militaryAffiliations?: Array <MilitaryAffiliation>;
     licenseStates?: Array<State>;
     licenses?: Array<License>;
     privilegeStates?: Array<State>;
@@ -52,11 +59,11 @@ export class Licensee implements InterfaceLicensee {
     public address? = new Address();
     public dob? = null;
     public ssn? = null;
-    public isMilitary? = false;
     public occupation? = null;
     public licenseStates? = [];
     public licenses? = [];
     public privilegeStates? = [];
+    public militaryAffiliations? = [];
     public privileges? = [];
     public lastUpdated? = null;
     public status? = LicenseeStatus.INACTIVE;
@@ -186,6 +193,18 @@ export class Licensee implements InterfaceLicensee {
     public statusDisplay(): string {
         return this.$t(`licensing.statusOptions.${this.status}`);
     }
+
+    public isMilitary(): boolean {
+        // The API does not return the affiliations in the get-all endpoint therefore all users will appear unaffiliated
+        // if only that endpoint has been called
+        return this.militaryAffiliations?.some((affiliation) => ((affiliation as MilitaryAffiliation).status as any) === 'active') || false;
+    }
+
+    public aciveMilitaryAffiliation(): MilitaryAffiliation | null {
+        // The API does not return the affiliations in the get-all endpoint therefore all users will appear unaffiliated
+        // if only that endpoint has been called
+        return this.militaryAffiliations?.find((affiliation) => ((affiliation as MilitaryAffiliation).status as any) === 'active') || null;
+    }
 }
 
 // ========================================================
@@ -210,12 +229,12 @@ export class LicenseeSerializer {
             }),
             dob: json.dateOfBirth,
             ssn: json.ssn,
-            isMilitary: json.militaryWaiver || false,
             occupation: json.licenseType,
             licenseStates: [] as Array<State>,
             licenses: [] as Array<License>,
             privilegeStates: [] as Array<State>,
             privileges: [] as Array<License>,
+            militaryAffiliations: [] as Array<MilitaryAffiliation>,
             status: json.status,
             lastUpdated: json.dateOfUpdate,
         };
@@ -243,6 +262,13 @@ export class LicenseeSerializer {
         if (Array.isArray(json.privileges)) {
             json.privileges.forEach((serverPrivilege) => {
                 licenseeData.privileges.push(LicenseSerializer.fromServer(serverPrivilege));
+            });
+        }
+
+        // In get-one responses, server returns military affiliation ojects, does not in get-all
+        if (Array.isArray(json.militaryAffiliations)) {
+            json.militaryAffiliations.forEach((serverAffiliation) => {
+                licenseeData.militaryAffiliations.push(MilitaryAffiliationSerializer.fromServer(serverAffiliation));
             });
         }
 

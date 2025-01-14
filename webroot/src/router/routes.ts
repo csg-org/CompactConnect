@@ -81,6 +81,18 @@ const routes: Array<RouteConfig> = [
         meta: { requiresAuth: true, licenseeAccess: true, },
     },
     {
+        path: '/:compact/MilitaryStatus',
+        name: 'MilitaryStatus',
+        component: () => import(/* webpackChunkName: "militaryStatus" */ '@pages/MilitaryStatus/MilitaryStatus.vue'),
+        meta: { requiresAuth: true, licenseeAccess: true, },
+    },
+    {
+        path: '/:compact/MilitaryStatus/Update',
+        name: 'MilitaryStatusUpdate',
+        component: () => import(/* webpackChunkName: "militaryStatusUpdate" */ '@pages/MilitaryStatusUpdate/MilitaryStatusUpdate.vue'),
+        meta: { requiresAuth: true, licenseeAccess: true, },
+    },
+    {
         path: '/:compact/Privileges/SelectPrivileges',
         name: 'SelectPrivileges',
         component: () => import(/* webpackChunkName: "privilegePurchase" */ '@pages/SelectPrivileges/SelectPrivileges.vue'),
