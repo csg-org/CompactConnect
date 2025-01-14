@@ -124,7 +124,7 @@ class TestDataClient(TstFunction):
                 # A new history record
                 {
                     'pk': 'aslp#PROVIDER#test_provider_id',
-                    'sk': 'aslp#PROVIDER#privilege/ky#UPDATE#1731110399/c5f01c55b874ab68fd3b98900926763c',
+                    'sk': 'aslp#PROVIDER#privilege/ky#UPDATE#1731110399/5a9ac1180424bee1436ed2be1c6884b4',
                     'type': 'privilegeUpdate',
                     'updateType': 'renewal',
                     'providerId': 'test_provider_id',

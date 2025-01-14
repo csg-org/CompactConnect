@@ -147,6 +147,7 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
 
         # Round-trip SERDE with a fixed timestamp demonstrates that our sk generation is deterministic for the same
         # input values, which is an important property for this schema.
+        self.maxDiff = None
         self.assertEqual(record, dumped_record)
 
     def test_hash_is_deterministic(self):
