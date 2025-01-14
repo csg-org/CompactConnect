@@ -8,6 +8,7 @@
 import { Component, Vue } from 'vue-facing-decorator';
 import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
+import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { License, LicenseStatus } from '@models/License/License.model';
 import moment from 'moment';
@@ -16,10 +17,19 @@ import moment from 'moment';
     name: 'LicensingDetail',
     components: {
         LicenseCard,
-        PrivilegeCard
+        PrivilegeCard,
+        CollapseCaretButton
     }
 })
 export default class LicensingDetail extends Vue {
+    //
+    //
+    //
+    isPersonalInfoCollapsed = false;
+    isLicensesCollapsed = false;
+    isRecentPrivsCollapsed = false;
+    isPastPrivsCollapsed = false;
+
     //
     // Lifecycle
     //
@@ -66,7 +76,7 @@ export default class LicensingDetail extends Vue {
     }
 
     get licenseeHomeStateDisplay(): string {
-        return this.licensee?.licenseStatesDisplay() || '';
+        return this.licensee?.address?.state?.name() || '';
     }
 
     get licenseePrivilegeStatesDisplay(): string {
@@ -139,6 +149,10 @@ export default class LicensingDetail extends Vue {
         return this.$t('licensing.recentPrivilegesTitle');
     }
 
+    get pastPrivilegesTitle(): string {
+        return this.$t('licensing.pastPrivilegesTitle');
+    }
+
     get licenseDetails(): string {
         return this.$t('licensing.licenseDetails');
     }
@@ -173,5 +187,21 @@ export default class LicensingDetail extends Vue {
         }
 
         return isLicenseActive;
+    }
+
+    togglePersonalInfoCollapsed() {
+        this.isPersonalInfoCollapsed = !this.isPersonalInfoCollapsed;
+    }
+
+    toggleLicensesCollapsed() {
+        this.isLicensesCollapsed = !this.isLicensesCollapsed;
+    }
+
+    toggleRecentPrivsCollapsed() {
+        this.isRecentPrivsCollapsed = !this.isRecentPrivsCollapsed;
+    }
+
+    togglePastPrivsCollapsed() {
+        this.isPastPrivsCollapsed = !this.isPastPrivsCollapsed;
     }
 }

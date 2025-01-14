@@ -484,6 +484,7 @@
         "residenceLocation": "Ubicación de la residencia",
         "privileges": "Privilegios",
         "recentPrivilegesTitle": "Privilegios recientes",
+        "pastPrivilegesTitle": "Privilegios pasados",
         "licenseDetails": "Detalles de la licencia",
         "licenseExpired": "Licencia caducada",
         "driversLicense": "Licencia de conducir #",

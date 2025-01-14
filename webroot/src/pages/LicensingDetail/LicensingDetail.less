@@ -42,84 +42,95 @@
             font-size: 3.2rem;
         }
 
-        .license-tags {
+        .tags {
             display: flex;
+            flex-direction: row;
             flex-wrap: wrap;
 
-            .license-tag {
-                padding: 0.4rem 0.8rem;
+            .tag {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                margin: 0.3rem;
+                padding: 0.6rem 1rem;
                 border-radius: 9999px; // pill shaped
+                color: @white;
+                font-weight: @fontWeightBold;
                 font-size: 1.4rem;
-                background-color: @lightGrey;
+                background-color: @darkBlue;
+
+                @media @tabletWidth {
+                    font-size: 1.6rem;
+                }
+
+                .tag-text {
+                    margin-left: 0.5rem;
+                }
+
+                .tag-icon-container {
+                    width: 1.4rem;
+                    margin-bottom: -0.2rem;
+
+                    @media @tabletWidth {
+                        width: 1.6rem;
+                    }
+
+                    .tag-icon {
+                        width: 100%;
+                    }
+                }
             }
         }
     }
 
     .personal-information-section {
-        padding: @spacingMobile;
+        margin: @spacingMobile;
 
         @media @tabletWidth {
-            padding: @spacingMobile @spacingTablet;
+            margin: @spacingMobile @spacingTablet;
         }
 
         @media @desktopWidth {
-            padding: @spacingMobile @spacingDesktop;
+            margin: @spacingMobile @spacingDesktop;
         }
 
-        .personal-information-section-title-row {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            margin-bottom: 1rem;
+        .personal-info-container {
+            .vitals-container {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
 
-            .personal-information-title {
-                padding-left: 1rem;
-                font-size: @fontSizeLarger;
-            }
-        }
+                .info-item-container {
+                    padding: 2rem;
 
-        .vitals-container {
-            display: flex;
-            flex-direction: row;
+                    .info-item-title {
+                        font-weight: @fontWeightBold;
+                        font-size: 1.4rem;
+                        line-height: 2.1rem;
+                    }
 
-            .info-item-container {
-                padding: 2rem;
-
-                .info-item-title {
-                    font-weight: @fontWeightBold;
-                    font-size: 1.4rem;
-                    line-height: 2.1rem;
-                }
-
-                .info-item {
-                    font-size: 1.4rem;
-                    line-height: 2.1rem;
+                    .info-item {
+                        font-size: 1.4rem;
+                        line-height: 2.1rem;
+                    }
                 }
             }
         }
     }
 
     .license-section {
-        padding: @spacingMobile;
+        margin: @spacingMobile;
+        padding-top: @spacingMobile;
+        border-top: 1px solid @lightGrey;
 
         @media @tabletWidth {
-            padding: @spacingMobile @spacingTablet;
+            margin: @spacingMobile @spacingTablet;
+            padding-top: @spacingMobile;
         }
 
         @media @desktopWidth {
-            padding: @spacingMobile @spacingDesktop;
-        }
-
-        .license-section-title-row {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            margin-bottom: 1rem;
-
-            .license-title {
-                padding-left: 1rem;
-                font-size: @fontSizeLarger;
-            }
+            margin: @spacingMobile @spacingDesktop;
+            padding-top: @spacingMobile;
         }
 
         .license-card-list-container {
@@ -171,27 +182,18 @@
     }
 
     .privilege-section {
-        padding: @spacingMobile;
+        margin: @spacingMobile;
+        padding-top: @spacingMobile;
         border-top: 1px solid @lightGrey;
 
         @media @tabletWidth {
-            padding: @spacingMobile @spacingTablet;
+            margin: @spacingMobile @spacingTablet;
+            padding-top: @spacingMobile;
         }
 
         @media @desktopWidth {
-            padding: @spacingMobile @spacingDesktop;
-        }
-
-        .privilege-section-title-row {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            margin-bottom: 1rem;
-
-            .privilege-title {
-                padding-left: 1rem;
-                font-size: @fontSizeLarger;
-            }
+            margin: @spacingMobile @spacingDesktop;
+            padding-top: @spacingMobile;
         }
 
         .privilege-card-list-container {
@@ -208,6 +210,33 @@
 
     .no-touch-item {
         margin: 1rem;
+    }
+
+    .title-row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+
+        .title-info {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+
+            .title-text {
+                padding-left: 1rem;
+                font-size: @fontSizeLarger;
+            }
+        }
+
+        :deep(.collapse-caret-button) {
+            svg {
+                width: 2.4rem;
+                height: 1.4rem;
+                stroke: @black;
+            }
+        }
     }
 
     // .licensee-section {

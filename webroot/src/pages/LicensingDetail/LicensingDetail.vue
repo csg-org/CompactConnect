@@ -18,62 +18,95 @@
                 <span v-if="licenseStore.isLoading">Loading...</span>
                 <span v-else>{{ licenseeNameDisplay }}</span>
             </div>
-            <div class="license-tags">
+            <div class="tags">
+                <div class="tag">
+                    <div class="tag-icon-container">
+                        <img
+                            class="tag-icon"
+                            src="@assets/icons/home-icon.svg"
+                            alt="House Icon"
+                        />
+                    </div>
+                    <div class="tag-text">
+                        {{ licenseeHomeStateDisplay }}
+                    </div>
+                </div>
                 <div
                     v-for="(license, idx) in licenseeLicenses"
                     :key="idx"
-                    class="license-tag"
+                    class="tag"
                 >
-                    {{ license.issueState.name() }}
+                    <div class="tag-icon-container">
+                        <img
+                            class="tag-icon"
+                            src="@assets/icons/home-icon.svg"
+                            alt="License Icon"
+                        />
+                    </div>
+                    <div class="tag-text">
+                        {{ license.issueState.name() }}
+                    </div>
                 </div>
             </div>
         </div>
         <div class="personal-information-section">
-            <div class="personal-information-section-title-row">
-                <div class="license-logo-container">
-                    <img
-                        class="home-state-img"
-                        src="@assets/images/black-ellipse.svg"
-                        alt="Personal Informational List Logo"
-                    />
+            <div class="title-row">
+                <div class="title-info">
+                    <div class="license-logo-container">
+                        <img
+                            class="home-state-img"
+                            src="@assets/images/black-ellipse.svg"
+                            alt="Personal Informational List Logo"
+                        />
+                    </div>
+                    <div class="title-text">
+                        {{personalInformationTitle}}
+                    </div>
                 </div>
-                <div class="personal-information-title">
-                    {{personalInformationTitle}}
-                </div>
+                <CollapseCaretButton
+                    @toggleCollapse="togglePersonalInfoCollapsed"
+                />
             </div>
-            <div class="vitals-container">
-                <div class="info-item-container">
-                    <div class="info-item-title">{{$t('licensing.homeState')}}</div>
-                    <div class="info-item">{{homeState}}</div>
-                </div>
-                <div class="info-item-container">
-                    <div class="info-item-title">{{$t('common.address')}}</div>
-                    <div class="info-item">{{address}}</div>
-                </div>
-                <div class="info-item-container">
-                    <div class="info-item-title">{{$t('licensing.driversLicense')}}</div>
-                    <div class="info-item">{{licenseNumber}}</div>
-                </div>
-                <div class="info-item-container">
-                    <div class="info-item-title">{{$t('common.dateOfBirthShort')}}</div>
-                    <div class="info-item">{{dob}}</div>
-                </div>
-                <div class="info-item-container">
-                    <div class="info-item-title">{{$t('licensing.ssn')}}</div>
-                    <div class="info-item">{{ssn}}</div>
+            <div v-if="!isPersonalInfoCollapsed" class="personal-info-container">
+                <div class="vitals-container">
+                    <div class="info-item-container">
+                        <div class="info-item-title">{{$t('licensing.homeState')}}</div>
+                        <div class="info-item">{{homeState}}</div>
+                    </div>
+                    <div class="info-item-container">
+                        <div class="info-item-title">{{$t('common.address')}}</div>
+                        <div class="info-item">{{address}}</div>
+                    </div>
+                    <div class="info-item-container">
+                        <div class="info-item-title">{{$t('licensing.driversLicense')}}</div>
+                        <div class="info-item">{{licenseNumber}}</div>
+                    </div>
+                    <div class="info-item-container">
+                        <div class="info-item-title">{{$t('common.dateOfBirthShort')}}</div>
+                        <div class="info-item">{{dob}}</div>
+                    </div>
+                    <div class="info-item-container">
+                        <div class="info-item-title">{{$t('licensing.ssn')}}</div>
+                        <div class="info-item">{{ssn}}</div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="license-section">
-            <div class="license-section-title-row">
-                <div class="license-logo-container">
-                    <img class="home-state-img" src="@assets/images/black-ellipse.svg" alt="License List Logo" />
+            <div class="title-row">
+                <div class="title-info">
+                    <div class="license-logo-container">
+                        <img class="home-state-img" src="@assets/images/black-ellipse.svg" alt="License List Logo" />
+                    </div>
+                    <div class="title-text">
+                        {{licenseDetails}}
+                    </div>
                 </div>
-                <div class="license-title">
-                    {{licenseDetails}}
-                </div>
+                <CollapseCaretButton
+                    @toggleCollapse="toggleLicensesCollapsed"
+                />
             </div>
-            <div class="license-card-list-container">
+            <div v-if="!isLicensesCollapsed" class="license-card-list-container">
                 <div
                     v-for="(license, index) in licenseList"
                     :key="'license'+index"
@@ -89,15 +122,20 @@
             </div>
         </div>
         <div class="privilege-section">
-            <div class="privilege-section-title-row">
-                <div class="privilege-logo-container">
-                    <img class="home-state-img" src="@assets/images/black-ellipse.svg" alt="Privilege List Logo" />
+            <div class="title-row">
+                <div class="title-info">
+                    <div class="privilege-logo-container">
+                        <img class="home-state-img" src="@assets/images/black-ellipse.svg" alt="Privilege List Logo" />
+                    </div>
+                    <div class="title-text">
+                        {{recentPrivilegesTitle}}
+                    </div>
                 </div>
-                <div class="privilege-title">
-                    {{recentPrivilegesTitle}}
-                </div>
+                <CollapseCaretButton
+                    @toggleCollapse="toggleRecentPrivsCollapsed"
+                />
             </div>
-            <div class="privilege-card-list-container">
+            <div v-if="!isRecentPrivsCollapsed" class="privilege-card-list-container">
                 <PrivilegeCard
                     v-for="(privilege, index) in privilegeList"
                     :key="'privilege'+index"
@@ -106,48 +144,29 @@
                 />
             </div>
         </div>
-        <!-- <div class="licensee-section licenses">
-            <div class="licensee-section-title">Licenses</div>
-            <div v-if="$matches.tablet.min" class="license-row headers">
-                <div class="license-row-cell residence-location header">{{ $t('licensing.residenceLocation') }}</div>
-                <div class="license-row-cell home-state header">{{ $t('licensing.homeState') }}</div>
-                <div class="license-row-cell privilege-states header">{{ $t('licensing.privileges') }}</div>
+        <div class="privilege-section">
+            <div class="title-row">
+                <div class="title-info">
+                    <div class="privilege-logo-container">
+                        <img class="home-state-img" src="@assets/images/black-ellipse.svg" alt="Privilege List Logo" />
+                    </div>
+                    <div class="title-text">
+                        {{pastPrivilegesTitle}}
+                    </div>
+                </div>
+                <CollapseCaretButton
+                    @toggleCollapse="togglePastPrivsCollapsed"
+                />
             </div>
-            <div class="license-row">
-                <div class="license-row-cell residence-location">
-                    <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.residenceLocation') }}: </span>
-                </div>
-                <div class="license-row-cell home-state">
-                    <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.homeState') }}: </span>
-                    {{ licenseeHomeStateDisplay }}
-                </div>
-                <div class="license-row-cell privilege-states">
-                    <span v-if="$matches.phone.only" class="cell-title">{{$t('licensing.privileges')}}: </span>
-                    {{ licenseePrivilegeStatesDisplay }}
-                </div>
+            <div v-if="!isPastPrivsCollapsed" class="privilege-card-list-container">
+                <PrivilegeCard
+                    v-for="(privilege, index) in privilegeList"
+                    :key="'privilege'+index"
+                    :privilege="privilege"
+                    class="no-touch-item"
+                />
             </div>
         </div>
-        <div class="licensee-section details">
-            <div class="licensee-section-title">Details</div>
-            <div v-if="$matches.tablet.min" class="license-row headers">
-                <div class="license-row-cell issue-date header">{{ $t('licensing.issueDate') }}</div>
-                <div class="license-row-cell expire-date header">{{ $t('licensing.expireDate') }}</div>
-            </div>
-            <div
-                v-for="(license, idx) in licenseeLicenses"
-                :key="idx"
-                class="license-row"
-            >
-                <div class="license-row-cell issue-date">
-                    <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.issueDate') }}: </span>
-                    {{ license.issueDateDisplay() }}
-                </div>
-                <div class="license-row-cell expire-date">
-                    <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.expireDate') }}: </span>
-                    {{ license.expireDateDisplay() }}
-                </div>
-            </div>
-        </div> -->
     </div>
 </template>
 
