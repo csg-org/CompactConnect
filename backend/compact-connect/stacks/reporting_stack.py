@@ -171,7 +171,7 @@ class ReportingStack(AppStack):
                 targets=[
                     LambdaFunction(
                         handler=self.transaction_reporter,
-                        event=RuleTargetInput.from_object({'compact': compact.lower()})
+                        event=RuleTargetInput.from_object({'compact': compact.lower()}),
                     )
                 ],
             )

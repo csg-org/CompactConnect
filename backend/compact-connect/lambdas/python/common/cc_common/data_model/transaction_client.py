@@ -60,7 +60,7 @@ class TransactionClient:
         }
 
         all_items = []
-        
+
         # Generate list of months to query
         current_date = start_date.replace(day=1)
         months_to_query = []
@@ -75,11 +75,7 @@ class TransactionClient:
         # Query each month in the range
         for month in months_to_query:
             month_items = self._query_transactions_for_month(
-                compact=compact,
-                month=month,
-                start_epoch=start_epoch,
-                end_epoch=end_epoch,
-                query_params=query_params
+                compact=compact, month=month, start_epoch=start_epoch, end_epoch=end_epoch, query_params=query_params
             )
             all_items.extend(month_items)
 
@@ -110,15 +106,13 @@ class TransactionClient:
                 query_params['ExclusiveStartKey'] = last_evaluated_key
 
             response = self.config.transaction_history_table.query(
-                KeyConditionExpression=(
-                    'pk = :pk AND sk BETWEEN :start_sk AND :end_sk'
-                ),
+                KeyConditionExpression=('pk = :pk AND sk BETWEEN :start_sk AND :end_sk'),
                 ExpressionAttributeValues={
                     ':pk': f'COMPACT#{compact}#TRANSACTIONS#MONTH#{month}',
                     ':start_sk': f'COMPACT#{compact}#TIME#{start_epoch}',
-                    ':end_sk': f'COMPACT#{compact}#TIME#{end_epoch}'
+                    ':end_sk': f'COMPACT#{compact}#TIME#{end_epoch}',
                 },
-                **query_params
+                **query_params,
             )
 
             all_matching_transactions.extend(response.get('Items', []))
