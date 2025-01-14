@@ -36,7 +36,8 @@ schema = LicensePostSchema()
 
 FIELDS = (
     'ssn',
-    'npi',
+    # 'npi',
+    'licenseNumber'
     'licenseType',
     'status',
     'givenName',
@@ -52,7 +53,7 @@ FIELDS = (
     'homeAddressCity',
     'homeAddressState',
     'homeAddressPostalCode',
-    'militaryWaiver',
+    # 'militaryWaiver',  TODO HERE?
     'emailAddress',
     'phoneNumber',
 )
