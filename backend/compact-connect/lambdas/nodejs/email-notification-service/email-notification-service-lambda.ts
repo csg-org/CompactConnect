@@ -71,7 +71,8 @@ export class Lambda implements LambdaInterface {
             );
             break;
         case 'CompactTransactionReporting':
-            if (!event.templateVariables?.compactFinancialSummaryReportCSV || !event.templateVariables?.compactTransactionReportCSV) {
+            if (!event.templateVariables?.compactFinancialSummaryReportCSV ||
+                !event.templateVariables?.compactTransactionReportCSV) {
                 throw new Error('Missing required template variables for CompactTransactionReporting template');
             }
             await this.emailService.sendCompactTransactionReportEmail(

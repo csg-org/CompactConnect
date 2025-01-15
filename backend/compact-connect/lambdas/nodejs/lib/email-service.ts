@@ -106,7 +106,7 @@ export class EmailService {
         try {
             // Create a nodemailer transport that generates raw MIME messages
             const transport = nodemailer.createTransport({
-                SES: { ses: this.sesClient, aws: { SendRawEmailCommand } }
+                SES: { ses: this.sesClient, aws: { SendRawEmailCommand }}
             });
 
             // Create the email message
@@ -115,7 +115,7 @@ export class EmailService {
                 to: recipients,
                 subject: subject,
                 html: htmlContent,
-                attachments: attachments.map(attachment => ({
+                attachments: attachments.map((attachment) => ({
                     filename: attachment.filename,
                     content: attachment.content,
                     contentType: attachment.contentType
@@ -124,6 +124,7 @@ export class EmailService {
 
             // Send the email
             const result = await transport.sendMail(message);
+
             return result.messageId;
         } catch (error) {
             this.logger.error(errorMessage, { error: error });
@@ -907,9 +908,11 @@ export class EmailService {
         jurisdictionTransactionReportCSV: string
     ): Promise<void> {
         // Get jurisdiction configuration to get the jurisdiction name and recipients
-        const jurisdiction = await this.jurisdictionClient.getJurisdictionConfiguration(compact, jurisdictionPostalAbbreviation);
+        const jurisdiction = await this.jurisdictionClient.getJurisdictionConfiguration(
+            compact, jurisdictionPostalAbbreviation);
 
         const recipients = jurisdiction.jurisdictionSummaryReportNotificationEmails;
+
         if (recipients.length === 0) {
             throw new Error(`No recipients found for jurisdiction ${jurisdictionPostalAbbreviation} in compact ${compact}`);
         }
@@ -921,8 +924,9 @@ export class EmailService {
 
         const report = JSON.parse(JSON.stringify(this.emailTemplate));
         const subject = `${jurisdictionName} Weekly Report for Compact ${compactName}`;
-        const bodyText = `Please find attached the weekly transaction report for your jurisdiction.\n\n` +
-            `This report contains all transactions that purchased a privilege within ${jurisdictionName} during the previous week.`;
+        const bodyText = 'Please find attached the weekly transaction report for your jurisdiction.\n\n' +
+            `This report contains all transactions that purchased a privilege within ${jurisdictionName} ` +
+            'during the previous week.';
 
         this.insertHeader(report, subject);
         this.insertBody(report, bodyText);

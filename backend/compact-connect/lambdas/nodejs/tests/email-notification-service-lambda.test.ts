@@ -69,6 +69,7 @@ describe('EmailNotificationServiceLambda', () => {
         // Set up default successful responses
         mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
             const key = input.Key;
+
             if (key.sk.S === 'aslp#CONFIGURATION') {
                 return Promise.resolve({
                     Item: SAMPLE_COMPACT_CONFIGURATION
@@ -200,8 +201,10 @@ describe('EmailNotificationServiceLambda', () => {
 
             // Get the raw email data and verify it contains the attachments
             const rawEmailData = mockSESClient.commandCalls(SendRawEmailCommand)[0].args[0].input.RawMessage?.Data;
+
             expect(rawEmailData).toBeDefined();
             const rawEmailString = rawEmailData?.toString();
+
             expect(rawEmailString).toContain('Content-Type: text/csv');
             expect(rawEmailString).toContain('Content-Disposition: attachment; filename=financial-summary-report.csv');
             expect(rawEmailString).toContain('Content-Disposition: attachment; filename=transaction-detail-report.csv');
@@ -215,7 +218,7 @@ describe('EmailNotificationServiceLambda', () => {
             mockDynamoDBClient.on(GetItemCommand).resolves({
                 Item: {
                     ...SAMPLE_COMPACT_CONFIGURATION,
-                    compactSummaryReportNotificationEmails: { L: [] }
+                    compactSummaryReportNotificationEmails: { L: []}
                 }
             });
 
@@ -274,8 +277,10 @@ describe('EmailNotificationServiceLambda', () => {
 
             // Get the raw email data and verify it contains the attachments
             const rawEmailData = mockSESClient.commandCalls(SendRawEmailCommand)[0].args[0].input.RawMessage?.Data;
+
             expect(rawEmailData).toBeDefined();
             const rawEmailString = rawEmailData?.toString();
+
             expect(rawEmailString).toContain('Content-Type: text/csv');
             expect(rawEmailString).toContain('Content-Disposition: attachment; filename=oh-transaction-report.csv');
             expect(rawEmailString).toContain('Subject: Ohio Weekly Report for Compact ASLP');
@@ -287,7 +292,7 @@ describe('EmailNotificationServiceLambda', () => {
             mockDynamoDBClient.on(GetItemCommand).resolves({
                 Item: {
                     ...SAMPLE_JURISDICTION_CONFIGURATION,
-                    jurisdictionSummaryReportNotificationEmails: { L: [] }
+                    jurisdictionSummaryReportNotificationEmails: { L: []}
                 }
             });
 
