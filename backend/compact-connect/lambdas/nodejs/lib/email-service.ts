@@ -1,7 +1,8 @@
 import * as crypto from 'crypto';
+import * as nodemailer from 'nodemailer';
 
 import { Logger } from '@aws-lambda-powertools/logger';
-import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
+import { SendEmailCommand, SendRawEmailCommand, SESClient } from '@aws-sdk/client-ses';
 import { renderToStaticMarkup, TReaderDocument } from '@usewaypoint/email-builder';
 import { CompactConfigurationClient } from './compact-configuration-client';
 import { EnvironmentVariablesService } from './environment-variables-service';
@@ -85,6 +86,46 @@ export class EmailService {
         }
     }
 
+    private async sendEmailWithAttachments({ 
+        htmlContent, 
+        subject, 
+        recipients, 
+        errorMessage,
+        attachments
+    }: {
+        htmlContent: string;
+        subject: string;
+        recipients: string[];
+        errorMessage: string;
+        attachments: { filename: string; content: string; contentType: string; }[];
+    }) {
+        try {
+            // Create a nodemailer transport that generates raw MIME messages
+            const transport = nodemailer.createTransport({
+                SES: { ses: this.sesClient, aws: { SendRawEmailCommand } }
+            });
+
+            // Create the email message
+            const message = {
+                from: `Compact Connect <${environmentVariableService.getFromAddress()}>`,
+                to: recipients,
+                subject: subject,
+                html: htmlContent,
+                attachments: attachments.map(attachment => ({
+                    filename: attachment.filename,
+                    content: attachment.content,
+                    contentType: attachment.contentType
+                }))
+            };
+
+            // Send the email
+            const result = await transport.sendMail(message);
+            return result.messageId;
+        } catch (error) {
+            this.logger.error(errorMessage, { error: error });
+            throw error;
+        }
+    }
 
     public async sendReportEmail(events: IIngestEvents, compact: string, jurisdiction: string, recipients: string[]) {
         this.logger.info('Sending report email', { recipients: recipients });
@@ -200,6 +241,8 @@ export class EmailService {
         switch (recipientType) {
         case 'COMPACT_OPERATIONS_TEAM':
             return compactConfig.compactOperationsTeamEmails;
+        case 'COMPACT_SUMMARY_REPORT':
+            return compactConfig.compactSummaryReportNotificationEmails;
         default:
             throw new Error(`Unsupported recipient type for compact configuration: ${recipientType}`);
         }
@@ -809,5 +852,48 @@ export class EmailService {
         };
 
         report['root']['data']['childrenIds'].push(blockId);
+    }
+
+    public async sendCompactTransactionReportEmail(
+        compact: string,
+        compactFinancialSummaryReportCSV: string,
+        compactTransactionReportCSV: string
+    ): Promise<void> {
+        const recipients = await this.getRecipients(compact, 'COMPACT_SUMMARY_REPORT');
+        
+        if (recipients.length === 0) {
+            throw new Error(`No recipients found for compact ${compact} with recipient type COMPACT_SUMMARY_REPORT`);
+        }
+
+        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        const subject = `Weekly Report for Compact ${compact.toUpperCase()}`;
+        const bodyText = 'Please find attached the weekly transaction reports for your compact:\n\n' +
+            '1. Financial Summary Report - A summary of all transactions and fees\n' +
+            '2. Transaction Detail Report - A detailed list of all transactions';
+
+        this.insertHeader(report, subject);
+        this.insertBody(report, bodyText);
+        this.insertFooter(report);
+
+        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        
+        await this.sendEmailWithAttachments({ 
+            htmlContent, 
+            subject, 
+            recipients, 
+            errorMessage: 'Unable to send compact transaction report email',
+            attachments: [
+                {
+                    filename: 'financial-summary-report.csv',
+                    content: compactFinancialSummaryReportCSV,
+                    contentType: 'text/csv'
+                },
+                {
+                    filename: 'transaction-detail-report.csv',
+                    content: compactTransactionReportCSV,
+                    contentType: 'text/csv'
+                }
+            ]
+        });
     }
 }

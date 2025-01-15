@@ -63,6 +63,16 @@ export class Lambda implements LambdaInterface {
                 event.specificEmails
             );
             break;
+        case 'CompactTransactionReporting':
+            if (!event.templateVariables?.compactFinancialSummaryReportCSV || !event.templateVariables?.compactTransactionReportCSV) {
+                throw new Error('Missing required template variables for CompactTransactionReporting template');
+            }
+            await this.emailService.sendCompactTransactionReportEmail(
+                event.compact,
+                event.templateVariables.compactFinancialSummaryReportCSV,
+                event.templateVariables.compactTransactionReportCSV
+            );
+            break;
         default:
             logger.info('Unsupported email template provided', { template: event.template });
             throw new Error(`Unsupported email template: ${event.template}`);

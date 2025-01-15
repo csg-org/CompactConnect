@@ -1,7 +1,7 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
+import { SESClient, SendEmailCommand, SendRawEmailCommand } from '@aws-sdk/client-ses';
 import { Lambda } from '../email-notification-service/email-notification-service-lambda';
 import { EmailNotificationEvent } from '../lib/models/email-notification-service-event';
 
@@ -65,6 +65,10 @@ describe('EmailNotificationServiceLambda', () => {
 
         mockSESClient.on(SendEmailCommand).resolves({
             MessageId: 'message-id-123'
+        });
+
+        mockSESClient.on(SendRawEmailCommand).resolves({
+            MessageId: 'message-id-raw'
         });
 
         lambda = new Lambda({
@@ -137,5 +141,80 @@ describe('EmailNotificationServiceLambda', () => {
         // Verify no AWS calls were made
         expect(mockDynamoDBClient).not.toHaveReceivedAnyCommand();
         expect(mockSESClient).not.toHaveReceivedAnyCommand();
+    });
+
+    describe('Compact Transaction Report', () => {
+        const SAMPLE_SUMMARY_CSV = 'Total Transactions,2\nTotal Compact Fees,$21.00\n';
+        const SAMPLE_DETAIL_CSV = 'First Name,Last Name,Licensee Id,Transaction Date,State Fee,State,Compact Fee,Transaction Id\n';
+
+        const SAMPLE_TRANSACTION_REPORT_EVENT: EmailNotificationEvent = {
+            template: 'CompactTransactionReporting',
+            recipientType: 'COMPACT_SUMMARY_REPORT',
+            compact: 'aslp',
+            templateVariables: {
+                compactFinancialSummaryReportCSV: SAMPLE_SUMMARY_CSV,
+                compactTransactionReportCSV: SAMPLE_DETAIL_CSV
+            }
+        };
+
+        it('should successfully send compact transaction report email', async () => {
+            const response = await lambda.handler(SAMPLE_TRANSACTION_REPORT_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            // Verify DynamoDB was queried for compact configuration
+            expect(mockDynamoDBClient).toHaveReceivedCommandWith(GetItemCommand, {
+                TableName: 'compact-table',
+                Key: {
+                    'pk': { S: 'aslp#CONFIGURATION' },
+                    'sk': { S: 'aslp#CONFIGURATION' }
+                }
+            });
+
+            // Verify email was sent with correct parameters
+            expect(mockSESClient).toHaveReceivedCommandWith(SendRawEmailCommand, {
+                RawMessage: {
+                    Data: expect.any(Buffer)
+                }
+            });
+
+            // Get the raw email data and verify it contains the attachments
+            const rawEmailData = mockSESClient.commandCalls(SendRawEmailCommand)[0].args[0].input.RawMessage?.Data;
+            expect(rawEmailData).toBeDefined();
+            const rawEmailString = rawEmailData?.toString();
+            expect(rawEmailString).toContain('Content-Type: text/csv');
+            expect(rawEmailString).toContain('Content-Disposition: attachment; filename=financial-summary-report.csv');
+            expect(rawEmailString).toContain('Content-Disposition: attachment; filename=transaction-detail-report.csv');
+            expect(rawEmailString).toContain('Weekly Report for Compact ASLP');
+            expect(rawEmailString).toContain('Please find attached the weekly transaction reports for your compact');
+            expect(rawEmailString).toContain('To: summary@example.com');
+        });
+
+        it('should throw error when no recipients found', async () => {
+            // Mock empty recipients list
+            mockDynamoDBClient.on(GetItemCommand).resolves({
+                Item: {
+                    ...SAMPLE_COMPACT_CONFIGURATION,
+                    compactSummaryReportNotificationEmails: { L: [] }
+                }
+            });
+
+            await expect(lambda.handler(SAMPLE_TRANSACTION_REPORT_EVENT, {} as any))
+                .rejects
+                .toThrow('No recipients found for compact aslp with recipient type COMPACT_SUMMARY_REPORT');
+        });
+
+        it('should throw error when required template variables are missing', async () => {
+            const eventWithMissingVariables: EmailNotificationEvent = {
+                ...SAMPLE_TRANSACTION_REPORT_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingVariables, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for CompactTransactionReporting template');
+        });
     });
 });
