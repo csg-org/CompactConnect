@@ -878,6 +878,12 @@ class ApiModel:
                                         'updatedValues': JsonSchema(
                                             type=JsonSchemaType.OBJECT, properties=self._common_license_properties
                                         ),
+                                        'removedValues': JsonSchema(
+                                            type=JsonSchemaType.ARRAY,
+                                            description='List of field names that were present in the previous record'
+                                            ' but removed in the update',
+                                            items=JsonSchema(type=JsonSchemaType.STRING),
+                                        ),
                                     },
                                 ),
                             ),
@@ -909,10 +915,16 @@ class ApiModel:
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                         ),
                                         'previous': JsonSchema(
-                                            type=JsonSchemaType.OBJECT, properties=self._common_license_properties
+                                            type=JsonSchemaType.OBJECT, properties=self._common_privilege_properties
                                         ),
                                         'updatedValues': JsonSchema(
-                                            type=JsonSchemaType.OBJECT, properties=self._common_license_properties
+                                            type=JsonSchemaType.OBJECT, properties=self._common_privilege_properties
+                                        ),
+                                        'removedValues': JsonSchema(
+                                            type=JsonSchemaType.ARRAY,
+                                            description='List of field names that were present in the previous record'
+                                            ' but removed in the update',
+                                            items=JsonSchema(type=JsonSchemaType.STRING),
                                         ),
                                     },
                                 ),

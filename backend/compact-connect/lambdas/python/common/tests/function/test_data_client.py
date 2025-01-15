@@ -51,7 +51,7 @@ class TestDataClient(TstFunction):
             new_privilege,
         )
 
-        # Verify that the privilege record was created
+        # Verify that the provider record was updated
         updated_provider = self._provider_table.get_item(
             Key={'pk': 'aslp#PROVIDER#test_provider_id', 'sk': 'aslp#PROVIDER'}
         )['Item']
@@ -164,7 +164,7 @@ class TestDataClient(TstFunction):
         test_data_client = DataClient(self.config)
         provider_uuid = str(uuid4())
 
-        # Generate 51 jurisdictions (will create 102 transactions - 51 privileges and 51 updates)
+        # Generate 51 jurisdictions (will create 102 records - 51 privileges and 51 updates)
         jurisdictions = [f'j{i}' for i in range(51)]
         original_privileges = []
 
@@ -240,7 +240,7 @@ class TestDataClient(TstFunction):
         test_data_client = DataClient(self.config)
         provider_uuid = str(uuid4())
 
-        # Generate 51 jurisdictions (will create 102 transactions - 51 privileges and 51 updates)
+        # Generate 51 jurisdictions (will create 102 records - 51 privileges and 51 updates)
         jurisdictions = [f'j{i}' for i in range(51)]
         original_privileges = []
 

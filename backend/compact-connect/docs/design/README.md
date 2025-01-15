@@ -210,8 +210,10 @@ interested parties to determine the status of a provider's ability to practice i
 day in the past. Any time a provider's status, date of expiration, renewal, or other values like name are changed,
 a supporting record is created to track the change. For changes to a license, the record is stored with a sort key like
 `aslp#PROVIDER#license/oh#UPDATE#1735232821/1a812bc8f`. This sort key will uniquely represent one particular change,
-the time it was effective in the system, and the contents of that change. Similarly, a change to a privilege will be
-represented with a record stored with a sort key like `aslp#PROVIDER#privilege/ne#UPDATE#1735232821/1a812bc8f`.
+the time it was effective in the system, and the contents of that change. The last segment of the key is the POSIX
+timestamp of the second the change was made followed by a hash of the previous and updated values. Similarly, a change
+to a privilege will be represented with a record stored with a sort key like
+`aslp#PROVIDER#privilege/ne#UPDATE#1735232821/1a812bc8f`.
 
 A query for a provider's partition and a sort key starting with `aslp#PROVIDER` would retrieve enough records to
 represent all of the provider's licenses, privileges and their complete history from when they were created in

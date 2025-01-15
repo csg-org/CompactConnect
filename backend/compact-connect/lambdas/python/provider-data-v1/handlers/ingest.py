@@ -118,14 +118,18 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
     """
     # dateOfUpdate won't show up as a change because the field isn't in new_license, yet
     updated_values = {key: value for key, value in new_license.items() if value != existing_license[key]}
-    if not updated_values:
+    # If any fields are missing from the new license, other than ones we add later, we'll consider them removed
+    removed_values = (existing_license.keys() - new_license.keys()) - {'type', 'providerId', 'status', 'dateOfUpdate'}
+    if not updated_values and not removed_values:
         return
     # Categorize the update
-    update_record = _populate_update_record(existing_license=existing_license, updated_values=updated_values)
+    update_record = _populate_update_record(
+        existing_license=existing_license, updated_values=updated_values, removed_values=removed_values
+    )
     dynamo_transactions.append({'Put': {'TableName': config.provider_table_name, 'Item': update_record}})
 
 
-def _populate_update_record(*, existing_license: dict, updated_values: dict) -> dict:
+def _populate_update_record(*, existing_license: dict, updated_values: dict, removed_values: dict) -> dict:
     """
     Categorize the update between existing and new license records.
     :param dict existing_license: The existing license record
@@ -162,6 +166,8 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict) -> 
                 'jurisdiction': existing_license['jurisdiction'],
                 'previous': existing_license,
                 'updatedValues': updated_values,
+                # We'll only include the removed values field if there are some
+                **({'removedValues': sorted(removed_values)} if removed_values else {}),
             }
         )
     )['M']

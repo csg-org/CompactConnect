@@ -81,17 +81,25 @@ class ChangeHashMixin:
     @classmethod
     def hash_changes(cls, in_data) -> str:
         """
-        Generate a hash of the previous record and updated values, to produce a deterministic sort key segment
-        that will be unique among updates to this particular license.
+        Generate a hash of the previous record, updated values, and removed values (if present),
+        to produce a deterministic sort key segment that will be unique among updates to this
+        particular license.
         """
         # We don't need a cryptographically secure hash, just one that is reasonably cheap and reasonably unique
         # Within the scope of a single provider for a single second.
         change_hash = md5()  # noqa: S324
 
+        # Build a dictionary of all values that contribute to the hash
+        hash_data = {
+            'previous': in_data['previous'],
+            'updatedValues': in_data['updatedValues'],
+        }
+        # Only include removedValues if it exists
+        if 'removedValues' in in_data:
+            hash_data['removedValues'] = sorted(in_data['removedValues'])
+
         change_hash.update(
-            json.dumps(
-                {'previous': in_data['previous'], 'updatedValues': in_data['updatedValues']}, sort_keys=True
-            ).encode('utf-8')
+            json.dumps(hash_data, sort_keys=True).encode('utf-8')
         )
 
         return change_hash.hexdigest()

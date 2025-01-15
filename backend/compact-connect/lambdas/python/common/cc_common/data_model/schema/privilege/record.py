@@ -107,8 +107,7 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
         # This needs to include a POSIX timestamp (seconds) and a hash of the changes
         # to the record. We'll use the current time and the hash of the updatedValues
-        # field for this. We'll use the same hash for both the pk and sk, since we
-        # don't need to query on the sk for this record type.
+        # field for this.
         change_hash = self.hash_changes(in_data)
         in_data['sk'] = (
             f'{in_data['compact']}#PROVIDER#privilege/{in_data['jurisdiction']}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'

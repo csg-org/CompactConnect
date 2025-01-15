@@ -60,7 +60,7 @@ FIELDS = (
 
 
 def generate_mock_csv_file(count, *, compact: str, jurisdiction: str = None):
-    with open('mock-data.csv', 'w', encoding='utf-8') as data_file:
+    with open(f'{compact}-{jurisdiction}-mock-data.csv', 'w', encoding='utf-8') as data_file:
         writer = DictWriter(data_file, fieldnames=FIELDS)
         writer.writeheader()
         for row in generate_csv_rows(count, compact=compact, jurisdiction=jurisdiction):

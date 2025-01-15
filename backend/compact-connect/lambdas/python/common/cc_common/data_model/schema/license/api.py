@@ -108,6 +108,8 @@ class LicenseUpdateGeneralResponseSchema(ForgivingSchema):
     previous = Nested(LicenseUpdatePreviousGeneralResponseSchema(), required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(LicenseUpdatePreviousGeneralResponseSchema(partial=True), required=True, allow_none=False)
+    # List of field names that were present in the previous record but removed in the update
+    removedValues = List(String(), required=False, allow_none=False)
 
 
 class LicenseGeneralResponseSchema(ForgivingSchema):
