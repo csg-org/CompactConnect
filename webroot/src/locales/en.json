@@ -526,39 +526,48 @@
         "occupations": [
             {
                 "name": "Audiologist",
-                "key": "audiologist"
+                "key": "audiologist",
+                "compactKey": "aslp"
             },
             {
                 "name": "Speech-Language Pathologist",
-                "key": "speech-language pathologist"
+                "key": "speech-language pathologist",
+                "compactKey": "aslp"
             },
             {
                 "name": "Speech and Language Pathologist",
-                "key": "speech and language pathologist"
+                "key": "speech and language pathologist",
+                "compactKey": "aslp"
             },
             {
                 "name": "Occupational Therapist",
-                "key": "occupational therapist"
+                "key": "occupational therapist",
+                "compactKey": "octp"
             },
             {
                 "name": "Occupational Therapy Assistant",
-                "key": "occupational therapy assistant"
+                "key": "occupational therapy assistant",
+                "compactKey": "octp"
             },
             {
                 "name": "Licensed Professional Counselor",
-                "key": "licensed professional counselor"
+                "key": "licensed professional counselor",
+                "compactKey": "coun"
             },
             {
                 "name": "Licensed Mental Health Counselor",
-                "key": "licensed mental health counselor"
+                "key": "licensed mental health counselor",
+                "compactKey": "coun"
             },
             {
                 "name": "Licensed Clinical Mental Health Counselor",
-                "key": "licensed clinical mental health counselor"
+                "key": "licensed clinical mental health counselor",
+                "compactKey": "coun"
             },
             {
                 "name": "Licensed Professional Clinical Counselor",
-                "key": "licensed professional clinical counselor"
+                "key": "licensed professional clinical counselor",
+                "compactKey": "coun"
             }
         ]
     },
@@ -603,6 +612,9 @@
         "requestAnAccount": "Request an account",
         "requestSuccessTitle": "Thanks for your request.",
         "requestSuccessSubtext": "If your information is valid you will be receiving an email to finish setting up your account.",
+        "requestErrorTitle": "There was an error processing your request",
+        "requestErrorCompactMissing": "The compact could not be determined from the license type",
+        "requestErrorRecaptcha": "There was an error fetching the recaptcha token. If the error persists please contact support.",
         "accountTitle": "Account",
         "usersListTitle": "Users",
         "usersListEmpty": "Invite users with the button above",

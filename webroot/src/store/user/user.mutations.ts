@@ -17,6 +17,9 @@ export enum MutationTypes {
     LOGOUT_REQUEST = '[User] Logout Request',
     LOGOUT_FAILURE = '[User] Logout Failure',
     LOGOUT_SUCCESS = '[User] Logout Success',
+    CREATE_LICENSEE_ACCOUNT_REQUEST = '[User] Create Licensee Account Request',
+    CREATE_LICENSEE_ACCOUNT_FAILURE = '[User] Create Licensee Account Failure',
+    CREATE_LICENSEE_ACCOUNT_SUCCESS = '[User] Create Licensee Account Success',
     GET_ACCOUNT_REQUEST = '[User] Get Account Request',
     GET_ACCOUNT_FAILURE = '[User] Get Account Failure',
     GET_ACCOUNT_SUCCESS = '[User] Get Account Success',
@@ -72,6 +75,18 @@ export default {
     [MutationTypes.LOGOUT_SUCCESS]: (state: any) => {
         state.model = null;
         state.isLoggedIn = false;
+        state.isLoadingAccount = false;
+        state.error = null;
+    },
+    [MutationTypes.CREATE_LICENSEE_ACCOUNT_REQUEST]: (state: any) => {
+        state.isLoadingAccount = true;
+        state.error = null;
+    },
+    [MutationTypes.CREATE_LICENSEE_ACCOUNT_FAILURE]: (state: any, error: Error) => {
+        state.isLoadingAccount = false;
+        state.error = error;
+    },
+    [MutationTypes.CREATE_LICENSEE_ACCOUNT_SUCCESS]: (state: any) => {
         state.isLoadingAccount = false;
         state.error = null;
     },

@@ -169,6 +169,18 @@ export class LicenseDataApi implements DataApiInterface {
     }
 
     /**
+     * POST Create Licensee Account
+     * @param  {string}        compact A compact type.
+     * @param  {object}        data    The user request data.
+     * @return {Promise<any>}          The server response.
+     */
+    public async createAccount(compact: string, data: object) {
+        const serverResponse = await this.api.post(`/v1/compacts/${compact}/provider-users`, data);
+
+        return serverResponse;
+    }
+
+    /**
      * GET Licensees.
      * @param  {RequestParamsInterfaceLocal} [params={}] The request query parameters config.
      * @return {Promise<object>}                         Response metadata + an array of licensees.

@@ -41,10 +41,20 @@ interface SelectOption {
 })
 class RegisterLicensee extends mixins(MixinForm) {
     //
+    // Data
+    //
+    isUnknownError = false;
+
+    //
     // Lifecycle
     //
     created() {
         this.initFormInputs();
+    }
+
+    mounted() {
+        this.initExtraFields();
+        this.initRecaptcha();
     }
 
     //
@@ -88,6 +98,10 @@ class RegisterLicensee extends mixins(MixinForm) {
         }
 
         return label;
+    }
+
+    get submitErrorMessage(): string {
+        return this.formSubmitInputs[0]?.errorMessage || '';
     }
 
     get isMockPopulateEnabled(): boolean {
@@ -166,6 +180,24 @@ class RegisterLicensee extends mixins(MixinForm) {
         this.watchFormInputs(); // Important if you want automated form validation
     }
 
+    initExtraFields(): void {
+        const passwordInput: HTMLElement = this.$refs.password as HTMLElement;
+
+        passwordInput.style.display = 'inline-block';
+        passwordInput.style.height = '1px';
+        passwordInput.style.width = '1px';
+        passwordInput.style.overflow = 'hidden';
+    }
+
+    initRecaptcha(): void {
+        const recaptchaContainer: HTMLElement = this.$refs.recaptcha as HTMLElement;
+        const scriptEl = document.createElement('script');
+        const src = `https://www.google.com/recaptcha/api.js?render=${this.$envConfig.recaptchaKey}`;
+
+        scriptEl.setAttribute('src', src);
+        recaptchaContainer.appendChild(scriptEl);
+    }
+
     formatSsn(): void {
         const { ssnLastFour } = this.formData;
         const format = (ssnInputVal) => {
@@ -179,20 +211,83 @@ class RegisterLicensee extends mixins(MixinForm) {
         ssnLastFour.value = format(ssnLastFour.value);
     }
 
+    getCompactFromLicenseType(): string {
+        const { licenseType: selectedLicenseType } = this.formValues;
+        const occupations = this.$tm('licensing.occupations');
+        let compactType = '';
+
+        if (selectedLicenseType) {
+            const selectedOccupation = occupations.find((occupation) => occupation.key === selectedLicenseType);
+
+            compactType = selectedOccupation.compactKey;
+        }
+
+        return compactType;
+    }
+
     async handleSubmit(): Promise<void> {
         this.validateAll({ asTouched: true });
 
         if (this.isFormValid) {
             this.startFormLoading();
 
-            // @TODO
-            console.log(this.formValues);
+            const compact = this.getCompactFromLicenseType();
+            const password = document.getElementById('password') as HTMLInputElement;
+
+            if (!compact) {
+                this.handleMissingCompactType();
+            } else if (password?.value) {
+                this.handleExtraFields();
+            } else {
+                const data = { ...this.formValues };
+
+                await this.handleRecaptcha(data).catch(() => {
+                    this.setError(this.$t('account.requestErrorRecaptcha'));
+                });
+
+                if (!this.isFormError) {
+                    await this.$store.dispatch('user/createLicenseeAccountRequest', { compact, data }).catch((err) => {
+                        this.isUnknownError = true;
+                        this.setError(err?.message || '');
+                    });
+                }
+            }
 
             if (!this.isFormError) {
                 this.isFormSuccessful = true;
             }
 
             this.endFormLoading();
+        }
+    }
+
+    handleMissingCompactType(): void {
+        this.setError(this.$t('account.requestErrorCompactMissing'));
+        this.endFormLoading();
+    }
+
+    handleExtraFields(): void {
+        this.isUnknownError = true;
+        this.setError('');
+        this.endFormLoading();
+    }
+
+    async handleRecaptcha(data): Promise<void> {
+        const { recaptchaKey, isUsingMockApi } = this.$envConfig;
+
+        if (!isUsingMockApi) {
+            const { grecaptcha } = window as any;
+            const recaptchaToken = await new Promise((resolve, reject) => {
+                grecaptcha.ready(() => {
+                    grecaptcha.execute(recaptchaKey, { action: 'submit' }).then((token) => {
+                        resolve(token);
+                    }).catch((err) => {
+                        reject(err);
+                    });
+                });
+            }).catch((err) => { throw err; });
+
+            data.recaptchaToken = recaptchaToken;
         }
     }
 

@@ -49,6 +49,7 @@ jobs:
       VUE_APP_COGNITO_CLIENT_ID_STAFF: ${{ secrets.DEV_WEBROOT_COGNITO_CLIENT_ID_STAFF }}
       VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE: https://ia-cc-provider-test.auth.us-east-1.amazoncognito.com
       VUE_APP_COGNITO_CLIENT_ID_LICENSEE: ${{ secrets.DEV_WEBROOT_COGNITO_CLIENT_ID_LICENSEE }}
+      VUE_APP_RECAPTCHA_KEY: 6Le-3bgqAAAAAILDVUKkRnAF9SSzb8o9uv5lY7Ih
 
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
@@ -106,6 +107,7 @@ jobs:
           VUE_APP_COGNITO_CLIENT_ID_STAFF: ${{ env.VUE_APP_COGNITO_CLIENT_ID_STAFF }}
           VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE: ${{ env.VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE }}
           VUE_APP_COGNITO_CLIENT_ID_LICENSEE: ${{ env.VUE_APP_COGNITO_CLIENT_ID_LICENSEE }}
+          VUE_APP_RECAPTCHA_KEY: ${{ env.VUE_APP_RECAPTCHA_KEY }}
         run: yarn build
         working-directory: ./webroot
 

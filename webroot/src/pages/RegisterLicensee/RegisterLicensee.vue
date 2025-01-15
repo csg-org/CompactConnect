@@ -14,10 +14,19 @@
                 :alt="$t('common.appName')"
             />
         </div>
-        <h1 v-if="!isFormSuccessful" class="register-licensee-title">{{ $t('account.requestAnAccount') }}</h1>
+        <h1 v-if="!isUnknownError && !isFormSuccessful" class="register-licensee-title">
+            {{ $t('account.requestAnAccount') }}
+        </h1>
         <Card class="register-licensee-card">
             <Transition name="fade" :mode="elementTransitionMode">
-                <div v-if="!isFormSuccessful" class="register-licensee-form-container">
+                <div v-if="isUnknownError" class="register-licensee-error-container">
+                    <div class="register-licensee-icon-container">
+                        <img src="@assets/icons/ico-alert.png" class="icon" :alt="$t('common.error')" />
+                    </div>
+                    <div class="register-licensee-error-title">{{ $t('account.requestErrorTitle') }}</div>
+                    <div class="register-licensee-error-subtext">{{ submitErrorMessage }}</div>
+                </div>
+                <div v-else-if="!isFormSuccessful" class="register-licensee-form-container">
                     <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                     <a
                         v-if="isMockPopulateEnabled"
@@ -32,7 +41,11 @@
                         <InputText :formInput="formData.ssnLastFour" @input="formatSsn()" />
                         <InputDate :formInput="formData.dob" />
                         <InputSelect :formInput="formData.licenseState" />
-                        <InputSelect :formInput="formData.licenseType" />
+                        <InputSelect :formInput="formData.licenseType" @input="setCompactFromLicenseType()" />
+                        <label ref="password">
+                            {{ $t('common.password') }}
+                            <input type="password" id="password" name="password" tabindex="-1" autocomplete="off" />
+                        </label>
                         <InputSubmit
                             :formInput="formData.submit"
                             :label="submitLabel"
@@ -42,7 +55,7 @@
                     </form>
                 </div>
                 <div v-else class="register-licensee-success-container">
-                    <div class="icon-container">
+                    <div class="register-licensee-icon-container">
                         <CheckCircle />
                     </div>
                     <div class="register-licensee-success-title">{{ $t('account.requestSuccessTitle') }}</div>
@@ -50,6 +63,7 @@
                 </div>
             </Transition>
         </Card>
+        <div ref="recaptcha"></div>
     </Section>
 </template>
 

@@ -99,6 +99,13 @@
             - Prod: `4mnd3u2rp30ssgnm7dk81jcqsc`
         - _Local_ :arrow_heading_down:
             - `15mh24ea4af3of8jcnv8h2ic10`
+    - **`VUE_APP_RECAPTCHA_KEY`**
+        - _Server_ :arrow_heading_up:
+            - Dev(JCC-Test): `TODO`
+            - Test(CSG-Test): `TODO`
+            - Prod: `TODO`
+        - _Local_ :arrow_heading_down:
+            - `6Le-3bgqAAAAAILDVUKkRnAF9SSzb8o9uv5lY7Ih`
     - **`VUE_APP_MOCK_API`** :arrow_heading_down:
         - Only used for local development
         - `true` if mock API should be used
@@ -176,7 +183,7 @@ We've created a CORS testing tool to make quick work of verifying whether CORS h
     - https://cli.vuejs.org/guide/html-and-static-assets.html#static-assets-handling
 
 ### Server API Docs
-- TODO
+- [OpenAPI spec](https://github.com/csg-org/CompactConnect/blob/main/backend/compact-connect/docs/api-specification/latest-oas30.json)
 
 ---
 ## Tests

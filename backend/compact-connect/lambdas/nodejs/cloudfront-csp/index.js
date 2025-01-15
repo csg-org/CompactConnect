@@ -225,6 +225,8 @@ const setCspHeader = (requestDomain, headers = {}) => {
             ]),
             buildSrcString('script-src', [
                 'self',
+                'https://www.google.com/recaptcha/',
+                'https://www.gstatic.com/recaptcha/',
             ]),
             buildSrcString('script-src-elem', [
                 'self',
@@ -238,6 +240,7 @@ const setCspHeader = (requestDomain, headers = {}) => {
             buildSrcString('style-src', [
                 'self',
                 'https://fonts.googleapis.com',
+                'https://www.gstatic.com/recaptcha/',
             ]),
             buildSrcString('style-src-elem', [
                 'self',
@@ -254,6 +257,7 @@ const setCspHeader = (requestDomain, headers = {}) => {
                 'self',
                 'data:',
                 domains.dataApi,
+                'https://www.gstatic.com/recaptcha/',
             ]),
             buildSrcString('media-src', [
                 'self',
@@ -261,6 +265,8 @@ const setCspHeader = (requestDomain, headers = {}) => {
             ]),
             buildSrcString('frame-src', [
                 'self',
+                'https://www.google.com/recaptcha/',
+                'https://recaptcha.google.com/recaptcha/',
             ]),
             buildSrcString('frame-ancestors', [
                 'none'
@@ -278,6 +284,7 @@ const setCspHeader = (requestDomain, headers = {}) => {
                 domains.cognitoStaff,
                 domains.cognitoProvider,
                 cognitoIdpUrl,
+                'https://www.google.com/recaptcha',
             ]),
         ].join(' ')}`,
     }];
