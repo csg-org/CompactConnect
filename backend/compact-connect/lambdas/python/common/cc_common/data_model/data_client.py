@@ -1,3 +1,4 @@
+import time
 from datetime import date, datetime
 from urllib.parse import quote
 from uuid import uuid4
@@ -589,12 +590,26 @@ class DataClient:
             if response['Responses']:
                 providers.extend(response['Responses'][self.config.provider_table.table_name])
 
-            # Handle any unprocessed keys by retrying
-            while response.get('UnprocessedKeys'):
+            # Handle any unprocessed keys by retrying with exponential backoff
+            retry_attempts = 0
+            max_retries = 3
+            base_sleep_time = 0.5  # 50ms initial sleep
+
+            while response.get('UnprocessedKeys') and retry_attempts <= max_retries:
+                # Calculate exponential backoff sleep time
+                sleep_time = min(base_sleep_time * (2**retry_attempts), 5)  # Cap at 5 seconds
+                time.sleep(sleep_time)
+
                 response = self.config.provider_table.meta.client.batch_get_item(
                     RequestItems=response['UnprocessedKeys']
                 )
                 if response['Responses']:
                     providers.extend(response['Responses'][self.config.provider_table.table_name])
+
+                retry_attempts += 1
+
+            if response.get('UnprocessedKeys'):
+                # this is unlikely to happen, but if it does, we log it and continue
+                logger.error('Failed to fetch all provider records', unprocessed_keys=response['UnprocessedKeys'])
 
         return providers

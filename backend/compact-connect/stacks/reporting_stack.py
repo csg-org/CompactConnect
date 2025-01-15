@@ -137,7 +137,7 @@ class ReportingStack(AppStack):
                 'TRANSACTION_HISTORY_TABLE_NAME': persistent_stack.transaction_history_table.table_name,
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
                 'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
-                'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name, # noqa: E501 line-too-long
+                'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,  # noqa: E501 line-too-long
                 **self.common_env_vars,
             },
         )

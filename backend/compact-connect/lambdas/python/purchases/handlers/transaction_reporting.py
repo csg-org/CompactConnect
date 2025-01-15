@@ -58,6 +58,16 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     if provider_ids:
         providers = {p['providerId']: p for p in data_client.batch_get_providers_by_id(compact, list(provider_ids))}
 
+        # the batch_get_item api call will silently omit any records that are not found, so we need to check for it here
+        # This should not happen, but if it does, we log it
+        missing_providers = provider_ids - set(providers.keys())
+        if missing_providers:
+            logger.warning(
+                'Some providers were not found in the database',
+                missing_provider_ids=list(missing_providers),
+                compact=compact,
+            )
+
     # Generate reports
     compact_summary_csv = generate_compact_summary_report(
         transactions, compact_configuration, jurisdiction_configurations
