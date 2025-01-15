@@ -5,6 +5,7 @@ import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SendRawEmailCommand, SESClient } from '@aws-sdk/client-ses';
 import { renderToStaticMarkup, TReaderDocument } from '@usewaypoint/email-builder';
 import { CompactConfigurationClient } from './compact-configuration-client';
+import { JurisdictionClient } from './jurisdiction-client';
 import { EnvironmentVariablesService } from './environment-variables-service';
 import { IIngestFailureEventRecord, IValidationErrorEventRecord } from './models';
 import { RecipientType } from './models/email-notification-service-event';
@@ -21,6 +22,7 @@ interface EmailServiceProperties {
     logger: Logger;
     sesClient: SESClient;
     compactConfigurationClient: CompactConfigurationClient;
+    jurisdictionClient: JurisdictionClient;
 }
 
 const getEmailImageBaseUrl = () => {
@@ -36,6 +38,7 @@ export class EmailService {
     private readonly logger: Logger;
     private readonly sesClient: SESClient;
     private readonly compactConfigurationClient: CompactConfigurationClient;
+    private readonly jurisdictionClient: JurisdictionClient;
     private readonly emailTemplate: TReaderDocument = {
         'root': {
             'type': 'EmailLayout',
@@ -53,6 +56,7 @@ export class EmailService {
         this.logger = props.logger;
         this.sesClient = props.sesClient;
         this.compactConfigurationClient = props.compactConfigurationClient;
+        this.jurisdictionClient = props.jurisdictionClient;
     }
 
     private async sendEmail({ htmlContent, subject, recipients, errorMessage }:
@@ -891,6 +895,50 @@ export class EmailService {
                 {
                     filename: 'transaction-detail-report.csv',
                     content: compactTransactionReportCSV,
+                    contentType: 'text/csv'
+                }
+            ]
+        });
+    }
+
+    public async sendJurisdictionTransactionReportEmail(
+        compact: string,
+        jurisdictionPostalAbbreviation: string,
+        jurisdictionTransactionReportCSV: string
+    ): Promise<void> {
+        // Get jurisdiction configuration to get the jurisdiction name and recipients
+        const jurisdiction = await this.jurisdictionClient.getJurisdictionConfiguration(compact, jurisdictionPostalAbbreviation);
+
+        const recipients = jurisdiction.jurisdictionSummaryReportNotificationEmails;
+        if (recipients.length === 0) {
+            throw new Error(`No recipients found for jurisdiction ${jurisdictionPostalAbbreviation} in compact ${compact}`);
+        }
+
+        // Get compact configuration to get the compact name
+        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
+        const compactName = compactConfig.compactName.toUpperCase();
+        const jurisdictionName = jurisdiction.jurisdictionName;
+
+        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        const subject = `${jurisdictionName} Weekly Report for Compact ${compactName}`;
+        const bodyText = `Please find attached the weekly transaction report for your jurisdiction.\n\n` +
+            `This report contains all transactions that purchased a privilege within ${jurisdictionName} during the previous week.`;
+
+        this.insertHeader(report, subject);
+        this.insertBody(report, bodyText);
+        this.insertFooter(report);
+
+        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        
+        await this.sendEmailWithAttachments({ 
+            htmlContent, 
+            subject, 
+            recipients, 
+            errorMessage: 'Unable to send jurisdiction weekly transaction report email',
+            attachments: [
+                {
+                    filename: `${jurisdictionPostalAbbreviation.toLowerCase()}-transaction-report.csv`,
+                    content: jurisdictionTransactionReportCSV,
                     contentType: 'text/csv'
                 }
             ]

@@ -29,6 +29,14 @@ const SAMPLE_COMPACT_CONFIGURATION = {
     'type': { S: 'compact' }
 };
 
+const SAMPLE_JURISDICTION_CONFIGURATION = {
+    'pk': { S: 'aslp#CONFIGURATION' },
+    'sk': { S: 'aslp#JURISDICTION#oh' },
+    'jurisdictionName': { S: 'Ohio' },
+    'jurisdictionSummaryReportNotificationEmails': { L: [{ S: 'ohio@example.com' }]},
+    'type': { S: 'jurisdiction' }
+};
+
 /*
  * Double casting to allow us to pass a mock in for the real thing
  */
@@ -59,8 +67,18 @@ describe('EmailNotificationServiceLambda', () => {
         process.env.UI_BASE_PATH_URL = 'https://app.test.compactconnect.org';
 
         // Set up default successful responses
-        mockDynamoDBClient.on(GetItemCommand).resolves({
-            Item: SAMPLE_COMPACT_CONFIGURATION
+        mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
+            const key = input.Key;
+            if (key.sk.S === 'aslp#CONFIGURATION') {
+                return Promise.resolve({
+                    Item: SAMPLE_COMPACT_CONFIGURATION
+                });
+            } else if (key.sk.S === 'aslp#JURISDICTION#oh') {
+                return Promise.resolve({
+                    Item: SAMPLE_JURISDICTION_CONFIGURATION
+                });
+            }
+            return Promise.resolve({});
         });
 
         mockSESClient.on(SendEmailCommand).resolves({
@@ -215,6 +233,89 @@ describe('EmailNotificationServiceLambda', () => {
             await expect(lambda.handler(eventWithMissingVariables, {} as any))
                 .rejects
                 .toThrow('Missing required template variables for CompactTransactionReporting template');
+        });
+    });
+
+    describe('Jurisdiction Transaction Report', () => {
+        const SAMPLE_DETAIL_CSV = 'First Name,Last Name,Licensee Id,Transaction Date,State Fee,State,Compact Fee,Transaction Id\n';
+
+        const SAMPLE_TRANSACTION_REPORT_EVENT: EmailNotificationEvent = {
+            template: 'JurisdictionTransactionReporting',
+            recipientType: 'JURISDICTION_SUMMARY_REPORT',
+            compact: 'aslp',
+            jurisdiction: 'oh',
+            templateVariables: {
+                jurisdictionTransactionReportCSV: SAMPLE_DETAIL_CSV
+            }
+        };
+
+        it('should successfully send jurisdiction transaction report email', async () => {
+            const response = await lambda.handler(SAMPLE_TRANSACTION_REPORT_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            // Verify DynamoDB was queried for jurisdiction configuration
+            expect(mockDynamoDBClient).toHaveReceivedCommandWith(GetItemCommand, {
+                TableName: 'compact-table',
+                Key: {
+                    'pk': { S: 'aslp#CONFIGURATION' },
+                    'sk': { S: 'aslp#JURISDICTION#oh' }
+                }
+            });
+
+            // Verify email was sent with correct parameters
+            expect(mockSESClient).toHaveReceivedCommandWith(SendRawEmailCommand, {
+                RawMessage: {
+                    Data: expect.any(Buffer)
+                }
+            });
+
+            // Get the raw email data and verify it contains the attachments
+            const rawEmailData = mockSESClient.commandCalls(SendRawEmailCommand)[0].args[0].input.RawMessage?.Data;
+            expect(rawEmailData).toBeDefined();
+            const rawEmailString = rawEmailData?.toString();
+            expect(rawEmailString).toContain('Content-Type: text/csv');
+            expect(rawEmailString).toContain('Content-Disposition: attachment; filename=oh-transaction-report.csv');
+            expect(rawEmailString).toContain('Subject: Ohio Weekly Report for Compact ASLP');
+            expect(rawEmailString).toContain('To: ohio@example.com');
+        });
+
+        it('should throw error when no recipients found', async () => {
+            // Mock empty recipients list
+            mockDynamoDBClient.on(GetItemCommand).resolves({
+                Item: {
+                    ...SAMPLE_JURISDICTION_CONFIGURATION,
+                    jurisdictionSummaryReportNotificationEmails: { L: [] }
+                }
+            });
+
+            await expect(lambda.handler(SAMPLE_TRANSACTION_REPORT_EVENT, {} as any))
+                .rejects
+                .toThrow('No recipients found for jurisdiction oh in compact aslp');
+        });
+
+        it('should throw error when required template variables are missing', async () => {
+            const eventWithMissingVariables: EmailNotificationEvent = {
+                ...SAMPLE_TRANSACTION_REPORT_EVENT,
+                templateVariables: {}
+            };
+
+            await expect(lambda.handler(eventWithMissingVariables, {} as any))
+                .rejects
+                .toThrow('Missing required template variables for JurisdictionTransactionReporting template');
+        });
+
+        it('should throw error when jurisdiction is missing', async () => {
+            const eventWithMissingJurisdiction: EmailNotificationEvent = {
+                ...SAMPLE_TRANSACTION_REPORT_EVENT,
+                jurisdiction: undefined
+            };
+
+            await expect(lambda.handler(eventWithMissingJurisdiction, {} as any))
+                .rejects
+                .toThrow('Missing required jurisdiction field for JurisdictionTransactionReporting template');
         });
     });
 });

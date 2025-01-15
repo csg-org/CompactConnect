@@ -6,6 +6,7 @@ import { Context } from 'aws-lambda';
 
 import { EnvironmentVariablesService } from '../lib/environment-variables-service';
 import { CompactConfigurationClient } from '../lib/compact-configuration-client';
+import { JurisdictionClient } from '../lib/jurisdiction-client';
 import { EmailService } from '../lib/email-service';
 import { EmailNotificationEvent, EmailNotificationResponse } from '../lib/models/email-notification-service-event';
 
@@ -26,10 +27,16 @@ export class Lambda implements LambdaInterface {
             dynamoDBClient: props.dynamoDBClient,
         });
 
+        const jurisdictionClient = new JurisdictionClient({
+            logger: logger,
+            dynamoDBClient: props.dynamoDBClient,
+        });
+
         this.emailService = new EmailService({
             logger: logger,
             sesClient: props.sesClient,
             compactConfigurationClient: compactConfigurationClient,
+            jurisdictionClient: jurisdictionClient
         });
     }
 
@@ -71,6 +78,19 @@ export class Lambda implements LambdaInterface {
                 event.compact,
                 event.templateVariables.compactFinancialSummaryReportCSV,
                 event.templateVariables.compactTransactionReportCSV
+            );
+            break;
+        case 'JurisdictionTransactionReporting':
+            if (!event.jurisdiction) {
+                throw new Error('Missing required jurisdiction field for JurisdictionTransactionReporting template');
+            }
+            if (!event.templateVariables?.jurisdictionTransactionReportCSV) {
+                throw new Error('Missing required template variables for JurisdictionTransactionReporting template');
+            }
+            await this.emailService.sendJurisdictionTransactionReportEmail(
+                event.compact,
+                event.jurisdiction,
+                event.templateVariables.jurisdictionTransactionReportCSV
             );
             break;
         default:
