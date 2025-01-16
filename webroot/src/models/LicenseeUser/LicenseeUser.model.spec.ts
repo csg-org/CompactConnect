@@ -159,7 +159,7 @@ describe('User model', () => {
                     type: 'privilege',
                     dateOfIssuance: '2024-08-29',
                     dateOfUpdate: '2024-08-29',
-                    status: 'active'
+                    status: 'active',
                 }
             ],
             licenseJurisdiction: 'co',

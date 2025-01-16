@@ -15,6 +15,7 @@ import {
 } from '@models/License/License.model';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
+import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import i18n from '@/i18n';
 import moment from 'moment';
 
@@ -69,6 +70,7 @@ describe('License model', () => {
             occupation: LicenseOccupation.AUDIOLOGIST,
             statusState: LicenseStatus.ACTIVE,
             statusCompact: LicenseStatus.ACTIVE,
+            history: [new LicenseHistoryItem()]
         };
         const license = new License(data);
 
@@ -85,6 +87,7 @@ describe('License model', () => {
         expect(license.occupation).to.equal(data.occupation);
         expect(license.statusState).to.equal(data.statusState);
         expect(license.statusCompact).to.equal(data.statusCompact);
+        expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal('Invalid date');
@@ -104,6 +107,22 @@ describe('License model', () => {
             dateOfExpiration: moment().subtract(1, 'day').format(serverDateFormat),
             licenseType: LicenseOccupation.AUDIOLOGIST,
             status: LicenseStatus.ACTIVE,
+            history: [{
+                type: 'privilegeUpdate',
+                updateType: 'renewal',
+                previous: {
+                    compactTransactionId: '123',
+                    dateOfIssuance: '2022-08-29',
+                    dateOfRenewal: '2023-08-29',
+                    dateOfExpiration: '2025-08-29',
+                },
+                updatedValues: {
+                    compactTransactionId: '124',
+                    dateOfIssuance: '2022-08-29',
+                    dateOfRenewal: '2024-08-29',
+                    dateOfExpiration: '2025-08-29',
+                }
+            }]
         };
         const license = LicenseSerializer.fromServer(data);
 
@@ -113,6 +132,7 @@ describe('License model', () => {
         expect(license.compact).to.be.an.instanceof(Compact);
         expect(license.isPrivilege).to.equal(true);
         expect(license.issueState).to.be.an.instanceof(State);
+        expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
         expect(license.isHomeState).to.equal(false);
         expect(license.issueState.abbrev).to.equal(data.jurisdiction);
         expect(license.issueDate).to.equal(data.dateOfIssuance);
