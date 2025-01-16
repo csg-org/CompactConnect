@@ -7,7 +7,7 @@ from .. import TstFunction
 
 @mock_aws
 class TestIngest(TstFunction):
-    def _with_ingested_license(self) -> str:
+    def _with_ingested_license(self, omit_email: bool = False) -> str:
         from handlers.ingest import ingest_license_message
 
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
@@ -18,6 +18,9 @@ class TestIngest(TstFunction):
 
         with open('../common/tests/resources/ingest/message.json') as f:
             message = json.load(f)
+
+        if omit_email:
+            del message['detail']['emailAddress']
 
         # Upload a new license
         event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
@@ -423,7 +426,6 @@ class TestIngest(TstFunction):
         self.assertEqual(expected_provider, provider_data)
 
     def test_existing_provider_no_change(self):
-        self.maxDiff = None
         from handlers.ingest import ingest_license_message
 
         provider_id = self._with_ingested_license()
@@ -531,6 +533,82 @@ class TestIngest(TstFunction):
                     },
                     'updatedValues': {},
                     'removedValues': ['emailAddress'],
+                }
+            ]
+
+        # Removing/setting dynamic fields for comparison
+        del expected_provider['dateOfUpdate']
+        del provider_data['dateOfUpdate']
+        expected_provider['providerId'] = provider_id
+        for license_data in expected_provider['licenses']:
+            del license_data['dateOfUpdate']
+            license_data['providerId'] = provider_id
+        for license_data in provider_data['licenses']:
+            del license_data['dateOfUpdate']
+            for hist in license_data['history']:
+                del hist['dateOfUpdate']
+                del hist['previous']['dateOfUpdate']
+
+        self.assertEqual(expected_provider, provider_data)
+
+    def test_existing_provider_added_email(self):
+        self.maxDiff = None
+        from handlers.ingest import ingest_license_message
+
+        provider_id = self._with_ingested_license(omit_email=True)
+
+        with open('../common/tests/resources/ingest/message.json') as f:
+            message = json.load(f)
+
+        # What happens if their email is added in a subsequent upload?
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        with open('../common/tests/resources/api/provider-detail-response.json') as f:
+            expected_provider = json.load(f)
+
+        # The license status and provider should immediately reflect the new email
+        provider_data = self._get_provider_via_api(provider_id)
+
+        # The canned response resource assumes that the provider will be given a privilege, military affiliation, and
+        # one license renewal. We didn't do any of that here, so we'll reset that data
+        expected_provider['privilegeJurisdictions'] = []
+        expected_provider['privileges'] = []
+        expected_provider['militaryAffiliations'] = []
+
+        for license_data in expected_provider['licenses']:
+            # We added an emailAddress. This should show up in the license history
+            license_data['history'] = [
+                {
+                    'type': 'licenseUpdate',
+                    'updateType': 'other',
+                    'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                    'compact': 'aslp',
+                    'jurisdiction': 'oh',
+                    'previous': {
+                        'ssn': '123-12-1234',
+                        'npi': '0608337260',
+                        'licenseType': 'speech-language pathologist',
+                        'jurisdictionStatus': 'active',
+                        'givenName': 'Björk',
+                        'middleName': 'Gunnar',
+                        'familyName': 'Guðmundsdóttir',
+                        'dateOfIssuance': '2010-06-06',
+                        'dateOfBirth': '1985-06-06',
+                        'dateOfExpiration': '2025-04-04',
+                        'dateOfRenewal': '2020-04-04',
+                        'homeAddressStreet1': '123 A St.',
+                        'homeAddressStreet2': 'Apt 321',
+                        'homeAddressCity': 'Columbus',
+                        'homeAddressState': 'oh',
+                        'homeAddressPostalCode': '43004',
+                        'phoneNumber': '+13213214321',
+                        'militaryWaiver': False,
+                    },
+                    'updatedValues': {
+                        'emailAddress': 'björk@example.com',
+                    }
                 }
             ]
 

@@ -117,7 +117,11 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
     :param list dynamo_transactions: The dynamodb transaction array to append records to
     """
     # dateOfUpdate won't show up as a change because the field isn't in new_license, yet
-    updated_values = {key: value for key, value in new_license.items() if value != existing_license[key]}
+    updated_values = {
+        key: value
+        for key, value in new_license.items()
+        if key not in existing_license.keys() or value != existing_license[key]
+    }
     # If any fields are missing from the new license, other than ones we add later, we'll consider them removed
     removed_values = (existing_license.keys() - new_license.keys()) - {'type', 'providerId', 'status', 'dateOfUpdate'}
     if not updated_values and not removed_values:
