@@ -36,7 +36,7 @@ schema = LicensePostSchema()
 
 FIELDS = (
     'ssn',
-    # 'npi',
+    'npi',
     'licenseNumber'
     'licenseType',
     'status',
@@ -85,6 +85,7 @@ def get_mock_license(i: int, *, compact: str, jurisdiction: str = None) -> dict:
         'ssn': f'{(i//1_000_000) % 1000:03}-{(i//10_000) % 100:02}-{(i % 10_000):04}',
         # Some have NPI, some don't
         'npi': str(randint(1_000_000_000, 9_999_999_999)) if choice([True, False]) else None,
+        'licenseNumber': str(randint(1_000_000_000, 9_999_999_999)) if choice([True, False]) else None,
         'licenseType': choice(LICENSE_TYPES[compact]),
         'givenName': name_faker.first_name(),
         'middleName': name_faker.first_name(),

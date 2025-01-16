@@ -30,6 +30,7 @@ class LicenseReadGeneralSchema(ForgivingSchema):
     licenseType = String(required=True, allow_none=False)
     jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
     npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -91,6 +92,7 @@ class LicensePostSchema(LicenseCommonSchema):
 
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
+    # licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100)) HERE????
     # This status field is required when posting a license record. It will be transformed into the
     # jurisdictionStatus field when the record is ingested.
     status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
@@ -114,6 +116,7 @@ class LicenseIngestSchema(LicenseCommonSchema):
 
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     # When a license record is first uploaded into the system, we store the value of
     # 'status' under this field for backwards compatibility with the external contract.
     # this is used to calculate the actual 'status' used by the system in addition
@@ -142,6 +145,7 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
 
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
     jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
