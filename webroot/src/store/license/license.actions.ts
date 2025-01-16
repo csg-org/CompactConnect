@@ -43,7 +43,6 @@ export default {
     // GET LICENSEE
     getLicenseeRequest: async ({ commit, dispatch }, { compact, licenseeId }: any) => {
         commit(MutationTypes.GET_LICENSEE_REQUEST);
-        console.log('getting?');
 
         await dataApi.getLicensee(compact, licenseeId).then((licensee) => {
             dispatch('getLicenseeSuccess', licensee);

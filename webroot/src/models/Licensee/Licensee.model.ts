@@ -99,10 +99,6 @@ export class Licensee implements InterfaceLicensee {
         return dateDisplay(this.dob);
     }
 
-    // public birthMonthDateDisplay(): string {
-    //     return dateDisplay(this.birthMonthDay);
-    // }
-
     public ssnMaskedFull(): string {
         const { ssn } = this;
         let masked = '';
@@ -218,8 +214,6 @@ export class Licensee implements InterfaceLicensee {
 // ========================================================
 export class LicenseeSerializer {
     static fromServer(json: any): Licensee {
-        console.log('json', json);
-
         const licenseeData: any = {
             id: json.providerId,
             npi: json.npi,

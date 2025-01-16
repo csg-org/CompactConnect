@@ -77,7 +77,7 @@ export class LicenseeUserPurchaseSerializer {
                     zip: formValues.zip
                 }
             },
-            attestations: [] // temp to allow submit with API requirements
+            attestations: [] // temp to allow submit with current API validation
         };
 
         return purchaseData;

@@ -41,7 +41,7 @@
                 </div>
             </div>
             <div
-                v-for="(license, index) in licenseList"
+                v-for="(license, index) in licenseeLicenses"
                 :key="'license'+index"
                 class="no-touch-item license-chunk"
             >
@@ -69,7 +69,7 @@
             </div>
             <div v-if="!isPrivsCollapsed" class="privilege-card-list-container">
                 <PrivilegeCard
-                    v-for="(privilege, index) in privilegeList"
+                    v-for="(privilege, index) in licenseePrivileges"
                     :key="'privilege'+index"
                     :privilege="privilege"
                     class="no-touch-item"

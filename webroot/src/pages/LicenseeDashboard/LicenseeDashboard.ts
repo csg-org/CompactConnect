@@ -16,7 +16,6 @@ import { License, LicenseStatus } from '@models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { State } from '@models/State/State.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
-import moment from 'moment';
 
 @Component({
     name: 'LicenseeDashboard',
@@ -90,60 +89,6 @@ export default class LicenseeDashboard extends Vue {
         return stateList;
     }
 
-    get privilegeList(): Array<License> {
-        // From list of all privileges associated with user (independent of status),
-        // returns only most recent privilege fetched associated with each state
-        // to positively and most clearly display user's status in each state
-        const privilegeList: Array<License> = [];
-
-        this.licenseePrivileges.forEach((privilege) => {
-            const previousEntryOfStateIndex = privilegeList.findIndex((state) =>
-                state?.issueState?.abbrev === privilege?.issueState?.abbrev);
-            const previousEntryOfState = privilegeList[previousEntryOfStateIndex];
-
-            // If no existing entry of state add to array
-            if (previousEntryOfStateIndex === -1) {
-                privilegeList.push(privilege);
-            // If currently observed privilege is newer than saved entry replace existing entry
-            } else if (
-                privilege.renewalDate
-                && previousEntryOfState.renewalDate
-                && moment(privilege.renewalDate).isAfter(moment(previousEntryOfState.renewalDate))
-            ) {
-                privilegeList[previousEntryOfStateIndex] = privilege;
-            }
-        });
-
-        return privilegeList;
-    }
-
-    get licenseList(): Array<License> {
-        // From list of all licenses associated with user (independent of status),
-        // returns only most recent license fetched associated with each state
-        // to positively and most clearly display user's status in each state
-        const licenseList: Array<License> = [];
-
-        this.licenseeLicenses.forEach((license) => {
-            const previousEntryOfStateIndex = licenseList.findIndex((state) =>
-                state?.issueState?.abbrev === license?.issueState?.abbrev);
-            const previousEntryOfState = licenseList[previousEntryOfStateIndex];
-
-            // If no existing entry of state add to array
-            if (previousEntryOfStateIndex === -1) {
-                licenseList.push(license);
-            // If currently observed license is newer than saved entry replace existing entry
-            } else if (
-                license.renewalDate
-                && previousEntryOfState.renewalDate
-                && moment(license.renewalDate).isAfter(moment(previousEntryOfState.renewalDate))
-            ) {
-                licenseList[previousEntryOfStateIndex] = license;
-            }
-        });
-
-        return licenseList;
-    }
-
     get obtainPrivButtonLabel(): string {
         return `+ ${this.$t('licensing.obtainPrivileges')}`;
     }
@@ -157,7 +102,7 @@ export default class LicenseeDashboard extends Vue {
     }
 
     get activeLicenses(): Array<License> {
-        return this.licenseList.filter((license) => (license.statusState === 'active'));
+        return this.licenseeLicenses.filter((license) => (license.statusState === 'active'));
     }
 
     get hasMoreThanOneActiveLicense(): boolean {
