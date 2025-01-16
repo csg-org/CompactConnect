@@ -7,7 +7,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.compact import COMPACT_TYPE, Compact
 from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE
-from cc_common.exceptions import CCNotFoundException
+from cc_common.exceptions import CCInternalException, CCNotFoundException
 
 
 def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  # noqa: ARG001 unused-argument
@@ -20,6 +20,9 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     """
     compact = event['compact']
     logger.info('Generating transaction reports', compact=compact)
+    # this is used to track any errors that occur when generating the reports
+    # without preventing valid reports from being sent
+    lambda_error_messages = []
 
     # Initialize clients
     data_client = config.data_client
@@ -46,6 +49,7 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     if not compact_configuration:
         message = f'Compact configuration not found for the specified compact: {compact}'
         logger.error(message)
+        # we can't continue if this is missing, so we raise an exception
         raise CCNotFoundException(message)
 
     jurisdiction_configurations = [
@@ -62,21 +66,24 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
         # This should not happen, but if it does, we log it
         missing_providers = provider_ids - set(providers.keys())
         if missing_providers:
-            logger.warning(
+            logger.error(
                 'Some providers were not found in the database',
                 missing_provider_ids=list(missing_providers),
                 compact=compact,
             )
+            # append the error so we can raise an exception after sending the reports
+            lambda_error_messages.append(f'Some providers were not found in the database. Providers not found: {missing_providers}')
+
 
     # Generate reports
-    compact_summary_csv = generate_compact_summary_report(
-        transactions, compact_configuration, jurisdiction_configurations
+    compact_summary_csv = _generate_compact_summary_report(
+        transactions, compact_configuration, jurisdiction_configurations, lambda_error_messages
     )
-    compact_transaction_csv = generate_compact_transaction_report(transactions, providers)
-    jurisdiction_reports = generate_jurisdiction_reports(transactions, providers, jurisdiction_configurations)
+    compact_transaction_csv = _generate_compact_transaction_report(transactions, providers)
+    jurisdiction_reports = _generate_jurisdiction_reports(transactions, providers, jurisdiction_configurations)
 
     # Send compact summary report
-    config.lambda_client.invoke(
+    compact_response = config.lambda_client.invoke(
         FunctionName=config.email_notification_service_lambda_name,
         InvocationType='RequestResponse',
         Payload=json.dumps(
@@ -92,9 +99,16 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
         ),
     )
 
+    if compact_response.get('FunctionError'):
+        logger.error(
+            'Failed to send compact summary report email',
+            compact=compact,
+            error=compact_response.get('FunctionError'),
+        )
+        lambda_error_messages.append(compact_response.get('FunctionError'))
     # Send jurisdiction reports
     for jurisdiction, report in jurisdiction_reports.items():
-        config.lambda_client.invoke(
+        jurisdiction_response = config.lambda_client.invoke(
             FunctionName=config.email_notification_service_lambda_name,
             InvocationType='RequestResponse',
             Payload=json.dumps(
@@ -108,6 +122,18 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
             ),
         )
 
+        if jurisdiction_response.get('FunctionError'):
+            logger.error(
+                'Failed to send jurisdiction report email',
+                compact=compact,
+                jurisdiction=jurisdiction,
+                error=jurisdiction_response.get('FunctionError'),
+            )
+            lambda_error_messages.append(jurisdiction_response.get('FunctionError'))
+
+    if lambda_error_messages:
+        raise CCInternalException(f'Failed to send one or more reports. Errors: {lambda_error_messages}')
+
     return {'message': 'reports sent successfully'}
 
 
@@ -116,8 +142,8 @@ def _get_jurisdiction_postal_abbreviations(jurisdiction_configs: list[dict]) -> 
     return {j['postalAbbreviation'].lower() for j in jurisdiction_configs}
 
 
-def generate_compact_summary_report(
-    transactions: list[dict], compact_config: Compact, jurisdiction_configs: list[dict]
+def _generate_compact_summary_report(
+    transactions: list[dict], compact_config: Compact, jurisdiction_configs: list[dict], lambda_error_messages: list[str]
 ) -> str:
     """Generate the compact financial summary report CSV."""
     # Initialize variables
@@ -150,6 +176,9 @@ def generate_compact_summary_report(
             jurisdictions=list(unknown_jurisdictions),
             compact=compact_config.compact_name,
         )
+        # we can still generate the reports, but we need to add this so an exception is thrown after sending the reports
+        lambda_error_messages.append(f'Unknown jurisdictions found in transactions. Jurisdictions: {unknown_jurisdictions}')
+
 
     # Generate CSV
     output = StringIO()
@@ -167,7 +196,7 @@ def generate_compact_summary_report(
     return output.getvalue()
 
 
-def generate_compact_transaction_report(transactions: list[dict], providers: list[str, dict]) -> str:
+def _generate_compact_transaction_report(transactions: list[dict], providers: dict) -> str:
     """Generate the compact transaction report CSV."""
     output = StringIO()
     writer = csv.writer(output, lineterminator='\n')
@@ -217,7 +246,7 @@ def generate_compact_transaction_report(transactions: list[dict], providers: lis
     return output.getvalue()
 
 
-def generate_jurisdiction_reports(
+def _generate_jurisdiction_reports(
     transactions: list[dict], providers: dict[str, dict], jurisdiction_configurations: list[dict]
 ) -> dict[str, str]:
     """Generate transaction reports for each jurisdiction."""
@@ -238,6 +267,7 @@ def generate_jurisdiction_reports(
     # Generate report for each jurisdiction
     reports = {}
     for jurisdiction, trans_items in jurisdiction_transactions.items():
+        logger.info('Generating report for jurisdiction', jurisdiction=jurisdiction)
         output = StringIO()
         writer = csv.writer(output, lineterminator='\n')
         writer.writerow(

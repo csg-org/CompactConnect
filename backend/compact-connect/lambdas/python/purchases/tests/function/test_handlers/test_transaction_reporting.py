@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
-from cc_common.exceptions import CCNotFoundException
+from cc_common.exceptions import CCNotFoundException, CCInternalException
 from moto import mock_aws
 
 from .. import TstFunction
@@ -99,6 +99,15 @@ def _generate_mock_transaction(
         'transactionProcessor': 'authorize.net',
     }
 
+def _set_default_lambda_client_behavior(mock_lambda_client):
+    """Set the default behavior for the mock lambda client."""
+    mock_lambda_client.invoke.return_value = {
+    'StatusCode': 200,
+    'LogResult': 'string',
+    'Payload': "{\"message\": \"Email message sent\"}",
+    'ExecutedVersion': '1'
+}
+
 
 @mock_aws
 class TestGenerateTransactionReports(TstFunction):
@@ -174,6 +183,7 @@ class TestGenerateTransactionReports(TstFunction):
     def test_generate_transaction_reports_sends_csv_with_zero_values_when_no_transactions(self, mock_lambda_client):
         """Test successful processing of settled transactions."""
         from handlers.transaction_reporting import generate_transaction_reports
+        _set_default_lambda_client_behavior(mock_lambda_client)
 
         self._add_compact_configuration_data()
 
@@ -218,6 +228,7 @@ class TestGenerateTransactionReports(TstFunction):
     def test_generate_report_collects_transactions_across_two_months(self, mock_lambda_client):
         """Test successful processing of settled transactions."""
         from handlers.transaction_reporting import generate_transaction_reports
+        _set_default_lambda_client_behavior(mock_lambda_client)
 
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
         # Add a transaction that will be in the previous month
@@ -302,6 +313,7 @@ class TestGenerateTransactionReports(TstFunction):
     def test_generate_report_with_multiple_privileges_in_single_transaction(self, mock_lambda_client):
         """Test processing of transactions with multiple privileges in a single transaction."""
         from handlers.transaction_reporting import generate_transaction_reports
+        _set_default_lambda_client_behavior(mock_lambda_client)
 
         self._add_compact_configuration_data(
             jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION, NEBRASKA_JURISDICTION]
@@ -347,6 +359,7 @@ class TestGenerateTransactionReports(TstFunction):
     def test_generate_report_with_large_number_of_transactions_and_providers(self, mock_lambda_client):
         """Test processing of a large number of transactions (>500) and providers (>100)."""
         from handlers.transaction_reporting import generate_transaction_reports
+        _set_default_lambda_client_behavior(mock_lambda_client)
 
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
 
@@ -429,12 +442,26 @@ class TestGenerateTransactionReports(TstFunction):
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-02T23:59:59+00:00'))
     @patch('handlers.transaction_reporting.config.lambda_client')
+    def test_generate_report_raises_error_when_lambda_returns_function_error(self, mock_lambda_client):
+        """Test error handling when compact configuration is not found."""
+        from handlers.transaction_reporting import generate_transaction_reports
+        mock_lambda_client.invoke.return_value = {'FunctionError': 'Something went wrong'}
+        self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
+
+        with self.assertRaises(CCInternalException) as exc_info:
+            generate_transaction_reports(generate_mock_event(), self.mock_context)
+
+        self.assertIn('Something went wrong', str(exc_info.exception.message))
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-02T23:59:59+00:00'))
+    @patch('handlers.transaction_reporting.config.lambda_client')
     def test_generate_report_handles_unknown_jurisdiction(self, mock_lambda_client):
         """Test handling of transactions with jurisdictions not in configuration.
 
         This is unlikely to happen in practice, but we should handle it gracefully.
         """
         from handlers.transaction_reporting import generate_transaction_reports
+        _set_default_lambda_client_behavior(mock_lambda_client)
 
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
 
@@ -447,7 +474,10 @@ class TestGenerateTransactionReports(TstFunction):
             transaction_settlement_time_utc=datetime.fromisoformat('2025-03-30T12:00:00+00:00'),
         )
 
-        generate_transaction_reports(generate_mock_event(), self.mock_context)
+        with self.assertRaises(CCInternalException) as exc_info:
+            generate_transaction_reports(generate_mock_event(), self.mock_context)
+
+        self.assertIn('Unknown jurisdiction', str(exc_info.exception.message))
 
         calls_args = mock_lambda_client.invoke.call_args_list
         compact_call_payload = json.loads(calls_args[0][1]['Payload'])

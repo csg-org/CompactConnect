@@ -52,7 +52,7 @@ export class Lambda implements LambdaInterface {
      */
     @logger.injectLambdaContext({ resetKeys: true })
     public async handler(event: EmailNotificationEvent, context: Context): Promise<EmailNotificationResponse> {
-        logger.info('Processing event', { event: event });
+        logger.info('Processing event', { template: event.template, compact: event.compact, jurisdiction: event.jurisdiction });
 
         // Check if FROM_ADDRESS is configured
         if (environmentVariables.getFromAddress() === 'NONE') {

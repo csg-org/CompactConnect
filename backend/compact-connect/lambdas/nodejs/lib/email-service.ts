@@ -257,6 +257,7 @@ export class EmailService {
         recipientType: RecipientType,
         specificEmails?: string[]
     ): Promise<void> {
+        this.logger.info('Sending transaction batch settlement failure email', { compact: compact });
         const recipients = await this.getRecipients(compact, recipientType, specificEmails);
 
         if (recipients.length === 0) {
@@ -864,6 +865,7 @@ export class EmailService {
         compactFinancialSummaryReportCSV: string,
         compactTransactionReportCSV: string
     ): Promise<void> {
+        this.logger.info('Sending compact transaction report email', { compact: compact });
         const recipients = await this.getRecipients(compact, 'COMPACT_SUMMARY_REPORT');
         
         if (recipients.length === 0) {
@@ -907,6 +909,7 @@ export class EmailService {
         jurisdictionPostalAbbreviation: string,
         jurisdictionTransactionReportCSV: string
     ): Promise<void> {
+        this.logger.info('Sending jurisdiction transaction report email', { compact: compact, jurisdiction: jurisdictionPostalAbbreviation });
         // Get jurisdiction configuration to get the jurisdiction name and recipients
         const jurisdiction = await this.jurisdictionClient.getJurisdictionConfiguration(
             compact, jurisdictionPostalAbbreviation);
@@ -924,9 +927,8 @@ export class EmailService {
 
         const report = JSON.parse(JSON.stringify(this.emailTemplate));
         const subject = `${jurisdictionName} Weekly Report for Compact ${compactName}`;
-        const bodyText = 'Please find attached the weekly transaction report for your jurisdiction.\n\n' +
-            `This report contains all transactions that purchased a privilege within ${jurisdictionName} ` +
-            'during the previous week.';
+        const bodyText = `Please find attached the weekly transaction report for your jurisdiction.\n\n` +
+            `This report contains all transactions that purchased a privilege within ${jurisdictionName} during the previous week.`;
 
         this.insertHeader(report, subject);
         this.insertBody(report, bodyText);
