@@ -27,7 +27,7 @@ import { MilitaryAffiliation } from '@/models/MilitaryAffiliation/MilitaryAffili
 })
 export default class LicensingDetail extends Vue {
     //
-    //
+    // Data
     //
     isPersonalInfoCollapsed = false;
     isLicensesCollapsed = false;
