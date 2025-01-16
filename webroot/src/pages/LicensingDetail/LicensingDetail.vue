@@ -32,7 +32,7 @@
                     </div>
                 </div>
                 <div
-                    v-for="(license, idx) in licenseeLicenses"
+                    v-for="(license, idx) in activeLicenses"
                     :key="idx"
                     class="tag"
                 >
@@ -167,7 +167,7 @@
             </div>
             <div v-if="!isLicensesCollapsed" class="license-card-list-container">
                 <div
-                    v-for="(license, index) in licenseList"
+                    v-for="(license, index) in licenseeLicenses"
                     :key="'license'+index"
                     class="no-touch-item license-chunk"
                 >
@@ -196,7 +196,7 @@
             </div>
             <div v-if="!isRecentPrivsCollapsed" class="privilege-card-list-container">
                 <PrivilegeCard
-                    v-for="(privilege, index) in privilegeList"
+                    v-for="(privilege, index) in licenseePrivileges"
                     :key="'privilege'+index"
                     :privilege="privilege"
                     class="no-touch-item"
@@ -219,7 +219,7 @@
             </div>
             <div v-if="!isPastPrivsCollapsed" class="privilege-card-list-container">
                 <PrivilegeCard
-                    v-for="(privilege, index) in privilegeList"
+                    v-for="(privilege, index) in pastPrivilegeList"
                     :key="'privilege'+index"
                     :privilege="privilege"
                     class="no-touch-item"

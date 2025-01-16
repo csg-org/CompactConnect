@@ -45,7 +45,6 @@ describe('License model', () => {
         expect(license.renewalDate).to.equal(null);
         expect(license.expireDate).to.equal(null);
         expect(license.occupation).to.equal(null);
-        expect(license.history).to.equal(null);
         expect(license.statusState).to.equal(LicenseStatus.INACTIVE);
         expect(license.statusCompact).to.equal(LicenseStatus.INACTIVE);
 

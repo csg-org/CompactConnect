@@ -10,6 +10,7 @@ import HomeStateBlock from '@/components/HomeStateBlock/HomeStateBlock.vue';
 import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
+import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { License, LicenseStatus } from '@models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
@@ -23,10 +24,17 @@ import moment from 'moment';
         HomeStateBlock,
         LicenseCard,
         PrivilegeCard,
-        InputButton
+        InputButton,
+        CollapseCaretButton
     }
 })
 export default class LicenseeDashboard extends Vue {
+    //
+    // Data
+    //
+    isPrivsCollapsed = false;
+    isPastPrivsCollapsed = false;
+
     //
     // Computed
     //
@@ -172,6 +180,29 @@ export default class LicenseeDashboard extends Vue {
         return this.$t('licensing.licenseExpiredMessage');
     }
 
+    get pastPrivilegeList(): Array<License> {
+        const privilegeList: Array<License> = [];
+
+        this.licenseePrivileges.forEach((privilege) => {
+            if (privilege.history) {
+                (privilege.history as Array<any>).forEach((historyItem) => {
+                    privilegeList.push(new License({
+                        ...privilege,
+                        expireDate: historyItem.previousValues?.dateOfExpiration || null,
+                        issueDate: historyItem.previousValues?.dateOfIssuance || null,
+                        statusState: LicenseStatus.INACTIVE
+                    }));
+                });
+            }
+        });
+
+        return privilegeList;
+    }
+
+    get pastPrivilegesTitle(): string {
+        return this.$t('licensing.pastPrivilegesTitle');
+    }
+
     //
     // Methods
     //
@@ -196,5 +227,13 @@ export default class LicenseeDashboard extends Vue {
         }
 
         return isLicenseActive;
+    }
+
+    togglePrivsCollapsed() {
+        this.isPrivsCollapsed = !this.isPrivsCollapsed;
+    }
+
+    togglePastPrivsCollapsed() {
+        this.isPastPrivsCollapsed = !this.isPastPrivsCollapsed;
     }
 }

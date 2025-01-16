@@ -14,7 +14,6 @@ import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretBu
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { License, LicenseStatus } from '@models/License/License.model';
 import { MilitaryAffiliation } from '@/models/MilitaryAffiliation/MilitaryAffiliation.model';
-import moment from 'moment';
 
 @Component({
     name: 'LicensingDetail',
@@ -92,6 +91,10 @@ export default class LicensingDetail extends Vue {
         return this.licensee?.licenses || [];
     }
 
+    get activeLicenses(): Array<License> {
+        return this.licenseeLicenses.filter((license) => (license.statusState === LicenseStatus.ACTIVE));
+    }
+
     get licenseePrivileges(): Array<License> {
         return this.licensee?.privileges || [];
     }
@@ -126,59 +129,59 @@ export default class LicensingDetail extends Vue {
         return `${this.licensee?.address?.city}, ${this.licensee?.address?.state?.abbrev} ${this.licensee?.address?.zip}`;
     }
 
-    get privilegeList(): Array<License> {
-        // From list of all privileges associated with user (independent of status),
-        // returns only most recent privilege fetched associated with each state
-        // to positively and most clearly display user's status in each state
-        const privilegeList: Array<License> = [];
+    // get privilegeList(): Array<License> {
+    //     // From list of all privileges associated with user (independent of status),
+    //     // returns only most recent privilege fetched associated with each state
+    //     // to positively and most clearly display user's status in each state
+    //     const privilegeList: Array<License> = [];
 
-        this.licenseePrivileges.forEach((privilege) => {
-            const previousEntryOfStateIndex = privilegeList.findIndex((state) =>
-                state?.issueState?.abbrev === privilege?.issueState?.abbrev);
-            const previousEntryOfState = privilegeList[previousEntryOfStateIndex];
+    //     this.licenseePrivileges.forEach((privilege) => {
+    //         const previousEntryOfStateIndex = privilegeList.findIndex((state) =>
+    //             state?.issueState?.abbrev === privilege?.issueState?.abbrev);
+    //         const previousEntryOfState = privilegeList[previousEntryOfStateIndex];
 
-            // If no existing entry of state add to array
-            if (previousEntryOfStateIndex === -1) {
-                privilegeList.push(privilege);
-            // If currently observed privilege is newer than saved entry replace existing entry
-            } else if (
-                privilege.renewalDate
-                && previousEntryOfState.renewalDate
-                && moment(privilege.renewalDate).isAfter(moment(previousEntryOfState.renewalDate))
-            ) {
-                privilegeList[previousEntryOfStateIndex] = privilege;
-            }
-        });
+    //         // If no existing entry of state add to array
+    //         if (previousEntryOfStateIndex === -1) {
+    //             privilegeList.push(privilege);
+    //         // If currently observed privilege is newer than saved entry replace existing entry
+    //         } else if (
+    //             privilege.renewalDate
+    //             && previousEntryOfState.renewalDate
+    //             && moment(privilege.renewalDate).isAfter(moment(previousEntryOfState.renewalDate))
+    //         ) {
+    //             privilegeList[previousEntryOfStateIndex] = privilege;
+    //         }
+    //     });
 
-        return privilegeList;
-    }
+    //     return privilegeList;
+    // }
 
-    get licenseList(): Array<License> {
-        // From list of all licenses associated with user (independent of status),
-        // returns only most recent license fetched associated with each state
-        // to positively and most clearly display user's status in each state
-        const licenseList: Array<License> = [];
+    // get licenseList(): Array<License> {
+    //     // From list of all licenses associated with user (independent of status),
+    //     // returns only most recent license fetched associated with each state
+    //     // to positively and most clearly display user's status in each state
+    //     const licenseList: Array<License> = [];
 
-        this.licenseeLicenses.forEach((license) => {
-            const previousEntryOfStateIndex = licenseList.findIndex((state) =>
-                state?.issueState?.abbrev === license?.issueState?.abbrev);
-            const previousEntryOfState = licenseList[previousEntryOfStateIndex];
+    //     this.licenseeLicenses.forEach((license) => {
+    //         const previousEntryOfStateIndex = licenseList.findIndex((state) =>
+    //             state?.issueState?.abbrev === license?.issueState?.abbrev);
+    //         const previousEntryOfState = licenseList[previousEntryOfStateIndex];
 
-            // If no existing entry of state add to array
-            if (previousEntryOfStateIndex === -1) {
-                licenseList.push(license);
-            // If currently observed license is newer than saved entry replace existing entry
-            } else if (
-                license.renewalDate
-                && previousEntryOfState.renewalDate
-                && moment(license.renewalDate).isAfter(moment(previousEntryOfState.renewalDate))
-            ) {
-                licenseList[previousEntryOfStateIndex] = license;
-            }
-        });
+    //         // If no existing entry of state add to array
+    //         if (previousEntryOfStateIndex === -1) {
+    //             licenseList.push(license);
+    //         // If currently observed license is newer than saved entry replace existing entry
+    //         } else if (
+    //             license.renewalDate
+    //             && previousEntryOfState.renewalDate
+    //             && moment(license.renewalDate).isAfter(moment(previousEntryOfState.renewalDate))
+    //         ) {
+    //             licenseList[previousEntryOfStateIndex] = license;
+    //         }
+    //     });
 
-        return licenseList;
-    }
+    //     return licenseList;
+    // }
 
     get recentPrivilegesTitle(): string {
         return this.$t('licensing.recentPrivilegesTitle');
@@ -277,6 +280,25 @@ export default class LicensingDetail extends Vue {
     get homeState(): string {
         console.log('this.licensee', this.licensee);
         return this.licensee?.address?.state?.name() || '';
+    }
+
+    get pastPrivilegeList(): Array<License> {
+        const privilegeList: Array<License> = [];
+
+        this.licenseePrivileges.forEach((privilege) => {
+            if (privilege.history) {
+                (privilege.history as Array<any>).forEach((historyItem) => {
+                    privilegeList.push(new License({
+                        ...privilege,
+                        expireDate: historyItem.previousValues?.dateOfExpiration || null,
+                        issueDate: historyItem.previousValues?.dateOfIssuance || null,
+                        statusState: LicenseStatus.INACTIVE
+                    }));
+                });
+            }
+        });
+
+        return privilegeList;
     }
 
     //

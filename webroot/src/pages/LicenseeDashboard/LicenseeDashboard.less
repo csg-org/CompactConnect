@@ -139,11 +139,26 @@
             display: flex;
             flex-direction: row;
             align-items: center;
+            justify-content: space-between;
             margin-bottom: 1rem;
 
-            .privilege-title {
-                padding-left: 1rem;
-                font-size: @fontSizeLarger;
+            .title-info {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+
+                .title-text {
+                    padding-left: 1rem;
+                    font-size: @fontSizeLarger;
+                }
+            }
+
+            :deep(.collapse-caret-button) {
+                svg {
+                    width: 2.4rem;
+                    height: 1.4rem;
+                    stroke: @black;
+                }
             }
         }
 
