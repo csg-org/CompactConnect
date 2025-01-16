@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
-from cc_common.exceptions import CCNotFoundException, CCInternalException
+from cc_common.exceptions import CCInternalException, CCNotFoundException
 from moto import mock_aws
 
 from .. import TstFunction
@@ -99,14 +99,15 @@ def _generate_mock_transaction(
         'transactionProcessor': 'authorize.net',
     }
 
+
 def _set_default_lambda_client_behavior(mock_lambda_client):
     """Set the default behavior for the mock lambda client."""
     mock_lambda_client.invoke.return_value = {
-    'StatusCode': 200,
-    'LogResult': 'string',
-    'Payload': "{\"message\": \"Email message sent\"}",
-    'ExecutedVersion': '1'
-}
+        'StatusCode': 200,
+        'LogResult': 'string',
+        'Payload': '{"message": "Email message sent"}',
+        'ExecutedVersion': '1',
+    }
 
 
 @mock_aws
@@ -183,6 +184,7 @@ class TestGenerateTransactionReports(TstFunction):
     def test_generate_transaction_reports_sends_csv_with_zero_values_when_no_transactions(self, mock_lambda_client):
         """Test successful processing of settled transactions."""
         from handlers.transaction_reporting import generate_transaction_reports
+
         _set_default_lambda_client_behavior(mock_lambda_client)
 
         self._add_compact_configuration_data()
@@ -228,6 +230,7 @@ class TestGenerateTransactionReports(TstFunction):
     def test_generate_report_collects_transactions_across_two_months(self, mock_lambda_client):
         """Test successful processing of settled transactions."""
         from handlers.transaction_reporting import generate_transaction_reports
+
         _set_default_lambda_client_behavior(mock_lambda_client)
 
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
@@ -313,6 +316,7 @@ class TestGenerateTransactionReports(TstFunction):
     def test_generate_report_with_multiple_privileges_in_single_transaction(self, mock_lambda_client):
         """Test processing of transactions with multiple privileges in a single transaction."""
         from handlers.transaction_reporting import generate_transaction_reports
+
         _set_default_lambda_client_behavior(mock_lambda_client)
 
         self._add_compact_configuration_data(
@@ -359,6 +363,7 @@ class TestGenerateTransactionReports(TstFunction):
     def test_generate_report_with_large_number_of_transactions_and_providers(self, mock_lambda_client):
         """Test processing of a large number of transactions (>500) and providers (>100)."""
         from handlers.transaction_reporting import generate_transaction_reports
+
         _set_default_lambda_client_behavior(mock_lambda_client)
 
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
@@ -445,6 +450,7 @@ class TestGenerateTransactionReports(TstFunction):
     def test_generate_report_raises_error_when_lambda_returns_function_error(self, mock_lambda_client):
         """Test error handling when compact configuration is not found."""
         from handlers.transaction_reporting import generate_transaction_reports
+
         mock_lambda_client.invoke.return_value = {'FunctionError': 'Something went wrong'}
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
 
@@ -461,6 +467,7 @@ class TestGenerateTransactionReports(TstFunction):
         This is unlikely to happen in practice, but we should handle it gracefully.
         """
         from handlers.transaction_reporting import generate_transaction_reports
+
         _set_default_lambda_client_behavior(mock_lambda_client)
 
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])

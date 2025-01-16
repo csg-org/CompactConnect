@@ -72,8 +72,9 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
                 compact=compact,
             )
             # append the error so we can raise an exception after sending the reports
-            lambda_error_messages.append(f'Some providers were not found in the database. Providers not found: {missing_providers}')
-
+            lambda_error_messages.append(
+                f'Some providers were not found in the database. Providers not found: {missing_providers}'
+            )
 
     # Generate reports
     compact_summary_csv = _generate_compact_summary_report(
@@ -143,7 +144,10 @@ def _get_jurisdiction_postal_abbreviations(jurisdiction_configs: list[dict]) -> 
 
 
 def _generate_compact_summary_report(
-    transactions: list[dict], compact_config: Compact, jurisdiction_configs: list[dict], lambda_error_messages: list[str]
+    transactions: list[dict],
+    compact_config: Compact,
+    jurisdiction_configs: list[dict],
+    lambda_error_messages: list[str],
 ) -> str:
     """Generate the compact financial summary report CSV."""
     # Initialize variables
@@ -177,8 +181,9 @@ def _generate_compact_summary_report(
             compact=compact_config.compact_name,
         )
         # we can still generate the reports, but we need to add this so an exception is thrown after sending the reports
-        lambda_error_messages.append(f'Unknown jurisdictions found in transactions. Jurisdictions: {unknown_jurisdictions}')
-
+        lambda_error_messages.append(
+            f'Unknown jurisdictions found in transactions. Jurisdictions: {unknown_jurisdictions}'
+        )
 
     # Generate CSV
     output = StringIO()
