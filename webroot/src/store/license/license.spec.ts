@@ -198,6 +198,31 @@ describe('License Store Mutations', () => {
             },
         });
     });
+    it('should successfully get licensee request', () => {
+        const state = {};
+
+        mutations[MutationTypes.GET_LICENSEE_REQUEST](state);
+
+        expect(state.isLoadingOne).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully get licensee failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.GET_LICENSEE_FAILURE](state, error);
+
+        expect(state.isLoadingOne).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully get licensee success', () => {
+        const state = {};
+
+        mutations[MutationTypes.GET_LICENSEE_SUCCESS](state);
+
+        expect(state.isLoadingOne).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
 });
 describe('License Store Actions', async () => {
     it('should successfully start licensees request with next page', async () => {

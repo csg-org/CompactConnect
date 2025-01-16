@@ -50,15 +50,15 @@ export default {
         state.model = licensees;
     },
     [MutationTypes.GET_LICENSEE_REQUEST]: (state: any) => {
-        state.isLoading = true;
+        state.isLoadingOne = true;
         state.error = null;
     },
     [MutationTypes.GET_LICENSEE_FAILURE]: (state: any, error: Error) => {
-        state.isLoading = false;
+        state.isLoadingOne = false;
         state.error = error;
     },
     [MutationTypes.GET_LICENSEE_SUCCESS]: (state: any) => {
-        state.isLoading = false;
+        state.isLoadingOne = false;
         state.error = null;
     },
     [MutationTypes.STORE_UPDATE_LICENSEE]: (state: any, licensee: any) => {

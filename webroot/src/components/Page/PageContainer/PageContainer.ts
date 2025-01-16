@@ -32,6 +32,10 @@ class PageContainer extends Vue {
         return this.$store.state.user;
     }
 
+    get licenseStore() {
+        return this.$store.state.license;
+    }
+
     get isPhone(): boolean {
         return this.$matches.phone.only;
     }
@@ -54,7 +58,8 @@ class PageContainer extends Vue {
     get isLoading(): boolean {
         return this.globalStore.isLoading
             || this.userStore.isLoadingAccount
-            || this.userStore.isLoadingPrivilegePurchaseOptions;
+            || this.userStore.isLoadingPrivilegePurchaseOptions
+            || this.licenseStore.isLoadingOne;
     }
 }
 

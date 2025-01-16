@@ -76,7 +76,7 @@
                 />
             </div>
         </div>
-         <div class="privilege-section">
+         <div class="privilege-section bottom">
             <div class="privilege-section-title-row">
                 <div class="title-info">
                     <div class="privilege-logo-container">
