@@ -1,4 +1,5 @@
 import csv
+from decimal import Decimal
 import json
 from datetime import datetime, timedelta
 from io import StringIO
@@ -29,8 +30,8 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     transaction_client = config.transaction_client
 
     # Calculate time range for the past week
-    # Use 11:59 PM UTC for end time to ensure we capture full day
-    end_time = config.current_standard_datetime.replace(hour=23, minute=59, second=59, microsecond=0)
+    # Use 12:00:00.0 AM UTC of the next day for end time to ensure we capture full day
+    end_time = config.current_standard_datetime.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
     start_time = end_time - timedelta(days=7)
     start_epoch = int(start_time.timestamp())
     end_epoch = int(end_time.timestamp())
@@ -64,7 +65,7 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
 
         # the batch_get_item api call will silently omit any records that are not found, so we need to check for it here
         # This should not happen, but if it does, we log it
-        missing_providers = provider_ids - set(providers.keys())
+        missing_providers = provider_ids - providers.keys()
         if missing_providers:
             logger.error(
                 'Some providers were not found in the database',
@@ -153,13 +154,13 @@ def _generate_compact_summary_report(
     # Initialize variables
     compact_fees = 0
     configured_jurisdictions = _get_jurisdiction_postal_abbreviations(jurisdiction_configs)
-    jurisdiction_fees: dict[str, float] = {j['postalAbbreviation'].lower(): 0 for j in jurisdiction_configs}
+    jurisdiction_fees: dict[str, Decimal] = {j['postalAbbreviation'].lower(): Decimal(0) for j in jurisdiction_configs}
     unknown_jurisdictions = set()
 
     # Single pass through transactions to calculate all fees
     for transaction in transactions:
         for item in transaction['lineItems']:
-            fee = float(item['unitPrice']) * float(item['quantity'])
+            fee = Decimal(item['unitPrice']) * int(item['quantity'])
 
             if item['itemId'].endswith('-compact-fee'):
                 compact_fees += fee
@@ -187,7 +188,7 @@ def _generate_compact_summary_report(
 
     # Generate CSV
     output = StringIO()
-    writer = csv.writer(output, lineterminator='\n')
+    writer = csv.writer(output, lineterminator='\n', dialect='excel')
     writer.writerow(['Total Transactions', len(transactions)])
     writer.writerow(['Total Compact Fees', f'${compact_fees:.2f}'])
 

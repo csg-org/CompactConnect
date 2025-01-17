@@ -131,8 +131,8 @@ class ReportingStack(AppStack):
             lambda_dir='purchases',
             index=os.path.join('handlers', 'transaction_reporting.py'),
             timeout=Duration.minutes(15),
-            # required as this lambda is bundled with the authorize.net SDK which is large
-            memory_size=512,
+            # This lambda can process many transactions at once
+            memory_size=3008,
             environment={
                 'TRANSACTION_HISTORY_TABLE_NAME': persistent_stack.transaction_history_table.table_name,
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,

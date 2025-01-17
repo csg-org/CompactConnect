@@ -1,5 +1,6 @@
 from datetime import UTC, datetime
 
+from boto3.dynamodb.conditions import Key
 from cc_common.config import _Config
 
 AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
@@ -105,13 +106,11 @@ class TransactionClient:
             if last_evaluated_key:
                 query_params['ExclusiveStartKey'] = last_evaluated_key
 
+            pk = f'COMPACT#{compact}#TRANSACTIONS#MONTH#{month}'
+            start_sk = f'COMPACT#{compact}#TIME#{start_epoch}'
+            end_sk = f'COMPACT#{compact}#TIME#{end_epoch}'
             response = self.config.transaction_history_table.query(
-                KeyConditionExpression=('pk = :pk AND sk BETWEEN :start_sk AND :end_sk'),
-                ExpressionAttributeValues={
-                    ':pk': f'COMPACT#{compact}#TRANSACTIONS#MONTH#{month}',
-                    ':start_sk': f'COMPACT#{compact}#TIME#{start_epoch}',
-                    ':end_sk': f'COMPACT#{compact}#TIME#{end_epoch}',
-                },
+                KeyConditionExpression=(Key('pk').eq(pk) & Key('sk').gte(start_sk) & Key('sk').lt(end_sk)),
                 **query_params,
             )
 
