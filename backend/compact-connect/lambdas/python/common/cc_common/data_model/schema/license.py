@@ -65,6 +65,9 @@ class LicenseCommonSchema(ForgivingSchema):
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
+    ssn = SocialSecurityNumber(required=True, allow_none=False)
+    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     # These date values are determined by the license records uploaded by a state
     # they do not include a timestamp, so we use the Date field type
     dateOfIssuance = Date(required=True, allow_none=False)
@@ -89,10 +92,6 @@ class LicenseCommonSchema(ForgivingSchema):
 
 class LicensePostSchema(LicenseCommonSchema):
     """Schema for license data as posted by a board"""
-
-    ssn = SocialSecurityNumber(required=True, allow_none=False)
-    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
-    # licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100)) HERE????
     # This status field is required when posting a license record. It will be transformed into the
     # jurisdictionStatus field when the record is ingested.
     status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
@@ -114,9 +113,6 @@ class SanitizedLicenseIngestDataEventSchema(ForgivingSchema):
 class LicenseIngestSchema(LicenseCommonSchema):
     """Schema for converting the external license data to the internal format"""
 
-    ssn = SocialSecurityNumber(required=True, allow_none=False)
-    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     # When a license record is first uploaded into the system, we store the value of
     # 'status' under this field for backwards compatibility with the external contract.
     # this is used to calculate the actual 'status' used by the system in addition
@@ -143,9 +139,6 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
 
     _record_type = 'license'
 
-    ssn = SocialSecurityNumber(required=True, allow_none=False)
-    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
     jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
