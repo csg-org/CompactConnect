@@ -43,7 +43,7 @@ class RegisterLicensee extends mixins(MixinForm) {
     //
     // Data
     //
-    isUnknownError = false;
+    isFinalError = false;
 
     //
     // Lifecycle
@@ -239,7 +239,7 @@ class RegisterLicensee extends mixins(MixinForm) {
             } else if (password?.value) {
                 this.handleExtraFields();
             } else {
-                const data = { ...this.formValues };
+                const data = this.prepRequestData();
 
                 await this.handleRecaptcha(data).catch(() => {
                     this.setError(this.$t('account.requestErrorRecaptcha'));
@@ -247,8 +247,7 @@ class RegisterLicensee extends mixins(MixinForm) {
 
                 if (!this.isFormError) {
                     await this.$store.dispatch('user/createLicenseeAccountRequest', { compact, data }).catch((err) => {
-                        this.isUnknownError = true;
-                        this.setError(err?.message || '');
+                        this.handleErrorResponse(err);
                     });
                 }
             }
@@ -267,9 +266,31 @@ class RegisterLicensee extends mixins(MixinForm) {
     }
 
     handleExtraFields(): void {
-        this.isUnknownError = true;
+        this.isFinalError = true;
         this.setError('');
         this.endFormLoading();
+    }
+
+    prepRequestData(): object {
+        const {
+            firstName,
+            lastName,
+            email,
+            ssnLastFour,
+            dob,
+            licenseState,
+            licenseType,
+        } = this.formValues;
+
+        return {
+            givenName: firstName,
+            familyName: lastName,
+            email,
+            partialSocial: ssnLastFour,
+            dob,
+            state: licenseState,
+            licenseType,
+        };
     }
 
     async handleRecaptcha(data): Promise<void> {
@@ -289,6 +310,29 @@ class RegisterLicensee extends mixins(MixinForm) {
 
             data.recaptchaToken = recaptchaToken;
         }
+    }
+
+    handleErrorResponse(err): void {
+        const { message = '', responseStatus } = err || {};
+
+        switch (responseStatus) {
+        case 400:
+            // Form input error - show message inline and allow re-submit
+            this.setError(message || this.$t('serverErrors.networkError'));
+            break;
+        case 429:
+            // Rate limit error - break flow and show custom message
+            this.isFinalError = true;
+            this.setError(this.$t('serverErrors.rateLimit'));
+            break;
+        default:
+            // All other errors - break flow and show server message if any
+            this.isFinalError = true;
+            this.setError(message);
+            break;
+        }
+
+        this.endFormLoading();
     }
 
     resetForm(): void {

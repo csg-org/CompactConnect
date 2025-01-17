@@ -14,12 +14,12 @@
                 :alt="$t('common.appName')"
             />
         </div>
-        <h1 v-if="!isUnknownError && !isFormSuccessful" class="register-licensee-title">
+        <h1 v-if="!isFinalError && !isFormSuccessful" class="register-licensee-title">
             {{ $t('account.requestAnAccount') }}
         </h1>
         <Card class="register-licensee-card">
             <Transition name="fade" :mode="elementTransitionMode">
-                <div v-if="isUnknownError" class="register-licensee-error-container">
+                <div v-if="isFinalError" class="register-licensee-error-container">
                     <div class="register-licensee-icon-container">
                         <img src="@assets/icons/ico-alert.png" class="icon" :alt="$t('common.error')" />
                     </div>

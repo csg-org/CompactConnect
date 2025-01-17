@@ -175,7 +175,8 @@ export class LicenseDataApi implements DataApiInterface {
      * @return {Promise<any>}          The server response.
      */
     public async createAccount(compact: string, data: object) {
-        const serverResponse = await this.api.post(`/v1/compacts/${compact}/provider-users`, data);
+        const requestData = { ...data, compact };
+        const serverResponse = await this.api.post(`/v1/provider-users/registration`, requestData);
 
         return serverResponse;
     }

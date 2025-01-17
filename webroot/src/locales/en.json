@@ -412,7 +412,8 @@
         "noRecords": "No records to display",
         "dobFormat": "Date of Birth must be in the format MM/DD/YYYY.",
         "dobMaxDate": "Date of Birth must be earlier than than or equal to today.",
-        "dobMinDate": "Date of Birth must be later than or equal to 01/01/1900."
+        "dobMinDate": "Date of Birth must be later than or equal to 01/01/1900.",
+        "rateLimit": "You have exceeded the maximum number of attempts. Please try again later."
     },
     "phoneVerification": {
         "pleaseVerifyYourNumber": "Please verify your phone number by following the prompts below.",
