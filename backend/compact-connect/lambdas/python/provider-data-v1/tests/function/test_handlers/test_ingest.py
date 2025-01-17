@@ -608,7 +608,7 @@ class TestIngest(TstFunction):
                     },
                     'updatedValues': {
                         'emailAddress': 'björk@example.com',
-                    }
+                    },
                 }
             ]
 

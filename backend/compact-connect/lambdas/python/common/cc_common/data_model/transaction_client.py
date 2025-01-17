@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
 from boto3.dynamodb.conditions import Key
+
 from cc_common.config import _Config
 
 AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
