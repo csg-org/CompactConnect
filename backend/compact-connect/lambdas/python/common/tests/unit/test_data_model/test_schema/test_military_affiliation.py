@@ -8,7 +8,7 @@ from tests import TstLambdas
 class TestMilitaryAffiliationRecordSchema(TstLambdas):
     def test_serde(self):
         """Test round-trip deserialization/serialization"""
-        from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationRecordSchema
+        from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 
         with open('tests/resources/dynamo/military-affiliation.json') as f:
             expected_military_affiliation = json.load(f)
@@ -25,7 +25,7 @@ class TestMilitaryAffiliationRecordSchema(TstLambdas):
         self.assertEqual(expected_military_affiliation, military_affiliation_data)
 
     def test_invalid(self):
-        from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationRecordSchema
+        from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 
         with open('tests/resources/dynamo/military-affiliation.json') as f:
             military_affiliation_data = json.load(f)

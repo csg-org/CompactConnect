@@ -35,7 +35,7 @@ export class Lambda implements LambdaInterface {
 
     /**
      * Lambda handler for email notification service
-     * 
+     *
      * This handler sends an email notification based on the requested email template.
      * See README in this directory for information on using this service.
      *

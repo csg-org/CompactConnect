@@ -185,18 +185,18 @@ export class EmailService {
         return validationErrors;
     }
 
-    private async getRecipients(compact: string, 
-        recipientType: RecipientType, 
+    private async getRecipients(compact: string,
+        recipientType: RecipientType,
         specificEmails?: string[]
     ): Promise<string[]> {
         if (recipientType === 'SPECIFIC') {
             if (specificEmails) return specificEmails;
-            
+
             throw new Error(`SPECIFIC recipientType requested but no specific email addresses provided`);
         }
 
         const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
-        
+
         switch (recipientType) {
         case 'COMPACT_OPERATIONS_TEAM':
             return compactConfig.compactOperationsTeamEmails;
@@ -205,12 +205,12 @@ export class EmailService {
         }
     }
 
-    public async sendTransactionBatchSettlementFailureEmail(compact: string, 
-        recipientType: RecipientType, 
+    public async sendTransactionBatchSettlementFailureEmail(compact: string,
+        recipientType: RecipientType,
         specificEmails?: string[]
     ): Promise<void> {
         const recipients = await this.getRecipients(compact, recipientType, specificEmails);
-        
+
         if (recipients.length === 0) {
             throw new Error(`No recipients found for compact ${compact} with recipient type ${recipientType}`);
         }
@@ -226,7 +226,7 @@ export class EmailService {
         this.insertFooter(report);
 
         const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
-        
+
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send transaction batch settlement failure email' });
     }
 
@@ -533,9 +533,9 @@ export class EmailService {
         report['root']['data']['childrenIds'].push(blockDivId);
     }
 
-    private insertHeaderWithJurisdiction(report: TReaderDocument, 
-        compact: string, 
-        jurisdiction: string, 
+    private insertHeaderWithJurisdiction(report: TReaderDocument,
+        compact: string,
+        jurisdiction: string,
         heading: string) {
 
         const blockLogoId = 'block-logo';
@@ -725,7 +725,7 @@ export class EmailService {
 
     /**
      * Adds a standard header block with Compact Connect logo to the report.
-     * 
+     *
      * @param report The report object to insert the block into.
      * @param heading The text to insert into the block.
      */
@@ -782,7 +782,7 @@ export class EmailService {
 
     /**
      * Inserts a body text block into the report.
-     * 
+     *
      * @param report The report object to insert the block into.
      * @param bodyText The text to insert into the block.
      */

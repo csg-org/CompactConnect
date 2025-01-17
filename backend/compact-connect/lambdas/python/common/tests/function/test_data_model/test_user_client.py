@@ -177,7 +177,7 @@ class TestClient(TstFunction):
         user_id = UUID(user_data['userId'])
         # Convert our canned user into a compact admin
         user_data['permissions'] = {'actions': {'read', 'admin'}, 'jurisdictions': {}}
-        self._table.put_item(Item=user_data)
+        self._users_table.put_item(Item=user_data)
 
         from cc_common.data_model.user_client import UserClient
 
@@ -204,7 +204,7 @@ class TestClient(TstFunction):
         user_id = UUID(user_data['userId'])
         # Convert our canned user into a compact admin
         user_data['permissions'] = {'actions': {'read', 'admin'}, 'jurisdictions': {}}
-        self._table.put_item(Item=user_data)
+        self._users_table.put_item(Item=user_data)
 
         from cc_common.data_model.user_client import UserClient
 

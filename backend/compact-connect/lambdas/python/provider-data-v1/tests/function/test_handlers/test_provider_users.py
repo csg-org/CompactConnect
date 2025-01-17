@@ -42,6 +42,8 @@ class TestGetProvider(TstFunction):
 
         with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
+
+        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)
 
     def test_get_provider_returns_400_if_api_call_made_without_proper_claims(self):

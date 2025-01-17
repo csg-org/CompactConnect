@@ -7,7 +7,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
 from cc_common.config import config, logger
-from cc_common.data_model.schema.license import LicensePostSchema, LicenseReadGeneralSchema
+from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema, LicensePostRequestSchema
 from cc_common.exceptions import CCInternalException
 from cc_common.utils import ResponseEncoder, api_handler, authorize_compact_jurisdiction
 from event_batch_writer import EventBatchWriter
@@ -114,8 +114,8 @@ def process_bulk_upload_file(
     """
     Stream each line of the new CSV file, validating it then publishing an ingest event for each line.
     """
-    general_schema = LicenseReadGeneralSchema()
-    schema = LicensePostSchema()
+    general_schema = LicenseGeneralResponseSchema()
+    schema = LicensePostRequestSchema()
     reader = LicenseCSVReader()
 
     stream = TextIOWrapper(body, encoding='utf-8')
