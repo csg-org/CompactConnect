@@ -205,7 +205,7 @@ def _generate_compact_summary_report(
 def _generate_compact_transaction_report(transactions: list[dict], providers: dict) -> str:
     """Generate the compact transaction report CSV."""
     output = StringIO()
-    writer = csv.writer(output, lineterminator='\n')
+    writer = csv.writer(output, lineterminator='\n', dialect='excel')
     writer.writerow(
         [
             'Licensee First Name',
@@ -275,7 +275,7 @@ def _generate_jurisdiction_reports(
     for jurisdiction, trans_items in jurisdiction_transactions.items():
         logger.info('Generating report for jurisdiction', jurisdiction=jurisdiction)
         output = StringIO()
-        writer = csv.writer(output, lineterminator='\n')
+        writer = csv.writer(output, lineterminator='\n', dialect='excel')
         writer.writerow(
             [
                 'First Name',
