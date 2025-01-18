@@ -32,6 +32,7 @@
       "jurisdiction": "oh",
       "ssn": "123-12-1234",
       "npi": "0608337260",
+      "licenseNumber": "A0608337260",
       "licenseType": "speech-language pathologist",
       "status": "active",
       "jurisdictionStatus": "active",
@@ -62,6 +63,7 @@
           "previous": {
             "ssn": "123-12-1234",
             "npi": "0608337260",
+            "licenseNumber": "A0608337260",
             "licenseType": "speech-language pathologist",
             "jurisdictionStatus": "active",
             "givenName": "Björk",
