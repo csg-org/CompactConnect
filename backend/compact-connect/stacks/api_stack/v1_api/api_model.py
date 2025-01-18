@@ -854,13 +854,84 @@ class ApiModel:
                                 format='date',
                                 pattern=cc_api.YMD_FORMAT,
                             ),
+                            'history': JsonSchema(
+                                type=JsonSchemaType.ARRAY,
+                                items=JsonSchema(
+                                    type=JsonSchemaType.OBJECT,
+                                    properties={
+                                        'type': JsonSchema(type=JsonSchemaType.STRING, enum=['licenseUpdate']),
+                                        'updateType': JsonSchema(
+                                            type=JsonSchemaType.STRING, enum=['renewal', 'deactivation', 'other']
+                                        ),
+                                        'compact': JsonSchema(
+                                            type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')
+                                        ),
+                                        'jurisdiction': JsonSchema(
+                                            type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
+                                        ),
+                                        'dateOfUpdate': JsonSchema(
+                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                                        ),
+                                        'previous': JsonSchema(
+                                            type=JsonSchemaType.OBJECT, properties=self._common_license_properties
+                                        ),
+                                        'updatedValues': JsonSchema(
+                                            type=JsonSchemaType.OBJECT, properties=self._common_license_properties
+                                        ),
+                                        'removedValues': JsonSchema(
+                                            type=JsonSchemaType.ARRAY,
+                                            description='List of field names that were present in the previous record'
+                                            ' but removed in the update',
+                                            items=JsonSchema(type=JsonSchemaType.STRING),
+                                        ),
+                                    },
+                                ),
+                            ),
                             **self._common_license_properties,
                         },
                     ),
                 ),
                 'privileges': JsonSchema(
                     type=JsonSchemaType.ARRAY,
-                    items=JsonSchema(type=JsonSchemaType.OBJECT, properties=self._common_privilege_properties),
+                    items=JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        properties={
+                            'history': JsonSchema(
+                                type=JsonSchemaType.ARRAY,
+                                items=JsonSchema(
+                                    type=JsonSchemaType.OBJECT,
+                                    properties={
+                                        'type': JsonSchema(type=JsonSchemaType.STRING, enum=['privilegeUpdate']),
+                                        'updateType': JsonSchema(
+                                            type=JsonSchemaType.STRING, enum=['renewal', 'deactivation', 'other']
+                                        ),
+                                        'compact': JsonSchema(
+                                            type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')
+                                        ),
+                                        'jurisdiction': JsonSchema(
+                                            type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
+                                        ),
+                                        'dateOfUpdate': JsonSchema(
+                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                                        ),
+                                        'previous': JsonSchema(
+                                            type=JsonSchemaType.OBJECT, properties=self._common_privilege_properties
+                                        ),
+                                        'updatedValues': JsonSchema(
+                                            type=JsonSchemaType.OBJECT, properties=self._common_privilege_properties
+                                        ),
+                                        'removedValues': JsonSchema(
+                                            type=JsonSchemaType.ARRAY,
+                                            description='List of field names that were present in the previous record'
+                                            ' but removed in the update',
+                                            items=JsonSchema(type=JsonSchemaType.STRING),
+                                        ),
+                                    },
+                                ),
+                            ),
+                            **self._common_privilege_properties,
+                        },
+                    ),
                 ),
                 **self._common_provider_properties,
             },

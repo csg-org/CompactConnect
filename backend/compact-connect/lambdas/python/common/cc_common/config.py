@@ -5,12 +5,15 @@ from datetime import UTC, datetime, timedelta, timezone
 from functools import cached_property
 
 import boto3
+from aws_lambda_powertools import Metrics
 from aws_lambda_powertools.logging import Logger
 from botocore.config import Config as BotoConfig
 
 logging.basicConfig()
 logger = Logger()
 logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false').lower() == 'true' else logging.INFO)
+
+metrics = Metrics(namespace='compact-connect', service='common')
 
 
 class _Config:
@@ -35,7 +38,7 @@ class _Config:
 
     @cached_property
     def data_client(self):
-        from cc_common.data_model.client import DataClient
+        from cc_common.data_model.data_client import DataClient
 
         return DataClient(self)
 

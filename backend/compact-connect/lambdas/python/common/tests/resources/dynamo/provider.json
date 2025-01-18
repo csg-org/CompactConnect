@@ -23,8 +23,8 @@
   "emailAddress": "björk@example.com",
   "phoneNumber": "+13213214321",
   "militaryWaiver": false,
-  "dateOfBirth": "2024-06-06",
-  "dateOfUpdate": "2024-07-08",
-  "dateOfExpiration": "2050-06-06",
+  "dateOfExpiration": "2025-04-04",
+  "dateOfBirth": "1985-06-06",
+  "dateOfUpdate": "2024-07-08T23:59:59+00:00",
   "birthMonthDay": "06-06"
 }

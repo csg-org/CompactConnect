@@ -4,12 +4,13 @@ from datetime import date
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.data_model.schema.compact import COMPACT_TYPE, Compact, CompactOptionsApiResponseSchema
+from cc_common.data_model.schema.compact import COMPACT_TYPE, Compact
+from cc_common.data_model.schema.compact.api import CompactOptionsResponseSchema
 from cc_common.data_model.schema.jurisdiction import (
     JURISDICTION_TYPE,
     Jurisdiction,
-    JurisdictionOptionsApiResponseSchema,
 )
+from cc_common.data_model.schema.jurisdiction.api import JurisdictionOptionsResponseSchema
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationStatus
 from cc_common.exceptions import (
     CCAwsServiceException,
@@ -79,9 +80,9 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa
     serlialized_options = []
     for item in options_response['items']:
         if item['type'] == JURISDICTION_TYPE:
-            serlialized_options.append(JurisdictionOptionsApiResponseSchema().load(item))
+            serlialized_options.append(JurisdictionOptionsResponseSchema().load(item))
         elif item['type'] == COMPACT_TYPE:
-            serlialized_options.append(CompactOptionsApiResponseSchema().load(item))
+            serlialized_options.append(CompactOptionsResponseSchema().load(item))
 
     options_response['items'] = serlialized_options
 
@@ -310,11 +311,12 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
         # transaction was successful, now we create privilege records for the selected jurisdictions
         config.data_client.create_provider_privileges(
-            compact_name=compact_name,
+            compact=compact_name,
             provider_id=provider_id,
             jurisdiction_postal_abbreviations=selected_jurisdictions_postal_abbreviations,
             license_expiration_date=license_expiration_date,
             compact_transaction_id=transaction_response['transactionId'],
+            provider_record=provider_record,
             existing_privileges=existing_privileges,
             attestations=body['attestations'],
         )
