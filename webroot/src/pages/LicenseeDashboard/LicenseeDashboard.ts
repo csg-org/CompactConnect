@@ -129,16 +129,14 @@ export default class LicenseeDashboard extends Vue {
         const privilegeList: Array<License> = [];
 
         this.licenseePrivileges.forEach((privilege) => {
-            if (privilege.history) {
-                (privilege.history as Array<any>).forEach((historyItem) => {
-                    privilegeList.push(new License({
-                        ...privilege,
-                        expireDate: historyItem.previousValues?.dateOfExpiration || null,
-                        issueDate: historyItem.previousValues?.dateOfIssuance || null,
-                        statusState: LicenseStatus.INACTIVE
-                    }));
-                });
-            }
+            (privilege.history as Array<any>).forEach((historyItem) => {
+                privilegeList.push(new License({
+                    ...privilege,
+                    expireDate: historyItem.previousValues?.dateOfExpiration || null,
+                    issueDate: historyItem.previousValues?.dateOfIssuance || null,
+                    statusState: LicenseStatus.INACTIVE
+                }));
+            });
         });
 
         return privilegeList;

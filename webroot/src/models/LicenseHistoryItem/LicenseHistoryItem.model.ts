@@ -13,8 +13,19 @@ import deleteUndefinedProperties from '@models/_helpers';
 export interface InterfaceLicenseHistoryItem {
     type?: string | null;
     updateType?: string | null;
-    previousValues?: object | null;
-    updatedValues?: object | null;
+    previousValues?: {
+        compactTransactionId?: string | null,
+        dateOfExpiration?: string | null,
+        dateOfIssuance?: string | null,
+        dateOfRenewal?: string | null,
+        dateOfUpdate?: string | null,
+    };
+    updatedValues?: {
+        compactTransactionId?: string | null,
+        dateOfExpiration?: string | null,
+        dateOfIssuance?: string | null,
+        dateOfRenewal?: string | null,
+    };
 }
 
 // ========================================================
@@ -23,8 +34,8 @@ export interface InterfaceLicenseHistoryItem {
 export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
     public type? = null;
     public updateType? = null;
-    public previousValues? = null;
-    public updatedValues? = null;
+    public previousValues? = {};
+    public updatedValues? = {};
 
     constructor(data?: InterfaceLicenseHistoryItem) {
         const cleanDataObject = deleteUndefinedProperties(data);

@@ -124,7 +124,12 @@ export default class LicensingDetail extends Vue {
     }
 
     get addressLine3(): string {
-        return `${this.licensee?.address?.city}, ${this.licensee?.address?.state?.abbrev} ${this.licensee?.address?.zip}`;
+        const { address = {}} = this.licensee || {};
+        const { city = '', state = null, zip = '' } = address;
+        const stateAbbrev = state?.abbrev?.toUpperCase();
+        const delim = (city && stateAbbrev) ? ', ' : '';
+
+        return `${city}${delim}${stateAbbrev} ${zip}`.trim();
     }
 
     get recentPrivilegesTitle(): string {
@@ -147,18 +152,18 @@ export default class LicensingDetail extends Vue {
         return this.$t('licensing.licenseExpired');
     }
 
-    get statusTitleText(): string {
+    get militaryStatusTitleText(): string {
         return this.$t('licensing.status').toUpperCase();
     }
 
-    get status(): string {
-        let militaryStatus = '';
+    get militaryStatus(): string {
+        let status = '';
 
         if (this.licensee) {
-            militaryStatus = this.licensee.isMilitary() ? this.$t('licensing.statusOptions.active') : this.$t('licensing.statusOptions.inactive');
+            status = this.licensee.isMilitary() ? this.$t('licensing.statusOptions.active') : this.$t('licensing.statusOptions.inactive');
         }
 
-        return militaryStatus;
+        return status;
     }
 
     get affiliationTypeTitle(): string {
@@ -166,22 +171,22 @@ export default class LicensingDetail extends Vue {
     }
 
     get affiliationType(): string {
-        let militaryStatus = '';
+        let affiliationType = '';
 
         if (this.licensee) {
             const activeAffiliation = this.licensee.aciveMilitaryAffiliation() as any;
             const isMilitary = this.licensee.isMilitary();
 
             if (isMilitary && activeAffiliation?.affiliationType === 'militaryMember') {
-                militaryStatus = this.$tm('military.affiliationTypes.militaryMember');
+                affiliationType = this.$tm('military.affiliationTypes.militaryMember');
             } else if (isMilitary && activeAffiliation?.affiliationType === 'militaryMemberSpouse') {
-                militaryStatus = this.$tm('military.affiliationTypes.militaryMemberSpouse');
+                affiliationType = this.$tm('military.affiliationTypes.militaryMemberSpouse');
             } else {
-                militaryStatus = this.$tm('military.affiliationTypes.none');
+                affiliationType = this.$tm('military.affiliationTypes.none');
             }
         }
 
-        return militaryStatus;
+        return affiliationType;
     }
 
     get militaryAffilitionDocs(): string {
@@ -190,10 +195,6 @@ export default class LicensingDetail extends Vue {
 
     get militaryDocumentHeader(): any {
         return { name: this.$t('military.fileName'), date: this.$t('military.dateUploaded') };
-    }
-
-    get listId(): string {
-        return 'military-affiliations';
     }
 
     get sortOptions(): Array<any> {
@@ -229,16 +230,14 @@ export default class LicensingDetail extends Vue {
         const privilegeList: Array<License> = [];
 
         this.licenseePrivileges.forEach((privilege) => {
-            if (privilege.history) {
-                (privilege.history as Array<any>).forEach((historyItem) => {
-                    privilegeList.push(new License({
-                        ...privilege,
-                        expireDate: historyItem.previousValues?.dateOfExpiration || null,
-                        issueDate: historyItem.previousValues?.dateOfIssuance || null,
-                        statusState: LicenseStatus.INACTIVE
-                    }));
-                });
-            }
+            (privilege.history as Array<any>).forEach((historyItem) => {
+                privilegeList.push(new License({
+                    ...privilege,
+                    expireDate: historyItem.previousValues?.dateOfExpiration || null,
+                    issueDate: historyItem.previousValues?.dateOfIssuance || null,
+                    statusState: LicenseStatus.INACTIVE
+                }));
+            });
         });
 
         return privilegeList;

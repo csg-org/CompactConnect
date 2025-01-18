@@ -43,6 +43,7 @@ export interface InterfaceLicense {
     renewalDate?: string | null;
     expireDate?: string | null;
     occupation?: LicenseOccupation | null,
+    history?: Array<LicenseHistoryItem>,
     statusState?: LicenseStatus,
     statusCompact?: LicenseStatus,
 }
@@ -61,7 +62,7 @@ export class License implements InterfaceLicense {
     public renewalDate? = null;
     public expireDate? = null;
     public occupation? = null;
-    public history? = null;
+    public history? = [];
     public statusState? = LicenseStatus.INACTIVE;
     public statusCompact? = LicenseStatus.INACTIVE;
 

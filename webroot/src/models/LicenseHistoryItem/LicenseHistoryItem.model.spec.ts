@@ -19,8 +19,8 @@ describe('LicenseHistoryItem model', () => {
         expect(licenseHistoryItem).to.be.an.instanceof(LicenseHistoryItem);
         expect(licenseHistoryItem.type).to.equal(null);
         expect(licenseHistoryItem.updateType).to.equal(null);
-        expect(licenseHistoryItem.previousValues).to.equal(null);
-        expect(licenseHistoryItem.updatedValues).to.equal(null);
+        expect(licenseHistoryItem.previousValues).to.matchPattern({});
+        expect(licenseHistoryItem.updatedValues).to.matchPattern({});
     });
     it('should create a LicenseHistoryItem with specific values', () => {
         const data = {

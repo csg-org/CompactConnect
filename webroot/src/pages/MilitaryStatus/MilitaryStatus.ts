@@ -126,10 +126,6 @@ export default class MilitaryStatus extends mixins(MixinForm) {
         return this.$matches.phone.only ? this.$t('common.yes') : this.$t('military.yesEnd');
     }
 
-    get listId(): string {
-        return 'military-affiliations';
-    }
-
     get sortOptions(): Array<any> {
         // Sorting not API supported
         return [];

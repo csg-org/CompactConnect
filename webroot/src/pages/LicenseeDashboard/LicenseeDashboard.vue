@@ -31,7 +31,7 @@
                 <div class="home-state-list">
                     <HomeStateBlock
                         v-for="(state, i) in homeStateList"
-                        :key="'state'+i"
+                        :key="i"
                         :state="state"
                         class="no-touch-item"
                     />
@@ -57,7 +57,11 @@
             <div class="privilege-section-title-row">
                 <div class="title-info">
                     <div class="privilege-logo-container">
-                        <img class="home-state-img" src="@assets/images/black-ellipse.svg" alt="Privilege List Logo" />
+                        <img
+                            class="home-state-img"
+                            src="@assets/images/black-ellipse.svg"
+                            :alt="$t('licensing.blackCircle')"
+                        />
                     </div>
                     <div class="title-text">
                         {{privilegeTitle}}
@@ -70,7 +74,7 @@
             <div v-if="!isPrivsCollapsed" class="privilege-card-list-container">
                 <PrivilegeCard
                     v-for="(privilege, index) in licenseePrivileges"
-                    :key="'privilege'+index"
+                    :key="index"
                     :privilege="privilege"
                     class="no-touch-item"
                 />
@@ -80,7 +84,11 @@
             <div class="privilege-section-title-row">
                 <div class="title-info">
                     <div class="privilege-logo-container">
-                        <img class="home-state-img" src="@assets/images/black-ellipse.svg" alt="Privilege List Logo" />
+                        <img
+                            class="home-state-img"
+                            src="@assets/images/black-ellipse.svg"
+                            :alt="$t('licensing.blackCircle')"
+                        />
                     </div>
                     <div class="title-text">
                         {{pastPrivilegesTitle}}
@@ -93,7 +101,7 @@
             <div v-if="!isPastPrivsCollapsed" class="privilege-card-list-container">
                 <PrivilegeCard
                     v-for="(privilege, index) in pastPrivilegeList"
-                    :key="'privilege'+index"
+                    :key="index"
                     :privilege="privilege"
                     class="no-touch-item"
                 />

@@ -20,11 +20,11 @@
             </div>
             <div class="tags">
                 <div v-if="licenseeHomeStateDisplay" class="tag">
-                    <div class="tag-icon-container">
+                    <div class="tag-icon-container house">
                         <img
                             class="tag-icon"
                             src="@assets/icons/ico-home.svg"
-                            alt="House Icon"
+                            :alt="$t('licensing.houseIcon')"
                         />
                     </div>
                     <div class="tag-text">
@@ -40,7 +40,7 @@
                         <img
                             class="tag-icon"
                             src="@assets/icons/ico-license.svg"
-                            alt="License Icon"
+                            :alt="$t('licensing.licenseIcon')"
                         />
                     </div>
                     <div class="tag-text">
@@ -56,7 +56,7 @@
                         <img
                             class="home-state-img"
                             src="@assets/images/black-ellipse.svg"
-                            alt="Personal Informational List Logo"
+                            :alt="$t('licensing.blackCircle')"
                         />
                     </div>
                     <div class="title-text">
@@ -107,8 +107,8 @@
                 <div class="core-info-block">
                     <div class="info-row">
                         <div class="chunk">
-                            <div class="chunk-title">{{statusTitleText}}</div>
-                            <div class="chunk-text">{{status}}</div>
+                            <div class="chunk-title">{{militaryStatusTitleText}}</div>
+                            <div class="chunk-text">{{militaryStatus}}</div>
                         </div>
                         <div class="chunk affiliation-type">
                             <div class="chunk-title">{{affiliationTypeTitle}}</div>
@@ -119,7 +119,7 @@
                         <div class="chunk-title">{{militaryAffilitionDocs}}</div>
                         <div class="prev-doc-table">
                             <ListContainer
-                                :listId="listId"
+                                listId="military-affiliations"
                                 :listData="this.affiliations"
                                 :listSize="this.affiliations.length"
                                 :sortOptions="sortOptions"
@@ -155,7 +155,11 @@
             <div class="title-row">
                 <div class="title-info">
                     <div class="license-logo-container">
-                        <img class="home-state-img" src="@assets/images/black-ellipse.svg" alt="License List Logo" />
+                        <img
+                            class="home-state-img"
+                            src="@assets/images/black-ellipse.svg"
+                            :alt="$t('licensing.blackCircle')"
+                        />
                     </div>
                     <div class="title-text">
                         {{licenseDetails}}
@@ -184,7 +188,11 @@
             <div class="title-row">
                 <div class="title-info">
                     <div class="privilege-logo-container">
-                        <img class="home-state-img" src="@assets/images/black-ellipse.svg" alt="Privilege List Logo" />
+                        <img
+                            class="home-state-img"
+                            src="@assets/images/black-ellipse.svg"
+                            :alt="$t('licensing.blackCircle')"
+                        />
                     </div>
                     <div class="title-text">
                         {{recentPrivilegesTitle}}
@@ -197,7 +205,7 @@
             <div v-if="!isRecentPrivsCollapsed" class="privilege-card-list-container">
                 <PrivilegeCard
                     v-for="(privilege, index) in licenseePrivileges"
-                    :key="'privilege'+index"
+                    :key="index"
                     :privilege="privilege"
                     class="no-touch-item"
                 />
@@ -207,7 +215,11 @@
             <div class="title-row">
                 <div class="title-info">
                     <div class="privilege-logo-container">
-                        <img class="home-state-img" src="@assets/images/black-ellipse.svg" alt="Privilege List Logo" />
+                        <img
+                            class="home-state-img"
+                            src="@assets/images/black-ellipse.svg"
+                            :alt="$t('licensing.blackCircle')"
+                        />
                     </div>
                     <div class="title-text">
                         {{pastPrivilegesTitle}}
@@ -220,7 +232,7 @@
             <div v-if="!isPastPrivsCollapsed" class="privilege-card-list-container">
                 <PrivilegeCard
                     v-for="(privilege, index) in pastPrivilegeList"
-                    :key="'privilege'+index"
+                    :key="index"
                     :privilege="privilege"
                     class="no-touch-item"
                 />

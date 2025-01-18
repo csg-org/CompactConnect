@@ -36,19 +36,30 @@ class PageContainer extends Vue {
         return this.$store.state.license;
     }
 
+    get currentRouteName(): string {
+        return this.$route?.name as string || '';
+    }
+
     get isPhone(): boolean {
         return this.$matches.phone.only;
     }
 
     get includePageHeader(): boolean {
         const { isLoggedIn } = this.userStore;
-        const currentRouteName: string = this.$route.name as string;
         const nonHeaderRouteNames: Array<string> = [
             'Login',
             'Logout',
         ];
 
-        return (isLoggedIn && this.isPhone && !nonHeaderRouteNames.includes(currentRouteName));
+        return (isLoggedIn && this.isPhone && !nonHeaderRouteNames.includes(this.currentRouteName));
+    }
+
+    get shouldPadTop(): boolean {
+        const nonPadTopRouteNames: Array<string> = [
+            'LicensingDetail',
+        ];
+
+        return !nonPadTopRouteNames.includes(this.currentRouteName);
     }
 
     get includePageFooter(): boolean {

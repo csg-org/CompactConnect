@@ -516,6 +516,9 @@
         "disciplineStatus": "Estado de disciplina",
         "jurisprudenceExplanationText": "Doy fe de haber completado el examen de jurisprudencia requerido.",
         "noDiscipline": "No disciplina",
+        "blackCircle": "Circulo negro",
+        "licenseIcon": "Icono de licencia",
+        "houseIcon": "Icono de la casa",
         "twoHomeStateErrorMessage": "Dos estados lo tienen incluido como residente. Actualice su información con esos estados para reflejar su estado de residencia actual.",
         "state": "Estado",
         "statusOptions": {

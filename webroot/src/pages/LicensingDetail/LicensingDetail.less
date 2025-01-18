@@ -17,12 +17,10 @@
         background-color: @white;
 
         @media @tabletWidth {
-            margin-top: -9rem;
             padding: 9rem @spacingTablet @spacingTablet @spacingTablet;
         }
 
         @media @desktopWidth {
-            margin-top: -9rem;
             padding: 9rem @spacingDesktop @spacingMobile @spacingDesktop;
         }
 
@@ -69,10 +67,21 @@
 
                 .tag-icon-container {
                     width: 1.4rem;
-                    margin-bottom: -0.2rem;
+                    height: 1.45rem;
 
                     @media @tabletWidth {
                         width: 1.6rem;
+                        height: 1.7rem;
+                    }
+
+                    &.house {
+                        width: 1.4rem;
+                        height: 1.6rem;
+
+                        @media @tabletWidth {
+                            width: 1.6rem;
+                            height: 1.8rem;
+                        }
                     }
 
                     .tag-icon {

@@ -61,7 +61,7 @@ describe('User model', () => {
                     ],
                 },
             ],
-            accountStatus: 'active'
+            accountStatus: 'active',
         };
         const user = new User(data);
 
