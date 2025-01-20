@@ -6,6 +6,7 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
+import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
@@ -18,6 +19,7 @@ import { MilitaryAffiliation } from '@/models/MilitaryAffiliation/MilitaryAffili
 @Component({
     name: 'LicensingDetail',
     components: {
+        LoadingSpinner,
         LicenseCard,
         PrivilegeCard,
         CollapseCaretButton,
@@ -87,6 +89,10 @@ export default class LicensingDetail extends Vue {
 
     get licenseeLicenses(): Array<License> {
         return this.licensee?.licenses || [];
+    }
+
+    get isLoading(): boolean {
+        return this.licenseStore?.isLoading || false;
     }
 
     get activeLicenses(): Array<License> {
@@ -230,7 +236,7 @@ export default class LicensingDetail extends Vue {
         const privilegeList: Array<License> = [];
 
         this.licenseePrivileges.forEach((privilege) => {
-            (privilege.history as Array<any>).forEach((historyItem) => {
+            privilege.history?.forEach((historyItem: any) => {
                 privilegeList.push(new License({
                     ...privilege,
                     expireDate: historyItem.previousValues?.dateOfExpiration || null,

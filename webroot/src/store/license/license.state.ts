@@ -12,7 +12,6 @@ export interface State {
     prevLastKey: string | null;
     lastKey: string | null;
     isLoading: boolean;
-    isLoadingOne: boolean;
     error: any | null;
     search: LicenseSearch;
 }
@@ -23,7 +22,6 @@ export const state: State = {
     prevLastKey: null,
     lastKey: null,
     isLoading: false,
-    isLoadingOne: false,
     error: null,
     search: {
         firstName: '',

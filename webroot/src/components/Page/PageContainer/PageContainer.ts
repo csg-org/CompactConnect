@@ -69,8 +69,7 @@ class PageContainer extends Vue {
     get isLoading(): boolean {
         return this.globalStore.isLoading
             || this.userStore.isLoadingAccount
-            || this.userStore.isLoadingPrivilegePurchaseOptions
-            || this.licenseStore.isLoadingOne;
+            || this.userStore.isLoadingPrivilegePurchaseOptions;
     }
 }
 

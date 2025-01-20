@@ -203,7 +203,7 @@ describe('License Store Mutations', () => {
 
         mutations[MutationTypes.GET_LICENSEE_REQUEST](state);
 
-        expect(state.isLoadingOne).to.equal(true);
+        expect(state.isLoading).to.equal(true);
         expect(state.error).to.equal(null);
     });
     it('should successfully get licensee failure', () => {
@@ -212,7 +212,7 @@ describe('License Store Mutations', () => {
 
         mutations[MutationTypes.GET_LICENSEE_FAILURE](state, error);
 
-        expect(state.isLoadingOne).to.equal(false);
+        expect(state.isLoading).to.equal(false);
         expect(state.error).to.equal(error);
     });
     it('should successfully get licensee success', () => {
@@ -220,7 +220,7 @@ describe('License Store Mutations', () => {
 
         mutations[MutationTypes.GET_LICENSEE_SUCCESS](state);
 
-        expect(state.isLoadingOne).to.equal(false);
+        expect(state.isLoading).to.equal(false);
         expect(state.error).to.equal(null);
     });
 });

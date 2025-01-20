@@ -129,7 +129,7 @@ export default class LicenseeDashboard extends Vue {
         const privilegeList: Array<License> = [];
 
         this.licenseePrivileges.forEach((privilege) => {
-            (privilege.history as Array<any>).forEach((historyItem) => {
+            privilege.history?.forEach((historyItem: any) => {
                 privilegeList.push(new License({
                     ...privilege,
                     expireDate: historyItem.previousValues?.dateOfExpiration || null,
