@@ -26,12 +26,12 @@ Export your license data to a CSV file, formatted as follows:
 
 #### Example CSV
 ```csv
-dateOfIssuance,npi,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,status,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
-2024-06-30,0608337260,2024-06-30,speech-language pathologist,Guðmundsdóttir,Birmingham,Gunnar,active,529-31-5408,123 A St.,Apt 321,2024-06-30,oh,35004,Björk,2024-06-30
-2024-06-30,0608337260,2024-06-30,audiologist,Scott,Huntsville,Patricia,active,529-31-5409,321 B St.,,2024-06-30,oh,35005,Elizabeth,2024-06-30
-2024-06-30,0608337260,2024-06-30,speech-language pathologist,毛,Hoover,泽,active,529-31-5410,10101 Binary Ave.,,2024-06-30,oh,35006,覃,2024-06-30
-2024-06-30,0608337260,2024-06-30,speech-language pathologist,Adams,Tuscaloosa,Michael,inactive,529-31-5411,1AB3 Hex Blvd.,,2024-06-30,oh,35007,John,2024-06-30
-2024-06-30,0608337260,2024-06-30,speech-language pathologist,Carreño Quiñones,Montgomery,José,active,529-31-5412,10 Main St.,,2024-06-30,oh,35008,María,2024-06-30
+dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,status,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
+2024-06-30,0608337260,A0608337260,2024-06-30,speech-language pathologist,Guðmundsdóttir,Birmingham,Gunnar,active,529-31-5408,123 A St.,Apt 321,2024-06-30,oh,35004,Björk,2024-06-30
+2024-06-30,0608337260,A0608337260,2024-06-30,audiologist,Scott,Huntsville,Patricia,active,529-31-5409,321 B St.,,2024-06-30,oh,35005,Elizabeth,2024-06-30
+2024-06-30,0608337260,A0608337260,2024-06-30,speech-language pathologist,毛,Hoover,泽,active,529-31-5410,10101 Binary Ave.,,2024-06-30,oh,35006,覃,2024-06-30
+2024-06-30,0608337260,A0608337260,2024-06-30,speech-language pathologist,Adams,Tuscaloosa,Michael,inactive,529-31-5411,1AB3 Hex Blvd.,,2024-06-30,oh,35007,John,2024-06-30
+2024-06-30,0608337260,A0608337260,2024-06-30,speech-language pathologist,Carreño Quiñones,Montgomery,José,active,529-31-5412,10 Main St.,,2024-06-30,oh,35008,María,2024-06-30
 ```
 
 ### Manual Uploads
