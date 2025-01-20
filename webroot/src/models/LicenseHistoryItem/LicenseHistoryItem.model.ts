@@ -49,6 +49,8 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
 // ========================================================
 export class LicenseHistoryItemSerializer {
     static fromServer(json: any): LicenseHistoryItem {
+        // All license fields can possibly appear in the values below, however the frontend only utilizes
+        // renewals at this time, these are the relevant fields for renewals
         const licenseHistoryData = {
             type: json.type,
             updateType: json.updateType,

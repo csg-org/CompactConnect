@@ -130,7 +130,10 @@ export class LicenseSerializer {
 
         if (Array.isArray(json.history)) {
             json.history.forEach((serverHistoryItem) => {
-                licenseData.history.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
+                // We are only populating renewals at this time
+                if (serverHistoryItem.updateType === 'renewal') {
+                    licenseData.history.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
+                }
             });
         }
 
