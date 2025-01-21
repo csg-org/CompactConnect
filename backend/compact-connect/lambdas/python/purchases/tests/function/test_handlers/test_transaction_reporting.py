@@ -1,4 +1,5 @@
 # ruff: noqa: E501  line-too-long The lines displaying the csv file contents are long, but they are necessary for the test.
+import csv
 import json
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -114,7 +115,7 @@ def _set_default_lambda_client_behavior(mock_lambda_client):
 class TestGenerateTransactionReports(TstFunction):
     """Test the process_settled_transactions Lambda function."""
 
-    def add_mock_provider_to_db(self, licensee_id, first_name, last_name) -> dict:
+    def _add_mock_provider_to_db(self, licensee_id, first_name, last_name) -> dict:
         def privilege_jurisdictions_to_set(obj: dict):
             if obj.get('type') == 'provider' and 'privilegeJurisdictions' in obj:
                 obj['privilegeJurisdictions'] = set(obj['privilegeJurisdictions'])
@@ -130,7 +131,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         return record
 
-    def add_mock_transaction_to_db(
+    def _add_mock_transaction_to_db(
         self,
         jurisdictions: list[str],
         licensee_id: str,
@@ -235,17 +236,17 @@ class TestGenerateTransactionReports(TstFunction):
 
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
         # Add a transaction that will be in the previous month
-        mock_user_1 = self.add_mock_provider_to_db('12345', 'John', 'Doe')
-        mock_user_2 = self.add_mock_provider_to_db('5678', 'Jane', 'Johnson')
+        mock_user_1 = self._add_mock_provider_to_db('12345', 'John', 'Doe')
+        mock_user_2 = self._add_mock_provider_to_db('5678', 'Jane', 'Johnson')
         # in this case, there will be two transactions, one in march and the other in April
         # the lambda should pick up both transactions
-        self.add_mock_transaction_to_db(
+        self._add_mock_transaction_to_db(
             jurisdictions=['oh'],
             licensee_id=mock_user_1['providerId'],
             month_iso_string='2025-03',
             transaction_settlement_time_utc=datetime.fromisoformat('2025-03-30T12:00:00+00:00'),
         )
-        self.add_mock_transaction_to_db(
+        self._add_mock_transaction_to_db(
             jurisdictions=['ky'],
             licensee_id=mock_user_2['providerId'],
             month_iso_string='2025-04',
@@ -323,9 +324,9 @@ class TestGenerateTransactionReports(TstFunction):
             jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION, NEBRASKA_JURISDICTION]
         )
 
-        mock_user = self.add_mock_provider_to_db('12345', 'John', 'Doe')
+        mock_user = self._add_mock_provider_to_db('12345', 'John', 'Doe')
         # Create a transaction with privileges for multiple jurisdictions
-        self.add_mock_transaction_to_db(
+        self._add_mock_transaction_to_db(
             jurisdictions=['oh', 'ky', 'ne'],
             licensee_id=mock_user['providerId'],
             month_iso_string='2025-03',
@@ -357,6 +358,15 @@ class TestGenerateTransactionReports(TstFunction):
                 f'{mock_user['givenName']},{mock_user['familyName']},{mock_user['providerId']},03-30-2025,100,{jurisdiction.upper()},10.50,{MOCK_TRANSACTION_ID}',
                 jurisdiction_payload['templateVariables']['jurisdictionTransactionReportCSV'],
             )
+            # also verify that other jurisdictions are not included in the report
+            # convert csv string into a json object and verify that the jurisdiction is not in the object
+            report_json = csv.DictReader(
+                jurisdiction_payload['templateVariables']['jurisdictionTransactionReportCSV'].split('\n')
+            )
+            for other_jurisdiction in ['oh', 'ky', 'ne']:
+                if other_jurisdiction != jurisdiction:
+                    for row in report_json:
+                        self.assertNotIn(other_jurisdiction.upper(), row['State'])
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-02T23:59:59+00:00'))
     @patch('handlers.transaction_reporting.config.lambda_client')
@@ -371,7 +381,7 @@ class TestGenerateTransactionReports(TstFunction):
         # Create 700 providers
         providers = []
         for i in range(700):
-            provider = self.add_mock_provider_to_db(f'user_{i}', f'First{i}', f'Last{i}')
+            provider = self._add_mock_provider_to_db(f'user_{i}', f'First{i}', f'Last{i}')
             providers.append(provider)
 
         # Create 600 transactions (300 per jurisdiction)
@@ -379,7 +389,7 @@ class TestGenerateTransactionReports(TstFunction):
         for i in range(600):
             provider = providers[i]
             jurisdiction = 'oh' if i < 300 else 'ky'
-            self.add_mock_transaction_to_db(
+            self._add_mock_transaction_to_db(
                 jurisdictions=[jurisdiction],
                 licensee_id=provider['providerId'],
                 month_iso_string='2025-03',
@@ -472,9 +482,9 @@ class TestGenerateTransactionReports(TstFunction):
 
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
 
-        mock_user = self.add_mock_provider_to_db('12345', 'John', 'Doe')
+        mock_user = self._add_mock_provider_to_db('12345', 'John', 'Doe')
         # Create a transaction with a jurisdiction not in the configuration
-        self.add_mock_transaction_to_db(
+        self._add_mock_transaction_to_db(
             jurisdictions=['oh', 'ky', 'xx'],  # 'xx' is not a configured jurisdiction
             licensee_id=mock_user['providerId'],
             month_iso_string='2025-03',

@@ -134,7 +134,9 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
             lambda_error_messages.append(jurisdiction_response.get('FunctionError'))
 
     if lambda_error_messages:
-        raise CCInternalException(f'Failed to send one or more reports. Errors: {lambda_error_messages}')
+        raise CCInternalException(
+            f'One or more errors occurred while generating reports. ' f'Errors: {lambda_error_messages}'
+        )
 
     return {'message': 'reports sent successfully'}
 

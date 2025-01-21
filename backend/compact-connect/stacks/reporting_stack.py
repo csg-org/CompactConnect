@@ -124,11 +124,11 @@ class ReportingStack(AppStack):
     def _add_transaction_reporting_chain(self, persistent_stack: ps.PersistentStack):
         """Add the transaction reporting lambda and event rules.
 
-            Based on our initial load testing, we determined that this lambda can process up to 70,000 transactions
-            in a single invocation. The limit is set by the size of the payload we can send to the
-            email-notification-service lambda (6MB) which is a hard limit. If we need to process more transactions than
-            this, we will need to update the system to use an S3 bucket to store the transaction data and have the
-            email-notification-service lambda read from the bucket.
+        Based on our initial load testing, we determined that this lambda can process up to 70,000 transactions
+        in a single invocation. The limit is set by the size of the payload we can send to the
+        email-notification-service lambda (6MB) which is a hard limit. If we need to process more transactions than
+        this, we will need to update the system to use an S3 bucket to store the transaction data and have the
+        email-notification-service lambda read from the bucket.
         """
         self.transaction_reporter = PythonFunction(
             self,
