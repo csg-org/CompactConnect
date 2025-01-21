@@ -29,6 +29,7 @@ export enum LicenseeStatus {
 export interface InterfaceLicensee {
     id?: string | null;
     npi?: string | null;
+    licenseNumber?: string | null;
     firstName?: string | null;
     middleName?: string | null;
     lastName?: string | null;
@@ -53,6 +54,7 @@ export class Licensee implements InterfaceLicensee {
     public $t?: any = () => '';
     public id? = null;
     public npi? = null;
+    public licenseNumber?= null;
     public firstName? = null;
     public middleName? = null;
     public lastName? = null;
@@ -215,6 +217,7 @@ export class LicenseeSerializer {
         const licenseeData: any = {
             id: json.providerId,
             npi: json.npi,
+            licenseNumber: json.licenseNumber,
             firstName: json.givenName,
             middleName: json.middleName,
             lastName: json.familyName,

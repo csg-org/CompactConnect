@@ -41,6 +41,8 @@ export interface InterfaceLicense {
     issueDate?: string | null;
     renewalDate?: string | null;
     expireDate?: string | null;
+    npi?: string | null;
+    licenseNumber?: string | null;
     occupation?: LicenseOccupation | null,
     statusState?: LicenseStatus,
     statusCompact?: LicenseStatus,
@@ -58,6 +60,8 @@ export class License implements InterfaceLicense {
     public isHomeState? = false;
     public issueDate? = null;
     public renewalDate? = null;
+    public npi? = null;
+    public licenseNumber? = null;
     public expireDate? = null;
     public occupation? = null;
     public statusState? = LicenseStatus.INACTIVE;
@@ -117,6 +121,8 @@ export class LicenseSerializer {
             issueState: new State({ abbrev: json.jurisdiction || json.licenseJurisdiction }),
             isHomeState: Boolean(json.type === 'license-home'),
             issueDate: json.dateOfIssuance,
+            npi: json.npi,
+            licenseNumber: json.licenseNumber,
             renewalDate: json.dateOfRenewal,
             expireDate: json.dateOfExpiration,
             occupation: json.licenseType,

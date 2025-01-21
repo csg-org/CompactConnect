@@ -44,6 +44,8 @@ describe('License model', () => {
         expect(license.issueDate).to.equal(null);
         expect(license.renewalDate).to.equal(null);
         expect(license.expireDate).to.equal(null);
+        expect(license.npi).to.equal(null);
+        expect(license.licenseNumber).to.equal(null);
         expect(license.occupation).to.equal(null);
         expect(license.statusState).to.equal(LicenseStatus.INACTIVE);
         expect(license.statusCompact).to.equal(LicenseStatus.INACTIVE);
@@ -65,6 +67,8 @@ describe('License model', () => {
             issueDate: 'test-issueDate',
             renewalDate: 'test-renewalDate',
             expireDate: 'test-expireDate',
+            licenseNumber: 'test-license-number',
+            npi: 'test-npi',
             occupation: LicenseOccupation.AUDIOLOGIST,
             statusState: LicenseStatus.ACTIVE,
             statusCompact: LicenseStatus.ACTIVE,
@@ -81,6 +85,8 @@ describe('License model', () => {
         expect(license.issueDate).to.equal(data.issueDate);
         expect(license.renewalDate).to.equal(data.renewalDate);
         expect(license.expireDate).to.equal(data.expireDate);
+        expect(license.npi).to.equal(data.npi);
+        expect(license.licenseNumber).to.equal(data.licenseNumber);
         expect(license.occupation).to.equal(data.occupation);
         expect(license.statusState).to.equal(data.statusState);
         expect(license.statusCompact).to.equal(data.statusCompact);
@@ -101,6 +107,8 @@ describe('License model', () => {
             dateOfIssuance: moment().format(serverDateFormat),
             dateOfRenewal: moment().format(serverDateFormat),
             dateOfExpiration: moment().subtract(1, 'day').format(serverDateFormat),
+            npi: 'npi',
+            licenseNumber: 'licenseNumber',
             licenseType: LicenseOccupation.AUDIOLOGIST,
             status: LicenseStatus.ACTIVE,
         };
@@ -117,6 +125,8 @@ describe('License model', () => {
         expect(license.issueDate).to.equal(data.dateOfIssuance);
         expect(license.renewalDate).to.equal(data.dateOfRenewal);
         expect(license.expireDate).to.equal(data.dateOfExpiration);
+        expect(license.npi).to.equal(data.npi);
+        expect(license.licenseNumber).to.equal(data.licenseNumber);
         expect(license.occupation).to.equal(data.licenseType);
         expect(license.statusState).to.equal(data.status);
         expect(license.statusCompact).to.equal(data.status);

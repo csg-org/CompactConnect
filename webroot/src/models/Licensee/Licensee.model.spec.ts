@@ -36,6 +36,7 @@ describe('Licensee model', () => {
         expect(licensee).to.be.an.instanceof(Licensee);
         expect(licensee.id).to.equal(null);
         expect(licensee.npi).to.equal(null);
+        expect(licensee.licenseNumber).to.equal(null);
         expect(licensee.firstName).to.equal(null);
         expect(licensee.middleName).to.equal(null);
         expect(licensee.lastName).to.equal(null);
@@ -71,6 +72,7 @@ describe('Licensee model', () => {
         const data = {
             id: 'test-id',
             npi: 'test-npi',
+            licenseNumber: 'test-license-number',
             firstName: 'test-firstName',
             middleName: 'test-middleName',
             lastName: 'test-lastName',
@@ -98,6 +100,7 @@ describe('Licensee model', () => {
         expect(licensee).to.be.an.instanceof(Licensee);
         expect(licensee.id).to.equal(data.id);
         expect(licensee.npi).to.equal(data.npi);
+        expect(licensee.licenseNumber).to.equal(data.licenseNumber);
         expect(licensee.firstName).to.equal(data.firstName);
         expect(licensee.middleName).to.equal(data.middleName);
         expect(licensee.lastName).to.equal(data.lastName);
@@ -136,6 +139,7 @@ describe('Licensee model', () => {
         const data = {
             providerId: 'test-id',
             npi: 'test-npi',
+            licenseNumber: 'test-license-number',
             givenName: 'test-firstName',
             middleName: 'test-middleName',
             familyName: 'test-lastName',
