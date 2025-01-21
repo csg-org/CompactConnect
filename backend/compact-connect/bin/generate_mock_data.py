@@ -38,7 +38,7 @@ schema = LicensePostRequestSchema()
 FIELDS = (
     'ssn',
     'npi',
-    'licenseNumber'
+    'licenseNumber',
     'licenseType',
     'status',
     'givenName',
