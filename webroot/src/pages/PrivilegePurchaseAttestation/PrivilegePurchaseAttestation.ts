@@ -32,14 +32,6 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
     //
     // Computed
     //
-    get backText(): string {
-        return this.$t('common.back');
-    }
-
-    get cancelText(): string {
-        return this.$t('common.cancel');
-    }
-
     get userStore(): any {
         return this.$store.state.user;
     }

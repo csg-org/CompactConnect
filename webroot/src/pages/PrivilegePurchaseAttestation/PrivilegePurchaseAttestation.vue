@@ -13,17 +13,17 @@
             </div>
             <div class="button-row">
                 <InputButton
-                    :label="cancelText"
                     :isTextLike="true"
-                    aria-label="close modal"
-                    class="icon icon-close-modal"
+                    :label="$t('common.cancel')"
+                    :aria-label="$t('common.cancel')"
+                    class="cancel"
                     @click="handleCancelClicked"
                 />
                 <div class="right-cell">
                     <InputButton
-                        :label="backText"
-                        aria-label="close modal"
-                        class="back-button"
+                        :label="$t('common.back')"
+                        :aria-label="$t('common.back')"
+                        class="back"
                         @click="handleBackClicked"
                     />
                     <InputSubmit
