@@ -1084,3 +1084,68 @@ class ApiModel:
             ),
         )
         return self.api._v1_get_attestations_response_model
+
+    @property
+    def provider_registration_request_model(self) -> Model:
+        """Return the provider registration request model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_provider_registration_request_model'):
+            return self.api._v1_provider_registration_request_model
+
+        stack: AppStack = AppStack.of(self.api)
+        self.api._v1_provider_registration_request_model = self.api.add_model(
+            'V1ProviderRegistrationRequestModel',
+            description='Provider registration request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=['givenName', 'familyName', 'email', 'partialSocial', 'dob', 'state', 'licenseType', 'compact', 'token'],
+                properties={
+                    'givenName': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Provider\'s given name',
+                        max_length=200,
+                    ),
+                    'familyName': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Provider\'s family name',
+                        max_length=200,
+                    ),
+                    'email': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Provider\'s email address',
+                        max_length=100,
+                    ),
+                    'partialSocial': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Last 4 digits of SSN',
+                        min_length=4,
+                        max_length=4,
+                    ),
+                    'dob': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Date of birth in YYYY-MM-DD format',
+                        pattern='^\d{4}-\d{2}-\d{2}$',
+                    ),
+                    'state': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Two-letter state code',
+                        min_length=2,
+                        max_length=2,
+                    ),
+                    'licenseType': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Type of license',
+                        max_length=500,
+                    ),
+                    'compact': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Compact name',
+                        max_length=100,
+                    ),
+                    'token': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='ReCAPTCHA token',
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_provider_registration_request_model

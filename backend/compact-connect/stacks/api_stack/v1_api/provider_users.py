@@ -8,6 +8,7 @@ from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
+from aws_cdk.aws_secretsmanager import Secret
 
 from stacks import persistent_stack as ps
 
@@ -38,8 +39,16 @@ class ProviderUsers:
             'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
             'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
             'PROVIDER_USER_BUCKET_NAME': persistent_stack.provider_users_bucket.bucket_name,
+            'LICENSE_GSI_NAME': persistent_stack.provider_table.license_gsi_name,
             **stack.common_env_vars,
         }
+
+        # /v1/provider-users/registration
+        self.provider_users_registration_resource = self.provider_users_resource.add_resource('registration')
+        self._add_provider_registration(
+            provider_data_table=persistent_stack.provider_table,
+            lambda_environment=lambda_environment,
+        )
 
         # /v1/provider-users/me
         self.provider_users_me_resource = self.provider_users_resource.add_resource('me')
@@ -175,3 +184,75 @@ class ProviderUsers:
             ],
         )
         return handler
+
+    def _add_provider_registration(
+        self,
+        provider_data_table: ProviderTable,
+        lambda_environment: dict,
+    ):
+        stack = Stack.of(self.provider_users_resource)
+        environment_name = stack.common_env_vars['ENVIRONMENT_NAME']
+
+        # Get the recaptcha secret from us-east-1
+        recaptcha_secret = Secret.from_secret_name_v2(
+            self.provider_users_resource,
+            'RecaptchaSecret',
+            f'compact-connect/env/{environment_name}/recaptcha/token',
+        )
+
+        self.provider_registration_handler = PythonFunction(
+            self.provider_users_resource,
+            'ProviderRegistrationHandler',
+            description='Provider registration handler',
+            lambda_dir='provider-data-v1',
+            index=os.path.join('handlers', 'registration.py'),
+            handler='register_provider',
+            environment=lambda_environment,
+            alarm_topic=self.api.alarm_topic,
+        )
+
+        provider_data_table.grant_read_data(self.provider_registration_handler)
+        recaptcha_secret.grant_read(self.provider_registration_handler)
+        self.api.log_groups.append(self.provider_registration_handler.log_group)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            path=f'{self.provider_registration_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs '
+                    'and is scoped to one table and one secret.',
+                },
+            ],
+        )
+
+        registation_method = self.provider_users_registration_resource.add_method(
+            'POST',
+            request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.provider_registration_request_model},
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(self.provider_registration_handler, timeout=Duration.seconds(29)),
+        )
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            path=f'{registation_method.node.path}',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-APIG4',
+                    'reason': 'This is a public registration endpoint that needs to be accessible without authorization',
+                },
+                {
+                    'id': 'AwsSolutions-COG4',
+                    'reason': 'This is a public registration endpoint that needs to be accessible without Cognito authorization',
+                },
+            ],
+        )
+
+

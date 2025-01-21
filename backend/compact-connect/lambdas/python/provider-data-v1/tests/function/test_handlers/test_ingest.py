@@ -426,6 +426,8 @@ class TestIngest(TstFunction):
                 del hist['dateOfUpdate']
                 del hist['previous']['dateOfUpdate']
 
+        # update the expected GSI SK
+        expected_provider['licenses'][0]['licenseGSISK'] = 'FN#vonsmitherton#GN#björk'
         self.assertEqual(expected_provider, provider_data)
 
     def test_existing_provider_no_change(self):

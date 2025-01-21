@@ -1,0 +1,63 @@
+{
+  "properties": {
+    "givenName": {
+      "description": "Provider's given name",
+      "maxLength": 200,
+      "type": "string"
+    },
+    "familyName": {
+      "description": "Provider's family name",
+      "maxLength": 200,
+      "type": "string"
+    },
+    "email": {
+      "description": "Provider's email address",
+      "maxLength": 100,
+      "type": "string"
+    },
+    "partialSocial": {
+      "description": "Last 4 digits of SSN",
+      "maxLength": 4,
+      "minLength": 4,
+      "type": "string"
+    },
+    "dob": {
+      "description": "Date of birth in YYYY-MM-DD format",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "type": "string"
+    },
+    "state": {
+      "description": "Two-letter state code",
+      "maxLength": 2,
+      "minLength": 2,
+      "type": "string"
+    },
+    "licenseType": {
+      "description": "Type of license",
+      "maxLength": 500,
+      "type": "string"
+    },
+    "compact": {
+      "description": "Compact name",
+      "maxLength": 100,
+      "type": "string"
+    },
+    "token": {
+      "description": "ReCAPTCHA token",
+      "type": "string"
+    }
+  },
+  "required": [
+    "givenName",
+    "familyName",
+    "email",
+    "partialSocial",
+    "dob",
+    "state",
+    "licenseType",
+    "compact",
+    "token"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

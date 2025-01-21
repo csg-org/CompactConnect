@@ -265,6 +265,7 @@ class TestGetProvider(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
+        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)
 
         # The sk for a license-update record is sensitive so we'll do an extra, pretty broad, check just to make sure
@@ -335,10 +336,15 @@ class TestGetProvider(TstFunction):
             expected_provider = json.load(f)
             expected_provider.pop('ssn')
             expected_provider.pop('dateOfBirth')
+
             # we do not return the military affiliation document keys if the caller does not have read private scope
             expected_provider['militaryAffiliations'][0].pop('documentKeys')
             # also remove the ssn from the license record
             del expected_provider['licenses'][0]['ssn']
+            del expected_provider['licenses'][0]['ssnLastFour']
+            # don't return the licenseGSI PK or SK
+            del expected_provider['licenses'][0]['licenseGSIPK']
+            del expected_provider['licenses'][0]['licenseGSISK']
             del expected_provider['licenses'][0]['dateOfBirth']
             del expected_provider['licenses'][0]['history'][0]['previous']['ssn']
             del expected_provider['licenses'][0]['history'][0]['previous']['dateOfBirth']
