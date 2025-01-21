@@ -10,7 +10,7 @@ from uuid import UUID
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 
-from cc_common.config import logger, metrics
+from cc_common.config import config, logger, metrics
 from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
 from cc_common.exceptions import (
     CCAccessDeniedException,
@@ -56,8 +56,16 @@ def api_handler(fn: Callable):
     @logger.inject_lambda_context
     def caught_handler(event, context: LambdaContext):
         # We have to jump through extra hoops to handle the case where APIGW sets headers to null
-        (event.get('headers') or {}).pop('Authorization', None)
+        headers = event.get('headers') or {}
+        headers.pop('Authorization', None)
         (event.get('multiValueHeaders') or {}).pop('Authorization', None)
+
+        # Determine the appropriate CORS origin header value
+        origin = headers.get('Origin')
+        if origin in config.allowed_origins:
+            cors_origin = origin
+        else:
+            cors_origin = config.allowed_origins[0]
 
         logger.info(
             'Incoming request',
@@ -71,35 +79,35 @@ def api_handler(fn: Callable):
 
         try:
             return {
-                'headers': {'Access-Control-Allow-Origin': '*'},
+                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                 'statusCode': 200,
                 'body': json.dumps(fn(event, context), cls=ResponseEncoder),
             }
         except CCUnauthorizedException as e:
             logger.info('Unauthorized request', exc_info=e)
             return {
-                'headers': {'Access-Control-Allow-Origin': '*'},
+                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                 'statusCode': 401,
                 'body': json.dumps({'message': 'Unauthorized'}),
             }
         except CCAccessDeniedException as e:
             logger.info('Forbidden request', exc_info=e)
             return {
-                'headers': {'Access-Control-Allow-Origin': '*'},
+                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                 'statusCode': 403,
                 'body': json.dumps({'message': 'Access denied'}),
             }
         except CCNotFoundException as e:
             logger.info('Resource not found', exc_info=e)
             return {
-                'headers': {'Access-Control-Allow-Origin': '*'},
+                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                 'statusCode': 404,
                 'body': json.dumps({'message': f'{e.message}'}),
             }
         except CCInvalidRequestException as e:
             logger.info('Invalid request', exc_info=e)
             return {
-                'headers': {'Access-Control-Allow-Origin': '*'},
+                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                 'statusCode': 400,
                 'body': json.dumps({'message': e.message}),
             }

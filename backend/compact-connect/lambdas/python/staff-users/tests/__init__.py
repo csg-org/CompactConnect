@@ -12,6 +12,7 @@ class TstLambdas(TestCase):
             {
                 # Set to 'true' to enable debug logging
                 'DEBUG': 'false',
+                'ALLOWED_ORIGINS': '["https://example.org"]',
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'USER_POOL_ID': 'us-east-1-12345',
                 'USERS_TABLE_NAME': 'provider-table',
