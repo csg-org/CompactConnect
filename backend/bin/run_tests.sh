@@ -19,21 +19,21 @@ if [[ "$LANGUAGE" == 'nodejs' || "$LANGUAGE" == 'all' ]]; then
 fi
 
 if [[ "$LANGUAGE" == 'python' || "$LANGUAGE" == 'all' ]]; then
-  # # Run CDK tests, tracking code coverage in a new, combined, data file
-  # (
-  #   cd compact-connect
-  #   pytest --cov=. --cov-config=.coveragerc tests
-  # ) || exit "$?"
+  # Run CDK tests, tracking code coverage in a new, combined, data file
+  (
+    cd compact-connect
+    pytest --cov=. --cov-config=.coveragerc tests
+  ) || exit "$?"
   for dir in \
     compact-connect/lambdas/python/attestations \
     compact-connect/lambdas/python/custom-resources \
     compact-connect/lambdas/python/data-events \
     compact-connect/lambdas/python/provider-data-v1 \
-    # compact-connect/lambdas/python/purchases \
-    # compact-connect/lambdas/python/staff-user-pre-token \
-    # compact-connect/lambdas/python/staff-users \
-    # compact-connect/lambdas/python/common \
-    # multi-account
+    compact-connect/lambdas/python/purchases \
+    compact-connect/lambdas/python/staff-user-pre-token \
+    compact-connect/lambdas/python/staff-users \
+    compact-connect/lambdas/python/common \
+    multi-account
     do
     (
       cd "$dir"
