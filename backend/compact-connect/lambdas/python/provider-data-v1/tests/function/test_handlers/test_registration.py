@@ -10,12 +10,13 @@ TEST_COMPACT = 'aslp'
 TEST_LICENSE_TYPE = 'speech and language pathologist'
 
 MOCK_SSN_LAST_FOUR = '1234'
-MOCK_GIVEN_NAME = "Joe"
-MOCK_FAMILY_NAME = "Dokes"
+MOCK_GIVEN_NAME = 'Joe'
+MOCK_FAMILY_NAME = 'Dokes'
 MOCK_STATE = 'ky'
 MOCK_DOB = '1990-01-01'
 # this is the provider id defined in the test resource files
 MOCK_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
+
 
 def generate_test_request():
     return {
@@ -30,13 +31,13 @@ def generate_test_request():
         'licenseType': TEST_LICENSE_TYPE,
     }
 
+
 @mock_aws
 class TestProviderRegistration(TstFunction):
-
     def _add_mock_provider_records(self, *, is_registered=False, license_data_overrides=None):
         """
         Adds mock provider and license records to the provider table with customizable data.
-        
+
         Args:
             is_registered (bool): Whether the provider should be marked as registered
             license_data_overrides (dict): Optional overrides for the license data
@@ -52,16 +53,18 @@ class TestProviderRegistration(TstFunction):
 
         with open('../common/tests/resources/dynamo/license.json') as f:
             license_data = json.load(f)
-            license_data.update({
-                'ssnLastFour': MOCK_SSN_LAST_FOUR,
-                'dateOfBirth': MOCK_DOB,
-                'licenseType': TEST_LICENSE_TYPE,
-                'givenName': MOCK_GIVEN_NAME,
-                'familyName': MOCK_FAMILY_NAME,
-                'jurisdiction': MOCK_STATE,
-                'compact': TEST_COMPACT,
-                'providerId': MOCK_PROVIDER_ID
-            })
+            license_data.update(
+                {
+                    'ssnLastFour': MOCK_SSN_LAST_FOUR,
+                    'dateOfBirth': MOCK_DOB,
+                    'licenseType': TEST_LICENSE_TYPE,
+                    'givenName': MOCK_GIVEN_NAME,
+                    'familyName': MOCK_FAMILY_NAME,
+                    'jurisdiction': MOCK_STATE,
+                    'compact': TEST_COMPACT,
+                    'providerId': MOCK_PROVIDER_ID,
+                }
+            )
             if license_data_overrides:
                 license_data.update(license_data_overrides)
             license_schema = LicenseRecordSchema()
@@ -69,11 +72,10 @@ class TestProviderRegistration(TstFunction):
             self.config.provider_table.put_item(Item=serialized_record)
         return provider_data, license_data
 
-
     def get_api_event(self):
         with open('../common/tests/resources/api-event.json') as f:
             return json.load(f)
-        
+
     def _get_test_event(self, body_overrides=None):
         """Helper to get a test event with optional body overrides."""
         event = self.get_api_event()
@@ -82,7 +84,6 @@ class TestProviderRegistration(TstFunction):
             body.update(body_overrides)
         event['body'] = json.dumps(body)
         return event
-
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_403_if_recaptcha_fails(self, mock_verify_recaptcha):
@@ -100,17 +101,19 @@ class TestProviderRegistration(TstFunction):
 
         response = register_provider(self._get_test_event(), self.mock_context)
         self.assertEqual(200, response['statusCode'])
-        self.assertEqual({"message": "request processed"}, json.loads(response['body']))
+        self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_200_if_no_matching_license_found(self, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
-        self._add_mock_provider_records(license_data_overrides={'ssnLastFour': '9876', 'ssn': "123-12-9876"})  # Different SSN
+        self._add_mock_provider_records(
+            license_data_overrides={'ssnLastFour': '9876', 'ssn': '123-12-9876'}
+        )  # Different SSN
         from handlers.registration import register_provider
 
         response = register_provider(self._get_test_event(), self.mock_context)
         self.assertEqual(200, response['statusCode'])
-        self.assertEqual({"message": "request processed"}, json.loads(response['body']))
+        self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_200_if_provider_already_registered(self, mock_verify_recaptcha):
@@ -120,7 +123,7 @@ class TestProviderRegistration(TstFunction):
 
         response = register_provider(self._get_test_event(), self.mock_context)
         self.assertEqual(200, response['statusCode'])
-        self.assertEqual({"message": "request processed"}, json.loads(response['body']))
+        self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
 
     @patch('handlers.registration.verify_recaptcha')
     @patch('cc_common.config._Config.cognito_client')
@@ -130,10 +133,10 @@ class TestProviderRegistration(TstFunction):
         from handlers.registration import register_provider
 
         response = register_provider(self._get_test_event(), self.mock_context)
-        
+
         self.assertEqual(200, response['statusCode'])
-        self.assertEqual({"message": "request processed"}, json.loads(response['body']))
-        
+        self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
+
         # Verify Cognito user was created with correct attributes
         mock_cognito.admin_create_user.assert_called_once_with(
             UserPoolId=self.config.user_pool_id,
@@ -143,7 +146,7 @@ class TestProviderRegistration(TstFunction):
                 {'Name': 'custom:providerId', 'Value': provider_data['providerId']},
                 {'Name': 'email', 'Value': 'test@example.com'},
                 {'Name': 'email_verified', 'Value': 'true'},
-            ]
+            ],
         )
 
         # Verify provider record was updated
@@ -163,7 +166,7 @@ class TestProviderRegistration(TstFunction):
 
         response = register_provider(self._get_test_event(), self.mock_context)
         self.assertEqual(200, response['statusCode'])
-        self.assertEqual({"message": "request processed"}, json.loads(response['body']))
+        self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_200_if_license_type_does_not_match(self, mock_verify_recaptcha):
@@ -173,7 +176,7 @@ class TestProviderRegistration(TstFunction):
 
         response = register_provider(self._get_test_event(), self.mock_context)
         self.assertEqual(200, response['statusCode'])
-        self.assertEqual({"message": "request processed"}, json.loads(response['body']))
+        self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_raises_exception_if_multiple_matching_records(self, mock_verify_recaptcha):

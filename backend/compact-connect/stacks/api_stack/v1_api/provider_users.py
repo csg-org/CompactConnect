@@ -5,10 +5,10 @@ import os
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource
 from aws_cdk.aws_kms import IKey
+from aws_cdk.aws_secretsmanager import Secret
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
-from aws_cdk.aws_secretsmanager import Secret
 
 from stacks import persistent_stack as ps
 
@@ -227,7 +227,7 @@ class ProviderUsers:
             ],
         )
 
-        registation_method = self.provider_users_registration_resource.add_method(
+        registration_method = self.provider_users_registration_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
             request_models={'application/json': self.api_model.provider_registration_request_model},
@@ -242,17 +242,17 @@ class ProviderUsers:
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
-            path=f'{registation_method.node.path}',
+            path=f'{registration_method.node.path}',
             suppressions=[
                 {
                     'id': 'AwsSolutions-APIG4',
-                    'reason': 'This is a public registration endpoint that needs to be accessible without authorization',
+                    'reason': 'This is a public registration endpoint that needs to be accessible without '
+                    'authorization',
                 },
                 {
                     'id': 'AwsSolutions-COG4',
-                    'reason': 'This is a public registration endpoint that needs to be accessible without Cognito authorization',
+                    'reason': 'This is a public registration endpoint that needs to be accessible without Cognito '
+                    'authorization',
                 },
             ],
         )
-
-

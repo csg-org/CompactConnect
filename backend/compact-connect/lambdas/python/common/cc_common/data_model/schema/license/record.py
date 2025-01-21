@@ -36,8 +36,8 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
-    # partial SSN for matching
-    # TODO - this will become required once we update all provider and license records to
+    # partial SSN for matching license records when users register
+    # TODO - this will become required once we update all provider and license records to   # noqa: FIX002
     #  replace full ssn with partial ssn
     ssnLastFour = String(required=False, allow_none=False)
     # Provided fields
@@ -55,7 +55,7 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
         in_data['licenseGSIPK'] = f'C#{in_data['compact'].lower()}#J#{in_data['jurisdiction'].lower()}'
         in_data['licenseGSISK'] = f'FN#{in_data['familyName'].lower()}#GN#{in_data['givenName'].lower()}'
         # Add last four of SSN for matching
-        # TODO - this will be removed once we complete the work to remove the full ssn field
+        # TODO - this will be removed once we complete the work to remove the full ssn field  # noqa: FIX002
         in_data['ssnLastFour'] = in_data['ssn'][-4:]
         return in_data
 

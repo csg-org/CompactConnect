@@ -18,7 +18,7 @@ from cc_common.data_model.schema.military_affiliation import (
 )
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
-from cc_common.exceptions import CCAwsServiceException, CCNotFoundException, CCInternalException
+from cc_common.exceptions import CCAwsServiceException, CCInternalException, CCNotFoundException
 
 
 class DataClient:
@@ -83,8 +83,8 @@ class DataClient:
             resp = self.config.provider_table.query(
                 IndexName=self.config.license_gsi_name,
                 KeyConditionExpression=(
-                    Key('licenseGSIPK').eq(f'C#{compact.lower()}#J#{state.lower()}') &
-                    Key('licenseGSISK').eq(f'FN#{family_name.lower()}#GN#{given_name.lower()}')
+                    Key('licenseGSIPK').eq(f'C#{compact.lower()}#J#{state.lower()}')
+                    & Key('licenseGSISK').eq(f'FN#{family_name.lower()}#GN#{given_name.lower()}')
                 ),
             )
             return resp.get('Items', [])
@@ -93,20 +93,16 @@ class DataClient:
             raise CCAwsServiceException('Failed to query license records') from e
 
     def find_matching_license_record(
-        self, 
-        records: list[dict], 
-        *, 
-        partial_ssn: str, 
-        dob: str, 
-        license_type: str
+        self, records: list[dict], *, partial_ssn: str, dob: str, license_type: str
     ) -> dict | None:
         """Find a license record matching the given criteria."""
         matching_records = [
-            record for record in records
+            record
+            for record in records
             if (
-                record.get('ssnLastFour') == partial_ssn and
-                record['dateOfBirth'] == dob and
-                record.get('licenseType') == license_type
+                record.get('ssnLastFour') == partial_ssn
+                and record['dateOfBirth'] == dob
+                and record.get('licenseType') == license_type
             )
         ]
 

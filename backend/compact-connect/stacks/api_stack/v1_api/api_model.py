@@ -1091,27 +1091,36 @@ class ApiModel:
         if hasattr(self.api, '_v1_provider_registration_request_model'):
             return self.api._v1_provider_registration_request_model
 
-        stack: AppStack = AppStack.of(self.api)
         self.api._v1_provider_registration_request_model = self.api.add_model(
             'V1ProviderRegistrationRequestModel',
             description='Provider registration request model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['givenName', 'familyName', 'email', 'partialSocial', 'dob', 'state', 'licenseType', 'compact', 'token'],
+                required=[
+                    'givenName',
+                    'familyName',
+                    'email',
+                    'partialSocial',
+                    'dob',
+                    'state',
+                    'licenseType',
+                    'compact',
+                    'token',
+                ],
                 properties={
                     'givenName': JsonSchema(
                         type=JsonSchemaType.STRING,
-                        description='Provider\'s given name',
+                        description="Provider's given name",
                         max_length=200,
                     ),
                     'familyName': JsonSchema(
                         type=JsonSchemaType.STRING,
-                        description='Provider\'s family name',
+                        description="Provider's family name",
                         max_length=200,
                     ),
                     'email': JsonSchema(
                         type=JsonSchemaType.STRING,
-                        description='Provider\'s email address',
+                        description="Provider's email address",
                         max_length=100,
                     ),
                     'partialSocial': JsonSchema(
@@ -1123,13 +1132,14 @@ class ApiModel:
                     'dob': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='Date of birth in YYYY-MM-DD format',
-                        pattern='^\d{4}-\d{2}-\d{2}$',
+                        pattern=r'^\d{4}-\d{2}-\d{2}$',
                     ),
                     'state': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='Two-letter state code',
                         min_length=2,
                         max_length=2,
+                        enum=self.api.node.get_context('jurisdictions'),
                     ),
                     'licenseType': JsonSchema(
                         type=JsonSchemaType.STRING,
@@ -1139,6 +1149,9 @@ class ApiModel:
                     'compact': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='Compact name',
+                        # note that here we do not specify the enum with the list of compacts
+                        # this is intentional as we do not want the api to return this list
+                        # from the registration endpoint.
                         max_length=100,
                     ),
                     'token': JsonSchema(

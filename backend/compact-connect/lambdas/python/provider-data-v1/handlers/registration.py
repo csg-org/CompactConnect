@@ -2,13 +2,14 @@ import json
 
 import requests
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from botocore.exceptions import ClientError
 from cc_common.config import config, logger
 from cc_common.exceptions import CCAccessDeniedException, CCInternalException
 from cc_common.utils import api_handler
-from botocore.exceptions import ClientError
 
 # Module level variable for caching
 _RECAPTCHA_SECRET = None
+
 
 def get_recaptcha_secret() -> str:
     """Get the reCAPTCHA secret from Secrets Manager with module-level caching."""
@@ -26,6 +27,7 @@ def get_recaptcha_secret() -> str:
             raise CCInternalException('Failed to load reCAPTCHA secret') from e
     return _RECAPTCHA_SECRET
 
+
 def verify_recaptcha(token: str) -> bool:
     """Verify the reCAPTCHA token with Google's API."""
     try:
@@ -42,6 +44,7 @@ def verify_recaptcha(token: str) -> bool:
         logger.error('Failed to verify reCAPTCHA token', error=str(e))
         return False
 
+
 @api_handler
 def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Endpoint for a practitioner to register an account with the system.
@@ -50,7 +53,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     :param LambdaContext context:
     """
     body = json.loads(event['body'])
-    
+
     # Verify reCAPTCHA token
     if not verify_recaptcha(body['token']):
         logger.info('Invalid reCAPTCHA token', token=body['token'])
@@ -66,7 +69,13 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
 
     if not license_records:
         # log the minimal request data
-        logger.info('No license records found for request', compact=body['compact'], state=body['state'], given_name=body['givenName'], license_type=body['licenseType'])
+        logger.info(
+            'No license records found for request',
+            compact=body['compact'],
+            state=body['state'],
+            given_name=body['givenName'],
+            license_type=body['licenseType'],
+        )
         return {'message': 'request processed'}
 
     # Find matching license record
@@ -78,7 +87,13 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     )
 
     if not matching_record:
-        logger.info('No matching license record found for request', compact=body['compact'], state=body['state'], given_name=body['givenName'], license_type=body['licenseType'])
+        logger.info(
+            'No matching license record found for request',
+            compact=body['compact'],
+            state=body['state'],
+            given_name=body['givenName'],
+            license_type=body['licenseType'],
+        )
         return {'message': 'request processed'}
 
     # Get provider record
@@ -89,7 +104,9 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
 
     # Check if already registered
     if provider_record.get('isRegistered', False):
-        logger.warning('Provider already registered', compact=body['compact'], provider_id=matching_record['providerId'])
+        logger.warning(
+            'Provider already registered', compact=body['compact'], provider_id=matching_record['providerId']
+        )
         return {'message': 'request processed'}
 
     # Create Cognito user
@@ -102,7 +119,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
                 {'Name': 'custom:providerId', 'Value': matching_record['providerId']},
                 {'Name': 'email', 'Value': body['email']},
                 {'Name': 'email_verified', 'Value': 'true'},
-            ]
+            ],
         )
     except Exception as e:
         logger.error('Failed to create Cognito user', error=str(e))

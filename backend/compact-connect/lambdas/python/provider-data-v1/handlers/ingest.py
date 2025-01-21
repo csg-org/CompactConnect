@@ -123,7 +123,15 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
         if key not in existing_license.keys() or value != existing_license[key]
     }
     # If any fields are missing from the new license, other than ones we add later, we'll consider them removed
-    removed_values = (existing_license.keys() - new_license.keys()) - {'type', 'providerId', 'status', 'dateOfUpdate', 'licenseGSIPK', 'licenseGSISK','ssnLastFour' }
+    removed_values = (existing_license.keys() - new_license.keys()) - {
+        'type',
+        'providerId',
+        'status',
+        'dateOfUpdate',
+        'licenseGSIPK',
+        'licenseGSISK',
+        'ssnLastFour',
+    }
     if not updated_values and not removed_values:
         return
     # Categorize the update
