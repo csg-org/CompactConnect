@@ -81,7 +81,7 @@ def _post_provider_military_affiliation(event, context):  # noqa: ARG001 unused-
     # verify all files use supported file extensions
     for file_name in file_names:
         file_name_without_extension, file_extension = file_name.rsplit('.', 1)
-        if file_extension not in SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS:
+        if file_extension.lower() not in [ext.lower() for ext in SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS]:
             raise CCInvalidRequestException(
                 f'Invalid file type "{file_extension}" The following file types '
                 f'are supported: {SUPPORTED_MILITARY_AFFILIATION_FILE_EXTENSIONS}'
@@ -89,7 +89,7 @@ def _post_provider_military_affiliation(event, context):  # noqa: ARG001 unused-
 
         # generate a UUID for the document key, which includes a random UUID followed by the filename
         # and the file extension
-        document_uuid = f'{uuid.uuid4()}#{file_name_without_extension}.{file_extension}'
+        document_uuid = f'{uuid.uuid4()}#{file_name_without_extension}.{file_extension.lower()}'
         document_key = s3_document_prefix + document_uuid
         document_keys.append(document_key)
 

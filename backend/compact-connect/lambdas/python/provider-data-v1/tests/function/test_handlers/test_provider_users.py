@@ -148,6 +148,24 @@ class TestPostProviderMilitaryAffiliation(TstFunction):
             military_affiliation_data,
         )
 
+    @patch('handlers.provider_users.uuid')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-12-04T08:08:08+00:00'))
+    def test_post_provider_military_affiliation_handles_file_with_uppercase_extension(self, mock_uuid):
+        from handlers.provider_users import provider_user_me_military_affiliation
+
+        mock_uuid.uuid4.return_value = '1234'
+
+        event = self._when_testing_post_provider_user_military_affiliation_event_with_custom_claims()
+        event['body'] = json.dumps(
+            {
+                'fileNames': [MOCK_MILITARY_AFFILIATION_FILE_NAME.upper()],
+                'affiliationType': 'militaryMember',
+            }
+        )
+
+        resp = provider_user_me_military_affiliation(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+
     def test_post_provider_military_affiliation_sets_previous_record_status_to_inactive(self):
         from handlers.provider_users import provider_user_me_military_affiliation
 
