@@ -126,6 +126,20 @@ class TestClient(TstFunction):
         sorted_family_names = sorted(family_names)
         self.assertEqual(sorted_family_names, family_names)
 
+    def test_update_user_permissions_not_found(self):
+        from cc_common.data_model.user_client import UserClient
+        from cc_common.exceptions import CCNotFoundException
+
+        client = UserClient(self.config)
+
+        with self.assertRaises(CCNotFoundException):
+            client.update_user_permissions(
+                compact='aslp',
+                user_id='does-not-exist',
+                jurisdiction_action_additions={'oh': {'admin'}},
+                jurisdiction_action_removals={'oh': {'write'}},
+            )
+
     def test_update_user_permissions_jurisdiction_actions(self):
         user_id = UUID(self._load_user_data())
 
@@ -234,6 +248,18 @@ class TestClient(TstFunction):
         self.assertEqual({'givenName': 'Bob', 'familyName': 'Smith', 'email': 'justin@example.org'}, user['attributes'])
         # Checking that we're getting the whole object, not just changes
         self.assertFalse({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - user.keys())
+
+    def test_update_user_attributes_not_found(self):
+        from cc_common.data_model.user_client import UserClient
+        from cc_common.exceptions import CCNotFoundException
+
+        client = UserClient(self.config)
+
+        with self.assertRaises(CCNotFoundException):
+            client.update_user_attributes(
+                user_id='does-not-exist',
+                attributes={'givenName': 'Bob', 'familyName': 'Smith'},
+            )
 
     def test_create_new_user(self):
         from cc_common.data_model.user_client import UserClient

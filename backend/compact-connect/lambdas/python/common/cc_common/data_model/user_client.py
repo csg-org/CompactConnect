@@ -170,13 +170,19 @@ class UserClient:
         if update_expression_parts:
             update_expression = 'ADD ' + ', '.join(update_expression_parts)
 
-            return self.config.users_table.update_item(
-                Key={'pk': f'USER#{user_id}', 'sk': f'COMPACT#{compact}'},
-                UpdateExpression=update_expression,
-                ExpressionAttributeNames=expression_attribute_names,
-                ExpressionAttributeValues=expression_attribute_values,
-                ReturnValues='ALL_NEW',
-            )
+            try:
+                return self.config.users_table.update_item(
+                    Key={'pk': f'USER#{user_id}', 'sk': f'COMPACT#{compact}'},
+                    UpdateExpression=update_expression,
+                    ExpressionAttributeNames=expression_attribute_names,
+                    ExpressionAttributeValues=expression_attribute_values,
+                    ReturnValues='ALL_NEW',
+                )
+            except ClientError as e:
+                if e.response['Error']['Code'] == 'ValidationException':
+                    # This error occurs when the document path is invalid, which happens when the user doesn't exist
+                    raise CCNotFoundException('User not found') from e
+                raise
 
         return None
 
