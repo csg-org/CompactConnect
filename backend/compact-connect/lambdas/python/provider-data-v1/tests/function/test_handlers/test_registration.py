@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 from unittest.mock import patch
 
@@ -39,16 +40,15 @@ class TestProviderRegistration(TstFunction):
         Adds mock provider and license records to the provider table with customizable data.
 
         Args:
-            is_registered (bool): Whether the provider should be marked as registered
+            is_registered (bool): Whether the provider should be marked as registered by adding a home jurisdiction record
             license_data_overrides (dict): Optional overrides for the license data
         """
         from cc_common.data_model.schema.license.record import LicenseRecordSchema
+        from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
 
         with open('../common/tests/resources/dynamo/provider.json') as f:
             provider_data = json.load(f)
             provider_data['providerId'] = MOCK_PROVIDER_ID
-            if is_registered:
-                provider_data['isRegistered'] = True
             self.config.provider_table.put_item(Item=provider_data)
 
         with open('../common/tests/resources/dynamo/license.json') as f:
@@ -70,6 +70,20 @@ class TestProviderRegistration(TstFunction):
             license_schema = LicenseRecordSchema()
             serialized_record = license_schema.dump(license_schema.loads(json.dumps(license_data)))
             self.config.provider_table.put_item(Item=serialized_record)
+
+        if is_registered:
+            home_jurisdiction_schema = ProviderHomeJurisdictionSelectionRecordSchema()
+            home_jurisdiction_record = {
+                'type': 'homeJurisdictionSelection',
+                'compact': TEST_COMPACT,
+                'providerId': MOCK_PROVIDER_ID,
+                'jurisdiction': MOCK_STATE,
+                'dateOfSelection': datetime.fromisoformat('2024-01-01T00:00:00Z'),
+                'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00Z'),
+            }
+            serialized_record = home_jurisdiction_schema.dump(home_jurisdiction_record)
+            self.config.provider_table.put_item(Item=serialized_record)
+
         return provider_data, license_data
 
     def get_api_event(self):
@@ -116,7 +130,8 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
 
     @patch('handlers.registration.verify_recaptcha')
-    def test_registration_returns_200_if_provider_already_registered(self, mock_verify_recaptcha):
+    @patch('cc_common.config._Config.cognito_client')
+    def test_registration_returns_200_if_provider_already_registered(self, mock_cognito, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         self._add_mock_provider_records(is_registered=True)
         from handlers.registration import register_provider
@@ -124,10 +139,12 @@ class TestProviderRegistration(TstFunction):
         response = register_provider(self._get_test_event(), self.mock_context)
         self.assertEqual(200, response['statusCode'])
         self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
+        mock_cognito.admin_create_user.assert_not_called()
+
 
     @patch('handlers.registration.verify_recaptcha')
     @patch('cc_common.config._Config.cognito_client')
-    def test_registration_creates_cognito_user_and_updates_provider(self, mock_cognito, mock_verify_recaptcha):
+    def test_registration_creates_cognito_user(self, mock_cognito, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         provider_data, license_data = self._add_mock_provider_records()
         from handlers.registration import register_provider
@@ -149,14 +166,19 @@ class TestProviderRegistration(TstFunction):
             ],
         )
 
-        # Verify provider record was updated
-        updated_provider = self.config.provider_table.get_item(
+        # Verify home jurisdiction selection record was created
+        home_jurisdiction = self.config.provider_table.get_item(
             Key={
                 'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data['providerId']}',
-                'sk': f'{TEST_COMPACT}#PROVIDER',
+                'sk': f'{TEST_COMPACT}#PROVIDER#home-jurisdiction#',
             }
         )['Item']
-        self.assertTrue(updated_provider['isRegistered'])
+        self.assertEqual('homeJurisdictionSelection', home_jurisdiction['type'])
+        self.assertEqual(TEST_COMPACT, home_jurisdiction['compact'])
+        self.assertEqual(provider_data['providerId'], home_jurisdiction['providerId'])
+        self.assertEqual(MOCK_STATE, home_jurisdiction['jurisdiction'])
+        self.assertIsNotNone(home_jurisdiction['dateOfSelection'])
+        self.assertIsNotNone(home_jurisdiction['dateOfUpdate'])
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_200_if_dob_does_not_match(self, mock_verify_recaptcha):

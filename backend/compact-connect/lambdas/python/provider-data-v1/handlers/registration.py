@@ -4,7 +4,7 @@ import requests
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from cc_common.config import config, logger
-from cc_common.exceptions import CCAccessDeniedException, CCInternalException
+from cc_common.exceptions import CCAccessDeniedException, CCInternalException, CCAwsServiceException
 from cc_common.utils import api_handler
 
 # Module level variable for caching
@@ -60,12 +60,16 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         raise CCAccessDeniedException('Invalid request')
 
     # Query license records
-    license_records = config.data_client.query_license_records(
-        compact=body['compact'],
-        state=body['state'],
-        family_name=body['familyName'],
-        given_name=body['givenName'],
-    )
+    try:
+        license_records = config.data_client.query_license_records(
+            compact=body['compact'],
+            state=body['state'],
+            family_name=body['familyName'],
+            given_name=body['givenName'],
+        )
+    except Exception as e:
+        logger.error('Failed to query license records', error=str(e))
+        raise CCAwsServiceException('Failed to query license records') from e
 
     if not license_records:
         # log the minimal request data
@@ -96,14 +100,14 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         )
         return {'message': 'request processed'}
 
-    # Get provider record
-    provider_record = config.data_client.get_provider_record(
+    # Check if already registered by looking for home jurisdiction record
+    # this is only created if the provider has registered previously
+    home_jurisdiction = config.data_client.get_provider_home_jurisdiction_selection(
         compact=body['compact'],
         provider_id=matching_record['providerId'],
     )
 
-    # Check if already registered
-    if provider_record.get('isRegistered', False):
+    if home_jurisdiction:
         logger.warning(
             'Provider already registered', compact=body['compact'], provider_id=matching_record['providerId']
         )
@@ -125,10 +129,11 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         logger.error('Failed to create Cognito user', error=str(e))
         raise CCInternalException('Failed to create user account') from e
 
-    # Update provider record
-    config.data_client.update_provider_registration(
+    # Create home jurisdiction selection record
+    config.data_client.create_home_jurisdiction_selection(
         compact=body['compact'],
         provider_id=matching_record['providerId'],
+        jurisdiction=body['state'],
     )
 
     return {'message': 'request processed'}

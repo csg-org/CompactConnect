@@ -18,6 +18,7 @@ from cc_common.data_model.schema.military_affiliation import (
 )
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
+from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
 from cc_common.exceptions import CCAwsServiceException, CCInternalException, CCNotFoundException
 
 
@@ -42,6 +43,30 @@ class DataClient:
 
         return resp['providerId']
 
+    def get_provider_home_jurisdiction_selection(self, *, compact: str, provider_id: str) -> dict | None:
+        """Get the home jurisdiction selection record for a provider.
+
+        Args:
+            compact: The compact name
+            provider_id: The provider ID
+
+        Returns:
+            The home jurisdiction record if found, None otherwise
+        """
+        logger.info('Getting home jurisdiction selection record', provider_id=provider_id, compact=compact)
+        try:
+            resp = self.config.provider_table.get_item(
+                Key={
+                    'pk': f'{compact}#PROVIDER#{provider_id}',
+                    'sk': f'{compact}#PROVIDER#home-jurisdiction#',
+                },
+                ConsistentRead=True,
+            )
+            return resp.get('Item')
+        except ClientError as e:
+            logger.error('Failed to get home jurisdiction selection record', error=str(e))
+            raise CCAwsServiceException('Failed to get home jurisdiction selection record') from e
+
     def get_provider_record(self, *, compact: str, provider_id: str) -> dict:
         """Get just the provider record itself."""
         logger.info('Getting provider record', provider_id=provider_id)
@@ -58,22 +83,6 @@ class DataClient:
             raise CCNotFoundException('No provider found by that identifier') from e
 
         return resp
-
-    def update_provider_registration(self, *, compact: str, provider_id: str):
-        """Update the provider record to mark it as registered."""
-        logger.info('Updating provider registration status', provider_id=provider_id)
-        try:
-            self.config.provider_table.update_item(
-                Key={
-                    'pk': f'{compact}#PROVIDER#{provider_id}',
-                    'sk': f'{compact}#PROVIDER',
-                },
-                UpdateExpression='SET isRegistered = :registered',
-                ExpressionAttributeValues={':registered': True},
-            )
-        except ClientError as e:
-            logger.error('Failed to update provider registration status', error=str(e))
-            raise CCAwsServiceException('Failed to update provider registration status') from e
 
     def query_license_records(self, *, compact: str, state: str, family_name: str, given_name: str) -> list[dict]:
         """Query license records using the license GSI."""
@@ -683,3 +692,33 @@ class DataClient:
                 logger.error('Failed to fetch all provider records', unprocessed_keys=response['UnprocessedKeys'])
 
         return providers
+
+    def create_home_jurisdiction_selection(self, *, compact: str, provider_id: str, jurisdiction: str):
+        """Create a home jurisdiction selection record for a provider.
+
+        Args:
+            compact: The compact name
+            provider_id: The provider ID
+            jurisdiction: The jurisdiction postal code
+        """
+        logger.info('Creating home jurisdiction selection record',
+                    provider_id=provider_id,
+                    compact=compact,
+                    jurisdiction=jurisdiction)
+        try:
+            record = {
+                'type': 'homeJurisdictionSelection',
+                'compact': compact,
+                'providerId': provider_id,
+                'jurisdiction': jurisdiction,
+                'dateOfSelection': self.config.current_standard_datetime,
+                'dateOfUpdate': self.config.current_standard_datetime,
+            }
+
+            schema = ProviderHomeJurisdictionSelectionRecordSchema()
+            serialized_record = schema.dump(record)
+
+            self.config.provider_table.put_item(Item=serialized_record)
+        except ClientError as e:
+            logger.error('Failed to create home jurisdiction selection record', error=str(e))
+            raise CCAwsServiceException('Failed to create home jurisdiction selection record') from e
