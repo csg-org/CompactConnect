@@ -1,0 +1,22 @@
+{
+  "pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "sk": "aslp#PROVIDER#privilege/ne#UPDATE#1735232821/1a812bc8f",
+  "type": "privilegeUpdate",
+  "updateType": "renewal",
+  "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+  "compact": "aslp",
+  "jurisdiction": "ne",
+  "dateOfUpdate": "2020-05-05T12:59:59+00:00",
+  "previous": {
+    "dateOfIssuance": "2016-05-05T12:59:59+00:00",
+    "dateOfRenewal": "2016-05-05T12:59:59+00:00",
+    "dateOfExpiration": "2020-06-06",
+    "dateOfUpdate": "2016-05-05T12:59:59+00:00",
+    "compactTransactionId": "0123456789"
+  },
+  "updatedValues": {
+    "dateOfRenewal": "2020-05-05T12:59:59+00:00",
+    "dateOfExpiration": "2025-04-04",
+    "compactTransactionId": "1234567890"
+  }
+}

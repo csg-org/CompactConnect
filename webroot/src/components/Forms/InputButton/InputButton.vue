@@ -10,6 +10,7 @@
         <input
             type="button"
             :id="id"
+            ref="button"
             class="input-button"
             :class="{
                 'no-text-transform': !shouldTransformText,

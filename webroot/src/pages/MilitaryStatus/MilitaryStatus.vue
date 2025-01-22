@@ -99,6 +99,7 @@
                         <div class="action-button-row">
                             <InputButton
                                 id="no-back-button"
+                                ref="noBackButton"
                                 class="no-back-button"
                                 :label="backText"
                                 :aria-label="backText"

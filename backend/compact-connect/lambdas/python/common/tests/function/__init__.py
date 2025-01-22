@@ -1,6 +1,8 @@
 import json
 import logging
 import os
+from decimal import Decimal
+from glob import glob
 
 import boto3
 from boto3.dynamodb.types import TypeDeserializer
@@ -26,30 +28,21 @@ class TstFunction(TstLambdas):
 
         self.addCleanup(self.delete_resources)
 
+        import cc_common.config
+
+        cc_common.config.config = cc_common.config._Config()  # noqa: SLF001 protected-access
+        self.config = cc_common.config.config
+
     def build_resources(self):
-        self._table = boto3.resource('dynamodb').create_table(
-            AttributeDefinitions=[
-                {'AttributeName': 'pk', 'AttributeType': 'S'},
-                {'AttributeName': 'sk', 'AttributeType': 'S'},
-                {'AttributeName': 'famGiv', 'AttributeType': 'S'},
-            ],
-            TableName=self.config.users_table_name,
-            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
-            BillingMode='PAY_PER_REQUEST',
-            GlobalSecondaryIndexes=[
-                {
-                    'IndexName': os.environ['FAM_GIV_INDEX_NAME'],
-                    'KeySchema': [
-                        {'AttributeName': 'sk', 'KeyType': 'HASH'},
-                        {'AttributeName': 'famGiv', 'KeyType': 'RANGE'},
-                    ],
-                    'Projection': {'ProjectionType': 'ALL'},
-                },
-            ],
-        )
+        self.create_compact_configuration_table()
+        self.create_provider_table()
+        self.create_users_table()
+
         # Adding a waiter allows for testing against an actual AWS account, if needed
-        waiter = self._table.meta.client.get_waiter('table_exists')
-        waiter.wait(TableName=self._table.name)
+        waiter = self._compact_configuration_table.meta.client.get_waiter('table_exists')
+        waiter.wait(TableName=self._compact_configuration_table.name)
+        waiter.wait(TableName=self._provider_table.name)
+        waiter.wait(TableName=self._users_table.name)
 
         # Create a new Cognito user pool
         cognito_client = boto3.client('cognito-idp')
@@ -62,13 +55,139 @@ class TstFunction(TstLambdas):
         os.environ['USER_POOL_ID'] = user_pool_response['UserPool']['Id']
         self._user_pool_id = user_pool_response['UserPool']['Id']
 
+    def create_compact_configuration_table(self):
+        self._compact_configuration_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['COMPACT_CONFIGURATION_TABLE_NAME'],
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+        )
+
+    def create_users_table(self):
+        self._users_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+                {'AttributeName': 'famGiv', 'AttributeType': 'RANGE'},
+            ],
+            TableName=os.environ['USERS_TABLE_NAME'],
+            GlobalSecondaryIndexes=[
+                {
+                    'IndexName': os.environ['FAM_GIV_INDEX_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'sk', 'KeyType': 'HASH'},
+                        {'AttributeName': 'famGiv', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+            ],
+            KeySchema=[
+                {'AttributeName': 'pk', 'KeyType': 'HASH'},
+                {'AttributeName': 'sk', 'KeyType': 'RANGE'},
+            ],
+            BillingMode='PAY_PER_REQUEST',
+        )
+
+    def create_provider_table(self):
+        self._provider_table = boto3.resource('dynamodb').create_table(
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+                {'AttributeName': 'providerFamGivMid', 'AttributeType': 'S'},
+                {'AttributeName': 'providerDateOfUpdate', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['PROVIDER_TABLE_NAME'],
+            GlobalSecondaryIndexes=[
+                {
+                    'IndexName': os.environ['PROV_FAM_GIV_MID_INDEX_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'sk', 'KeyType': 'HASH'},
+                        {'AttributeName': 'providerFamGivMid', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+                {
+                    'IndexName': os.environ['PROV_DATE_OF_UPDATE_INDEX_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'sk', 'KeyType': 'HASH'},
+                        {'AttributeName': 'providerDateOfUpdate', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+            ],
+        )
+
     def delete_resources(self):
-        self._table.delete()
-        waiter = self._table.meta.client.get_waiter('table_not_exists')
-        waiter.wait(TableName=self._table.name)
+        self._compact_configuration_table.delete()
+        self._provider_table.delete()
+        self._users_table.delete()
+
+        waiter = self._users_table.meta.client.get_waiter('table_not_exists')
+        waiter.wait(TableName=self._compact_configuration_table.name)
+        waiter.wait(TableName=self._provider_table.name)
+        waiter.wait(TableName=self._users_table.name)
+
         # Delete the Cognito user pool
         cognito_client = boto3.client('cognito-idp')
         cognito_client.delete_user_pool(UserPoolId=self._user_pool_id)
+
+    def _load_compact_configuration_data(self):
+        """Use the canned test resources to load compact and jurisdiction information into the DB"""
+        test_resources = [
+            'tests/resources/dynamo/compact.json',
+            'tests/resources/dynamo/jurisdiction.json',
+        ]
+
+        for resource in test_resources:
+            with open(resource) as f:
+                record = json.load(f, parse_float=Decimal)
+
+            logger.debug('Loading resource, %s: %s', resource, str(record))
+            # compact and jurisdiction records go in the compact configuration table
+            self._compact_configuration_table.put_item(Item=record)
+
+    def _load_provider_data(self):
+        """Use the canned test resources to load a basic provider to the DB"""
+        test_resources = glob('../common/tests/resources/dynamo/provider.json')
+
+        def privilege_jurisdictions_to_set(obj: dict):
+            if obj.get('type') == 'provider' and 'privilegeJurisdictions' in obj:
+                obj['privilegeJurisdictions'] = set(obj['privilegeJurisdictions'])
+            return obj
+
+        for resource in test_resources:
+            with open(resource) as f:
+                record = json.load(f, object_hook=privilege_jurisdictions_to_set, parse_float=Decimal)
+
+            logger.debug('Loading resource, %s: %s', resource, str(record))
+            self._provider_table.put_item(Item=record)
+
+    def _load_license_data(self, status: str = 'active', expiration_date: str = None):
+        """Use the canned test resources to load a basic provider to the DB"""
+        license_test_resources = ['../common/tests/resources/dynamo/license.json']
+
+        for resource in license_test_resources:
+            with open(resource) as f:
+                record = json.load(f, parse_float=Decimal)
+                record['jurisdictionStatus'] = status
+                if expiration_date:
+                    record['dateOfExpiration'] = expiration_date
+
+            logger.debug('Loading resource, %s: %s', resource, str(record))
+            self._provider_table.put_item(Item=record)
+
+    def _load_military_affiliation_record_data(self, status: str = 'active'):
+        """Use the canned test resources to load a basic provider to the DB"""
+        with open('../common/tests/resources/dynamo/military-affiliation.json') as f:
+            record = json.load(f, parse_float=Decimal)
+            record['status'] = status
+
+        self._provider_table.put_item(Item=record)
 
     def _load_user_data(self) -> str:
         with open('tests/resources/dynamo/user.json') as f:
@@ -76,7 +195,7 @@ class TstFunction(TstLambdas):
             item = TypeDeserializer().deserialize({'M': json.load(f)})
 
         logger.info('Loading user: %s', item)
-        self._table.put_item(Item=item)
+        self._users_table.put_item(Item=item)
         return item['userId']
 
     def _create_compact_staff_user(self, compacts: list[str]):
@@ -89,7 +208,7 @@ class TstFunction(TstLambdas):
         sub = self._create_cognito_user(email=email)
         for compact in compacts:
             logger.info('Writing compact %s permissions for %s', compact, email)
-            self._table.put_item(
+            self._users_table.put_item(
                 Item=schema.dump(
                     {
                         'userId': sub,
@@ -116,7 +235,7 @@ class TstFunction(TstLambdas):
             sub = self._create_cognito_user(email=email)
             for compact in compacts:
                 logger.info('Writing board %s/%s permissions for %s', compact, jurisdiction, email)
-                self._table.put_item(
+                self._users_table.put_item(
                     Item=schema.dump(
                         {
                             'userId': sub,

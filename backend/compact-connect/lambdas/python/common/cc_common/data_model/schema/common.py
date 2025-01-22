@@ -1,13 +1,14 @@
 # ruff: noqa: N815 invalid-name
-
+import json
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
+from hashlib import md5
 
 from marshmallow import Schema
 from marshmallow.fields import Dict, String, Url
 
 
-class CCEnum(Enum):
+class CCEnum(StrEnum):
     """
     Base class for Compact Connect enums
 
@@ -27,18 +28,6 @@ class S3PresignedPostSchema(Schema):
 
     url = Url(schemes=['https'], required=True, allow_none=False)
     fields = Dict(keys=String(), values=String(), required=True, allow_none=False)
-
-
-class AttestationVersionSchema(Schema):
-    """
-    This schema is intended to be used by any object in the system which needs to track which attestations have been
-    accepted by a user (i.e. when purchasing privileges).
-
-    This schema is intended to be used as a nested field in other schemas.
-    """
-
-    attestationId = String(required=True, allow_none=False)
-    version = String(required=True, allow_none=False)
 
 
 def ensure_value_is_datetime(value: str):
@@ -71,3 +60,44 @@ def ensure_value_is_datetime(value: str):
 
     # Not a date string, return the original
     return value
+
+
+class UpdateCategory(CCEnum):
+    RENEWAL = 'renewal'
+    DEACTIVATION = 'deactivation'
+    OTHER = 'other'
+
+
+class Status(CCEnum):
+    ACTIVE = 'active'
+    INACTIVE = 'inactive'
+
+
+class ChangeHashMixin:
+    """
+    Provides change hash methods for *UpdateRecordSchema
+    """
+
+    @classmethod
+    def hash_changes(cls, in_data) -> str:
+        """
+        Generate a hash of the previous record, updated values, and removed values (if present),
+        to produce a deterministic sort key segment that will be unique among updates to this
+        particular license.
+        """
+        # We don't need a cryptographically secure hash, just one that is reasonably cheap and reasonably unique
+        # Within the scope of a single provider for a single second.
+        change_hash = md5()  # noqa: S324
+
+        # Build a dictionary of all values that contribute to the hash
+        hash_data = {
+            'previous': in_data['previous'],
+            'updatedValues': in_data['updatedValues'],
+        }
+        # Only include removedValues if it exists
+        if 'removedValues' in in_data:
+            hash_data['removedValues'] = sorted(in_data['removedValues'])
+
+        change_hash.update(json.dumps(hash_data, sort_keys=True).encode('utf-8'))
+
+        return change_hash.hexdigest()

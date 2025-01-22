@@ -199,6 +199,12 @@ export default class MilitaryStatus extends mixins(MixinForm) {
 
     startEndAffiliationFlow() {
         this.shouldShowEndAffiliationModal = true;
+        this.$nextTick(() => {
+            const buttonComponent = this.$refs.noBackButton as any;
+            const button = buttonComponent.$refs.button as HTMLElement;
+
+            button.focus();
+        });
     }
 
     closeEndAffilifationModal() {

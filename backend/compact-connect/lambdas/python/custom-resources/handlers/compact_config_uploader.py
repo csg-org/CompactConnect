@@ -5,8 +5,8 @@ from decimal import Decimal
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.attestation import AttestationRecordSchema
-from cc_common.data_model.schema.compact import CompactRecordSchema
-from cc_common.data_model.schema.jurisdiction import JurisdictionRecordSchema
+from cc_common.data_model.schema.compact.record import CompactRecordSchema
+from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
 from cc_common.exceptions import CCNotFoundException
 
 

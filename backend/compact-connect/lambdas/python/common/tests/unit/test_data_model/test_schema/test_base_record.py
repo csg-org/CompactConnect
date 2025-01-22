@@ -5,10 +5,8 @@ from tests import TstLambdas
 
 class TestRegistration(TstLambdas):
     def test_license_privilege_lookup(self):
+        from cc_common.data_model.schema import LicenseRecordSchema, PrivilegeRecordSchema, ProviderRecordSchema
         from cc_common.data_model.schema.base_record import BaseRecordSchema
-        from cc_common.data_model.schema.license import LicenseRecordSchema
-        from cc_common.data_model.schema.privilege import PrivilegeRecordSchema
-        from cc_common.data_model.schema.provider import ProviderRecordSchema
 
         with open('tests/resources/dynamo/privilege.json') as f:
             privilege_data = json.load(f)

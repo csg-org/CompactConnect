@@ -305,6 +305,7 @@ class TstAppABC(ABC):
         self._check_no_stack_annotations(stage.ui_stack)
         self._check_no_stack_annotations(stage.api_stack)
         self._check_no_stack_annotations(stage.ingest_stack)
+        self._check_no_stack_annotations(stage.transaction_monitoring_stack)
         # There is on reporting stack if no hosted zone is configured
         if stage.persistent_stack.hosted_zone:
             self._check_no_stack_annotations(stage.reporting_stack)

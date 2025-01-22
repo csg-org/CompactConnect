@@ -50,7 +50,7 @@ class TestPatchUser(TstFunction):
                 'givenName': 'Test',
             },
             'compact': 'octp',
-            'dateOfUpdate': '2024-10-21',
+            'dateOfUpdate': '2024-09-12T12:34:56+00:00',
             'famGiv': 'User#Test',
             'permissions': {'actions': {'read'}, 'jurisdictions': {'oh': {'admin', 'write'}}},
             'type': 'user',

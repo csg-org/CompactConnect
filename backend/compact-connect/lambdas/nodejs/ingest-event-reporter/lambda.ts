@@ -47,6 +47,7 @@ export class Lambda implements LambdaInterface {
             logger: logger,
             sesClient: props.sesClient,
             compactConfigurationClient: compactConfigurationClient,
+            jurisdictionClient: this.jurisdictionClient
         });
     }
 

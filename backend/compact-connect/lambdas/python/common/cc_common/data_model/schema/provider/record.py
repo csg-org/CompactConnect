@@ -2,22 +2,21 @@
 from urllib.parse import quote
 
 from marshmallow import ValidationError, post_load, pre_dump, pre_load, validates_schema
-from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, List, Nested, String
-from marshmallow.validate import Length, OneOf, Regexp
+from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, String
+from marshmallow.validate import Length, Regexp
 
 from cc_common.config import config
-from cc_common.data_model.schema.base_record import (
-    BaseRecordSchema,
-    CalculatedStatusRecordSchema,
-    ForgivingSchema,
+from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema, ForgivingSchema
+from cc_common.data_model.schema.common import ensure_value_is_datetime
+from cc_common.data_model.schema.fields import (
+    ActiveInactive,
+    Compact,
     ITUTE164PhoneNumber,
+    Jurisdiction,
+    NationalProviderIdentifier,
     Set,
     SocialSecurityNumber,
 )
-from cc_common.data_model.schema.common import ensure_value_is_datetime
-from cc_common.data_model.schema.license import LicenseReadGeneralSchema
-from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationGeneralResponseSchema
-from cc_common.data_model.schema.privilege import PrivilegeGeneralResponseSchema
 
 
 class ProviderPrivateSchema(ForgivingSchema):
@@ -27,12 +26,12 @@ class ProviderPrivateSchema(ForgivingSchema):
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
 
-    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    licenseJurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
+    compact = Compact(required=True, allow_none=False)
+    licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     ssn = SocialSecurityNumber(required=True, allow_none=False)
-    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseType = String(required=True, allow_none=False)
-    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -109,52 +108,3 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema, ProviderPrivateSchema):
     def drop_fam_giv_mid(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         del in_data['providerFamGivMid']
         return in_data
-
-
-class SanitizedProviderReadGeneralSchema(ForgivingSchema):
-    """
-    Provider record fields that are sanitized for users with the 'readGeneral' permission.
-
-    This schema is intended to be used to dump records from the database in order to remove all fields not defined here.
-    It should NEVER be used to load data into the database. Use the ProviderRecordSchema for that.
-
-    This schema should be used by any endpoint that returns provider information to staff users (ie the query provider
-    and GET provider endpoints).
-    """
-
-    providerId = UUID(required=True, allow_none=False)
-    type = String(required=True, allow_none=False)
-
-    dateOfUpdate = DateTime(required=True, allow_none=False)
-    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    licenseJurisdiction = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
-    npi = String(required=False, allow_none=False, validate=Regexp('^[0-9]{10}$'))
-    licenseType = String(required=True, allow_none=False)
-    jurisdictionStatus = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
-    givenName = String(required=True, allow_none=False, validate=Length(1, 100))
-    middleName = String(required=False, allow_none=False, validate=Length(1, 100))
-    familyName = String(required=True, allow_none=False, validate=Length(1, 100))
-    suffix = String(required=False, allow_none=False, validate=Length(1, 100))
-    # This date is determined by the license records uploaded by a state
-    # they do not include a timestamp, so we use the Date field type
-    dateOfExpiration = Date(required=True, allow_none=False)
-    homeAddressStreet1 = String(required=True, allow_none=False, validate=Length(2, 100))
-    homeAddressStreet2 = String(required=False, allow_none=False, validate=Length(1, 100))
-    homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
-    homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
-    homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
-    emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
-    phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
-    militaryWaiver = Boolean(required=False, allow_none=False)
-
-    privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
-    providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
-    providerDateOfUpdate = DateTime(required=False, allow_none=False)
-    birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
-
-    # these records are present when getting provider information from the GET endpoint
-    # so we check for them here and sanitize them if they are present
-    licenses = List(Nested(LicenseReadGeneralSchema(), required=False, allow_none=False))
-    privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
-    militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=False, allow_none=False))
