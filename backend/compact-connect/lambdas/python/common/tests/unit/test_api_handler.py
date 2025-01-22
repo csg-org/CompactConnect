@@ -109,11 +109,11 @@ class TestApiHandler(TstLambdas):
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
-        event['headers']['origin'] = 'http://localhost:3018'
+        event['headers']['origin'] = 'http://localhost:1234'
 
         resp = lambda_handler(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'])
-        self.assertEqual('http://localhost:3018', resp['headers']['Access-Control-Allow-Origin'])
+        self.assertEqual('http://localhost:1234', resp['headers']['Access-Control-Allow-Origin'])
 
     def test_disallowed_origin(self):
         from cc_common.utils import api_handler
