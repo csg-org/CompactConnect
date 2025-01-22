@@ -155,7 +155,7 @@ class TestProviderRegistration(TstFunction):
 
         # Verify Cognito user was created with correct attributes
         mock_cognito.admin_create_user.assert_called_once_with(
-            UserPoolId=self.config.user_pool_id,
+            UserPoolId=self.config.provider_user_pool_id,
             Username='test@example.com',
             UserAttributes=[
                 {'Name': 'custom:compact', 'Value': TEST_COMPACT},

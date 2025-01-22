@@ -40,6 +40,7 @@ class ProviderUsers:
             'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
             'PROVIDER_USER_BUCKET_NAME': persistent_stack.provider_users_bucket.bucket_name,
             'LICENSE_GSI_NAME': persistent_stack.provider_table.license_gsi_name,
+            'PROVIDER_USER_POOL_ID': persistent_stack.provider_users.user_pool_id,
             **stack.common_env_vars,
         }
 
@@ -47,6 +48,7 @@ class ProviderUsers:
         self.provider_users_registration_resource = self.provider_users_resource.add_resource('registration')
         self._add_provider_registration(
             provider_data_table=persistent_stack.provider_table,
+            persistent_stack=persistent_stack,
             lambda_environment=lambda_environment,
         )
 
@@ -188,6 +190,7 @@ class ProviderUsers:
     def _add_provider_registration(
         self,
         provider_data_table: ProviderTable,
+        persistent_stack: ps,
         lambda_environment: dict,
     ):
         stack = Stack.of(self.provider_users_resource)
@@ -211,8 +214,9 @@ class ProviderUsers:
             alarm_topic=self.api.alarm_topic,
         )
 
-        provider_data_table.grant_read_data(self.provider_registration_handler)
+        provider_data_table.grant_read_write_data(self.provider_registration_handler)
         recaptcha_secret.grant_read(self.provider_registration_handler)
+        persistent_stack.provider_users.grant(self.provider_registration_handler, 'cognito-idp:AdminCreateUser')
         self.api.log_groups.append(self.provider_registration_handler.log_group)
 
         NagSuppressions.add_resource_suppressions_by_path(
@@ -222,7 +226,7 @@ class ProviderUsers:
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs '
-                    'and is scoped to one table and one secret.',
+                    'and is scoped to one table, user pool, and one secret.',
                 },
             ],
         )

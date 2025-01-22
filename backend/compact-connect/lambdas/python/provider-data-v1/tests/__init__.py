@@ -24,7 +24,7 @@ class TstLambdas(TestCase):
                 'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
                 'FAM_GIV_INDEX_NAME': 'famGiv',
                 'LICENSE_GSI_NAME': 'licenseGSI',
-                'USER_POOL_ID': 'us-east-1-12345',
+                'PROVIDER_USER_POOL_ID': 'us-east-1-12345',
                 'USERS_TABLE_NAME': 'provider-table',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'SSN_INVERTED_INDEX_NAME': 'inverted',

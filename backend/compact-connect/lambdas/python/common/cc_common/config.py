@@ -138,6 +138,10 @@ class _Config:
         return os.environ['USER_POOL_ID']
 
     @property
+    def provider_user_pool_id(self):
+        return os.environ['PROVIDER_USER_POOL_ID']
+
+    @property
     def users_table_name(self):
         return os.environ['USERS_TABLE_NAME']
 

@@ -123,7 +123,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     # Create Cognito user
     try:
         config.cognito_client.admin_create_user(
-            UserPoolId=config.user_pool_id,
+            UserPoolId=config.provider_user_pool_id,
             Username=body['email'],
             UserAttributes=[
                 {'Name': 'custom:compact', 'Value': body['compact']},
