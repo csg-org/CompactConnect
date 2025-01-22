@@ -140,7 +140,7 @@ class RegisterLicensee extends mixins(MixinForm) {
                 label: computed(() => this.$t('common.emailAddress')),
                 placeholder: computed(() => this.$t('common.emailAddress')),
                 autocomplete: 'email',
-                validation: Joi.string().email({ tlds: false }).messages(this.joiMessages.string),
+                validation: Joi.string().required().email({ tlds: false }).messages(this.joiMessages.string),
             }),
             ssnLastFour: new FormInput({
                 id: 'ssn-last-four',
@@ -308,7 +308,7 @@ class RegisterLicensee extends mixins(MixinForm) {
                 });
             }).catch((err) => { throw err; });
 
-            data.recaptchaToken = recaptchaToken;
+            data.token = recaptchaToken;
         }
     }
 
