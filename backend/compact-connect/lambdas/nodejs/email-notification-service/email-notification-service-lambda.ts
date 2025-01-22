@@ -6,6 +6,7 @@ import { Context } from 'aws-lambda';
 
 import { EnvironmentVariablesService } from '../lib/environment-variables-service';
 import { CompactConfigurationClient } from '../lib/compact-configuration-client';
+import { JurisdictionClient } from '../lib/jurisdiction-client';
 import { EmailService } from '../lib/email-service';
 import { EmailNotificationEvent, EmailNotificationResponse } from '../lib/models/email-notification-service-event';
 
@@ -26,16 +27,22 @@ export class Lambda implements LambdaInterface {
             dynamoDBClient: props.dynamoDBClient,
         });
 
+        const jurisdictionClient = new JurisdictionClient({
+            logger: logger,
+            dynamoDBClient: props.dynamoDBClient,
+        });
+
         this.emailService = new EmailService({
             logger: logger,
             sesClient: props.sesClient,
             compactConfigurationClient: compactConfigurationClient,
+            jurisdictionClient: jurisdictionClient
         });
     }
 
     /**
      * Lambda handler for email notification service
-     * 
+     *
      * This handler sends an email notification based on the requested email template.
      * See README in this directory for information on using this service.
      *
@@ -45,7 +52,7 @@ export class Lambda implements LambdaInterface {
      */
     @logger.injectLambdaContext({ resetKeys: true })
     public async handler(event: EmailNotificationEvent, context: Context): Promise<EmailNotificationResponse> {
-        logger.info('Processing event', { event: event });
+        logger.info('Processing event', { template: event.template, compact: event.compact, jurisdiction: event.jurisdiction });
 
         // Check if FROM_ADDRESS is configured
         if (environmentVariables.getFromAddress() === 'NONE') {
@@ -61,6 +68,30 @@ export class Lambda implements LambdaInterface {
                 event.compact,
                 event.recipientType,
                 event.specificEmails
+            );
+            break;
+        case 'CompactTransactionReporting':
+            if (!event.templateVariables?.compactFinancialSummaryReportCSV ||
+                !event.templateVariables?.compactTransactionReportCSV) {
+                throw new Error('Missing required template variables for CompactTransactionReporting template');
+            }
+            await this.emailService.sendCompactTransactionReportEmail(
+                event.compact,
+                event.templateVariables.compactFinancialSummaryReportCSV,
+                event.templateVariables.compactTransactionReportCSV
+            );
+            break;
+        case 'JurisdictionTransactionReporting':
+            if (!event.jurisdiction) {
+                throw new Error('Missing required jurisdiction field for JurisdictionTransactionReporting template');
+            }
+            if (!event.templateVariables?.jurisdictionTransactionReportCSV) {
+                throw new Error('Missing required template variables for JurisdictionTransactionReporting template');
+            }
+            await this.emailService.sendJurisdictionTransactionReportEmail(
+                event.compact,
+                event.jurisdiction,
+                event.templateVariables.jurisdictionTransactionReportCSV
             );
             break;
         default:
