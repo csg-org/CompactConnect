@@ -1896,6 +1896,11 @@
                   "pattern": "^[0-9]{10}$",
                   "type": "string"
                 },
+                "licenseNumber": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
                 "homeAddressPostalCode": {
                   "maxLength": 7,
                   "minLength": 5,
@@ -2493,6 +2498,11 @@
             },
             "npi": {
               "pattern": "^[0-9]{10}$",
+              "type": "string"
+            },
+            "licenseNumber": {
+              "maxLength": 100,
+              "minLength": 1,
               "type": "string"
             },
             "homeAddressPostalCode": {
@@ -3544,6 +3554,11 @@
             "pattern": "^[0-9]{10}$",
             "type": "string"
           },
+          "licenseNumber": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
           "homeAddressPostalCode": {
             "maxLength": 7,
             "minLength": 5,
@@ -3674,6 +3689,11 @@
                   "pattern": "^[0-9]{10}$",
                   "type": "string"
                 },
+                "licenseNumber": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
                 "homeAddressPostalCode": {
                   "maxLength": 7,
                   "minLength": 5,
@@ -3778,6 +3798,11 @@
                           },
                           "npi": {
                             "pattern": "^[0-9]{10}$",
+                            "type": "string"
+                          },
+                          "licenseNumber": {
+                            "maxLength": 100,
+                            "minLength": 1,
                             "type": "string"
                           },
                           "homeAddressPostalCode": {
@@ -3933,6 +3958,11 @@
                           },
                           "npi": {
                             "pattern": "^[0-9]{10}$",
+                            "type": "string"
+                          },
+                          "licenseNumber": {
+                            "maxLength": 100,
+                            "minLength": 1,
                             "type": "string"
                           },
                           "homeAddressPostalCode": {
