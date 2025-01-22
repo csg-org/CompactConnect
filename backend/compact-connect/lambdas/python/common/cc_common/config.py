@@ -193,5 +193,13 @@ class _Config:
     def transaction_history_table(self):
         return boto3.resource('dynamodb').Table(self.transaction_history_table_name)
 
+    @cached_property
+    def lambda_client(self):
+        return boto3.client('lambda')
+
+    @property
+    def email_notification_service_lambda_name(self):
+        return os.environ['EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME']
+
 
 config = _Config()
