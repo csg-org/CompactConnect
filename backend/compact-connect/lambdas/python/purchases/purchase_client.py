@@ -1,15 +1,44 @@
 import json
+import logging
 from abc import ABC, abstractmethod
 
 from authorizenet import apicontractsv1
-from authorizenet.apicontrollers import createTransactionController, getMerchantDetailsController
+from authorizenet.apicontrollers import (
+    createTransactionController,
+    getMerchantDetailsController,
+    getSettledBatchListController,
+    getTransactionDetailsController,
+    getTransactionListController,
+)
 from authorizenet.constants import constants
 from cc_common.config import config, logger
 from cc_common.data_model.schema.compact import Compact, CompactFeeType
 from cc_common.data_model.schema.jurisdiction import Jurisdiction, JurisdictionMilitaryDiscountType
-from cc_common.exceptions import CCFailedTransactionException, CCInternalException, CCInvalidRequestException
+from cc_common.exceptions import (
+    CCFailedTransactionException,
+    CCInternalException,
+    CCInvalidRequestException,
+    TransactionBatchSettlementFailureException,
+)
 
 AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
+OK_TRANSACTION_MESSAGE_RESULT_CODE = 'Ok'
+MAXIMUM_TRANSACTION_API_LIMIT = 1000
+
+# The authorizenet SDK emits many warnings due to a Pyxb issue that they will not address,
+# see https://github.com/AuthorizeNet/sdk-python/issues/133,
+# so we are ignoring warnings to reduce noise in our logging
+logging.getLogger('pyxb.binding.content').setLevel(logging.ERROR)
+
+
+# We also want to ignore a specific 'error' message from them that does not actually impact the system
+# see https://github.com/AuthorizeNet/sdk-python/issues/109
+class IgnoreContentNondeterminismFilter(logging.Filter):
+    def filter(self, record):
+        return 'ContentNondeterminismExceededError' not in record.getMessage()
+
+
+logging.getLogger('authorizenet.sdk').addFilter(IgnoreContentNondeterminismFilter())
 
 
 def _calculate_jurisdiction_fee(jurisdiction: Jurisdiction, user_active_military: bool) -> float:
@@ -104,6 +133,28 @@ class PaymentProcessorClient(ABC):
     def validate_credentials(self) -> dict:
         """
         Verify that the provided credentials are valid.
+        """
+
+    @abstractmethod
+    def get_settled_transactions(
+        self,
+        start_time: str,
+        end_time: str,
+        transaction_limit: int,
+        last_processed_transaction_id: str = None,
+        current_batch_id: str = None,
+        processed_batch_ids: list[str] = None,
+    ) -> dict:
+        """
+        Get settled transactions from the payment processor.
+
+        :param start_time: UTC timestamp string for start of range
+        :param end_time: UTC timestamp string for end of range
+        :param transaction_limit: Maximum number of transactions to return
+        :param last_processed_transaction_id: Optional last processed transaction ID for pagination
+        :param current_batch_id: Optional current batch ID being processed
+        :param processed_batch_ids: Optional list of batch IDs that have already been processed
+        :return: Dictionary containing transaction details and optional pagination info
         """
 
 
@@ -385,6 +436,295 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
 
         raise CCInvalidRequestException(f'{logger_message} Error code: {error_code}, Error message: {error_message}')
 
+    def _get_settled_batch_list(self, start_time: str, end_time: str) -> apicontractsv1.getSettledBatchListResponse:
+        """
+        Get the list of settled batches from the payment processor.
+
+        :param start_time: UTC timestamp string for start of range
+        :param end_time: UTC timestamp string for end of range
+        :return: Response containing the list of settled batches
+        :raises CCInternalException: If the API call fails
+        :raises TransactionBatchSettlementFailureException: If any batch has a settlement error
+        """
+        merchant_auth = apicontractsv1.merchantAuthenticationType()
+        merchant_auth.name = self.api_login_id
+        merchant_auth.transactionKey = self.transaction_key
+
+        batch_request = apicontractsv1.getSettledBatchListRequest()
+        batch_request.merchantAuthentication = merchant_auth
+        batch_request.includeStatistics = True
+        batch_request.firstSettlementDate = start_time
+        batch_request.lastSettlementDate = end_time
+
+        batch_controller = getSettledBatchListController(batch_request)
+        if config.environment_name != 'prod':
+            batch_controller.setenvironment(constants.SANDBOX)
+        else:
+            batch_controller.setenvironment(constants.PRODUCTION)
+
+        logger.info('Getting settled batch list for timeframe', start_time=start_time, end_time=end_time)
+        batch_controller.execute()
+        batch_response = batch_controller.getresponse()
+
+        if batch_response is None or batch_response.messages.resultCode != OK_TRANSACTION_MESSAGE_RESULT_CODE:
+            logger.error('Failed to get settled batch list')
+            raise CCInternalException('Failed to get settled batch list')
+
+        # Check for settlement errors in any batch
+        if hasattr(batch_response, 'batchList'):
+            batch_ids = [str(batch.batchId) for batch in batch_response.batchList.batch]
+            logger.info('Found settled batches', batch_ids=batch_ids)
+            for batch in batch_response.batchList.batch:
+                if batch.settlementState == 'settlementError':
+                    logger.info(
+                        'Settlement error found in batch. Raising exception to send error email.',
+                        batch_id=batch.batchId,
+                    )
+                    raise TransactionBatchSettlementFailureException(f'Settlement error found in batch {batch.batchId}')
+
+        return batch_response
+
+    def _get_transaction_list(self, batch_id: str, page_offset: int = 1) -> apicontractsv1.getTransactionListResponse:
+        """
+        Get the list of transactions for a specific batch.
+
+        :param batch_id: The batch ID to get transactions for
+        :param page_offset: The page offset for pagination (1-based)
+        :return: Response containing the list of transactions
+        :raises CCInternalException: If the API call fails
+        """
+        merchant_auth = apicontractsv1.merchantAuthenticationType()
+        merchant_auth.name = self.api_login_id
+        merchant_auth.transactionKey = self.transaction_key
+
+        transaction_request = apicontractsv1.getTransactionListRequest()
+        transaction_request.merchantAuthentication = merchant_auth
+        transaction_request.batchId = batch_id
+
+        # Set sorting
+        sorting = apicontractsv1.TransactionListSorting()
+        sorting.orderBy = apicontractsv1.TransactionListOrderFieldEnum.submitTimeUTC
+        sorting.orderDescending = True
+        transaction_request.sorting = sorting
+
+        # Set paging
+        paging = apicontractsv1.Paging()
+        paging.limit = MAXIMUM_TRANSACTION_API_LIMIT  # Maximum allowed by API
+        paging.offset = page_offset
+        transaction_request.paging = paging
+
+        transaction_controller = getTransactionListController(transaction_request)
+        if config.environment_name != 'prod':
+            transaction_controller.setenvironment(constants.SANDBOX)
+        else:
+            transaction_controller.setenvironment(constants.PRODUCTION)
+
+        logger.info('Getting transaction list for batch', batch_id=batch_id, page_offset=page_offset)
+        transaction_controller.execute()
+        transaction_response = transaction_controller.getresponse()
+
+        if (
+            transaction_response is None
+            or transaction_response.messages.resultCode != OK_TRANSACTION_MESSAGE_RESULT_CODE
+        ):
+            logger.error(
+                'Failed to get transaction list',
+                batch_id=batch_id,
+                page_offset=page_offset,
+                response=transaction_response,
+            )
+            raise CCInternalException('Failed to get transaction list')
+
+        transaction_ids = [str(tx.transId) for tx in transaction_response.transactions.transaction]
+        logger.info('Found transactions in batch', batch_id=batch_id, transaction_ids=transaction_ids)
+
+        return transaction_response
+
+    def _get_transaction_details(self, transaction_id: str) -> apicontractsv1.getTransactionDetailsResponse:
+        """
+        Get detailed information for a specific transaction.
+
+        :param transaction_id: The transaction ID to get details for
+        :return: Response containing the transaction details
+        :raises CCInternalException: If the API call fails
+        """
+        merchant_auth = apicontractsv1.merchantAuthenticationType()
+        merchant_auth.name = self.api_login_id
+        merchant_auth.transactionKey = self.transaction_key
+
+        details_request = apicontractsv1.getTransactionDetailsRequest()
+        details_request.merchantAuthentication = merchant_auth
+        details_request.transId = transaction_id
+
+        details_controller = getTransactionDetailsController(details_request)
+        if config.environment_name != 'prod':
+            details_controller.setenvironment(constants.SANDBOX)
+        else:
+            details_controller.setenvironment(constants.PRODUCTION)
+
+        logger.info('Getting transaction details', transaction_id=transaction_id)
+        details_controller.execute()
+        details_response = details_controller.getresponse()
+
+        if details_response is None or details_response.messages.resultCode != OK_TRANSACTION_MESSAGE_RESULT_CODE:
+            logger.error('Failed to get transaction details', transaction_id=transaction_id, response=details_response)
+            raise CCInternalException('Failed to get transaction details')
+
+        return details_response
+
+    def get_settled_transactions(
+        self,
+        start_time: str,
+        end_time: str,
+        transaction_limit: int,
+        last_processed_transaction_id: str = None,
+        current_batch_id: str = None,
+        processed_batch_ids: list[str] = None,
+    ) -> dict:
+        """
+        Get settled transactions from the payment processor.
+
+        :param start_time: UTC timestamp string for start of range
+        :param end_time: UTC timestamp string for end of range
+        :param transaction_limit: Maximum number of transactions to return
+        :param last_processed_transaction_id: Optional last processed transaction ID for pagination
+        :param current_batch_id: Optional current batch ID being processed
+        :param processed_batch_ids: Optional list of batch IDs that have already been processed
+        :return: Dictionary containing transaction details and optional pagination info
+        """
+        # Get settled batch list
+        batch_response = self._get_settled_batch_list(start_time, end_time)
+
+        transactions = []
+        last_batch_id = None
+        last_transaction_id = None
+        processed_transaction_count = 0
+        found_last_processed = last_processed_transaction_id is None
+        processed_batch_ids = processed_batch_ids or []
+        found_current_batch = current_batch_id is None
+
+        if hasattr(batch_response, 'batchList'):
+            for batch in batch_response.batchList.batch:
+                batch_id = str(batch.batchId)
+
+                # Skip batches we've already processed
+                if batch_id in processed_batch_ids:
+                    continue
+
+                # Skip batches until we find the current batch we were processing
+                if not found_current_batch:
+                    if batch_id == current_batch_id:
+                        logger.info('Found current batch to process', batch_id=current_batch_id)
+                        found_current_batch = True
+                    else:
+                        continue
+
+                if processed_transaction_count >= transaction_limit:
+                    last_batch_id = batch_id
+                    break
+
+                # Get transaction list for batch with pagination
+                page_offset = 1
+                transactions_in_page = 0
+                while page_offset == 1 or transactions_in_page >= MAXIMUM_TRANSACTION_API_LIMIT:
+                    transaction_response = self._get_transaction_list(batch_id, page_offset)
+                    transactions_in_page = int(transaction_response.totalNumInResultSet)
+
+                    if hasattr(transaction_response, 'transactions'):
+                        for transaction in transaction_response.transactions.transaction:
+                            # Skip transactions until we find the last processed one
+                            if not found_last_processed:
+                                if str(transaction.transId) == last_processed_transaction_id:
+                                    logger.info(
+                                        'Found last processed transaction',
+                                        transaction_id=last_processed_transaction_id,
+                                        batch_id=batch_id,
+                                    )
+                                    found_last_processed = True
+                                continue
+
+                            # Get detailed transaction information
+                            details_response = self._get_transaction_details(str(transaction.transId))
+                            logger.debug(
+                                'Received transaction details',
+                                batch_id=batch_id,
+                                transaction_id=str(transaction.transId),
+                            )
+                            tx = details_response.transaction
+
+                            licensee_id = None
+                            if hasattr(tx, 'order') and tx.order.description:
+                                # Extract licensee ID from order description (format: "LICENSEE#uuid#")
+                                parts = str(tx.order.description).split('#')
+                                if len(parts) >= 3 and parts[0] == 'LICENSEE':
+                                    licensee_id = parts[1]
+
+                            line_items = []
+                            if hasattr(tx, 'lineItems') and hasattr(tx.lineItems, 'lineItem'):
+                                for item in tx.lineItems.lineItem:
+                                    line_items.append(
+                                        {
+                                            # we must cast these to strings, or they will cause an error when we
+                                            # try to serialize in other parts of the system
+                                            'itemId': str(item.itemId),
+                                            'name': str(item.name),
+                                            'description': str(item.description),
+                                            'quantity': str(item.quantity),
+                                            'unitPrice': str(item.unitPrice),
+                                            'taxable': str(item.taxable),
+                                        }
+                                    )
+
+                            transaction_data = {
+                                # we must cast these to strings, or they will cause an error when we try to serialize
+                                # in other parts of the system
+                                'transactionId': str(tx.transId),
+                                'submitTimeUTC': str(tx.submitTimeUTC),
+                                'transactionType': str(tx.transactionType),
+                                'transactionStatus': str(tx.transactionStatus),
+                                'responseCode': str(tx.responseCode),
+                                'settleAmount': str(tx.settleAmount),
+                                'licenseeId': licensee_id,
+                                'batch': {
+                                    'batchId': str(batch.batchId),
+                                    'settlementTimeUTC': str(batch.settlementTimeUTC),
+                                    'settlementTimeLocal': str(batch.settlementTimeLocal),
+                                    'settlementState': str(batch.settlementState),
+                                },
+                                'lineItems': line_items,
+                                # this defines the type of transaction processor that processed the transaction
+                                'transactionProcessor': AUTHORIZE_DOT_NET_CLIENT_TYPE,
+                            }
+                            transactions.append(transaction_data)
+                            processed_transaction_count += 1
+                            if processed_transaction_count >= transaction_limit:
+                                last_transaction_id = str(tx.transId)
+                                break
+
+                    # Check if we need to get the next page of transactions
+                    page_offset += 1
+
+                if processed_transaction_count >= transaction_limit:
+                    last_batch_id = batch_id
+                    logger.info(
+                        'Transaction limit reached. Returning last processed transaction',
+                        last_processed_transaction_id=last_transaction_id,
+                        current_batch_id=batch_id,
+                    )
+                    break
+
+                # If we've processed all transactions in this batch, add it to the processed list
+                logger.info('Finished processing batch', batch_id=batch_id)
+                processed_batch_ids.append(batch_id)
+
+        response = {'transactions': transactions, 'processedBatchIds': processed_batch_ids}
+
+        if last_transaction_id and last_batch_id:
+            response['lastProcessedTransactionId'] = last_transaction_id
+            response['currentBatchId'] = last_batch_id
+
+        return response
+
 
 class PaymentProcessorClientFactory:
     @staticmethod
@@ -435,6 +775,7 @@ class PurchaseClient:
         Get the payment processor credentials for a compact
         """
         secret_name = self._get_payment_processor_secret_name_for_compact(compact_name)
+        logger.info('Getting payment processor credentials for compact', compact_name=compact_name)
         secret = self.secrets_manager_client.get_secret_value(SecretId=secret_name)
 
         return PaymentProcessorClientFactory.create_payment_processor_client(json.loads(secret['SecretString']))
@@ -527,5 +868,45 @@ class PurchaseClient:
                 Name=self._get_payment_processor_secret_name_for_compact(compact_name),
                 SecretString=json.dumps(secret_value),
             )
+
+        return response
+
+    def get_settled_transactions(
+        self,
+        compact: str,
+        start_time: str,
+        end_time: str,
+        transaction_limit: int,
+        last_processed_transaction_id: str = None,
+        current_batch_id: str = None,
+        processed_batch_ids: list[str] = None,
+    ) -> dict:
+        """
+        Get settled transactions from the payment processor.
+
+        :param compact: The compact name
+        :param start_time: UTC timestamp string for start of range
+        :param end_time: UTC timestamp string for end of range
+        :param transaction_limit: Maximum number of transactions to return
+        :param last_processed_transaction_id: Optional last processed transaction ID for pagination
+        :param current_batch_id: Optional current batch ID being processed
+        :param processed_batch_ids: Optional list of batch IDs that have already been processed
+        :return: Dictionary containing transaction details and optional pagination info
+        """
+        if not self.payment_processor_client:
+            self.payment_processor_client = self._get_compact_payment_processor_client(compact)
+
+        response = self.payment_processor_client.get_settled_transactions(
+            start_time=start_time,
+            end_time=end_time,
+            transaction_limit=transaction_limit,
+            last_processed_transaction_id=last_processed_transaction_id,
+            current_batch_id=current_batch_id,
+            processed_batch_ids=processed_batch_ids,
+        )
+
+        # Add compact to each transaction
+        for transaction in response['transactions']:
+            transaction['compact'] = compact
 
         return response

@@ -10,5 +10,5 @@
   "compactOperationsTeamEmails": ["<email address>"],
   "compactAdverseActionsNotificationEmails": ["<email address>"],
   "compactSummaryReportNotificationEmails": ["<email address>"],
-  "dateOfUpdate": "2024-10-04"
+  "dateOfUpdate": "2024-10-04T12:34:56+00:00"
 }

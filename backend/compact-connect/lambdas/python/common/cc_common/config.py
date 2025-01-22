@@ -5,12 +5,15 @@ from datetime import UTC, datetime, timedelta, timezone
 from functools import cached_property
 
 import boto3
+from aws_lambda_powertools import Metrics
 from aws_lambda_powertools.logging import Logger
 from botocore.config import Config as BotoConfig
 
 logging.basicConfig()
 logger = Logger()
 logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false').lower() == 'true' else logging.INFO)
+
+metrics = Metrics(namespace='compact-connect', service='common')
 
 
 class _Config:
@@ -35,9 +38,15 @@ class _Config:
 
     @cached_property
     def data_client(self):
-        from cc_common.data_model.client import DataClient
+        from cc_common.data_model.data_client import DataClient
 
         return DataClient(self)
+
+    @cached_property
+    def compact_configuration_client(self):
+        from cc_common.data_model.compact_configuration_client import CompactConfigurationClient
+
+        return CompactConfigurationClient(self)
 
     @cached_property
     def user_client(self):
@@ -64,6 +73,10 @@ class _Config:
     @cached_property
     def provider_table(self):
         return boto3.resource('dynamodb').Table(self.provider_table_name)
+
+    @cached_property
+    def ssn_table(self):
+        return boto3.resource('dynamodb').Table(self.ssn_table_name)
 
     @property
     def compact_configuration_table_name(self):
@@ -93,12 +106,20 @@ class _Config:
         return os.environ['PROVIDER_TABLE_NAME']
 
     @property
+    def ssn_table_name(self):
+        return os.environ['SSN_TABLE_NAME']
+
+    @property
     def fam_giv_mid_index_name(self):
         return os.environ['PROV_FAM_GIV_MID_INDEX_NAME']
 
     @property
     def date_of_update_index_name(self):
         return os.environ['PROV_DATE_OF_UPDATE_INDEX_NAME']
+
+    @property
+    def ssn_inverted_index_name(self):
+        return os.environ['SSN_INVERTED_INDEX_NAME']
 
     @property
     def bulk_bucket_name(self):
@@ -157,6 +178,20 @@ class _Config:
         Standardized way to get the current datetime with the microseconds stripped off.
         """
         return datetime.now(tz=UTC).replace(microsecond=0)
+
+    @cached_property
+    def transaction_client(self):
+        from cc_common.data_model.transaction_client import TransactionClient
+
+        return TransactionClient(self)
+
+    @property
+    def transaction_history_table_name(self):
+        return os.environ['TRANSACTION_HISTORY_TABLE_NAME']
+
+    @property
+    def transaction_history_table(self):
+        return boto3.resource('dynamodb').Table(self.transaction_history_table_name)
 
 
 config = _Config()

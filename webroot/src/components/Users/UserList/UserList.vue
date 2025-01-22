@@ -7,8 +7,8 @@
 
 <template>
     <div class="user-list-container">
-        <h1 class="list-title">{{ $t('account.usersListTitle') }}</h1>
         <div class="list-actions-container">
+            <h1 class="list-title no-margin">{{ $t('account.usersListTitle') }}</h1>
             <div class="search-container">
                 <form @submit.prevent="handleSearch">
                     <InputSearch :formInput="formData.userSearch" class="user-search" />

@@ -16,7 +16,7 @@ import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
-import SearchIcon from '@components/Icons/Search/Search.vue';
+import SearchIcon from '@components/Icons/LicenseSearchAlt/LicenseSearchAlt.vue';
 import { CompactType } from '@models/Compact/Compact.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
@@ -24,8 +24,8 @@ import Joi from 'joi';
 export interface LicenseSearch {
     firstName?: string;
     lastName?: string;
-    ssn?: string,
-    state?: string,
+    ssn?: string;
+    state?: string;
 }
 
 @Component({

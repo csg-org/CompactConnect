@@ -9,13 +9,13 @@
     <li class="selected-state-purchase-info-container">
         <div class="info-row">
             <div class="state-title">{{selectedStatePurchaseData.jurisdiction.name()}}</div>
-            <InputButton
+            <button
                 v-if="!isPriceCollapsed"
-                label="X"
-                :isTextLike="true"
-                aria-label="deselect state"
+                class="deselect-state"
+                :aria-label="$t('licensing.deselectState')"
                 @click="deselectState()"
-            />
+                @keyup.enter="deselectState()"
+            >X</button>
         </div>
         <div v-if="!isPriceCollapsed">
             <div class="info-row sub-row">
@@ -30,7 +30,7 @@
                 <div class="info-row-label">{{commissionFeeText}}</div>
                 <div class="expire-date-value">${{currentCompactCommissionFeeDisplay}}</div>
             </div>
-            <div v-if="selectedStatePurchaseData.isMilitaryDiscountActive" class="info-row sub-row">
+            <div v-if="shouldApplyMilitaryDiscount" class="info-row sub-row">
                 <div class="info-row-label">{{militaryDiscountText}}</div>
                 <div class="expire-date-value">-${{militaryDiscountAmountDisplay}}</div>
             </div>
@@ -58,6 +58,8 @@
             :showActions="false"
             :title="jurisprudenceModalTitle"
             @close-modal="closeAndInvalidateCheckbox"
+            @keydown.tab="focusTrap($event)"
+            @keyup.esc="closeAndInvalidateCheckbox"
         >
             <template v-slot:content>
                 <div class="jurisprudence-modal-content">
@@ -65,6 +67,7 @@
                     <form @submit.prevent="submitUnderstanding">
                         <div class="action-button-row">
                             <InputButton
+                                id="jurisprudence-modal-back-button"
                                 class="back-button"
                                 :label="backText"
                                 :isTransparent="true"

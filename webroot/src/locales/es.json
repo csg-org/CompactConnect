@@ -1,5 +1,6 @@
 {
     "common": {
+        "appName": "Compact Connect",
         "yes": "Sí",
         "no": "No",
         "back": "Volver",
@@ -23,6 +24,7 @@
         "invite": "Invitar",
         "save": "Guardar",
         "sendInvite": "Enviar invitación",
+        "toggleNav": "Alternar menú de navegación",
         "saveChanges": "Guardar cambios",
         "submit": "Enviar",
         "clear": "Borrar",
@@ -36,10 +38,8 @@
         "loading": "Cargando...",
         "viewing": "Viendo",
         "firstName": "Nombre",
-        "firstname": "Nombre",
         "middleName": "Segundo nombre",
         "lastName": "Apellido",
-        "lastname": "Apellido",
         "selection": "Selección",
         "dateOfBirth": "Fecha de nacimiento",
         "dateOfBirthShort": "Fecha de nacim.",
@@ -350,6 +350,7 @@
         "dashboard": "Panel",
         "users": "Usuarios",
         "compactSettings": "Configuraciones compactas",
+        "purchasePrivileges": "Compras con privilegios",
         "styleGuide": "Guía de estilo",
         "account": "Cuenta",
         "logout": "Cerrar sesión"
@@ -446,23 +447,27 @@
         "formTitle": "Carga de datos compacta",
         "formSubtext": "Las cargas actuales son para fines de prueba y los datos no se guardarán de forma permanente.",
         "uploadHint": "Sólo 1 archivo CSV",
-        "successTitle": "Su documento ha sido subido exitosamente"
+        "successTitle": "Su documento ha sido subido exitosamente",
+        "successSubTitle": "Si su documento encuentra algún error durante el procesamiento, se le notificará por correo electrónico."
     },
     "payment": {
-        "apptUnitNumber": "Número de apto",
         "payment": "Pago",
-        "cardNumber": "Número de tarjeta",
-        "billingAddressTitle": "Dirección de Envio",
         "creditCardTitle": "Tarjeta de Crédito",
+        "fullNameOnCard": "Nombre en la tarjeta",
+        "enterFullNameOnCard": "Introduzca el nombre en la tarjeta",
+        "cardNumber": "Número de tarjeta",
         "cardExpirationMonth": "Mes de vencimiento",
         "cardExpirationYear": "Año de vencimiento",
+        "cvv": "CVV",
+        "enterFirstName": "Introduzca el nombre",
+        "enterLastName": "Introduzca el apellido",
+        "billingAddressTitle": "Dirección de Envio",
         "enterStreetAddress": "Introduzca dirección",
+        "apptUnitNumber": "Número de apto",
         "streetAddress": "Dirección",
         "streetAddress2": "Dirección 2",
         "completePurchase": "Finalizar compra",
-        "expirattionDate": "Fecha de vencimiento",
-        "firstNameOnCard": "Introduzca el nombre en la tarjeta",
-        "lastNameOnCard": "Introduzca el apellido en la tarjeta",
+        "expirationDate": "Fecha de vencimiento",
         "continueToPurchase": "Continuar comprando",
         "compactPrivilegeStateFee": "Quota Estatal de Privilegio Compacto",
         "compactCommissionFee": "Tarifa de Comisión Compacta",
@@ -472,6 +477,7 @@
     "licensing": {
         "licensingListTitle": "Datos de licencia",
         "searchTitle": "Iniciar una búsqueda",
+        "attestation": "Atestación",
         "searchSubtext": "Introduzca al menos un campo para buscar datos de licencia.",
         "searchLabel": "Buscar",
         "searchPlaceholderName": "Introducir nombre",
@@ -482,10 +488,10 @@
         "noRefundsMessage": "Todas las compras de privilegios compactos son definitivas. No se emitirán reembolsos.",
         "adverseActions": "Acciones adversas",
         "status": "Estado",
+        "deselectState": "Deseleccionar estado",
         "issueDate": "Fecha de asunto",
         "expireDate": "Fecha de caducidad",
         "expirationDate": "Fecha de caducidad",
-        "militaryDiscountText": "Descuento Militar",
         "lastUpdate": "Última carga",
         "license": "Licencia",
         "licenseExpiredMessage": "Su licencia ha caducado.",
@@ -547,6 +553,42 @@
             }
         ]
     },
+    "military": {
+        "militaryStatusTitle": "Estado militar",
+        "updateMilitaryStatusTitle": "Actualizar el estado militar",
+        "militaryDiscountText": "Descuento Militar",
+        "viewMilitaryStatus": "Ver estado militar",
+        "affiliationType": "Tipo de afiliación",
+        "previouslyUploadedDocuments": "Previously Uploaded Documents",
+        "endMilitaryAffiliation": "Parar afiliación militar",
+        "editInfo": "Editar información",
+        "noUploadedDocuments": "No documentos cargados",
+        "endAffiliationModalTitle": "¿Está seguro de que desea poner fin a su afiliación militar?",
+        "endAffiliationModalContent" : "Esta acción no se puede deshacer, pero si es necesario, puedes volver a realizar el proceso de confirmación.",
+        "noGoBack": "No, regresa",
+        "yesEnd": "Sí, terminar mi afiliación",
+        "affiliationAttestationOptions": [
+            {
+                "name": "Por la presente doy fe y afirmo que soy un miembro militar en servicio activo, definido como una persona con un estado de servicio de tiempo completo en el servicio uniformado activo de los Estados Unidos, incluidos los miembros de la Guardia Nacional y la Reserva en servicio activo.",
+                "value": "militaryMember"
+            },
+            {
+                "name": "Por la presente doy fe y afirmo que soy el cónyuge legal de un miembro militar en servicio activo, definido como una persona con estatus de servicio de tiempo completo en el servicio uniformado activo de los Estados Unidos, incluidos los miembros de la Guardia Nacional y la Reserva en activo. órdenes de servicio.",
+                "value": "militaryMemberSpouse"
+            }
+        ],
+        "affiliationTypes": {
+            "militaryMember": "Miembro militar en servicio activo",
+            "militaryMemberSpouse": "Esposo militar en servicio activo",
+            "none": "N/A"
+        },
+        "documentProofLabel": "Cargar prueba de afiliación militar",
+        "successLongProcess": "Enviado correctamente, su estado puede tardar un minuto en procesarse",
+        "submitFail": "Error al cargar el documento",
+        "fileInstructions": "Sólo 1 archivo (sólo PDF, docx, png, jpeg)",
+        "fileName": "Nombre del archivo",
+        "dateUploaded": "Fecha de carga"
+    },
     "account": {
         "accountTitle": "Cuenta",
         "usersListTitle": "Usuarios",
@@ -560,6 +602,7 @@
         "accessLevel": {
             "none": "Ninguno",
             "read": "Lectura",
+            "readPrivate": "Leer datos privados",
             "write": "Escritura",
             "admin": "Administración"
         },

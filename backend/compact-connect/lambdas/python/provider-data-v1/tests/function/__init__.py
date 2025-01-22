@@ -37,6 +37,7 @@ class TstFunction(TstLambdas):
     def build_resources(self):
         self._bucket = boto3.resource('s3').create_bucket(Bucket=os.environ['BULK_BUCKET_NAME'])
         self.create_provider_table()
+        self.create_ssn_table()
 
         boto3.client('events').create_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
@@ -71,10 +72,32 @@ class TstFunction(TstLambdas):
             ],
         )
 
+    def create_ssn_table(self):
+        self._ssn_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['SSN_TABLE_NAME'],
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+            GlobalSecondaryIndexes=[
+                {
+                    'IndexName': os.environ['SSN_INVERTED_INDEX_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'sk', 'KeyType': 'HASH'},
+                        {'AttributeName': 'pk', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+            ],
+        )
+
     def delete_resources(self):
         self._bucket.objects.delete()
         self._bucket.delete()
         self._provider_table.delete()
+        self._ssn_table.delete()
         boto3.client('events').delete_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
     def _load_provider_data(self):
@@ -88,10 +111,16 @@ class TstFunction(TstLambdas):
 
         for resource in test_resources:
             with open(resource) as f:
+                if resource.endswith('user.json'):
+                    # skip the staff user test data, as it is not stored in the provider table
+                    continue
                 record = json.load(f, object_hook=privilege_jurisdictions_to_set, parse_float=Decimal)
 
             logger.debug('Loading resource, %s: %s', resource, str(record))
-            self._provider_table.put_item(Item=record)
+            if record['type'] == 'provider-ssn':
+                self._ssn_table.put_item(Item=record)
+            else:
+                self._provider_table.put_item(Item=record)
 
     def _generate_providers(self, *, home: str, privilege: str, start_serial: int, names: tuple[tuple[str, str]] = ()):
         """Generate 10 providers with one license and one privilege
@@ -99,7 +128,7 @@ class TstFunction(TstLambdas):
         :param privilege: The jurisdiction for the privilege
         :param start_serial: Starting number for last portion of the provider's SSN
         """
-        from cc_common.data_model.client import DataClient
+        from cc_common.data_model.data_client import DataClient
         from handlers.ingest import ingest_license_message
 
         with open('../common/tests/resources/ingest/message.json') as f:
@@ -144,11 +173,16 @@ class TstFunction(TstLambdas):
                 )
             # Add a privilege
             provider_id = data_client.get_provider_id(compact='aslp', ssn=ssn)
+            provider_record = data_client.get_provider(compact='aslp', provider_id=provider_id, detail=False)
             data_client.create_provider_privileges(
-                compact_name='aslp',
+                compact='aslp',
                 provider_id=provider_id,
+                provider_record=provider_record,
                 jurisdiction_postal_abbreviations=[privilege],
                 license_expiration_date=date(2050, 6, 6),
                 compact_transaction_id='1234567890',
                 existing_privileges=[],
+                # This attestation id/version pair is defined in the 'privilege.json' file under the
+                # common/tests/resources/dynamo directory
+                attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
             )

@@ -8,6 +8,7 @@
 import { createRouter, createWebHistory, RouteLocationNormalized as Route } from 'vue-router';
 import routes from '@router/routes';
 import store from '@/store';
+import { authStorage, AUTH_TYPE, AuthTypes } from '@/app.config';
 import { CompactSerializer } from '@models/Compact/Compact.model';
 
 const router = createRouter({
@@ -29,6 +30,8 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
     const isAuthGuardedRoute = to.matched.some((route) => route.meta.requiresAuth);
+    const isLicenseeRoute = to.matched.some((route) => route.meta.licenseeAccess);
+    const isStaffRoute = to.matched.some((route) => route.meta.staffAccess);
     const routeParamCompactType = to.params?.compact;
 
     // If the store does not have the requested compact, set it from the route (e.g. page refreshes)
@@ -46,11 +49,21 @@ router.beforeEach(async (to, from, next) => {
 
         if (!isLoggedIn) {
             next({ name: 'Logout' });
-        } else {
+        } else if ((isLicenseeRoute && isStaffRoute)
+        || (isLicenseeRoute && authStorage.getItem(AUTH_TYPE) === AuthTypes.LICENSEE)
+        || (isStaffRoute && authStorage.getItem(AUTH_TYPE) === AuthTypes.STAFF)) {
             next();
+        } else {
+            next({ name: 'Home' });
         }
     } else {
         next();
+    }
+});
+
+router.afterEach(() => {
+    if (window.innerWidth < 770) {
+        store.dispatch('collapseNavMenu');
     }
 });
 

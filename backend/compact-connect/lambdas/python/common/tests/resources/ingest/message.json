@@ -24,10 +24,10 @@
     "emailAddress": "björk@example.com",
     "phoneNumber": "+13213214321",
     "militaryWaiver": false,
-    "dateOfIssuance": "2024-06-06",
-    "dateOfBirth": "2024-06-06",
-    "dateOfExpiration": "2050-06-06",
-    "dateOfRenewal": "2024-06-06",
+    "dateOfIssuance": "2010-06-06",
+    "dateOfBirth": "1985-06-06",
+    "dateOfExpiration": "2025-04-04",
+    "dateOfRenewal": "2020-04-04",
     "compact": "aslp",
     "jurisdiction": "oh"
   }

@@ -2,14 +2,20 @@ import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
+from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
 from cc_common.exceptions import CCInvalidRequestException
-from cc_common.utils import api_handler, authorize_compact
+from cc_common.utils import (
+    api_handler,
+    authorize_compact,
+    get_event_scopes,
+    sanitize_provider_data_based_on_caller_scopes,
+)
 
 from . import get_provider_information
 
 
 @api_handler
-@authorize_compact(action='read')
+@authorize_compact(action='readGeneral')
 def query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Query providers data
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
@@ -84,13 +90,19 @@ def query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused
             case _:
                 # This shouldn't happen unless our api validation gets misconfigured
                 raise CCInvalidRequestException(f"Invalid sort key: '{sorting_key}'")
-    # Convert generic field to more specific one for this API
-    resp['providers'] = resp.pop('items', [])
+    # Convert generic field to more specific one for this API and sanitize data
+    pre_sanitized_providers = resp.pop('items', [])
+    # for the query endpoint, we only return generally available data, regardless of the caller's scopes
+    general_schema = ProviderGeneralResponseSchema()
+    sanitized_providers = [general_schema.dump(provider) for provider in pre_sanitized_providers]
+
+    resp['providers'] = sanitized_providers
+
     return resp
 
 
 @api_handler
-@authorize_compact(action='read')
+@authorize_compact(action='readGeneral')
 def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Return one provider's data
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
@@ -104,4 +116,8 @@ def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
         logger.error(f'Missing parameter: {e}')
         raise CCInvalidRequestException('Missing required field') from e
 
-    return get_provider_information(compact=compact, provider_id=provider_id)
+    provider_information = get_provider_information(compact=compact, provider_id=provider_id)
+
+    return sanitize_provider_data_based_on_caller_scopes(
+        compact=compact, provider=provider_information, scopes=get_event_scopes(event)
+    )

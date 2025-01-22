@@ -19,7 +19,7 @@ export class EnvironmentVariablesService {
         return this.getEnvVar(this.uiBasePathUrlVariable);
     }
 
-    public getCompactconfigurationTableName() {
+    public getCompactConfigurationTableName() {
         return this.getEnvVar(this.compactConfigurationTableNameVariable);
     }
 

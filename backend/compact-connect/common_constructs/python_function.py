@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import os
 
-import stacks.persistent_stack as ps
 from aws_cdk import Duration, Stack
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
+from aws_cdk.aws_iam import IRole
 from aws_cdk.aws_lambda import ILayerVersion, Runtime
 from aws_cdk.aws_lambda_python_alpha import PythonFunction as CdkPythonFunction
 from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
@@ -14,6 +14,7 @@ from aws_cdk.aws_sns import ITopic
 from aws_cdk.aws_ssm import StringParameter
 from cdk_nag import NagSuppressions
 from constructs import Construct
+from stacks import persistent_stack as ps
 
 COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME = '/deployment/lambda/layers/common-python-layer-arn'
 
@@ -31,8 +32,9 @@ class PythonFunction(CdkPythonFunction):
         construct_id: str,
         *,
         lambda_dir: str,
-        log_retention: RetentionDays = RetentionDays.ONE_MONTH,
+        log_retention: RetentionDays = RetentionDays.INFINITE,
         alarm_topic: ITopic = None,
+        role: IRole = None,
         **kwargs,
     ):
         defaults = {
@@ -46,6 +48,7 @@ class PythonFunction(CdkPythonFunction):
             entry=os.path.join('lambdas', 'python', lambda_dir),
             runtime=Runtime.PYTHON_3_12,
             log_retention=log_retention,
+            role=role,
             **defaults,
         )
         self.add_layers(self._get_common_layer())
@@ -72,26 +75,32 @@ class PythonFunction(CdkPythonFunction):
                 },
             ],
         )
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{self.node.path}/ServiceRole/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM4',
-                    'applies_to': [
-                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
-                    ],
-                    'reason': 'The BasicExecutionRole policy is appropriate for these lambdas',
-                },
-            ],
-        )
+
+        # If a role is provided from elsewhere for this lambda (role is not None), we don't need to run suppressions for
+        # the role that this construct normally creates.
+        if role is None:
+            NagSuppressions.add_resource_suppressions_by_path(
+                stack,
+                path=f'{self.node.path}/ServiceRole/Resource',
+                suppressions=[
+                    {
+                        'id': 'AwsSolutions-IAM4',
+                        'appliesTo': [
+                            'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
+                        ],
+                        'reason': 'The BasicExecutionRole policy is appropriate for these lambdas',
+                    },
+                ],
+            )
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
             path=f'{stack.node.path}/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',
-                    'applies_to': 'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',  # noqa: E501 line-too-long
+                    'appliesTo': [
+                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+                    ],  # noqa: E501 line-too-long
                     'reason': 'This policy is appropriate for the log retention lambda',
                 },
             ],
@@ -102,7 +111,7 @@ class PythonFunction(CdkPythonFunction):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
-                    'applies_to': ['Resource::*'],
+                    'appliesTo': ['Resource::*'],
                     'reason': 'This lambda needs to be able to configure log groups across the account, though the'
                     ' actions it is allowed are scoped specifically for this task.',
                 },

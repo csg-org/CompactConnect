@@ -69,9 +69,9 @@ class TestHandleDataEvents(TstFunction):
                 'licenseType': 'speech-language pathologist',
                 'jurisdiction': 'oh',
                 'status': 'active',
-                'dateOfIssuance': '2024-06-06',
-                'dateOfRenewal': '2024-06-06',
-                'dateOfExpiration': '2050-06-06',
+                'dateOfExpiration': '2025-04-04',
+                'dateOfIssuance': '2010-06-06',
+                'dateOfRenewal': '2020-04-04',
             },
             saved_event,
         )

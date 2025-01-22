@@ -7,7 +7,12 @@
 
 import { dataApi } from '@network/data.api';
 import { config } from '@plugins/EnvConfig/envConfig.plugin';
-import { authStorage, AuthTypes, tokens } from '@/app.config';
+import {
+    authStorage,
+    AuthTypes,
+    tokens,
+    AUTH_TYPE
+} from '@/app.config';
 import localStorage from '@store/local.storage';
 import { Compact } from '@models/Compact/Compact.model';
 import moment from 'moment';
@@ -25,8 +30,8 @@ export default {
     loginRequest: ({ commit }) => {
         commit(MutationTypes.LOGIN_REQUEST);
     },
-    loginSuccess: async ({ commit }) => {
-        commit(MutationTypes.LOGIN_SUCCESS);
+    loginSuccess: async ({ commit }, authType) => {
+        commit(MutationTypes.LOGIN_SUCCESS, authType);
     },
     loginFailure: async ({ commit }, error: Error) => {
         commit(MutationTypes.LOGIN_FAILURE, error);
@@ -99,6 +104,10 @@ export default {
     resetStoreUser: ({ commit }) => {
         commit(MutationTypes.STORE_RESET_USER);
     },
+    updateAuthTokens: ({ dispatch }, { tokenResponse, authType }) => {
+        dispatch('clearAllNonAccessTokens');
+        dispatch('storeAuthTokens', { tokenResponse, authType });
+    },
     storeAuthTokens: ({ dispatch }, { tokenResponse, authType }) => {
         const {
             access_token: accessToken,
@@ -108,7 +117,7 @@ export default {
             refresh_token: refreshToken,
         } = tokenResponse || {};
 
-        authStorage.setItem(tokens[authType].AUTH_TYPE, authType);
+        authStorage.setItem(AUTH_TYPE, authType);
 
         if (accessToken) {
             authStorage.setItem(tokens[authType].AUTH_TOKEN, accessToken);
@@ -192,7 +201,26 @@ export default {
         dispatch('sorting/resetStoreSorting', null, { root: true });
         dispatch('reset', null, { root: true });
     },
+    clearAllNonAccessTokens: () => {
+        authStorage.removeItem(AUTH_TYPE);
+
+        /* istanbul ignore next */
+        Object.keys(tokens[AuthTypes.STAFF]).forEach((key) => {
+            if (key !== 'AUTH_TOKEN') {
+                authStorage.removeItem(tokens[AuthTypes.STAFF][key]);
+            }
+        });
+
+        /* istanbul ignore next */
+        Object.keys(tokens[AuthTypes.LICENSEE]).forEach((key) => {
+            if (key !== 'AUTH_TOKEN') {
+                authStorage.removeItem(tokens[AuthTypes.LICENSEE][key]);
+            }
+        });
+    },
     clearAuthToken: (def, authType) => {
+        authStorage.removeItem(AUTH_TYPE);
+
         /* istanbul ignore next */
         Object.keys(tokens[authType]).forEach((key) => {
             authStorage.removeItem(tokens[authType][key]);
@@ -247,5 +275,58 @@ export default {
     },
     postPrivilegePurchasesFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE, error);
+    },
+    uploadMilitaryAffiliationRequest: ({ commit, dispatch }, documentData) => {
+        commit(MutationTypes.UPLOAD_MILITARY_AFFILIATION_REQUEST);
+
+        const documentIntentData = { ...documentData };
+
+        delete documentIntentData.document;
+        return dataApi.postUploadMilitaryDocumentIntent(documentIntentData).then((intentServerResponse) => {
+            const postUrl = intentServerResponse.documentUploadFields[0].url;
+            const uploadFields = intentServerResponse.documentUploadFields[0].fields;
+
+            if (postUrl && uploadFields && documentData.document) {
+                const documentUploadData = { ...uploadFields };
+
+                return dataApi.postUploadMilitaryAffiliationDocument(postUrl, documentUploadData, documentData.document)
+                    .then((uploadServerResponse) => {
+                        if (uploadServerResponse?.status === 204) {
+                            dispatch('uploadMilitaryAffiliationSuccess');
+
+                            return uploadServerResponse;
+                        }
+
+                        throw new Error('Document Upload Failed');
+                    });
+            }
+
+            throw new Error('Missing fields for Document upload');
+        }).catch((error) => {
+            dispatch('uploadMilitaryAffiliationFailure', error);
+            return error;
+        });
+    },
+    uploadMilitaryAffiliationSuccess: async ({ commit }) => {
+        commit(MutationTypes.UPLOAD_MILITARY_AFFILIATION_SUCCESS);
+    },
+    uploadMilitaryAffiliationFailure: async ({ commit }, error: Error) => {
+        commit(MutationTypes.UPLOAD_MILITARY_AFFILIATION_FAILURE, error);
+    },
+    endMilitaryAffiliationRequest: ({ commit, dispatch }) => {
+        commit(MutationTypes.END_MILITARY_AFFILIATION_REQUEST);
+        return dataApi.endMilitaryAffiliation().then((serverResponse) => {
+            dispatch('endMilitaryAffiliationSuccess');
+            return serverResponse;
+        }).catch((error) => {
+            dispatch('endMilitaryAffiliationFailure', error);
+            return error;
+        });
+    },
+    endMilitaryAffiliationSuccess: async ({ commit }) => {
+        commit(MutationTypes.END_MILITARY_AFFILIATION_SUCCESS);
+    },
+    endMilitaryAffiliationFailure: async ({ commit }, error: Error) => {
+        commit(MutationTypes.END_MILITARY_AFFILIATION_FAILURE, error);
     },
 };

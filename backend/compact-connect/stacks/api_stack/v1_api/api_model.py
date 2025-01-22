@@ -294,8 +294,11 @@ class ApiModel:
                     'actions': JsonSchema(
                         type=JsonSchemaType.OBJECT,
                         properties={
-                            'read': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                            'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
                             'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                            # TODO keeping 'read' action for backwards compatibility  # noqa: FIX002
+                            #  this should be removed after the frontend is updated
+                            'read': JsonSchema(type=JsonSchemaType.BOOLEAN),
                         },
                     ),
                     'jurisdictions': JsonSchema(
@@ -309,6 +312,7 @@ class ApiModel:
                                     properties={
                                         'write': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                         'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                                        'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                     },
                                 ),
                             },
@@ -464,27 +468,7 @@ class ApiModel:
 
     @property
     def post_purchase_privileges_request_model(self) -> Model:
-        """Return the purchase privilege request model, which should only be created once per API
-        create a schema that defines the following object example:
-            {
-                "selectedJurisdictions": ["<jurisdiction postal abbreviations>"],
-                "orderInformation": {
-                "card": {
-                    "number": "<card number>",
-                    "expiration": "<expiration date>",
-                    "cvv": "<cvv>"
-                },
-                "billing":  {
-                    "firstName": "testFirstName",
-                    "lastName": "testLastName",
-                    "streetAddress": "123 Test St",
-                    "streetAddress2": "", # optional
-                    "state": "OH",
-                    "zip": "12345",
-                }
-              }
-            }
-        """
+        """Return the purchase privilege request model, which should only be created once per API"""
         if hasattr(self.api, '_v1_post_purchase_privileges_request_model'):
             return self.api._v1_post_purchase_privileges_request_model
         self.api._v1_post_purchase_privileges_request_model = self.api.add_model(
@@ -492,7 +476,7 @@ class ApiModel:
             description='Post purchase privileges request model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['selectedJurisdictions', 'orderInformation'],
+                required=['selectedJurisdictions', 'orderInformation', 'attestations'],
                 properties={
                     'selectedJurisdictions': JsonSchema(
                         type=JsonSchemaType.ARRAY,
@@ -577,6 +561,29 @@ class ApiModel:
                                 },
                             ),
                         },
+                    ),
+                    'attestations': JsonSchema(
+                        type=JsonSchemaType.ARRAY,
+                        description='List of attestations that the user has agreed to',
+                        items=JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            required=['attestationId', 'version'],
+                            properties={
+                                'attestationId': JsonSchema(
+                                    type=JsonSchemaType.STRING,
+                                    max_length=100,
+                                    description='The ID of the attestation',
+                                ),
+                                'version': JsonSchema(
+                                    # we store the version as a string, rather than an integer, to avoid
+                                    # type casting between DynamoDB's Decimal and Python's int
+                                    type=JsonSchemaType.STRING,
+                                    max_length=10,
+                                    description='The version of the attestation',
+                                    pattern=r'^\d+$',
+                                ),
+                            },
+                        ),
                     ),
                 },
             ),
@@ -847,13 +854,84 @@ class ApiModel:
                                 format='date',
                                 pattern=cc_api.YMD_FORMAT,
                             ),
+                            'history': JsonSchema(
+                                type=JsonSchemaType.ARRAY,
+                                items=JsonSchema(
+                                    type=JsonSchemaType.OBJECT,
+                                    properties={
+                                        'type': JsonSchema(type=JsonSchemaType.STRING, enum=['licenseUpdate']),
+                                        'updateType': JsonSchema(
+                                            type=JsonSchemaType.STRING, enum=['renewal', 'deactivation', 'other']
+                                        ),
+                                        'compact': JsonSchema(
+                                            type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')
+                                        ),
+                                        'jurisdiction': JsonSchema(
+                                            type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
+                                        ),
+                                        'dateOfUpdate': JsonSchema(
+                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                                        ),
+                                        'previous': JsonSchema(
+                                            type=JsonSchemaType.OBJECT, properties=self._common_license_properties
+                                        ),
+                                        'updatedValues': JsonSchema(
+                                            type=JsonSchemaType.OBJECT, properties=self._common_license_properties
+                                        ),
+                                        'removedValues': JsonSchema(
+                                            type=JsonSchemaType.ARRAY,
+                                            description='List of field names that were present in the previous record'
+                                            ' but removed in the update',
+                                            items=JsonSchema(type=JsonSchemaType.STRING),
+                                        ),
+                                    },
+                                ),
+                            ),
                             **self._common_license_properties,
                         },
                     ),
                 ),
                 'privileges': JsonSchema(
                     type=JsonSchemaType.ARRAY,
-                    items=JsonSchema(type=JsonSchemaType.OBJECT, properties=self._common_privilege_properties),
+                    items=JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        properties={
+                            'history': JsonSchema(
+                                type=JsonSchemaType.ARRAY,
+                                items=JsonSchema(
+                                    type=JsonSchemaType.OBJECT,
+                                    properties={
+                                        'type': JsonSchema(type=JsonSchemaType.STRING, enum=['privilegeUpdate']),
+                                        'updateType': JsonSchema(
+                                            type=JsonSchemaType.STRING, enum=['renewal', 'deactivation', 'other']
+                                        ),
+                                        'compact': JsonSchema(
+                                            type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')
+                                        ),
+                                        'jurisdiction': JsonSchema(
+                                            type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
+                                        ),
+                                        'dateOfUpdate': JsonSchema(
+                                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                                        ),
+                                        'previous': JsonSchema(
+                                            type=JsonSchemaType.OBJECT, properties=self._common_privilege_properties
+                                        ),
+                                        'updatedValues': JsonSchema(
+                                            type=JsonSchemaType.OBJECT, properties=self._common_privilege_properties
+                                        ),
+                                        'removedValues': JsonSchema(
+                                            type=JsonSchemaType.ARRAY,
+                                            description='List of field names that were present in the previous record'
+                                            ' but removed in the update',
+                                            items=JsonSchema(type=JsonSchemaType.STRING),
+                                        ),
+                                    },
+                                ),
+                            ),
+                            **self._common_privilege_properties,
+                        },
+                    ),
                 ),
                 **self._common_provider_properties,
             },
@@ -979,3 +1057,28 @@ class ApiModel:
                 'pageSize': JsonSchema(type=JsonSchemaType.INTEGER, minimum=5, maximum=100),
             },
         )
+
+    @property
+    def get_attestations_response_model(self) -> Model:
+        """Return the attestations response model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_get_attestations_response_model'):
+            return self.api._v1_get_attestations_response_model
+
+        stack: AppStack = AppStack.of(self.api)
+        self.api._v1_get_attestations_response_model = self.api.add_model(
+            'V1GetAttestationsResponseModel',
+            description='Get attestations response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                properties={
+                    'type': JsonSchema(type=JsonSchemaType.STRING, enum=['attestation']),
+                    'attestationType': JsonSchema(type=JsonSchemaType.STRING),
+                    'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                    'version': JsonSchema(type=JsonSchemaType.STRING),
+                    'dateCreated': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
+                    'text': JsonSchema(type=JsonSchemaType.STRING),
+                    'required': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                },
+            ),
+        )
+        return self.api._v1_get_attestations_response_model

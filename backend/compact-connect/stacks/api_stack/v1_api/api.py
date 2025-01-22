@@ -4,6 +4,7 @@ from aws_cdk.aws_apigateway import AuthorizationType, IResource, MethodOptions
 
 from stacks import persistent_stack as ps
 from stacks.api_stack import cc_api
+from stacks.api_stack.v1_api.attestations import Attestations
 from stacks.api_stack.v1_api.bulk_upload_url import BulkUploadUrl
 from stacks.api_stack.v1_api.provider_users import ProviderUsers
 from stacks.api_stack.v1_api.purchases import Purchases
@@ -25,7 +26,7 @@ class V1Api:
         self.api: cc_api.CCApi = root.api
         self.api_model = ApiModel(api=self.api)
         read_scopes = [
-            f'{resource_server}/read' for resource_server in persistent_stack.staff_users.resource_servers.keys()
+            f'{resource_server}/readGeneral' for resource_server in persistent_stack.staff_users.resource_servers.keys()
         ]
         write_scopes = [
             f'{resource_server}/write' for resource_server in persistent_stack.staff_users.resource_servers.keys()
@@ -73,6 +74,14 @@ class V1Api:
         # /v1/compacts/{compact}
         self.compact_resource = self.compacts_resource.add_resource('{compact}')
 
+        # /v1/compacts/{compact}/attestations
+        self.attestations_resource = self.compact_resource.add_resource('attestations')
+        self.attestations = Attestations(
+            resource=self.attestations_resource,
+            persistent_stack=persistent_stack,
+            api_model=self.api_model,
+        )
+
         # /v1/compacts/{compact}/credentials
         credentials_resource = self.compact_resource.add_resource('credentials')
         self.credentials = Credentials(
@@ -89,6 +98,7 @@ class V1Api:
             method_options=read_auth_method_options,
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
+            ssn_table=persistent_stack.ssn_table,
             api_model=self.api_model,
         )
 
@@ -111,17 +121,17 @@ class V1Api:
         )
 
         # /v1/staff-users
-        staff_users_admin_resource = self.compact_resource.add_resource('staff-users')
-        staff_users_self_resource = self.resource.add_resource('staff-users')
+        self.staff_users_admin_resource = self.compact_resource.add_resource('staff-users')
+        self.staff_users_self_resource = self.resource.add_resource('staff-users')
         # GET    /v1/staff-users/me
         # PATCH  /v1/staff-users/me
         # GET    /v1/compacts/{compact}/staff-users
         # POST   /v1/compacts/{compact}/staff-users
         # GET    /v1/compacts/{compact}/staff-users/{userId}
         # PATCH  /v1/compacts/{compact}/staff-users/{userId}
-        StaffUsers(
-            admin_resource=staff_users_admin_resource,
-            self_resource=staff_users_self_resource,
+        self.staff_users = StaffUsers(
+            admin_resource=self.staff_users_admin_resource,
+            self_resource=self.staff_users_self_resource,
             admin_scopes=admin_scopes,
             persistent_stack=persistent_stack,
             api_model=self.api_model,

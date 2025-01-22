@@ -27,7 +27,6 @@ class BulkUploadsBucket(Bucket):
         *,
         access_logs_bucket: AccessLogsBucket,
         encryption_key: IKey,
-        mock_bucket: bool = False,
         event_bus: EventBus,
         **kwargs,
     ):
@@ -49,8 +48,7 @@ class BulkUploadsBucket(Bucket):
         )
         self.log_groups = []
 
-        if not mock_bucket:
-            self._add_v1_ingest_object_events(event_bus)
+        self._add_v1_ingest_object_events(event_bus)
 
         QueryDefinition(
             self,
@@ -132,7 +130,7 @@ class BulkUploadsBucket(Bucket):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
-                    'applies_to': ['Resource::*'],
+                    'appliesTo': ['Resource::*'],
                     'reason': """
                     The lambda policy is scoped specifically to the PutBucketNotification action, which
                     suits its purpose.
@@ -146,7 +144,7 @@ class BulkUploadsBucket(Bucket):
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',
-                    'applies_to': [
+                    'appliesTo': [
                         'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
                     ],
                     'reason': 'The BasicExecutionRole policy is appropriate for this lambda',

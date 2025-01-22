@@ -10,7 +10,7 @@ from tests import TstLambdas
 
 class TestPaginated(TstLambdas):
     def setUp(self):  # noqa: N801 invalid-name
-        with open('tests/resources/dynamo/user.json') as f:
+        with open('../common/tests/resources/dynamo/user.json') as f:
             self._item = TypeDeserializer().deserialize({'M': json.load(f)})
 
     def test_pagination_parameters(self):

@@ -7,6 +7,7 @@
 import { Compact } from '@models/Compact/Compact.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { StaffUser } from '@/models/StaffUser/StaffUser.model';
+import { AuthTypes } from '@/app.config';
 
 export enum MutationTypes {
     LOGIN_REQUEST = '[User] Login Request',
@@ -33,7 +34,13 @@ export enum MutationTypes {
     SET_ATTESTATIONS_ACCEPTED = '[User] Set Attestations Accepted',
     POST_PRIVILEGE_PURCHASE_REQUEST = '[User] Post Privilege Purchase Request',
     POST_PRIVILEGE_PURCHASE_SUCCESS = '[User] Post Privilege Purchase Success',
-    POST_PRIVILEGE_PURCHASE_FAILURE = '[User] Post Privilege Purchase Failure'
+    POST_PRIVILEGE_PURCHASE_FAILURE = '[User] Post Privilege Purchase Failure',
+    UPLOAD_MILITARY_AFFILIATION_REQUEST = '[User] Post Military Affiliation Request',
+    UPLOAD_MILITARY_AFFILIATION_SUCCESS = '[User] Post Military Affiliation Success',
+    UPLOAD_MILITARY_AFFILIATION_FAILURE = '[User] Post Military Affiliation Failure',
+    END_MILITARY_AFFILIATION_REQUEST = '[User] Patch Military Affiliation Request',
+    END_MILITARY_AFFILIATION_SUCCESS = '[User] Patch Military Affiliation Success',
+    END_MILITARY_AFFILIATION_FAILURE = '[User] Patch Military Affiliation Failure'
 }
 
 export default {
@@ -45,8 +52,10 @@ export default {
         state.isLoadingAccount = false;
         state.error = error;
     },
-    [MutationTypes.LOGIN_SUCCESS]: (state: any) => {
+    [MutationTypes.LOGIN_SUCCESS]: (state: any, authType: AuthTypes) => {
         state.isLoggedIn = true;
+        state.isLoggedInAsLicensee = Boolean(authType === AuthTypes.LICENSEE);
+        state.isLoggedInAsStaff = Boolean(authType === AuthTypes.STAFF);
         state.isLoadingAccount = false;
         state.error = null;
     },
@@ -141,6 +150,30 @@ export default {
     },
     [MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE]: (state: any, error: Error) => {
         state.isLoadingPrivilegePurchaseOptions = false;
+        state.error = error;
+    },
+    [MutationTypes.UPLOAD_MILITARY_AFFILIATION_REQUEST]: (state: any) => {
+        state.isLoadingAccount = true;
+        state.error = null;
+    },
+    [MutationTypes.UPLOAD_MILITARY_AFFILIATION_SUCCESS]: (state: any) => {
+        state.isLoadingAccount = false;
+        state.error = null;
+    },
+    [MutationTypes.UPLOAD_MILITARY_AFFILIATION_FAILURE]: (state: any, error: Error) => {
+        state.isLoadingAccount = false;
+        state.error = error;
+    },
+    [MutationTypes.END_MILITARY_AFFILIATION_REQUEST]: (state: any) => {
+        state.isLoadingAccount = true;
+        state.error = null;
+    },
+    [MutationTypes.END_MILITARY_AFFILIATION_SUCCESS]: (state: any) => {
+        state.isLoadingAccount = false;
+        state.error = null;
+    },
+    [MutationTypes.END_MILITARY_AFFILIATION_FAILURE]: (state: any, error: Error) => {
+        state.isLoadingAccount = false;
         state.error = error;
     },
 };

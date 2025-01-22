@@ -11,7 +11,7 @@ from common_constructs.stack import Stack
 
 # Importing module level to allow lazy loading for typing
 from stacks.api_stack import cc_api
-from stacks.persistent_stack import ProviderTable
+from stacks.persistent_stack import ProviderTable, SSNTable
 
 from .api_model import ApiModel
 
@@ -23,6 +23,7 @@ class QueryProviders:
         resource: Resource,
         method_options: MethodOptions,
         data_encryption_key: IKey,
+        ssn_table: SSNTable,
         provider_data_table: ProviderTable,
         api_model: ApiModel,
     ):
@@ -35,8 +36,10 @@ class QueryProviders:
         stack: Stack = Stack.of(resource)
         lambda_environment = {
             'PROVIDER_TABLE_NAME': provider_data_table.table_name,
-            'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
-            'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
+            'PROV_FAM_GIV_MID_INDEX_NAME': provider_data_table.provider_fam_giv_mid_index_name,
+            'PROV_DATE_OF_UPDATE_INDEX_NAME': provider_data_table.provider_date_of_update_index_name,
+            'SSN_TABLE_NAME': ssn_table.table_name,
+            'SSN_INVERTED_INDEX_NAME': ssn_table.inverted_index_name,
             **stack.common_env_vars,
         }
 
@@ -44,6 +47,7 @@ class QueryProviders:
             method_options=method_options,
             data_encryption_key=data_encryption_key,
             provider_data_table=provider_data_table,
+            ssn_table=ssn_table,
             lambda_environment=lambda_environment,
         )
         self._add_get_provider(
@@ -88,6 +92,7 @@ class QueryProviders:
         method_options: MethodOptions,
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
+        ssn_table: SSNTable,
         lambda_environment: dict,
     ):
         query_resource = self.resource.add_resource('query')
@@ -95,6 +100,7 @@ class QueryProviders:
         handler = self._query_providers_handler(
             data_encryption_key=data_encryption_key,
             provider_data_table=provider_data_table,
+            ssn_table=ssn_table,
             lambda_environment=lambda_environment,
         )
         self.api.log_groups.append(handler.log_group)
@@ -153,13 +159,14 @@ class QueryProviders:
         self,
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
+        ssn_table: SSNTable,
         lambda_environment: dict,
     ) -> PythonFunction:
-        stack = Stack.of(self.api)
         handler = PythonFunction(
             self.resource,
             'QueryProvidersHandler',
             description='Query providers handler',
+            role=ssn_table.api_query_role,
             lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'providers.py'),
             handler='query_providers',
@@ -170,11 +177,16 @@ class QueryProviders:
         provider_data_table.grant_read_data(handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            Stack.of(handler.role),
+            path=f'{handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
+                    'appliesTo': [
+                        'Action::kms:GenerateDataKey*',
+                        'Action::kms:ReEncrypt*',
+                        'Resource::<ProviderTableEC5D0597.Arn>/index/*',
+                    ],
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
                     'and is scoped to one table and encryption key.',
                 },

@@ -9,12 +9,12 @@ import { Component, mixins, toNative } from 'vue-facing-decorator';
 import { reactive, computed, ComputedRef } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import Card from '@components/Card/Card.vue';
-import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
+import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import {
@@ -34,13 +34,13 @@ interface PermissionOption {
 
 enum Permission {
     NONE = 'none',
-    READ = 'read',
+    READ_PRIVATE = 'readPrivate',
     WRITE = 'write',
     ADMIN = 'admin',
 }
 
 interface PermissionObject {
-    isRead?: boolean;
+    isReadPrivate?: boolean;
     isWrite?: boolean;
     isAdmin?: boolean;
 }
@@ -134,7 +134,7 @@ class UserInvite extends mixins(MixinForm) {
     get userPermissionOptionsCompact(): Array<PermissionOption> {
         return [
             { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
-            { value: Permission.READ, name: this.$t('account.accessLevel.read') },
+            { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
             { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
         ];
     }
@@ -148,6 +148,7 @@ class UserInvite extends mixins(MixinForm) {
     get userPermissionOptionsState(): Array<PermissionOption> {
         return [
             { value: Permission.NONE, name: this.$t('account.accessLevel.none') },
+            { value: Permission.READ_PRIVATE, name: this.$t('account.accessLevel.readPrivate') },
             { value: Permission.WRITE, name: this.$t('account.accessLevel.write') },
             { value: Permission.ADMIN, name: this.$t('account.accessLevel.admin') },
         ];
@@ -350,8 +351,8 @@ class UserInvite extends mixins(MixinForm) {
         if (compactPermission) {
             if (compactPermission.isAdmin) {
                 permission = Permission.ADMIN;
-            } else if (compactPermission.isRead) {
-                permission = Permission.READ;
+            } else if (compactPermission.isReadPrivate) {
+                permission = Permission.READ_PRIVATE;
             }
         }
 
@@ -361,21 +362,23 @@ class UserInvite extends mixins(MixinForm) {
     setCompactPermission(permission: Permission): PermissionObject {
         const response: PermissionObject = {};
 
-        switch (permission) {
-        case Permission.NONE:
-            response.isRead = false;
-            response.isAdmin = false;
-            break;
-        case Permission.READ:
-            response.isRead = true;
-            response.isAdmin = false;
-            break;
-        case Permission.ADMIN:
-            response.isRead = true;
-            response.isAdmin = true;
-            break;
-        default:
-            break;
+        if (this.isCurrentUserCompactAdmin) {
+            switch (permission) {
+            case Permission.NONE:
+                response.isReadPrivate = false;
+                response.isAdmin = false;
+                break;
+            case Permission.READ_PRIVATE:
+                response.isReadPrivate = true;
+                response.isAdmin = false;
+                break;
+            case Permission.ADMIN:
+                response.isReadPrivate = true;
+                response.isAdmin = true;
+                break;
+            default:
+                break;
+            }
         }
 
         return response;
@@ -389,6 +392,8 @@ class UserInvite extends mixins(MixinForm) {
                 permission = Permission.ADMIN;
             } else if (statePermission.isWrite) {
                 permission = Permission.WRITE;
+            } else if (statePermission.isReadPrivate) {
+                permission = Permission.READ_PRIVATE;
             }
         }
 
@@ -400,14 +405,22 @@ class UserInvite extends mixins(MixinForm) {
 
         switch (permission) {
         case Permission.NONE:
+            response.isReadPrivate = false;
+            response.isWrite = false;
+            response.isAdmin = false;
+            break;
+        case Permission.READ_PRIVATE:
+            response.isReadPrivate = true;
             response.isWrite = false;
             response.isAdmin = false;
             break;
         case Permission.WRITE:
+            response.isReadPrivate = true;
             response.isWrite = true;
             response.isAdmin = false;
             break;
         case Permission.ADMIN:
+            response.isReadPrivate = true;
             response.isWrite = true;
             response.isAdmin = true;
             break;
@@ -482,6 +495,7 @@ class UserInvite extends mixins(MixinForm) {
         this.formData.email.value = `test@example.com`;
         this.formData.firstName.value = `Test`;
         this.formData.lastName.value = `User`;
+        this.validateAll({ asTouched: true });
     }
 }
 

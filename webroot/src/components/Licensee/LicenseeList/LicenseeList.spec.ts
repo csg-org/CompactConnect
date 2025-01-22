@@ -113,7 +113,6 @@ describe('LicenseeList component', async () => {
         const requestConfig = await component.fetchListData();
 
         expect(requestConfig).to.matchPattern({
-            compact: undefined,
             jurisdiction: undefined,
             licenseeFirstName: undefined,
             licenseeLastName: undefined,
@@ -132,8 +131,9 @@ describe('LicenseeList component', async () => {
         };
 
         await component.$store.dispatch('user/setCurrentCompact', new Compact({ type: CompactType.ASLP }));
+        await component.$store.dispatch('license/setStoreSearch', testParams);
 
-        const requestConfig = await component.fetchListData(testParams);
+        const requestConfig = await component.fetchListData();
 
         expect(requestConfig).to.matchPattern({
             compact: CompactType.ASLP,

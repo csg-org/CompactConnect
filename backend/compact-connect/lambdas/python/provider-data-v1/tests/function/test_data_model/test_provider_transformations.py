@@ -21,7 +21,7 @@ class TestTransformations(TstFunction):
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_ssn = json.load(f)
 
-        self._provider_table.put_item(Item=provider_ssn)
+        self._ssn_table.put_item(Item=provider_ssn)
         expected_provider_id = provider_ssn['providerId']
 
         # license data as it comes in from a board, in this case, as POSTed through the API
@@ -71,7 +71,7 @@ class TestTransformations(TstFunction):
         # This should fully ingest the license, which will result in it being written to the DB
         ingest_license_message(event, self.mock_context)
 
-        from cc_common.data_model.client import DataClient
+        from cc_common.data_model.data_client import DataClient
 
         # We'll use the data client to get the resulting provider id
         client = DataClient(self.config)
@@ -80,16 +80,19 @@ class TestTransformations(TstFunction):
             ssn=license_ssn,
         )
         self.assertEqual(expected_provider_id, provider_id)
+        provider_record = client.get_provider(compact='aslp', provider_id=provider_id, detail=False)
 
         # Add a privilege to practice in Nebraska
         client.create_provider_privileges(
-            compact_name='aslp',
+            compact='aslp',
             provider_id=provider_id,
+            provider_record=provider_record,
             # using values in expected privilege json file
             jurisdiction_postal_abbreviations=['ne'],
-            license_expiration_date=date(2050, 6, 6),
+            license_expiration_date=date(2025, 4, 4),
             compact_transaction_id='1234567890',
             existing_privileges=[],
+            attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
         )
 
         from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationType
@@ -101,7 +104,7 @@ class TestTransformations(TstFunction):
             affiliation_type=MilitaryAffiliationType.MILITARY_MEMBER,
             file_names=['military-waiver.pdf'],
             document_keys=[
-                '/provider/<provider_id>/document-type/military-affiliations/2024-07-08/1234#military-waiver.pdf'
+                f'/provider/{provider_id}/document-type/military-affiliations/2024-07-08/1234#military-waiver.pdf'
             ],
         )
 
@@ -111,7 +114,7 @@ class TestTransformations(TstFunction):
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
             & Key('sk').begins_with('aslp#PROVIDER'),
         )
-        # One record for reach of: provider, license, privilege, militaryAffiliation
+        # One record for each of: provider, license, privilege, militaryAffiliation
         self.assertEqual(4, len(resp['Items']))
         records = {item['type']: item for item in resp['Items']}
 
@@ -165,7 +168,7 @@ class TestTransformations(TstFunction):
             event = json.load(f)
 
         event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/read'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/aslp.readPrivate'
 
         resp = get_provider(event, self.mock_context)
 
@@ -199,6 +202,11 @@ class TestTransformations(TstFunction):
         del expected_provider['privileges'][0]['dateOfRenewal']
         del expected_provider['militaryAffiliations'][0]['dateOfUpload']
         del expected_provider['militaryAffiliations'][0]['dateOfUpdate']
+
+        # This lengthy test does not include change records for licenses or privileges, so we'll blank out the
+        # sample history from our expected_provider
+        expected_provider['licenses'][0]['history'] = []
+        expected_provider['privileges'][0]['history'] = []
 
         # Phew! We've loaded the data all the way in via the ingest chain and back out via the API!
         self.assertEqual(expected_provider, provider_data)

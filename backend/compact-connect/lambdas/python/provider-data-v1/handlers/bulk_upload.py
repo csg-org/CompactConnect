@@ -7,7 +7,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from botocore.response import StreamingBody
 from cc_common.config import config, logger
-from cc_common.data_model.schema.license import LicensePostSchema, LicensePublicSchema
+from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema, LicensePostRequestSchema
 from cc_common.exceptions import CCInternalException
 from cc_common.utils import ResponseEncoder, api_handler, authorize_compact_jurisdiction
 from event_batch_writer import EventBatchWriter
@@ -114,8 +114,8 @@ def process_bulk_upload_file(
     """
     Stream each line of the new CSV file, validating it then publishing an ingest event for each line.
     """
-    public_schema = LicensePublicSchema()
-    schema = LicensePostSchema()
+    general_schema = LicenseGeneralResponseSchema()
+    schema = LicensePostRequestSchema()
     reader = LicenseCSVReader()
 
     stream = TextIOWrapper(body, encoding='utf-8')
@@ -127,16 +127,16 @@ def process_bulk_upload_file(
             except ValidationError as e:
                 # This CSV line has failed validation. We will carefully collect what information we can
                 # and publish it as a failure event. Because this data may eventually be sent back over
-                # an email, we will only include the public values that we can still validate.
+                # an email, we will only include the generally available values that we can still validate.
                 try:
-                    public_license_data = public_schema.load(raw_license)
+                    general_license_data = general_schema.load(raw_license)
                 except ValidationError as exc_second_try:
-                    public_license_data = exc_second_try.valid_data
+                    general_license_data = exc_second_try.valid_data
                 logger.info(
                     'Invalid license in line %s uploaded: %s',
                     i + 1,
                     str(e),
-                    valid_data=public_license_data,
+                    valid_data=general_license_data,
                     exc_info=e,
                 )
                 event_writer.put_event(
@@ -149,7 +149,7 @@ def process_bulk_upload_file(
                                 'compact': compact,
                                 'jurisdiction': jurisdiction,
                                 'recordNumber': i + 1,
-                                'validData': public_license_data,
+                                'validData': general_license_data,
                                 'errors': e.messages,
                             },
                             cls=ResponseEncoder,

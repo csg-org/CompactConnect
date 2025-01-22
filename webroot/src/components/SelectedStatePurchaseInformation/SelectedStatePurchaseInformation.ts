@@ -110,7 +110,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     }
 
     get militaryDiscountText(): string {
-        return this.$t('licensing.militaryDiscountText');
+        return this.$t('military.militaryDiscountText');
     }
 
     get jurisprudenceModalTitle(): string {
@@ -149,8 +149,12 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         return this.selectedStatePurchaseData?.isMilitaryDiscountActive || false;
     }
 
+    get shouldApplyMilitaryDiscount(): boolean {
+        return Boolean(this.isMilitaryDiscountActive && this.licensee?.isMilitary());
+    }
+
     get subTotal(): string {
-        const militaryDiscount = this.isMilitaryDiscountActive
+        const militaryDiscount = this.shouldApplyMilitaryDiscount
             && this.selectedStatePurchaseData?.militaryDiscountAmount
             ? this.selectedStatePurchaseData?.militaryDiscountAmount : 0;
 
@@ -183,7 +187,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         this.formData = reactive(initFormData);
     }
 
-    handleJurisprudenceClicked() {
+    handleJurisprudenceClicked(): void {
         const newValue = this.jurisprudenceCheckInput?.value;
 
         if (newValue) {
@@ -194,13 +198,13 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         }
     }
 
-    deselectState() {
+    deselectState(): void {
         const stateAbbrev = this.selectedStatePurchaseData?.jurisdiction?.abbrev;
 
         this.$emit('exOutState', stateAbbrev);
     }
 
-    submitUnderstanding() {
+    submitUnderstanding(): void {
         const { isJurisprudencePending, jurisprudenceCheckInput } = this;
 
         if (isJurisprudencePending && jurisprudenceCheckInput) {
@@ -210,7 +214,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         }
     }
 
-    closeAndInvalidateCheckbox() {
+    closeAndInvalidateCheckbox(): void {
         const { isJurisprudencePending, jurisprudenceCheckInput } = this;
 
         if (isJurisprudencePending && jurisprudenceCheckInput) {
@@ -220,14 +224,31 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         }
     }
 
-    setJurisprudenceInputValue(newValue) {
+    setJurisprudenceInputValue(newValue): void {
         if (this.jurisprudenceCheckInput) {
             (this.jurisprudenceCheckInput.value as any) = newValue; // any use required here because of outstanding ts bug regarding union type inference
         }
     }
 
-    togglePriceCollapsed() {
+    togglePriceCollapsed(): void {
         this.isPriceCollapsed = !this.isPriceCollapsed;
+    }
+
+    focusTrap(event: KeyboardEvent): void {
+        const firstTabIndex = document.getElementById('jurisprudence-modal-back-button');
+        const lastTabIndex = document.getElementById(this.formData.submitUnderstanding.id);
+
+        if (event.shiftKey) {
+            // shift + tab to last input
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+                event.preventDefault();
+            }
+        } else if (document.activeElement === lastTabIndex) {
+            // Tab to first input
+            firstTabIndex?.focus();
+            event.preventDefault();
+        }
     }
 }
 

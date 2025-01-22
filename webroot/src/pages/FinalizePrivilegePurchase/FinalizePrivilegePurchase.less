@@ -76,15 +76,14 @@
             .cost-breakdown-container {
                 display: flex;
                 flex-direction: column;
-                justify-content: space-between;
                 margin-top: 1rem;
                 padding: 2rem;
                 border-radius: 20px;
-                color: white;
-                background-color: @primaryColor;
+                color: @white;
+                background-color: @darkBlue;
 
                 @media @tabletWidth {
-                    width: 32rem;
+                    width: 30rem;
                     margin-top: unset;
                     padding: 8rem 2rem;
                     border-radius: 0 20px 20px 0;
@@ -92,15 +91,42 @@
 
                 @media @desktopWidth {
                     margin-top: 8rem;
-                    padding: 8rem 4rem;
+                }
+
+                .no-refunds-checkbox {
+                    margin-top: auto;
                 }
 
                 :deep(.checkbox-container) {
+                    input {
+                        &:not(:checked) + .checkbox-replacement::before {
+                            border-color: @white;
+                        }
+
+                        &:checked + .checkbox-replacement {
+                            &::before {
+                                border-color: @white;
+                            }
+
+                            &::after {
+                                background-color: @white;
+                            }
+                        }
+
+                        &:focus {
+                            outline: 0;
+                        }
+                    }
+
                     label {
                         margin-left: 1rem;
-                        color: white;
-                        font-weight: @fontWeight;
-                        font-size: 1.5rem;
+                        color: @white;
+                        font-weight: @fontWeightLight;
+                        font-size: 1.3rem;
+
+                        @media @tabletWidth {
+                            font-size: 1.5rem;
+                        }
                     }
                 }
 
@@ -108,7 +134,6 @@
                     .info-row {
                         display: flex;
                         flex-direction: row;
-                        justify-content: space-between;
                         margin: 1rem 0;
 
                         &.purchase-total {
@@ -117,7 +142,15 @@
                         }
 
                         .info-row-label {
-                            max-width: 16rem;
+                            width: 16rem;
+                        }
+
+                        .info-row-amount {
+                            margin-left: auto;
+
+                            @media @desktopWidth {
+                                margin-left: unset;
+                            }
                         }
                     }
 
@@ -131,10 +164,10 @@
             .finalize-purchase-core-container {
                 padding: 2rem;
                 border-radius: 20px;
-                background-color: white;
+                background-color: @white;
 
                 @media @tabletWidth {
-                    width: 42rem;
+                    width: 36rem;
                     margin-top: unset;
                     border-radius: 20px 0 0 20px;
                 }
@@ -174,18 +207,18 @@
 
                         .state-zip-line {
                             display: flex;
-                            flex-direction: row;
+                            flex-direction: column;
                             justify-content: space-between;
 
-                            :deep(.input-container) {
-                                &.no-margin {
-                                    input {
-                                        width: 10rem;
-                                    }
+                            .state-select {
+                                margin-bottom: 1.6rem;
+                            }
 
-                                    select {
-                                        width: 15rem;
-                                    }
+                            @media @desktopWidth {
+                                flex-direction: row;
+
+                                .state-select {
+                                    margin-bottom: 0;
                                 }
                             }
                         }

@@ -1,0 +1,137 @@
+//
+//  MilitaryStatus.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 12/20/2024.
+//
+.military-status-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+
+    @media @tabletWidth {
+        padding: 4rem;
+    }
+
+    .end-affiliation-modal {
+        :deep(.modal-container) {
+            max-width: 90vw;
+            padding: 2rem;
+
+            @media @tabletWidth {
+                max-width: 60rem;
+                padding: 4rem;
+            }
+
+            .end-affiliation-modal-content {
+                padding-top: 1rem;
+                overflow-y: hidden;
+                color: black;
+
+                .action-button-row {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: flex-end;
+                    margin-top: 4rem;
+                    margin-bottom: -2rem;
+
+                    .yes-end-button {
+                        margin-left: 1rem;
+
+                        &.input-container {
+                            input {
+                                border: @midRed;
+                                background-color: @midRed;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .military-status-content-container {
+        width: 100%;
+
+        @media @desktopWidth {
+            width: unset;
+        }
+
+        .military-status-title {
+            margin-bottom: 1.4rem;
+            font-size: @h1FontSize;
+        }
+
+        .core-info-block {
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            border-radius: 14px;
+            background-color: @white;
+
+            @media @tabletWidth {
+                padding: 2rem;
+            }
+
+            @media @desktopWidth {
+                width: 69rem;
+            }
+
+            .info-row {
+                display: flex;
+                flex-direction: row;
+                padding-bottom: 1.2rem;
+            }
+
+            .chunk {
+                display: flex;
+                flex-direction: column;
+                padding: 1.4rem;
+
+                &.affiliation-type {
+                    @media @tabletWidth {
+                        margin-left: 6rem;
+                    }
+                }
+
+                .chunk-title {
+                    color: @lightTextGrey;
+                    font-weight: @fontWeightBold;
+                    font-size: 1.4rem;
+                }
+
+                .chunk-text {
+                    font-size: 1.6rem;
+                }
+
+                .prev-doc-table {
+                    min-height: 33vh;
+                    margin-top: 1rem;
+                }
+            }
+
+            .button-row {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+
+                .end-aff-button {
+                    margin-bottom: -1rem;
+                    margin-left: 1rem;
+
+                    &:deep(input) {
+                        color: @midRed;
+                        font-size: 1.5rem;
+                        text-decoration: underline;
+                    }
+                }
+
+                .edit-info-button {
+                    margin-right: 1rem;
+                    margin-bottom: 1rem;
+                }
+            }
+        }
+    }
+}

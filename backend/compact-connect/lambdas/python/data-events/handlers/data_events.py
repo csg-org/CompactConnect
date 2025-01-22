@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 
 from cc_common.config import config, logger
-from cc_common.data_model.schema.license import SanitizedLicenseIngestDataEventSchema
+from cc_common.data_model.schema.license.ingest import SanitizedLicenseIngestDataEventSchema
 from cc_common.utils import sqs_handler
 
 

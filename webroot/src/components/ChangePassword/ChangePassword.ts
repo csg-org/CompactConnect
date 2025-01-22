@@ -11,7 +11,6 @@ import { authStorage, AuthTypes, tokens } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputPassword from '@components/Forms/InputPassword/InputPassword.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
-import { User } from '@models/User/User.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import { dataApi } from '@network/data.api';
 import Joi from 'joi';
@@ -42,10 +41,6 @@ class ChangePassword extends mixins(MixinForm) {
         return this.$store.state;
     }
 
-    get userStore() {
-        return this.$store.state.user;
-    }
-
     get authType(): AuthTypes {
         return this.globalStore.authType;
     }
@@ -68,10 +63,6 @@ class ChangePassword extends mixins(MixinForm) {
         }
 
         return token;
-    }
-
-    get user(): User {
-        return this.userStore.model || new User();
     }
 
     get submitLabel(): string {
@@ -100,16 +91,6 @@ class ChangePassword extends mixins(MixinForm) {
                 validation: joiPassword
                     .string()
                     .min(12)
-                    .minOfSpecialCharacters(1)
-                    .minOfLowercase(1)
-                    .minOfUppercase(1)
-                    .minOfNumeric(1)
-                    .doesNotInclude([
-                        this.user.email,
-                        this.user.firstName,
-                        this.user.lastName,
-                        'password',
-                    ])
                     .messages({
                         ...this.joiMessages.string,
                         ...this.joiMessages.password,

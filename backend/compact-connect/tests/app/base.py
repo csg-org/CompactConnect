@@ -12,6 +12,7 @@ from aws_cdk.aws_cloudfront import CfnDistribution
 from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolClient
 from aws_cdk.aws_dynamodb import CfnTable
 from aws_cdk.aws_events import CfnRule
+from aws_cdk.aws_kms import CfnKey
 from aws_cdk.aws_lambda import CfnEventSourceMapping
 from aws_cdk.aws_s3 import CfnBucket
 from aws_cdk.aws_sqs import CfnQueue
@@ -144,6 +145,72 @@ class TstAppABC(ABC):
                 provider_users_user_pool_app_client['WriteAttributes'], ['email', 'family_name', 'given_name']
             )
             self._inspect_data_events_table(persistent_stack, persistent_stack_template)
+            self._inspect_ssn_table(persistent_stack, persistent_stack_template)
+
+    def _inspect_ssn_table(self, persistent_stack: PersistentStack, persistent_stack_template: Template):
+        ssn_key_logical_id = persistent_stack.get_logical_id(persistent_stack.ssn_table.key.node.default_child)
+        ingest_role_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.ssn_table.ingest_role.node.default_child
+        )
+        api_query_role_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.ssn_table.api_query_role.node.default_child
+        )
+        ssn_table_template = self.get_resource_properties_by_logical_id(
+            persistent_stack.get_logical_id(persistent_stack.ssn_table.node.default_child),
+            persistent_stack_template.find_resources(CfnTable.CFN_RESOURCE_TYPE_NAME),
+        )
+        ssn_key_template = self.get_resource_properties_by_logical_id(
+            ssn_key_logical_id, persistent_stack_template.find_resources(CfnKey.CFN_RESOURCE_TYPE_NAME)
+        )
+        # This naming convention is important for opting into future CloudTrail organization access logging
+        self.assertTrue(ssn_table_template['TableName'].endswith('-DataEventsLog'))
+        # Ensure our SSN Key is locked down by resource policy
+        self.assertEqual(
+            ssn_key_template['KeyPolicy'],
+            {
+                'Statement': [
+                    {
+                        'Action': 'kms:*',
+                        'Effect': 'Allow',
+                        'Principal': {'AWS': f'arn:aws:iam::{persistent_stack.account}:root'},
+                        'Resource': '*',
+                    },
+                    {
+                        'Action': ['kms:Decrypt', 'kms:Encrypt', 'kms:GenerateDataKey*', 'kms:ReEncrypt*'],
+                        'Condition': {
+                            'StringNotEquals': {
+                                'aws:PrincipalArn': [
+                                    {'Fn::GetAtt': [ingest_role_logical_id, 'Arn']},
+                                    {'Fn::GetAtt': [api_query_role_logical_id, 'Arn']},
+                                ],
+                                'aws:PrincipalServiceName': ['dynamodb.amazonaws.com', 'events.amazonaws.com'],
+                            }
+                        },
+                        'Effect': 'Deny',
+                        'Principal': '*',
+                        'Resource': '*',
+                    },
+                    {
+                        'Action': ['kms:Decrypt', 'kms:Encrypt', 'kms:GenerateDataKey*', 'kms:ReEncrypt*'],
+                        'Condition': {'StringEquals': {'aws:SourceAccount': persistent_stack.account}},
+                        'Effect': 'Allow',
+                        'Principal': {'Service': 'events.amazonaws.com'},
+                        'Resource': '*',
+                    },
+                ],
+                'Version': '2012-10-17',
+            },
+        )
+        # Ensure we're using our locked down KMS key for encryption
+        self.assertEqual(
+            ssn_table_template['SSESpecification'],
+            {'KMSMasterKeyId': {'Fn::GetAtt': [ssn_key_logical_id, 'Arn']}, 'SSEEnabled': True, 'SSEType': 'KMS'},
+        )
+        self.compare_snapshot(
+            ssn_table_template['ResourcePolicy']['PolicyDocument'],
+            'SSN_TABLE_RESOURCE_POLICY',
+            overwrite_snapshot=False,
+        )
 
     def _inspect_data_events_table(self, persistent_stack: PersistentStack, persistent_stack_template: Template):
         # Ensure our DataEventTable and queues are created
@@ -238,6 +305,7 @@ class TstAppABC(ABC):
         self._check_no_stack_annotations(stage.ui_stack)
         self._check_no_stack_annotations(stage.api_stack)
         self._check_no_stack_annotations(stage.ingest_stack)
+        self._check_no_stack_annotations(stage.transaction_monitoring_stack)
         # There is on reporting stack if no hosted zone is configured
         if stage.persistent_stack.hosted_zone:
             self._check_no_stack_annotations(stage.reporting_stack)

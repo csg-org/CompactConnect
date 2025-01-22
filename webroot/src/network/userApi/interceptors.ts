@@ -20,7 +20,8 @@ export const requestSuccess = () => async (requestConfig) => {
     const licenseeUserEndPoints = [
         '/v1/provider-users/me',
         '/v1/purchases/privileges/options',
-        '/v1/purchases/privileges'
+        '/v1/purchases/privileges',
+        '/v1/provider-users/me/military-affiliation'
     ];
     const { headers, url } = requestConfig;
     let authToken;
@@ -61,10 +62,10 @@ export const responseSuccess = () => (response) => {
 
 /**
  * Get Axios API response error interceptor.
- * @param  {Store} store      The app store context.
+ * @param  {Router} router      The vue router
  * @return {AxiosInterceptor} Function that extracts the incoming server API response (from within the Axios response wrapper).
  */
-export const responseError = (store) => (error) => {
+export const responseError = (router) => (error) => {
     const axiosResponse = error.response;
     let serverResponse;
 
@@ -74,7 +75,7 @@ export const responseError = (store) => (error) => {
 
         switch (axiosResponse.status) {
         case 401:
-            store.dispatch('user/logoutRequest');
+            router.push({ name: 'Logout' });
             break;
         default:
             // Continue

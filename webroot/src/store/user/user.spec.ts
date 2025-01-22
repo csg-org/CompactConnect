@@ -5,7 +5,12 @@
 //  Created by InspiringApps on 6/12/24.
 //
 
-import { authStorage, tokens, FeeTypes } from '@/app.config';
+import {
+    authStorage,
+    tokens,
+    FeeTypes,
+    AuthTypes
+} from '@/app.config';
 import chaiMatchPattern from 'chai-match-pattern';
 import chai from 'chai';
 import { Compact } from '@models/Compact/Compact.model';
@@ -13,7 +18,6 @@ import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/Privile
 import { State } from '@models/State/State.model';
 import mutations, { MutationTypes } from './user.mutations';
 import actions from './user.actions';
-import getters from './user.getters';
 
 chai.use(chaiMatchPattern);
 const sinon = require('sinon');
@@ -41,10 +45,12 @@ describe('Use Store Mutations', () => {
     it('should successfully get login success', () => {
         const state = {};
 
-        mutations[MutationTypes.LOGIN_SUCCESS](state);
+        mutations[MutationTypes.LOGIN_SUCCESS](state, AuthTypes.LICENSEE);
 
         expect(state.isLoadingAccount).to.equal(false);
         expect(state.isLoggedIn).to.equal(true);
+        expect(state.isLoggedInAsLicensee).to.equal(true);
+        expect(state.isLoggedInAsStaff).to.equal(false);
         expect(state.error).to.equal(null);
     });
     it('should successfully get login reset', () => {
@@ -155,6 +161,111 @@ describe('Use Store Mutations', () => {
 
         expect(state.refreshTokenTimeoutId).to.equal(timeoutId);
     });
+    it('should successfully upload military affiliation request', () => {
+        const state = {};
+
+        mutations[MutationTypes.UPLOAD_MILITARY_AFFILIATION_REQUEST](state);
+
+        expect(state.isLoadingAccount).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully upload military affiliation failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.UPLOAD_MILITARY_AFFILIATION_FAILURE](state, error);
+
+        expect(state.isLoadingAccount).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully upload military affiliation success', () => {
+        const state = {};
+
+        mutations[MutationTypes.UPLOAD_MILITARY_AFFILIATION_SUCCESS](state);
+
+        expect(state.isLoadingAccount).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully end military affiliation request', () => {
+        const state = {};
+
+        mutations[MutationTypes.END_MILITARY_AFFILIATION_REQUEST](state);
+
+        expect(state.isLoadingAccount).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully end military affiliation failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.END_MILITARY_AFFILIATION_FAILURE](state, error);
+
+        expect(state.isLoadingAccount).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully end military affiliation success', () => {
+        const state = {};
+
+        mutations[MutationTypes.END_MILITARY_AFFILIATION_SUCCESS](state);
+
+        expect(state.isLoadingAccount).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully post privilege purchase request', () => {
+        const state = {};
+
+        mutations[MutationTypes.POST_PRIVILEGE_PURCHASE_REQUEST](state);
+
+        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully post privilege purchase success', () => {
+        const state = {
+            arePurchaseAttestationsAccepted: true,
+            selectedPrivilegesToPurchase: ['ky'],
+        };
+
+        mutations[MutationTypes.POST_PRIVILEGE_PURCHASE_SUCCESS](state);
+
+        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
+        expect(state.arePurchaseAttestationsAccepted).to.equal(false);
+        expect(state.selectedPrivilegesToPurchase).to.equal(null);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully post privilege purchase failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE](state, error);
+
+        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully get privilege purchase information request', () => {
+        const state = {};
+
+        mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST](state);
+
+        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully get privilege purchase information failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE](state, error);
+
+        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully get privilege purchase information success', () => {
+        const state = {};
+
+        mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS](state);
+
+        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
 });
 describe('User Store Actions', async () => {
     it('should successfully start login request', () => {
@@ -169,10 +280,10 @@ describe('User Store Actions', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
 
-        await actions.loginSuccess({ commit, dispatch });
+        await actions.loginSuccess({ commit, dispatch }, AuthTypes.LICENSEE);
 
         expect(commit.calledOnce).to.equal(true);
-        expect(commit.firstCall.args).to.matchPattern([MutationTypes.LOGIN_SUCCESS]);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.LOGIN_SUCCESS, AuthTypes.LICENSEE]);
         expect(dispatch.calledOnce).to.equal(false);
     });
     it('should successfully start login failure', () => {
@@ -349,6 +460,22 @@ describe('User Store Actions', async () => {
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_REFRESH_TIMEOUT_ID, null]);
     });
+    it('should successfully clear and update auth tokens by clearing existing ones except for auth token, then storing', () => {
+        const dispatch = sinon.spy();
+        const authType = 'staff';
+
+        const tokenResponse = {
+            access_token: 'test_access_token',
+            token_type: 'test_token_type',
+            expires_in: 1,
+            id_token: 'test_id_token',
+            refresh_token: 'test_refresh_token',
+        };
+
+        actions.updateAuthTokens({ dispatch }, { tokenResponse, authType });
+
+        expect(dispatch.callCount).to.equal(2);
+    });
     it('should successfully clear session stores', () => {
         const dispatch = sinon.spy();
 
@@ -356,49 +483,6 @@ describe('User Store Actions', async () => {
 
         expect(dispatch.callCount).to.equal(5);
     });
-    it('should successfully use the authType getter for licensee auth', () => {
-        const dispatch = sinon.spy();
-
-        authStorage.removeItem(tokens.staff.AUTH_TOKEN);
-
-        const authType = 'licensee';
-
-        const tokenResponse = {
-            access_token: 'test_access_token',
-            token_type: 'test_token_type',
-            expires_in: 1,
-            id_token: 'test_id_token',
-            refresh_token: 'test_refresh_token',
-        };
-
-        actions.storeAuthTokens({ dispatch }, { tokenResponse, authType });
-
-        const authTypeReturned = getters.highestPermissionAuthType()();
-
-        expect(authTypeReturned).to.equal('licensee');
-    });
-    it('should successfully use the authType getter for staff auth', () => {
-        const dispatch = sinon.spy();
-
-        const authType = 'staff';
-
-        authStorage.removeItem(tokens.licensee.AUTH_TOKEN);
-
-        const tokenResponse = {
-            access_token: 'test_access_token',
-            token_type: 'test_token_type',
-            expires_in: 1,
-            id_token: 'test_id_token',
-            refresh_token: 'test_refresh_token',
-        };
-
-        actions.storeAuthTokens({ dispatch }, { tokenResponse, authType });
-
-        const authTypeReturned = getters.highestPermissionAuthType()();
-
-        expect(authTypeReturned).to.equal('staff');
-    });
-
     it('should successfully start get privilege purchase information request', () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
@@ -498,31 +582,7 @@ describe('User Store Actions', async () => {
             [MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE, error]
         );
     });
-    it('should successfully get privilege purchase information request', () => {
-        const state = {};
 
-        mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST](state);
-
-        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(true);
-        expect(state.error).to.equal(null);
-    });
-    it('should successfully get privilege purchase information failure', () => {
-        const state = {};
-        const error = new Error();
-
-        mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE](state, error);
-
-        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
-        expect(state.error).to.equal(error);
-    });
-    it('should successfully get privilege purchase information success', () => {
-        const state = {};
-
-        mutations[MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS](state);
-
-        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
-        expect(state.error).to.equal(null);
-    });
     it('should successfully save attestations accepted', () => {
         const state = {};
 
@@ -538,34 +598,71 @@ describe('User Store Actions', async () => {
 
         expect(state.selectedPrivilegesToPurchase).to.matchPattern(selected);
     });
-    it('should successfully post privilege purchase request', () => {
-        const state = {};
+    it('should successfully start end military affiliation request', () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
 
-        mutations[MutationTypes.POST_PRIVILEGE_PURCHASE_REQUEST](state);
+        actions.endMilitaryAffiliationRequest({ commit, dispatch });
 
-        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(true);
-        expect(state.error).to.equal(null);
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.END_MILITARY_AFFILIATION_REQUEST]);
     });
-    it('should successfully post privilege purchase success', () => {
-        const state = {
-            arePurchaseAttestationsAccepted: true,
-            selectedPrivilegesToPurchase: ['ky'],
-        };
+    it('should successfully start end military affiliation success', () => {
+        const commit = sinon.spy();
 
-        mutations[MutationTypes.POST_PRIVILEGE_PURCHASE_SUCCESS](state);
+        actions.endMilitaryAffiliationSuccess({ commit });
 
-        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
-        expect(state.arePurchaseAttestationsAccepted).to.equal(false);
-        expect(state.selectedPrivilegesToPurchase).to.equal(null);
-        expect(state.error).to.equal(null);
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern(
+            [MutationTypes.END_MILITARY_AFFILIATION_SUCCESS]
+        );
     });
-    it('should successfully post privilege purchase failure', () => {
-        const state = {};
+    it('should successfully start end military affiliation failure', () => {
+        const commit = sinon.spy();
         const error = new Error();
 
-        mutations[MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE](state, error);
+        actions.endMilitaryAffiliationFailure({ commit }, error);
 
-        expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
-        expect(state.error).to.equal(error);
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern(
+            [MutationTypes.END_MILITARY_AFFILIATION_FAILURE, error]
+        );
+    });
+    it('should successfully start upload military affiliation document request', () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const documentData = {
+            affiliationType: 'militaryMemberSpouse',
+            document: {
+                name: 'WyldPets_Backdrop1.jpeg'
+            },
+            fileNames: ['WyldPets_Backdrop1.jpeg']
+        };
+
+        actions.uploadMilitaryAffiliationRequest({ commit, dispatch }, documentData);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPLOAD_MILITARY_AFFILIATION_REQUEST]);
+    });
+    it('should successfully start upload military affiliation document success', () => {
+        const commit = sinon.spy();
+
+        actions.uploadMilitaryAffiliationSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern(
+            [MutationTypes.UPLOAD_MILITARY_AFFILIATION_SUCCESS]
+        );
+    });
+    it('should successfully start upload military affiliation document failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.uploadMilitaryAffiliationFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern(
+            [MutationTypes.UPLOAD_MILITARY_AFFILIATION_FAILURE, error]
+        );
     });
 });

@@ -14,13 +14,13 @@ import { PaymentProcessorConfig } from '@models/Compact/Compact.model';
 export class DataApi {
     /**
      * Initialize API Axios interceptors with injected store context.
-     * @param {Store} store
+     * @param {Router} router
      */
-    public initInterceptors(store) {
-        stateDataApi.initInterceptors(store);
-        licenseDataApi.initInterceptors(store);
-        userDataApi.initInterceptors(store);
-        exampleDataApi.initInterceptors(store);
+    public initInterceptors(router) {
+        stateDataApi.initInterceptors(router);
+        licenseDataApi.initInterceptors(router);
+        userDataApi.initInterceptors(router);
+        exampleDataApi.initInterceptors(router);
     }
 
     // ========================================================================
@@ -171,6 +171,30 @@ export class DataApi {
      */
     public postPrivilegePurchases(data: any) {
         return userDataApi.postPrivilegePurchases(data);
+    }
+
+    /**
+     * POST Upload Military Document Intent for Authenticated Licensee user.
+     * @return {Promise<object>} Intent response object containing presigned S3 url and necessary params to upload document.
+     */
+    public postUploadMilitaryDocumentIntent(data: any) {
+        return userDataApi.postUploadMilitaryDocumentIntent(data);
+    }
+
+    /**
+     * POST Upload Military Affiliation Document for Authenticated Licensee user.
+     * @return {Promise<object>} Document upload response object.
+     */
+    public postUploadMilitaryAffiliationDocument(postUrl: string, documentUploadData: any, file: File) {
+        return userDataApi.postUploadMilitaryAffiliationDocument(postUrl, documentUploadData, file);
+    }
+
+    /**
+     * PATCH Cancel Military Affiliation.
+     * @return {Promise<object>} Purchase response object.
+     */
+    public endMilitaryAffiliation() {
+        return userDataApi.endMilitaryAffiliation();
     }
 
     // ========================================================================

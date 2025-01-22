@@ -10,7 +10,7 @@
   "permissions": {
     "aslp": {
       "actions": {
-        "read": true
+        "readPrivate": true
       },
       "jurisdictions": {
         "oh": {

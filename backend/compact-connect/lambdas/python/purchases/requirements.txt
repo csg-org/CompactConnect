@@ -6,9 +6,9 @@
 #
 authorizenet==1.1.5
     # via -r compact-connect/lambdas/python/purchases/requirements.in
-certifi==2024.8.30
+certifi==2024.12.14
     # via requests
-charset-normalizer==3.4.0
+charset-normalizer==3.4.1
     # via requests
 idna==3.10
     # via requests
@@ -18,5 +18,5 @@ pyxb-x==1.2.6.2
     # via authorizenet
 requests==2.32.3
     # via authorizenet
-urllib3==2.2.3
+urllib3==2.3.0
     # via requests

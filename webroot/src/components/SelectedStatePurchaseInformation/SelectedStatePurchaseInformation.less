@@ -9,38 +9,40 @@
     margin: 0.4rem 0;
     padding: 1rem 1.6rem;
     border-radius: 20px;
-    color: white;
     background-color: @primaryColor;
 
     @media @tabletWidth {
         margin: 1rem 1rem;
     }
 
-    .jurisprudence-modal {
-        :deep(.modal-container) {
-            max-width: 90vw;
-            padding: 2rem;
+    .jurisprudence-check-box {
+        color: @white;
 
-            @media @tabletWidth {
-                max-width: 60rem;
-                padding: 4rem;
+        :deep(.checkbox-container) {
+            input {
+                &:not(:checked) + .checkbox-replacement::before {
+                    border-color: @white;
+                }
+
+                &:checked + .checkbox-replacement {
+                    &::before {
+                        border-color: @white;
+                    }
+
+                    &::after {
+                        background-color: @white;
+                    }
+                }
             }
 
-            .jurisprudence-modal-content {
-                padding-top: 1rem;
-                overflow-y: hidden;
-                color: black;
+            label {
+                margin-left: 1rem;
+                color: @white;
+                font-weight: @fontWeightLight;
+                font-size: 1.3rem;
 
-                .action-button-row {
-                    display: flex;
-                    flex-direction: row;
-                    justify-content: flex-end;
-                    margin-top: 4rem;
-                    margin-bottom: -3rem;
-
-                    .understand-button {
-                        margin-left: 1rem;
-                    }
+                @media @tabletWidth {
+                    font-size: 1.5rem;
                 }
             }
         }
@@ -51,6 +53,7 @@
         flex-direction: row;
         justify-content: space-between;
         margin: 1rem 0;
+        color: @white;
 
         :deep(.input-button-container) {
             &.input-container {
@@ -61,7 +64,7 @@
                     height: 4rem;
                     margin: -1rem -1.2rem 0 0;
                     padding: 0;
-                    color: white;
+                    color: @white;
 
                     @media @tabletWidth {
                         margin: 0 -1.2rem 0 0;
@@ -81,6 +84,12 @@
                 font-size: @fontSizeLarger;
             }
         }
+
+        .deselect-state {
+            padding-right: 1rem;
+            padding-left: 1rem;
+            cursor: pointer;
+        }
     }
 
     .collapse-button-container {
@@ -97,16 +106,29 @@
         }
     }
 
-    .jurisprudence-check-box {
-        :deep(.checkbox-container) {
-            label {
-                margin-left: 1rem;
-                color: white;
-                font-weight: @fontWeightLight;
-                font-size: 1.3rem;
+    .jurisprudence-modal {
+        :deep(.modal-container) {
+            max-width: 90vw;
+            padding: 2rem;
 
-                @media @tabletWidth {
-                    font-size: 1.5rem;
+            @media @tabletWidth {
+                max-width: 60rem;
+                padding: 4rem;
+            }
+
+            .jurisprudence-modal-content {
+                padding-top: 1rem;
+                // overflow-y: hidden;
+
+                .action-button-row {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: flex-end;
+                    margin-top: 4rem;
+
+                    .understand-button {
+                        margin-left: 1rem;
+                    }
                 }
             }
         }

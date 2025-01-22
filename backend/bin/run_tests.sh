@@ -25,13 +25,14 @@ if [[ "$LANGUAGE" == 'python' || "$LANGUAGE" == 'all' ]]; then
     pytest --cov=. --cov-config=.coveragerc tests
   ) || exit "$?"
   for dir in \
-    compact-connect/lambdas/python/common \
+    compact-connect/lambdas/python/attestations \
     compact-connect/lambdas/python/custom-resources \
     compact-connect/lambdas/python/data-events \
     compact-connect/lambdas/python/provider-data-v1 \
     compact-connect/lambdas/python/purchases \
     compact-connect/lambdas/python/staff-user-pre-token \
     compact-connect/lambdas/python/staff-users \
+    compact-connect/lambdas/python/common \
     multi-account
     do
     (

@@ -5,7 +5,8 @@ from marshmallow.fields import UUID, Boolean, Dict, Nested, Raw, String
 from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
-from cc_common.data_model.schema.base_record import BaseRecordSchema, Set
+from cc_common.data_model.schema.base_record import BaseRecordSchema
+from cc_common.data_model.schema.fields import Set
 
 
 class CompactPermissionsRecordSchema(Schema):

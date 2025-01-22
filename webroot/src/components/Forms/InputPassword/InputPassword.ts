@@ -58,18 +58,18 @@ class InputPassword extends mixins(MixinInput) {
                         .replace(/{#limit}/g, limit)
                         .replace(/{#min}/g, min);
 
-                    if (limit === 1 || min === 1) {
-                        ruleDesc = ruleDesc
-                            .replace(/characters$/, 'character')
-                            .replace(/numbers$/, 'number');
-                    }
-
                     if (inputValue) {
                         const matchValidationError = validationErrors.find((error) => error.message === ruleDesc);
 
                         if (!matchValidationError) {
                             ruleEval = true;
                         }
+                    }
+
+                    if (limit === 1 || min === 1) {
+                        ruleDesc = ruleDesc
+                            .replace(/characters$/, 'character')
+                            .replace(/numbers$/, 'number');
                     }
 
                     requirements.push({

@@ -5,11 +5,11 @@ from abc import ABC
 from datetime import date, datetime
 
 from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump, pre_load
-from marshmallow.fields import UUID, DateTime, List, String
-from marshmallow.validate import OneOf, Regexp
+from marshmallow.fields import UUID, DateTime, String
+from marshmallow.validate import OneOf
 
 from cc_common.config import config
-from cc_common.data_model.schema.common import ensure_value_is_datetime
+from cc_common.data_model.schema.fields import SocialSecurityNumber
 from cc_common.exceptions import CCInternalException
 
 
@@ -27,25 +27,13 @@ class ForgivingSchema(Schema):
         unknown = EXCLUDE
 
 
-class SocialSecurityNumber(String):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, validate=Regexp('^[0-9]{3}-[0-9]{2}-[0-9]{4}$'), **kwargs)
-
-
-class Set(List):
-    """A Field that de/serializes to a Set (not compatible with JSON)"""
-
-    default_error_messages = {'invalid': 'Not a valid set.'}
-
-    def _serialize(self, *args, **kwargs):
-        return set(super()._serialize(*args, **kwargs))
-
-    def _deserialize(self, *args, **kwargs):
-        return set(super()._deserialize(*args, **kwargs))
-
-
 class BaseRecordSchema(StrictSchema, ABC):
-    """Abstract base class, common to all records in the license data table"""
+    """
+    Abstract base class, common to all records in the provider data table
+
+    Serialization direction:
+    DB -> load() -> Python
+    """
 
     _record_type = None
     _registered_schema = {}
@@ -57,13 +45,6 @@ class BaseRecordSchema(StrictSchema, ABC):
 
     # Provided fields
     type = String(required=True, allow_none=False)
-
-    @pre_load
-    def ensure_date_of_update_is_datetime(self, in_data, **kwargs):
-        # for backwards compatibility with the old data model, which was using a Date value
-        in_data['dateOfUpdate'] = ensure_value_is_datetime(in_data['dateOfUpdate'])
-
-        return in_data
 
     @post_load
     def drop_base_gen_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
@@ -104,8 +85,13 @@ class BaseRecordSchema(StrictSchema, ABC):
 
 
 class CalculatedStatusRecordSchema(BaseRecordSchema):
-    """Schema for records whose active/inactive status is determined at load time. This
-    includes licenses, privileges and provider records."""
+    """
+    Schema for records whose active/inactive status is determined at load time. This
+    includes licenses, privileges and provider records.
+
+    Serialization direction:
+    DB -> load() -> Python
+    """
 
     # This field is the actual status referenced by the system, which is determined by the expiration date
     # in addition to the jurisdictionStatus. This should never be written to the DB. It is calculated
@@ -136,16 +122,14 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
         return in_data
 
 
-class ITUTE164PhoneNumber(String):
-    """Phone number format consistent with ITU-T E.164:
-    https://www.itu.int/rec/T-REC-E.164-201011-I/en
+class SSNIndexRecordSchema(StrictSchema):
+    """
+    Schema for records that translate between SSN and provider_id
+
+    Serialization direction:
+    DB -> load() -> Python
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, validate=Regexp(r'^\+[0-9]{8,15}$'), **kwargs)
-
-
-class SSNIndexRecordSchema(StrictSchema):
     pk = String(required=True, allow_none=False)
     sk = String(required=True, allow_none=False)
     ssn = SocialSecurityNumber(required=True, allow_none=False)

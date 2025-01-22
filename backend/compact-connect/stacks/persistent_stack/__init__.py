@@ -1,12 +1,15 @@
 import os
 
-from aws_cdk import RemovalPolicy, aws_ssm
+from aws_cdk import Duration, RemovalPolicy, aws_ssm
 from aws_cdk.aws_cognito import UserPoolEmail
+from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
+from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
+from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
@@ -17,11 +20,12 @@ from stacks.persistent_stack.compact_configuration_table import CompactConfigura
 from stacks.persistent_stack.compact_configuration_upload import CompactConfigurationUpload
 from stacks.persistent_stack.data_event_table import DataEventTable
 from stacks.persistent_stack.event_bus import EventBus
-from stacks.persistent_stack.license_table import LicenseTable
 from stacks.persistent_stack.provider_table import ProviderTable
 from stacks.persistent_stack.provider_users import ProviderUsers
 from stacks.persistent_stack.provider_users_bucket import ProviderUsersBucket
+from stacks.persistent_stack.ssn_table import SSNTable
 from stacks.persistent_stack.staff_users import StaffUsers
+from stacks.persistent_stack.transaction_history_table import TransactionHistoryTable
 from stacks.persistent_stack.user_email_notifications import UserEmailNotifications
 
 
@@ -97,11 +101,6 @@ class PersistentStack(AppStack):
 
         self.data_event_bus = EventBus(self, 'DataEventBus')
 
-        # Both of these are slated for deprecation/deletion soon, so we'll mark included resources for removal
-        self._add_mock_data_resources()
-        self._add_deprecated_data_resources()
-
-        # The new data resources
         self._add_data_resources(removal_policy=removal_policy)
 
         self.compact_configuration_upload = CompactConfigurationUpload(
@@ -129,6 +128,8 @@ class PersistentStack(AppStack):
         else:
             # if domain name is not provided, use the default cognito email settings
             user_pool_email_settings = UserPoolEmail.with_cognito()
+
+        self._create_email_notification_service(environment_name)
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
         staff_prefix = f'{app_name}-staff'
@@ -169,42 +170,6 @@ class PersistentStack(AppStack):
             self.provider_users.node.add_dependency(self.user_email_notifications.email_identity)
             self.provider_users.node.add_dependency(self.user_email_notifications.dmarc_record)
 
-    def _add_mock_data_resources(self):
-        self.mock_bulk_uploads_bucket = BulkUploadsBucket(
-            self,
-            'MockBulkUploadsBucket',
-            mock_bucket=True,
-            access_logs_bucket=self.access_logs_bucket,
-            encryption_key=self.shared_encryption_key,
-            removal_policy=RemovalPolicy.DESTROY,
-            auto_delete_objects=True,
-            event_bus=self.data_event_bus,
-        )
-
-        # These dummy exports are required until we remove dependencies from the api stack
-        # see https://github.com/aws/aws-cdk/issues/3414
-        self.export_value(self.mock_bulk_uploads_bucket.bucket_name)
-        self.export_value(self.mock_bulk_uploads_bucket.bucket_arn)
-
-        self.mock_license_table = LicenseTable(
-            self, 'MockLicenseTable', encryption_key=self.shared_encryption_key, removal_policy=RemovalPolicy.DESTROY
-        )
-
-        # These dummy exports are required until we remove dependencies from the api stack
-        # see https://github.com/aws/aws-cdk/issues/3414
-        self.export_value(self.mock_license_table.table_name)
-        self.export_value(self.mock_license_table.table_arn)
-
-    def _add_deprecated_data_resources(self):
-        self.license_table = LicenseTable(
-            self, 'LicenseTable', encryption_key=self.shared_encryption_key, removal_policy=RemovalPolicy.DESTROY
-        )
-
-        # These dummy exports are required until we remove dependencies from the api stack
-        # see https://github.com/aws/aws-cdk/issues/3414
-        self.export_value(self.license_table.table_name)
-        self.export_value(self.license_table.table_arn)
-
     def _add_data_resources(self, removal_policy: RemovalPolicy):
         self.bulk_uploads_bucket = BulkUploadsBucket(
             self,
@@ -220,9 +185,11 @@ class PersistentStack(AppStack):
             self, 'ProviderTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
         )
 
+        self.ssn_table = SSNTable(self, 'SSNTable', removal_policy=removal_policy)
+
         self.data_event_table = DataEventTable(
-            self,
-            'DataEventTable',
+            scope=self,
+            construct_id='DataEventTable',
             encryption_key=self.shared_encryption_key,
             event_bus=self.data_event_bus,
             alarm_topic=self.alarm_topic,
@@ -230,7 +197,17 @@ class PersistentStack(AppStack):
         )
 
         self.compact_configuration_table = CompactConfigurationTable(
-            self, 'CompactConfigurationTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
+            scope=self,
+            construct_id='CompactConfigurationTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy,
+        )
+
+        self.transaction_history_table = TransactionHistoryTable(
+            scope=self,
+            construct_id='TransactionHistoryTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy,
         )
 
         # bucket for holding documentation for providers
@@ -242,3 +219,109 @@ class PersistentStack(AppStack):
             provider_table=self.provider_table,
             removal_policy=removal_policy,
         )
+
+    def _create_email_notification_service(self, environment_name: str) -> None:
+        """This lambda is intended to be a general purpose email notification service.
+
+        It can be invoked directly to send an email if the lambda is deployed in an environment that has a domain name.
+        If the lambda is deployed in an environment that does not have a domain name, it will perform a no-op as there
+        is no FROM address to use.
+        """
+        # If there is no hosted zone, we don't have a domain name to send from
+        # so we'll use a placeholder value which will cause the lambda to perform a no-op
+        from_address = 'NONE'
+        if self.hosted_zone:
+            from_address = f'noreply@{self.user_email_notifications.email_identity.email_identity_name}'
+
+        self.email_notification_service_lambda = NodejsFunction(
+            self,
+            'EmailNotificationService',
+            description='Generic email notification service',
+            lambda_dir='email-notification-service',
+            handler='sendEmail',
+            timeout=Duration.minutes(5),
+            memory_size=1024,
+            environment={
+                'FROM_ADDRESS': from_address,
+                'COMPACT_CONFIGURATION_TABLE_NAME': self.compact_configuration_table.table_name,
+                'UI_BASE_PATH_URL': self._get_ui_base_path_url(),
+                'ENVIRONMENT_NAME': environment_name,
+                **self.common_env_vars,
+            },
+        )
+
+        # Grant permissions to read compact configurations
+        self.compact_configuration_table.grant_read_data(self.email_notification_service_lambda)
+        # if there is no domain name, we can't set up SES permissions
+        # in this case the lambda will perform a no-op when invoked.
+        if self.hosted_zone:
+            self.setup_ses_permissions_for_lambda(self.email_notification_service_lambda)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{self.email_notification_service_lambda.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': """
+                              This policy contains wild-carded actions and resources but they are scoped to the
+                              specific actions, Table, and Email Identity that this lambda specifically needs access to.
+                              """,
+                },
+            ],
+        )
+
+    def setup_ses_permissions_for_lambda(self, lambda_function: NodejsFunction):
+        """Used to allow a lambda to send emails using the user email notification SES identity."""
+        ses_resources = [
+            self.user_email_notifications.email_identity.email_identity_arn,
+            self.format_arn(
+                partition=self.partition,
+                service='ses',
+                region=self.region,
+                account=self.account,
+                resource='configuration-set',
+                resource_name=self.user_email_notifications.config_set.configuration_set_name,
+            ),
+        ]
+
+        # We'll assume that, if it is a sandbox environment, they're in the Simple Email Service (SES) sandbox
+        if self.node.try_get_context('sandbox'):
+            # SES Sandboxed accounts require that the sending principal also be explicitly granted permission to send
+            # emails to the SES identity they configured for testing. Because we don't know that identity in advance,
+            # we'll have to allow the principal to use any SES identity configured in the account.
+            # arn:aws:ses:{region}:{account}:identity/*
+            ses_resources.append(
+                self.format_arn(
+                    partition=self.partition,
+                    service='ses',
+                    region=self.region,
+                    account=self.account,
+                    resource='identity',
+                    resource_name='*',
+                ),
+            )
+
+        lambda_function.role.add_to_principal_policy(
+            PolicyStatement(
+                actions=['ses:SendEmail', 'ses:SendRawEmail'],
+                resources=ses_resources,
+                effect=Effect.ALLOW,
+                conditions={
+                    # To mitigate the pretty open resources section for sandbox environments, we'll restrict the use of
+                    # this action by specifying what From address and display name the principal must use.
+                    'StringEquals': {
+                        'ses:FromAddress': f'noreply@{self.user_email_notifications.email_identity.email_identity_name}',  # noqa: E501 line too long
+                        'ses:FromDisplayName': 'Compact Connect',
+                    }
+                },
+            )
+        )
+
+    def _get_ui_base_path_url(self) -> str:
+        """Returns the base URL for the UI."""
+        if self.ui_domain_name is not None:
+            return f'https://{self.ui_domain_name}'
+
+        # default to csg test environment
+        return 'https://app.test.compactconnect.org'

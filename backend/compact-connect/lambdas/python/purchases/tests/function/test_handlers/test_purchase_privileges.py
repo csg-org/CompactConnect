@@ -1,4 +1,5 @@
 import json
+import os
 from datetime import UTC, date, datetime
 from unittest.mock import MagicMock, patch
 
@@ -13,11 +14,41 @@ TEST_COMPACT = 'aslp'
 TEST_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
 
 MOCK_TRANSACTION_ID = '1234'
+ALL_ATTESTATION_IDS = [
+    'jurisprudence-confirmation',
+    'scope-of-practice-attestation',
+    'personal-information-home-state-attestation',
+    'personal-information-address-attestation',
+    'discipline-no-current-encumbrance-attestation',
+    'discipline-no-prior-encumbrance-attestation',
+    'provision-of-true-information-attestation',
+    'not-under-investigation-attestation',
+    'military-affiliation-confirmation-attestation',
+    'under-investigation-attestation',
+]
 
 
-def _generate_test_request_body(selected_jurisdictions: list[str] = None):
+def generate_default_attestation_list():
+    return [
+        {'attestationId': 'jurisprudence-confirmation', 'version': '1'},
+        {'attestationId': 'scope-of-practice-attestation', 'version': '1'},
+        {'attestationId': 'personal-information-home-state-attestation', 'version': '1'},
+        {'attestationId': 'personal-information-address-attestation', 'version': '1'},
+        {'attestationId': 'discipline-no-current-encumbrance-attestation', 'version': '1'},
+        {'attestationId': 'discipline-no-prior-encumbrance-attestation', 'version': '1'},
+        {'attestationId': 'provision-of-true-information-attestation', 'version': '1'},
+        {'attestationId': 'not-under-investigation-attestation', 'version': '1'},
+    ]
+
+
+def _generate_test_request_body(
+    selected_jurisdictions: list[str] = None,
+    attestations: list[dict] = None,
+):
     if not selected_jurisdictions:
         selected_jurisdictions = ['ky']
+    if attestations is None:
+        attestations = generate_default_attestation_list()
 
     return json.dumps(
         {
@@ -33,6 +64,7 @@ def _generate_test_request_body(selected_jurisdictions: list[str] = None):
                     'zip': '12345',
                 },
             },
+            'attestations': attestations,
         }
     )
 
@@ -43,6 +75,25 @@ class TestPostPurchasePrivileges(TstFunction):
     In this test setup, we simulate having a licensee that has a license in ohio and is
     purchasing a privilege in kentucky.
     """
+
+    def setUp(self):
+        from cc_common.data_model.schema.attestation import AttestationRecordSchema
+
+        super().setUp()
+        # set the feature flag to enable the attestation validation feature
+        # this should be removed when the feature is enabled by default
+        os.environ.update({'ENFORCE_ATTESTATIONS': 'true'})
+        # Load test attestation data
+        with open('../common/tests/resources/dynamo/attestation.json') as f:
+            test_attestation = json.load(f)
+            # put in one attestation record for each attestation id
+            for attestation_id in ALL_ATTESTATION_IDS:
+                test_attestation['attestationId'] = attestation_id
+                test_attestation.pop('pk')
+                test_attestation.pop('sk')
+                serialized_data = AttestationRecordSchema().dump(test_attestation)
+
+                self.config.compact_configuration_table.put_item(Item=serialized_data)
 
     def _load_test_jurisdiction(self):
         with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
@@ -133,10 +184,14 @@ class TestPostPurchasePrivileges(TstFunction):
         )
         event = self._when_testing_provider_user_event_with_custom_claims()
         self._load_military_affiliation_record_data(status=military_affiliation_status)
-        event['body'] = _generate_test_request_body()
+        attestations = generate_default_attestation_list()
+        # add the military affiliation attestation if active
+        if military_affiliation_status == 'active':
+            attestations.append({'attestationId': 'military-affiliation-confirmation-attestation', 'version': '1'})
+        event['body'] = _generate_test_request_body(attestations=attestations)
 
         resp = post_purchase_privileges(event, self.mock_context)
-        self.assertEqual(200, resp['statusCode'])
+        self.assertEqual(200, resp['statusCode'], resp['body'])
 
         purchase_client_call_kwargs = mock_purchase_client.process_charge_for_licensee_privileges.call_args.kwargs
         self.assertEqual(expected_military_parameter, purchase_client_call_kwargs['user_active_military'])
@@ -265,7 +320,7 @@ class TestPostPurchasePrivileges(TstFunction):
         event['body'] = _generate_test_request_body()
 
         resp = post_purchase_privileges(event, self.mock_context)
-        self.assertEqual(200, resp['statusCode'])
+        self.assertEqual(200, resp['statusCode'], resp['body'])
 
         # now make the same call with the same jurisdiction
         resp = post_purchase_privileges(event, self.mock_context)
@@ -314,7 +369,7 @@ class TestPostPurchasePrivileges(TstFunction):
 
         # now make the same call with the same jurisdiction
         resp = post_purchase_privileges(event, self.mock_context)
-        self.assertEqual(200, resp['statusCode'])
+        self.assertEqual(200, resp['statusCode'], resp['body'])
         response_body = json.loads(resp['body'])
 
         self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
@@ -377,7 +432,7 @@ class TestPostPurchasePrivileges(TstFunction):
         event['body'] = _generate_test_request_body()
 
         resp = post_purchase_privileges(event, self.mock_context)
-        self.assertEqual(200, resp['statusCode'])
+        self.assertEqual(200, resp['statusCode'], resp['body'])
 
         # check that the privilege record for ky was created
         provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
@@ -398,6 +453,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(TEST_PROVIDER_ID, str(privilege_record['providerId']))
         self.assertEqual('active', privilege_record['status'])
         self.assertEqual('privilege', privilege_record['type'])
+        self.assertEqual(len(generate_default_attestation_list()), len(privilege_record['attestations']))
         # make sure we are tracking the transaction id
         self.assertEqual(MOCK_TRANSACTION_ID, privilege_record['compactTransactionId'])
 
@@ -427,3 +483,141 @@ class TestPostPurchasePrivileges(TstFunction):
         mock_purchase_client.void_privilege_purchase_transaction.assert_called_once_with(
             compact_name=TEST_COMPACT, order_information={'transactionId': MOCK_TRANSACTION_ID}
         )
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_validates_attestation_version(self, mock_purchase_client_constructor):
+        """Test that the endpoint validates attestation versions."""
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        attestations = generate_default_attestation_list()
+        # Use an old version number
+        attestations[0]['version'] = '0'
+        event['body'] = _generate_test_request_body(attestations=attestations)
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual(
+            {'message': f'Attestation "{attestations[0]['attestationId']}" version 0 is not the latest version (1)'},
+            response_body,
+        )
+        mock_purchase_client_constructor.assert_not_called()
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_validates_attestation_exists_in_list_of_required_attestations(
+        self, mock_purchase_client_constructor
+    ):
+        """Test that the endpoint validates attestation existence."""
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        attestations = generate_default_attestation_list()
+        # Use an attestation that doesn't exist
+        attestations.append({'attestationId': 'nonexistent-attestation', 'version': '1'})
+        event['body'] = _generate_test_request_body(attestations=attestations)
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual(
+            {'message': 'Invalid attestations provided: nonexistent-attestation'},
+            response_body,
+        )
+
+    @patch('handlers.privileges.PurchaseClient')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    def test_post_purchase_privileges_stores_attestations_in_privilege_record(self, mock_purchase_client_constructor):
+        """Test that attestations are stored in the privilege record."""
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date='2050-01-01')
+        event['body'] = _generate_test_request_body()
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'], resp['body'])
+
+        # check that the privilege record for ky was created with attestations
+        provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
+        privilege_record = next(record for record in provider_records['items'] if record['type'] == 'privilege')
+
+        self.assertEqual(generate_default_attestation_list(), privilege_record['attestations'])
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_validates_investigation_attestations(self, mock_purchase_client_constructor):
+        """Test that exactly one investigation attestation must be provided."""
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+
+        # Test with no investigation attestation
+        mock_attestation_list_copy = generate_default_attestation_list()
+        mock_attestation_list_copy.remove({'attestationId': 'not-under-investigation-attestation', 'version': '1'})
+        event['body'] = _generate_test_request_body(attestations=mock_attestation_list_copy)
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+        self.assertIn('Exactly one investigation attestation must be provided', json.loads(resp['body'])['message'])
+
+        # Test with both investigation attestations
+        attestations = [
+            {'attestationId': 'not-under-investigation-attestation', 'version': '1'},
+            {'attestationId': 'under-investigation-attestation', 'version': '1'},
+        ]
+        event['body'] = _generate_test_request_body(attestations=attestations)
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+        self.assertIn('Exactly one investigation attestation must be provided', json.loads(resp['body'])['message'])
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_validates_military_attestation(self, mock_purchase_client_constructor):
+        """Test that military attestation is required when user has active military affiliation."""
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+        self._load_military_affiliation_record_data(status='active')
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body()
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'], resp['body'])
+        self.assertIn('military-affiliation-confirmation-attestation', json.loads(resp['body'])['message'])
+
+        # Add military attestation and verify it works
+        event_body = json.loads(event['body'])
+        event_body['attestations'].append(
+            {'attestationId': 'military-affiliation-confirmation-attestation', 'version': '1'}
+        )
+        event['body'] = json.dumps(event_body)
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'], resp['body'])
+
+    # TODO - remove this test once the feature flag is removed # noqa: FIX002
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_should_not_validate_attestations_if_flag_not_set(
+        self, mock_purchase_client_constructor
+    ):
+        """Test that military attestation is required when user has active military affiliation."""
+        from handlers.privileges import post_purchase_privileges
+
+        os.environ.update({'ENFORCE_ATTESTATIONS': 'false'})
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+        self._load_military_affiliation_record_data(status='active')
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        event['body'] = _generate_test_request_body(attestations=[])
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'], resp['body'])
