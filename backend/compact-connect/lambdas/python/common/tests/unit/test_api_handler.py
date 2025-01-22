@@ -138,7 +138,7 @@ class TestApiHandler(TstLambdas):
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
-        del event['headers']['Origin']
+        del event['headers']['origin']
 
         resp = lambda_handler(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'])
