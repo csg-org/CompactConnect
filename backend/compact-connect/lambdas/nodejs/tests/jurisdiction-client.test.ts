@@ -1,7 +1,7 @@
 import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { Logger } from '@aws-lambda-powertools/logger';
-import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
+import { DynamoDBClient, QueryCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { JurisdictionClient } from '../lib/jurisdiction-client';
 
 
@@ -197,5 +197,77 @@ describe('JurisdictionClient', () => {
         const jurisdictions = await jurisdictionClient.getJurisdictionConfigurations('aslp');
 
         expect(jurisdictions).toEqual([]);
+    });
+
+    it('should get a specific jurisdiction configuration', async () => {
+        mockDynamoDBClient = mockClient(DynamoDBClient);
+
+        mockDynamoDBClient.on(GetItemCommand).resolves({
+            Item: SAMPLE_JURISDICTION_ITEMS[0]
+        });
+
+        jurisdictionClient = new JurisdictionClient({
+            logger: new Logger(),
+            dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
+        });
+
+        const jurisdiction = await jurisdictionClient.getJurisdictionConfiguration('aslp', 'oh');
+
+        expect(mockDynamoDBClient).toHaveReceivedCommandWith(
+            GetItemCommand,
+            {
+                TableName: 'compact-table',
+                Key: {
+                    'pk': { S: 'aslp#CONFIGURATION' },
+                    'sk': { S: 'aslp#JURISDICTION#oh' }
+                }
+            }
+        );
+
+        expect(jurisdiction.jurisdictionName).toBe('ohio');
+        expect(jurisdiction.postalAbbreviation).toBe('oh');
+    });
+
+    it('should throw error when jurisdiction not found', async () => {
+        mockDynamoDBClient = mockClient(DynamoDBClient);
+
+        mockDynamoDBClient.on(GetItemCommand).resolves({
+            Item: undefined
+        });
+
+        jurisdictionClient = new JurisdictionClient({
+            logger: new Logger(),
+            dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
+        });
+
+        await expect(jurisdictionClient.getJurisdictionConfiguration('aslp', 'xx'))
+            .rejects
+            .toThrow('Jurisdiction configuration not found for xx');
+    });
+
+    it('should convert jurisdiction postal code to lowercase', async () => {
+        mockDynamoDBClient = mockClient(DynamoDBClient);
+
+        mockDynamoDBClient.on(GetItemCommand).resolves({
+            Item: SAMPLE_JURISDICTION_ITEMS[0]
+        });
+
+        jurisdictionClient = new JurisdictionClient({
+            logger: new Logger(),
+            dynamoDBClient: asDynamoDBClient(mockDynamoDBClient)
+        });
+
+        await jurisdictionClient.getJurisdictionConfiguration('aslp', 'OH');
+
+        expect(mockDynamoDBClient).toHaveReceivedCommandWith(
+            GetItemCommand,
+            {
+                TableName: 'compact-table',
+                Key: {
+                    'pk': { S: 'aslp#CONFIGURATION' },
+                    'sk': { S: 'aslp#JURISDICTION#oh' }
+                }
+            }
+        );
     });
 });
