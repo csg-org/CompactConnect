@@ -31,7 +31,7 @@
                 <div class="home-state-list">
                     <HomeStateBlock
                         v-for="(state, i) in homeStateList"
-                        :key="'state'+i"
+                        :key="i"
                         :state="state"
                         class="no-touch-item"
                     />
@@ -41,31 +41,67 @@
                 </div>
             </div>
             <div
-                v-for="(license, index) in licenseList"
+                v-for="(license, index) in licenseeLicenses"
                 :key="'license'+index"
                 class="no-touch-item license-chunk"
             >
                 <LicenseCard
                     :license="license"
                 />
-                <div v-if="!checkIfLicenseActive(license)" class="license-expired-message">
+                <div v-if="!isLicenseActive(license)" class="license-expired-message">
                     {{licenseExpiredMessage}}
                 </div>
             </div>
         </div>
         <div class="privilege-section">
             <div class="privilege-section-title-row">
-                <div class="privilege-logo-container">
-                    <img class="home-state-img" src="@assets/images/black-ellipse.svg" alt="Privilege List Logo" />
+                <div class="title-info">
+                    <div class="privilege-logo-container">
+                        <img
+                            class="home-state-img"
+                            src="@assets/images/black-ellipse.svg"
+                            :alt="$t('licensing.blackCircle')"
+                        />
+                    </div>
+                    <div class="title-text">
+                        {{privilegeTitle}}
+                    </div>
                 </div>
-                <div class="privilege-title">
-                    {{privilegeTitle}}
-                </div>
+                <CollapseCaretButton
+                    @toggleCollapse="togglePrivsCollapsed"
+                />
             </div>
-            <div class="privilege-card-list-container">
+            <div v-if="!isPrivsCollapsed" class="privilege-card-list-container">
                 <PrivilegeCard
-                    v-for="(privilege, index) in privilegeList"
-                    :key="'privilege'+index"
+                    v-for="(privilege, index) in licenseePrivileges"
+                    :key="index"
+                    :privilege="privilege"
+                    class="no-touch-item"
+                />
+            </div>
+        </div>
+         <div class="privilege-section bottom">
+            <div class="privilege-section-title-row">
+                <div class="title-info">
+                    <div class="privilege-logo-container">
+                        <img
+                            class="home-state-img"
+                            src="@assets/images/black-ellipse.svg"
+                            :alt="$t('licensing.blackCircle')"
+                        />
+                    </div>
+                    <div class="title-text">
+                        {{pastPrivilegesTitle}}
+                    </div>
+                </div>
+                <CollapseCaretButton
+                    @toggleCollapse="togglePastPrivsCollapsed"
+                />
+            </div>
+            <div v-if="!isPastPrivsCollapsed" class="privilege-card-list-container">
+                <PrivilegeCard
+                    v-for="(privilege, index) in pastPrivilegeList"
+                    :key="index"
                     :privilege="privilege"
                     class="no-touch-item"
                 />

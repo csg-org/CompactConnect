@@ -17,6 +17,7 @@ class TstLambdas(TestCase):
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
                 'TRANSACTION_HISTORY_TABLE_NAME': 'transaction-history-table',
+                'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': 'email-notification-service',
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',
                 'ENVIRONMENT_NAME': 'test',

@@ -1,3 +1,4 @@
+import time
 from datetime import date, datetime
 from urllib.parse import quote
 from uuid import uuid4
@@ -557,3 +558,58 @@ class DataClient:
                 record['status'] = MilitaryAffiliationStatus.INACTIVE.value
                 serialized_record = schema.dump(record)
                 batch.put_item(Item=serialized_record)
+
+    def batch_get_providers_by_id(self, compact: str, provider_ids: list[str]) -> list[dict]:
+        """
+        Get provider records by their IDs in batches.
+
+        :param compact: The compact name
+        :param provider_ids: List of provider IDs to fetch
+        :return: List of provider records
+        """
+        providers = []
+        # DynamoDB batch_get_item has a limit of 100 items per request
+        batch_size = 100
+
+        # Process provider IDs in batches
+        for i in range(0, len(provider_ids), batch_size):
+            batch_ids = provider_ids[i : i + batch_size]
+            request_items = {
+                self.config.provider_table.table_name: {
+                    'Keys': [
+                        {'pk': f'{compact}#PROVIDER#{provider_id}', 'sk': f'{compact}#PROVIDER'}
+                        for provider_id in batch_ids
+                    ],
+                    'ConsistentRead': True,
+                }
+            }
+
+            response = self.config.provider_table.meta.client.batch_get_item(RequestItems=request_items)
+
+            # Add the returned items to our results
+            if response['Responses']:
+                providers.extend(response['Responses'][self.config.provider_table.table_name])
+
+            # Handle any unprocessed keys by retrying with exponential backoff
+            retry_attempts = 0
+            max_retries = 3
+            base_sleep_time = 0.5  # 50ms initial sleep
+
+            while response.get('UnprocessedKeys') and retry_attempts <= max_retries:
+                # Calculate exponential backoff sleep time
+                sleep_time = min(base_sleep_time * (2**retry_attempts), 5)  # Cap at 5 seconds
+                time.sleep(sleep_time)
+
+                response = self.config.provider_table.meta.client.batch_get_item(
+                    RequestItems=response['UnprocessedKeys']
+                )
+                if response['Responses']:
+                    providers.extend(response['Responses'][self.config.provider_table.table_name])
+
+                retry_attempts += 1
+
+            if response.get('UnprocessedKeys'):
+                # this is unlikely to happen, but if it does, we log it and continue
+                logger.error('Failed to fetch all provider records', unprocessed_keys=response['UnprocessedKeys'])
+
+        return providers
