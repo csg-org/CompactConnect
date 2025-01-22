@@ -82,6 +82,9 @@ class TestTransformations(TstFunction):
         self.assertEqual(expected_provider_id, provider_id)
         provider_record = client.get_provider(compact='aslp', provider_id=provider_id, detail=False)
 
+        # create a home state selection record for the provider
+        client.create_home_jurisdiction_selection(compact='aslp', provider_id=provider_id, jurisdiction='oh')
+
         # Add a privilege to practice in Nebraska
         client.create_provider_privileges(
             compact='aslp',
@@ -114,8 +117,8 @@ class TestTransformations(TstFunction):
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
             & Key('sk').begins_with('aslp#PROVIDER'),
         )
-        # One record for each of: provider, license, privilege, militaryAffiliation
-        self.assertEqual(4, len(resp['Items']))
+        # One record for each of: provider, license, privilege, militaryAffiliation, and homeStateSelection
+        self.assertEqual(5, len(resp['Items']))
         records = {item['type']: item for item in resp['Items']}
 
         # Expected representation of each record in the database
@@ -195,6 +198,8 @@ class TestTransformations(TstFunction):
         del provider_data['privileges'][0]['dateOfRenewal']
         del provider_data['militaryAffiliations'][0]['dateOfUpload']
         del provider_data['militaryAffiliations'][0]['dateOfUpdate']
+        del provider_data['homeStateSelection']['dateOfSelection']
+        del provider_data['homeStateSelection']['dateOfUpdate']
         del expected_provider['dateOfUpdate']
         del expected_provider['licenses'][0]['dateOfUpdate']
         del expected_provider['privileges'][0]['dateOfUpdate']
@@ -202,6 +207,8 @@ class TestTransformations(TstFunction):
         del expected_provider['privileges'][0]['dateOfRenewal']
         del expected_provider['militaryAffiliations'][0]['dateOfUpload']
         del expected_provider['militaryAffiliations'][0]['dateOfUpdate']
+        del expected_provider['homeStateSelection']['dateOfUpdate']
+        del expected_provider['homeStateSelection']['dateOfSelection']
 
         # This lengthy test does not include change records for licenses or privileges, so we'll blank out the
         # sample history from our expected_provider

@@ -11,6 +11,7 @@ from cc_common.data_model.schema.fields import (
     NationalProviderIdentifier,
     Set,
 )
+from cc_common.data_model.schema.home_jurisdiction.api import ProviderHomeJurisdictionSelectionGeneralResponseSchema
 from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema
 from cc_common.data_model.schema.military_affiliation.api import MilitaryAffiliationGeneralResponseSchema
 from cc_common.data_model.schema.privilege.api import PrivilegeGeneralResponseSchema
@@ -67,3 +68,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     licenses = List(Nested(LicenseGeneralResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
     militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=False, allow_none=False))
+    homeStateSelection = Nested(
+        ProviderHomeJurisdictionSelectionGeneralResponseSchema(), required=False, allow_none=False
+    )

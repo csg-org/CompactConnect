@@ -23,6 +23,7 @@ def get_provider_information(compact: str, provider_id: str) -> dict:
     privileges = {}
     licenses = {}
     military_affiliations = []
+    home_state_selection = None
 
     for record in provider_data['items']:
         match record['type']:
@@ -40,6 +41,9 @@ def get_provider_information(compact: str, provider_id: str) -> dict:
             case 'militaryAffiliation':
                 logger.debug('Identified military affiliation record', provider_id=provider_id)
                 military_affiliations.append(record)
+            case 'homeJurisdictionSelection':
+                logger.debug('Identified home jurisdiction selection record', provider_id=provider_id)
+                home_state_selection = record
 
     # Process update records after all base records have been identified
     for record in provider_data['items']:
@@ -58,4 +62,5 @@ def get_provider_information(compact: str, provider_id: str) -> dict:
     provider['licenses'] = list(licenses.values())
     provider['privileges'] = list(privileges.values())
     provider['militaryAffiliations'] = military_affiliations
+    provider['homeStateSelection'] = home_state_selection
     return provider
