@@ -6,111 +6,10 @@
   },
   "servers": [
     {
-      "url": "https://api.justin.jcc.iaapi.io"
+      "url": "https://api.test.compactconnect.org"
     }
   ],
   "paths": {
-    "/v1/compacts": {
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/compacts/{compact}": {
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/compacts/{compact}/attestations": {
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
     "/v1/compacts/{compact}/attestations/{attestationId}": {
       "get": {
         "parameters": [
@@ -156,86 +55,6 @@
             "SandboxAPIStackLicenseApiProviderUsersPoolAuthorizerEB7523BA": []
           }
         ]
-      },
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "attestationId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/compacts/{compact}/credentials": {
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/compacts/{compact}/credentials/payment-processor": {
@@ -289,123 +108,6 @@
             ]
           }
         ]
-      },
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/compacts/{compact}/jurisdictions": {
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/compacts/{compact}/jurisdictions/{jurisdiction}": {
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "jurisdiction",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses": {
@@ -467,49 +169,6 @@
             ]
           }
         ]
-      },
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "jurisdiction",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload": {
@@ -561,86 +220,6 @@
             ]
           }
         ]
-      },
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "jurisdiction",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/compacts/{compact}/providers": {
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/compacts/{compact}/providers/query": {
@@ -694,41 +273,6 @@
             ]
           }
         ]
-      },
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/compacts/{compact}/providers/{providerId}": {
@@ -780,49 +324,6 @@
             ]
           }
         ]
-      },
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "providerId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/compacts/{compact}/staff-users": {
@@ -915,41 +416,6 @@
             ]
           }
         ]
-      },
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/compacts/{compact}/staff-users/{userId}": {
@@ -1062,49 +528,6 @@
           }
         ]
       },
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      },
       "patch": {
         "parameters": [
           {
@@ -1174,33 +597,6 @@
         ]
       }
     },
-    "/v1/provider-users": {
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
     "/v1/provider-users/me": {
       "get": {
         "parameters": [
@@ -1230,31 +626,6 @@
             "SandboxAPIStackLicenseApiProviderUsersPoolAuthorizerEB7523BA": []
           }
         ]
-      },
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/provider-users/me/military-affiliation": {
@@ -1297,31 +668,6 @@
           }
         ]
       },
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      },
       "patch": {
         "parameters": [
           {
@@ -1360,33 +706,6 @@
             "SandboxAPIStackLicenseApiProviderUsersPoolAuthorizerEB7523BA": []
           }
         ]
-      }
-    },
-    "/v1/purchases": {
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/purchases/privileges": {
@@ -1428,31 +747,6 @@
             "SandboxAPIStackLicenseApiProviderUsersPoolAuthorizerEB7523BA": []
           }
         ]
-      },
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/purchases/privileges/options": {
@@ -1484,58 +778,6 @@
             "SandboxAPIStackLicenseApiProviderUsersPoolAuthorizerEB7523BA": []
           }
         ]
-      },
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/staff-users": {
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/staff-users/me": {
@@ -1576,31 +818,6 @@
             ]
           }
         ]
-      },
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       },
       "patch": {
         "requestBody": {
