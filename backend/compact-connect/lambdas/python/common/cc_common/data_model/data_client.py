@@ -12,13 +12,13 @@ from cc_common.config import _Config, config, logger, metrics
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
+from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
 from cc_common.data_model.schema.military_affiliation import (
     MilitaryAffiliationStatus,
     MilitaryAffiliationType,
 )
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
-from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
 from cc_common.exceptions import CCAwsServiceException, CCInternalException, CCNotFoundException
 
 
@@ -701,10 +701,12 @@ class DataClient:
             provider_id: The provider ID
             jurisdiction: The jurisdiction postal code
         """
-        logger.info('Creating home jurisdiction selection record',
-                    provider_id=provider_id,
-                    compact=compact,
-                    jurisdiction=jurisdiction)
+        logger.info(
+            'Creating home jurisdiction selection record',
+            provider_id=provider_id,
+            compact=compact,
+            jurisdiction=jurisdiction,
+        )
         try:
             record = {
                 'type': 'homeJurisdictionSelection',
@@ -722,3 +724,26 @@ class DataClient:
         except ClientError as e:
             logger.error('Failed to create home jurisdiction selection record', error=str(e))
             raise CCAwsServiceException('Failed to create home jurisdiction selection record') from e
+
+    def rollback_home_jurisdiction_selection(self, *, compact: str, provider_id: str):
+        """Delete a home jurisdiction selection record for a provider.
+
+        This method is only intended to be used when a failure occurs in the registration process.
+
+        Args:
+            compact: The compact name
+            provider_id: The provider ID
+        """
+        logger.info(
+            'Deleting home jurisdiction selection record if it exists', provider_id=provider_id, compact=compact
+        )
+        try:
+            self.config.provider_table.delete_item(
+                Key={
+                    'pk': f'{compact}#PROVIDER#{provider_id}',
+                    'sk': f'{compact}#PROVIDER#home-jurisdiction#',
+                }
+            )
+        except ClientError as e:
+            logger.error('Failed to delete home jurisdiction selection record', error=str(e))
+            raise CCAwsServiceException('Failed to delete home jurisdiction selection record') from e

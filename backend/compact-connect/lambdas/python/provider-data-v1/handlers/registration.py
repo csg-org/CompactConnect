@@ -4,7 +4,7 @@ import requests
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from cc_common.config import config, logger
-from cc_common.exceptions import CCAccessDeniedException, CCInternalException, CCAwsServiceException
+from cc_common.exceptions import CCAccessDeniedException, CCAwsServiceException, CCInternalException
 from cc_common.utils import api_handler
 
 # Module level variable for caching
@@ -113,6 +113,13 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         )
         return {'message': 'request processed'}
 
+    # Create home jurisdiction selection record first
+    config.data_client.create_home_jurisdiction_selection(
+        compact=body['compact'],
+        provider_id=matching_record['providerId'],
+        jurisdiction=body['state'],
+    )
+
     # Create Cognito user
     try:
         config.cognito_client.admin_create_user(
@@ -127,13 +134,11 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         )
     except Exception as e:
         logger.error('Failed to create Cognito user', error=str(e))
+        # Roll back home jurisdiction selection record
+        config.data_client.rollback_home_jurisdiction_selection(
+            compact=body['compact'],
+            provider_id=matching_record['providerId'],
+        )
         raise CCInternalException('Failed to create user account') from e
-
-    # Create home jurisdiction selection record
-    config.data_client.create_home_jurisdiction_selection(
-        compact=body['compact'],
-        provider_id=matching_record['providerId'],
-        jurisdiction=body['state'],
-    )
 
     return {'message': 'request processed'}

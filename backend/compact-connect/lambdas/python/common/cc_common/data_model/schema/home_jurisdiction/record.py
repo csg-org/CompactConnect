@@ -18,12 +18,8 @@ class ProviderHomeJurisdictionSelectionRecordSchema(BaseRecordSchema):
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     dateOfSelection = DateTime(required=True, allow_none=False)
 
-
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
         in_data['sk'] = f'{in_data['compact']}#PROVIDER#home-jurisdiction#'
         return in_data
-
-
-

@@ -1,5 +1,5 @@
-from datetime import datetime
 import json
+from datetime import datetime
 from unittest.mock import patch
 
 from cc_common.exceptions import CCInternalException
@@ -40,11 +40,11 @@ class TestProviderRegistration(TstFunction):
         Adds mock provider and license records to the provider table with customizable data.
 
         Args:
-            is_registered (bool): Whether the provider should be marked as registered by adding a home jurisdiction record
+            is_registered (bool): If true, addd a home jurisdiction selection record for the provider
             license_data_overrides (dict): Optional overrides for the license data
         """
-        from cc_common.data_model.schema.license.record import LicenseRecordSchema
         from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
+        from cc_common.data_model.schema.license.record import LicenseRecordSchema
 
         with open('../common/tests/resources/dynamo/provider.json') as f:
             provider_data = json.load(f)
@@ -141,7 +141,6 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
         mock_cognito.admin_create_user.assert_not_called()
 
-
     @patch('handlers.registration.verify_recaptcha')
     @patch('cc_common.config._Config.cognito_client')
     def test_registration_creates_cognito_user(self, mock_cognito, mock_verify_recaptcha):
@@ -214,3 +213,27 @@ class TestProviderRegistration(TstFunction):
             register_provider(self._get_test_event(), self.mock_context)
 
         self.assertEqual('Multiple matching license records found', context.exception.message)
+
+    @patch('handlers.registration.verify_recaptcha')
+    @patch('cc_common.config._Config.cognito_client')
+    def test_registration_rolls_back_home_jurisdiction_selection_on_cognito_failure(
+        self, mock_cognito, mock_verify_recaptcha
+    ):
+        mock_verify_recaptcha.return_value = True
+        mock_cognito.admin_create_user.side_effect = Exception('Failed to create Cognito user')
+        provider_data, license_data = self._add_mock_provider_records()
+        from handlers.registration import register_provider
+
+        # Verify the registration fails with the expected error
+        with self.assertRaises(CCInternalException) as context:
+            register_provider(self._get_test_event(), self.mock_context)
+        self.assertEqual('Failed to create user account', context.exception.message)
+
+        # Verify the home jurisdiction selection record was rolled back (deleted)
+        home_jurisdiction = self.config.provider_table.get_item(
+            Key={
+                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data['providerId']}',
+                'sk': f'{TEST_COMPACT}#PROVIDER#home-jurisdiction#',
+            }
+        ).get('Item')
+        self.assertIsNone(home_jurisdiction)
