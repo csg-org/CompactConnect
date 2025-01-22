@@ -48,7 +48,7 @@
                 <LicenseCard
                     :license="license"
                 />
-                <div v-if="!checkIfLicenseActive(license)" class="license-expired-message">
+                <div v-if="!isLicenseActive(license)" class="license-expired-message">
                     {{licenseExpiredMessage}}
                 </div>
             </div>

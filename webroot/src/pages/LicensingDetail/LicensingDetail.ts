@@ -258,14 +258,8 @@ export default class LicensingDetail extends Vue {
         await this.$store.dispatch('license/getLicenseeRequest', { compact: this.compact, licenseeId });
     }
 
-    checkIfLicenseActive(license: License) {
-        let isLicenseActive = false;
-
-        if (license && license.statusState === LicenseStatus.ACTIVE) {
-            isLicenseActive = true;
-        }
-
-        return isLicenseActive;
+    isLicenseActive(license: License): boolean {
+        return license && license.statusState === LicenseStatus.ACTIVE;
     }
 
     togglePersonalInfoCollapsed() {

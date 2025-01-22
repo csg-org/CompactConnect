@@ -162,14 +162,8 @@ export default class LicenseeDashboard extends Vue {
         });
     }
 
-    checkIfLicenseActive(license: License) {
-        let isLicenseActive = false;
-
-        if (license && license.statusState === LicenseStatus.ACTIVE) {
-            isLicenseActive = true;
-        }
-
-        return isLicenseActive;
+    isLicenseActive(license: License): boolean {
+        return license && license.statusState === LicenseStatus.ACTIVE;
     }
 
     togglePrivsCollapsed() {
