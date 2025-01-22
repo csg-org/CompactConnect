@@ -16,6 +16,7 @@
                 @keyup.enter="logoClick"
                 role="button"
                 tabindex="0"
+                :aria-label="$t('common.appName')"
             />
         </div>
         <div v-if="$matches.phone.only" class="nav-toggle-container">
