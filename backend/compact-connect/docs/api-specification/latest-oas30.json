@@ -2,11 +2,11 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-01-15T17:49:42Z"
+    "version": "2025-01-22T18:15:37Z"
   },
   "servers": [
     {
-      "url": "https://api.test.compactconnect.org"
+      "url": "https://api.justin.jcc.iaapi.io"
     }
   ],
   "paths": {
@@ -973,6 +973,16 @@
           }
         ],
         "responses": {
+          "404": {
+            "description": "404 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
+                }
+              }
+            }
+          },
           "200": {
             "description": "200 response",
             "headers": {
@@ -986,6 +996,57 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SandboLicenq0WHjwuOL0r5"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+              "aslp/admin",
+              "octp/admin",
+              "coun/admin"
+            ]
+          }
+        ]
+      },
+      "delete": {
+        "parameters": [
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "404 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
                 }
               }
             }
@@ -1074,6 +1135,16 @@
           "required": true
         },
         "responses": {
+          "404": {
+            "description": "404 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
+                }
+              }
+            }
+          },
           "200": {
             "description": "200 response",
             "headers": {
@@ -1470,6 +1541,16 @@
     "/v1/staff-users/me": {
       "get": {
         "responses": {
+          "404": {
+            "description": "404 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
+                }
+              }
+            }
+          },
           "200": {
             "description": "200 response",
             "headers": {
@@ -1533,6 +1614,16 @@
           "required": true
         },
         "responses": {
+          "404": {
+            "description": "404 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
+                }
+              }
+            }
+          },
           "200": {
             "description": "200 response",
             "headers": {
@@ -3149,6 +3240,13 @@
                   "items": {
                     "type": "object",
                     "properties": {
+                      "removedValues": {
+                        "type": "array",
+                        "description": "List of field names that were present in the previous record but removed in the update",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
                       "compact": {
                         "type": "string",
                         "enum": [
@@ -3760,6 +3858,13 @@
                   "items": {
                     "type": "object",
                     "properties": {
+                      "removedValues": {
+                        "type": "array",
+                        "description": "List of field names that were present in the previous record but removed in the update",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
                       "compact": {
                         "type": "string",
                         "enum": [
