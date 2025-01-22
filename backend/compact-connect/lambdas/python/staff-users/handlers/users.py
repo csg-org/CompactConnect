@@ -2,7 +2,7 @@ import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
-from cc_common.exceptions import CCNotFoundException
+from cc_common.exceptions import CCAccessDeniedException, CCNotFoundException
 from cc_common.utils import (
     api_handler,
     authorize_compact,
@@ -125,3 +125,39 @@ def post_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argum
     return user_api_schema.load(
         config.user_client.create_user(compact=compact, attributes=user['attributes'], permissions=user['permissions']),
     )
+
+
+@api_handler
+@authorize_compact(action='admin')
+def delete_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    compact = event['pathParameters']['compact']
+    user_id = event['pathParameters']['userId']
+    # If the caller is a jurisdiction admin, they can only delete the user if the user only has permissions in the
+    # caller's jurisdiction. If the user has permissions in another jurisdiction, an admin in that other jurisdiction
+    # must remove those permissions first before this operation will succeed. A compact admin can delete any user in
+    # their compact, regardless of where they have permissions.
+    allowed_jurisdictions = get_allowed_jurisdictions(compact=compact, scopes=get_event_scopes(event))
+
+    # None means they are a compact admin - no jurisdiction restrictions at all
+    if allowed_jurisdictions is not None:
+        allowed_jurisdictions = set(allowed_jurisdictions)
+        user = config.user_client.get_user_in_compact(compact=compact, user_id=user_id)
+        user_jurisdictions = user['permissions']['jurisdictions'].keys()
+        disallowed_jurisdictions = user_jurisdictions - allowed_jurisdictions
+        common_jurisdictions = allowed_jurisdictions.intersection(user_jurisdictions)
+
+        # We won't show that the user even exists, if they have no common jurisdictions
+        if not common_jurisdictions:
+            raise CCNotFoundException('User not found')
+
+        # If they have permissions elsewhere, we return an error
+        if disallowed_jurisdictions:
+            raise CCAccessDeniedException(
+                f'User has permissions in other jurisdictions ({', '.join(disallowed_jurisdictions)}). Those must be'
+                'removed first or a compact admin must perform this operation.'
+            )
+
+    # At this time, 'delete' really means just deleting their compact permission record but doing nothing to the actual
+    # Cognito user.
+    config.user_client.delete_user(compact=compact, user_id=user_id)
+    return {'message': 'User deleted'}

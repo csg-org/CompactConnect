@@ -9,7 +9,7 @@ from .. import TstFunction
 
 @mock_aws
 class TestClient(TstFunction):
-    def test_get_user(self):
+    def test_get_user_in_compact(self):
         user_id = self._load_user_data()
 
         from cc_common.data_model.user_client import UserClient
@@ -22,7 +22,7 @@ class TestClient(TstFunction):
         self.assertEqual({'type', 'userId', 'attributes', 'permissions', 'dateOfUpdate', 'compact'}, user.keys())
         self.assertEqual(UUID(user_id), user['userId'])
 
-    def test_get_user_not_found(self):
+    def test_get_user_in_compact_not_found(self):
         """User ID not found should raise an exception"""
         from cc_common.data_model.user_client import UserClient
         from cc_common.exceptions import CCNotFoundException
@@ -310,3 +310,23 @@ class TestClient(TstFunction):
             {'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}, 'ne': {'write', 'admin'}}},
             second_user['permissions'],
         )
+
+    def test_delete_user_in_compact(self):
+        user_id = self._load_user_data()
+
+        from cc_common.data_model.user_client import UserClient
+
+        client = UserClient(self.config)
+
+        client.delete_user(compact='aslp', user_id=user_id)
+
+    def test_delete_user_in_compact_not_found(self):
+        """User ID not found should raise an exception"""
+        from cc_common.data_model.user_client import UserClient
+        from cc_common.exceptions import CCNotFoundException
+
+        client = UserClient(self.config)
+
+        # This user isn't in the DB, so it should raise an exception
+        with self.assertRaises(CCNotFoundException):
+            client.get_user_in_compact(compact='aslp', user_id='123')

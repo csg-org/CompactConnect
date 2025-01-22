@@ -320,3 +320,20 @@ class UserClient:
             else:
                 raise
         return user
+
+    def delete_user(self, *, compact: str, user_id: str) -> None:
+        """
+        Delete a staff user's compact permissions record from DynamoDB
+        :param str compact: The compact the user has permissions in
+        :param str user_id: The user's ID
+        """
+        try:
+            # We add a ConditionExpression to force this operation to _not_ be idempotent. We want an exception
+            # if the user's record doesn't exist.
+            self.config.users_table.delete_item(
+                Key={'pk': f'USER#{user_id}', 'sk': f'COMPACT#{compact}'}, ConditionExpression=Attr('pk').exists()
+            )
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                raise CCNotFoundException('User not found') from e
+        return
