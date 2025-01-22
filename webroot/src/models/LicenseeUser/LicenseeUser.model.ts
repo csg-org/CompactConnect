@@ -76,7 +76,8 @@ export class LicenseeUserPurchaseSerializer {
                     state: formValues.stateSelect.toUpperCase(),
                     zip: formValues.zip
                 }
-            }
+            },
+            attestations: [] // temp to allow submit with current API validation
         };
 
         return purchaseData;

@@ -14,7 +14,7 @@ idna==3.10
     # via requests
 lxml==4.9.4
     # via authorizenet
-pyxb-x==1.2.6.2
+pyxb-x==1.2.6.3
     # via authorizenet
 requests==2.32.3
     # via authorizenet
