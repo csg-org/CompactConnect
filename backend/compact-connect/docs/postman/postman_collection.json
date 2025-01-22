@@ -1,0 +1,3927 @@
+{
+	"info": {
+		"_postman_id": "3117c3b1-36ab-4078-a5c8-263fecd15465",
+		"name": "LicenseApi",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23221833"
+	},
+	"item": [
+		{
+			"name": "v1",
+			"item": [
+				{
+					"name": "compacts",
+					"item": [
+						{
+							"name": "{compact}",
+							"item": [
+								{
+									"name": "attestations",
+									"item": [
+										{
+											"name": "{attestationId}",
+											"item": [
+												{
+													"name": "/v1/compacts/:compact/attestations/:attestationId",
+													"request": {
+														"auth": {
+															"type": "apikey",
+															"apikey": [
+																{
+																	"key": "key",
+																	"value": "Authorization",
+																	"type": "string"
+																},
+																{
+																	"key": "value",
+																	"value": "{{apiKey}}",
+																	"type": "string"
+																},
+																{
+																	"key": "in",
+																	"value": "header",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "GET",
+														"header": [
+															{
+																"key": "Accept",
+																"value": "application/json"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/attestations/:attestationId",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"attestations",
+																":attestationId"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "<string>",
+																	"description": "(Required) "
+																},
+																{
+																	"key": "attestationId",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "200 response",
+															"originalRequest": {
+																"method": "GET",
+																"header": [
+																	{
+																		"key": "Accept",
+																		"value": "application/json"
+																	},
+																	{
+																		"key": "Authorization",
+																		"value": "<API Key>",
+																		"description": "Added as a part of security scheme: apikey"
+																	}
+																],
+																"url": {
+																	"raw": "{{baseUrl}}/v1/compacts/:compact/attestations/:attestationId",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v1",
+																		"compacts",
+																		":compact",
+																		"attestations",
+																		":attestationId"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		},
+																		{
+																			"key": "attestationId"
+																		}
+																	]
+																}
+															},
+															"status": "OK",
+															"code": 200,
+															"_postman_previewlanguage": "json",
+															"header": [
+																{
+																	"key": "Content-Type",
+																	"value": "application/json"
+																}
+															],
+															"cookie": [],
+															"body": "{\n  \"dateCreated\": \"<dateTime>\",\n  \"compact\": \"octp\",\n  \"attestationType\": \"<string>\",\n  \"text\": \"<string>\",\n  \"type\": \"attestation\",\n  \"version\": \"<string>\",\n  \"required\": \"<boolean>\"\n}"
+														}
+													]
+												},
+												{
+													"name": "/v1/compacts/:compact/attestations/:attestationId",
+													"request": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/attestations/:attestationId",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"attestations",
+																":attestationId"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "<string>",
+																	"description": "(Required) "
+																},
+																{
+																	"key": "attestationId",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "204 response",
+															"originalRequest": {
+																"method": "OPTIONS",
+																"header": [],
+																"url": {
+																	"raw": "{{baseUrl}}/v1/compacts/:compact/attestations/:attestationId",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v1",
+																		"compacts",
+																		":compact",
+																		"attestations",
+																		":attestationId"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		},
+																		{
+																			"key": "attestationId"
+																		}
+																	]
+																}
+															},
+															"status": "No Content",
+															"code": 204,
+															"_postman_previewlanguage": "text",
+															"header": [
+																{
+																	"key": "Access-Control-Allow-Origin",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Methods",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Headers",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																}
+															],
+															"cookie": [],
+															"body": ""
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "/v1/compacts/:compact/attestations",
+											"request": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v1/compacts/:compact/attestations",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"compacts",
+														":compact",
+														"attestations"
+													],
+													"variable": [
+														{
+															"key": "compact",
+															"value": "<string>",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "204 response",
+													"originalRequest": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/attestations",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"attestations"
+															],
+															"variable": [
+																{
+																	"key": "compact"
+																}
+															]
+														}
+													},
+													"status": "No Content",
+													"code": 204,
+													"_postman_previewlanguage": "text",
+													"header": [
+														{
+															"key": "Access-Control-Allow-Origin",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Methods",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Headers",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														}
+													],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "credentials",
+									"item": [
+										{
+											"name": "payment-processor",
+											"item": [
+												{
+													"name": "/v1/compacts/:compact/credentials/payment-processor",
+													"request": {
+														"auth": {
+															"type": "apikey",
+															"apikey": [
+																{
+																	"key": "key",
+																	"value": "Authorization",
+																	"type": "string"
+																},
+																{
+																	"key": "value",
+																	"value": "{{apiKey}}",
+																	"type": "string"
+																},
+																{
+																	"key": "in",
+																	"value": "header",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "POST",
+														"header": [
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Accept",
+																"value": "application/json"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"apiLoginId\": \"<string>\",\n  \"processor\": \"authorize.net\",\n  \"transactionKey\": \"<string>\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/credentials/payment-processor",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"credentials",
+																"payment-processor"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "200 response",
+															"originalRequest": {
+																"method": "POST",
+																"header": [
+																	{
+																		"key": "Content-Type",
+																		"value": "application/json"
+																	},
+																	{
+																		"key": "Accept",
+																		"value": "application/json"
+																	},
+																	{
+																		"key": "Authorization",
+																		"value": "<API Key>",
+																		"description": "Added as a part of security scheme: apikey"
+																	}
+																],
+																"body": {
+																	"mode": "raw",
+																	"raw": "{\n  \"apiLoginId\": \"<string>\",\n  \"processor\": \"authorize.net\",\n  \"transactionKey\": \"<string>\"\n}",
+																	"options": {
+																		"raw": {
+																			"headerFamily": "json",
+																			"language": "json"
+																		}
+																	}
+																},
+																"url": {
+																	"raw": "{{baseUrl}}/v1/compacts/:compact/credentials/payment-processor",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v1",
+																		"compacts",
+																		":compact",
+																		"credentials",
+																		"payment-processor"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		}
+																	]
+																}
+															},
+															"status": "OK",
+															"code": 200,
+															"_postman_previewlanguage": "json",
+															"header": [
+																{
+																	"key": "Content-Type",
+																	"value": "application/json"
+																}
+															],
+															"cookie": [],
+															"body": "{\n  \"message\": \"<string>\"\n}"
+														}
+													]
+												},
+												{
+													"name": "/v1/compacts/:compact/credentials/payment-processor",
+													"request": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/credentials/payment-processor",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"credentials",
+																"payment-processor"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "204 response",
+															"originalRequest": {
+																"method": "OPTIONS",
+																"header": [],
+																"url": {
+																	"raw": "{{baseUrl}}/v1/compacts/:compact/credentials/payment-processor",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v1",
+																		"compacts",
+																		":compact",
+																		"credentials",
+																		"payment-processor"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		}
+																	]
+																}
+															},
+															"status": "No Content",
+															"code": 204,
+															"_postman_previewlanguage": "text",
+															"header": [
+																{
+																	"key": "Access-Control-Allow-Origin",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Methods",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Headers",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																}
+															],
+															"cookie": [],
+															"body": ""
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "/v1/compacts/:compact/credentials",
+											"request": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v1/compacts/:compact/credentials",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"compacts",
+														":compact",
+														"credentials"
+													],
+													"variable": [
+														{
+															"key": "compact",
+															"value": "<string>",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "204 response",
+													"originalRequest": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/credentials",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"credentials"
+															],
+															"variable": [
+																{
+																	"key": "compact"
+																}
+															]
+														}
+													},
+													"status": "No Content",
+													"code": 204,
+													"_postman_previewlanguage": "text",
+													"header": [
+														{
+															"key": "Access-Control-Allow-Origin",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Methods",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Headers",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														}
+													],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "jurisdictions",
+									"item": [
+										{
+											"name": "{jurisdiction}",
+											"item": [
+												{
+													"name": "licenses",
+													"item": [
+														{
+															"name": "bulk-upload",
+															"item": [
+																{
+																	"name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses/bulk-upload",
+																	"request": {
+																		"auth": {
+																			"type": "apikey",
+																			"apikey": [
+																				{
+																					"key": "key",
+																					"value": "Authorization",
+																					"type": "string"
+																				},
+																				{
+																					"key": "value",
+																					"value": "{{apiKey}}",
+																					"type": "string"
+																				},
+																				{
+																					"key": "in",
+																					"value": "header",
+																					"type": "string"
+																				}
+																			]
+																		},
+																		"method": "GET",
+																		"header": [
+																			{
+																				"key": "Accept",
+																				"value": "application/json"
+																			}
+																		],
+																		"url": {
+																			"raw": "{{baseUrl}}/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses/bulk-upload",
+																			"host": [
+																				"{{baseUrl}}"
+																			],
+																			"path": [
+																				"v1",
+																				"compacts",
+																				":compact",
+																				"jurisdictions",
+																				":jurisdiction",
+																				"licenses",
+																				"bulk-upload"
+																			],
+																			"variable": [
+																				{
+																					"key": "compact",
+																					"value": "<string>",
+																					"description": "(Required) "
+																				},
+																				{
+																					"key": "jurisdiction",
+																					"value": "<string>",
+																					"description": "(Required) "
+																				}
+																			]
+																		}
+																	},
+																	"response": [
+																		{
+																			"name": "200 response",
+																			"originalRequest": {
+																				"method": "GET",
+																				"header": [
+																					{
+																						"key": "Accept",
+																						"value": "application/json"
+																					},
+																					{
+																						"key": "Authorization",
+																						"value": "<API Key>",
+																						"description": "Added as a part of security scheme: apikey"
+																					}
+																				],
+																				"url": {
+																					"raw": "{{baseUrl}}/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses/bulk-upload",
+																					"host": [
+																						"{{baseUrl}}"
+																					],
+																					"path": [
+																						"v1",
+																						"compacts",
+																						":compact",
+																						"jurisdictions",
+																						":jurisdiction",
+																						"licenses",
+																						"bulk-upload"
+																					],
+																					"variable": [
+																						{
+																							"key": "compact"
+																						},
+																						{
+																							"key": "jurisdiction"
+																						}
+																					]
+																				}
+																			},
+																			"status": "OK",
+																			"code": 200,
+																			"_postman_previewlanguage": "json",
+																			"header": [
+																				{
+																					"key": "Content-Type",
+																					"value": "application/json"
+																				}
+																			],
+																			"cookie": [],
+																			"body": "{\n  \"fields\": {\n    \"Duis_400\": \"<string>\",\n    \"ullamco8_2\": \"<string>\"\n  },\n  \"url\": \"<string>\"\n}"
+																		}
+																	]
+																},
+																{
+																	"name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses/bulk-upload",
+																	"request": {
+																		"method": "OPTIONS",
+																		"header": [],
+																		"url": {
+																			"raw": "{{baseUrl}}/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses/bulk-upload",
+																			"host": [
+																				"{{baseUrl}}"
+																			],
+																			"path": [
+																				"v1",
+																				"compacts",
+																				":compact",
+																				"jurisdictions",
+																				":jurisdiction",
+																				"licenses",
+																				"bulk-upload"
+																			],
+																			"variable": [
+																				{
+																					"key": "compact",
+																					"value": "<string>",
+																					"description": "(Required) "
+																				},
+																				{
+																					"key": "jurisdiction",
+																					"value": "<string>",
+																					"description": "(Required) "
+																				}
+																			]
+																		}
+																	},
+																	"response": [
+																		{
+																			"name": "204 response",
+																			"originalRequest": {
+																				"method": "OPTIONS",
+																				"header": [],
+																				"url": {
+																					"raw": "{{baseUrl}}/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses/bulk-upload",
+																					"host": [
+																						"{{baseUrl}}"
+																					],
+																					"path": [
+																						"v1",
+																						"compacts",
+																						":compact",
+																						"jurisdictions",
+																						":jurisdiction",
+																						"licenses",
+																						"bulk-upload"
+																					],
+																					"variable": [
+																						{
+																							"key": "compact"
+																						},
+																						{
+																							"key": "jurisdiction"
+																						}
+																					]
+																				}
+																			},
+																			"status": "No Content",
+																			"code": 204,
+																			"_postman_previewlanguage": "text",
+																			"header": [
+																				{
+																					"key": "Access-Control-Allow-Origin",
+																					"value": "<string>",
+																					"description": {
+																						"content": "",
+																						"type": "text/plain"
+																					}
+																				},
+																				{
+																					"key": "Access-Control-Allow-Methods",
+																					"value": "<string>",
+																					"description": {
+																						"content": "",
+																						"type": "text/plain"
+																					}
+																				},
+																				{
+																					"key": "Access-Control-Allow-Headers",
+																					"value": "<string>",
+																					"description": {
+																						"content": "",
+																						"type": "text/plain"
+																					}
+																				}
+																			],
+																			"cookie": [],
+																			"body": ""
+																		}
+																	]
+																}
+															]
+														},
+														{
+															"name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses",
+															"request": {
+																"auth": {
+																	"type": "apikey",
+																	"apikey": [
+																		{
+																			"key": "key",
+																			"value": "Authorization",
+																			"type": "string"
+																		},
+																		{
+																			"key": "value",
+																			"value": "{{apiKey}}",
+																			"type": "string"
+																		},
+																		{
+																			"key": "in",
+																			"value": "header",
+																			"type": "string"
+																		}
+																	]
+																},
+																"method": "POST",
+																"header": [
+																	{
+																		"key": "Content-Type",
+																		"value": "application/json"
+																	},
+																	{
+																		"key": "Accept",
+																		"value": "application/json"
+																	}
+																],
+																"body": {
+																	"mode": "raw",
+																	"raw": "[\n  {\n    \"dateOfBirth\": \"2369-10-22\",\n    \"dateOfExpiration\": \"2772-17-17\",\n    \"dateOfIssuance\": \"2640-04-37\",\n    \"dateOfRenewal\": \"1393-16-35\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseType\": \"speech-language pathologist\",\n    \"ssn\": \"163-59-0014\",\n    \"status\": \"active\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"3910965920\",\n    \"licenseNumber\": \"<string>\",\n    \"militaryWaiver\": \"<boolean>\",\n    \"middleName\": \"<string>\"\n  },\n  {\n    \"dateOfBirth\": \"2890-08-19\",\n    \"dateOfExpiration\": \"2962-04-32\",\n    \"dateOfIssuance\": \"1817-11-14\",\n    \"dateOfRenewal\": \"2543-18-14\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseType\": \"licensed clinical mental health counselor\",\n    \"ssn\": \"298-38-2796\",\n    \"status\": \"active\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"4797753348\",\n    \"licenseNumber\": \"<string>\",\n    \"militaryWaiver\": \"<boolean>\",\n    \"middleName\": \"<string>\"\n  }\n]",
+																	"options": {
+																		"raw": {
+																			"headerFamily": "json",
+																			"language": "json"
+																		}
+																	}
+																},
+																"url": {
+																	"raw": "{{baseUrl}}/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v1",
+																		"compacts",
+																		":compact",
+																		"jurisdictions",
+																		":jurisdiction",
+																		"licenses"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact",
+																			"value": "<string>",
+																			"description": "(Required) "
+																		},
+																		{
+																			"key": "jurisdiction",
+																			"value": "<string>",
+																			"description": "(Required) "
+																		}
+																	]
+																}
+															},
+															"response": [
+																{
+																	"name": "200 response",
+																	"originalRequest": {
+																		"method": "POST",
+																		"header": [
+																			{
+																				"key": "Content-Type",
+																				"value": "application/json"
+																			},
+																			{
+																				"key": "Accept",
+																				"value": "application/json"
+																			},
+																			{
+																				"key": "Authorization",
+																				"value": "<API Key>",
+																				"description": "Added as a part of security scheme: apikey"
+																			}
+																		],
+																		"body": {
+																			"mode": "raw",
+																			"raw": "[\n  {\n    \"dateOfBirth\": \"2369-10-22\",\n    \"dateOfExpiration\": \"2772-17-17\",\n    \"dateOfIssuance\": \"2640-04-37\",\n    \"dateOfRenewal\": \"1393-16-35\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseType\": \"speech-language pathologist\",\n    \"ssn\": \"163-59-0014\",\n    \"status\": \"active\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"3910965920\",\n    \"licenseNumber\": \"<string>\",\n    \"militaryWaiver\": \"<boolean>\",\n    \"middleName\": \"<string>\"\n  },\n  {\n    \"dateOfBirth\": \"2890-08-19\",\n    \"dateOfExpiration\": \"2962-04-32\",\n    \"dateOfIssuance\": \"1817-11-14\",\n    \"dateOfRenewal\": \"2543-18-14\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\",\n    \"homeAddressCity\": \"<string>\",\n    \"homeAddressPostalCode\": \"<string>\",\n    \"homeAddressState\": \"<string>\",\n    \"homeAddressStreet1\": \"<string>\",\n    \"licenseType\": \"licensed clinical mental health counselor\",\n    \"ssn\": \"298-38-2796\",\n    \"status\": \"active\",\n    \"homeAddressStreet2\": \"<string>\",\n    \"npi\": \"4797753348\",\n    \"licenseNumber\": \"<string>\",\n    \"militaryWaiver\": \"<boolean>\",\n    \"middleName\": \"<string>\"\n  }\n]",
+																			"options": {
+																				"raw": {
+																					"headerFamily": "json",
+																					"language": "json"
+																				}
+																			}
+																		},
+																		"url": {
+																			"raw": "{{baseUrl}}/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses",
+																			"host": [
+																				"{{baseUrl}}"
+																			],
+																			"path": [
+																				"v1",
+																				"compacts",
+																				":compact",
+																				"jurisdictions",
+																				":jurisdiction",
+																				"licenses"
+																			],
+																			"variable": [
+																				{
+																					"key": "compact"
+																				},
+																				{
+																					"key": "jurisdiction"
+																				}
+																			]
+																		}
+																	},
+																	"status": "OK",
+																	"code": 200,
+																	"_postman_previewlanguage": "json",
+																	"header": [
+																		{
+																			"key": "Content-Type",
+																			"value": "application/json"
+																		}
+																	],
+																	"cookie": [],
+																	"body": "{\n  \"message\": \"<string>\"\n}"
+																}
+															]
+														},
+														{
+															"name": "/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses",
+															"request": {
+																"method": "OPTIONS",
+																"header": [],
+																"url": {
+																	"raw": "{{baseUrl}}/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v1",
+																		"compacts",
+																		":compact",
+																		"jurisdictions",
+																		":jurisdiction",
+																		"licenses"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact",
+																			"value": "<string>",
+																			"description": "(Required) "
+																		},
+																		{
+																			"key": "jurisdiction",
+																			"value": "<string>",
+																			"description": "(Required) "
+																		}
+																	]
+																}
+															},
+															"response": [
+																{
+																	"name": "204 response",
+																	"originalRequest": {
+																		"method": "OPTIONS",
+																		"header": [],
+																		"url": {
+																			"raw": "{{baseUrl}}/v1/compacts/:compact/jurisdictions/:jurisdiction/licenses",
+																			"host": [
+																				"{{baseUrl}}"
+																			],
+																			"path": [
+																				"v1",
+																				"compacts",
+																				":compact",
+																				"jurisdictions",
+																				":jurisdiction",
+																				"licenses"
+																			],
+																			"variable": [
+																				{
+																					"key": "compact"
+																				},
+																				{
+																					"key": "jurisdiction"
+																				}
+																			]
+																		}
+																	},
+																	"status": "No Content",
+																	"code": 204,
+																	"_postman_previewlanguage": "text",
+																	"header": [
+																		{
+																			"key": "Access-Control-Allow-Origin",
+																			"value": "<string>",
+																			"description": {
+																				"content": "",
+																				"type": "text/plain"
+																			}
+																		},
+																		{
+																			"key": "Access-Control-Allow-Methods",
+																			"value": "<string>",
+																			"description": {
+																				"content": "",
+																				"type": "text/plain"
+																			}
+																		},
+																		{
+																			"key": "Access-Control-Allow-Headers",
+																			"value": "<string>",
+																			"description": {
+																				"content": "",
+																				"type": "text/plain"
+																			}
+																		}
+																	],
+																	"cookie": [],
+																	"body": ""
+																}
+															]
+														}
+													]
+												},
+												{
+													"name": "/v1/compacts/:compact/jurisdictions/:jurisdiction",
+													"request": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/jurisdictions/:jurisdiction",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"jurisdictions",
+																":jurisdiction"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "<string>",
+																	"description": "(Required) "
+																},
+																{
+																	"key": "jurisdiction",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "204 response",
+															"originalRequest": {
+																"method": "OPTIONS",
+																"header": [],
+																"url": {
+																	"raw": "{{baseUrl}}/v1/compacts/:compact/jurisdictions/:jurisdiction",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v1",
+																		"compacts",
+																		":compact",
+																		"jurisdictions",
+																		":jurisdiction"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		},
+																		{
+																			"key": "jurisdiction"
+																		}
+																	]
+																}
+															},
+															"status": "No Content",
+															"code": 204,
+															"_postman_previewlanguage": "text",
+															"header": [
+																{
+																	"key": "Access-Control-Allow-Origin",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Methods",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Headers",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																}
+															],
+															"cookie": [],
+															"body": ""
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "/v1/compacts/:compact/jurisdictions",
+											"request": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v1/compacts/:compact/jurisdictions",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"compacts",
+														":compact",
+														"jurisdictions"
+													],
+													"variable": [
+														{
+															"key": "compact",
+															"value": "<string>",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "204 response",
+													"originalRequest": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/jurisdictions",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"jurisdictions"
+															],
+															"variable": [
+																{
+																	"key": "compact"
+																}
+															]
+														}
+													},
+													"status": "No Content",
+													"code": 204,
+													"_postman_previewlanguage": "text",
+													"header": [
+														{
+															"key": "Access-Control-Allow-Origin",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Methods",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Headers",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														}
+													],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "providers",
+									"item": [
+										{
+											"name": "query",
+											"item": [
+												{
+													"name": "/v1/compacts/:compact/providers/query",
+													"request": {
+														"auth": {
+															"type": "apikey",
+															"apikey": [
+																{
+																	"key": "key",
+																	"value": "Authorization",
+																	"type": "string"
+																},
+																{
+																	"key": "value",
+																	"value": "{{apiKey}}",
+																	"type": "string"
+																},
+																{
+																	"key": "in",
+																	"value": "header",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "POST",
+														"header": [
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Accept",
+																"value": "application/json"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"query\": {\n    \"providerId\": \"74b96f82-d99f-4057-aef6-6f530d473e46\",\n    \"jurisdiction\": \"wy\",\n    \"ssn\": \"517-54-8759\"\n  },\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"key\": \"familyName\",\n    \"direction\": \"ascending\"\n  }\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/providers/query",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"providers",
+																"query"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "200 response",
+															"originalRequest": {
+																"method": "POST",
+																"header": [
+																	{
+																		"key": "Content-Type",
+																		"value": "application/json"
+																	},
+																	{
+																		"key": "Accept",
+																		"value": "application/json"
+																	},
+																	{
+																		"key": "Authorization",
+																		"value": "<API Key>",
+																		"description": "Added as a part of security scheme: apikey"
+																	}
+																],
+																"body": {
+																	"mode": "raw",
+																	"raw": "{\n  \"query\": {\n    \"providerId\": \"74b96f82-d99f-4057-aef6-6f530d473e46\",\n    \"jurisdiction\": \"wy\",\n    \"ssn\": \"517-54-8759\"\n  },\n  \"pagination\": {\n    \"lastKey\": \"<string>\",\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"key\": \"familyName\",\n    \"direction\": \"ascending\"\n  }\n}",
+																	"options": {
+																		"raw": {
+																			"headerFamily": "json",
+																			"language": "json"
+																		}
+																	}
+																},
+																"url": {
+																	"raw": "{{baseUrl}}/v1/compacts/:compact/providers/query",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v1",
+																		"compacts",
+																		":compact",
+																		"providers",
+																		"query"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		}
+																	]
+																}
+															},
+															"status": "OK",
+															"code": 200,
+															"_postman_previewlanguage": "json",
+															"header": [
+																{
+																	"key": "Content-Type",
+																	"value": "application/json"
+																}
+															],
+															"cookie": [],
+															"body": "{\n  \"pagination\": {\n    \"prevLastKey\": {},\n    \"lastKey\": {},\n    \"pageSize\": \"<integer>\"\n  },\n  \"sorting\": {\n    \"key\": \"familyName\",\n    \"direction\": \"descending\"\n  },\n  \"providers\": [\n    {\n      \"birthMonthDay\": \"13-07\",\n      \"compact\": \"aslp\",\n      \"dateOfBirth\": \"1292-12-28\",\n      \"dateOfExpiration\": \"2725-02-33\",\n      \"dateOfUpdate\": \"2979-04-19\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"homeAddressState\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"licenseJurisdiction\": \"oh\",\n      \"licenseType\": \"occupational therapist\",\n      \"privilegeJurisdictions\": [\n        \"sc\",\n        \"md\"\n      ],\n      \"providerId\": \"755c25b7-0be1-48dc-8ba8-cb39575c9e8a\",\n      \"ssn\": \"486-23-2697\",\n      \"status\": \"inactive\",\n      \"type\": \"provider\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"5802901378\",\n      \"licenseNumber\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"middleName\": \"<string>\"\n    },\n    {\n      \"birthMonthDay\": \"02-27\",\n      \"compact\": \"coun\",\n      \"dateOfBirth\": \"2630-05-27\",\n      \"dateOfExpiration\": \"2366-19-39\",\n      \"dateOfUpdate\": \"1435-12-10\",\n      \"familyName\": \"<string>\",\n      \"givenName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"homeAddressState\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"licenseJurisdiction\": \"sc\",\n      \"licenseType\": \"licensed professional counselor\",\n      \"privilegeJurisdictions\": [\n        \"fl\",\n        \"mn\"\n      ],\n      \"providerId\": \"b3eefab7-4db0-4cc3-bc50-d052f0c000d7\",\n      \"ssn\": \"970-96-0485\",\n      \"status\": \"inactive\",\n      \"type\": \"provider\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"6313808133\",\n      \"licenseNumber\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"middleName\": \"<string>\"\n    }\n  ]\n}"
+														}
+													]
+												},
+												{
+													"name": "/v1/compacts/:compact/providers/query",
+													"request": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/providers/query",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"providers",
+																"query"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "204 response",
+															"originalRequest": {
+																"method": "OPTIONS",
+																"header": [],
+																"url": {
+																	"raw": "{{baseUrl}}/v1/compacts/:compact/providers/query",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v1",
+																		"compacts",
+																		":compact",
+																		"providers",
+																		"query"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		}
+																	]
+																}
+															},
+															"status": "No Content",
+															"code": 204,
+															"_postman_previewlanguage": "text",
+															"header": [
+																{
+																	"key": "Access-Control-Allow-Origin",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Methods",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Headers",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																}
+															],
+															"cookie": [],
+															"body": ""
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "{providerId}",
+											"item": [
+												{
+													"name": "/v1/compacts/:compact/providers/:providerId",
+													"request": {
+														"auth": {
+															"type": "apikey",
+															"apikey": [
+																{
+																	"key": "key",
+																	"value": "Authorization",
+																	"type": "string"
+																},
+																{
+																	"key": "value",
+																	"value": "{{apiKey}}",
+																	"type": "string"
+																},
+																{
+																	"key": "in",
+																	"value": "header",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "GET",
+														"header": [
+															{
+																"key": "Accept",
+																"value": "application/json"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/providers/:providerId",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"providers",
+																":providerId"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "<string>",
+																	"description": "(Required) "
+																},
+																{
+																	"key": "providerId",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "200 response",
+															"originalRequest": {
+																"method": "GET",
+																"header": [
+																	{
+																		"key": "Accept",
+																		"value": "application/json"
+																	},
+																	{
+																		"key": "Authorization",
+																		"value": "<API Key>",
+																		"description": "Added as a part of security scheme: apikey"
+																	}
+																],
+																"url": {
+																	"raw": "{{baseUrl}}/v1/compacts/:compact/providers/:providerId",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v1",
+																		"compacts",
+																		":compact",
+																		"providers",
+																		":providerId"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		},
+																		{
+																			"key": "providerId"
+																		}
+																	]
+																}
+															},
+															"status": "OK",
+															"code": 200,
+															"_postman_previewlanguage": "json",
+															"header": [
+																{
+																	"key": "Content-Type",
+																	"value": "application/json"
+																}
+															],
+															"cookie": [],
+															"body": "{\n  \"birthMonthDay\": \"17-25\",\n  \"compact\": \"aslp\",\n  \"dateOfBirth\": \"2587-03-06\",\n  \"dateOfExpiration\": \"1882-06-07\",\n  \"dateOfUpdate\": \"2563-11-32\",\n  \"familyName\": \"<string>\",\n  \"givenName\": \"<string>\",\n  \"homeAddressCity\": \"<string>\",\n  \"homeAddressPostalCode\": \"<string>\",\n  \"homeAddressState\": \"<string>\",\n  \"homeAddressStreet1\": \"<string>\",\n  \"licenseJurisdiction\": \"hi\",\n  \"licenseType\": \"licensed clinical mental health counselor\",\n  \"licenses\": [\n    {\n      \"compact\": \"aslp\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"5315561875\",\n      \"licenseNumber\": \"<string>\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"jurisdiction\": \"nv\",\n      \"givenName\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"dateOfBirth\": \"2085-06-19\",\n      \"history\": [\n        {\n          \"compact\": \"aslp\",\n          \"previous\": {\n            \"homeAddressStreet2\": \"<string>\",\n            \"npi\": \"7416597848\",\n            \"licenseNumber\": \"<string>\",\n            \"homeAddressPostalCode\": \"<string>\",\n            \"givenName\": \"<string>\",\n            \"homeAddressStreet1\": \"<string>\",\n            \"militaryWaiver\": \"<boolean>\",\n            \"dateOfBirth\": \"2897-18-29\",\n            \"dateOfIssuance\": \"1738-12-11\",\n            \"ssn\": \"933-89-2759\",\n            \"licenseType\": \"speech and language pathologist\",\n            \"dateOfExpiration\": \"1643-12-32\",\n            \"homeAddressState\": \"<string>\",\n            \"dateOfRenewal\": \"1653-01-05\",\n            \"familyName\": \"<string>\",\n            \"homeAddressCity\": \"<string>\",\n            \"middleName\": \"<string>\",\n            \"status\": \"inactive\"\n          },\n          \"jurisdiction\": \"dc\",\n          \"updatedValues\": {\n            \"homeAddressStreet2\": \"<string>\",\n            \"npi\": \"4655581763\",\n            \"licenseNumber\": \"<string>\",\n            \"homeAddressPostalCode\": \"<string>\",\n            \"givenName\": \"<string>\",\n            \"homeAddressStreet1\": \"<string>\",\n            \"militaryWaiver\": \"<boolean>\",\n            \"dateOfBirth\": \"2207-09-38\",\n            \"dateOfIssuance\": \"2177-07-11\",\n            \"ssn\": \"702-28-6102\",\n            \"licenseType\": \"licensed mental health counselor\",\n            \"dateOfExpiration\": \"1661-16-12\",\n            \"homeAddressState\": \"<string>\",\n            \"dateOfRenewal\": \"1407-10-13\",\n            \"familyName\": \"<string>\",\n            \"homeAddressCity\": \"<string>\",\n            \"middleName\": \"<string>\",\n            \"status\": \"active\"\n          },\n          \"type\": \"licenseUpdate\",\n          \"dateOfUpdate\": \"1238-15-19\",\n          \"updateType\": \"other\"\n        },\n        {\n          \"compact\": \"coun\",\n          \"previous\": {\n            \"homeAddressStreet2\": \"<string>\",\n            \"npi\": \"8284048934\",\n            \"licenseNumber\": \"<string>\",\n            \"homeAddressPostalCode\": \"<string>\",\n            \"givenName\": \"<string>\",\n            \"homeAddressStreet1\": \"<string>\",\n            \"militaryWaiver\": \"<boolean>\",\n            \"dateOfBirth\": \"1042-17-08\",\n            \"dateOfIssuance\": \"2619-14-10\",\n            \"ssn\": \"382-64-8223\",\n            \"licenseType\": \"audiologist\",\n            \"dateOfExpiration\": \"2735-06-37\",\n            \"homeAddressState\": \"<string>\",\n            \"dateOfRenewal\": \"1483-19-27\",\n            \"familyName\": \"<string>\",\n            \"homeAddressCity\": \"<string>\",\n            \"middleName\": \"<string>\",\n            \"status\": \"inactive\"\n          },\n          \"jurisdiction\": \"nh\",\n          \"updatedValues\": {\n            \"homeAddressStreet2\": \"<string>\",\n            \"npi\": \"5968245126\",\n            \"licenseNumber\": \"<string>\",\n            \"homeAddressPostalCode\": \"<string>\",\n            \"givenName\": \"<string>\",\n            \"homeAddressStreet1\": \"<string>\",\n            \"militaryWaiver\": \"<boolean>\",\n            \"dateOfBirth\": \"1432-01-00\",\n            \"dateOfIssuance\": \"2839-09-13\",\n            \"ssn\": \"524-10-1961\",\n            \"licenseType\": \"licensed clinical mental health counselor\",\n            \"dateOfExpiration\": \"2725-00-37\",\n            \"homeAddressState\": \"<string>\",\n            \"dateOfRenewal\": \"2430-08-36\",\n            \"familyName\": \"<string>\",\n            \"homeAddressCity\": \"<string>\",\n            \"middleName\": \"<string>\",\n            \"status\": \"active\"\n          },\n          \"type\": \"licenseUpdate\",\n          \"dateOfUpdate\": \"1517-18-12\",\n          \"updateType\": \"deactivation\"\n        }\n      ],\n      \"type\": \"license-home\",\n      \"dateOfIssuance\": \"1365-07-19\",\n      \"ssn\": \"790-42-7489\",\n      \"licenseType\": \"licensed professional counselor\",\n      \"dateOfExpiration\": \"1453-16-23\",\n      \"homeAddressState\": \"<string>\",\n      \"providerId\": \"a051cb34-d2b1-4055-ada3-8df8ef27b90e\",\n      \"dateOfRenewal\": \"1449-14-12\",\n      \"familyName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"middleName\": \"<string>\",\n      \"dateOfUpdate\": \"1354-13-08\",\n      \"status\": \"active\"\n    },\n    {\n      \"compact\": \"aslp\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"0455894121\",\n      \"licenseNumber\": \"<string>\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"jurisdiction\": \"ms\",\n      \"givenName\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"dateOfBirth\": \"1265-05-08\",\n      \"history\": [\n        {\n          \"compact\": \"octp\",\n          \"previous\": {\n            \"homeAddressStreet2\": \"<string>\",\n            \"npi\": \"3546648281\",\n            \"licenseNumber\": \"<string>\",\n            \"homeAddressPostalCode\": \"<string>\",\n            \"givenName\": \"<string>\",\n            \"homeAddressStreet1\": \"<string>\",\n            \"militaryWaiver\": \"<boolean>\",\n            \"dateOfBirth\": \"1898-18-09\",\n            \"dateOfIssuance\": \"2640-02-00\",\n            \"ssn\": \"444-38-5772\",\n            \"licenseType\": \"licensed professional counselor\",\n            \"dateOfExpiration\": \"2195-14-29\",\n            \"homeAddressState\": \"<string>\",\n            \"dateOfRenewal\": \"1163-10-07\",\n            \"familyName\": \"<string>\",\n            \"homeAddressCity\": \"<string>\",\n            \"middleName\": \"<string>\",\n            \"status\": \"inactive\"\n          },\n          \"jurisdiction\": \"vt\",\n          \"updatedValues\": {\n            \"homeAddressStreet2\": \"<string>\",\n            \"npi\": \"0428595637\",\n            \"licenseNumber\": \"<string>\",\n            \"homeAddressPostalCode\": \"<string>\",\n            \"givenName\": \"<string>\",\n            \"homeAddressStreet1\": \"<string>\",\n            \"militaryWaiver\": \"<boolean>\",\n            \"dateOfBirth\": \"2575-07-33\",\n            \"dateOfIssuance\": \"1761-11-03\",\n            \"ssn\": \"952-75-2237\",\n            \"licenseType\": \"licensed professional counselor\",\n            \"dateOfExpiration\": \"2432-17-05\",\n            \"homeAddressState\": \"<string>\",\n            \"dateOfRenewal\": \"1286-07-36\",\n            \"familyName\": \"<string>\",\n            \"homeAddressCity\": \"<string>\",\n            \"middleName\": \"<string>\",\n            \"status\": \"inactive\"\n          },\n          \"type\": \"licenseUpdate\",\n          \"dateOfUpdate\": \"1199-08-35\",\n          \"updateType\": \"other\"\n        },\n        {\n          \"compact\": \"coun\",\n          \"previous\": {\n            \"homeAddressStreet2\": \"<string>\",\n            \"npi\": \"4052127909\",\n            \"licenseNumber\": \"<string>\",\n            \"homeAddressPostalCode\": \"<string>\",\n            \"givenName\": \"<string>\",\n            \"homeAddressStreet1\": \"<string>\",\n            \"militaryWaiver\": \"<boolean>\",\n            \"dateOfBirth\": \"2349-16-32\",\n            \"dateOfIssuance\": \"2523-10-01\",\n            \"ssn\": \"590-62-6396\",\n            \"licenseType\": \"occupational therapist\",\n            \"dateOfExpiration\": \"2500-14-20\",\n            \"homeAddressState\": \"<string>\",\n            \"dateOfRenewal\": \"2323-09-02\",\n            \"familyName\": \"<string>\",\n            \"homeAddressCity\": \"<string>\",\n            \"middleName\": \"<string>\",\n            \"status\": \"active\"\n          },\n          \"jurisdiction\": \"fl\",\n          \"updatedValues\": {\n            \"homeAddressStreet2\": \"<string>\",\n            \"npi\": \"1090745261\",\n            \"licenseNumber\": \"<string>\",\n            \"homeAddressPostalCode\": \"<string>\",\n            \"givenName\": \"<string>\",\n            \"homeAddressStreet1\": \"<string>\",\n            \"militaryWaiver\": \"<boolean>\",\n            \"dateOfBirth\": \"2210-12-14\",\n            \"dateOfIssuance\": \"1023-07-35\",\n            \"ssn\": \"375-22-7370\",\n            \"licenseType\": \"licensed professional clinical counselor\",\n            \"dateOfExpiration\": \"1184-13-08\",\n            \"homeAddressState\": \"<string>\",\n            \"dateOfRenewal\": \"1095-04-33\",\n            \"familyName\": \"<string>\",\n            \"homeAddressCity\": \"<string>\",\n            \"middleName\": \"<string>\",\n            \"status\": \"active\"\n          },\n          \"type\": \"licenseUpdate\",\n          \"dateOfUpdate\": \"2346-15-13\",\n          \"updateType\": \"renewal\"\n        }\n      ],\n      \"type\": \"license-home\",\n      \"dateOfIssuance\": \"1474-17-17\",\n      \"ssn\": \"441-12-1869\",\n      \"licenseType\": \"licensed professional counselor\",\n      \"dateOfExpiration\": \"1600-04-27\",\n      \"homeAddressState\": \"<string>\",\n      \"providerId\": \"82e7cb2e-a23b-4dc1-a11c-85ebc2a0b10b\",\n      \"dateOfRenewal\": \"1347-09-02\",\n      \"familyName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"middleName\": \"<string>\",\n      \"dateOfUpdate\": \"1995-11-09\",\n      \"status\": \"inactive\"\n    }\n  ],\n  \"privilegeJurisdictions\": [\n    \"mn\",\n    \"sd\"\n  ],\n  \"privileges\": [\n    {\n      \"licenseJurisdiction\": \"dc\",\n      \"dateOfExpiration\": \"1946-09-07\",\n      \"compact\": \"aslp\",\n      \"providerId\": \"9af40634-d819-478d-ac7e-eaa6be47b7ef\",\n      \"history\": [\n        {\n          \"compact\": \"aslp\",\n          \"previous\": {\n            \"licenseJurisdiction\": \"ga\",\n            \"dateOfExpiration\": \"1859-14-17\",\n            \"compact\": \"octp\",\n            \"providerId\": \"00c7921c-e1b1-435a-a4f8-0ea226dba392\",\n            \"type\": \"privilege\",\n            \"dateOfIssuance\": \"1974-03-21\",\n            \"dateOfUpdate\": \"1947-06-15\",\n            \"status\": \"inactive\"\n          },\n          \"jurisdiction\": \"ks\",\n          \"updatedValues\": {\n            \"licenseJurisdiction\": \"mn\",\n            \"dateOfExpiration\": \"1961-01-34\",\n            \"compact\": \"aslp\",\n            \"providerId\": \"b07f38ae-bffe-401c-8800-7dad2269864a\",\n            \"type\": \"privilege\",\n            \"dateOfIssuance\": \"2435-17-29\",\n            \"dateOfUpdate\": \"1604-02-22\",\n            \"status\": \"inactive\"\n          },\n          \"type\": \"privilegeUpdate\",\n          \"dateOfUpdate\": \"1090-19-29\",\n          \"updateType\": \"renewal\"\n        },\n        {\n          \"compact\": \"coun\",\n          \"previous\": {\n            \"licenseJurisdiction\": \"ky\",\n            \"dateOfExpiration\": \"2565-11-20\",\n            \"compact\": \"aslp\",\n            \"providerId\": \"1b0251ce-b05e-4d81-97c5-791df4f9a068\",\n            \"type\": \"privilege\",\n            \"dateOfIssuance\": \"2033-18-12\",\n            \"dateOfUpdate\": \"1954-09-17\",\n            \"status\": \"active\"\n          },\n          \"jurisdiction\": \"in\",\n          \"updatedValues\": {\n            \"licenseJurisdiction\": \"il\",\n            \"dateOfExpiration\": \"1538-00-32\",\n            \"compact\": \"aslp\",\n            \"providerId\": \"435e00bb-c674-4dee-8253-8888c97af1a5\",\n            \"type\": \"privilege\",\n            \"dateOfIssuance\": \"1932-12-37\",\n            \"dateOfUpdate\": \"1840-04-24\",\n            \"status\": \"inactive\"\n          },\n          \"type\": \"privilegeUpdate\",\n          \"dateOfUpdate\": \"1566-10-01\",\n          \"updateType\": \"deactivation\"\n        }\n      ],\n      \"type\": \"privilege\",\n      \"dateOfIssuance\": \"2512-02-00\",\n      \"dateOfUpdate\": \"1604-04-02\",\n      \"status\": \"active\"\n    },\n    {\n      \"licenseJurisdiction\": \"md\",\n      \"dateOfExpiration\": \"1424-11-23\",\n      \"compact\": \"octp\",\n      \"providerId\": \"146e9b07-e514-4d70-a7f3-5ad82ea9ec8a\",\n      \"history\": [\n        {\n          \"compact\": \"octp\",\n          \"previous\": {\n            \"licenseJurisdiction\": \"sc\",\n            \"dateOfExpiration\": \"2153-07-13\",\n            \"compact\": \"aslp\",\n            \"providerId\": \"772b8e50-406d-47b1-ae68-48343efe6402\",\n            \"type\": \"privilege\",\n            \"dateOfIssuance\": \"2299-07-34\",\n            \"dateOfUpdate\": \"1679-10-30\",\n            \"status\": \"active\"\n          },\n          \"jurisdiction\": \"nv\",\n          \"updatedValues\": {\n            \"licenseJurisdiction\": \"ar\",\n            \"dateOfExpiration\": \"2510-09-15\",\n            \"compact\": \"aslp\",\n            \"providerId\": \"de2563ac-b955-4b04-8177-db487980da64\",\n            \"type\": \"privilege\",\n            \"dateOfIssuance\": \"1013-00-08\",\n            \"dateOfUpdate\": \"1179-17-19\",\n            \"status\": \"inactive\"\n          },\n          \"type\": \"privilegeUpdate\",\n          \"dateOfUpdate\": \"1356-10-34\",\n          \"updateType\": \"deactivation\"\n        },\n        {\n          \"compact\": \"aslp\",\n          \"previous\": {\n            \"licenseJurisdiction\": \"vt\",\n            \"dateOfExpiration\": \"2007-06-22\",\n            \"compact\": \"aslp\",\n            \"providerId\": \"72551f75-4f68-4c30-b3e9-596fb50fd80b\",\n            \"type\": \"privilege\",\n            \"dateOfIssuance\": \"2699-13-29\",\n            \"dateOfUpdate\": \"2697-01-19\",\n            \"status\": \"active\"\n          },\n          \"jurisdiction\": \"mn\",\n          \"updatedValues\": {\n            \"licenseJurisdiction\": \"id\",\n            \"dateOfExpiration\": \"2607-01-09\",\n            \"compact\": \"octp\",\n            \"providerId\": \"41911beb-e1c9-4424-9320-ce16c0f81791\",\n            \"type\": \"privilege\",\n            \"dateOfIssuance\": \"2815-03-32\",\n            \"dateOfUpdate\": \"1998-14-13\",\n            \"status\": \"active\"\n          },\n          \"type\": \"privilegeUpdate\",\n          \"dateOfUpdate\": \"2635-11-02\",\n          \"updateType\": \"deactivation\"\n        }\n      ],\n      \"type\": \"privilege\",\n      \"dateOfIssuance\": \"2957-01-12\",\n      \"dateOfUpdate\": \"1248-14-19\",\n      \"status\": \"inactive\"\n    }\n  ],\n  \"providerId\": \"ec42be09-9ee5-4f48-b132-676717f9685d\",\n  \"ssn\": \"972-47-1790\",\n  \"status\": \"active\",\n  \"type\": \"provider\",\n  \"homeAddressStreet2\": \"<string>\",\n  \"npi\": \"8493364889\",\n  \"licenseNumber\": \"<string>\",\n  \"militaryWaiver\": \"<boolean>\",\n  \"middleName\": \"<string>\"\n}"
+														}
+													]
+												},
+												{
+													"name": "/v1/compacts/:compact/providers/:providerId",
+													"request": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/providers/:providerId",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"providers",
+																":providerId"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "<string>",
+																	"description": "(Required) "
+																},
+																{
+																	"key": "providerId",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "204 response",
+															"originalRequest": {
+																"method": "OPTIONS",
+																"header": [],
+																"url": {
+																	"raw": "{{baseUrl}}/v1/compacts/:compact/providers/:providerId",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v1",
+																		"compacts",
+																		":compact",
+																		"providers",
+																		":providerId"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		},
+																		{
+																			"key": "providerId"
+																		}
+																	]
+																}
+															},
+															"status": "No Content",
+															"code": 204,
+															"_postman_previewlanguage": "text",
+															"header": [
+																{
+																	"key": "Access-Control-Allow-Origin",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Methods",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Headers",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																}
+															],
+															"cookie": [],
+															"body": ""
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "/v1/compacts/:compact/providers",
+											"request": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v1/compacts/:compact/providers",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"compacts",
+														":compact",
+														"providers"
+													],
+													"variable": [
+														{
+															"key": "compact",
+															"value": "<string>",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "204 response",
+													"originalRequest": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/providers",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"providers"
+															],
+															"variable": [
+																{
+																	"key": "compact"
+																}
+															]
+														}
+													},
+													"status": "No Content",
+													"code": 204,
+													"_postman_previewlanguage": "text",
+													"header": [
+														{
+															"key": "Access-Control-Allow-Origin",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Methods",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Headers",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														}
+													],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "staff-users",
+									"item": [
+										{
+											"name": "{userId}",
+											"item": [
+												{
+													"name": "/v1/compacts/:compact/staff-users/:userId",
+													"request": {
+														"auth": {
+															"type": "apikey",
+															"apikey": [
+																{
+																	"key": "key",
+																	"value": "Authorization",
+																	"type": "string"
+																},
+																{
+																	"key": "value",
+																	"value": "{{apiKey}}",
+																	"type": "string"
+																},
+																{
+																	"key": "in",
+																	"value": "header",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "GET",
+														"header": [
+															{
+																"key": "Accept",
+																"value": "application/json"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/staff-users/:userId",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"staff-users",
+																":userId"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "<string>",
+																	"description": "(Required) "
+																},
+																{
+																	"key": "userId",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "200 response",
+															"originalRequest": {
+																"method": "GET",
+																"header": [
+																	{
+																		"key": "Accept",
+																		"value": "application/json"
+																	},
+																	{
+																		"key": "Authorization",
+																		"value": "<API Key>",
+																		"description": "Added as a part of security scheme: apikey"
+																	}
+																],
+																"url": {
+																	"raw": "{{baseUrl}}/v1/compacts/:compact/staff-users/:userId",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v1",
+																		"compacts",
+																		":compact",
+																		"staff-users",
+																		":userId"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		},
+																		{
+																			"key": "userId"
+																		}
+																	]
+																}
+															},
+															"status": "OK",
+															"code": 200,
+															"_postman_previewlanguage": "json",
+															"header": [
+																{
+																	"key": "Content-Type",
+																	"value": "application/json"
+																},
+																{
+																	"key": "Access-Control-Allow-Origin",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																}
+															],
+															"cookie": [],
+															"body": "{\n  \"attributes\": {\n    \"email\": \"<string>\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\"\n  },\n  \"permissions\": {\n    \"Lorem_7c\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"Lorem5\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    },\n    \"fugiatb\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"tempor6\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"ameta\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"exercitation_d_1\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    },\n    \"laborum_c4\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"irure4f\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"ad__5d\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    }\n  },\n  \"userId\": \"<string>\"\n}"
+														}
+													]
+												},
+												{
+													"name": "/v1/compacts/:compact/staff-users/:userId",
+													"request": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/staff-users/:userId",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"staff-users",
+																":userId"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "<string>",
+																	"description": "(Required) "
+																},
+																{
+																	"key": "userId",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "204 response",
+															"originalRequest": {
+																"method": "OPTIONS",
+																"header": [],
+																"url": {
+																	"raw": "{{baseUrl}}/v1/compacts/:compact/staff-users/:userId",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v1",
+																		"compacts",
+																		":compact",
+																		"staff-users",
+																		":userId"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		},
+																		{
+																			"key": "userId"
+																		}
+																	]
+																}
+															},
+															"status": "No Content",
+															"code": 204,
+															"_postman_previewlanguage": "text",
+															"header": [
+																{
+																	"key": "Access-Control-Allow-Origin",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Methods",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																},
+																{
+																	"key": "Access-Control-Allow-Headers",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																}
+															],
+															"cookie": [],
+															"body": ""
+														}
+													]
+												},
+												{
+													"name": "/v1/compacts/:compact/staff-users/:userId",
+													"request": {
+														"auth": {
+															"type": "apikey",
+															"apikey": [
+																{
+																	"key": "key",
+																	"value": "Authorization",
+																	"type": "string"
+																},
+																{
+																	"key": "value",
+																	"value": "{{apiKey}}",
+																	"type": "string"
+																},
+																{
+																	"key": "in",
+																	"value": "header",
+																	"type": "string"
+																}
+															]
+														},
+														"method": "PATCH",
+														"header": [
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Accept",
+																"value": "application/json"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"permissions\": {\n    \"sed_b\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"anim_7f\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"occaecat_0\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    }\n  }\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/staff-users/:userId",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"staff-users",
+																":userId"
+															],
+															"variable": [
+																{
+																	"key": "compact",
+																	"value": "<string>",
+																	"description": "(Required) "
+																},
+																{
+																	"key": "userId",
+																	"value": "<string>",
+																	"description": "(Required) "
+																}
+															]
+														}
+													},
+													"response": [
+														{
+															"name": "200 response",
+															"originalRequest": {
+																"method": "PATCH",
+																"header": [
+																	{
+																		"key": "Content-Type",
+																		"value": "application/json"
+																	},
+																	{
+																		"key": "Accept",
+																		"value": "application/json"
+																	},
+																	{
+																		"key": "Authorization",
+																		"value": "<API Key>",
+																		"description": "Added as a part of security scheme: apikey"
+																	}
+																],
+																"body": {
+																	"mode": "raw",
+																	"raw": "{\n  \"permissions\": {\n    \"sed_b\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"anim_7f\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"occaecat_0\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    }\n  }\n}",
+																	"options": {
+																		"raw": {
+																			"headerFamily": "json",
+																			"language": "json"
+																		}
+																	}
+																},
+																"url": {
+																	"raw": "{{baseUrl}}/v1/compacts/:compact/staff-users/:userId",
+																	"host": [
+																		"{{baseUrl}}"
+																	],
+																	"path": [
+																		"v1",
+																		"compacts",
+																		":compact",
+																		"staff-users",
+																		":userId"
+																	],
+																	"variable": [
+																		{
+																			"key": "compact"
+																		},
+																		{
+																			"key": "userId"
+																		}
+																	]
+																}
+															},
+															"status": "OK",
+															"code": 200,
+															"_postman_previewlanguage": "json",
+															"header": [
+																{
+																	"key": "Content-Type",
+																	"value": "application/json"
+																},
+																{
+																	"key": "Access-Control-Allow-Origin",
+																	"value": "<string>",
+																	"description": {
+																		"content": "",
+																		"type": "text/plain"
+																	}
+																}
+															],
+															"cookie": [],
+															"body": "{\n  \"attributes\": {\n    \"email\": \"<string>\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\"\n  },\n  \"permissions\": {\n    \"Lorem_7c\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"Lorem5\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    },\n    \"fugiatb\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"tempor6\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"ameta\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"exercitation_d_1\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    },\n    \"laborum_c4\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"irure4f\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"ad__5d\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    }\n  },\n  \"userId\": \"<string>\"\n}"
+														}
+													]
+												}
+											]
+										},
+										{
+											"name": "/v1/compacts/:compact/staff-users",
+											"request": {
+												"auth": {
+													"type": "apikey",
+													"apikey": [
+														{
+															"key": "key",
+															"value": "Authorization",
+															"type": "string"
+														},
+														{
+															"key": "value",
+															"value": "{{apiKey}}",
+															"type": "string"
+														},
+														{
+															"key": "in",
+															"value": "header",
+															"type": "string"
+														}
+													]
+												},
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/v1/compacts/:compact/staff-users",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"compacts",
+														":compact",
+														"staff-users"
+													],
+													"variable": [
+														{
+															"key": "compact",
+															"value": "<string>",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "200 response",
+													"originalRequest": {
+														"method": "GET",
+														"header": [
+															{
+																"key": "Accept",
+																"value": "application/json"
+															},
+															{
+																"key": "Authorization",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/staff-users",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"staff-users"
+															],
+															"variable": [
+																{
+																	"key": "compact"
+																}
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "json",
+													"header": [
+														{
+															"key": "Content-Type",
+															"value": "application/json"
+														},
+														{
+															"key": "Access-Control-Allow-Origin",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														}
+													],
+													"cookie": [],
+													"body": "{\n  \"pagination\": {\n    \"prevLastKey\": {},\n    \"lastKey\": {},\n    \"pageSize\": \"<integer>\"\n  },\n  \"users\": [\n    {\n      \"attributes\": {\n        \"email\": \"<string>\",\n        \"familyName\": \"<string>\",\n        \"givenName\": \"<string>\"\n      },\n      \"permissions\": {\n        \"dolor532\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"read\": \"<boolean>\",\n            \"admin\": \"<boolean>\"\n          },\n          \"jurisdictions\": {\n            \"labore3_d\": {\n              \"actions\": {\n                \"readPrivate\": \"<boolean>\",\n                \"admin\": \"<boolean>\",\n                \"write\": \"<boolean>\"\n              }\n            },\n            \"ipsum_7cd\": {\n              \"actions\": {\n                \"readPrivate\": \"<boolean>\",\n                \"admin\": \"<boolean>\",\n                \"write\": \"<boolean>\"\n              }\n            }\n          }\n        },\n        \"anim_665\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"read\": \"<boolean>\",\n            \"admin\": \"<boolean>\"\n          },\n          \"jurisdictions\": {\n            \"officia_c\": {\n              \"actions\": {\n                \"readPrivate\": \"<boolean>\",\n                \"admin\": \"<boolean>\",\n                \"write\": \"<boolean>\"\n              }\n            }\n          }\n        }\n      },\n      \"userId\": \"<string>\"\n    },\n    {\n      \"attributes\": {\n        \"email\": \"<string>\",\n        \"familyName\": \"<string>\",\n        \"givenName\": \"<string>\"\n      },\n      \"permissions\": {\n        \"non0\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"read\": \"<boolean>\",\n            \"admin\": \"<boolean>\"\n          },\n          \"jurisdictions\": {\n            \"proident_f9\": {\n              \"actions\": {\n                \"readPrivate\": \"<boolean>\",\n                \"admin\": \"<boolean>\",\n                \"write\": \"<boolean>\"\n              }\n            },\n            \"laboris10\": {\n              \"actions\": {\n                \"readPrivate\": \"<boolean>\",\n                \"admin\": \"<boolean>\",\n                \"write\": \"<boolean>\"\n              }\n            },\n            \"occaecat_4c2\": {\n              \"actions\": {\n                \"readPrivate\": \"<boolean>\",\n                \"admin\": \"<boolean>\",\n                \"write\": \"<boolean>\"\n              }\n            },\n            \"ex_db\": {\n              \"actions\": {\n                \"readPrivate\": \"<boolean>\",\n                \"admin\": \"<boolean>\",\n                \"write\": \"<boolean>\"\n              }\n            },\n            \"labore3_1\": {\n              \"actions\": {\n                \"readPrivate\": \"<boolean>\",\n                \"admin\": \"<boolean>\",\n                \"write\": \"<boolean>\"\n              }\n            }\n          }\n        }\n      },\n      \"userId\": \"<string>\"\n    }\n  ]\n}"
+												}
+											]
+										},
+										{
+											"name": "/v1/compacts/:compact/staff-users",
+											"request": {
+												"auth": {
+													"type": "apikey",
+													"apikey": [
+														{
+															"key": "key",
+															"value": "Authorization",
+															"type": "string"
+														},
+														{
+															"key": "value",
+															"value": "{{apiKey}}",
+															"type": "string"
+														},
+														{
+															"key": "in",
+															"value": "header",
+															"type": "string"
+														}
+													]
+												},
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"attributes\": {\n    \"email\": \"<string>\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\"\n  },\n  \"permissions\": {\n    \"amet2d\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"esse_e\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    }\n  }\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/v1/compacts/:compact/staff-users",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"compacts",
+														":compact",
+														"staff-users"
+													],
+													"variable": [
+														{
+															"key": "compact",
+															"value": "<string>",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "200 response",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Accept",
+																"value": "application/json"
+															},
+															{
+																"key": "Authorization",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"attributes\": {\n    \"email\": \"<string>\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\"\n  },\n  \"permissions\": {\n    \"amet2d\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"esse_e\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    }\n  }\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/staff-users",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"staff-users"
+															],
+															"variable": [
+																{
+																	"key": "compact"
+																}
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "json",
+													"header": [
+														{
+															"key": "Content-Type",
+															"value": "application/json"
+														},
+														{
+															"key": "Access-Control-Allow-Origin",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														}
+													],
+													"cookie": [],
+													"body": "{\n  \"attributes\": {\n    \"email\": \"<string>\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\"\n  },\n  \"permissions\": {\n    \"Lorem_7c\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"Lorem5\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    },\n    \"fugiatb\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"tempor6\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"ameta\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"exercitation_d_1\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    },\n    \"laborum_c4\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"irure4f\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"ad__5d\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    }\n  },\n  \"userId\": \"<string>\"\n}"
+												}
+											]
+										},
+										{
+											"name": "/v1/compacts/:compact/staff-users",
+											"request": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v1/compacts/:compact/staff-users",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"compacts",
+														":compact",
+														"staff-users"
+													],
+													"variable": [
+														{
+															"key": "compact",
+															"value": "<string>",
+															"description": "(Required) "
+														}
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "204 response",
+													"originalRequest": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v1/compacts/:compact/staff-users",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"compacts",
+																":compact",
+																"staff-users"
+															],
+															"variable": [
+																{
+																	"key": "compact"
+																}
+															]
+														}
+													},
+													"status": "No Content",
+													"code": 204,
+													"_postman_previewlanguage": "text",
+													"header": [
+														{
+															"key": "Access-Control-Allow-Origin",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Methods",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Headers",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														}
+													],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "/v1/compacts/:compact",
+									"request": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v1/compacts/:compact",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"compacts",
+												":compact"
+											],
+											"variable": [
+												{
+													"key": "compact",
+													"value": "<string>",
+													"description": "(Required) "
+												}
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "204 response",
+											"originalRequest": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v1/compacts/:compact",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"compacts",
+														":compact"
+													],
+													"variable": [
+														{
+															"key": "compact"
+														}
+													]
+												}
+											},
+											"status": "No Content",
+											"code": 204,
+											"_postman_previewlanguage": "text",
+											"header": [
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Methods",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Headers",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": ""
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "/v1/compacts",
+							"request": {
+								"method": "OPTIONS",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/v1/compacts",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"compacts"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "204 response",
+									"originalRequest": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v1/compacts",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"compacts"
+											]
+										}
+									},
+									"status": "No Content",
+									"code": 204,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Methods",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Headers",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										}
+									],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "provider-users",
+					"item": [
+						{
+							"name": "me",
+							"item": [
+								{
+									"name": "military-affiliation",
+									"item": [
+										{
+											"name": "/v1/provider-users/me/military-affiliation",
+											"request": {
+												"auth": {
+													"type": "apikey",
+													"apikey": [
+														{
+															"key": "key",
+															"value": "Authorization",
+															"type": "string"
+														},
+														{
+															"key": "value",
+															"value": "{{apiKey}}",
+															"type": "string"
+														},
+														{
+															"key": "in",
+															"value": "header",
+															"type": "string"
+														}
+													]
+												},
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"affiliationType\": \"militaryMemberSpouse\",\n  \"fileNames\": [\n    \"<string>\",\n    \"<string>\"\n  ]\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/v1/provider-users/me/military-affiliation",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"provider-users",
+														"me",
+														"military-affiliation"
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "200 response",
+													"originalRequest": {
+														"method": "POST",
+														"header": [
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Accept",
+																"value": "application/json"
+															},
+															{
+																"key": "Authorization",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"affiliationType\": \"militaryMemberSpouse\",\n  \"fileNames\": [\n    \"<string>\",\n    \"<string>\"\n  ]\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/v1/provider-users/me/military-affiliation",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"provider-users",
+																"me",
+																"military-affiliation"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "json",
+													"header": [
+														{
+															"key": "Content-Type",
+															"value": "application/json"
+														}
+													],
+													"cookie": [],
+													"body": "{\n  \"affiliationType\": \"militaryMember\",\n  \"dateOfUpdate\": \"2631-17-00\",\n  \"dateOfUpload\": \"1601-03-18\",\n  \"documentUploadFields\": [\n    {\n      \"fields\": {\n        \"voluptated1\": \"<string>\",\n        \"labore_34\": \"<string>\",\n        \"anim1f7\": \"<string>\"\n      },\n      \"url\": \"<string>\"\n    },\n    {\n      \"fields\": {\n        \"fugiat2\": \"<string>\"\n      },\n      \"url\": \"<string>\"\n    }\n  ],\n  \"status\": \"<string>\",\n  \"fileNames\": [\n    \"<string>\",\n    \"<string>\"\n  ]\n}"
+												}
+											]
+										},
+										{
+											"name": "/v1/provider-users/me/military-affiliation",
+											"request": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v1/provider-users/me/military-affiliation",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"provider-users",
+														"me",
+														"military-affiliation"
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "204 response",
+													"originalRequest": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v1/provider-users/me/military-affiliation",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"provider-users",
+																"me",
+																"military-affiliation"
+															]
+														}
+													},
+													"status": "No Content",
+													"code": 204,
+													"_postman_previewlanguage": "text",
+													"header": [
+														{
+															"key": "Access-Control-Allow-Origin",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Methods",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Headers",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														}
+													],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										},
+										{
+											"name": "/v1/provider-users/me/military-affiliation",
+											"request": {
+												"auth": {
+													"type": "apikey",
+													"apikey": [
+														{
+															"key": "key",
+															"value": "Authorization",
+															"type": "string"
+														},
+														{
+															"key": "value",
+															"value": "{{apiKey}}",
+															"type": "string"
+														},
+														{
+															"key": "in",
+															"value": "header",
+															"type": "string"
+														}
+													]
+												},
+												"method": "PATCH",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"status\": \"inactive\"\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/v1/provider-users/me/military-affiliation",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"provider-users",
+														"me",
+														"military-affiliation"
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "200 response",
+													"originalRequest": {
+														"method": "PATCH",
+														"header": [
+															{
+																"key": "Content-Type",
+																"value": "application/json"
+															},
+															{
+																"key": "Accept",
+																"value": "application/json"
+															},
+															{
+																"key": "Authorization",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"body": {
+															"mode": "raw",
+															"raw": "{\n  \"status\": \"inactive\"\n}",
+															"options": {
+																"raw": {
+																	"headerFamily": "json",
+																	"language": "json"
+																}
+															}
+														},
+														"url": {
+															"raw": "{{baseUrl}}/v1/provider-users/me/military-affiliation",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"provider-users",
+																"me",
+																"military-affiliation"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "json",
+													"header": [
+														{
+															"key": "Content-Type",
+															"value": "application/json"
+														}
+													],
+													"cookie": [],
+													"body": "{\n  \"message\": \"<string>\"\n}"
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "/v1/provider-users/me",
+									"request": {
+										"auth": {
+											"type": "apikey",
+											"apikey": [
+												{
+													"key": "key",
+													"value": "Authorization",
+													"type": "string"
+												},
+												{
+													"key": "value",
+													"value": "{{apiKey}}",
+													"type": "string"
+												},
+												{
+													"key": "in",
+													"value": "header",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/v1/provider-users/me",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"provider-users",
+												"me"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "200 response",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "<API Key>",
+														"description": "Added as a part of security scheme: apikey"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/v1/provider-users/me",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"provider-users",
+														"me"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"birthMonthDay\": \"17-25\",\n  \"compact\": \"aslp\",\n  \"dateOfBirth\": \"2587-03-06\",\n  \"dateOfExpiration\": \"1882-06-07\",\n  \"dateOfUpdate\": \"2563-11-32\",\n  \"familyName\": \"<string>\",\n  \"givenName\": \"<string>\",\n  \"homeAddressCity\": \"<string>\",\n  \"homeAddressPostalCode\": \"<string>\",\n  \"homeAddressState\": \"<string>\",\n  \"homeAddressStreet1\": \"<string>\",\n  \"licenseJurisdiction\": \"hi\",\n  \"licenseType\": \"licensed clinical mental health counselor\",\n  \"licenses\": [\n    {\n      \"compact\": \"aslp\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"5315561875\",\n      \"licenseNumber\": \"<string>\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"jurisdiction\": \"nv\",\n      \"givenName\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"dateOfBirth\": \"2085-06-19\",\n      \"history\": [\n        {\n          \"compact\": \"aslp\",\n          \"previous\": {\n            \"homeAddressStreet2\": \"<string>\",\n            \"npi\": \"7416597848\",\n            \"licenseNumber\": \"<string>\",\n            \"homeAddressPostalCode\": \"<string>\",\n            \"givenName\": \"<string>\",\n            \"homeAddressStreet1\": \"<string>\",\n            \"militaryWaiver\": \"<boolean>\",\n            \"dateOfBirth\": \"2897-18-29\",\n            \"dateOfIssuance\": \"1738-12-11\",\n            \"ssn\": \"933-89-2759\",\n            \"licenseType\": \"speech and language pathologist\",\n            \"dateOfExpiration\": \"1643-12-32\",\n            \"homeAddressState\": \"<string>\",\n            \"dateOfRenewal\": \"1653-01-05\",\n            \"familyName\": \"<string>\",\n            \"homeAddressCity\": \"<string>\",\n            \"middleName\": \"<string>\",\n            \"status\": \"inactive\"\n          },\n          \"jurisdiction\": \"dc\",\n          \"updatedValues\": {\n            \"homeAddressStreet2\": \"<string>\",\n            \"npi\": \"4655581763\",\n            \"licenseNumber\": \"<string>\",\n            \"homeAddressPostalCode\": \"<string>\",\n            \"givenName\": \"<string>\",\n            \"homeAddressStreet1\": \"<string>\",\n            \"militaryWaiver\": \"<boolean>\",\n            \"dateOfBirth\": \"2207-09-38\",\n            \"dateOfIssuance\": \"2177-07-11\",\n            \"ssn\": \"702-28-6102\",\n            \"licenseType\": \"licensed mental health counselor\",\n            \"dateOfExpiration\": \"1661-16-12\",\n            \"homeAddressState\": \"<string>\",\n            \"dateOfRenewal\": \"1407-10-13\",\n            \"familyName\": \"<string>\",\n            \"homeAddressCity\": \"<string>\",\n            \"middleName\": \"<string>\",\n            \"status\": \"active\"\n          },\n          \"type\": \"licenseUpdate\",\n          \"dateOfUpdate\": \"1238-15-19\",\n          \"updateType\": \"other\"\n        },\n        {\n          \"compact\": \"coun\",\n          \"previous\": {\n            \"homeAddressStreet2\": \"<string>\",\n            \"npi\": \"8284048934\",\n            \"licenseNumber\": \"<string>\",\n            \"homeAddressPostalCode\": \"<string>\",\n            \"givenName\": \"<string>\",\n            \"homeAddressStreet1\": \"<string>\",\n            \"militaryWaiver\": \"<boolean>\",\n            \"dateOfBirth\": \"1042-17-08\",\n            \"dateOfIssuance\": \"2619-14-10\",\n            \"ssn\": \"382-64-8223\",\n            \"licenseType\": \"audiologist\",\n            \"dateOfExpiration\": \"2735-06-37\",\n            \"homeAddressState\": \"<string>\",\n            \"dateOfRenewal\": \"1483-19-27\",\n            \"familyName\": \"<string>\",\n            \"homeAddressCity\": \"<string>\",\n            \"middleName\": \"<string>\",\n            \"status\": \"inactive\"\n          },\n          \"jurisdiction\": \"nh\",\n          \"updatedValues\": {\n            \"homeAddressStreet2\": \"<string>\",\n            \"npi\": \"5968245126\",\n            \"licenseNumber\": \"<string>\",\n            \"homeAddressPostalCode\": \"<string>\",\n            \"givenName\": \"<string>\",\n            \"homeAddressStreet1\": \"<string>\",\n            \"militaryWaiver\": \"<boolean>\",\n            \"dateOfBirth\": \"1432-01-00\",\n            \"dateOfIssuance\": \"2839-09-13\",\n            \"ssn\": \"524-10-1961\",\n            \"licenseType\": \"licensed clinical mental health counselor\",\n            \"dateOfExpiration\": \"2725-00-37\",\n            \"homeAddressState\": \"<string>\",\n            \"dateOfRenewal\": \"2430-08-36\",\n            \"familyName\": \"<string>\",\n            \"homeAddressCity\": \"<string>\",\n            \"middleName\": \"<string>\",\n            \"status\": \"active\"\n          },\n          \"type\": \"licenseUpdate\",\n          \"dateOfUpdate\": \"1517-18-12\",\n          \"updateType\": \"deactivation\"\n        }\n      ],\n      \"type\": \"license-home\",\n      \"dateOfIssuance\": \"1365-07-19\",\n      \"ssn\": \"790-42-7489\",\n      \"licenseType\": \"licensed professional counselor\",\n      \"dateOfExpiration\": \"1453-16-23\",\n      \"homeAddressState\": \"<string>\",\n      \"providerId\": \"a051cb34-d2b1-4055-ada3-8df8ef27b90e\",\n      \"dateOfRenewal\": \"1449-14-12\",\n      \"familyName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"middleName\": \"<string>\",\n      \"dateOfUpdate\": \"1354-13-08\",\n      \"status\": \"active\"\n    },\n    {\n      \"compact\": \"aslp\",\n      \"homeAddressStreet2\": \"<string>\",\n      \"npi\": \"0455894121\",\n      \"licenseNumber\": \"<string>\",\n      \"homeAddressPostalCode\": \"<string>\",\n      \"jurisdiction\": \"ms\",\n      \"givenName\": \"<string>\",\n      \"homeAddressStreet1\": \"<string>\",\n      \"militaryWaiver\": \"<boolean>\",\n      \"dateOfBirth\": \"1265-05-08\",\n      \"history\": [\n        {\n          \"compact\": \"octp\",\n          \"previous\": {\n            \"homeAddressStreet2\": \"<string>\",\n            \"npi\": \"3546648281\",\n            \"licenseNumber\": \"<string>\",\n            \"homeAddressPostalCode\": \"<string>\",\n            \"givenName\": \"<string>\",\n            \"homeAddressStreet1\": \"<string>\",\n            \"militaryWaiver\": \"<boolean>\",\n            \"dateOfBirth\": \"1898-18-09\",\n            \"dateOfIssuance\": \"2640-02-00\",\n            \"ssn\": \"444-38-5772\",\n            \"licenseType\": \"licensed professional counselor\",\n            \"dateOfExpiration\": \"2195-14-29\",\n            \"homeAddressState\": \"<string>\",\n            \"dateOfRenewal\": \"1163-10-07\",\n            \"familyName\": \"<string>\",\n            \"homeAddressCity\": \"<string>\",\n            \"middleName\": \"<string>\",\n            \"status\": \"inactive\"\n          },\n          \"jurisdiction\": \"vt\",\n          \"updatedValues\": {\n            \"homeAddressStreet2\": \"<string>\",\n            \"npi\": \"0428595637\",\n            \"licenseNumber\": \"<string>\",\n            \"homeAddressPostalCode\": \"<string>\",\n            \"givenName\": \"<string>\",\n            \"homeAddressStreet1\": \"<string>\",\n            \"militaryWaiver\": \"<boolean>\",\n            \"dateOfBirth\": \"2575-07-33\",\n            \"dateOfIssuance\": \"1761-11-03\",\n            \"ssn\": \"952-75-2237\",\n            \"licenseType\": \"licensed professional counselor\",\n            \"dateOfExpiration\": \"2432-17-05\",\n            \"homeAddressState\": \"<string>\",\n            \"dateOfRenewal\": \"1286-07-36\",\n            \"familyName\": \"<string>\",\n            \"homeAddressCity\": \"<string>\",\n            \"middleName\": \"<string>\",\n            \"status\": \"inactive\"\n          },\n          \"type\": \"licenseUpdate\",\n          \"dateOfUpdate\": \"1199-08-35\",\n          \"updateType\": \"other\"\n        },\n        {\n          \"compact\": \"coun\",\n          \"previous\": {\n            \"homeAddressStreet2\": \"<string>\",\n            \"npi\": \"4052127909\",\n            \"licenseNumber\": \"<string>\",\n            \"homeAddressPostalCode\": \"<string>\",\n            \"givenName\": \"<string>\",\n            \"homeAddressStreet1\": \"<string>\",\n            \"militaryWaiver\": \"<boolean>\",\n            \"dateOfBirth\": \"2349-16-32\",\n            \"dateOfIssuance\": \"2523-10-01\",\n            \"ssn\": \"590-62-6396\",\n            \"licenseType\": \"occupational therapist\",\n            \"dateOfExpiration\": \"2500-14-20\",\n            \"homeAddressState\": \"<string>\",\n            \"dateOfRenewal\": \"2323-09-02\",\n            \"familyName\": \"<string>\",\n            \"homeAddressCity\": \"<string>\",\n            \"middleName\": \"<string>\",\n            \"status\": \"active\"\n          },\n          \"jurisdiction\": \"fl\",\n          \"updatedValues\": {\n            \"homeAddressStreet2\": \"<string>\",\n            \"npi\": \"1090745261\",\n            \"licenseNumber\": \"<string>\",\n            \"homeAddressPostalCode\": \"<string>\",\n            \"givenName\": \"<string>\",\n            \"homeAddressStreet1\": \"<string>\",\n            \"militaryWaiver\": \"<boolean>\",\n            \"dateOfBirth\": \"2210-12-14\",\n            \"dateOfIssuance\": \"1023-07-35\",\n            \"ssn\": \"375-22-7370\",\n            \"licenseType\": \"licensed professional clinical counselor\",\n            \"dateOfExpiration\": \"1184-13-08\",\n            \"homeAddressState\": \"<string>\",\n            \"dateOfRenewal\": \"1095-04-33\",\n            \"familyName\": \"<string>\",\n            \"homeAddressCity\": \"<string>\",\n            \"middleName\": \"<string>\",\n            \"status\": \"active\"\n          },\n          \"type\": \"licenseUpdate\",\n          \"dateOfUpdate\": \"2346-15-13\",\n          \"updateType\": \"renewal\"\n        }\n      ],\n      \"type\": \"license-home\",\n      \"dateOfIssuance\": \"1474-17-17\",\n      \"ssn\": \"441-12-1869\",\n      \"licenseType\": \"licensed professional counselor\",\n      \"dateOfExpiration\": \"1600-04-27\",\n      \"homeAddressState\": \"<string>\",\n      \"providerId\": \"82e7cb2e-a23b-4dc1-a11c-85ebc2a0b10b\",\n      \"dateOfRenewal\": \"1347-09-02\",\n      \"familyName\": \"<string>\",\n      \"homeAddressCity\": \"<string>\",\n      \"middleName\": \"<string>\",\n      \"dateOfUpdate\": \"1995-11-09\",\n      \"status\": \"inactive\"\n    }\n  ],\n  \"privilegeJurisdictions\": [\n    \"mn\",\n    \"sd\"\n  ],\n  \"privileges\": [\n    {\n      \"licenseJurisdiction\": \"dc\",\n      \"dateOfExpiration\": \"1946-09-07\",\n      \"compact\": \"aslp\",\n      \"providerId\": \"9af40634-d819-478d-ac7e-eaa6be47b7ef\",\n      \"history\": [\n        {\n          \"compact\": \"aslp\",\n          \"previous\": {\n            \"licenseJurisdiction\": \"ga\",\n            \"dateOfExpiration\": \"1859-14-17\",\n            \"compact\": \"octp\",\n            \"providerId\": \"00c7921c-e1b1-435a-a4f8-0ea226dba392\",\n            \"type\": \"privilege\",\n            \"dateOfIssuance\": \"1974-03-21\",\n            \"dateOfUpdate\": \"1947-06-15\",\n            \"status\": \"inactive\"\n          },\n          \"jurisdiction\": \"ks\",\n          \"updatedValues\": {\n            \"licenseJurisdiction\": \"mn\",\n            \"dateOfExpiration\": \"1961-01-34\",\n            \"compact\": \"aslp\",\n            \"providerId\": \"b07f38ae-bffe-401c-8800-7dad2269864a\",\n            \"type\": \"privilege\",\n            \"dateOfIssuance\": \"2435-17-29\",\n            \"dateOfUpdate\": \"1604-02-22\",\n            \"status\": \"inactive\"\n          },\n          \"type\": \"privilegeUpdate\",\n          \"dateOfUpdate\": \"1090-19-29\",\n          \"updateType\": \"renewal\"\n        },\n        {\n          \"compact\": \"coun\",\n          \"previous\": {\n            \"licenseJurisdiction\": \"ky\",\n            \"dateOfExpiration\": \"2565-11-20\",\n            \"compact\": \"aslp\",\n            \"providerId\": \"1b0251ce-b05e-4d81-97c5-791df4f9a068\",\n            \"type\": \"privilege\",\n            \"dateOfIssuance\": \"2033-18-12\",\n            \"dateOfUpdate\": \"1954-09-17\",\n            \"status\": \"active\"\n          },\n          \"jurisdiction\": \"in\",\n          \"updatedValues\": {\n            \"licenseJurisdiction\": \"il\",\n            \"dateOfExpiration\": \"1538-00-32\",\n            \"compact\": \"aslp\",\n            \"providerId\": \"435e00bb-c674-4dee-8253-8888c97af1a5\",\n            \"type\": \"privilege\",\n            \"dateOfIssuance\": \"1932-12-37\",\n            \"dateOfUpdate\": \"1840-04-24\",\n            \"status\": \"inactive\"\n          },\n          \"type\": \"privilegeUpdate\",\n          \"dateOfUpdate\": \"1566-10-01\",\n          \"updateType\": \"deactivation\"\n        }\n      ],\n      \"type\": \"privilege\",\n      \"dateOfIssuance\": \"2512-02-00\",\n      \"dateOfUpdate\": \"1604-04-02\",\n      \"status\": \"active\"\n    },\n    {\n      \"licenseJurisdiction\": \"md\",\n      \"dateOfExpiration\": \"1424-11-23\",\n      \"compact\": \"octp\",\n      \"providerId\": \"146e9b07-e514-4d70-a7f3-5ad82ea9ec8a\",\n      \"history\": [\n        {\n          \"compact\": \"octp\",\n          \"previous\": {\n            \"licenseJurisdiction\": \"sc\",\n            \"dateOfExpiration\": \"2153-07-13\",\n            \"compact\": \"aslp\",\n            \"providerId\": \"772b8e50-406d-47b1-ae68-48343efe6402\",\n            \"type\": \"privilege\",\n            \"dateOfIssuance\": \"2299-07-34\",\n            \"dateOfUpdate\": \"1679-10-30\",\n            \"status\": \"active\"\n          },\n          \"jurisdiction\": \"nv\",\n          \"updatedValues\": {\n            \"licenseJurisdiction\": \"ar\",\n            \"dateOfExpiration\": \"2510-09-15\",\n            \"compact\": \"aslp\",\n            \"providerId\": \"de2563ac-b955-4b04-8177-db487980da64\",\n            \"type\": \"privilege\",\n            \"dateOfIssuance\": \"1013-00-08\",\n            \"dateOfUpdate\": \"1179-17-19\",\n            \"status\": \"inactive\"\n          },\n          \"type\": \"privilegeUpdate\",\n          \"dateOfUpdate\": \"1356-10-34\",\n          \"updateType\": \"deactivation\"\n        },\n        {\n          \"compact\": \"aslp\",\n          \"previous\": {\n            \"licenseJurisdiction\": \"vt\",\n            \"dateOfExpiration\": \"2007-06-22\",\n            \"compact\": \"aslp\",\n            \"providerId\": \"72551f75-4f68-4c30-b3e9-596fb50fd80b\",\n            \"type\": \"privilege\",\n            \"dateOfIssuance\": \"2699-13-29\",\n            \"dateOfUpdate\": \"2697-01-19\",\n            \"status\": \"active\"\n          },\n          \"jurisdiction\": \"mn\",\n          \"updatedValues\": {\n            \"licenseJurisdiction\": \"id\",\n            \"dateOfExpiration\": \"2607-01-09\",\n            \"compact\": \"octp\",\n            \"providerId\": \"41911beb-e1c9-4424-9320-ce16c0f81791\",\n            \"type\": \"privilege\",\n            \"dateOfIssuance\": \"2815-03-32\",\n            \"dateOfUpdate\": \"1998-14-13\",\n            \"status\": \"active\"\n          },\n          \"type\": \"privilegeUpdate\",\n          \"dateOfUpdate\": \"2635-11-02\",\n          \"updateType\": \"deactivation\"\n        }\n      ],\n      \"type\": \"privilege\",\n      \"dateOfIssuance\": \"2957-01-12\",\n      \"dateOfUpdate\": \"1248-14-19\",\n      \"status\": \"inactive\"\n    }\n  ],\n  \"providerId\": \"ec42be09-9ee5-4f48-b132-676717f9685d\",\n  \"ssn\": \"972-47-1790\",\n  \"status\": \"active\",\n  \"type\": \"provider\",\n  \"homeAddressStreet2\": \"<string>\",\n  \"npi\": \"8493364889\",\n  \"licenseNumber\": \"<string>\",\n  \"militaryWaiver\": \"<boolean>\",\n  \"middleName\": \"<string>\"\n}"
+										}
+									]
+								},
+								{
+									"name": "/v1/provider-users/me",
+									"request": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v1/provider-users/me",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"provider-users",
+												"me"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "204 response",
+											"originalRequest": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v1/provider-users/me",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"provider-users",
+														"me"
+													]
+												}
+											},
+											"status": "No Content",
+											"code": 204,
+											"_postman_previewlanguage": "text",
+											"header": [
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Methods",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Headers",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": ""
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "/v1/provider-users",
+							"request": {
+								"method": "OPTIONS",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/v1/provider-users",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"provider-users"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "204 response",
+									"originalRequest": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v1/provider-users",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"provider-users"
+											]
+										}
+									},
+									"status": "No Content",
+									"code": 204,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Methods",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Headers",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										}
+									],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "purchases",
+					"item": [
+						{
+							"name": "privileges",
+							"item": [
+								{
+									"name": "options",
+									"item": [
+										{
+											"name": "/v1/purchases/privileges/options",
+											"request": {
+												"auth": {
+													"type": "apikey",
+													"apikey": [
+														{
+															"key": "key",
+															"value": "Authorization",
+															"type": "string"
+														},
+														{
+															"key": "value",
+															"value": "{{apiKey}}",
+															"type": "string"
+														},
+														{
+															"key": "in",
+															"value": "header",
+															"type": "string"
+														}
+													]
+												},
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/v1/purchases/privileges/options",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"purchases",
+														"privileges",
+														"options"
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "200 response",
+													"originalRequest": {
+														"method": "GET",
+														"header": [
+															{
+																"key": "Accept",
+																"value": "application/json"
+															},
+															{
+																"key": "Authorization",
+																"value": "<API Key>",
+																"description": "Added as a part of security scheme: apikey"
+															}
+														],
+														"url": {
+															"raw": "{{baseUrl}}/v1/purchases/privileges/options",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"purchases",
+																"privileges",
+																"options"
+															]
+														}
+													},
+													"status": "OK",
+													"code": 200,
+													"_postman_previewlanguage": "json",
+													"header": [
+														{
+															"key": "Content-Type",
+															"value": "application/json"
+														}
+													],
+													"cookie": [],
+													"body": "{\n  \"items\": [\n    {\n      \"compactCommissionFee\": {\n        \"feeAmount\": \"<number>\",\n        \"feeType\": \"FLAT_RATE\"\n      },\n      \"compactName\": \"<string>\",\n      \"type\": \"compact\"\n    },\n    {\n      \"compactCommissionFee\": {\n        \"feeAmount\": \"<number>\",\n        \"feeType\": \"FLAT_RATE\"\n      },\n      \"compactName\": \"<string>\",\n      \"type\": \"compact\"\n    }\n  ],\n  \"pagination\": {\n    \"prevLastKey\": {},\n    \"lastKey\": {},\n    \"pageSize\": \"<integer>\"\n  }\n}"
+												}
+											]
+										},
+										{
+											"name": "/v1/purchases/privileges/options",
+											"request": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v1/purchases/privileges/options",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"purchases",
+														"privileges",
+														"options"
+													]
+												}
+											},
+											"response": [
+												{
+													"name": "204 response",
+													"originalRequest": {
+														"method": "OPTIONS",
+														"header": [],
+														"url": {
+															"raw": "{{baseUrl}}/v1/purchases/privileges/options",
+															"host": [
+																"{{baseUrl}}"
+															],
+															"path": [
+																"v1",
+																"purchases",
+																"privileges",
+																"options"
+															]
+														}
+													},
+													"status": "No Content",
+													"code": 204,
+													"_postman_previewlanguage": "text",
+													"header": [
+														{
+															"key": "Access-Control-Allow-Origin",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Methods",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														},
+														{
+															"key": "Access-Control-Allow-Headers",
+															"value": "<string>",
+															"description": {
+																"content": "",
+																"type": "text/plain"
+															}
+														}
+													],
+													"cookie": [],
+													"body": ""
+												}
+											]
+										}
+									]
+								},
+								{
+									"name": "/v1/purchases/privileges",
+									"request": {
+										"auth": {
+											"type": "apikey",
+											"apikey": [
+												{
+													"key": "key",
+													"value": "Authorization",
+													"type": "string"
+												},
+												{
+													"key": "value",
+													"value": "{{apiKey}}",
+													"type": "string"
+												},
+												{
+													"key": "in",
+													"value": "header",
+													"type": "string"
+												}
+											]
+										},
+										"method": "POST",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"attestations\": [\n    {\n      \"attestationId\": \"<string>\",\n      \"version\": \"4467911017\"\n    },\n    {\n      \"attestationId\": \"<string>\",\n      \"version\": \"141\"\n    }\n  ],\n  \"orderInformation\": {\n    \"billing\": {\n      \"firstName\": \"<string>\",\n      \"lastName\": \"<string>\",\n      \"state\": \"<string>\",\n      \"streetAddress\": \"<string>\",\n      \"zip\": \"<string>\",\n      \"streetAddress2\": \"<string>\"\n    },\n    \"card\": {\n      \"cvv\": \"<string>\",\n      \"expiration\": \"<string>\",\n      \"number\": \"<string>\"\n    }\n  },\n  \"selectedJurisdictions\": [\n    \"fl\",\n    \"ak\"\n  ]\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/v1/purchases/privileges",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"purchases",
+												"privileges"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "200 response",
+											"originalRequest": {
+												"method": "POST",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "<API Key>",
+														"description": "Added as a part of security scheme: apikey"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"attestations\": [\n    {\n      \"attestationId\": \"<string>\",\n      \"version\": \"4467911017\"\n    },\n    {\n      \"attestationId\": \"<string>\",\n      \"version\": \"141\"\n    }\n  ],\n  \"orderInformation\": {\n    \"billing\": {\n      \"firstName\": \"<string>\",\n      \"lastName\": \"<string>\",\n      \"state\": \"<string>\",\n      \"streetAddress\": \"<string>\",\n      \"zip\": \"<string>\",\n      \"streetAddress2\": \"<string>\"\n    },\n    \"card\": {\n      \"cvv\": \"<string>\",\n      \"expiration\": \"<string>\",\n      \"number\": \"<string>\"\n    }\n  },\n  \"selectedJurisdictions\": [\n    \"fl\",\n    \"ak\"\n  ]\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/v1/purchases/privileges",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"purchases",
+														"privileges"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"transactionId\": \"<string>\",\n  \"message\": \"<string>\"\n}"
+										}
+									]
+								},
+								{
+									"name": "/v1/purchases/privileges",
+									"request": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v1/purchases/privileges",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"purchases",
+												"privileges"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "204 response",
+											"originalRequest": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v1/purchases/privileges",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"purchases",
+														"privileges"
+													]
+												}
+											},
+											"status": "No Content",
+											"code": 204,
+											"_postman_previewlanguage": "text",
+											"header": [
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Methods",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Headers",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": ""
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "/v1/purchases",
+							"request": {
+								"method": "OPTIONS",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/v1/purchases",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"purchases"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "204 response",
+									"originalRequest": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v1/purchases",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"purchases"
+											]
+										}
+									},
+									"status": "No Content",
+									"code": 204,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Methods",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Headers",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										}
+									],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "staff-users",
+					"item": [
+						{
+							"name": "me",
+							"item": [
+								{
+									"name": "/v1/staff-users/me",
+									"request": {
+										"auth": {
+											"type": "apikey",
+											"apikey": [
+												{
+													"key": "key",
+													"value": "Authorization",
+													"type": "string"
+												},
+												{
+													"key": "value",
+													"value": "{{apiKey}}",
+													"type": "string"
+												},
+												{
+													"key": "in",
+													"value": "header",
+													"type": "string"
+												}
+											]
+										},
+										"method": "GET",
+										"header": [
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"url": {
+											"raw": "{{baseUrl}}/v1/staff-users/me",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"staff-users",
+												"me"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "200 response",
+											"originalRequest": {
+												"method": "GET",
+												"header": [
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "<API Key>",
+														"description": "Added as a part of security scheme: apikey"
+													}
+												],
+												"url": {
+													"raw": "{{baseUrl}}/v1/staff-users/me",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"staff-users",
+														"me"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												},
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"attributes\": {\n    \"email\": \"<string>\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\"\n  },\n  \"permissions\": {\n    \"Lorem_7c\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"Lorem5\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    },\n    \"fugiatb\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"tempor6\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"ameta\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"exercitation_d_1\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    },\n    \"laborum_c4\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"irure4f\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"ad__5d\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    }\n  },\n  \"userId\": \"<string>\"\n}"
+										}
+									]
+								},
+								{
+									"name": "/v1/staff-users/me",
+									"request": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v1/staff-users/me",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"staff-users",
+												"me"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "204 response",
+											"originalRequest": {
+												"method": "OPTIONS",
+												"header": [],
+												"url": {
+													"raw": "{{baseUrl}}/v1/staff-users/me",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"staff-users",
+														"me"
+													]
+												}
+											},
+											"status": "No Content",
+											"code": 204,
+											"_postman_previewlanguage": "text",
+											"header": [
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Methods",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												},
+												{
+													"key": "Access-Control-Allow-Headers",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": ""
+										}
+									]
+								},
+								{
+									"name": "/v1/staff-users/me",
+									"request": {
+										"auth": {
+											"type": "apikey",
+											"apikey": [
+												{
+													"key": "key",
+													"value": "Authorization",
+													"type": "string"
+												},
+												{
+													"key": "value",
+													"value": "{{apiKey}}",
+													"type": "string"
+												},
+												{
+													"key": "in",
+													"value": "header",
+													"type": "string"
+												}
+											]
+										},
+										"method": "PATCH",
+										"header": [
+											{
+												"key": "Content-Type",
+												"value": "application/json"
+											},
+											{
+												"key": "Accept",
+												"value": "application/json"
+											}
+										],
+										"body": {
+											"mode": "raw",
+											"raw": "{\n  \"attributes\": {\n    \"givenName\": \"<string>\",\n    \"familyName\": \"<string>\"\n  }\n}",
+											"options": {
+												"raw": {
+													"headerFamily": "json",
+													"language": "json"
+												}
+											}
+										},
+										"url": {
+											"raw": "{{baseUrl}}/v1/staff-users/me",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"staff-users",
+												"me"
+											]
+										}
+									},
+									"response": [
+										{
+											"name": "200 response",
+											"originalRequest": {
+												"method": "PATCH",
+												"header": [
+													{
+														"key": "Content-Type",
+														"value": "application/json"
+													},
+													{
+														"key": "Accept",
+														"value": "application/json"
+													},
+													{
+														"key": "Authorization",
+														"value": "<API Key>",
+														"description": "Added as a part of security scheme: apikey"
+													}
+												],
+												"body": {
+													"mode": "raw",
+													"raw": "{\n  \"attributes\": {\n    \"givenName\": \"<string>\",\n    \"familyName\": \"<string>\"\n  }\n}",
+													"options": {
+														"raw": {
+															"headerFamily": "json",
+															"language": "json"
+														}
+													}
+												},
+												"url": {
+													"raw": "{{baseUrl}}/v1/staff-users/me",
+													"host": [
+														"{{baseUrl}}"
+													],
+													"path": [
+														"v1",
+														"staff-users",
+														"me"
+													]
+												}
+											},
+											"status": "OK",
+											"code": 200,
+											"_postman_previewlanguage": "json",
+											"header": [
+												{
+													"key": "Content-Type",
+													"value": "application/json"
+												},
+												{
+													"key": "Access-Control-Allow-Origin",
+													"value": "<string>",
+													"description": {
+														"content": "",
+														"type": "text/plain"
+													}
+												}
+											],
+											"cookie": [],
+											"body": "{\n  \"attributes\": {\n    \"email\": \"<string>\",\n    \"familyName\": \"<string>\",\n    \"givenName\": \"<string>\"\n  },\n  \"permissions\": {\n    \"Lorem_7c\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"Lorem5\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    },\n    \"fugiatb\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"tempor6\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"ameta\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"exercitation_d_1\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    },\n    \"laborum_c4\": {\n      \"actions\": {\n        \"readPrivate\": \"<boolean>\",\n        \"read\": \"<boolean>\",\n        \"admin\": \"<boolean>\"\n      },\n      \"jurisdictions\": {\n        \"irure4f\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        },\n        \"ad__5d\": {\n          \"actions\": {\n            \"readPrivate\": \"<boolean>\",\n            \"admin\": \"<boolean>\",\n            \"write\": \"<boolean>\"\n          }\n        }\n      }\n    }\n  },\n  \"userId\": \"<string>\"\n}"
+										}
+									]
+								}
+							]
+						},
+						{
+							"name": "/v1/staff-users",
+							"request": {
+								"method": "OPTIONS",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/v1/staff-users",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"v1",
+										"staff-users"
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "204 response",
+									"originalRequest": {
+										"method": "OPTIONS",
+										"header": [],
+										"url": {
+											"raw": "{{baseUrl}}/v1/staff-users",
+											"host": [
+												"{{baseUrl}}"
+											],
+											"path": [
+												"v1",
+												"staff-users"
+											]
+										}
+									},
+									"status": "No Content",
+									"code": 204,
+									"_postman_previewlanguage": "text",
+									"header": [
+										{
+											"key": "Access-Control-Allow-Origin",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Methods",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										},
+										{
+											"key": "Access-Control-Allow-Headers",
+											"value": "<string>",
+											"description": {
+												"content": "",
+												"type": "text/plain"
+											}
+										}
+									],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://api.test.compactconnect.org"
+		}
+	]
+}
