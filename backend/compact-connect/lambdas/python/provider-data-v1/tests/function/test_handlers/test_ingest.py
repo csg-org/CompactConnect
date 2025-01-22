@@ -152,7 +152,7 @@ class TestIngest(TstFunction):
         # But the second license should now be listed
         self.assertEqual(2, len(licenses))
 
-    def test_newer_active_license(self):
+    def test_newer_active_license_and_provider_has_not_registered_in_system(self):
         from handlers.ingest import ingest_license_message
 
         # The test resource provider has a license in oh
@@ -162,8 +162,50 @@ class TestIngest(TstFunction):
 
         with open('../common/tests/resources/ingest/message.json') as f:
             message = json.load(f)
-        # Imagine that this provider was just licensed in ky.
-        # What happens if ky uploads that new license?
+        # Imagine that this provider was just licensed in ky, but has not registered with the system (ie has not
+        # picked a home state).
+        # If ky uploads that new active license with a later issuance date, it should be selected as the licensee
+        message['detail']['dateOfIssuance'] = '2024-08-01'
+        message['detail']['familyName'] = 'Newname'
+        message['detail']['jurisdiction'] = 'ky'
+        message['detail']['status'] = 'active'
+        # remove the home state selection for the provider which was added by the TstFunction test setup
+        self.config.data_client.rollback_home_jurisdiction_selection(compact='aslp', provider_id=provider_id)
+
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+
+        resp = ingest_license_message(event, self.mock_context)
+
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        provider_data = self._get_provider_via_api(provider_id)
+
+        # The new name and jurisdiction should be reflected in the provider data
+        self.assertEqual('Newname', provider_data['familyName'])
+        self.assertEqual('ky', provider_data['licenseJurisdiction'])
+
+        # And the second license should now be listed
+        self.assertEqual(2, len(provider_data['licenses']))
+
+    def test_newer_active_license_and_provider_is_registered_in_system(self):
+        """
+        The test setup creates a provider with a home state selection of 'oh'.
+        This test checks that a new active license in a different jurisdiction does not override the home state
+        selection.
+        """
+        from handlers.ingest import ingest_license_message
+
+        # The test resource provider has a license in oh
+        self._load_provider_data()
+        with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
+            provider_id = json.load(f)['providerId']
+
+        with open('../common/tests/resources/ingest/message.json') as f:
+            message = json.load(f)
+        # Imagine that this provider was just licensed in ky, and has registered with the system with a home state
+        # selection of 'oh'.
+        # If ky uploads that new active license with a later issuance date, it should NOT be set as provider's
+        # license since it conflicts with their selected home state.
         message['detail']['dateOfIssuance'] = '2024-08-01'
         message['detail']['familyName'] = 'Newname'
         message['detail']['jurisdiction'] = 'ky'
@@ -178,8 +220,8 @@ class TestIngest(TstFunction):
         provider_data = self._get_provider_via_api(provider_id)
 
         # The new name and jurisdiction should be reflected in the provider data
-        self.assertEqual('Newname', provider_data['familyName'])
-        self.assertEqual('ky', provider_data['licenseJurisdiction'])
+        self.assertEqual('Guðmundsdóttir', provider_data['familyName'])
+        self.assertEqual('oh', provider_data['licenseJurisdiction'])
 
         # And the second license should now be listed
         self.assertEqual(2, len(provider_data['licenses']))

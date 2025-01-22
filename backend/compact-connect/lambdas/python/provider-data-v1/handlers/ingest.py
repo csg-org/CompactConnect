@@ -76,7 +76,15 @@ def ingest_license_message(message: dict):
             dynamo_transactions=dynamo_transactions,
         )
     licenses[license_post['jurisdiction']] = license_post
-    best_license = _find_best_license(licenses.values())
+
+    # First try to find the home state license
+    best_license = config.data_client.find_home_state_license(
+        compact=compact, provider_id=provider_id, licenses=list(licenses.values())
+    )
+    # If no home state selection exists yet, fall back to finding the best license based on status and date
+    if best_license is None:
+        best_license = _find_best_license(licenses.values())
+
     if best_license is license_post:
         logger.info('Updating provider data', provider_id=provider_id, compact=compact, jurisdiction=jurisdiction)
 
