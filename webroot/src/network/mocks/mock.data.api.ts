@@ -10,6 +10,7 @@ import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
+import { PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import {
     userData,
     staffAccount,
@@ -17,7 +18,8 @@ import {
     licensees,
     users,
     pets,
-    privilegePurchaseOptionsResponse
+    privilegePurchaseOptionsResponse,
+    attestation
 } from '@network/mocks/mock.data';
 
 let mockStore: any = null;
@@ -107,6 +109,17 @@ export class DataApi {
         }
 
         return response;
+    }
+
+    // Get Attestation By ID
+    public getAttestation(compact, attestationId) {
+        const response = PrivilegeAttestationSerializer.fromServer({
+            ...attestation,
+            attestationId,
+            compact,
+        });
+
+        return this.wait(500).then(() => response);
     }
 
     // ========================================================================

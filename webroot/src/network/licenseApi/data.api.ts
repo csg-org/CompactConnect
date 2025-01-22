@@ -214,8 +214,7 @@ export class LicenseDataApi implements DataApiInterface {
      */
     public async getAttestation(compact: string, attestationId: string) {
         const serverResponse: any = await this.api.get(`/v1/compacts/${compact}/attestations/${attestationId}`);
-        const response: PrivilegeAttestation = PrivilegeAttestationSerializer
-            .fromServer(serverResponse, attestationId);
+        const response: PrivilegeAttestation = PrivilegeAttestationSerializer.fromServer(serverResponse);
 
         return response;
     }
