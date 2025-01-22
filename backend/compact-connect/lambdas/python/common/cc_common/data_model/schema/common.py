@@ -98,8 +98,6 @@ class ChangeHashMixin:
         if 'removedValues' in in_data:
             hash_data['removedValues'] = sorted(in_data['removedValues'])
 
-        change_hash.update(
-            json.dumps(hash_data, sort_keys=True).encode('utf-8')
-        )
+        change_hash.update(json.dumps(hash_data, sort_keys=True).encode('utf-8'))
 
         return change_hash.hexdigest()
