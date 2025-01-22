@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "https://api.justin.jcc.iaapi.io"
+      "url": "https://api.test.compactconnect.org"
     }
   ],
   "paths": {
@@ -528,6 +528,7 @@
           }
         ]
       },
+<<<<<<< HEAD
       "options": {
         "parameters": [
           {
@@ -579,6 +580,8 @@
           }
         ]
       },
+=======
+>>>>>>> 727340ea (Remove OPTIONS method noise from spec doc)
       "patch": {
         "parameters": [
           {
