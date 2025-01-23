@@ -1,6 +1,6 @@
 import json
-from datetime import datetime
-from unittest.mock import patch
+from datetime import datetime, timedelta
+from unittest.mock import PropertyMock, patch
 
 from cc_common.exceptions import CCInternalException
 from moto import mock_aws
@@ -17,6 +17,9 @@ MOCK_STATE = 'ky'
 MOCK_DOB = '1990-01-01'
 # this is the provider id defined in the test resource files
 MOCK_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
+
+MOCK_IP_ADDRESS = '127.0.0.1'
+MOCK_DATETIME_STRING = '2025-01-23T08:15:00+00:00'
 
 
 def generate_test_request():
@@ -88,7 +91,9 @@ class TestProviderRegistration(TstFunction):
 
     def get_api_event(self):
         with open('../common/tests/resources/api-event.json') as f:
-            return json.load(f)
+            event = json.load(f)
+            event['requestContext']['identity']['sourceIp'] = MOCK_IP_ADDRESS
+            return event
 
     def _get_test_event(self, body_overrides=None):
         """Helper to get a test event with optional body overrides."""
@@ -237,3 +242,61 @@ class TestProviderRegistration(TstFunction):
             }
         ).get('Item')
         self.assertIsNone(home_jurisdiction)
+
+    @patch('handlers.registration.verify_recaptcha')
+    def test_registration_rate_limits_provider_users(self, mock_verify_recaptcha):
+        """
+        This test checks that the registration endpoint rate limits provider users.
+        """
+        with patch('cc_common.config._Config.current_standard_datetime', new_callable=PropertyMock) as mock_now:
+            mock_verify_recaptcha.return_value = True
+            # on the first call, the datetime should be the mock datetime
+            # so we can verify the rate limiting record was created
+            mock_now.return_value = datetime.fromisoformat(MOCK_DATETIME_STRING)
+            from handlers.registration import register_provider
+
+            first_response = register_provider(self._get_test_event(), self.mock_context)
+            self.assertEqual(200, first_response['statusCode'])
+            self.assertEqual({'message': 'request processed'}, json.loads(first_response['body']))
+
+            mock_datetime = datetime.fromisoformat(MOCK_DATETIME_STRING)
+            mock_iso_timestamp = mock_datetime.isoformat()
+
+            # Verify rate limiting record was created
+            rate_limiting = self.config.rate_limiting_table.get_item(
+                Key={
+                    'pk': 'IP#127.0.0.1',
+                    'sk': f'REGISTRATION#{mock_iso_timestamp}',
+                }
+            )['Item']
+            # ensure the record is set to expire
+            self.assertEqual(int(mock_datetime.timestamp()) + 900, rate_limiting['ttl'])
+
+            # now call the endpoint 3 more times and expect a 429 in the response
+            for attempt in range(3):
+                mock_time = datetime.fromisoformat(MOCK_DATETIME_STRING)
+                # increment the datetime by 1 second
+                mock_time += timedelta(seconds=attempt + 1)
+                mock_now.return_value = mock_time
+                response = register_provider(self._get_test_event(), self.mock_context)
+
+            self.assertEqual(429, response['statusCode'])
+
+    @patch('handlers.registration.verify_recaptcha')
+    def test_registration_does_not_block_users_if_beyond_15_minute_window(self, mock_verify_recaptcha):
+        """
+        This test checks that the registration endpoint rate limits provider users.
+        """
+        with patch('cc_common.config._Config.current_standard_datetime', new_callable=PropertyMock) as mock_now:
+            mock_verify_recaptcha.return_value = True
+
+            from handlers.registration import register_provider
+
+            # call the endpoint 10 times, each incrementing by 5 minutes and expect a 200 in the response
+            for attempt in range(10):
+                # increment the datetime by 5 minutes and one second (so the limit is not exceeded)
+                mock_time = datetime.fromisoformat('2025-01-23T08:00:00+00:00')
+                mock_time += timedelta(minutes=5 * (attempt + 1), seconds=attempt + 1)
+                mock_now.return_value = mock_time
+                response = register_provider(self._get_test_event(), self.mock_context)
+                self.assertEqual(200, response['statusCode'])

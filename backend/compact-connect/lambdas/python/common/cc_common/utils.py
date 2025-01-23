@@ -18,6 +18,7 @@ from cc_common.exceptions import (
     CCAccessDeniedException,
     CCInvalidRequestException,
     CCNotFoundException,
+    CCRateLimitingException,
     CCUnauthorizedException,
 )
 
@@ -134,6 +135,13 @@ def api_handler(fn: Callable):
                 'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                 'statusCode': 404,
                 'body': json.dumps({'message': f'{e.message}'}),
+            }
+        except CCRateLimitingException as e:
+            logger.info('Rate limiting request', exc_info=e)
+            return {
+                'headers': {'Access-Control-Allow-Origin': '*'},
+                'statusCode': 429,
+                'body': json.dumps({'message': e.message}),
             }
         except CCInvalidRequestException as e:
             logger.info('Invalid request', exc_info=e)

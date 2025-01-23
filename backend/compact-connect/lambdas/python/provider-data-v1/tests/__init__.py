@@ -18,6 +18,7 @@ class TstLambdas(TestCase):
                 'BULK_BUCKET_NAME': 'cc-license-data-bulk-bucket',
                 'EVENT_BUS_NAME': 'license-data-events',
                 'PROVIDER_TABLE_NAME': 'provider-table',
+                'RATE_LIMITING_TABLE_NAME': 'rate-limiting-table',
                 'SSN_TABLE_NAME': 'ssn-table',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
                 'ENVIRONMENT_NAME': 'test',

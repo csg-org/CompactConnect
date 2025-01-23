@@ -1,14 +1,61 @@
 import json
+from datetime import timedelta
 
 import requests
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from cc_common.config import config, logger
-from cc_common.exceptions import CCAccessDeniedException, CCAwsServiceException, CCInternalException
+from cc_common.exceptions import (
+    CCAccessDeniedException,
+    CCAwsServiceException,
+    CCInternalException,
+    CCRateLimitingException,
+)
 from cc_common.utils import api_handler
 
 # Module level variable for caching
 _RECAPTCHA_SECRET = None
+
+
+def _rate_limit_exceeded(ip_address: str) -> bool:
+    """Check if the IP address has exceeded the rate limit.
+
+    Returns:
+        bool: True if rate limit is exceeded, False otherwise
+    """
+    now = config.current_standard_datetime
+    window_start = now - timedelta(minutes=15)
+    window_start_str = window_start.isoformat()
+
+    try:
+        # Query for requests in the last 15 minutes
+        response = config.rate_limiting_table.query(
+            KeyConditionExpression='pk = :pk AND sk BETWEEN :start_sk AND :end_sk',
+            ExpressionAttributeValues={
+                ':pk': f'IP#{ip_address}',
+                ':start_sk': f'REGISTRATION#{window_start_str}',
+                ':end_sk': f'REGISTRATION#{now.isoformat()}',
+            },
+            ConsistentRead=True,
+        )
+
+        # If there are 4 or more requests in the window, rate limit is exceeded
+        if len(response.get('Items', [])) >= 3:
+            logger.warning('Rate limit exceeded', ip_address=ip_address)
+            return True
+
+        # Add the current request
+        config.rate_limiting_table.put_item(
+            Item={
+                'pk': f'IP#{ip_address}',
+                'sk': f'REGISTRATION#{now.isoformat()}',
+                'ttl': int(now.timestamp()) + 900,  # 15 minutes in seconds
+            }
+        )
+        return False
+    except ClientError as e:
+        logger.error('Failed to check rate limit', error=str(e))
+        raise CCAwsServiceException('Failed to check rate limit') from e
 
 
 def get_recaptcha_secret() -> str:
@@ -52,7 +99,22 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
     """
+    # Get IP address from the request context
+    source_ip = event['requestContext']['identity']['sourceIp']
     body = json.loads(event['body'])
+
+    # Check rate limit before proceeding
+    if _rate_limit_exceeded(source_ip):
+        # log the minimal request data
+        logger.warning(
+            'Rate limit exceeded for ip address',
+            compact=body['compact'],
+            state=body['state'],
+            given_name=body['givenName'],
+            license_type=body['licenseType'],
+            ip_address=source_ip,
+        )
+        raise CCRateLimitingException('Rate limit exceeded. Please try again later.')
 
     # Verify reCAPTCHA token
     if not verify_recaptcha(body['token']):

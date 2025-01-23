@@ -41,6 +41,7 @@ class ProviderUsers:
             'PROVIDER_USER_BUCKET_NAME': persistent_stack.provider_users_bucket.bucket_name,
             'LICENSE_GSI_NAME': persistent_stack.provider_table.license_gsi_name,
             'PROVIDER_USER_POOL_ID': persistent_stack.provider_users.user_pool_id,
+            'RATE_LIMITING_TABLE_NAME': persistent_stack.rate_limiting_table.table_name,
             **stack.common_env_vars,
         }
 
@@ -217,6 +218,7 @@ class ProviderUsers:
         provider_data_table.grant_read_write_data(self.provider_registration_handler)
         recaptcha_secret.grant_read(self.provider_registration_handler)
         persistent_stack.provider_users.grant(self.provider_registration_handler, 'cognito-idp:AdminCreateUser')
+        persistent_stack.rate_limiting_table.grant_read_write_data(self.provider_registration_handler)
         self.api.log_groups.append(self.provider_registration_handler.log_group)
 
         NagSuppressions.add_resource_suppressions_by_path(

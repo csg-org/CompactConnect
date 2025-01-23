@@ -38,6 +38,7 @@ class TstFunction(TstLambdas):
         self._bucket = boto3.resource('s3').create_bucket(Bucket=os.environ['BULK_BUCKET_NAME'])
         self.create_provider_table()
         self.create_ssn_table()
+        self.create_rate_limiting_table()
 
         boto3.client('events').create_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
@@ -103,11 +104,23 @@ class TstFunction(TstLambdas):
             ],
         )
 
+    def create_rate_limiting_table(self):
+        self._rate_limiting_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['RATE_LIMITING_TABLE_NAME'],
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+        )
+
     def delete_resources(self):
         self._bucket.objects.delete()
         self._bucket.delete()
         self._provider_table.delete()
         self._ssn_table.delete()
+        self._rate_limiting_table.delete()
         boto3.client('events').delete_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
     def _load_provider_data(self):

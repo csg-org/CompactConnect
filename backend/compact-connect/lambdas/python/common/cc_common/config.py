@@ -201,6 +201,14 @@ class _Config:
     def transaction_history_table(self):
         return boto3.resource('dynamodb').Table(self.transaction_history_table_name)
 
+    @property
+    def rate_limiting_table_name(self):
+        return os.environ['RATE_LIMITING_TABLE_NAME']
+
+    @property
+    def rate_limiting_table(self):
+        return boto3.resource('dynamodb').Table(self.rate_limiting_table_name)
+
     @cached_property
     def allowed_origins(self):
         return json.loads(os.environ['ALLOWED_ORIGINS'])
