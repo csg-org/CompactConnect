@@ -47,7 +47,7 @@
         </div>
         <div class="jurisprudence-check-box">
             <InputCheckbox
-                :formInput="scopeOfPracticeInput"
+                :formInput="scopeOfPracticeCheckInput"
                 @change="handleScopeOfPracticeClicked()"
             />
         </div>
@@ -59,16 +59,16 @@
         </div>
         <Modal
             v-if="isJurisprudencePending"
-            class="jurisprudence-modal"
+            class="attestation-modal"
             :closeOnBackgroundClick="true"
             :showActions="false"
             :title="jurisprudenceModalTitle"
             @close-modal="closeAndInvalidateJurisprudenceCheckbox"
-            @keydown.tab="focusTrap($event)"
+            @keydown.tab="focusTrapJurisprudence($event)"
             @keyup.esc="closeAndInvalidateJurisprudenceCheckbox"
         >
             <template v-slot:content>
-                <div class="jurisprudence-modal-content">
+                <div class="attestation-modal-content">
                     {{jurisprudenceModalContent}}
                     <form @submit.prevent="submitJurisprudenceUnderstanding">
                         <div class="action-button-row">
@@ -91,16 +91,16 @@
         </Modal>
         <Modal
             v-if="isScopeOfPracticePending"
-            class="jurisprudence-modal"
+            class="attestation-modal"
             :closeOnBackgroundClick="true"
             :showActions="false"
-            :title="jurisprudenceModalTitle"
+            :title="$t('licensing.scopeAttestTitle')"
             @close-modal="closeAndInvalidateScopeCheckbox"
-            @keydown.tab="focusTrap($event)"
+            @keydown.tab="focusTrapScope($event)"
             @keyup.esc="closeAndInvalidateScopeCheckbox"
         >
             <template v-slot:content>
-                <div class="jurisprudence-modal-content">
+                <div class="attestation-modal-content">
                     {{jurisprudenceModalContent}}
                     <form @submit.prevent="submitScopeUnderstanding">
                         <div class="action-button-row">

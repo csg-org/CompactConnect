@@ -212,12 +212,12 @@ export class LicenseDataApi implements DataApiInterface {
      * @param  {string}           attestationId The attestationId (from /backend/compact-connect/compact-config/*.yml).
      * @return {Promise<object>}                A PrivilegeAttestation model instance.
      */
-         public async getAttestation(compact: string, attestationId: string) {
-            const serverResponse: any = await this.api.get(`/v1/compacts/${compact}/attestations/${attestationId}`);
-            const response: PrivilegeAttestation = PrivilegeAttestationSerializer.fromServer(serverResponse);
-    
-            return response;
-        }
+    public async getAttestation(compact: string, attestationId: string) {
+        const serverResponse: any = await this.api.get(`/v1/compacts/${compact}/attestations/${attestationId}`);
+        const response: PrivilegeAttestation = PrivilegeAttestationSerializer.fromServer(serverResponse);
+
+        return response;
+    }
 }
 
 export const licenseDataApi = new LicenseDataApi();

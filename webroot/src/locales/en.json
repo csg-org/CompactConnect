@@ -510,6 +510,7 @@
         "noDiscipline": "No discipline",
         "twoHomeStateErrorMessage": "Two states have you listed as a resident. Please update your information with those states to reflect your current residency status.",
         "jurisprudenceExplanationText": "I attest I have completed the required jurisprudence exam.",
+        "scopeAttestTitle": "Scope of practice attestation",
         "statusOptions": {
             "active": "Active",
             "inactive": "Inactive"
