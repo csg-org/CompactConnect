@@ -2,9 +2,10 @@ import json
 from datetime import timedelta
 
 import requests
+from aws_lambda_powertools.metrics import MetricUnit
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
-from cc_common.config import config, logger
+from cc_common.config import config, logger, metrics
 from cc_common.exceptions import (
     CCAccessDeniedException,
     CCAwsServiceException,
@@ -12,6 +13,9 @@ from cc_common.exceptions import (
     CCRateLimitingException,
 )
 from cc_common.utils import api_handler
+
+RECAPTCHA_SUCCESS_METRIC_NAME = 'recaptcha-success'
+REGISTRATION_SUCCESS_METRIC_NAME = 'registration-success'
 
 # Module level variable for caching
 _RECAPTCHA_SECRET = None
@@ -114,12 +118,18 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             license_type=body['licenseType'],
             ip_address=source_ip,
         )
+        metrics.add_metric(name='registration-rate-limit-throttles', unit=MetricUnit.Count, value=1)
+        metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCRateLimitingException('Rate limit exceeded. Please try again later.')
 
     # Verify reCAPTCHA token
     if not verify_recaptcha(body['token']):
         logger.info('Invalid reCAPTCHA token', token=body['token'])
+        metrics.add_metric(name=RECAPTCHA_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+        metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCAccessDeniedException('Invalid request')
+
+    metrics.add_metric(name=RECAPTCHA_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=1)
 
     # Query license records
     try:
@@ -142,6 +152,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             given_name=body['givenName'],
             license_type=body['licenseType'],
         )
+        metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         return {'message': 'request processed'}
 
     # Find matching license record
@@ -160,6 +171,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             given_name=body['givenName'],
             license_type=body['licenseType'],
         )
+        metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         return {'message': 'request processed'}
 
     # Check if already registered by looking for home jurisdiction record
@@ -173,17 +185,18 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         logger.warning(
             'Provider already registered', compact=body['compact'], provider_id=matching_record['providerId']
         )
+        metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         return {'message': 'request processed'}
 
-    # Create home jurisdiction selection record first
-    config.data_client.create_home_jurisdiction_selection(
-        compact=body['compact'],
-        provider_id=matching_record['providerId'],
-        jurisdiction=body['state'],
-    )
-
-    # Create Cognito user
     try:
+        # Create home jurisdiction selection record first
+        config.data_client.create_home_jurisdiction_selection(
+            compact=body['compact'],
+            provider_id=matching_record['providerId'],
+            jurisdiction=body['state'],
+        )
+
+        # Create Cognito user
         config.cognito_client.admin_create_user(
             UserPoolId=config.provider_user_pool_id,
             Username=body['email'],
@@ -201,6 +214,8 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             compact=body['compact'],
             provider_id=matching_record['providerId'],
         )
+        metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCInternalException('Failed to create user account') from e
 
+    metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=1)
     return {'message': 'request processed'}

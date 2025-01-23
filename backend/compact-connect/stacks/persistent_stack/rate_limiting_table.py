@@ -1,6 +1,7 @@
 from aws_cdk import RemovalPolicy
 from aws_cdk.aws_dynamodb import AttributeType, BillingMode, Table
 from aws_cdk.aws_kms import IKey
+from cdk_nag import NagSuppressions
 from constructs import Construct
 
 
@@ -21,7 +22,27 @@ class RateLimitingTable(Table):
             encryption_key=encryption_key,
             partition_key={'name': 'pk', 'type': AttributeType.STRING},
             sort_key={'name': 'sk', 'type': AttributeType.STRING},
-            point_in_time_recovery=True,
+            point_in_time_recovery=False,
             removal_policy=removal_policy,
             time_to_live_attribute='ttl',
+        )
+        NagSuppressions.add_resource_suppressions(
+            self,
+            suppressions=[
+                {
+                    'id': 'HIPAA.Security-DynamoDBInBackupPlan',
+                    'reason': 'These records are not intended to be backed up. This table is only for api rate limiting'
+                    ' and all records expire after several days.',
+                },
+                {
+                    'id': 'HIPAA.Security-DynamoDBPITREnabled',
+                    'reason': 'These records do not need to be recovered. This table is only for api rate limiting and '
+                    'all records expire after several days.',
+                },
+                {
+                    'id': 'AwsSolutions-DDB3',
+                    'reason': 'This table does not need Point-in-time Recovery enabled. It is only for api rate '
+                    'limiting and all records expire after several days.',
+                },
+            ],
         )
