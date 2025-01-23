@@ -172,6 +172,8 @@ describe('License model', () => {
             dateOfIssuance: moment().format(serverDateFormat),
             dateOfRenewal: moment().format(serverDateFormat),
             dateOfExpiration: moment().subtract(1, 'day').format(serverDateFormat),
+            npi: 'npi',
+            licenseNumber: 'licenseNumber',
             licenseType: LicenseOccupation.AUDIOLOGIST,
             status: LicenseStatus.ACTIVE,
             history: [{
