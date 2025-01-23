@@ -13,6 +13,7 @@ class TstLambdas(TestCase):
             {
                 # Set to 'true' to enable debug logging
                 'DEBUG': 'false',
+                'ALLOWED_ORIGINS': '["https://example.org"]',
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
                 'TRANSACTION_HISTORY_TABLE_NAME': 'transaction-history-table',

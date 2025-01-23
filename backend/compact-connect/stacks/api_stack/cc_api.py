@@ -142,7 +142,7 @@ class CCApi(RestApi):
             # This API is for a variety of integrations including any state IT integrations, so we will
             # allow all origins
             default_cors_preflight_options=CorsOptions(
-                allow_origins=Cors.ALL_ORIGINS,
+                allow_origins=stack.allowed_origins,
                 allow_methods=Cors.ALL_METHODS,
                 allow_headers=Cors.DEFAULT_HEADERS + ['cache-control'],
             ),
@@ -169,24 +169,28 @@ class CCApi(RestApi):
         self.log_groups = [access_log_group, self.web_acl.log_group]
         self._configure_alarms()
 
+        # These canned Gateway Response headers do not support dynamic values, so we have to set a static value for the
+        # Access-Control-Allow-Origin header. If we need to support multiple origins, we will have to just set
+        # allow origin '*'.
+        gateway_response_origin = stack.allowed_origins[0] if len(stack.allowed_origins) == 1 else '*'
         self.add_gateway_response(
             'BadBodyResponse',
             type=ResponseType.BAD_REQUEST_BODY,
-            response_headers={'Access-Control-Allow-Origin': "'*'"},
+            response_headers={'Access-Control-Allow-Origin': f"'{gateway_response_origin}'"},
             templates={'application/json': '{"message": "$context.error.validationErrorString"}'},
         )
         self.add_gateway_response(
             'UnauthorizedResponse',
             type=ResponseType.UNAUTHORIZED,
             status_code='401',
-            response_headers={'Access-Control-Allow-Origin': "'*'"},
+            response_headers={'Access-Control-Allow-Origin': f"'{gateway_response_origin}'"},
             templates={'application/json': '{"message": "Unauthorized"}'},
         )
         self.add_gateway_response(
             'AccessDeniedResponse',
             type=ResponseType.ACCESS_DENIED,
             status_code='403',
-            response_headers={'Access-Control-Allow-Origin': "'*'"},
+            response_headers={'Access-Control-Allow-Origin': f"'{gateway_response_origin}'"},
             templates={'application/json': '{"message": "Access denied"}'},
         )
 

@@ -194,6 +194,10 @@ class _Config:
         return boto3.resource('dynamodb').Table(self.transaction_history_table_name)
 
     @cached_property
+    def allowed_origins(self):
+        return json.loads(os.environ['ALLOWED_ORIGINS'])
+
+    @cached_property
     def lambda_client(self):
         return boto3.client('lambda')
 
