@@ -10,6 +10,7 @@ import { serverDateFormat } from '@/app.config';
 import { dateDisplay, dateDiff } from '@models/_formatters/date';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
+import { LicenseHistoryItem, LicenseHistoryItemSerializer } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import moment from 'moment';
 
 // ========================================================
@@ -44,6 +45,7 @@ export interface InterfaceLicense {
     npi?: string | null;
     licenseNumber?: string | null;
     occupation?: LicenseOccupation | null,
+    history?: Array<LicenseHistoryItem>,
     statusState?: LicenseStatus,
     statusCompact?: LicenseStatus,
 }
@@ -64,6 +66,7 @@ export class License implements InterfaceLicense {
     public licenseNumber? = null;
     public expireDate? = null;
     public occupation? = null;
+    public history? = [];
     public statusState? = LicenseStatus.INACTIVE;
     public statusCompact? = LicenseStatus.INACTIVE;
 
@@ -127,8 +130,18 @@ export class LicenseSerializer {
             expireDate: json.dateOfExpiration,
             occupation: json.licenseType,
             statusState: json.status,
+            history: [] as Array <LicenseHistoryItem>,
             statusCompact: json.status, // In the near future, the server will send a separate field for this
         };
+
+        if (Array.isArray(json.history)) {
+            json.history.forEach((serverHistoryItem) => {
+                // We are only populating renewals at this time
+                if (serverHistoryItem.updateType === 'renewal') {
+                    licenseData.history.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
+                }
+            });
+        }
 
         return new License(licenseData);
     }

@@ -377,7 +377,22 @@ export const licensees = {
                     dateOfIssuance: '2023-08-29',
                     dateOfRenewal: '2024-08-29',
                     dateOfUpdate: '2024-08-29',
-                    status: 'active'
+                    status: 'active',
+                    history: [{
+                        type: 'privilegeUpdate',
+                        updateType: 'renewal',
+                        previous: {
+                            compactTransactionId: '123',
+                            dateOfIssuance: '2022-08-29',
+                            dateOfRenewal: '2023-08-29',
+                            dateOfUpdate: '2023-08-29',
+                        },
+                        updatedValues: {
+                            compactTransactionId: '124',
+                            dateOfIssuance: '2022-08-29',
+                            dateOfRenewal: '2024-08-29',
+                        }
+                    }]
                 },
                 {
                     licenseJurisdiction: 'ar',
@@ -427,6 +442,15 @@ export const licensees = {
             licenseJurisdiction: 'co',
             compact: 'aslp',
             homeAddressStreet2: '',
+            militaryAffiliations: [{
+                affiliationType: 'militaryMember',
+                compact: 'aslp',
+                dateOfUpdate: '2024-08-29',
+                dateOfUpload: '2024-08-29',
+                documentKeys: 'key',
+                fileNames: ['military-document.pdf'],
+                status: 'active'
+            }],
             npi: '6944447281',
             licenseNumber: 'A-944447281',
             homeAddressPostalCode: '',

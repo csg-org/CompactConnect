@@ -42,6 +42,7 @@ describe('Licensee model', () => {
         expect(licensee.lastName).to.equal(null);
         expect(licensee.address).to.be.an.instanceof(Address);
         expect(licensee.dob).to.equal(null);
+        expect(licensee.birthMonthDay).to.equal(null);
         expect(licensee.ssn).to.equal(null);
         expect(licensee.occupation).to.equal(null);
         expect(licensee.licenseStates).to.be.an('array').that.is.empty;
@@ -78,6 +79,7 @@ describe('Licensee model', () => {
             lastName: 'test-lastName',
             address: new Address(),
             dob: '2020-01-01',
+            birthMonthDay: '01-16',
             ssn: 'test-ssn',
             militaryAffiliations: [new MilitaryAffiliation()],
             occupation: LicenseOccupation.AUDIOLOGIST,
@@ -106,6 +108,7 @@ describe('Licensee model', () => {
         expect(licensee.lastName).to.equal(data.lastName);
         expect(licensee.address).to.be.an.instanceof(Address);
         expect(licensee.dob).to.equal(data.dob);
+        expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.ssn).to.equal(data.ssn);
         expect(licensee.occupation).to.equal(data.occupation);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
@@ -149,6 +152,7 @@ describe('Licensee model', () => {
             homeAddressState: 'co',
             homeAddressPostalCode: 'test-zip',
             dateOfBirth: moment().format(serverDateFormat),
+            birthMonthDay: '01-16',
             ssn: '000-00-0000',
             licenseType: LicenseOccupation.AUDIOLOGIST,
             licenseJurisdiction: 'co',
@@ -201,6 +205,7 @@ describe('Licensee model', () => {
         expect(licensee.middleName).to.equal(data.middleName);
         expect(licensee.lastName).to.equal(data.familyName);
         expect(licensee.dob).to.equal(data.dateOfBirth);
+        expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.ssn).to.equal(data.ssn);
         expect(licensee.occupation).to.equal(data.licenseType);
         expect(licensee.address).to.be.an.instanceof(Address);
@@ -253,6 +258,7 @@ describe('Licensee model', () => {
             familyName: 'test-lastName',
             homeAddressStreet1: 'test-street1',
             homeAddressStreet2: 'test-street2',
+            birthMonthDay: '01-16',
             homeAddressCity: 'test-city',
             homeAddressState: 'co',
             homeAddressPostalCode: 'test-zip',
@@ -317,6 +323,7 @@ describe('Licensee model', () => {
         expect(licensee.firstName).to.equal(data.givenName);
         expect(licensee.middleName).to.equal(data.middleName);
         expect(licensee.lastName).to.equal(data.familyName);
+        expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.dob).to.equal(data.dateOfBirth);
         expect(licensee.ssn).to.equal(data.ssn);
         expect(licensee.occupation).to.equal(data.licenseType);

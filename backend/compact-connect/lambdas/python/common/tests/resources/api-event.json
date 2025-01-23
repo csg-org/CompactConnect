@@ -15,6 +15,7 @@
         "CloudFront-Viewer-ASN": "14618",
         "CloudFront-Viewer-Country": "US",
         "Host": "xib7bpau43.execute-api.us-east-1.amazonaws.com",
+        "origin": "https://example.org",
         "Postman-Token": "1eedab23-5dd2-40db-93e2-5c8007bd1f89",
         "User-Agent": "PostmanRuntime/7.36.1",
         "Via": "1.1 f0f1092b2ad1f0e573a4fcbefe4fb620.cloudfront.net (CloudFront)",

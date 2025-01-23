@@ -126,10 +126,6 @@ export default class MilitaryStatus extends mixins(MixinForm) {
         return this.$matches.phone.only ? this.$t('common.yes') : this.$t('military.yesEnd');
     }
 
-    get listId(): string {
-        return 'military-affiliations';
-    }
-
     get sortOptions(): Array<any> {
         // Sorting not API supported
         return [];
@@ -167,6 +163,31 @@ export default class MilitaryStatus extends mixins(MixinForm) {
         });
     }
 
+    sortingChange() {
+        // Sorting not API supported
+        return false;
+    }
+
+    paginationChange() {
+        // Pagination not API supported
+        return false;
+    }
+
+    editInfo() {
+        if (this.currentCompactType) {
+            this.$router.push({
+                name: 'MilitaryStatusUpdate',
+                params: { compact: this.currentCompactType }
+            });
+        }
+    }
+
+    async confirmEndMilitaryAffiliation() {
+        this.closeEndAffilifationModal();
+        await this.$store.dispatch('user/endMilitaryAffiliationRequest');
+        await this.$store.dispatch('user/getLicenseeAccountRequest');
+    }
+
     goBack() {
         if (this.currentCompactType) {
             this.$router.push({
@@ -189,31 +210,6 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     closeEndAffilifationModal() {
         this.shouldShowEndAffiliationModal = false;
         this.$store.dispatch('setModalIsOpen', false);
-    }
-
-    async confirmEndMilitaryAffiliation() {
-        this.closeEndAffilifationModal();
-        await this.$store.dispatch('user/endMilitaryAffiliationRequest');
-        await this.$store.dispatch('user/getLicenseeAccountRequest');
-    }
-
-    sortingChange() {
-        // Sorting not API supported
-        return false;
-    }
-
-    paginationChange() {
-        // Pagination not API supported
-        return false;
-    }
-
-    editInfo() {
-        if (this.currentCompactType) {
-            this.$router.push({
-                name: 'MilitaryStatusUpdate',
-                params: { compact: this.currentCompactType }
-            });
-        }
     }
 
     focusTrap(event: KeyboardEvent): void {
