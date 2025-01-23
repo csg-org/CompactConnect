@@ -240,6 +240,10 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         return allConfirmed;
     }
 
+    get scopeOfPracticeText(): string {
+        return 'Scope of practice';
+    }
+
     //
     // Methods
     //
@@ -247,6 +251,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         const initFormData: any = {
             stateCheckList: [],
             jurisprudenceConfirmations: {},
+            scopeOfPracticeConfirmations: {},
             submit: new FormInput({
                 isSubmitInput: true,
                 id: 'submit',
@@ -308,17 +313,18 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     deselectState(stateAbbrev) {
         this.formData.stateCheckList.find((checkBox) => (checkBox.id === stateAbbrev)).value = false;
         delete this.formData.jurisprudenceConfirmations[stateAbbrev];
+        delete this.formData.scopeOfPracticeConfirmations[stateAbbrev];
     }
 
-    submitUnderstanding() {
-        const { jurisprudencePendingConfirmation } = this;
+    // submitJurisprudenceConfimation() {
+    //     const { jurisprudencePendingConfirmation } = this;
 
-        if (jurisprudencePendingConfirmation) {
-            this.formData.jurisprudenceConfirmations[jurisprudencePendingConfirmation].value = true;
-            this.$store.dispatch('setModalIsOpen', false);
-            this.jurisprudencePendingConfirmation = '';
-        }
-    }
+    //     if (jurisprudencePendingConfirmation) {
+    //         this.formData.jurisprudenceConfirmations[jurisprudencePendingConfirmation].value = true;
+    //         this.$store.dispatch('setModalIsOpen', false);
+    //         this.jurisprudencePendingConfirmation = '';
+    //     }
+    // }
 
     toggleStateSelected(stateFormInput) {
         const newStateFormInputValue = !stateFormInput.value;
@@ -327,16 +333,26 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         stateFormInput.value = newStateFormInputValue;
 
         if (newStateFormInputValue) {
-            if (stateAbbrev && this.selectedStatesWithJurisprudenceRequired.includes(stateAbbrev)) {
-                this.formData.jurisprudenceConfirmations[stateAbbrev] = new FormInput({
-                    id: `${stateAbbrev}-jurisprudence`,
-                    name: `${stateAbbrev}-jurisprudence`,
-                    label: this.jurisprudenceExplanationText,
+            if (stateAbbrev) {
+                this.formData.scopeOfPracticeConfirmations[stateAbbrev] = new FormInput({
+                    id: `${stateAbbrev}-scope`,
+                    name: `${stateAbbrev}-scope`,
+                    label: this.scopeOfPracticeText,
                     value: false
                 });
+
+                if (this.selectedStatesWithJurisprudenceRequired.includes(stateAbbrev)) {
+                    this.formData.jurisprudenceConfirmations[stateAbbrev] = new FormInput({
+                        id: `${stateAbbrev}-jurisprudence`,
+                        name: `${stateAbbrev}-jurisprudence`,
+                        label: this.jurisprudenceExplanationText,
+                        value: false
+                    });
+                }
             }
         } else {
             delete this.formData.jurisprudenceConfirmations[stateAbbrev];
+            delete this.formData.scopeOfPracticeConfirmations[stateAbbrev];
         }
     }
 

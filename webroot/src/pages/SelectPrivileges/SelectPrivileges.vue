@@ -46,6 +46,7 @@
                                     class="selected-state-block"
                                     :selectedStatePurchaseData="findStatePurchaseInformation(state)"
                                     :jurisprudenceCheckInput="formData.jurisprudenceConfirmations[state.id]"
+                                    :scopeOfPracticeInput="formData.scopeOfPracticeConfirmations[state.id]"
                                     @exOutState="deselectState"
                                 />
                             </Transition>
@@ -58,6 +59,7 @@
                             class="selected-state-block"
                             :selectedStatePurchaseData="state"
                             :jurisprudenceCheckInput="formData.jurisprudenceConfirmations[state.jurisdiction.abbrev]"
+                            :scopeOfPracticeCheckInput="formData.scopeOfPracticeConfirmations[state.id]"
                             @exOutState="deselectState"
                         />
                     </TransitionGroup>

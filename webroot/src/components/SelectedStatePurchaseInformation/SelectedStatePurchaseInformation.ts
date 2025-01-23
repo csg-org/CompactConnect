@@ -42,6 +42,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     // PROPS
     @Prop({ required: true }) selectedStatePurchaseData?: PrivilegePurchaseOption;
     @Prop({ default: new FormInput({ value: false }) }) jurisprudenceCheckInput?: FormInput;
+    @Prop({ default: new FormInput({ value: false }) }) scopeOfPracticeCheckInput?: FormInput;
 
     //
     // Lifecycle
@@ -54,6 +55,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     // Data
     //
     isJurisprudencePending = false;
+    isScopeOfPracticePending = false;
     isPriceCollapsed = false;
 
     //
@@ -178,9 +180,13 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     //
     initFormInputs(): void {
         const initFormData: any = {
-            submitUnderstanding: new FormInput({
+            submitJurisprudenceUnderstanding: new FormInput({
                 isSubmitInput: true,
-                id: 'submit-understanding',
+                id: 'submit-jurisprudence-understanding',
+            }),
+            submitScopeUnderstanding: new FormInput({
+                isSubmitInput: true,
+                id: 'submit-scope-understanding',
             }),
         };
 
@@ -198,13 +204,24 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         }
     }
 
+    handleScopeOfPracticeClicked(): void {
+        const newValue = this.scopeOfPracticeCheckInput?.value;
+
+        if (newValue) {
+            if (this.scopeOfPracticeCheckInput) {
+                this.isScopeOfPracticePending = true;
+                this.setScopeInputValue(false);
+            }
+        }
+    }
+
     deselectState(): void {
         const stateAbbrev = this.selectedStatePurchaseData?.jurisdiction?.abbrev;
 
         this.$emit('exOutState', stateAbbrev);
     }
 
-    submitUnderstanding(): void {
+    submitJurisprudenceUnderstanding(): void {
         const { isJurisprudencePending, jurisprudenceCheckInput } = this;
 
         if (isJurisprudencePending && jurisprudenceCheckInput) {
@@ -214,7 +231,17 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         }
     }
 
-    closeAndInvalidateCheckbox(): void {
+    submitScopeUnderstanding(): void {
+        const { isJurisprudencePending, jurisprudenceCheckInput } = this;
+
+        if (isJurisprudencePending && jurisprudenceCheckInput) {
+            this.setScopeInputValue(true);
+            this.$store.dispatch('setModalIsOpen', false);
+            this.isJurisprudencePending = false;
+        }
+    }
+
+    closeAndInvalidateJurisprudenceCheckbox(): void {
         const { isJurisprudencePending, jurisprudenceCheckInput } = this;
 
         if (isJurisprudencePending && jurisprudenceCheckInput) {
@@ -224,9 +251,25 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         }
     }
 
+    closeAndInvalidateScopeCheckbox(): void {
+        const { isScopeOfPracticePending, scopeOfPracticeCheckInput } = this;
+
+        if (isScopeOfPracticePending && scopeOfPracticeCheckInput) {
+            this.setScopeInputValue(false);
+            this.$store.dispatch('setModalIsOpen', false);
+            this.isScopeOfPracticePending = false;
+        }
+    }
+
     setJurisprudenceInputValue(newValue): void {
         if (this.jurisprudenceCheckInput) {
             (this.jurisprudenceCheckInput.value as any) = newValue; // any use required here because of outstanding ts bug regarding union type inference
+        }
+    }
+
+    setScopeInputValue(newValue): void {
+        if (this.scopeOfPracticeCheckInput) {
+            (this.scopeOfPracticeCheckInput.value as any) = newValue; // any use required here because of outstanding ts bug regarding union type inference
         }
     }
 

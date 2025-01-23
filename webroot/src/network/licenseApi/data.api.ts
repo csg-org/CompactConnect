@@ -14,6 +14,7 @@ import {
 } from '@network/licenseApi/interceptors';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { Licensee, LicenseeSerializer } from '@models/Licensee/Licensee.model';
+import { PrivilegeAttestation, PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 
 export interface RequestParamsInterfaceLocal {
     compact?: string;
@@ -204,6 +205,19 @@ export class LicenseDataApi implements DataApiInterface {
 
         return response;
     }
+
+    /**
+     * GET Attestations by ID for a compact.
+     * @param  {string}           compact       The compact string ID (aslp, otcp, coun).
+     * @param  {string}           attestationId The attestationId (from /backend/compact-connect/compact-config/*.yml).
+     * @return {Promise<object>}                A PrivilegeAttestation model instance.
+     */
+         public async getAttestation(compact: string, attestationId: string) {
+            const serverResponse: any = await this.api.get(`/v1/compacts/${compact}/attestations/${attestationId}`);
+            const response: PrivilegeAttestation = PrivilegeAttestationSerializer.fromServer(serverResponse);
+    
+            return response;
+        }
 }
 
 export const licenseDataApi = new LicenseDataApi();
