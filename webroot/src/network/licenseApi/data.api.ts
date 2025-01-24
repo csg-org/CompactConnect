@@ -13,7 +13,7 @@ import {
     responseError
 } from '@network/licenseApi/interceptors';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
-import { Licensee, LicenseeSerializer } from '@models/Licensee/Licensee.model';
+import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 
 export interface RequestParamsInterfaceLocal {
     compact?: string;
@@ -207,15 +207,8 @@ export class LicenseDataApi implements DataApiInterface {
      */
     public async getLicensee(compact: string, licenseeId: string) {
         const serverResponse: any = await this.api.get(`/v1/compacts/${compact}/providers/${licenseeId}`);
-        let licensee: Licensee | null = null;
 
-        if (serverResponse?.items?.length) {
-            licensee = LicenseeSerializer.fromServer(serverResponse.items[0]);
-        }
-
-        const response = { licensee };
-
-        return response;
+        return LicenseeSerializer.fromServer(serverResponse);
     }
 }
 
