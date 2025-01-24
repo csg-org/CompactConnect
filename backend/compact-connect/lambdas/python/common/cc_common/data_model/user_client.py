@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from secrets import token_hex
 
 from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError
@@ -288,7 +289,11 @@ class UserClient:
                 UserPoolId=self.config.user_pool_id,
                 Username=attributes['email'],
                 # Email will be the only attribute we actually manage in Cognito
-                UserAttributes=[{'Name': 'email', 'Value': attributes['email']}],
+                UserAttributes=[
+                    {'Name': 'email', 'Value': attributes['email']},
+                    {'Name': 'email_verified', 'Value': 'True'},
+                ],
+                DesiredDeliveryMediums=['EMAIL'],
             )
             user_id = get_sub_from_user_attributes(resp['User']['Attributes'])
         except ClientError as e:
@@ -343,3 +348,45 @@ class UserClient:
             if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
                 raise CCNotFoundException('User not found') from e
         return
+
+    def reinvite_user(self, *, email: str) -> None:
+        """
+        Reinvite a staff user by resetting their password and resending their invite email
+        :param str email: The user's email address
+        """
+        try:
+            # Check their current status
+            user_data = self.config.cognito_client.admin_get_user(
+                UserPoolId=self.config.user_pool_id,
+                Username=email,
+            )
+
+            # If they're in CONFIRMED state, we need to reset their password first
+            if user_data['UserStatus'] == 'CONFIRMED':
+                self.config.cognito_client.admin_set_user_password(
+                    UserPoolId=self.config.user_pool_id,
+                    Username=email,
+                    # We need to reset their password, but they will never use this password, so we
+                    # just need to set it to something random. Note that this value should not be referenced
+                    # outside of this function, as it is a real password and we want it to be cleaned up
+                    # by the garbage collector, as soon as possible.
+                    Password=token_hex(48),
+                    # Password='!@#$%^&*()asaAAAW;oiawfo;uihaohwa103',  # noqa: S106
+                    Permanent=False,
+                )
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'UserNotFoundException':
+                raise CCNotFoundException('User not found') from e
+            raise
+
+        # Now resend the invite
+        try:
+            self.config.cognito_client.admin_create_user(
+                UserPoolId=self.config.user_pool_id,
+                Username=email,
+                MessageAction='RESEND',
+            )
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'UserNotFoundException':
+                raise CCNotFoundException('User not found') from e
+            raise

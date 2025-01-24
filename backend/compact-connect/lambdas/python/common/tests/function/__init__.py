@@ -51,6 +51,15 @@ class TstFunction(TstLambdas):
             PoolName=user_pool_name,
             AliasAttributes=['email'],
             UsernameAttributes=['email'],
+            Policies={
+                'PasswordPolicy': {
+                    'MinimumLength': 12,
+                    'RequireUppercase': False,
+                    'RequireLowercase': False,
+                    'RequireNumbers': False,
+                    'RequireSymbols': False,
+                },
+            },
         )
         os.environ['USER_POOL_ID'] = user_pool_response['UserPool']['Id']
         self._user_pool_id = user_pool_response['UserPool']['Id']
@@ -256,7 +265,7 @@ class TstFunction(TstLambdas):
         user_data = self.config.cognito_client.admin_create_user(
             UserPoolId=self.config.user_pool_id,
             Username=email,
-            UserAttributes=[{'Name': 'email', 'Value': email}],
+            UserAttributes=[{'Name': 'email', 'Value': email}, {'Name': 'email_verified', 'Value': 'True'}],
             DesiredDeliveryMediums=['EMAIL'],
         )
         return get_sub_from_user_attributes(user_data['User']['Attributes'])

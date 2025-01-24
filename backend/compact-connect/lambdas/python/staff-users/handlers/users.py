@@ -161,3 +161,27 @@ def delete_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-arg
     # Cognito user.
     config.user_client.delete_user(compact=compact, user_id=user_id)
     return {'message': 'User deleted'}
+
+
+@api_handler
+@authorize_compact(action='admin')
+def reinvite_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+    compact = event['pathParameters']['compact']
+    user_id = event['pathParameters']['userId']
+
+    allowed_jurisdictions = get_allowed_jurisdictions(compact=compact, scopes=get_event_scopes(event))
+
+    # None means they are a compact admin - no jurisdiction restrictions at all
+    user = config.user_client.get_user_in_compact(compact=compact, user_id=user_id)
+    if allowed_jurisdictions is not None:
+        allowed_jurisdictions = set(allowed_jurisdictions)
+        user = config.user_client.get_user_in_compact(compact=compact, user_id=user_id)
+        user_jurisdictions = user['permissions']['jurisdictions'].keys()
+        common_jurisdictions = allowed_jurisdictions.intersection(user_jurisdictions)
+
+        # We won't show that the user even exists, if they have no common jurisdictions
+        if not common_jurisdictions:
+            raise CCNotFoundException('User not found')
+
+    config.user_client.reinvite_user(email=user['attributes']['email'])
+    return {'message': 'User reinvited'}
