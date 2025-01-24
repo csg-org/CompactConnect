@@ -13,11 +13,14 @@ from cc_common.utils import get_sub_from_user_attributes
 
 
 class UserStatus(StrEnum):
-    # These top three should not happen for our user clients
+    # These top four should not happen for our user clients
+    ARCHIVED = 'ARCHIVED'  # Not explained in Cognito documentation
     UNCONFIRMED = 'UNCONFIRMED'  # User has been created but not confirmed.
     EXTERNAL_PROVIDER = 'EXTERNAL_PROVIDER'  # User signed in with a third-party IdP.
     UNKNOWN = 'UNKNOWN'  # User status is unknown.
-    CONFIRMED = 'CONFIRMED'  # User has been confirmed
+
+    # User has been confirmed
+    CONFIRMED = 'CONFIRMED'
     # User is confirmed, but the user must request a code and reset their password before they can sign in.
     RESET_REQUIRED = 'RESET_REQUIRED'
     # The user is confirmed and the user can sign in using a temporary password, but on first sign-in, the user must
@@ -376,7 +379,7 @@ class UserClient:
             )
 
             # If they're in CONFIRMED state, we need to reset their password first
-            if user_data['UserStatus'] == UserStatus.CONFIRMED:
+            if user_data['UserStatus'] in (UserStatus.CONFIRMED, UserStatus.RESET_REQUIRED):
                 self.config.cognito_client.admin_set_user_password(
                     UserPoolId=self.config.user_pool_id,
                     Username=email,
@@ -388,7 +391,7 @@ class UserClient:
                     Permanent=False,
                 )
             # If the user is in any unexpected state, we'll raise an exception
-            elif user_data['UserStatus'] not in (UserStatus.RESET_REQUIRED, UserStatus.FORCE_CHANGE_PASSWORD):
+            elif user_data['UserStatus'] != UserStatus.FORCE_CHANGE_PASSWORD:
                 logger.error(
                     'User is in unexpected state',
                     user_id=get_sub_from_user_attributes(user_data['UserAttributes']),
