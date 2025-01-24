@@ -379,15 +379,12 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     async fetchAttestations(): Promise<void> {
-        console.log('fetch');
+        if (this.currentCompactType) {
+            console.log('Object.keys(this.attestationIds[this.currentCompactType])', this.attestationIds[this.currentCompactType]);
 
-        await Promise.all(Object.keys(attestationIds[this.currentCompactType]).map(async (environment) => {
-            const x = await dataApi.getAttestation(this.currentCompactType, 'not-under-investigation-attestation');
-            console.log('here', x);
-        }));
-        // const x = await dataApi.getAttestation(this.currentCompactType, 'not-under-investigation-attestation');
-
-        console.log('here', x);
+            this.attestationRecords = await Promise.all((this.attestationIds[this.currentCompactType] as Array<any>)
+                .map(async (attesationId) => (dataApi.getAttestation(this.currentCompactType, attesationId))));
+        }
     }
 
     @Watch('alreadyObtainedPrivilegeStates.length') reInitForm() {
