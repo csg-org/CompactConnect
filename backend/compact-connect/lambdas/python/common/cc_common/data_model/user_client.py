@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from enum import StrEnum
 from secrets import token_hex
 
 from boto3.dynamodb.conditions import Attr, Key
@@ -7,8 +8,21 @@ from botocore.exceptions import ClientError
 from cc_common.config import _Config, logger
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema.user import CompactPermissionsRecordSchema, UserAttributesSchema, UserRecordSchema
-from cc_common.exceptions import CCInvalidRequestException, CCNotFoundException
+from cc_common.exceptions import CCInternalException, CCInvalidRequestException, CCNotFoundException
 from cc_common.utils import get_sub_from_user_attributes
+
+
+class UserStatus(StrEnum):
+    # These top three should not happen for our user clients
+    UNCONFIRMED = 'UNCONFIRMED'  # User has been created but not confirmed.
+    EXTERNAL_PROVIDER = 'EXTERNAL_PROVIDER'  # User signed in with a third-party IdP.
+    UNKNOWN = 'UNKNOWN'  # User status is unknown.
+    CONFIRMED = 'CONFIRMED'  # User has been confirmed
+    # User is confirmed, but the user must request a code and reset their password before they can sign in.
+    RESET_REQUIRED = 'RESET_REQUIRED'
+    # The user is confirmed and the user can sign in using a temporary password, but on first sign-in, the user must
+    # change their password to a new value before doing anything else.
+    FORCE_CHANGE_PASSWORD = 'FORCE_CHANGE_PASSWORD'  # noqa: S105
 
 
 class UserClient:
@@ -362,18 +376,27 @@ class UserClient:
             )
 
             # If they're in CONFIRMED state, we need to reset their password first
-            if user_data['UserStatus'] == 'CONFIRMED':
+            if user_data['UserStatus'] == UserStatus.CONFIRMED:
                 self.config.cognito_client.admin_set_user_password(
                     UserPoolId=self.config.user_pool_id,
                     Username=email,
-                    # We need to reset their password, but they will never use this password, so we
+                    # We need to reset their password, but they will never use it, so we
                     # just need to set it to something random. Note that this value should not be referenced
                     # outside of this function, as it is a real password and we want it to be cleaned up
                     # by the garbage collector, as soon as possible.
                     Password=token_hex(48),
-                    # Password='!@#$%^&*()asaAAAW;oiawfo;uihaohwa103',  # noqa: S106
                     Permanent=False,
                 )
+            # If the user is in any unexpected state, we'll raise an exception
+            elif user_data['UserStatus'] not in (UserStatus.RESET_REQUIRED, UserStatus.FORCE_CHANGE_PASSWORD):
+                logger.error(
+                    'User is in unexpected state',
+                    user_id=get_sub_from_user_attributes(user_data['UserAttributes']),
+                    user_status=user_data['UserStatus'],
+                    email=email,
+                    user_data=user_data,
+                )
+                raise CCInternalException(f'User is in unexpected state: {user_data["UserStatus"]}')
         except ClientError as e:
             if e.response['Error']['Code'] == 'UserNotFoundException':
                 raise CCNotFoundException('User not found') from e
