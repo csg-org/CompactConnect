@@ -101,7 +101,8 @@
         >
             <template v-slot:content>
                 <div class="attestation-modal-content">
-                    {{jurisprudenceModalContent}}
+                    <div v-html="scopeModalContent"/>
+                    <!-- {{scopeModalContent}} -->
                     <form @submit.prevent="submitScopeUnderstanding">
                         <div class="action-button-row">
                             <InputButton

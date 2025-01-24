@@ -25,6 +25,7 @@ import { License, LicenseStatus } from '@/models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
+import { PrivilegeAttestation } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import moment from 'moment';
 
 @Component({
@@ -43,6 +44,8 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     @Prop({ required: true }) selectedStatePurchaseData?: PrivilegePurchaseOption;
     @Prop({ default: new FormInput({ value: false }) }) jurisprudenceCheckInput?: FormInput;
     @Prop({ default: new FormInput({ value: false }) }) scopeOfPracticeCheckInput?: FormInput;
+    @Prop({ required: true }) scopeAttestation?: PrivilegeAttestation;
+    @Prop({ required: true }) jurisprudenceAttestation?: PrivilegeAttestation;
 
     //
     // Lifecycle
@@ -120,7 +123,15 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     }
 
     get jurisprudenceModalContent(): string {
-        return this.$t('licensing.jurisprudenceUnderstandParagraph');
+        return this.jurisprudenceAttestation?.text || '';
+    }
+
+    get scopeModalContent(): string {
+        return this.scopeAttestation?.text || '';
+    }
+
+    get scopeModalContentDisplay(): string {
+        return '';
     }
 
     get iUnderstandText(): string {
