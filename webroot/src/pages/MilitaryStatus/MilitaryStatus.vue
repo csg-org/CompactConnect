@@ -34,7 +34,7 @@
                 <div class="chunk-title">{{previouslyUploadedTitle}}</div>
                 <div class="prev-doc-table">
                     <ListContainer
-                        :listId="listId"
+                        listId="military-affiliations"
                         :listData="this.affiliations"
                         :listSize="this.affiliations.length"
                         :sortOptions="sortOptions"

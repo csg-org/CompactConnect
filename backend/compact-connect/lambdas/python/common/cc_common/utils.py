@@ -1,16 +1,18 @@
 import json
+from collections import UserDict
 from collections.abc import Callable
 from datetime import date
 from decimal import Decimal
 from functools import wraps
 from json import JSONEncoder
 from re import match
+from typing import Any
 from uuid import UUID
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 
-from cc_common.config import logger, metrics
+from cc_common.config import config, logger, metrics
 from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
 from cc_common.exceptions import (
     CCAccessDeniedException,
@@ -43,6 +45,33 @@ class ResponseEncoder(JSONEncoder):
         return super().default(o)
 
 
+class CaseInsensitiveDict(UserDict):
+    """
+    Dictionary that enforces case-insensitive keys
+
+    To accommodate HTTP2 vs HTTP1.1 behavior RE header capitalization
+    https://www.rfc-editor.org/rfc/rfc7540#section-8.1.2
+    """
+    def __init__(self, in_dict: dict[str, Any], /):
+        if in_dict:
+            # Force all keys to lowercase
+            super().__init__({k.lower(): v for k, v in in_dict.items()})
+        else:
+            super().__init__({})
+
+    def pop(self, key: str, default = None):
+        return super().pop(key.lower(), default)
+
+    def __setitem__(self, key: str, value):
+        super().__setitem__(key.lower(), value)
+
+    def __getitem__(self, key: str):
+        return super().__getitem__(key.lower())
+
+    def get(self, key: str, default = None):
+        return super().get(key.lower(), default)
+
+
 def api_handler(fn: Callable):
     """Decorator to wrap an api gateway event handler in standard logging, HTTPError handling.
 
@@ -56,12 +85,22 @@ def api_handler(fn: Callable):
     @logger.inject_lambda_context
     def caught_handler(event, context: LambdaContext):
         # We have to jump through extra hoops to handle the case where APIGW sets headers to null
-        (event.get('headers') or {}).pop('Authorization', None)
+        headers = CaseInsensitiveDict(event.get('headers')) or {}
+        headers.pop('Authorization', None)
         (event.get('multiValueHeaders') or {}).pop('Authorization', None)
+
+        # Determine the appropriate CORS origin header value
+        origin = headers.get('Origin')
+        logger.warning('Headers', headers=headers)
+        if origin in config.allowed_origins:
+            cors_origin = origin
+        else:
+            cors_origin = config.allowed_origins[0]
 
         logger.info(
             'Incoming request',
             method=event['httpMethod'],
+            origin=origin,
             path=event['requestContext']['resourcePath'],
             identity={'user': event['requestContext'].get('authorizer', {}).get('claims', {}).get('sub')},
             query_params=event['queryStringParameters'],
@@ -71,35 +110,35 @@ def api_handler(fn: Callable):
 
         try:
             return {
-                'headers': {'Access-Control-Allow-Origin': '*'},
+                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                 'statusCode': 200,
                 'body': json.dumps(fn(event, context), cls=ResponseEncoder),
             }
         except CCUnauthorizedException as e:
             logger.info('Unauthorized request', exc_info=e)
             return {
-                'headers': {'Access-Control-Allow-Origin': '*'},
+                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                 'statusCode': 401,
                 'body': json.dumps({'message': 'Unauthorized'}),
             }
         except CCAccessDeniedException as e:
             logger.info('Forbidden request', exc_info=e)
             return {
-                'headers': {'Access-Control-Allow-Origin': '*'},
+                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                 'statusCode': 403,
                 'body': json.dumps({'message': 'Access denied'}),
             }
         except CCNotFoundException as e:
             logger.info('Resource not found', exc_info=e)
             return {
-                'headers': {'Access-Control-Allow-Origin': '*'},
+                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                 'statusCode': 404,
                 'body': json.dumps({'message': f'{e.message}'}),
             }
         except CCInvalidRequestException as e:
             logger.info('Invalid request', exc_info=e)
             return {
-                'headers': {'Access-Control-Allow-Origin': '*'},
+                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                 'statusCode': 400,
                 'body': json.dumps({'message': e.message}),
             }

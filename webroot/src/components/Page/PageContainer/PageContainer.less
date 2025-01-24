@@ -13,6 +13,12 @@
     padding-top: @appHeaderHeight;
     background-color: @ambientGrey;
 
+    &.no-top-pad {
+        @media @tabletWidth {
+            padding-top: unset;
+        }
+    }
+
     header {
         position: fixed;
         top: 0;
