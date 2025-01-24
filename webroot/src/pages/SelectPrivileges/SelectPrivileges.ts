@@ -18,7 +18,9 @@ import { License, LicenseStatus } from '@/models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
+import { PrivilegeAttestation } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import { State } from '@/models/State/State.model';
+import { dataApi } from '@network/data.api';
 
 @Component({
     name: 'SelectPrivileges',
@@ -34,12 +36,29 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     // Data
     //
     jurisprudencePendingConfirmation = '';
+    attestationIds = {
+        aslp: [
+            'jurisprudence-confirmation',
+            'scope-of-practice-attestation'
+        ],
+        coun: [
+            'jurisprudence-confirmation',
+            'scope-of-practice-attestation'
+        ],
+        octp: [
+            'jurisprudence-confirmation',
+            'scope-of-practice-attestation'
+        ],
+    }
+    attestationRecords: Array<PrivilegeAttestation> = []; // eslint-disable-line lines-between-class-members
+    areFormInputsSet = false;
 
     //
     // Lifecycle
     //
     async created() {
         await this.$store.dispatch('user/getPrivilegePurchaseInformationRequest');
+        await this.fetchAttestations();
 
         if (this.alreadyObtainedPrivilegeStates?.length) {
             this.initFormInputs();
@@ -241,7 +260,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     get scopeOfPracticeText(): string {
-        return 'Scope of practice';
+        return this.$t('licensing.scopeAttestLabel');
     }
 
     //
@@ -316,16 +335,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
         delete this.formData.scopeOfPracticeConfirmations[stateAbbrev];
     }
 
-    // submitJurisprudenceConfimation() {
-    //     const { jurisprudencePendingConfirmation } = this;
-
-    //     if (jurisprudencePendingConfirmation) {
-    //         this.formData.jurisprudenceConfirmations[jurisprudencePendingConfirmation].value = true;
-    //         this.$store.dispatch('setModalIsOpen', false);
-    //         this.jurisprudencePendingConfirmation = '';
-    //     }
-    // }
-
     toggleStateSelected(stateFormInput) {
         const newStateFormInputValue = !stateFormInput.value;
         const stateAbbrev = stateFormInput.id;
@@ -367,6 +376,18 @@ export default class SelectPrivileges extends mixins(MixinForm) {
             (purchaseData.jurisdiction?.abbrev === stateAbbrev)) || null;
 
         return statePurchaseData;
+    }
+
+    async fetchAttestations(): Promise<void> {
+        console.log('fetch');
+
+        await Promise.all(Object.keys(attestationIds[this.currentCompactType]).map(async (environment) => {
+            const x = await dataApi.getAttestation(this.currentCompactType, 'not-under-investigation-attestation');
+            console.log('here', x);
+        }));
+        // const x = await dataApi.getAttestation(this.currentCompactType, 'not-under-investigation-attestation');
+
+        console.log('here', x);
     }
 
     @Watch('alreadyObtainedPrivilegeStates.length') reInitForm() {
