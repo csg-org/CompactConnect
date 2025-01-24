@@ -4,6 +4,8 @@ import os
 
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodResponse, Resource
+from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, MathExpression, Metric, Stats, TreatMissingData
+from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_secretsmanager import Secret
 from cdk_nag import NagSuppressions
@@ -220,6 +222,50 @@ class ProviderUsers:
         persistent_stack.provider_users.grant(self.provider_registration_handler, 'cognito-idp:AdminCreateUser')
         persistent_stack.rate_limiting_table.grant_read_write_data(self.provider_registration_handler)
         self.api.log_groups.append(self.provider_registration_handler.log_group)
+
+        # Create metrics for registration attempts and successes
+        registration_successes = Metric(
+            namespace="compact-connect",
+            metric_name="registration-success",
+            statistic=Stats.SAMPLE_COUNT,
+            period=Duration.minutes(5)
+        )
+
+        registration_attempts = Metric(
+            namespace="compact-connect",
+            metric_name="registration-success",
+            statistic=Stats.SUM,
+            period=Duration.minutes(5)
+        )
+
+        # Calculate registration failures using math expression
+        registration_failures = MathExpression(
+            expression="m1 - m2",
+            label="RegistrationFailures",
+            using_metrics={
+                "m1": registration_attempts,
+                "m2": registration_successes
+            },
+            period=Duration.minutes(5)
+        )
+
+        # Create an alarm for high registration failure rate
+        registration_failures_alarm = Alarm(
+            self.provider_registration_handler,
+            "RegistrationFailuresAlarm",
+            metric=registration_failures,
+            threshold=30,  # Alert if we have more than 30 failures in 5 minutes
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=(
+                "This alarm monitors the rate of registration failures. "
+                "It triggers when there are more than 30 failures within a 5-minute period. "
+                "A failure is counted when a registration attempt does not result in a user account being created."
+            )
+        )
+        # Add the alarm to the SNS topic
+        registration_failures_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
 
         NagSuppressions.add_resource_suppressions_by_path(
             stack,

@@ -139,7 +139,7 @@ def api_handler(fn: Callable):
         except CCRateLimitingException as e:
             logger.info('Rate limiting request', exc_info=e)
             return {
-                'headers': {'Access-Control-Allow-Origin': '*'},
+                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                 'statusCode': 429,
                 'body': json.dumps({'message': e.message}),
             }
