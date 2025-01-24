@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-# Quick script to generate some mock data for test environments
+# Quick script to generate some mock data in a csv file for test environments
+# The csv file must then be uploaded into the system using the bulk upload process.
 #
 # Run from 'backend/compact-connect' like:
-# bin/generate_mock_data.py --count 100 --compact octp --jurisdiction ne
+# bin/generate_mock_license_csv_upload_file.py --count 100 --compact octp --jurisdiction ne
 import json
 import os
 import sys

@@ -34,7 +34,7 @@
                 <div class="chunk-title">{{previouslyUploadedTitle}}</div>
                 <div class="prev-doc-table">
                     <ListContainer
-                        :listId="listId"
+                        listId="military-affiliations"
                         :listData="this.affiliations"
                         :listSize="this.affiliations.length"
                         :sortOptions="sortOptions"
@@ -99,6 +99,7 @@
                         <div class="action-button-row">
                             <InputButton
                                 id="no-back-button"
+                                ref="noBackButton"
                                 class="no-back-button"
                                 :label="backText"
                                 :aria-label="backText"

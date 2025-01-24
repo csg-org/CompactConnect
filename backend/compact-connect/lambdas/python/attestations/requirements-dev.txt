@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/lambdas/python/attestations/requirements-dev.in
 #
-boto3==1.35.92
+boto3==1.35.99
     # via moto
-botocore==1.35.92
+botocore==1.35.99
     # via
     #   boto3
     #   moto
@@ -52,7 +52,7 @@ requests==2.32.3
     #   docker
     #   moto
     #   responses
-responses==0.25.3
+responses==0.25.6
     # via moto
 s3transfer==0.10.4
     # via boto3
