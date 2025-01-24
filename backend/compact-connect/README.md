@@ -132,8 +132,31 @@ its environment:
    The key under `environments` must match the value you put under `environment_name`.
 6) Configure your aws cli to authenticate against your own account. There are several ways to do this based on the
    type of authentication you use to login to your account. See the [AWS CLI Configuration Guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html).
-7) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account.
-8) Run `cdk deploy 'Sandbox/*'` to get the initial stack resources deployed.
+7) Google reCAPTCHA configuration: The practitioner registration endpoint uses Google reCAPTCHA to prevent abuse. In order to deploy the environment, you must complete the following steps:
+  1. Visit https://www.google.com/recaptcha/
+  2. Go to "v3 Admin Console"
+     a. If needed, enter your Google account credentials
+  3. Create a site
+    a. Recaptcha type is v3 (score based)
+    b. Domain will be the frontend browser domain for the environment
+    c. Google Cloud Platform may require a project name
+    d. Submit
+  4. Open the Settings for the new site
+    a. The Site Key (Public) will need to be set in the `VUE_APP_RECAPTCHA_KEY` environment variable in your `.env` file of the webroot folder.
+    b. The Secret Key (Private) will need to be manually stored in the AWS account in secrets manager, using the following secret name:
+      `compact-connect/env/{value of 'environment_name' in cdk.context.json}/recaptcha/token`
+    The value of the secret key should be the in the following format:
+    ```
+    {
+      "token": "<value of private Secret Key from Google reCAPTCHA>"
+    }
+    ```
+    you can run the following aws cli command to create the secret:
+    ```
+    aws secretsmanager create-secret --name compact-connect/env/{value of 'environment_name' in cdk.context.json}/recaptcha/token --secret-string '{"token": "<value of private Secret Key from Google reCAPTCHA>"}'
+    ```
+8) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account.
+9) Run `cdk deploy 'Sandbox/*'` to get the initial stack resources deployed.
 
 ### Subsequent sandbox deploys:
 For any future deploys, everything is set up so a simple `cdk deploy 'Sandbox/*'` should update all your infrastructure
@@ -159,6 +182,29 @@ authentication is working as expected.
 The production environment requires a few steps to fully set up before deploys can be automated. Refer to the
 [README.md](../multi-account/README.md) for details on setting up a full multi-account architecture environment. Once
 that is done, perform the following steps to deploy the CI/CD pipeline into the appropriate AWS account:
+- Google reCAPTCHA configuration: The practictioner registration endpoint uses Google reCAPTCHA to prevent abuse. In order to deploy the environment, you must complete the following steps for each environment you will be deploying to:
+  - Visit https://www.google.com/recaptcha/
+  - Go to "v3 Admin Console"
+    a. If needed, enter your Google account credentials
+  - Create a site
+    a. Recaptcha type is v3 (score based)
+    b. Domain will be the frontend browser domain for the environment
+    c. Google Cloud Platform may require a project name
+    d. Submit
+  - Open the Settings for the new site
+    a. The Site Key (Public) will need to be set in the `VUE_APP_RECAPTCHA_KEY` environment variable in each respective `webroot-deploy-<environment>.yml` Github Actions workflow under the `.github/workflows` folder.
+    b. The Secret Key (Private) will need to be manually stored in the respective AWS account in secrets manager for the environment, using the following secret name:
+      `compact-connect/env/{value of 'environment_name'}/recaptcha/token`
+    The value of the secret key should be the in the following format:
+    ```
+    {
+      "token": "<value of private Secret Key from Google reCAPTCHA>"
+    }
+    ```
+    you can run the following aws cli command to create the secret:
+    ```
+    aws secretsmanager create-secret --name compact-connect/env/{value of 'environment_name'}/recaptcha/token --secret-string '{"token": "<value of private Secret Key from Google reCAPTCHA>"}'
+    ```
 - Have someone with suitable permissions in the GitHub organization that hosts this code navigate to the AWS Console
   for the Deploy account, go to the
   [AWS CodeStar Connections](https://us-east-1.console.aws.amazon.com/codesuite/settings/connections) page and create a
