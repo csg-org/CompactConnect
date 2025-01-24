@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-01-22T18:15:37Z"
+    "version": "2025-01-23T06:44:21Z"
   },
   "servers": [
     {
@@ -581,6 +581,59 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SandboLicenq0WHjwuOL0r5"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+              "aslp/admin",
+              "octp/admin",
+              "coun/admin"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/compacts/{compact}/staff-users/{userId}/reinvite": {
+      "post": {
+        "parameters": [
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "404 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
                 }
               }
             }
