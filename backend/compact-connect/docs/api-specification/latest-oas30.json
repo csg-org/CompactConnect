@@ -528,60 +528,6 @@
           }
         ]
       },
-<<<<<<< HEAD
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "userId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "404": {
-            "description": "404 response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
-                }
-              }
-            }
-          },
-          "200": {
-            "description": "200 response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
-                }
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
-              "aslp/admin",
-              "octp/admin",
-              "coun/admin"
-            ]
-          }
-        ]
-      },
-=======
->>>>>>> 727340ea (Remove OPTIONS method noise from spec doc)
       "patch": {
         "parameters": [
           {
