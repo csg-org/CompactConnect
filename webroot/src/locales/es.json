@@ -510,6 +510,11 @@
         "noDiscipline": "No disciplina",
         "twoHomeStateErrorMessage": "Dos estados lo tienen incluido como residente. Actualice su información con esos estados para reflejar su estado de residencia actual.",
         "state": "Estado",
+        "attestations": "Certificaciones",
+        "investigations": "Investigaciones",
+        "discipline": "Disciplina",
+        "provisionOfInformation": "Suministro de información veraz",
+        "militaryAffiliation": "Afiliación militar",
         "statusOptions": {
             "active": "Activo",
             "inactive": "Inactivo"

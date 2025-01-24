@@ -10,12 +10,46 @@
     align-items: center;
     width: 100%;
 
-    .privilege-form {
-        width: 40rem;
+    .privilege-purchase-attestation-form {
+        width: 95%;
+        max-width: 80rem;
 
-        .attestation-text {
+        .privilege-purchase-attestation-form-container {
+            width: 100%;
             padding: 4rem;
-            font-size: @fontSizeLarge;
+            border-radius: 12px;
+            background-color: @white;
+        }
+
+        .form-title {
+            margin-bottom: 2.4rem;
+        }
+
+        .form-section-title {
+            font-weight: @fontWeightBold;
+            font-size: @h3FontSize;
+        }
+
+        .form-section-gap {
+            margin-top: 2.4rem;
+        }
+
+        &:deep(.checkbox-container) {
+            .checkbox-wrapper {
+                padding-left: 30px;
+            }
+
+            .input-label {
+                font-weight: @fontWeightLight;
+            }
+
+            input[type="checkbox"]:checked + .checkbox-replacement::after {
+                background-color: @primaryColor;
+            }
+        }
+
+        &:deep(.radio-group-container .input-label) {
+            font-size: @h3FontSize;
         }
 
         .button-row {
@@ -56,5 +90,9 @@
                 }
             }
         }
+    }
+
+    .mock-populate {
+        display: inline-block;
     }
 }

@@ -6,21 +6,34 @@
 //
 
 import { Component, mixins, Watch } from 'vue-facing-decorator';
-import { reactive } from 'vue';
+import { reactive, computed, ComputedRef } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
+import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
+import InputRadioGroup from '@components/Forms/InputRadioGroup/InputRadioGroup.vue';
+import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { PrivilegeAttestation } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import { dataApi } from '@network/data.api';
-// import Joi from 'joi';
+import Joi from 'joi';
+
+interface AttestationOption {
+    value: string;
+    name: string | ComputedRef<string>;
+}
 
 @Component({
     name: 'PrivilegePurchaseAttestation',
     components: {
+        LoadingSpinner,
+        MockPopulate,
+        InputRadioGroup,
+        InputCheckbox,
         InputButton,
-        InputSubmit
+        InputSubmit,
     }
 })
 export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
@@ -60,7 +73,6 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
     // Lifecycle
     //
     async created() {
-        // this.$store.dispatch('user/setAttestationsAccepted', true);
         if (this.currentCompact) {
             await this.initFormInputs();
         }
@@ -81,8 +93,26 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
         return this.currentCompact?.type || null;
     }
 
+    get investigationsOptions(): Array<AttestationOption> {
+        const attestationIds: Array<string | null | undefined> = [
+            'not-under-investigation-attestation',
+            'under-investigation-attestation',
+        ];
+        const attestations = this.attestationRecords.filter((record) => attestationIds.includes(record.id));
+        const options: Array<AttestationOption> = attestations.map((attestation) => ({
+            value: attestation.id || '',
+            name: attestation.text || '',
+        }));
+
+        return options;
+    }
+
     get submitLabel(): string {
         return this.$t('payment.continueToPurchase');
+    }
+
+    get isMockPopulateEnabled(): boolean {
+        return Boolean(this.$envConfig.isDevelopment);
     }
 
     //
@@ -90,21 +120,64 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
     //
     async initFormInputs(): Promise<void> {
         await this.fetchAttestations();
+
         this.formData = reactive({
+            investigations: new FormInput({
+                id: 'investigations',
+                name: 'investigations',
+                label: computed(() => this.$t('licensing.investigations')),
+                validation: Joi.string().required().messages(this.joiMessages.string),
+                valueOptions: this.investigationsOptions,
+            }),
+            disciplineCurrent: new FormInput({
+                id: 'discipline-current',
+                name: 'discipline-current',
+                label: this.getAttestation('discipline-no-current-encumbrance-attestation')?.text || '',
+                validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
+                value: false,
+            }),
+            disciplinePrior: new FormInput({
+                id: 'discipline-prior',
+                name: 'discipline-prior',
+                label: this.getAttestation('discipline-no-prior-encumbrance-attestation')?.text || '',
+                validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
+                value: false,
+            }),
+            trueInformation: new FormInput({
+                id: 'true-information',
+                name: 'true-information',
+                label: this.getAttestation('provision-of-true-information-attestation')?.text || '',
+                validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
+                value: false,
+            }),
+            militaryAffiliation: new FormInput({
+                id: 'military-affiliation',
+                name: 'military-affiliation',
+                label: this.getAttestation('military-affiliation-confirmation-attestation')?.text || '',
+                validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
+                value: false,
+            }),
             submit: new FormInput({
                 isSubmitInput: true,
                 id: 'submit',
             }),
         });
+        this.watchFormInputs(); // Important if you want automated form validation
 
         this.areFormInputsSet = true;
     }
 
     async fetchAttestations(): Promise<void> {
-        console.log('fetch');
-        const x = await dataApi.getAttestation('aslp', 'not-under-investigation-attestation');
+        const compact: string = this.currentCompactType || '';
+        const attestationIds = this.attestationIds[compact] || [];
+        const attestationRecords = await Promise.all(attestationIds.map((attestationId) =>
+            dataApi.getAttestation(compact, attestationId)));
 
-        console.log(x);
+        this.attestationRecords = attestationRecords;
+    }
+
+    getAttestation(attestationId: string | null | undefined): PrivilegeAttestation | null {
+        return this.attestationRecords.find((attestationRecord) => attestationRecord.id === attestationId) || null;
     }
 
     handleCancelClicked() {
@@ -126,12 +199,41 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
     }
 
     handleSubmit() {
-        if (this.currentCompactType) {
-            this.$router.push({
-                name: 'FinalizePrivilegePurchase',
-                params: { compact: this.currentCompactType }
-            });
+        this.validateAll({ asTouched: true });
+
+        if (this.isFormValid) {
+            this.startFormLoading();
+
+            // Start @TODO: Wire up to form workflow in #302
+            const attestations = this.attestationRecords.map((attestation) => ({
+                attestationId: attestation.id,
+                version: attestation.version,
+            }));
+
+            this.$store.dispatch('user/setAttestations', attestations);
+
+            if (!this.isFormError) {
+                this.isFormSuccessful = true;
+                this.$store.dispatch('user/setAttestationsAccepted', true);
+                this.endFormLoading();
+                this.$router.push({
+                    name: 'FinalizePrivilegePurchase',
+                    params: { compact: this.currentCompactType }
+                });
+            }
+            // End @TODO: Wire up to form workflow in #302
+
+            this.endFormLoading();
         }
+    }
+
+    async mockPopulate(): Promise<void> {
+        this.formData.investigations.value = 'not-under-investigation-attestation';
+        this.formData.disciplineCurrent.value = true;
+        this.formData.disciplinePrior.value = true;
+        this.formData.trueInformation.value = true;
+        this.formData.militaryAffiliation.value = true;
+        this.validateAll({ asTouched: true });
     }
 
     //
