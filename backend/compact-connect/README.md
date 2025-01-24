@@ -138,7 +138,7 @@ its environment:
      a. If needed, enter your Google account credentials
   3. Create a site
     a. Recaptcha type is v3 (score based)
-    b. Domain will be the frontend browser domain for the environment
+    b. Domain will be the frontend browser domain for the environment ('localhost' for local development)
     c. Google Cloud Platform may require a project name
     d. Submit
   4. Open the Settings for the new site
