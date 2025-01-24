@@ -289,8 +289,6 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     }
 
     get jurisprudenceAttestation(): PrivilegeAttestation {
-        console.log('attestationRecords', this.attestationRecords);
-
         return this.attestationRecords.find((record) => ((record as any)?.id === 'jurisprudence-confirmation')) || new PrivilegeAttestation();
     }
 
