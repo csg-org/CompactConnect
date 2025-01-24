@@ -902,6 +902,163 @@
       },
       "type": "array"
     },
+    "homeStateSelection": {
+      "properties": {
+        "type": {
+          "enum": [
+            "homeJurisdictionSelection"
+          ],
+          "type": "string"
+        },
+        "compact": {
+          "enum": [
+            "aslp",
+            "octp",
+            "coun"
+          ],
+          "type": "string"
+        },
+        "providerId": {
+          "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+          "type": "string"
+        },
+        "jurisdiction": {
+          "enum": [
+            "al",
+            "ak",
+            "az",
+            "ar",
+            "ca",
+            "co",
+            "ct",
+            "de",
+            "dc",
+            "fl",
+            "ga",
+            "hi",
+            "id",
+            "il",
+            "in",
+            "ia",
+            "ks",
+            "ky",
+            "la",
+            "me",
+            "md",
+            "ma",
+            "mi",
+            "mn",
+            "ms",
+            "mo",
+            "mt",
+            "ne",
+            "nv",
+            "nh",
+            "nj",
+            "nm",
+            "ny",
+            "nc",
+            "nd",
+            "oh",
+            "ok",
+            "or",
+            "pa",
+            "pr",
+            "ri",
+            "sc",
+            "sd",
+            "tn",
+            "tx",
+            "ut",
+            "vt",
+            "va",
+            "vi",
+            "wa",
+            "wv",
+            "wi",
+            "wy"
+          ],
+          "type": "string"
+        },
+        "dateOfSelection": {
+          "format": "date",
+          "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+          "type": "string"
+        },
+        "dateOfUpdate": {
+          "format": "date",
+          "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "militaryAffiliations": {
+      "items": {
+        "properties": {
+          "type": {
+            "enum": [
+              "militaryAffiliation"
+            ],
+            "type": "string"
+          },
+          "dateOfUpdate": {
+            "format": "date",
+            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "type": "string"
+          },
+          "providerId": {
+            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+            "type": "string"
+          },
+          "compact": {
+            "enum": [
+              "aslp",
+              "octp",
+              "coun"
+            ],
+            "type": "string"
+          },
+          "fileNames": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "affiliationType": {
+            "enum": [
+              "militaryMember",
+              "militaryMemberSpouse"
+            ],
+            "type": "string"
+          },
+          "dateOfUpload": {
+            "format": "date",
+            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "dateOfUpdate",
+          "providerId",
+          "compact",
+          "fileNames",
+          "affiliationType",
+          "dateOfUpload",
+          "status"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
     "type": {
       "enum": [
         "provider"
@@ -1157,7 +1314,9 @@
     "dateOfExpiration",
     "birthMonthDay",
     "licenses",
-    "privileges"
+    "privileges",
+    "militaryAffiliations",
+    "homeStateSelection"
   ],
   "type": "object",
   "$schema": "http://json-schema.org/draft-04/schema#"

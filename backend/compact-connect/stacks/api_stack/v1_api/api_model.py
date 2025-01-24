@@ -835,6 +835,8 @@ class ApiModel:
                 'birthMonthDay',
                 'licenses',
                 'privileges',
+                'militaryAffiliations',
+                'homeStateSelection',
             ],
             properties={
                 'licenses': JsonSchema(
@@ -930,6 +932,49 @@ class ApiModel:
                                 ),
                             ),
                             **self._common_privilege_properties,
+                        },
+                    ),
+                ),
+                'homeStateSelection': JsonSchema(
+                    type=JsonSchemaType.OBJECT,
+                    properties={
+                        'type': JsonSchema(type=JsonSchemaType.STRING, enum=['homeJurisdictionSelection']),
+                        'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                        'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
+                        'jurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
+                        'dateOfSelection': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                        'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                    },
+                ),
+                'militaryAffiliations': JsonSchema(
+                    type=JsonSchemaType.ARRAY,
+                    items=JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        required=[
+                            'type',
+                            'dateOfUpdate',
+                            'providerId',
+                            'compact',
+                            'fileNames',
+                            'affiliationType',
+                            'dateOfUpload',
+                            'status',
+                        ],
+                        properties={
+                            'type': JsonSchema(type=JsonSchemaType.STRING, enum=['militaryAffiliation']),
+                            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                            'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
+                            'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                            'fileNames': JsonSchema(
+                                type=JsonSchemaType.ARRAY,
+                                items=JsonSchema(type=JsonSchemaType.STRING),
+                            ),
+                            'affiliationType': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                enum=['militaryMember', 'militaryMemberSpouse'],
+                            ),
+                            'dateOfUpload': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                            'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                         },
                     ),
                 ),
@@ -1080,6 +1125,7 @@ class ApiModel:
                     'dateCreated': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                     'text': JsonSchema(type=JsonSchemaType.STRING),
                     'required': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                    'locale': JsonSchema(type=JsonSchemaType.STRING),
                 },
             ),
         )
