@@ -941,9 +941,15 @@ class ApiModel:
                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['homeJurisdictionSelection']),
                         'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
                         'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
-                        'jurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
-                        'dateOfSelection': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-                        'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                        'jurisdiction': JsonSchema(
+                            type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
+                        ),
+                        'dateOfSelection': JsonSchema(
+                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                        ),
+                        'dateOfUpdate': JsonSchema(
+                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                        ),
                     },
                 ),
                 'militaryAffiliations': JsonSchema(
@@ -962,7 +968,9 @@ class ApiModel:
                         ],
                         properties={
                             'type': JsonSchema(type=JsonSchemaType.STRING, enum=['militaryAffiliation']),
-                            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                            'dateOfUpdate': JsonSchema(
+                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                            ),
                             'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
                             'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
                             'fileNames': JsonSchema(
@@ -973,7 +981,9 @@ class ApiModel:
                                 type=JsonSchemaType.STRING,
                                 enum=['militaryMember', 'militaryMemberSpouse'],
                             ),
-                            'dateOfUpload': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                            'dateOfUpload': JsonSchema(
+                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                            ),
                             'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
                         },
                     ),
