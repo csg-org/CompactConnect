@@ -211,6 +211,13 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
             if (this.jurisprudenceCheckInput) {
                 this.isJurisprudencePending = true;
                 this.setJurisprudenceInputValue(false);
+
+                this.$nextTick(() => {
+                    const buttonComponent = this.$refs.backButton as any;
+                    const button = buttonComponent.$refs.button as HTMLElement;
+
+                    button.focus();
+                });
             }
         }
     }
@@ -222,6 +229,13 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
             if (this.scopeOfPracticeCheckInput) {
                 this.isScopeOfPracticePending = true;
                 this.setScopeInputValue(false);
+
+                this.$nextTick(() => {
+                    const buttonComponent = this.$refs.backButton as any;
+                    const button = buttonComponent.$refs.button as HTMLElement;
+
+                    button.focus();
+                });
             }
         }
     }
@@ -289,7 +303,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     }
 
     focusTrapJurisprudence(event: KeyboardEvent): void {
-        const firstTabIndex = document.getElementById('jurisprudence-modal-back-button');
+        const firstTabIndex = document.getElementById('modal-back-button');
         const lastTabIndex = document.getElementById(this.formData.submitJurisprudenceUnderstanding.id);
 
         if (event.shiftKey) {
@@ -306,7 +320,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     }
 
     focusTrapScope(event: KeyboardEvent): void {
-        const firstTabIndex = document.getElementById('jurisprudence-modal-back-button');
+        const firstTabIndex = document.getElementById('modal-back-button');
         const lastTabIndex = document.getElementById(this.formData.submitScopeUnderstanding.id);
 
         if (event.shiftKey) {

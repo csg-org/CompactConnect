@@ -73,7 +73,8 @@
                     <form @submit.prevent="submitJurisprudenceUnderstanding">
                         <div class="action-button-row">
                             <InputButton
-                                id="jurisprudence-modal-back-button"
+                                id="modal-back-button"
+                                ref="backButton"
                                 class="back-button"
                                 :label="backText"
                                 :isTransparent="true"
@@ -106,7 +107,8 @@
                     <form @submit.prevent="submitScopeUnderstanding">
                         <div class="action-button-row">
                             <InputButton
-                                id="jurisprudence-modal-back-button"
+                                id="modal-back-button"
+                                ref="backButton"
                                 class="back-button"
                                 :label="backText"
                                 :isTransparent="true"

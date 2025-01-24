@@ -338,6 +338,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
             const selectedStates = this.formData.stateCheckList.filter((input) => input.value).map((input) => input.id);
 
             this.$store.dispatch('user/savePrivilegePurchaseChoicesToStore', selectedStates);
+            this.$store.dispatch('user/setAttestations', this.attestationRecords);
 
             this.$router.push({
                 name: 'PrivilegePurchaseAttestation',

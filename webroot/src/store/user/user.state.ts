@@ -26,6 +26,7 @@ export interface State {
     currentCompact: Compact | null;
     selectedPrivilegesToPurchase: Array<string> | null;
     arePurchaseAttestationsAccepted: boolean;
+    purchase: any;
     error: any | null;
 }
 
@@ -40,5 +41,6 @@ export const state: State = {
     selectedPrivilegesToPurchase: null,
     refreshTokenTimeoutId: null,
     currentCompact: null,
+    purchase: {},
     error: null,
 };
