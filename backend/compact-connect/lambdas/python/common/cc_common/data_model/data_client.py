@@ -93,7 +93,7 @@ class DataClient:
                 IndexName=self.config.license_gsi_name,
                 KeyConditionExpression=(
                     Key('licenseGSIPK').eq(f'C#{compact.lower()}#J#{state.lower()}')
-                    & Key('licenseGSISK').eq(f'FN#{family_name.lower()}#GN#{given_name.lower()}')
+                    & Key('licenseGSISK').eq(f'FN#{quote(family_name.lower())}#GN#{quote(given_name.lower())}')
                 ),
             )
             return resp.get('Items', [])

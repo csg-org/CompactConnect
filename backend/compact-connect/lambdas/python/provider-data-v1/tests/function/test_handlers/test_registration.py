@@ -300,3 +300,105 @@ class TestProviderRegistration(TstFunction):
                 mock_now.return_value = mock_time
                 response = register_provider(self._get_test_event(), self.mock_context)
                 self.assertEqual(200, response['statusCode'])
+
+    @patch('handlers.registration.verify_recaptcha')
+    @patch('cc_common.config._Config.cognito_client')
+    def test_registration_works_with_special_characters(self, mock_cognito, mock_verify_recaptcha):
+        """Test that registration works with special characters in names that could break key delimiters."""
+        mock_verify_recaptcha.return_value = True
+
+        # Test with various special characters that could cause issues without URL encoding
+        special_chars_name = {
+            'givenName': 'José#Jr',  # Contains both special chars (# and é)
+            'familyName': "O'Neill/Smith",  # Contains both / and '
+        }
+
+        # Add provider records with special character names
+        provider_data, license_data = self._add_mock_provider_records(license_data_overrides=special_chars_name)
+
+        # Create test event with special character names
+        event = self._get_test_event(body_overrides=special_chars_name)
+
+        from handlers.registration import register_provider
+
+        response = register_provider(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
+
+        # Verify Cognito user was created with correct attributes
+        mock_cognito.admin_create_user.assert_called_once_with(
+            UserPoolId=self.config.provider_user_pool_id,
+            Username='test@example.com',
+            UserAttributes=[
+                {'Name': 'custom:compact', 'Value': TEST_COMPACT},
+                {'Name': 'custom:providerId', 'Value': provider_data['providerId']},
+                {'Name': 'email', 'Value': 'test@example.com'},
+                {'Name': 'email_verified', 'Value': 'true'},
+            ],
+        )
+
+        # Verify home jurisdiction selection record was created
+        home_jurisdiction = self.config.provider_table.get_item(
+            Key={
+                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data['providerId']}',
+                'sk': f'{TEST_COMPACT}#PROVIDER#home-jurisdiction#',
+            }
+        )['Item']
+        self.assertEqual('homeJurisdictionSelection', home_jurisdiction['type'])
+        self.assertEqual(TEST_COMPACT, home_jurisdiction['compact'])
+        self.assertEqual(provider_data['providerId'], home_jurisdiction['providerId'])
+        self.assertEqual(MOCK_STATE, home_jurisdiction['jurisdiction'])
+        self.assertIsNotNone(home_jurisdiction['dateOfSelection'])
+        self.assertIsNotNone(home_jurisdiction['dateOfUpdate'])
+
+    @patch('handlers.registration.verify_recaptcha')
+    @patch('cc_common.config._Config.cognito_client')
+    def test_registration_works_with_japanese_characters(self, mock_cognito, mock_verify_recaptcha):
+        """Test that registration works with Japanese characters in names."""
+        mock_verify_recaptcha.return_value = True
+
+        # Test with Japanese characters
+        japanese_name = {
+            'givenName': '太郎',  # Taro
+            'familyName': '山田',  # Yamada
+        }
+
+        # Add provider records with Japanese names
+        provider_data, license_data = self._add_mock_provider_records(license_data_overrides=japanese_name)
+
+        # Create test event with Japanese names
+        event = self._get_test_event(body_overrides=japanese_name)
+
+        from handlers.registration import register_provider
+
+        response = register_provider(event, self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
+
+        # Verify Cognito user was created with correct attributes
+        mock_cognito.admin_create_user.assert_called_once_with(
+            UserPoolId=self.config.provider_user_pool_id,
+            Username='test@example.com',
+            UserAttributes=[
+                {'Name': 'custom:compact', 'Value': TEST_COMPACT},
+                {'Name': 'custom:providerId', 'Value': provider_data['providerId']},
+                {'Name': 'email', 'Value': 'test@example.com'},
+                {'Name': 'email_verified', 'Value': 'true'},
+            ],
+        )
+
+        # Verify home jurisdiction selection record was created
+        home_jurisdiction = self.config.provider_table.get_item(
+            Key={
+                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data['providerId']}',
+                'sk': f'{TEST_COMPACT}#PROVIDER#home-jurisdiction#',
+            }
+        )['Item']
+        self.assertEqual('homeJurisdictionSelection', home_jurisdiction['type'])
+        self.assertEqual(TEST_COMPACT, home_jurisdiction['compact'])
+        self.assertEqual(provider_data['providerId'], home_jurisdiction['providerId'])
+        self.assertEqual(MOCK_STATE, home_jurisdiction['jurisdiction'])
+        self.assertIsNotNone(home_jurisdiction['dateOfSelection'])
+        self.assertIsNotNone(home_jurisdiction['dateOfUpdate'])

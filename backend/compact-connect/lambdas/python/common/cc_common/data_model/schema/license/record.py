@@ -1,5 +1,7 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow import ValidationError, post_dump, pre_dump, validates_schema
+from urllib.parse import quote
+
+from marshmallow import ValidationError, post_dump, pre_dump, pre_load, validates_schema
 from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, List, Nested, String
 from marshmallow.validate import Length
 
@@ -47,16 +49,31 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
     licenseGSIPK = String(required=True, allow_none=False)
     licenseGSISK = String(required=True, allow_none=False)
 
+    def _generate_license_gsi_fields(self, in_data):
+        in_data['licenseGSIPK'] = f'C#{in_data['compact'].lower()}#J#{in_data['jurisdiction'].lower()}'
+        in_data['licenseGSISK'] = f'FN#{quote(in_data['familyName'].lower())}#GN#{quote(in_data['givenName'].lower())}'
+        return in_data
+
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
         in_data['sk'] = f'{in_data['compact']}#PROVIDER#license/{in_data['jurisdiction']}#'
         # Generate GSI fields for license lookup
-        in_data['licenseGSIPK'] = f'C#{in_data['compact'].lower()}#J#{in_data['jurisdiction'].lower()}'
-        in_data['licenseGSISK'] = f'FN#{in_data['familyName'].lower()}#GN#{in_data['givenName'].lower()}'
+        self._generate_license_gsi_fields(in_data)
         # Add last four of SSN for matching
         # TODO - this will be removed once we complete the work to remove the full ssn field  # noqa: FIX002
         in_data['ssnLastFour'] = in_data['ssn'][-4:]
+        return in_data
+
+    @pre_load
+    def populate_license_gsi_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        """
+        Populate the license GSI fields for license lookup if they are not already present
+
+        This is for backwards compatibility with existing license records that do not have the GSI fields populated.
+        """
+        if 'licenseGSIPK' not in in_data or 'licenseGSISK' not in in_data:
+            self._generate_license_gsi_fields(in_data)
         return in_data
 
 
