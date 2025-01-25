@@ -127,11 +127,9 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     }
 
     get scopeModalContent(): string {
-        return this.scopeAttestation?.text || '';
-    }
+        const scopeAttestationText: string = this.scopeAttestation?.text || '';
 
-    get scopeModalContentDisplay(): string {
-        return '';
+        return scopeAttestationText.replace(/(?:\r\n|\r|\n)/g, '<br>');
     }
 
     get iUnderstandText(): string {
