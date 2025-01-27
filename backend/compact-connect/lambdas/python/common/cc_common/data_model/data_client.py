@@ -66,8 +66,9 @@ class DataClient:
 
         return resp
 
-
-    def query_license_records(self, *, compact: str, jurisdiction: str, family_name: str, given_name: str) -> list[dict]:
+    def query_license_records(
+        self, *, compact: str, jurisdiction: str, family_name: str, given_name: str
+    ) -> list[dict]:
         """Query license records using the license GSI."""
         logger.info('Querying license records', compact=compact, state=jurisdiction)
 
@@ -676,7 +677,7 @@ class DataClient:
         """Create a home jurisdiction selection record for a provider.
 
         :param compact: The compact name
-        :param provider_id: The provider ID 
+        :param provider_id: The provider ID
         :param jurisdiction: The jurisdiction postal code
         """
         logger.info(
@@ -696,11 +697,7 @@ class DataClient:
         schema = ProviderHomeJurisdictionSelectionRecordSchema()
         serialized_record = schema.dump(record)
 
-        self.config.provider_table.put_item(
-            Item=serialized_record,
-            ConditionExpression=Attr('pk').not_exists()
-        )
-        
+        self.config.provider_table.put_item(Item=serialized_record, ConditionExpression=Attr('pk').not_exists())
 
     def rollback_home_jurisdiction_selection(self, *, compact: str, provider_id: str) -> None:
         """Delete a home jurisdiction selection record for a provider.
@@ -721,7 +718,6 @@ class DataClient:
                 'sk': f'{compact}#PROVIDER#home-jurisdiction#',
             }
         )
-
 
     def find_home_state_license(self, *, compact: str, provider_id: str, licenses: list[dict]) -> dict | None:
         """Find the license from the provider's selected home jurisdiction.
@@ -786,7 +782,7 @@ class DataClient:
 
             # Return the most recently issued license
             return max(target_licenses, key=lambda x: x['dateOfIssuance'])
-        except CCNotFoundException as e:
+        except CCNotFoundException:
             # The user has not registered with the system and set a home jurisdiction
             logger.info(
                 'No home jurisdiction selection found. Cannot determine home state license',

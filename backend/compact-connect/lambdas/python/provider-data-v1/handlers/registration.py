@@ -184,15 +184,19 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             provider_id=matching_record['providerId'],
         )
         logger.warning(
-            'Provider already registered', compact=body['compact'], provider_id=matching_record['providerId'],
+            'Provider already registered',
+            compact=body['compact'],
+            provider_id=matching_record['providerId'],
             home_jurisdiction=home_jurisdiction['jurisdiction'],
         )
         metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         return {'message': 'request processed'}
     except CCNotFoundException:
-        logger.info('No home jurisdiction selection record found. Moving on to registration.', 
-                    provider_id=matching_record['providerId'], compact=body['compact'])
-
+        logger.info(
+            'No home jurisdiction selection record found. Moving on to registration.',
+            provider_id=matching_record['providerId'],
+            compact=body['compact'],
+        )
 
     try:
         # Create home jurisdiction selection record first
