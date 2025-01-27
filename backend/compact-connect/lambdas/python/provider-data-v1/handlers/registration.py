@@ -117,6 +117,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             compact=body['compact'],
             jurisdiction=body['jurisdiction'],
             given_name=body['givenName'],
+            family_name=body['familyName'],
             license_type=body['licenseType'],
             ip_address=source_ip,
         )
@@ -126,7 +127,16 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
 
     # Verify reCAPTCHA token
     if not verify_recaptcha(body['token']):
-        logger.info('Invalid reCAPTCHA token', token=body['token'])
+        logger.info(
+            'Invalid reCAPTCHA token',
+            token=body['token'],
+            compact=body['compact'],
+            jurisdiction=body['jurisdiction'],
+            given_name=body['givenName'],
+            family_name=body['familyName'],
+            license_type=body['licenseType'],
+            ip_address=source_ip,
+        )
         metrics.add_metric(name=RECAPTCHA_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCAccessDeniedException('Invalid request')
@@ -150,6 +160,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             compact=body['compact'],
             jurisdiction=body['jurisdiction'],
             given_name=body['givenName'],
+            family_name=body['familyName'],
             license_type=body['licenseType'],
         )
         metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
@@ -206,5 +217,6 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCInternalException('Failed to create user account') from e
 
+    logger.info('Registered user successfully', compact=body['compact'], provider_id=matching_record['providerId'])
     metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=1)
     return {'message': 'request processed'}
