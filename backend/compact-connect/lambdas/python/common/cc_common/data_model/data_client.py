@@ -177,10 +177,12 @@ class DataClient:
         # Create a name value to use in key condition if name fields are provided
         name_value = None
         if provider_name is not None and provider_name[0] is not None:
-            name_value = f'{quote(provider_name[0])}#'
+            # Make the name lower case for case-insensitive search
+            name_value = f'{quote(provider_name[0].lower())}#'
             # We won't consider givenName if familyName is not provided
             if provider_name[1] is not None:
-                name_value += f'{quote(provider_name[1])}#'
+                # Make the name lower case for case-insensitive search
+                name_value += f'{quote(provider_name[1].lower())}#'
 
         # Set key condition to query by
         key_condition = Key('sk').eq(f'{compact}#PROVIDER')

@@ -291,7 +291,7 @@ class ProviderUsers:
             self.provider_registration_handler,
             'SustainedRegistrationFailuresAlarm',
             metric=registration_failures_one_day,
-            threshold=288, # More than 1 failure per 5 minutes over 24 hours (288 = 24 hours * 12 periods per hour)
+            threshold=288,  # More than 1 failure per 5 minutes over 24 hours (288 = 24 hours * 12 periods per hour)
             evaluation_periods=1,
             comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,

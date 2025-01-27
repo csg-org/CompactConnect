@@ -101,7 +101,12 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema, ProviderPrivateSchema):
     @pre_dump
     def populate_fam_giv_mid(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['providerFamGivMid'] = '#'.join(
-            (quote(in_data['familyName']), quote(in_data['givenName']), quote(in_data.get('middleName', ''))),
+            # make names on GSI lowercase for case-insensitive search
+            (
+                quote(in_data['familyName'].lower()),
+                quote(in_data['givenName'].lower()),
+                quote(in_data.get('middleName', '').lower()),
+            ),
         )
         return in_data
 
