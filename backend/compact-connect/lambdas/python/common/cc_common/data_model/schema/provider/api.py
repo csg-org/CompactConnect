@@ -68,6 +68,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     licenses = List(Nested(LicenseGeneralResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
     militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=False, allow_none=False))
-    homeStateSelection = Nested(
+    homeJurisdictionSelection = Nested(
         ProviderHomeJurisdictionSelectionGeneralResponseSchema(), required=False, allow_none=False
     )

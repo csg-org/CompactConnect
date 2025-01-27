@@ -31,7 +31,7 @@ def generate_test_request():
         'email': 'test@example.com',
         'partialSocial': MOCK_SSN_LAST_FOUR,
         'dob': MOCK_DOB,
-        'state': MOCK_STATE,
+        'jurisdiction': MOCK_STATE,
         'licenseType': TEST_LICENSE_TYPE,
     }
 

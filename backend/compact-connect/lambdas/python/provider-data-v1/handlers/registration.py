@@ -115,7 +115,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         logger.warning(
             'Rate limit exceeded for ip address',
             compact=body['compact'],
-            jurisdiction=body['state'],
+            jurisdiction=body['jurisdiction'],
             given_name=body['givenName'],
             license_type=body['licenseType'],
             ip_address=source_ip,
@@ -136,7 +136,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     # Query license records for one matching on all provided fields
     matching_record = config.data_client.find_matching_license_record(
         compact=body['compact'],
-        jurisdiction=body['state'],
+        jurisdiction=body['jurisdiction'],
         family_name=body['familyName'],
         given_name=body['givenName'],
         partial_ssn=body['partialSocial'],
@@ -148,7 +148,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         logger.info(
             'No matching license record found for request',
             compact=body['compact'],
-            jurisdiction=body['state'],
+            jurisdiction=body['jurisdiction'],
             given_name=body['givenName'],
             license_type=body['licenseType'],
         )
@@ -182,7 +182,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         config.data_client.create_home_jurisdiction_selection(
             compact=body['compact'],
             provider_id=matching_record['providerId'],
-            jurisdiction=body['state'],
+            jurisdiction=body['jurisdiction'],
         )
 
         # Create Cognito user

@@ -136,8 +136,6 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
         'providerId',
         'status',
         'dateOfUpdate',
-        'licenseGSIPK',
-        'licenseGSISK',
         'ssnLastFour',
     }
     if not updated_values and not removed_values:

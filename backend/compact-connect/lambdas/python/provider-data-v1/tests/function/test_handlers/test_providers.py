@@ -248,8 +248,18 @@ class TestGetProvider(TstFunction):
         # The actual sensitive part is the hash at the end of the key
         return sk.split('/')[-1]
 
-    def _when_testing_get_provider_response_based_on_read_access(self, scopes: str, expected_provider: dict):
+    def _when_testing_get_provider_response_based_on_read_access(
+        self, scopes: str, expected_provider: dict, delete_home_jurisdiction_selection: bool = False
+    ):
         self._load_provider_data()
+        if delete_home_jurisdiction_selection:
+            # removing homeJurisdictionSelection to simulate a user that has not registered with the system
+            self.config.provider_table.delete_item(
+                Key={
+                    'pk': 'aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
+                    'sk': 'aslp#PROVIDER#home-jurisdiction#',
+                },
+            )
 
         from handlers.providers import get_provider
 
@@ -295,6 +305,17 @@ class TestGetProvider(TstFunction):
         # test provider has a license in oh and a privilege in ne
         self._when_testing_get_provider_with_read_private_access(
             scopes='openid email aslp/readGeneral aslp/ne.readPrivate'
+        )
+
+    def test_get_provider_does_not_return_home_jurisdiction_selection_if_user_has_not_registered(self):
+        with open('../common/tests/resources/api/provider-detail-response.json') as f:
+            expected_provider = json.load(f)
+            del expected_provider['homeJurisdictionSelection']
+
+        self._when_testing_get_provider_response_based_on_read_access(
+            scopes='openid email aslp/readGeneral aslp/aslp.readPrivate',
+            expected_provider=expected_provider,
+            delete_home_jurisdiction_selection=True,
         )
 
     def test_get_provider_wrong_compact(self):

@@ -117,7 +117,7 @@ class TestTransformations(TstFunction):
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
             & Key('sk').begins_with('aslp#PROVIDER'),
         )
-        # One record for each of: provider, license, privilege, militaryAffiliation, and homeStateSelection
+        # One record for each of: provider, license, privilege, militaryAffiliation, and homeJurisdictionSelection
         self.assertEqual(5, len(resp['Items']))
         records = {item['type']: item for item in resp['Items']}
 
@@ -198,8 +198,8 @@ class TestTransformations(TstFunction):
         del provider_data['privileges'][0]['dateOfRenewal']
         del provider_data['militaryAffiliations'][0]['dateOfUpload']
         del provider_data['militaryAffiliations'][0]['dateOfUpdate']
-        del provider_data['homeStateSelection']['dateOfSelection']
-        del provider_data['homeStateSelection']['dateOfUpdate']
+        del provider_data['homeJurisdictionSelection']['dateOfSelection']
+        del provider_data['homeJurisdictionSelection']['dateOfUpdate']
         del expected_provider['dateOfUpdate']
         del expected_provider['licenses'][0]['dateOfUpdate']
         del expected_provider['privileges'][0]['dateOfUpdate']
@@ -207,8 +207,8 @@ class TestTransformations(TstFunction):
         del expected_provider['privileges'][0]['dateOfRenewal']
         del expected_provider['militaryAffiliations'][0]['dateOfUpload']
         del expected_provider['militaryAffiliations'][0]['dateOfUpdate']
-        del expected_provider['homeStateSelection']['dateOfUpdate']
-        del expected_provider['homeStateSelection']['dateOfSelection']
+        del expected_provider['homeJurisdictionSelection']['dateOfUpdate']
+        del expected_provider['homeJurisdictionSelection']['dateOfSelection']
 
         # This lengthy test does not include change records for licenses or privileges, so we'll blank out the
         # sample history from our expected_provider

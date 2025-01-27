@@ -902,7 +902,7 @@
       },
       "type": "array"
     },
-    "homeStateSelection": {
+    "homeJurisdictionSelection": {
       "properties": {
         "type": {
           "enum": [
@@ -1316,7 +1316,7 @@
     "licenses",
     "privileges",
     "militaryAffiliations",
-    "homeStateSelection"
+    "homeJurisdictionSelection"
   ],
   "type": "object",
   "$schema": "http://json-schema.org/draft-04/schema#"

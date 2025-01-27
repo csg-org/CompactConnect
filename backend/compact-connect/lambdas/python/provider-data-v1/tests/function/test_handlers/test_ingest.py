@@ -5,19 +5,19 @@ from moto import mock_aws
 from .. import TstFunction
 
 
-def _set_provider_data_to_empty_values(expected_provider: dict) -> dict:
-    # The canned response resource assumes that the provider will be given a privilege, military affiliation,
-    # home state selection, and one license renewal. We didn't do any of that here, so we'll reset that data
-    expected_provider['privilegeJurisdictions'] = []
-    expected_provider['privileges'] = []
-    expected_provider['militaryAffiliations'] = []
-    expected_provider['homeStateSelection'] = None
-
-    return expected_provider
-
-
 @mock_aws
 class TestIngest(TstFunction):
+    @staticmethod
+    def _set_provider_data_to_empty_values(expected_provider: dict) -> dict:
+        # The canned response resource assumes that the provider will be given a privilege, military affiliation,
+        # home state selection, and one license renewal. We didn't do any of that here, so we'll reset that data
+        expected_provider['privilegeJurisdictions'] = []
+        expected_provider['privileges'] = []
+        expected_provider['militaryAffiliations'] = []
+        del expected_provider['homeJurisdictionSelection']
+
+        return expected_provider
+
     def _with_ingested_license(self, omit_email: bool = False) -> str:
         from handlers.ingest import ingest_license_message
 
@@ -90,7 +90,7 @@ class TestIngest(TstFunction):
             expected_provider = json.load(f)
 
         # Reset the expected data to match the canned response
-        expected_provider = _set_provider_data_to_empty_values(expected_provider)
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
         for license_data in expected_provider['licenses']:
             license_data['history'] = []
 
@@ -251,14 +251,11 @@ class TestIngest(TstFunction):
         expected_provider['licenses'][0]['status'] = 'inactive'
         # ensure the privilege record is also set to inactive
         expected_provider['privileges'][0]['status'] = 'inactive'
-        # setting this to None, since our canned response doesn't set this data, and it is not affected by the
-        # deactivation
-        expected_provider['homeStateSelection'] = None
 
         provider_data = self._get_provider_via_api(provider_id)
 
         # Reset the expected data to match the canned response
-        expected_provider = _set_provider_data_to_empty_values(expected_provider)
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
         for license_data in expected_provider['licenses']:
             # We uploaded a 'deactivation' by just switching 'status' to 'inactive', so this change
             # should show up in the license history
@@ -336,7 +333,7 @@ class TestIngest(TstFunction):
         provider_data = self._get_provider_via_api(provider_id)
 
         # Reset the expected data to match the canned response
-        expected_provider = _set_provider_data_to_empty_values(expected_provider)
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
 
         for license_data in expected_provider['licenses']:
             # We uploaded a 'renewal' by just updating the dateOfRenewal and dateOfExpiration
@@ -417,7 +414,7 @@ class TestIngest(TstFunction):
         provider_data = self._get_provider_via_api(provider_id)
 
         # Reset the expected data to match the canned response
-        expected_provider = _set_provider_data_to_empty_values(expected_provider)
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
 
         for license_data in expected_provider['licenses']:
             # We uploaded a 'name change' by just updating the familyName
@@ -492,7 +489,7 @@ class TestIngest(TstFunction):
         provider_data = self._get_provider_via_api(provider_id)
 
         # Reset the expected data to match the canned response
-        expected_provider = _set_provider_data_to_empty_values(expected_provider)
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
         for license_data in expected_provider['licenses']:
             # No changes should show up in the license history
             license_data['history'] = []
@@ -535,7 +532,7 @@ class TestIngest(TstFunction):
         provider_data = self._get_provider_via_api(provider_id)
 
         # Reset the expected data to match the canned response
-        expected_provider = _set_provider_data_to_empty_values(expected_provider)
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
 
         # Removing the field we just removed from the license
         del expected_provider['emailAddress']
@@ -614,7 +611,7 @@ class TestIngest(TstFunction):
         provider_data = self._get_provider_via_api(provider_id)
 
         # Reset the expected data to match the canned response
-        expected_provider = _set_provider_data_to_empty_values(expected_provider)
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
 
         for license_data in expected_provider['licenses']:
             # We added an emailAddress. This should show up in the license history

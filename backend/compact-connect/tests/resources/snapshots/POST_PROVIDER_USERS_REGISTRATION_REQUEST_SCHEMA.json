@@ -26,8 +26,8 @@
       "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
       "type": "string"
     },
-    "state": {
-      "description": "Two-letter state code",
+    "jurisdiction": {
+      "description": "Two-letter jurisdiction code",
       "enum": [
         "al",
         "ak",
@@ -108,7 +108,7 @@
     "email",
     "partialSocial",
     "dob",
-    "state",
+    "jurisdiction",
     "licenseType",
     "compact",
     "token"

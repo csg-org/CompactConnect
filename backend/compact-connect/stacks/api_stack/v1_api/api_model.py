@@ -836,7 +836,7 @@ class ApiModel:
                 'licenses',
                 'privileges',
                 'militaryAffiliations',
-                'homeStateSelection',
+                'homeJurisdictionSelection',
             ],
             properties={
                 'licenses': JsonSchema(
@@ -935,7 +935,7 @@ class ApiModel:
                         },
                     ),
                 ),
-                'homeStateSelection': JsonSchema(
+                'homeJurisdictionSelection': JsonSchema(
                     type=JsonSchemaType.OBJECT,
                     properties={
                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['homeJurisdictionSelection']),
@@ -1158,7 +1158,7 @@ class ApiModel:
                     'email',
                     'partialSocial',
                     'dob',
-                    'state',
+                    'jurisdiction',
                     'licenseType',
                     'compact',
                     'token',
@@ -1190,9 +1190,9 @@ class ApiModel:
                         description='Date of birth in YYYY-MM-DD format',
                         pattern=r'^\d{4}-\d{2}-\d{2}$',
                     ),
-                    'state': JsonSchema(
+                    'jurisdiction': JsonSchema(
                         type=JsonSchemaType.STRING,
-                        description='Two-letter state code',
+                        description='Two-letter jurisdiction code',
                         min_length=2,
                         max_length=2,
                         enum=self.api.node.get_context('jurisdictions'),
