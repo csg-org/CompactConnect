@@ -288,7 +288,7 @@ class RegisterLicensee extends mixins(MixinForm) {
             email,
             partialSocial: ssnLastFour,
             dob,
-            state: licenseState,
+            jurisdiction: licenseState,
             licenseType,
         };
     }
