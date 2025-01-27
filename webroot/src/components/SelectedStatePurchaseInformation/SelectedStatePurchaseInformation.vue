@@ -69,7 +69,7 @@
         >
             <template v-slot:content>
                 <div class="attestation-modal-content">
-                    {{jurisprudenceModalContent}}
+                    <div v-html="jurisprudenceModalContent"/>
                     <form @submit.prevent="submitJurisprudenceUnderstanding">
                         <div class="action-button-row">
                             <InputButton

@@ -123,13 +123,11 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     }
 
     get jurisprudenceModalContent(): string {
-        return this.jurisprudenceAttestation?.text || '';
+        return this.jurisprudenceAttestation?.textDisplay() || '';
     }
 
     get scopeModalContent(): string {
-        const scopeAttestationText: string = this.scopeAttestation?.text || '';
-
-        return scopeAttestationText.replace(/(?:\r\n|\r|\n)/g, '<br>');
+        return this.scopeAttestation?.textDisplay() || '';
     }
 
     get iUnderstandText(): string {
