@@ -41,7 +41,7 @@
                         <InputText :formInput="formData.ssnLastFour" @input="formatSsn()" />
                         <InputDate :formInput="formData.dob" />
                         <InputSelect :formInput="formData.licenseState" />
-                        <InputSelect :formInput="formData.licenseType" @input="setCompactFromLicenseType()" />
+                        <InputSelect :formInput="formData.licenseType" />
                         <label ref="password">
                             {{ $t('common.password') }}
                             <input type="password" id="password" name="password" tabindex="-1" autocomplete="off" />
@@ -64,6 +64,21 @@
             </Transition>
         </Card>
         <div ref="recaptcha"></div>
+        <div class="recaptcha-terms">
+            This site is protected by reCAPTCHA and the Google
+            <a
+                href="https://policies.google.com/privacy"
+                rel="noopener noreferrer"
+                class="recaptcha-link"
+            >Privacy Policy</a>
+            and
+            <a
+                href="https://policies.google.com/terms"
+                rel="noopener noreferrer"
+                class="recaptcha-link"
+            >Terms of Service</a>
+            apply.
+        </div>
     </Section>
 </template>
 
