@@ -65,8 +65,6 @@ class TestSanitizeProviderData(TstLambdas):
         del expected_provider['licenses'][0]['ssn']
         del expected_provider['licenses'][0]['ssnLastFour']
         del expected_provider['licenses'][0]['dateOfBirth']
-        del expected_provider['licenses'][0]['licenseGSIPK']
-        del expected_provider['licenses'][0]['licenseGSISK']
         del expected_provider['licenses'][0]['history'][0]['previous']['ssn']
         del expected_provider['licenses'][0]['history'][0]['previous']['dateOfBirth']
         # cast to set to match schema
