@@ -31,7 +31,7 @@ os.environ['COMPACTS'] = json.dumps(COMPACTS)
 os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 
 # We have to import this after we've added the common lib to our path and environment
-from cc_common.data_model.schema.user import UserRecordSchema  # noqa: E402
+from cc_common.data_model.schema.user.record import UserRecordSchema  # noqa: E402
 
 _TEST_STAFF_USER_PASSWORD = 'TestPass123!'  # noqa: S105 test credential for test staff user
 _TEMP_STAFF_PASSWORD = 'TempPass123!'  # noqa: S105 temporary password for creating test staff users

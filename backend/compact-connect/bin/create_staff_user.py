@@ -30,7 +30,7 @@ os.environ['COMPACTS'] = json.dumps(COMPACTS)
 os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 
 # We have to import this after we've mucked with our path and environment
-from cc_common.data_model.schema.user import UserRecordSchema  # noqa: E402
+from cc_common.data_model.schema.user.record import UserRecordSchema  # noqa: E402
 
 USER_POOL_ID = os.environ['USER_POOL_ID']
 USER_TABLE_NAME = os.environ['USER_TABLE_NAME']
