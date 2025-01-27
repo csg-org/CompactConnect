@@ -7,21 +7,29 @@
 
 <template>
     <div class="privilege-purchase-attestation-container">
-        <div v-if="!areFormInputsSet" class="loading-container"><LoadingSpinner /></div>
-        <form v-else class="privilege-purchase-attestation-form" @submit.prevent="handleSubmit">
+        <form class="privilege-purchase-attestation-form" @submit.prevent="handleSubmit">
             <div class="privilege-purchase-attestation-form-container">
                 <h1 class="form-title">{{ $t('licensing.attestations') }}</h1>
-                <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
-                <InputRadioGroup :formInput="formData.investigations" />
-                <div class="form-section-title">{{ $t('licensing.discipline') }} *</div>
-                <InputCheckbox :formInput="formData.disciplineCurrent" />
-                <InputCheckbox :formInput="formData.disciplinePrior" />
-                <div class="form-section-title form-section-gap">{{ $t('licensing.provisionOfInformation') }} *</div>
-                <InputCheckbox :formInput="formData.trueInformation" />
-                <div class="form-section-title form-section-gap">{{ $t('licensing.militaryAffiliation') }} *</div>
-                <InputCheckbox :formInput="formData.militaryAffiliation" />
+                <div v-if="!areFormInputsSet" class="loading-container">
+                    <LoadingSpinner v-if="!userStore.isLoadingAccount" />
+                </div>
+                <div v-else>
+                    <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
+                    <InputRadioGroup :formInput="formData.investigations" />
+                    <div class="form-section-title">{{ $t('licensing.discipline') }} *</div>
+                    <InputCheckbox :formInput="formData.disciplineCurrent" />
+                    <InputCheckbox :formInput="formData.disciplinePrior" />
+                    <div class="form-section-title form-section-gap">
+                        {{ $t('licensing.provisionOfInformation') }} *
+                    </div>
+                    <InputCheckbox :formInput="formData.trueInformation" />
+                    <div class="form-section-title form-section-gap">
+                        {{ $t('licensing.militaryAffiliation') }} *
+                    </div>
+                    <InputCheckbox :formInput="formData.militaryAffiliation" />
+                </div>
             </div>
-            <div class="button-row">
+            <div v-if="areFormInputsSet" class="button-row">
                 <InputButton
                     :isTextLike="true"
                     :label="$t('common.cancel')"
