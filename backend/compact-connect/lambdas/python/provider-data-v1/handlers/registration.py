@@ -10,6 +10,7 @@ from cc_common.exceptions import (
     CCAccessDeniedException,
     CCAwsServiceException,
     CCInternalException,
+    CCNotFoundException,
     CCRateLimitingException,
 )
 from cc_common.utils import api_handler
@@ -32,7 +33,7 @@ def _rate_limit_exceeded(ip_address: str) -> bool:
     window_start_str = window_start.isoformat()
 
     try:
-        # Query for requests in the last 15 minutes
+        # Query for count of requests in the last 15 minutes
         response = config.rate_limiting_table.query(
             KeyConditionExpression='pk = :pk AND sk BETWEEN :start_sk AND :end_sk',
             ExpressionAttributeValues={
@@ -40,11 +41,12 @@ def _rate_limit_exceeded(ip_address: str) -> bool:
                 ':start_sk': f'REGISTRATION#{window_start_str}',
                 ':end_sk': f'REGISTRATION#{now.isoformat()}',
             },
+            Select='COUNT',
             ConsistentRead=True,
         )
 
-        # If there are 4 or more requests in the window, rate limit is exceeded
-        if len(response.get('Items', [])) >= 3:
+        # If there are 3 or more requests in the window, rate limit is exceeded
+        if response['Count'] >= 3:
             logger.warning('Rate limit exceeded', ip_address=ip_address)
             return True
 
@@ -113,7 +115,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         logger.warning(
             'Rate limit exceeded for ip address',
             compact=body['compact'],
-            state=body['state'],
+            jurisdiction=body['state'],
             given_name=body['givenName'],
             license_type=body['licenseType'],
             ip_address=source_ip,
@@ -135,7 +137,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     try:
         license_records = config.data_client.query_license_records(
             compact=body['compact'],
-            state=body['state'],
+            jurisdiction=body['state'],
             family_name=body['familyName'],
             given_name=body['givenName'],
         )
@@ -148,7 +150,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         logger.info(
             'No license records found for request',
             compact=body['compact'],
-            state=body['state'],
+            jurisdiction=body['state'],
             given_name=body['givenName'],
             license_type=body['licenseType'],
         )
@@ -167,7 +169,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         logger.info(
             'No matching license record found for request',
             compact=body['compact'],
-            state=body['state'],
+            jurisdiction=body['state'],
             given_name=body['givenName'],
             license_type=body['licenseType'],
         )
@@ -176,17 +178,21 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
 
     # Check if already registered by looking for home jurisdiction record
     # this is only created if the provider has registered previously
-    home_jurisdiction = config.data_client.get_provider_home_jurisdiction_selection(
-        compact=body['compact'],
-        provider_id=matching_record['providerId'],
-    )
-
-    if home_jurisdiction:
+    try:
+        home_jurisdiction = config.data_client.get_provider_home_jurisdiction_selection(
+            compact=body['compact'],
+            provider_id=matching_record['providerId'],
+        )
         logger.warning(
-            'Provider already registered', compact=body['compact'], provider_id=matching_record['providerId']
+            'Provider already registered', compact=body['compact'], provider_id=matching_record['providerId'],
+            home_jurisdiction=home_jurisdiction['jurisdiction'],
         )
         metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         return {'message': 'request processed'}
+    except CCNotFoundException:
+        logger.info('No home jurisdiction selection record found. Moving on to registration.', 
+                    provider_id=matching_record['providerId'], compact=body['compact'])
+
 
     try:
         # Create home jurisdiction selection record first

@@ -39,67 +39,46 @@ class DataClient:
             )['Item']
         except KeyError as e:
             logger.info('Provider not found by SSN', exc_info=e)
-            raise CCNotFoundException('No licensee found by that identifier') from e
+            raise CCNotFoundException('No provider found by that identifier') from e
 
         return resp['providerId']
 
     def get_provider_home_jurisdiction_selection(self, *, compact: str, provider_id: str) -> dict | None:
         """Get the home jurisdiction selection record for a provider.
 
-        Args:
-            compact: The compact name
-            provider_id: The provider ID
-
-        Returns:
-            The home jurisdiction record if found, None otherwise
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :return: The home jurisdiction record if found, None otherwise
+        :rtype: dict or None
         """
         logger.info('Getting home jurisdiction selection record', provider_id=provider_id, compact=compact)
-        try:
-            resp = self.config.provider_table.get_item(
-                Key={
-                    'pk': f'{compact}#PROVIDER#{provider_id}',
-                    'sk': f'{compact}#PROVIDER#home-jurisdiction#',
-                },
-                ConsistentRead=True,
-            )
-            return resp.get('Item')
-        except ClientError as e:
-            logger.error('Failed to get home jurisdiction selection record', error=str(e))
-            raise CCAwsServiceException('Failed to get home jurisdiction selection record') from e
+        resp = self.config.provider_table.get_item(
+            Key={
+                'pk': f'{compact}#PROVIDER#{provider_id}',
+                'sk': f'{compact}#PROVIDER#home-jurisdiction#',
+            },
+            ConsistentRead=True,
+        ).get('Item')
 
-    def get_provider_record(self, *, compact: str, provider_id: str) -> dict:
-        """Get just the provider record itself."""
-        logger.info('Getting provider record', provider_id=provider_id)
-        try:
-            resp = self.config.provider_table.get_item(
-                Key={
-                    'pk': f'{compact}#PROVIDER#{provider_id}',
-                    'sk': f'{compact}#PROVIDER',
-                },
-                ConsistentRead=True,
-            )['Item']
-        except KeyError as e:
-            logger.info('Provider not found', exc_info=e)
-            raise CCNotFoundException('No provider found by that identifier') from e
+        if resp is None:
+            logger.info('Home jurisdiction selection record not found', provider_id=provider_id, compact=compact)
+            raise CCNotFoundException('No home jurisdiction selection record found')
 
         return resp
 
-    def query_license_records(self, *, compact: str, state: str, family_name: str, given_name: str) -> list[dict]:
-        """Query license records using the license GSI."""
-        logger.info('Querying license records', compact=compact, state=state)
 
-        try:
-            resp = self.config.provider_table.query(
-                IndexName=self.config.license_gsi_name,
-                KeyConditionExpression=(
-                    Key('licenseGSIPK').eq(f'C#{compact.lower()}#J#{state.lower()}')
-                    & Key('licenseGSISK').eq(f'FN#{quote(family_name.lower())}#GN#{quote(given_name.lower())}')
-                ),
-            )
-            return resp.get('Items', [])
-        except ClientError as e:
-            logger.error('Failed to query license records', error=str(e))
-            raise CCAwsServiceException('Failed to query license records') from e
+    def query_license_records(self, *, compact: str, jurisdiction: str, family_name: str, given_name: str) -> list[dict]:
+        """Query license records using the license GSI."""
+        logger.info('Querying license records', compact=compact, state=jurisdiction)
+
+        resp = self.config.provider_table.query(
+            IndexName=self.config.license_gsi_name,
+            KeyConditionExpression=(
+                Key('licenseGSIPK').eq(f'C#{compact.lower()}#J#{jurisdiction.lower()}')
+                & Key('licenseGSISK').eq(f'FN#{quote(family_name.lower())}#GN#{quote(given_name.lower())}')
+            ),
+        )
+        return resp.get('Items', [])
 
     def find_matching_license_record(
         self, records: list[dict], *, partial_ssn: str, dob: str, license_type: str
@@ -696,10 +675,9 @@ class DataClient:
     def create_home_jurisdiction_selection(self, *, compact: str, provider_id: str, jurisdiction: str):
         """Create a home jurisdiction selection record for a provider.
 
-        Args:
-            compact: The compact name
-            provider_id: The provider ID
-            jurisdiction: The jurisdiction postal code
+        :param compact: The compact name
+        :param provider_id: The provider ID 
+        :param jurisdiction: The jurisdiction postal code
         """
         logger.info(
             'Creating home jurisdiction selection record',
@@ -707,46 +685,43 @@ class DataClient:
             compact=compact,
             jurisdiction=jurisdiction,
         )
-        try:
-            record = {
-                'type': 'homeJurisdictionSelection',
-                'compact': compact,
-                'providerId': provider_id,
-                'jurisdiction': jurisdiction,
-                'dateOfSelection': self.config.current_standard_datetime,
-                'dateOfUpdate': self.config.current_standard_datetime,
-            }
+        record = {
+            'type': 'homeJurisdictionSelection',
+            'compact': compact,
+            'providerId': provider_id,
+            'jurisdiction': jurisdiction,
+            'dateOfSelection': self.config.current_standard_datetime,
+        }
 
-            schema = ProviderHomeJurisdictionSelectionRecordSchema()
-            serialized_record = schema.dump(record)
+        schema = ProviderHomeJurisdictionSelectionRecordSchema()
+        serialized_record = schema.dump(record)
 
-            self.config.provider_table.put_item(Item=serialized_record)
-        except ClientError as e:
-            logger.error('Failed to create home jurisdiction selection record', error=str(e))
-            raise CCAwsServiceException('Failed to create home jurisdiction selection record') from e
+        self.config.provider_table.put_item(
+            Item=serialized_record,
+            ConditionExpression=Attr('pk').not_exists()
+        )
+        
 
-    def rollback_home_jurisdiction_selection(self, *, compact: str, provider_id: str):
+    def rollback_home_jurisdiction_selection(self, *, compact: str, provider_id: str) -> None:
         """Delete a home jurisdiction selection record for a provider.
 
         This method is only intended to be used when a failure occurs in the registration process.
 
-        Args:
-            compact: The compact name
-            provider_id: The provider ID
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :return: None
         """
         logger.info(
             'Deleting home jurisdiction selection record if it exists', provider_id=provider_id, compact=compact
         )
-        try:
-            self.config.provider_table.delete_item(
-                Key={
-                    'pk': f'{compact}#PROVIDER#{provider_id}',
-                    'sk': f'{compact}#PROVIDER#home-jurisdiction#',
-                }
-            )
-        except ClientError as e:
-            logger.error('Failed to delete home jurisdiction selection record', error=str(e))
-            raise CCAwsServiceException('Failed to delete home jurisdiction selection record') from e
+        self.config.provider_table.delete_item(
+            Key={
+                'pk': f'{compact}#PROVIDER#{provider_id}',
+                'sk': f'{compact}#PROVIDER#home-jurisdiction#',
+            }
+        )
+
 
     def find_home_state_license(self, *, compact: str, provider_id: str, licenses: list[dict]) -> dict | None:
         """Find the license from the provider's selected home jurisdiction.
@@ -757,22 +732,61 @@ class DataClient:
         3. Filter to active licenses if any exist
         4. Return the most recently issued active license, or None if no matching license is found
 
-        Args:
-            compact: The compact name
-            provider_id: The provider ID
-            licenses: List of license records to search through
 
-        Returns:
-            The matching home state license if found, None otherwise
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param licenses: List of license records to search through
+        :return: The matching home state license if found, None otherwise
         """
         logger.info('Finding home state license', provider_id=provider_id, compact=compact)
 
         # Get home jurisdiction selection
-        home_jurisdiction = self.get_provider_home_jurisdiction_selection(
-            compact=compact,
-            provider_id=provider_id,
-        )
-        if home_jurisdiction is None:
+        try:
+            home_jurisdiction = self.get_provider_home_jurisdiction_selection(
+                compact=compact,
+                provider_id=provider_id,
+            )
+
+            # Find all licenses from home jurisdiction
+            home_state_licenses = [
+                provider_license
+                for provider_license in licenses
+                if provider_license['jurisdiction'].lower() == home_jurisdiction['jurisdiction'].lower()
+            ]
+
+            if not home_state_licenses:
+                # If the user has registered with the system and set a home jurisdiction,
+                # but no licenses are found, there is an issue with the data.
+                logger.error(
+                    'No licenses found for selected home jurisdiction',
+                    provider_id=provider_id,
+                    compact=compact,
+                    jurisdiction=home_jurisdiction['jurisdiction'],
+                )
+                raise CCInternalException("No licenses found for provider's selected home jurisdiction")
+
+            if len(home_state_licenses) == 1:
+                return home_state_licenses[0]
+
+            # If there are multiple licenses for the home jurisdiction, we need to determine which one to use.
+            # Currently, we will use the most recently issued active license.
+            logger.info(
+                'Multiple licenses found for home jurisdiction. Using most recently issued active license.',
+                provider_id=provider_id,
+                compact=compact,
+                jurisdiction=home_jurisdiction['jurisdiction'],
+            )
+            active_licenses = [
+                provider_license
+                for provider_license in home_state_licenses
+                if provider_license.get('status', '').lower() == 'active'
+            ]
+
+            target_licenses = active_licenses if active_licenses else home_state_licenses
+
+            # Return the most recently issued license
+            return max(target_licenses, key=lambda x: x['dateOfIssuance'])
+        except CCNotFoundException as e:
             # The user has not registered with the system and set a home jurisdiction
             logger.info(
                 'No home jurisdiction selection found. Cannot determine home state license',
@@ -780,43 +794,3 @@ class DataClient:
                 compact=compact,
             )
             return None
-
-        # Find all licenses from home jurisdiction
-        home_state_licenses = [
-            provider_license
-            for provider_license in licenses
-            if provider_license['jurisdiction'].lower() == home_jurisdiction['jurisdiction'].lower()
-        ]
-
-        if not home_state_licenses:
-            # If the user has registered with the system and set a home jurisdiction,
-            # but no licenses are found, there is an issue with the data.
-            logger.error(
-                'No licenses found for selected home jurisdiction',
-                provider_id=provider_id,
-                compact=compact,
-                jurisdiction=home_jurisdiction['jurisdiction'],
-            )
-            raise CCInternalException("No licenses found for provider's selected home jurisdiction")
-
-        if len(home_state_licenses) == 1:
-            return home_state_licenses[0]
-
-        # If there are multiple licenses for the home jurisdiction, we need to determine which one to use.
-        # Currently, we will use the most recently issued active license.
-        logger.info(
-            'Multiple licenses found for home jurisdiction. Using most recently issued active license.',
-            provider_id=provider_id,
-            compact=compact,
-            jurisdiction=home_jurisdiction['jurisdiction'],
-        )
-        active_licenses = [
-            provider_license
-            for provider_license in home_state_licenses
-            if provider_license.get('status', '').lower() == 'active'
-        ]
-
-        target_licenses = active_licenses if active_licenses else home_state_licenses
-
-        # Return the most recently issued license
-        return max(target_licenses, key=lambda x: x['dateOfIssuance'])
