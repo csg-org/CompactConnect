@@ -205,6 +205,12 @@ that is done, perform the following steps to deploy the CI/CD pipeline into the 
     ```
     aws secretsmanager create-secret --name compact-connect/env/{value of 'environment_name'}/recaptcha/token --secret-string '{"token": "<value of private Secret Key from Google reCAPTCHA>"}'
     ```
+ - For Production sites, setup reCAPTCHA Billing
+  a. In the Settings for a reCAPTCHA site, click "View in Cloud Console"
+  b. From the main nav, go to Billing
+  c. If you have an existing billing account, you may link it, otherwise you can Create a New Billing account, where you
+     will add payment information.
+  d. More info on Google Recaptcha billing: https://cloud.google.com/recaptcha/docs/billing-information
 - Have someone with suitable permissions in the GitHub organization that hosts this code navigate to the AWS Console
   for the Deploy account, go to the
   [AWS CodeStar Connections](https://us-east-1.console.aws.amazon.com/codesuite/settings/connections) page and create a
