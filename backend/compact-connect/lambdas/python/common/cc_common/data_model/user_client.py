@@ -5,6 +5,7 @@ from botocore.exceptions import ClientError
 
 from cc_common.config import _Config, logger
 from cc_common.data_model.query_paginator import paginated_query
+from cc_common.data_model.schema.common import StaffUserStatus
 from cc_common.data_model.schema.user.record import (
     CompactPermissionsRecordSchema,
     UserAttributesRecordSchema,
@@ -302,7 +303,13 @@ class UserClient:
 
         try:
             user = self.schema.dump(
-                {'userId': user_id, 'compact': compact, 'attributes': attributes, 'permissions': permissions},
+                {
+                    'userId': user_id,
+                    'compact': compact,
+                    'attributes': attributes,
+                    'permissions': permissions,
+                    'status': StaffUserStatus.INACTIVE.value,
+                },
             )
             # If the user doesn't already exist, add them
             self.config.users_table.put_item(

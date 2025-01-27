@@ -5,6 +5,7 @@ from marshmallow.fields import Boolean, Dict, Nested, Raw, String
 from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
+from cc_common.data_model.schema.common import StaffUserStatus
 
 
 class UserAttributesAPISchema(Schema):
@@ -41,6 +42,7 @@ class UserAPISchema(Schema):
 
     type = String(required=True, allow_none=False, validate=OneOf(['user']))
     userId = Raw(required=True, allow_none=False)
+    status = String(required=True, allow_none=False, validate=OneOf([status.value for status in StaffUserStatus]))
     dateOfUpdate = Raw(required=True, allow_none=False)
     attributes = Nested(UserAttributesAPISchema(), required=True, allow_none=False)
     permissions = Dict(

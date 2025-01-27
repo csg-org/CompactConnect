@@ -2,7 +2,7 @@ from marshmallow.fields import List, String
 from marshmallow.validate import OneOf, Regexp
 
 from cc_common.config import config
-from cc_common.data_model.schema.common import Status, UpdateCategory
+from cc_common.data_model.schema.common import ProviderStatus, UpdateCategory
 
 
 class SocialSecurityNumber(String):
@@ -39,7 +39,7 @@ class Jurisdiction(String):
 
 class ActiveInactive(String):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, validate=OneOf([entry.value for entry in Status]), **kwargs)
+        super().__init__(*args, validate=OneOf([entry.value for entry in ProviderStatus]), **kwargs)
 
 
 class UpdateType(String):

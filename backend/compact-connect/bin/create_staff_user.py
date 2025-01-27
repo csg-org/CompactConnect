@@ -30,6 +30,7 @@ os.environ['COMPACTS'] = json.dumps(COMPACTS)
 os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 
 # We have to import this after we've mucked with our path and environment
+from cc_common.data_model.schema.common import StaffUserStatus  # noqa: E402
 from cc_common.data_model.schema.user.record import UserRecordSchema  # noqa: E402
 
 USER_POOL_ID = os.environ['USER_POOL_ID']
@@ -49,6 +50,7 @@ def create_compact_ed_user(*, email: str, compact: str, user_attributes: dict):
             {
                 'type': 'user',
                 'userId': sub,
+                'status': StaffUserStatus.ACTIVE.value,
                 'compact': compact,
                 'attributes': user_attributes,
                 'permissions': {'actions': {'read', 'admin'}, 'jurisdictions': {}},
@@ -65,6 +67,7 @@ def create_board_ed_user(*, email: str, compact: str, jurisdiction: str, user_at
             {
                 'type': 'user',
                 'userId': sub,
+                'status': StaffUserStatus.ACTIVE.value,
                 'compact': compact,
                 'attributes': user_attributes,
                 'permissions': {'actions': {'read'}, 'jurisdictions': {jurisdiction: {'write', 'admin'}}},

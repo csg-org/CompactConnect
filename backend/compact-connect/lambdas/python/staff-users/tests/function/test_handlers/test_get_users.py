@@ -25,6 +25,8 @@ class TestGetUsers(TstFunction):
         self.assertEqual([], json.loads(resp['body'])['users'])
 
     def test_get_users_compact_admin(self):
+        from cc_common.data_model.schema.common import StaffUserStatus
+
         # One user who is a compact admin in both aslp and octp
         self._create_compact_staff_user(compacts=['aslp', 'octp'])
         # One board user in each test jurisdiction (oh, ne, ky) with permissions in aslp and octp.
@@ -47,6 +49,9 @@ class TestGetUsers(TstFunction):
         body = json.loads(resp['body'])
 
         self.assertEqual(4, len(body['users']))
+        for user in body['users']:
+            # These are brand-new users, so they should all be inactive
+            self.assertEqual(StaffUserStatus.INACTIVE.value, user['status'])
 
     def test_get_users_paginated(self):
         self._create_compact_staff_user(compacts=['aslp', 'octp'])

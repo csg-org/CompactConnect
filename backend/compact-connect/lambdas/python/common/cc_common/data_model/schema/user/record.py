@@ -6,6 +6,7 @@ from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
+from cc_common.data_model.schema.common import StaffUserStatus
 from cc_common.data_model.schema.fields import Set
 
 
@@ -48,18 +49,19 @@ class UserRecordSchema(BaseRecordSchema):
     attributes = Nested(UserAttributesRecordSchema(), required=True, allow_none=False)
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     permissions = Nested(CompactPermissionsRecordSchema(), required=True, allow_none=False)
+    status = String(required=True, allow_none=False, validate=OneOf([status.value for status in StaffUserStatus]))
 
     # Generated fields
     famGiv = String(required=True, allow_none=False)
 
     @pre_dump
     def generate_pk(self, in_data, **kwargs):  # noqa: ARG002 unused-kwargs
-        in_data['pk'] = f'USER#{in_data['userId']}'
+        in_data['pk'] = f'USER#{in_data["userId"]}'
         return in_data
 
     @pre_dump
     def generate_sk(self, in_data, **kwargs):  # noqa: ARG002 unused-kwargs
-        in_data['sk'] = f'COMPACT#{in_data['compact']}'
+        in_data['sk'] = f'COMPACT#{in_data["compact"]}'
         return in_data
 
     @pre_dump
