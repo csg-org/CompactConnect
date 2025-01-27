@@ -1,7 +1,7 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from urllib.parse import quote
 
-from marshmallow import ValidationError, post_dump, pre_dump, pre_load, validates_schema
+from marshmallow import ValidationError, post_dump, post_load, pre_dump, validates_schema
 from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, List, Nested, String
 from marshmallow.validate import Length
 
@@ -45,35 +45,36 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
     jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
-    # GSI fields
-    licenseGSIPK = String(required=True, allow_none=False)
-    licenseGSISK = String(required=True, allow_none=False)
-
-    def _generate_license_gsi_fields(self, in_data):
-        in_data['licenseGSIPK'] = f'C#{in_data['compact'].lower()}#J#{in_data['jurisdiction'].lower()}'
-        in_data['licenseGSISK'] = f'FN#{quote(in_data['familyName'].lower())}#GN#{quote(in_data['givenName'].lower())}'
-        return in_data
+    # GSI fields for license matching during registration
+    # TODO - these are currently set as not required so as not to break our existing data # noqa: FIX002
+    #  Once our data has been migrated to including this GSI, we should make these fields required
+    licenseGSIPK = String(required=False, allow_none=False)
+    licenseGSISK = String(required=False, allow_none=False)
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
         in_data['sk'] = f'{in_data['compact']}#PROVIDER#license/{in_data['jurisdiction']}#'
-        # Generate GSI fields for license lookup
-        self._generate_license_gsi_fields(in_data)
-        # Add last four of SSN for matching
+        return in_data
+
+    @pre_dump
+    def generate_license_gsi_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        in_data['licenseGSIPK'] = f'C#{in_data['compact'].lower()}#J#{in_data['jurisdiction'].lower()}'
+        in_data['licenseGSISK'] = f'FN#{quote(in_data['familyName'].lower())}#GN#{quote(in_data['givenName'].lower())}'
+        return in_data
+
+    @pre_dump
+    def set_ssn_last_four(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         # TODO - this will be removed once we complete the work to remove the full ssn field  # noqa: FIX002
+        # Add last four of SSN for matching
         in_data['ssnLastFour'] = in_data['ssn'][-4:]
         return in_data
 
-    @pre_load
-    def populate_license_gsi_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        """
-        Populate the license GSI fields for license lookup if they are not already present
-
-        This is for backwards compatibility with existing license records that do not have the GSI fields populated.
-        """
-        if 'licenseGSIPK' not in in_data or 'licenseGSISK' not in in_data:
-            self._generate_license_gsi_fields(in_data)
+    @post_load
+    def drop_license_gsi_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        """Drop the db-specific license GSI fields before returning loaded data"""
+        del in_data['licenseGSIPK']
+        del in_data['licenseGSISK']
         return in_data
 
 
