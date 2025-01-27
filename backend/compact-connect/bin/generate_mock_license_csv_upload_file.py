@@ -88,7 +88,7 @@ def get_mock_license(i: int, *, compact: str, jurisdiction: str = None) -> dict:
         # Some have NPI, some don't
         'npi': str(randint(1_000_000_000, 9_999_999_999)) if choice([True, False]) else None,
         # Some have License number, some don't
-        'licenseNumber': str(randint(1_000_000_000, 9_999_999_999)) if choice([True, False]) else None,
+        'licenseNumber': chr(randint(ord('A'), ord('Z'))) + chr(randint(ord('A'), ord('Z'))) + '-' + str(randint(1_000_000_000, 9_999_999_999)) if choice([True, False]) else None,
         'licenseType': choice(LICENSE_TYPES[compact]),
         'givenName': name_faker.first_name(),
         'middleName': name_faker.first_name(),
