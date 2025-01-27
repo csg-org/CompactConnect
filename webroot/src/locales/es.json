@@ -657,6 +657,13 @@
         "addState": "Agregar estado / jurisdiccion",
         "inviteNewUser": "Invitar nuevo usuario"
     },
+    "recaptcha": {
+        "googleDesc": "Este sitio está protegido por reCAPTCHA y se aplican las políticas de privacidad de Google.",
+        "privacyPolicy": "política de privacidad",
+        "and": "y",
+        "terms": "Condiciones de servicio",
+        "apply": "aplicar"
+    },
     "styleGuide": {
         "headerPlaceholder": "Contenido del encabezado",
         "styleGuide": "Guía de estilo",

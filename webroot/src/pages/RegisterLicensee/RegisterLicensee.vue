@@ -65,19 +65,19 @@
         </Card>
         <div ref="recaptcha"></div>
         <div class="recaptcha-terms">
-            This site is protected by reCAPTCHA and the Google
+            {{ $t('recaptcha.googleDesc') }}
             <a
                 href="https://policies.google.com/privacy"
                 rel="noopener noreferrer"
                 class="recaptcha-link"
-            >Privacy Policy</a>
-            and
+            >{{ $t('recaptcha.privacyPolicy') }}</a>
+            {{ $t('recaptcha.and') }}
             <a
                 href="https://policies.google.com/terms"
                 rel="noopener noreferrer"
                 class="recaptcha-link"
-            >Terms of Service</a>
-            apply.
+            >{{ $t('recaptcha.terms') }}</a>
+            {{ $t('recaptcha.apply') }}.
         </div>
     </Section>
 </template>

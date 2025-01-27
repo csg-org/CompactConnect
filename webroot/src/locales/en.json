@@ -657,6 +657,13 @@
         "addState": "Add state / jurisdiction",
         "inviteNewUser": "Invite new user"
     },
+    "recaptcha": {
+        "googleDesc": "This site is protected by reCAPTCHA and the Google",
+        "privacyPolicy": "Privacy Policy",
+        "and": "and",
+        "terms": "Terms of Service",
+        "apply": "apply"
+    },
     "styleGuide": {
         "headerPlaceholder": "Header Content",
         "styleGuide": "Style Guide",
