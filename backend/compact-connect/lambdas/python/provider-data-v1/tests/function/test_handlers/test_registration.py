@@ -279,8 +279,11 @@ class TestProviderRegistration(TstFunction):
                 mock_time += timedelta(seconds=attempt + 1)
                 mock_now.return_value = mock_time
                 response = register_provider(self._get_test_event(), self.mock_context)
-
-            self.assertEqual(429, response['statusCode'])
+                # for the first 2 attempts, expect a 200
+                if attempt < 2:
+                    self.assertEqual(200, response['statusCode'])
+                else:
+                    self.assertEqual(429, response['statusCode'])
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_does_not_block_users_if_beyond_15_minute_window(self, mock_verify_recaptcha):
@@ -293,10 +296,10 @@ class TestProviderRegistration(TstFunction):
             from handlers.registration import register_provider
 
             # call the endpoint 10 times, each incrementing by 5 minutes and expect a 200 in the response
-            for attempt in range(10):
+            mock_time = datetime.fromisoformat('2025-01-23T08:00:00+00:00')
+            for _ in range(10):
                 # increment the datetime by 5 minutes and one second (so the limit is not exceeded)
-                mock_time = datetime.fromisoformat('2025-01-23T08:00:00+00:00')
-                mock_time += timedelta(minutes=5 * (attempt + 1), seconds=attempt + 1)
+                mock_time += timedelta(minutes=5, seconds=1)
                 mock_now.return_value = mock_time
                 response = register_provider(self._get_test_event(), self.mock_context)
                 self.assertEqual(200, response['statusCode'])

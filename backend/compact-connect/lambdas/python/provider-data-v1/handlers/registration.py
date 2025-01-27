@@ -133,33 +133,12 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
 
     metrics.add_metric(name=RECAPTCHA_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=1)
 
-    # Query license records
-    try:
-        license_records = config.data_client.query_license_records(
-            compact=body['compact'],
-            jurisdiction=body['state'],
-            family_name=body['familyName'],
-            given_name=body['givenName'],
-        )
-    except Exception as e:
-        logger.error('Failed to query license records', error=str(e))
-        raise CCAwsServiceException('Failed to query license records') from e
-
-    if not license_records:
-        # log the minimal request data
-        logger.info(
-            'No license records found for request',
-            compact=body['compact'],
-            jurisdiction=body['state'],
-            given_name=body['givenName'],
-            license_type=body['licenseType'],
-        )
-        metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
-        return {'message': 'request processed'}
-
-    # Find matching license record
+    # Query license records for one matching on all provided fields
     matching_record = config.data_client.find_matching_license_record(
-        license_records,
+        compact=body['compact'],
+        jurisdiction=body['state'],
+        family_name=body['familyName'],
+        given_name=body['givenName'],
         partial_ssn=body['partialSocial'],
         dob=body['dob'],
         license_type=body['licenseType'],

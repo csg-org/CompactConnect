@@ -66,10 +66,28 @@ class DataClient:
 
         return resp
 
-    def query_license_records(
-        self, *, compact: str, jurisdiction: str, family_name: str, given_name: str
-    ) -> list[dict]:
-        """Query license records using the license GSI."""
+    def find_matching_license_record(
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        family_name: str,
+        given_name: str,
+        partial_ssn: str,
+        dob: str,
+        license_type: str,
+    ) -> dict | None:
+        """Query license records using the license GSI and find a matching record.
+
+        :param compact: The compact name
+        :param jurisdiction: The jurisdiction postal code
+        :param family_name: Provider's family name
+        :param given_name: Provider's given name
+        :param partial_ssn: Last 4 digits of SSN
+        :param dob: Date of birth
+        :param license_type: Type of license
+        :return: The matching license record if found, None otherwise
+        """
         logger.info('Querying license records', compact=compact, state=jurisdiction)
 
         resp = self.config.provider_table.query(
@@ -78,22 +96,12 @@ class DataClient:
                 Key('licenseGSIPK').eq(f'C#{compact.lower()}#J#{jurisdiction.lower()}')
                 & Key('licenseGSISK').eq(f'FN#{quote(family_name.lower())}#GN#{quote(given_name.lower())}')
             ),
+            FilterExpression=(
+                Attr('ssnLastFour').eq(partial_ssn) & Attr('dateOfBirth').eq(dob) & Attr('licenseType').eq(license_type)
+            ),
         )
-        return resp.get('Items', [])
 
-    def find_matching_license_record(
-        self, records: list[dict], *, partial_ssn: str, dob: str, license_type: str
-    ) -> dict | None:
-        """Find a license record matching the given criteria."""
-        matching_records = [
-            record
-            for record in records
-            if (
-                record.get('ssnLastFour') == partial_ssn
-                and record['dateOfBirth'] == dob
-                and record.get('licenseType') == license_type
-            )
-        ]
+        matching_records = resp.get('Items', [])
 
         if len(matching_records) > 1:
             logger.error('Multiple matching license records found')
