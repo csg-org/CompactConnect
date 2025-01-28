@@ -1,6 +1,7 @@
 import type { LambdaInterface } from '@aws-lambda-powertools/commons/lib/esm/types';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { S3Client } from '@aws-sdk/client-s3';
 import { SESClient } from '@aws-sdk/client-ses';
 import { Context } from 'aws-lambda';
 
@@ -18,6 +19,7 @@ const logger = new Logger({ logLevel: environmentVariables.getLogLevel() });
 interface LambdaProperties {
     dynamoDBClient: DynamoDBClient;
     sesClient: SESClient;
+    s3Client: S3Client;
 }
 
 /*
@@ -46,6 +48,7 @@ export class Lambda implements LambdaInterface {
         this.emailService = new EmailService({
             logger: logger,
             sesClient: props.sesClient,
+            s3Client: props.s3Client,
             compactConfigurationClient: compactConfigurationClient,
             jurisdictionClient: this.jurisdictionClient
         });

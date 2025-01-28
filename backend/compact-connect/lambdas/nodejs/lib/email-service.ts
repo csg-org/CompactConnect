@@ -3,6 +3,7 @@ import * as nodemailer from 'nodemailer';
 
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SendRawEmailCommand, SESClient } from '@aws-sdk/client-ses';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { renderToStaticMarkup, TReaderDocument } from '@usewaypoint/email-builder';
 import { CompactConfigurationClient } from './compact-configuration-client';
 import { JurisdictionClient } from './jurisdiction-client';
@@ -21,6 +22,7 @@ interface IIngestEvents {
 interface EmailServiceProperties {
     logger: Logger;
     sesClient: SESClient;
+    s3Client: S3Client;
     compactConfigurationClient: CompactConfigurationClient;
     jurisdictionClient: JurisdictionClient;
 }
@@ -37,6 +39,7 @@ const getEmailImageBaseUrl = () => {
 export class EmailService {
     private readonly logger: Logger;
     private readonly sesClient: SESClient;
+    private readonly s3Client: S3Client;
     private readonly compactConfigurationClient: CompactConfigurationClient;
     private readonly jurisdictionClient: JurisdictionClient;
     private readonly emailTemplate: TReaderDocument = {
@@ -55,6 +58,7 @@ export class EmailService {
     public constructor(props: EmailServiceProperties) {
         this.logger = props.logger;
         this.sesClient = props.sesClient;
+        this.s3Client = props.s3Client;
         this.compactConfigurationClient = props.compactConfigurationClient;
         this.jurisdictionClient = props.jurisdictionClient;
     }
@@ -101,7 +105,7 @@ export class EmailService {
         subject: string;
         recipients: string[];
         errorMessage: string;
-        attachments: { filename: string; content: string; contentType: string; }[];
+        attachments: { filename: string; content: string | Buffer; contentType: string; }[];
     }) {
         try {
             // Create a nodemailer transport that generates raw MIME messages
@@ -862,8 +866,10 @@ export class EmailService {
 
     public async sendCompactTransactionReportEmail(
         compact: string,
-        compactFinancialSummaryReportCSV: string,
-        compactTransactionReportCSV: string
+        reportS3Path: string,
+        reportingCycle: string,
+        startDate: string,
+        endDate: string
     ): Promise<void> {
         this.logger.info('Sending compact transaction report email', { compact: compact });
         const recipients = await this.getRecipients(compact, 'COMPACT_SUMMARY_REPORT');
@@ -872,9 +878,21 @@ export class EmailService {
             throw new Error(`No recipients found for compact ${compact} with recipient type COMPACT_SUMMARY_REPORT`);
         }
 
+        // Get the report zip file from S3        
+        const reportZipResponse = await this.s3Client.send(new GetObjectCommand({
+            Bucket: environmentVariableService.getTransactionReportsBucketName(),
+            Key: reportS3Path
+        }));
+
+        if (!reportZipResponse.Body) {
+            throw new Error(`Failed to retrieve report from S3: ${reportS3Path}`);
+        }
+
+        const reportZipBuffer = Buffer.from(await reportZipResponse.Body.transformToByteArray());
+
         const report = JSON.parse(JSON.stringify(this.emailTemplate));
-        const subject = `Weekly Report for Compact ${compact.toUpperCase()}`;
-        const bodyText = 'Please find attached the weekly transaction reports for your compact:\n\n' +
+        const subject = `${reportingCycle === 'weekly' ? 'Weekly' : 'Monthly'} Report for Compact ${compact.toUpperCase()}`;
+        const bodyText = `Please find attached the ${reportingCycle} transaction reports for your compact for the period ${startDate} to ${endDate}:\n\n` +
             '1. Financial Summary Report - A summary of all transactions and fees\n' +
             '2. Transaction Detail Report - A detailed list of all transactions';
 
@@ -891,14 +909,9 @@ export class EmailService {
             errorMessage: 'Unable to send compact transaction report email',
             attachments: [
                 {
-                    filename: 'financial-summary-report.csv',
-                    content: compactFinancialSummaryReportCSV,
-                    contentType: 'text/csv'
-                },
-                {
-                    filename: 'transaction-detail-report.csv',
-                    content: compactTransactionReportCSV,
-                    contentType: 'text/csv'
+                    filename: `${compact}-transaction-report.zip`,
+                    content: reportZipBuffer,
+                    contentType: 'application/zip'
                 }
             ]
         });
