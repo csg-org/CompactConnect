@@ -10,7 +10,6 @@ from cc_common.exceptions import (
     CCAccessDeniedException,
     CCAwsServiceException,
     CCInternalException,
-    CCNotFoundException,
     CCRateLimitingException,
 )
 from cc_common.utils import api_handler
@@ -169,33 +168,27 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     # Check if already registered by looking for home jurisdiction record
     # this is only created if the provider has registered previously
     try:
-        home_jurisdiction = config.data_client.get_provider_home_jurisdiction_selection(
-            compact=body['compact'],
-            provider_id=matching_record['providerId'],
-        )
-        logger.warning(
-            'Provider already registered',
-            compact=body['compact'],
-            provider_id=matching_record['providerId'],
-            home_jurisdiction=home_jurisdiction['jurisdiction'],
-        )
-        metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
-        return {'message': 'request processed'}
-    except CCNotFoundException:
-        logger.info(
-            'No home jurisdiction selection record found. Moving on to registration.',
-            provider_id=matching_record['providerId'],
-            compact=body['compact'],
-        )
-
-    try:
-        # Create home jurisdiction selection record first
+        # Create home jurisdiction selection record.
+        # If the record already exists for this provider,
+        # then this will fail with a 'ConditionalCheckFailedException'
         config.data_client.create_home_jurisdiction_selection(
             compact=body['compact'],
             provider_id=matching_record['providerId'],
             jurisdiction=body['jurisdiction'],
         )
+        logger.info('Created home jurisdiction selection record', compact=body['compact'], provider_id=matching_record['providerId'])
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+            logger.warning(
+                'This provider is already registered in the system',
+                compact=body['compact'],
+                provider_id=matching_record['providerId'],
+            )
+            metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+            return {'message': 'request processed'}
+        raise e
 
+    try:
         # Create Cognito user
         config.cognito_client.admin_create_user(
             UserPoolId=config.provider_user_pool_id,

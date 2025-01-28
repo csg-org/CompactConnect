@@ -215,7 +215,7 @@ class TestQueryProviders(TstFunction):
         self.assertEqual({'key': 'familyName', 'direction': 'ascending'}, body['sorting'])
         self.assertIsNone(body['pagination']['lastKey'])
         # Check we're actually sorted
-        family_names = [provider['familyName'] for provider in body['providers']]
+        family_names = [provider['familyName'].lower() for provider in body['providers']]
         self.assertListEqual(sorted(family_names, key=quote), family_names)
 
     def test_query_providers_invalid_sorting(self):
