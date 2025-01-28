@@ -21,8 +21,7 @@ def strip_options_endpoints(oas30: dict) -> dict:
     """
     for path_key, path_value in oas30['paths'].items():
         oas30['paths'][path_key] = {
-            method_key: method_value for method_key, method_value in path_value.items()
-            if method_key != 'options'
+            method_key: method_value for method_key, method_value in path_value.items() if method_key != 'options'
         }
     # Remove now empty paths
     oas30['paths'] = {path_key: path_value for path_key, path_value in oas30['paths'].items() if path_value}

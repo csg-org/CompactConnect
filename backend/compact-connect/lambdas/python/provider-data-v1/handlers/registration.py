@@ -176,7 +176,12 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             provider_id=matching_record['providerId'],
             jurisdiction=body['jurisdiction'],
         )
-        logger.info('Created home jurisdiction selection record', compact=body['compact'], provider_id=matching_record['providerId'])
+        logger.info(
+            'Created home jurisdiction selection record',
+            compact=body['compact'],
+            provider_id=matching_record['providerId'],
+            jurisdiction=body['jurisdiction']
+        )
     except ClientError as e:
         if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
             logger.warning(
