@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import csv
+import gzip
 import json
 from datetime import datetime, timedelta
 from decimal import Decimal
-from io import StringIO
+from io import BytesIO, StringIO
+from zipfile import ZIP_DEFLATED, ZipFile
 
+import boto3
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.compact import COMPACT_TYPE, Compact
@@ -11,16 +16,146 @@ from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 
 
+def _get_date_range_for_reporting_cycle(reporting_cycle: str) -> tuple[datetime, datetime]:
+    """Calculate the start and end dates for the reporting cycle.
+    
+    :param reporting_cycle: Either 'weekly' or 'monthly'
+    :return: Tuple of (start_time, end_time) in UTC
+    """
+    # Use 12:00:00.0 AM UTC of the next day for end time to ensure we capture full day
+    end_time = config.current_standard_datetime.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+    
+    if reporting_cycle == 'weekly':
+        start_time = end_time - timedelta(days=7)
+    elif reporting_cycle == 'monthly':
+        # Go back to the first day of the previous month
+        first_of_current = end_time.replace(day=1)
+        start_time = first_of_current - timedelta(days=1)  # Go to last day of previous month
+        start_time = start_time.replace(day=1)  # Go to first day of previous month
+    else:
+        raise ValueError(f'Invalid reporting cycle: {reporting_cycle}')
+    
+    return start_time, end_time
+
+
+def _store_compact_reports_in_s3(
+    compact: str,
+    reporting_cycle: str,
+    start_time: datetime,
+    end_time: datetime,
+    summary_report: str,
+    transaction_detail: str,
+    bucket_name: str,
+) -> dict[str, str]:
+    """Store compact reports in S3 with appropriate compression formats.
+    
+    :param compact: Compact name
+    :param reporting_cycle: Either 'weekly' or 'monthly'
+    :param start_time: Report start time
+    :param end_time: Report end time
+    :param summary_report: Financial summary report CSV content
+    :param transaction_detail: Transaction detail report CSV content
+    :param bucket_name: S3 bucket name
+    :return: Dictionary of file types to their S3 paths
+    """
+    date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
+    base_path = (
+        f"compact/{compact}/reports/compact-transactions/reporting-cycle/{reporting_cycle}/"
+        f"{end_time.strftime('%Y/%m/%d')}"
+    )
+    
+    # Define paths for all report files
+    paths = {
+        'financial_summary_gz': f"{base_path}/{compact}-{date_range}-financial-summary.csv.gz",
+        'transaction_detail_gz': f"{base_path}/{compact}-{date_range}-transaction-detail.csv.gz",
+        'report_zip': f"{base_path}/{compact}-{date_range}-report.zip",
+    }
+    
+    s3_client = config.s3_client
+    
+    # Store gzipped financial summary
+    gzip_buffer = BytesIO()
+    with gzip.GzipFile(fileobj=gzip_buffer, mode='wb') as gz:
+        gz.write(summary_report.encode('utf-8'))
+    s3_client.put_object(Bucket=bucket_name, Key=paths['financial_summary_gz'], Body=gzip_buffer.getvalue())
+    
+    # Store gzipped transaction detail
+    gzip_buffer = BytesIO()
+    with gzip.GzipFile(fileobj=gzip_buffer, mode='wb') as gz:
+        gz.write(transaction_detail.encode('utf-8'))
+    s3_client.put_object(Bucket=bucket_name, Key=paths['transaction_detail_gz'], Body=gzip_buffer.getvalue())
+    
+    # Create and store combined zip with uncompressed CSVs
+    zip_buffer = BytesIO()
+    with ZipFile(zip_buffer, 'w', compression=ZIP_DEFLATED) as zip_file:
+        zip_file.writestr('financial-summary.csv', summary_report.encode('utf-8'))
+        zip_file.writestr('transaction-detail.csv', transaction_detail.encode('utf-8'))
+    s3_client.put_object(Bucket=bucket_name, Key=paths['report_zip'], Body=zip_buffer.getvalue())
+    
+    return paths
+
+
+def _store_jurisdiction_reports_in_s3(
+    compact: str,
+    jurisdiction: str,
+    reporting_cycle: str,
+    start_time: datetime,
+    end_time: datetime,
+    transaction_detail: str,
+    bucket_name: str,
+) -> dict[str, str]:
+    """Store jurisdiction reports in S3 with appropriate compression formats.
+    
+    :param compact: Compact name
+    :param jurisdiction: Jurisdiction postal code
+    :param reporting_cycle: Either 'weekly' or 'monthly'
+    :param start_time: Report start time
+    :param end_time: Report end time
+    :param transaction_detail: Transaction detail report CSV content
+    :param bucket_name: S3 bucket name
+    :return: Dictionary of file types to their S3 paths
+    """
+    date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
+    base_path = (
+        f"compact/{compact}/reports/jurisdiction-transactions/"
+        f"jurisdiction/{jurisdiction}/{end_time.strftime('%Y/%m/%d')}"
+    )
+    
+    # Define paths for all report files
+    paths = {
+        'transaction_detail_gz': f"{base_path}/{jurisdiction}-{date_range}-transaction-detail.csv.gz",
+        'report_zip': f"{base_path}/{jurisdiction}-{date_range}-report.zip",
+    }
+    
+    s3_client = boto3.client('s3')
+    
+    # Store gzipped transaction detail
+    gzip_buffer = BytesIO()
+    with gzip.GzipFile(fileobj=gzip_buffer, mode='wb') as gz:
+        gz.write(transaction_detail.encode('utf-8'))
+    s3_client.put_object(Bucket=bucket_name, Key=paths['transaction_detail_gz'], Body=gzip_buffer.getvalue())
+    
+    # Create and store zip with uncompressed CSV
+    zip_buffer = BytesIO()
+    with ZipFile(zip_buffer, 'w', compression=ZIP_DEFLATED) as zip_file:
+        zip_file.writestr('transaction-detail.csv', transaction_detail.encode('utf-8'))
+    s3_client.put_object(Bucket=bucket_name, Key=paths['report_zip'], Body=zip_buffer.getvalue())
+    
+    return paths
+
+
 def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  # noqa: ARG001 unused-argument
     """
-    Generate weekly transaction reports for a compact and its jurisdictions.
+    Generate transaction reports for a compact and its jurisdictions.
 
-    :param event: Event containing the compact name
+    :param event: Event containing the compact name and reporting cycle
     :param context: Lambda context
     :return: Success message
     """
     compact = event['compact']
-    logger.info('Generating transaction reports', compact=compact)
+    reporting_cycle = event['reportingCycle']
+    logger.info('Generating transaction reports', compact=compact, reporting_cycle=reporting_cycle)
+    
     # this is used to track any errors that occur when generating the reports
     # without preventing valid reports from being sent
     lambda_error_messages = []
@@ -28,15 +163,16 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     # Initialize clients
     data_client = config.data_client
     transaction_client = config.transaction_client
+    
+    # Get the S3 bucket name
+    bucket_name = config.transaction_reports_bucket_name
 
-    # Calculate time range for the past week
-    # Use 12:00:00.0 AM UTC of the next day for end time to ensure we capture full day
-    end_time = config.current_standard_datetime.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-    start_time = end_time - timedelta(days=7)
+    # Calculate time range based on reporting cycle
+    start_time, end_time = _get_date_range_for_reporting_cycle(reporting_cycle)
     start_epoch = int(start_time.timestamp())
     end_epoch = int(end_time.timestamp())
 
-    # Get all transactions for the past week
+    # Get all transactions for the time period
     transactions = transaction_client.get_transactions_in_range(
         compact=compact, start_epoch=start_epoch, end_epoch=end_epoch
     )
@@ -84,7 +220,18 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     compact_transaction_csv = _generate_compact_transaction_report(transactions, providers)
     jurisdiction_reports = _generate_jurisdiction_reports(transactions, providers, jurisdiction_configurations)
 
-    # Send compact summary report
+    # Store compact reports in S3 and get paths
+    compact_paths = _store_compact_reports_in_s3(
+        compact=compact,
+        reporting_cycle=reporting_cycle,
+        start_time=start_time,
+        end_time=end_time,
+        summary_report=compact_summary_csv,
+        transaction_detail=compact_transaction_csv,
+        bucket_name=bucket_name,
+    )
+
+    # Send compact summary report with S3 paths
     compact_response = config.lambda_client.invoke(
         FunctionName=config.email_notification_service_lambda_name,
         InvocationType='RequestResponse',
@@ -94,8 +241,10 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
                 'template': 'CompactTransactionReporting',
                 'recipientType': 'COMPACT_SUMMARY_REPORT',
                 'templateVariables': {
-                    'compactFinancialSummaryReportCSV': compact_summary_csv,
-                    'compactTransactionReportCSV': compact_transaction_csv,
+                    'reportS3Path': compact_paths['report_zip'],
+                    'reportingCycle': reporting_cycle,
+                    'startDate': start_time.strftime('%Y-%m-%d'),
+                    'endDate': end_time.strftime('%Y-%m-%d'),
                 },
             }
         ),
@@ -108,8 +257,20 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
             error=compact_response.get('FunctionError'),
         )
         lambda_error_messages.append(compact_response.get('FunctionError'))
-    # Send jurisdiction reports
-    for jurisdiction, report in jurisdiction_reports.items():
+
+    # Store and send jurisdiction reports
+    for jurisdiction, report_csv in jurisdiction_reports.items():
+        # Store jurisdiction report and get paths
+        jurisdiction_paths = _store_jurisdiction_reports_in_s3(
+            compact=compact,
+            jurisdiction=jurisdiction,
+            reporting_cycle=reporting_cycle,
+            start_time=start_time,
+            end_time=end_time,
+            transaction_detail=report_csv,
+            bucket_name=bucket_name,
+        )
+
         jurisdiction_response = config.lambda_client.invoke(
             FunctionName=config.email_notification_service_lambda_name,
             InvocationType='RequestResponse',
@@ -119,7 +280,12 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
                     'jurisdiction': jurisdiction,
                     'template': 'JurisdictionTransactionReporting',
                     'recipientType': 'JURISDICTION_SUMMARY_REPORT',
-                    'templateVariables': {'jurisdictionTransactionReportCSV': report},
+                    'templateVariables': {
+                        'reportS3Path': jurisdiction_paths['report_zip'],
+                        'reportingCycle': reporting_cycle,
+                        'startDate': start_time.strftime('%Y-%m-%d'),
+                        'endDate': end_time.strftime('%Y-%m-%d'),
+                    },
                 }
             ),
         )
@@ -135,7 +301,7 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
 
     if lambda_error_messages:
         raise CCInternalException(
-            f'One or more errors occurred while generating reports. ' f'Errors: {lambda_error_messages}'
+            f'One or more errors occurred while generating reports. Errors: {lambda_error_messages}'
         )
 
     return {'message': 'reports sent successfully'}
