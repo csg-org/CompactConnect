@@ -204,13 +204,9 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
         if (this.isFormValid) {
             this.startFormLoading();
 
-            // Start @TODO: Wire up to form workflow in #302
-            const attestations = this.attestationRecords.map((attestation) => ({
-                attestationId: attestation.id,
-                version: attestation.version,
-            }));
+            const attestationData = this.prepareAttestations();
 
-            this.$store.dispatch('user/setAttestations', attestations);
+            this.$store.dispatch('user/setAttestations', attestationData);
 
             if (!this.isFormError) {
                 this.isFormSuccessful = true;
@@ -221,10 +217,38 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
                     params: { compact: this.currentCompactType }
                 });
             }
-            // End @TODO: Wire up to form workflow in #302
 
             this.endFormLoading();
         }
+    }
+
+    prepareAttestations(): object {
+        const radioAttestations = this.attestationRecords.filter((attestation) => {
+            const checkboxAttestationIds = [
+                this.formData.investigations.value,
+            ];
+
+            return checkboxAttestationIds.includes(attestation.id);
+        }).map((attestation) => ({
+            attestationId: attestation.id,
+            version: attestation.version,
+        }));
+        const checkboxAttestations = this.attestationRecords.filter((attestation) => {
+            const checkboxAttestationIds: Array<string | null | undefined> = [
+                'discipline-no-current-encumbrance-attestation',
+                'discipline-no-prior-encumbrance-attestation',
+                'provision-of-true-information-attestation',
+                'military-affiliation-confirmation-attestation',
+            ];
+
+            return checkboxAttestationIds.includes(attestation.id);
+        }).map((attestation) => ({
+            attestationId: attestation.id,
+            version: attestation.version,
+        }));
+        const attestations = radioAttestations.concat(checkboxAttestations);
+
+        return attestations;
     }
 
     async mockPopulate(): Promise<void> {
