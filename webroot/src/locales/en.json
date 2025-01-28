@@ -547,11 +547,6 @@
                 "compactKey": "aslp"
             },
             {
-                "name": "Speech and Language Pathologist",
-                "key": "speech and language pathologist",
-                "compactKey": "aslp"
-            },
-            {
                 "name": "Occupational Therapist",
                 "key": "occupational therapist",
                 "compactKey": "octp"
@@ -564,21 +559,6 @@
             {
                 "name": "Licensed Professional Counselor",
                 "key": "licensed professional counselor",
-                "compactKey": "coun"
-            },
-            {
-                "name": "Licensed Mental Health Counselor",
-                "key": "licensed mental health counselor",
-                "compactKey": "coun"
-            },
-            {
-                "name": "Licensed Clinical Mental Health Counselor",
-                "key": "licensed clinical mental health counselor",
-                "compactKey": "coun"
-            },
-            {
-                "name": "Licensed Professional Clinical Counselor",
-                "key": "licensed professional clinical counselor",
                 "compactKey": "coun"
             }
         ]

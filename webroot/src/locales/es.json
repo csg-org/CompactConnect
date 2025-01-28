@@ -547,11 +547,6 @@
                 "compactKey": "aslp"
             },
             {
-                "name": "Patólogo del habla y el lenguaje",
-                "key": "speech and language pathologist",
-                "compactKey": "aslp"
-            },
-            {
                 "name": "Terapeuta ocupacional",
                 "key": "occupational therapist",
                 "compactKey": "octp"
@@ -564,21 +559,6 @@
             {
                 "name": "Asistente de terapia ocupacional",
                 "key": "licensed professional counselor",
-                "compactKey": "coun"
-            },
-            {
-                "name": "Consejero de salud mental autorizado",
-                "key": "licensed mental health counselor",
-                "compactKey": "coun"
-            },
-            {
-                "name": "Consejero de salud mental clínico autorizado",
-                "key": "licensed clinical mental health counselor",
-                "compactKey": "coun"
-            },
-            {
-                "name": "Consejero clínico profesional autorizado",
-                "key": "licensed professional clinical counselor",
                 "compactKey": "coun"
             }
         ]
