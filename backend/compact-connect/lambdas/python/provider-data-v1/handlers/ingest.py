@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from boto3.dynamodb.types import TypeSerializer
 from cc_common.config import config, logger
 from cc_common.data_model.schema import LicenseRecordSchema, ProviderRecordSchema
-from cc_common.data_model.schema.common import ProviderStatus, UpdateCategory
+from cc_common.data_model.schema.common import ProviderEligibilityStatus, UpdateCategory
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
 from cc_common.exceptions import CCNotFoundException
@@ -154,7 +154,7 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
             and updated_values['dateOfRenewal'] > original_values['dateOfRenewal']
         ):
             update_type = UpdateCategory.RENEWAL
-    elif updated_values == {'jurisdictionStatus': ProviderStatus.INACTIVE.value}:
+    elif updated_values == {'jurisdictionStatus': ProviderEligibilityStatus.INACTIVE.value}:
         update_type = UpdateCategory.DEACTIVATION
     if update_type is None:
         update_type = UpdateCategory.OTHER
@@ -183,7 +183,7 @@ def _find_best_license(all_licenses: Iterable) -> dict:
         [
             license_data
             for license_data in all_licenses
-            if license_data['jurisdictionStatus'] == ProviderStatus.ACTIVE.value
+            if license_data['jurisdictionStatus'] == ProviderEligibilityStatus.ACTIVE.value
         ],
         key=lambda x: x['dateOfIssuance'],
         reverse=True,
