@@ -73,8 +73,9 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
     @post_load
     def drop_license_gsi_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         """Drop the db-specific license GSI fields before returning loaded data"""
-        del in_data['licenseGSIPK']
-        del in_data['licenseGSISK']
+        # only drop the field if it's present, else continue on
+        in_data.pop('licenseGSIPK', None)
+        in_data.pop('licenseGSISK', None)
         return in_data
 
 
