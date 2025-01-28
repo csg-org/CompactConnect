@@ -117,8 +117,8 @@ def _store_jurisdiction_reports_in_s3(
     """
     date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
     base_path = (
-        f"compact/{compact}/reports/jurisdiction-transactions/"
-        f"jurisdiction/{jurisdiction}/{end_time.strftime('%Y/%m/%d')}"
+        f"compact/{compact}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
+        f"reporting-cycle/{reporting_cycle}/{end_time.strftime('%Y/%m/%d')}"
     )
     
     # Define paths for all report files
@@ -127,7 +127,7 @@ def _store_jurisdiction_reports_in_s3(
         'report_zip': f"{base_path}/{jurisdiction}-{date_range}-report.zip",
     }
     
-    s3_client = boto3.client('s3')
+    s3_client = config.s3_client
     
     # Store gzipped transaction detail
     gzip_buffer = BytesIO()

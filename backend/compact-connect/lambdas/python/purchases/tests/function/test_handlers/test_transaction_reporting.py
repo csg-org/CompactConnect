@@ -239,7 +239,7 @@ class TestGenerateTransactionReports(TstFunction):
         ohio_payload = json.loads(ohio_call['Payload'])
         expected_ohio_path = (
             f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/oh/"
-            f"{end_time.strftime('%Y/%m/%d')}/"
+            f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
             f"oh-{date_range}-report.zip"
         )
         self.assertEqual(
@@ -375,7 +375,7 @@ class TestGenerateTransactionReports(TstFunction):
             
             expected_jurisdiction_path = (
                 f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
-                f"{end_time.strftime('%Y/%m/%d')}/"
+                f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
                 f"{jurisdiction}-{date_range}-report.zip"
             )
             jurisdiction_payload = json.loads(jurisdiction_call['Payload'])
@@ -430,7 +430,7 @@ class TestGenerateTransactionReports(TstFunction):
                 Bucket=self.config.transaction_reports_bucket_name,
                 Key=(
                     f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
-                    f"{end_time.strftime('%Y/%m/%d')}/"
+                    f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
                     f"{jurisdiction}-{date_range}-report.zip"
                 )
             )
@@ -514,7 +514,7 @@ class TestGenerateTransactionReports(TstFunction):
             
             expected_jurisdiction_path = (
                 f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
-                f"{end_time.strftime('%Y/%m/%d')}/"
+                f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
                 f"{jurisdiction}-{date_range}-report.zip"
             )
             jurisdiction_payload = json.loads(jurisdiction_call['Payload'])
@@ -571,7 +571,7 @@ class TestGenerateTransactionReports(TstFunction):
                 Bucket=self.config.transaction_reports_bucket_name,
                 Key=(
                     f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
-                    f"{end_time.strftime('%Y/%m/%d')}/"
+                    f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
                     f"{jurisdiction}-{date_range}-report.zip"
                 )
             )
@@ -679,7 +679,7 @@ class TestGenerateTransactionReports(TstFunction):
                 Bucket=self.config.transaction_reports_bucket_name,
                 Key=(
                     f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
-                    f"{end_time.strftime('%Y/%m/%d')}/"
+                    f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
                     f"{jurisdiction}-{date_range}-report.zip"
                 )
             )
