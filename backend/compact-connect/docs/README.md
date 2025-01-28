@@ -56,7 +56,3 @@ For your convenience, use of this feature is included in the [Postman Collection
 We will maintain the latest api specification here, in [latest-oas30.json](api-specification/latest-oas30.json). You can
 use [Swagger.io](https://editor.swagger.io/) to render the json directly or, if you happen to use an IDE that supports
 the feature, you can open a Swagger UI view of it by opening up the accompanying [swagger.html](api-specification/swagger.html) in your browser.
-
-### Change summary:
-- 2024-08-21: First API version release
-- 2024-09-03: Proposed addition of staff-user API

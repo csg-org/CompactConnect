@@ -1,4 +1,4 @@
-from aws_cdk.assertions import Capture, Template
+from aws_cdk.assertions import Capture, Match, Template
 from aws_cdk.aws_apigateway import CfnMethod, CfnModel, CfnResource
 from aws_cdk.aws_lambda import CfnFunction
 
@@ -99,6 +99,10 @@ class TestStaffUsersApi(TestApi):
                     {
                         'ResponseModels': {'application/json': {'Ref': patch_method_response_model_logical_id_capture}},
                         'StatusCode': '200',
+                    },
+                    {
+                        'ResponseModels': {'application/json': {'Ref': Match.any_value()}},
+                        'StatusCode': '404',
                     },
                 ],
             },
