@@ -88,7 +88,7 @@ def get_mock_license(i: int, *, compact: str, jurisdiction: str = None) -> dict:
         # Some have NPI, some don't
         'npi': str(randint(1_000_000_000, 9_999_999_999)) if choice([True, False]) else None,
         # Some have License number, some don't
-        'licenseNumber': chr(randint(ord('A'), ord('Z'))) + chr(randint(ord('A'), ord('Z'))) + '-' + str(randint(1_000_000_000, 9_999_999_999)) if choice([True, False]) else None,
+        'licenseNumber': generate_mock_license_number() if choice([True, False]) else None,
         'licenseType': choice(LICENSE_TYPES[compact]),
         'givenName': name_faker.first_name(),
         'middleName': name_faker.first_name(),
@@ -107,6 +107,19 @@ def get_mock_license(i: int, *, compact: str, jurisdiction: str = None) -> dict:
     license_data = _set_dates(license_data)
     return schema.dump(license_data)
 
+def generate_mock_license_number() -> str:
+    licenseStr = ''
+    size = randint(5,20)
+
+    for _ in range(size):
+        if choice([True, False]):
+            if randint(0,9) > 2:
+                licenseStr += chr(randint(ord('A'), ord('Z')))
+            else:
+                licenseStr += '-'
+        else:
+            licenseStr += str(randint(0,9))
+    return licenseStr
 
 def _set_address_state(license_data: dict, jurisdiction: str) -> dict:
     # 1/5 will have a military waiver
