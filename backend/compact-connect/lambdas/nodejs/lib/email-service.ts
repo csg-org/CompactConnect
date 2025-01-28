@@ -919,29 +919,40 @@ export class EmailService {
 
     public async sendJurisdictionTransactionReportEmail(
         compact: string,
-        jurisdictionPostalAbbreviation: string,
-        jurisdictionTransactionReportCSV: string
+        jurisdiction: string,
+        reportS3Path: string,
+        reportingCycle: string,
+        startDate: string,
+        endDate: string
     ): Promise<void> {
-        this.logger.info('Sending jurisdiction transaction report email', { compact: compact, jurisdiction: jurisdictionPostalAbbreviation });
-        // Get jurisdiction configuration to get the jurisdiction name and recipients
-        const jurisdiction = await this.jurisdictionClient.getJurisdictionConfiguration(
-            compact, jurisdictionPostalAbbreviation);
+        this.logger.info('Sending jurisdiction transaction report email', { 
+            compact: compact,
+            jurisdiction: jurisdiction 
+        });
 
-        const recipients = jurisdiction.jurisdictionSummaryReportNotificationEmails;
+        const jurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, jurisdiction);
+        const recipients = jurisdictionConfig.jurisdictionSummaryReportNotificationEmails;
 
         if (recipients.length === 0) {
-            throw new Error(`No recipients found for jurisdiction ${jurisdictionPostalAbbreviation} in compact ${compact}`);
+            throw new Error(`No recipients found for jurisdiction ${jurisdiction} in compact ${compact}`);
         }
 
-        // Get compact configuration to get the compact name
-        const compactConfig = await this.compactConfigurationClient.getCompactConfiguration(compact);
-        const compactName = compactConfig.compactName.toUpperCase();
-        const jurisdictionName = jurisdiction.jurisdictionName;
+        // Get the report zip file from S3        
+        const reportZipResponse = await this.s3Client.send(new GetObjectCommand({
+            Bucket: environmentVariableService.getTransactionReportsBucketName(),
+            Key: reportS3Path
+        }));
+
+        if (!reportZipResponse.Body) {
+            throw new Error(`Failed to retrieve report from S3: ${reportS3Path}`);
+        }
+
+        const reportZipBuffer = Buffer.from(await reportZipResponse.Body.transformToByteArray());
 
         const report = JSON.parse(JSON.stringify(this.emailTemplate));
-        const subject = `${jurisdictionName} Weekly Report for Compact ${compactName}`;
-        const bodyText = `Please find attached the weekly transaction report for your jurisdiction.\n\n` +
-            `This report contains all transactions that purchased a privilege within ${jurisdictionName} during the previous week.`;
+        const subject = `${jurisdictionConfig.jurisdictionName} ${reportingCycle === 'weekly' ? 'Weekly' : 'Monthly'} Report for Compact ${compact.toUpperCase()}`;
+        const bodyText = `Please find attached the ${reportingCycle} transaction report for your jurisdiction for the period ${startDate} to ${endDate}:\n\n` +
+            'Transaction Detail Report - A detailed list of all transactions';
 
         this.insertHeader(report, subject);
         this.insertBody(report, bodyText);
@@ -953,12 +964,12 @@ export class EmailService {
             htmlContent, 
             subject, 
             recipients, 
-            errorMessage: 'Unable to send jurisdiction weekly transaction report email',
+            errorMessage: 'Unable to send jurisdiction transaction report email',
             attachments: [
                 {
-                    filename: `${jurisdictionPostalAbbreviation.toLowerCase()}-transaction-report.csv`,
-                    content: jurisdictionTransactionReportCSV,
-                    contentType: 'text/csv'
+                    filename: `${jurisdiction}-transaction-report.zip`,
+                    content: reportZipBuffer,
+                    contentType: 'application/zip'
                 }
             ]
         });

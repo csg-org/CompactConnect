@@ -281,15 +281,16 @@ describe('EmailNotificationServiceLambda', () => {
     });
 
     describe('Jurisdiction Transaction Report', () => {
-        const SAMPLE_DETAIL_CSV = 'First Name,Last Name,Licensee Id,Transaction Date,State Fee,State,Compact Fee,Transaction Id\n';
-
         const SAMPLE_TRANSACTION_REPORT_EVENT: EmailNotificationEvent = {
             template: 'JurisdictionTransactionReporting',
             recipientType: 'JURISDICTION_SUMMARY_REPORT',
             compact: 'aslp',
             jurisdiction: 'oh',
             templateVariables: {
-                jurisdictionTransactionReportCSV: SAMPLE_DETAIL_CSV
+                reportS3Path: 'compact/aslp/reports/jurisdiction-transactions/jurisdiction/oh/reporting-cycle/weekly/2024/03/07/transaction-report.zip',
+                reportingCycle: 'weekly',
+                startDate: '2024-03-01',
+                endDate: '2024-03-07'
             }
         };
 
@@ -309,6 +310,12 @@ describe('EmailNotificationServiceLambda', () => {
                 }
             });
 
+            // Verify S3 was queried for the report
+            expect(mockS3Client).toHaveReceivedCommandWith(GetObjectCommand, {
+                Bucket: 'test-transaction-reports-bucket',
+                Key: 'compact/aslp/reports/jurisdiction-transactions/jurisdiction/oh/reporting-cycle/weekly/2024/03/07/transaction-report.zip'
+            });
+
             // Verify email was sent with correct parameters
             expect(mockSESClient).toHaveReceivedCommandWith(SendRawEmailCommand, {
                 RawMessage: {
@@ -322,9 +329,11 @@ describe('EmailNotificationServiceLambda', () => {
             expect(rawEmailData).toBeDefined();
             const rawEmailString = rawEmailData?.toString();
 
-            expect(rawEmailString).toContain('Content-Type: text/csv');
-            expect(rawEmailString).toContain('Content-Disposition: attachment; filename=oh-transaction-report.csv');
-            expect(rawEmailString).toContain('Subject: Ohio Weekly Report for Compact ASLP');
+            expect(rawEmailString).toContain('Content-Type: application/zip');
+            expect(rawEmailString).toContain('Content-Disposition: attachment; filename=oh-transaction-report.zip');
+            expect(rawEmailString).toContain('Ohio Weekly Report for Compact ASLP');
+            expect(rawEmailString).toContain('Please find attached the weekly transaction report for your');
+            expect(rawEmailString).toContain('jurisdiction for the period 2024-03-01 to 2024-03-07');
             expect(rawEmailString).toContain('To: ohio@example.com');
         });
 
@@ -362,6 +371,16 @@ describe('EmailNotificationServiceLambda', () => {
             await expect(lambda.handler(eventWithMissingJurisdiction, {} as any))
                 .rejects
                 .toThrow('Missing required jurisdiction field for JurisdictionTransactionReporting template');
+        });
+
+        it('should throw error when S3 fails to return report', async () => {
+            mockS3Client.on(GetObjectCommand).resolves({
+                Body: undefined
+            });
+
+            await expect(lambda.handler(SAMPLE_TRANSACTION_REPORT_EVENT, {} as any))
+                .rejects
+                .toThrow('Failed to retrieve report from S3: compact/aslp/reports/jurisdiction-transactions/jurisdiction/oh/reporting-cycle/weekly/2024/03/07/transaction-report.zip');
         });
     });
 });

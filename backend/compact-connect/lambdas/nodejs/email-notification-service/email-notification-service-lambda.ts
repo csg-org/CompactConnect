@@ -89,13 +89,16 @@ export class Lambda implements LambdaInterface {
             if (!event.jurisdiction) {
                 throw new Error('Missing required jurisdiction field for JurisdictionTransactionReporting template');
             }
-            if (!event.templateVariables?.jurisdictionTransactionReportCSV) {
+            if (!event.templateVariables?.reportS3Path) {
                 throw new Error('Missing required template variables for JurisdictionTransactionReporting template');
             }
             await this.emailService.sendJurisdictionTransactionReportEmail(
                 event.compact,
                 event.jurisdiction,
-                event.templateVariables.jurisdictionTransactionReportCSV
+                event.templateVariables.reportS3Path,
+                event.templateVariables.reportingCycle,
+                event.templateVariables.startDate,
+                event.templateVariables.endDate
             );
             break;
         default:

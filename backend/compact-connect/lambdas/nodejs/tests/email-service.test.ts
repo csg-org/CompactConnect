@@ -53,15 +53,20 @@ const asSESClient = (mock: ReturnType<typeof mockClient>) =>
 const asS3Client = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as S3Client;
 
+interface MockMailResponse {
+    messageId: string;
+}
+
+const MOCK_TRANSPORT = {
+    sendMail: jest.fn().mockImplementation(async () => ({ messageId: 'test-message-id' }))
+};
+
 describe('Email Service', () => {
     let emailService: EmailService;
     let mockSESClient: ReturnType<typeof mockClient>;
     let mockS3Client: ReturnType<typeof mockClient>;
     let mockCompactConfigurationClient: jest.Mocked<CompactConfigurationClient>;
     let mockJurisdictionClient: jest.Mocked<JurisdictionClient>;
-    const MOCK_TRANSPORT = {
-        sendMail: jest.fn().mockResolvedValue({ messageId: 'test-message-id' })
-    };
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -360,7 +365,7 @@ describe('Email Service', () => {
         it('should send email with zip attachment', async () => {
             await emailService.sendCompactTransactionReportEmail(
                 'aslp',
-                'test-bucket/compact/aslp/reports/test-report.zip',
+                'compact/aslp/reports/test-report.zip',
                 'weekly',
                 '2024-03-01',
                 '2024-03-07'
@@ -450,19 +455,41 @@ describe('Email Service', () => {
     });
 
     describe('Jurisdiction Transaction Report', () => {
-        const SAMPLE_TRANSACTION_CSV = 'First Name,Last Name,Licensee Id,Transaction Date,State Fee,Compact Fee,Transaction Id\n';
-
         beforeEach(() => {
             mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
             mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
+            
+            // Create a mock stream that implements the required AWS SDK interfaces
+            const mockStream = sdkStreamMixin(
+                new Readable({
+                    read() {
+                        this.push(Buffer.from('test data'));
+                        this.push(null);
+                    }
+                })
+            );
+
+            // Mock S3 response
+            mockS3Client.on(GetObjectCommand).resolves({
+                Body: mockStream
+            });
         });
 
-        it('should send email with CSV attachment', async () => {
+        it('should send email with zip attachment', async () => {
             await emailService.sendJurisdictionTransactionReportEmail(
                 'aslp',
                 'oh',
-                SAMPLE_TRANSACTION_CSV
+                'jurisdiction/oh/reports/test-report.zip',
+                'weekly',
+                '2024-03-01',
+                '2024-03-07'
             );
+
+            // Verify S3 was queried for the report
+            expect(mockS3Client).toHaveReceivedCommandWith(GetObjectCommand, {
+                Bucket: 'test-transaction-reports-bucket',
+                Key: 'jurisdiction/oh/reports/test-report.zip'
+            });
 
             // Verify nodemailer transport was created with correct SES config
             expect(nodemailer.createTransport).toHaveBeenCalledWith({
@@ -477,15 +504,33 @@ describe('Email Service', () => {
                 from: 'Compact Connect <noreply@example.org>',
                 to: ['oh-summary@example.com'],
                 subject: 'Ohio Weekly Report for Compact ASLP',
-                html: expect.stringContaining('Please find attached the weekly transaction report for your jurisdiction'),
+                html: expect.stringContaining('Please find attached the weekly transaction report for your jurisdiction for the period 2024-03-01 to 2024-03-07'),
                 attachments: [
                     {
-                        filename: 'oh-transaction-report.csv',
-                        content: SAMPLE_TRANSACTION_CSV,
-                        contentType: 'text/csv'
+                        filename: 'oh-transaction-report.zip',
+                        content: expect.any(Buffer),
+                        contentType: 'application/zip'
                     }
                 ]
             });
+        });
+
+        it('should use monthly subject when reporting cycle is monthly', async () => {
+            await emailService.sendJurisdictionTransactionReportEmail(
+                'aslp',
+                'oh',
+                'test-bucket/jurisdiction/oh/reports/test-report.zip',
+                'monthly',
+                '2024-03-01',
+                '2024-03-31'
+            );
+
+            expect(MOCK_TRANSPORT.sendMail).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    subject: 'Ohio Monthly Report for Compact ASLP',
+                    html: expect.stringContaining('Please find attached the monthly transaction report for your jurisdiction for the period 2024-03-01 to 2024-03-31')
+                })
+            );
         });
 
         it('should throw error when no recipients found', async () => {
@@ -497,8 +542,29 @@ describe('Email Service', () => {
             await expect(emailService.sendJurisdictionTransactionReportEmail(
                 'aslp',
                 'oh',
-                SAMPLE_TRANSACTION_CSV
+                'test-bucket/jurisdiction/oh/reports/test-report.zip',
+                'weekly',
+                '2024-03-01',
+                '2024-03-07'
             )).rejects.toThrow('No recipients found for jurisdiction oh in compact aslp');
+
+            // Verify no email was sent
+            expect(MOCK_TRANSPORT.sendMail).not.toHaveBeenCalled();
+        });
+
+        it('should throw error when S3 fails to return report', async () => {
+            mockS3Client.on(GetObjectCommand).resolves({
+                Body: undefined
+            });
+
+            await expect(emailService.sendJurisdictionTransactionReportEmail(
+                'aslp',
+                'oh',
+                'test-bucket/jurisdiction/oh/reports/test-report.zip',
+                'weekly',
+                '2024-03-01',
+                '2024-03-07'
+            )).rejects.toThrow('Failed to retrieve report from S3: test-bucket/jurisdiction/oh/reports/test-report.zip');
 
             // Verify no email was sent
             expect(MOCK_TRANSPORT.sendMail).not.toHaveBeenCalled();
