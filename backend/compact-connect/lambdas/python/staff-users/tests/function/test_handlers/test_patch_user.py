@@ -195,6 +195,23 @@ class TestPatchUser(TstFunction):
 
         self.assertEqual(403, resp['statusCode'])
 
+    def test_patch_user_not_found(self):
+        from handlers.users import patch_user
+
+        with open('tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The caller has admin permission for aslp/oh not aslp/ne
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/oh.admin'
+        # The staff user does not exist
+        event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
+        event['body'] = json.dumps({'permissions': {'aslp': {'jurisdictions': {'oh': {'actions': {'admin': True}}}}}})
+
+        resp = patch_user(event, self.mock_context)
+
+        self.assertEqual(404, resp['statusCode'])
+        self.assertEqual({'message': 'User not found'}, json.loads(resp['body']))
+
     def test_patch_user_allows_adding_read_private_permission(self):
         self._load_user_data()
 
