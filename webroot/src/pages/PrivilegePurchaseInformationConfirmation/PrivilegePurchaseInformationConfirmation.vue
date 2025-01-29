@@ -53,6 +53,22 @@
                         <div class="chunk-text">{{userFullName}}</div>
                     </div>
                 </div>
+                <div class="chunk">
+                    <div class="chunk-title">{{$t('payment.streetAddress2')}}</div>
+                    <div class="chunk-text">{{userFullName}}</div>
+                </div>
+                <div class="chunk">
+                    <div class="chunk-title">{{$t('payment.streetAddress2')}}</div>
+                    <div class="chunk-text">{{userFullName}}</div>
+                </div>
+                <div class="chunk">
+                    <div class="chunk-title">{{$t('payment.streetAddress2')}}</div>
+                    <div class="chunk-text">{{userFullName}}</div>
+                </div>
+                <div class="chunk">
+                    <div class="chunk-title">{{$t('licensing.attestations')}}</div>
+                    <div class="chunk-text">Attestations</div>
+                </div>
             </div>
             <div class="button-row">
                 <InputButton

@@ -480,6 +480,7 @@
         "license": "License",
         "licensingListTitle": "Licensing Data",
         "attestation": "Attestation",
+        "attestations": "Attestations",
         "searchTitle": "Begin a search",
         "searchSubtext": "Enter at least one field to search for licensing data.",
         "licenseExpiredMessage": "Your license has expired.",
