@@ -183,6 +183,8 @@ class TestGenerateTransactionReports(TstFunction):
                 record.update(jurisdiction)
                 self._compact_configuration_table.put_item(Item=record)
 
+    # event bridge triggers the weekly report at noon UTC-4 timezone
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-02T16:00:00+00:00'))
     @patch('handlers.transaction_reporting.config.lambda_client')
     def test_generate_transaction_reports_sends_csv_with_zero_values_when_no_transactions(self, mock_lambda_client):
         """Test successful processing of settled transactions."""
@@ -194,9 +196,12 @@ class TestGenerateTransactionReports(TstFunction):
 
         # Set up mocked S3 bucket
 
-        # Get the expected date range
-        end_time = self.config.current_standard_datetime.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-        start_time = end_time - timedelta(days=7)
+        # Calculate expected date range
+        # the end date should be the current day at 11:59:59.999999 UTC
+        end_time = datetime.fromisoformat('2025-04-02T11:59:59+00:00')
+        # the start date should be 7 days ago at noon UTC
+        start_time_day = end_time - timedelta(days=7)
+        start_time = start_time_day.replace(hour=12, minute=0, second=0, microsecond=0)
         date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
 
         # Generate the reports
@@ -302,7 +307,8 @@ class TestGenerateTransactionReports(TstFunction):
                     ohio_content
                 )
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-02T23:59:59+00:00'))
+    # event bridge triggers the weekly report at noon UTC-4 timezone
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-02T16:00:00+00:00'))
     @patch('handlers.transaction_reporting.config.lambda_client')
     def test_generate_report_collects_transactions_across_two_months(self, mock_lambda_client):
         """Test successful processing of settled transactions."""
@@ -332,8 +338,11 @@ class TestGenerateTransactionReports(TstFunction):
         )
 
         # Calculate expected date range
-        end_time = datetime.fromisoformat('2025-04-03T00:00:00+00:00')  # Next day at midnight
-        start_time = end_time - timedelta(days=7)
+        # the end date should be the current day at 11:59:59.999999 UTC
+        end_time = datetime.fromisoformat('2025-04-02T11:59:59+00:00')
+        # the start date should be 7 days ago at noon UTC
+        start_time_day = end_time - timedelta(days=7)
+        start_time = start_time_day.replace(hour=12, minute=0, second=0, microsecond=0)
         date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
@@ -448,7 +457,8 @@ class TestGenerateTransactionReports(TstFunction):
                         content
                     )
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-02T23:59:59+00:00'))
+    # event bridge triggers the weekly report at noon UTC-4 timezone
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-02T16:00:00+00:00'))
     @patch('handlers.transaction_reporting.config.lambda_client')
     def test_generate_report_with_multiple_privileges_in_single_transaction(self, mock_lambda_client):
         """Test processing of transactions with multiple privileges in a single transaction."""
@@ -471,8 +481,11 @@ class TestGenerateTransactionReports(TstFunction):
         )
 
         # Calculate expected date range
-        end_time = datetime.fromisoformat('2025-04-03T00:00:00+00:00')  # Next day at midnight
-        start_time = end_time - timedelta(days=7)
+        # the end date should be the current day at 11:59:59.999999 UTC
+        end_time = datetime.fromisoformat('2025-04-02T11:59:59+00:00')
+        # the start date should be 7 days ago at noon UTC
+        start_time_day = end_time - timedelta(days=7)
+        start_time = start_time_day.replace(hour=12, minute=0, second=0, microsecond=0)
         date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
@@ -588,7 +601,8 @@ class TestGenerateTransactionReports(TstFunction):
                         content
                     )
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-02T23:59:59+00:00'))
+    # event bridge triggers the weekly report at noon UTC-4 timezone
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-02T16:00:00+00:00'))
     @patch('handlers.transaction_reporting.config.lambda_client')
     def test_generate_report_with_large_number_of_transactions_and_providers(self, mock_lambda_client):
         """Test processing of a large number of transactions (>500) and providers (>100)."""
@@ -618,8 +632,11 @@ class TestGenerateTransactionReports(TstFunction):
             )
 
         # Calculate expected date range
-        end_time = datetime.fromisoformat('2025-04-03T00:00:00+00:00')  # Next day at midnight
-        start_time = end_time - timedelta(days=7)
+        # the end date should be the current day at 11:59:59.999999 UTC
+        end_time = datetime.fromisoformat('2025-04-02T11:59:59+00:00')
+        # the start date should be 7 days ago at noon UTC
+        start_time_day = end_time - timedelta(days=7)
+        start_time = start_time_day.replace(hour=12, minute=0, second=0, microsecond=0)
         date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
@@ -726,7 +743,8 @@ class TestGenerateTransactionReports(TstFunction):
 
         self.assertIn('Something went wrong', str(exc_info.exception.message))
 
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-02T23:59:59+00:00'))
+    # event bridge triggers the weekly report at noon UTC-4 timezone
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-02T16:00:00+00:00'))
     @patch('handlers.transaction_reporting.config.lambda_client')
     def test_generate_report_handles_unknown_jurisdiction(self, mock_lambda_client):
         """Test handling of transactions with jurisdictions not in configuration.
@@ -738,8 +756,11 @@ class TestGenerateTransactionReports(TstFunction):
         _set_default_lambda_client_behavior(mock_lambda_client)
 
         # Calculate expected date range
-        end_time = datetime.fromisoformat('2025-04-03T00:00:00+00:00')  # Next day at midnight
-        start_time = end_time - timedelta(days=7)
+        # the end date should be the current day at 11:59:59.999999 UTC
+        end_time = datetime.fromisoformat('2025-04-02T11:59:59+00:00')
+        # the start date should be 7 days ago at noon UTC
+        start_time_day = end_time - timedelta(days=7)
+        start_time = start_time_day.replace(hour=12, minute=0, second=0, microsecond=0)
         date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
 
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])

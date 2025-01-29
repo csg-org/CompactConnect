@@ -18,20 +18,32 @@ from cc_common.exceptions import CCInternalException, CCNotFoundException
 
 def _get_date_range_for_reporting_cycle(reporting_cycle: str) -> tuple[datetime, datetime]:
     """Calculate the start and end dates for the reporting cycle.
-    
+
+    The weekly reporting cycle captures noon to noon of the previous week.
+    The monthly reporting cycle captures the first day of the month to the last day of the month.
     :param reporting_cycle: Either 'weekly' or 'monthly'
     :return: Tuple of (start_time, end_time) in UTC
     """
-    # Use 12:00:00.0 AM UTC of the next day for end time to ensure we capture full day
-    end_time = config.current_standard_datetime.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
-    
+
     if reporting_cycle == 'weekly':
-        start_time = end_time - timedelta(days=7)
+        # Set end time to 11:59:59.999999 UTC of the current day
+        end_time = config.current_standard_datetime.replace(
+        hour=11, minute=59, second=59, microsecond=999999
+        )
+        # Go back 7 days and set to noon UTC time (12:00:00.000) to capture the full week
+        start_time_day = (end_time - timedelta(days=7))
+        start_time = start_time_day.replace(
+            hour=12, minute=0, second=0, microsecond=0
+        )
     elif reporting_cycle == 'monthly':
-        # Go back to the first day of the previous month
-        first_of_current = end_time.replace(day=1)
-        start_time = first_of_current - timedelta(days=1)  # Go to last day of previous month
-        start_time = start_time.replace(day=1)  # Go to first day of previous month
+        # The monthly report is triggered at midnight UTC of the first day of the month
+        # we report on the previous month, so we set the end time to 23:59:59.999999 UTC of the previous day
+        # to capture the full month
+        end_time = config.current_standard_datetime.replace(
+            hour=23, minute=59, second=59, microsecond=999999
+        ) - timedelta(days=1)
+        # Go back to the first day of the current month to capture the full month
+        start_time = end_time.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     else:
         raise ValueError(f'Invalid reporting cycle: {reporting_cycle}')
     

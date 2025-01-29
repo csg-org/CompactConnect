@@ -111,7 +111,7 @@ class TransactionClient:
             start_sk = f'COMPACT#{compact}#TIME#{start_epoch}'
             end_sk = f'COMPACT#{compact}#TIME#{end_epoch}'
             response = self.config.transaction_history_table.query(
-                KeyConditionExpression=(Key('pk').eq(pk) & Key('sk').gte(start_sk) & Key('sk').lt(end_sk)),
+                KeyConditionExpression=Key('pk').eq(pk) & Key('sk').between(start_sk, end_sk),
                 **query_params,
             )
 
