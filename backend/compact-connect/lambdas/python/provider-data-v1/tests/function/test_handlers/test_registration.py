@@ -146,11 +146,18 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
         mock_cognito.admin_create_user.assert_not_called()
 
+    def _when_registering_cognito_user(self, mock_cognito_client):
+        mock_cognito_client.admin_create_user.return_value = {
+            'User': {'Attributes': [{'Name': 'sub', 'Value': '1234567890'}]}
+        }
+
     @patch('handlers.registration.verify_recaptcha')
     @patch('cc_common.config._Config.cognito_client')
     def test_registration_creates_cognito_user(self, mock_cognito, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         provider_data, license_data = self._add_mock_provider_records()
+        self._when_registering_cognito_user(mock_cognito)
+
         from handlers.registration import register_provider
 
         response = register_provider(self._get_test_event(), self.mock_context)
@@ -309,6 +316,7 @@ class TestProviderRegistration(TstFunction):
     def test_registration_works_with_special_characters(self, mock_cognito, mock_verify_recaptcha):
         """Test that registration works with special characters in names that could break key delimiters."""
         mock_verify_recaptcha.return_value = True
+        self._when_registering_cognito_user(mock_cognito)
 
         # Test with various special characters that could cause issues without URL encoding
         special_chars_name = {
@@ -360,6 +368,7 @@ class TestProviderRegistration(TstFunction):
     def test_registration_works_with_japanese_characters(self, mock_cognito, mock_verify_recaptcha):
         """Test that registration works with Japanese characters in names."""
         mock_verify_recaptcha.return_value = True
+        self._when_registering_cognito_user(mock_cognito)
 
         # Test with Japanese characters
         japanese_name = {

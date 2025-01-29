@@ -55,6 +55,8 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
     emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
+    compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
+    cognitoSub = String(required=False, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
     militaryWaiver = Boolean(required=False, allow_none=False)
 

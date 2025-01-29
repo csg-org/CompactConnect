@@ -1048,6 +1048,13 @@ class ApiModel:
             'militaryWaiver': JsonSchema(
                 type=JsonSchemaType.BOOLEAN,
             ),
+            'compactConnectRegisteredEmailAddress': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='email',
+            ),
+            'cognitoSub': JsonSchema(
+                type=JsonSchemaType.STRING,
+            ),
             'birthMonthDay': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.MD_FORMAT),
             'dateOfBirth': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),

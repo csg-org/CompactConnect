@@ -1273,6 +1273,13 @@
     "militaryWaiver": {
       "type": "boolean"
     },
+    "compactConnectRegisteredEmailAddress": {
+      "format": "email",
+      "type": "string"
+    },
+    "cognitoSub": {
+      "type": "string"
+    },
     "birthMonthDay": {
       "format": "date",
       "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",

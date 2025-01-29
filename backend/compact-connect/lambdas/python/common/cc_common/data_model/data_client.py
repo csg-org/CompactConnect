@@ -729,6 +729,37 @@ class DataClient:
             }
         )
 
+    def set_registration_values(self, *, compact: str, provider_id: str, cognito_sub: str, email_address: str) -> None:
+        """Set the registration values on a provider record after successful registration.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param cognito_sub: The Cognito sub of the user
+        :param email_address: The email address used for registration
+        :return: None
+        """
+        logger.info(
+            'Setting registration values on provider record',
+            provider_id=provider_id,
+            compact=compact,
+            email_address=email_address,
+        )
+        self.config.provider_table.update_item(
+            Key={
+                'pk': f'{compact}#PROVIDER#{provider_id}',
+                'sk': f'{compact}#PROVIDER',
+            },
+            UpdateExpression='SET #cognitoSub = :cognitoSub, #email = :email',
+            ExpressionAttributeNames={
+                '#cognitoSub': 'cognitoSub',
+                '#email': 'compactConnectRegisteredEmailAddress',
+            },
+            ExpressionAttributeValues={
+                ':cognitoSub': cognito_sub,
+                ':email': email_address,
+            },
+        )
+
     def find_home_state_license(self, *, compact: str, provider_id: str, licenses: list[dict]) -> dict | None:
         """Find the license from the provider's selected home jurisdiction.
 

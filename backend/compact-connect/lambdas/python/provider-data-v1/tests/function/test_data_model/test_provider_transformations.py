@@ -82,8 +82,18 @@ class TestTransformations(TstFunction):
         self.assertEqual(expected_provider_id, provider_id)
         provider_record = client.get_provider(compact='aslp', provider_id=provider_id, detail=False)
 
-        # create a home state selection record for the provider
+        # Expected representation of each record in the database
+        with open('../common/tests/resources/dynamo/provider.json') as f:
+            expected_provider = json.load(f)
+
+        # register the provider in the system
         client.create_home_jurisdiction_selection(compact='aslp', provider_id=provider_id, jurisdiction='oh')
+        client.set_registration_values(
+            compact='aslp',
+            provider_id=provider_id,
+            cognito_sub=expected_provider['cognitoSub'],
+            email_address=expected_provider['compactConnectRegisteredEmailAddress'],
+        )
 
         # Add a privilege to practice in Nebraska
         client.create_provider_privileges(
@@ -121,9 +131,6 @@ class TestTransformations(TstFunction):
         self.assertEqual(5, len(resp['Items']))
         records = {item['type']: item for item in resp['Items']}
 
-        # Expected representation of each record in the database
-        with open('../common/tests/resources/dynamo/provider.json') as f:
-            expected_provider = json.load(f)
         # Convert this to the data type expected from DynamoDB
         expected_provider['privilegeJurisdictions'] = set(expected_provider['privilegeJurisdictions'])
 

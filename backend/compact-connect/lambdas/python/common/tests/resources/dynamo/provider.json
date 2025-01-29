@@ -23,6 +23,8 @@
   "homeAddressPostalCode": "43004",
   "emailAddress": "björk@example.com",
   "phoneNumber": "+13213214321",
+  "compactConnectRegisteredEmailAddress": "björkRegisteredEmail@example.com",
+  "cognitoSub": "3408b4e8-0061-7052-bbe0-fda9a9369c80",
   "militaryWaiver": false,
   "dateOfExpiration": "2025-04-04",
   "dateOfBirth": "1985-06-06",

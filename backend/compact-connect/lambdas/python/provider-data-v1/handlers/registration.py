@@ -180,7 +180,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             'Created home jurisdiction selection record',
             compact=body['compact'],
             provider_id=matching_record['providerId'],
-            jurisdiction=body['jurisdiction']
+            jurisdiction=body['jurisdiction'],
         )
     except ClientError as e:
         if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
@@ -195,7 +195,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
 
     try:
         # Create Cognito user
-        config.cognito_client.admin_create_user(
+        response = config.cognito_client.admin_create_user(
             UserPoolId=config.provider_user_pool_id,
             Username=body['email'],
             UserAttributes=[
@@ -205,6 +205,8 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
                 {'Name': 'email_verified', 'Value': 'true'},
             ],
         )
+        # Get the Cognito sub from the response
+        cognito_sub = next(attr['Value'] for attr in response['User']['Attributes'] if attr['Name'] == 'sub')
     except Exception as e:
         logger.error('Failed to create Cognito user', error=str(e))
         # Roll back home jurisdiction selection record
@@ -214,6 +216,19 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         )
         metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCInternalException('Failed to create user account') from e
+
+    try:
+        # Set the registration values on the provider record
+        config.data_client.set_registration_values(
+            compact=body['compact'],
+            provider_id=matching_record['providerId'],
+            cognito_sub=cognito_sub,
+            email_address=body['email'],
+        )
+    except Exception as e:
+        logger.error('Failed to set registration values', error=str(e))
+        metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+        raise CCInternalException('Failed to set registration values') from e
 
     logger.info('Registered user successfully', compact=body['compact'], provider_id=matching_record['providerId'])
     metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=1)
