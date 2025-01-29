@@ -91,10 +91,13 @@ export default {
     // REINVITE USER
     reinviteUserRequest: async ({ commit, dispatch }, { compact, userId }: any) => {
         commit(MutationTypes.REINVITE_USER_REQUEST);
-        await dataApi.reinviteUser(compact, userId).then(async () => {
+        return dataApi.reinviteUser(compact, userId).then(async (response) => {
             dispatch('reinviteUserSuccess');
+
+            return response;
         }).catch((error) => {
             dispatch('reinviteUserFailure', error);
+            throw error;
         });
     },
     reinviteUserSuccess: ({ commit }) => {
@@ -106,10 +109,13 @@ export default {
     // DELETE USER
     deleteUserRequest: async ({ commit, dispatch }, { compact, userId }: any) => {
         commit(MutationTypes.DELETE_USER_REQUEST);
-        await dataApi.deleteUser(compact, userId).then(async () => {
+        return dataApi.deleteUser(compact, userId).then(async (response) => {
             dispatch('deleteUserSuccess');
+
+            return response;
         }).catch((error) => {
             dispatch('deleteUserFailure', error);
+            throw error;
         });
     },
     deleteUserSuccess: ({ commit }) => {

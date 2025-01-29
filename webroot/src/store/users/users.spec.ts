@@ -148,6 +148,54 @@ describe('Users Store Mutations', () => {
         expect(state.isLoading).to.equal(false);
         expect(state.error).to.equal(null);
     });
+    it('should successfully reinvite user request', () => {
+        const state = {};
+
+        mutations[MutationTypes.REINVITE_USER_REQUEST](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully reinvite user failure', () => {
+        const state = {};
+
+        mutations[MutationTypes.REINVITE_USER_FAILURE](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully reinvite user success', () => {
+        const state = {};
+
+        mutations[MutationTypes.REINVITE_USER_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully delete user request', () => {
+        const state = {};
+
+        mutations[MutationTypes.DELETE_USER_REQUEST](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully delete user failure', () => {
+        const state = {};
+
+        mutations[MutationTypes.DELETE_USER_FAILURE](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully delete user success', () => {
+        const state = {};
+
+        mutations[MutationTypes.DELETE_USER_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
     it('should successfully update user (missing id)', () => {
         const state = {};
         const user = {};
@@ -392,6 +440,64 @@ describe('Users Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.UPDATE_USER_SUCCESS]);
+    });
+    it('should successfully start reinvite-user request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = 'aslp';
+        const userId = '1';
+
+        await actions.reinviteUserRequest({ commit, dispatch }, { compact, userId });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.REINVITE_USER_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+    });
+    it('should successfully start reinvite-user failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.reinviteUserFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.REINVITE_USER_FAILURE, error]);
+    });
+    it('should successfully start reinvite-user success', () => {
+        const commit = sinon.spy();
+
+        actions.reinviteUserSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.REINVITE_USER_SUCCESS]);
+    });
+    it('should successfully start delete-user request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = 'aslp';
+        const userId = '1';
+
+        await actions.deleteUserRequest({ commit, dispatch }, { compact, userId });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.DELETE_USER_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+    });
+    it('should successfully start delete-user failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.deleteUserFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.DELETE_USER_FAILURE, error]);
+    });
+    it('should successfully start delete-user success', () => {
+        const commit = sinon.spy();
+
+        actions.deleteUserSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.DELETE_USER_SUCCESS]);
     });
     it('should successfully set user', () => {
         const commit = sinon.spy();

@@ -95,24 +95,24 @@ export default {
         state.error = null;
     },
     [MutationTypes.REINVITE_USER_REQUEST]: (state: any) => {
-        state.isLoading = true;
+        state.isLoading = false; // State is handled locally for this to avoid triggering unwanted actions
         state.error = null;
     },
-    [MutationTypes.REINVITE_USER_FAILURE]: (state: any, error: Error) => {
+    [MutationTypes.REINVITE_USER_FAILURE]: (state: any) => {
         state.isLoading = false;
-        state.error = error;
+        state.error = null; // State is handled locally for this to avoid triggering unwanted actions
     },
     [MutationTypes.REINVITE_USER_SUCCESS]: (state: any) => {
         state.isLoading = false;
         state.error = null;
     },
     [MutationTypes.DELETE_USER_REQUEST]: (state: any) => {
-        state.isLoading = true;
+        state.isLoading = false; // State is handled locally for this to avoid triggering unwanted actions
         state.error = null;
     },
-    [MutationTypes.DELETE_USER_FAILURE]: (state: any, error: Error) => {
+    [MutationTypes.DELETE_USER_FAILURE]: (state: any) => {
         state.isLoading = false;
-        state.error = error;
+        state.error = null; // State is handled locally for this to avoid triggering unwanted actions
     },
     [MutationTypes.DELETE_USER_SUCCESS]: (state: any) => {
         state.isLoading = false;

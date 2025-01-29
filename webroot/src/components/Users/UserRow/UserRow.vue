@@ -228,6 +228,7 @@
                     <div class="modal-content reinvite-modal-content">
                         {{ $t('account.confirmUserReinviteSubtext', { email: accountEmail }) }}
                         <form @submit.prevent="submitReinviteUser">
+                            <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
                             <div class="action-button-row">
                                 <InputButton
                                     id="reinvite-modal-cancel-button"
@@ -260,6 +261,7 @@
                     <div class="modal-content deactivate-modal-content">
                         {{ $t('account.confirmUserDeactivate', { name: accountFullName }) }}
                         <form @submit.prevent="submitDeactivateUser">
+                            <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
                             <div class="action-button-row">
                                 <InputButton
                                     id="deactivate-modal-cancel-button"

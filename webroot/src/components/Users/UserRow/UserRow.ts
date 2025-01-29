@@ -51,6 +51,7 @@ class UserRow extends mixins(MixinForm) {
     isDeactivateUserModalDisplayed = false;
     isReinviteSent = false;
     isDeactivated = false;
+    modalErrorMessage = '';
 
     //
     // Lifecycle
@@ -224,8 +225,7 @@ class UserRow extends mixins(MixinForm) {
 
     async toggleReinviteUserModal(): Promise<void> {
         if (!this.isReinviteSent) {
-            this.updateFormSubmitSuccess('');
-            this.updateFormSubmitError('');
+            this.resetForm();
             this.isReinviteUserModalDisplayed = !this.isReinviteUserModalDisplayed;
             await nextTick();
             document.getElementById('reinvite-modal-cancel-button')?.focus();
@@ -255,20 +255,28 @@ class UserRow extends mixins(MixinForm) {
 
     async submitReinviteUser(): Promise<void> {
         this.startFormLoading();
+        this.modalErrorMessage = '';
 
-        // @TODO
-        console.log('submit resend invite');
-        await new Promise((resolve) => setTimeout(() => { resolve(true); }, 2000));
+        await this.$store.dispatch(`users/reinviteUserRequest`, {
+            compact: this.currentCompactType,
+            userId: this.item.id,
+        }).catch((err) => {
+            this.modalErrorMessage = err?.message || this.$t('common.error');
+            this.isFormError = true;
+        });
 
-        this.isReinviteSent = true;
+        if (!this.isFormError) {
+            this.isFormSuccessful = true;
+            this.isReinviteSent = true;
+            this.closeReinviteUserModal();
+        }
+
         this.endFormLoading();
-        this.closeReinviteUserModal();
     }
 
     async toggleDeactivateUserModal(): Promise<void> {
         if (!this.isDeactivated) {
-            this.updateFormSubmitSuccess('');
-            this.updateFormSubmitError('');
+            this.resetForm();
             this.isDeactivateUserModalDisplayed = !this.isDeactivateUserModalDisplayed;
             await nextTick();
             document.getElementById('deactivate-modal-cancel-button')?.focus();
@@ -298,14 +306,32 @@ class UserRow extends mixins(MixinForm) {
 
     async submitDeactivateUser(): Promise<void> {
         this.startFormLoading();
+        this.modalErrorMessage = '';
 
-        // @TODO
-        console.log('submit deactivate');
-        await new Promise((resolve) => setTimeout(() => { resolve(true); }, 2000));
+        await this.$store.dispatch(`users/deleteUserRequest`, {
+            compact: this.currentCompactType,
+            userId: this.item.id,
+        }).catch((err) => {
+            this.modalErrorMessage = err?.message || this.$t('common.error');
+            this.isFormError = true;
+        });
 
-        this.isDeactivated = true;
+        if (!this.isFormError) {
+            this.isFormSuccessful = true;
+            this.isDeactivated = true;
+            this.closeDeactivateUserModal();
+        }
+
         this.endFormLoading();
-        this.closeDeactivateUserModal();
+    }
+
+    resetForm(): void {
+        this.isFormLoading = false;
+        this.isFormSuccessful = false;
+        this.isFormError = false;
+        this.modalErrorMessage = '';
+        this.updateFormSubmitSuccess('');
+        this.updateFormSubmitError('');
     }
 
     //
