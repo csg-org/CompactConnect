@@ -70,6 +70,11 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
         return this.licensee?.phoneNumberDisplay() || '';
     }
 
+    get licenseNumber(): string {
+        // TODO: temp come back and fix
+        return 'DA-743963';
+    }
+
     get areAllAttestationsChecked(): boolean {
         return true;
     }

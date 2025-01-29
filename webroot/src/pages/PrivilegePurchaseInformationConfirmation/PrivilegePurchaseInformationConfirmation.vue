@@ -25,7 +25,7 @@
                 </div>
                 <div class="chunk">
                     <div class="chunk-title">{{$t('licensing.licenseNumber')}}</div>
-                    <div class="chunk-text">{{userFullName}}</div>
+                    <div class="chunk-text">{{licenseNumber}}</div>
                 </div>
                 <div class="chunk">
                     <div class="chunk-title">{{$t('licensing.licenseExpirationDate')}}</div>
