@@ -28,7 +28,7 @@ defusedxml==0.7.1
     # via py-serializable
 faker==28.4.1
     # via -r compact-connect/requirements-dev.in
-filelock==3.16.1
+filelock==3.17.0
     # via cachecontrol
 html5lib==1.1
     # via pip-audit
@@ -86,7 +86,7 @@ requests==2.32.3
     #   pip-audit
 rich==13.9.4
     # via pip-audit
-ruff==0.9.1
+ruff==0.9.3
     # via -r compact-connect/requirements-dev.in
 six==1.17.0
     # via

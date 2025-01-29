@@ -19,6 +19,7 @@ from cc_common.data_model.schema.military_affiliation import (
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
 from cc_common.exceptions import CCAwsServiceException, CCNotFoundException
+from cc_common.utils import logger_inject_kwargs
 
 
 class DataClient:
@@ -30,45 +31,48 @@ class DataClient:
 
     def get_provider_id(self, *, compact: str, ssn: str) -> str:
         """Get all records associated with a given SSN."""
-        logger.info('Getting provider id by ssn')
-        try:
-            resp = self.config.ssn_table.get_item(
-                Key={'pk': f'{compact}#SSN#{ssn}', 'sk': f'{compact}#SSN#{ssn}'},
-                ConsistentRead=True,
-            )['Item']
-        except KeyError as e:
-            logger.info('Provider not found by SSN', exc_info=e)
-            raise CCNotFoundException('No licensee found by that identifier') from e
+        with logger.append_context_keys(compact=compact):
+            logger.info('Getting provider id by ssn')
+            try:
+                resp = self.config.ssn_table.get_item(
+                    Key={'pk': f'{compact}#SSN#{ssn}', 'sk': f'{compact}#SSN#{ssn}'},
+                    ConsistentRead=True,
+                )['Item']
+            except KeyError as e:
+                logger.info('Provider not found by SSN', exc_info=e)
+                raise CCNotFoundException('No licensee found by that identifier') from e
 
-        return resp['providerId']
+            return resp['providerId']
 
     def get_or_create_provider_id(self, *, compact: str, ssn: str) -> str:
         provider_id = str(uuid4())
         # This is an 'ask forgiveness' approach to provider id assignment:
         # Try to create a new provider, conditional on it not already existing
-        try:
-            self.config.ssn_table.put_item(
-                Item={
-                    'pk': f'{compact}#SSN#{ssn}',
-                    'sk': f'{compact}#SSN#{ssn}',
-                    'compact': compact,
-                    'ssn': ssn,
-                    'providerId': provider_id,
-                },
-                ConditionExpression=Attr('pk').not_exists(),
-                ReturnValuesOnConditionCheckFailure='ALL_OLD',
-            )
-            logger.info('Creating new provider', provider_id=provider_id)
-        except ClientError as e:
-            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
-                # The provider already exists, so grab their providerId
-                provider_id = TypeDeserializer().deserialize(e.response['Item']['providerId'])
-                logger.info('Found existing provider', provider_id=provider_id)
-            else:
-                raise
-        return provider_id
+        with logger.append_context_keys(compact=compact):
+            try:
+                self.config.ssn_table.put_item(
+                    Item={
+                        'pk': f'{compact}#SSN#{ssn}',
+                        'sk': f'{compact}#SSN#{ssn}',
+                        'compact': compact,
+                        'ssn': ssn,
+                        'providerId': provider_id,
+                    },
+                    ConditionExpression=Attr('pk').not_exists(),
+                    ReturnValuesOnConditionCheckFailure='ALL_OLD',
+                )
+                logger.info('Creating new provider', provider_id=provider_id)
+            except ClientError as e:
+                if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                    # The provider already exists, so grab their providerId
+                    provider_id = TypeDeserializer().deserialize(e.response['Item']['providerId'])
+                    logger.info('Found existing provider', provider_id=provider_id)
+                else:
+                    raise
+            return provider_id
 
     @paginated_query
+    @logger_inject_kwargs(logger)
     def get_provider(
         self,
         *,
@@ -78,7 +82,7 @@ class DataClient:
         detail: bool = True,
         consistent_read: bool = False,
     ):
-        logger.info('Getting provider', provider_id=provider_id)
+        logger.info('Getting provider')
         if detail:
             sk_condition = Key('sk').begins_with(f'{compact}#PROVIDER')
         else:
@@ -96,6 +100,7 @@ class DataClient:
         return resp
 
     @paginated_query
+    @logger_inject_kwargs(logger)
     def get_providers_sorted_by_family_name(
         self,
         *,
@@ -138,6 +143,7 @@ class DataClient:
         )
 
     @paginated_query
+    @logger_inject_kwargs(logger)
     def get_providers_sorted_by_updated(
         self,
         *,
@@ -163,8 +169,9 @@ class DataClient:
         )
 
     @paginated_query
+    @logger_inject_kwargs(logger)
     def get_privilege_purchase_options(self, *, compact: str, dynamo_pagination: dict):
-        logger.info('Getting privilege purchase options for compact', compact=compact)
+        logger.info('Getting privilege purchase options for compact')
 
         return self.config.compact_configuration_table.query(
             Select='ALL_ATTRIBUTES',
@@ -196,9 +203,9 @@ class DataClient:
             'dateOfExpiration': license_expiration_date,
             'compactTransactionId': compact_transaction_id,
             'attestations': attestations,
-            'privilegeId': '-'.join((
-                license_type_abbreviation.upper(), jurisdiction_postal_abbreviation.upper(), str(privilege_number)
-            )),
+            'privilegeId': '-'.join(
+                (license_type_abbreviation.upper(), jurisdiction_postal_abbreviation.upper(), str(privilege_number))
+            ),
         }
 
     def create_provider_privileges(
@@ -231,138 +238,138 @@ class DataClient:
         :param attestations: List of attestations that were accepted when purchasing the privileges
         :param license_type: The type of license (e.g. audiologist, speech-language-pathologist)
         """
-        logger.info(
-            'Creating provider privileges',
-            provider_id=provider_id,
-            compact=compact,
-            privilege_jurisdictions=jurisdiction_postal_abbreviations,
-            compact_transaction_id=compact_transaction_id,
-        )
+        with logger.append_context_keys(
+            compact=compact, provider_id=provider_id, compact_transaction_id=compact_transaction_id
+        ):
+            logger.info(
+                'Creating provider privileges',
+                privilege_jurisdictions=jurisdiction_postal_abbreviations,
+            )
 
-        try:
-            # We'll collect all the record changes into a transaction to protect data consistency
-            transactions = []
-            processed_transactions = []
-            privilege_update_records = []
+            try:
+                # We'll collect all the record changes into a transaction to protect data consistency
+                transactions = []
+                processed_transactions = []
+                privilege_update_records = []
 
-            for postal_abbreviation in jurisdiction_postal_abbreviations:
-                # get the original privilege issuance date from an existing privilege record if it exists
-                original_privilege = next(
-                    (
-                        record
-                        for record in existing_privileges
-                        if record['jurisdiction'].lower() == postal_abbreviation.lower()
-                    ),
-                    None,
-                )
-                original_issuance_date = original_privilege['dateOfIssuance'] if original_privilege else None
+                for postal_abbreviation in jurisdiction_postal_abbreviations:
+                    # get the original privilege issuance date from an existing privilege record if it exists
+                    original_privilege = next(
+                        (
+                            record
+                            for record in existing_privileges
+                            if record['jurisdiction'].lower() == postal_abbreviation.lower()
+                        ),
+                        None,
+                    )
+                    original_issuance_date = original_privilege['dateOfIssuance'] if original_privilege else None
 
-                # Claim a privilege number for this jurisdiction
-                # Note that this number claim is not rolled back on failure, which can result in gaps
-                # in the privilege numbers. Having gaps in the privilege numbers was deemed acceptable
-                # for exceptional circumstances like errors in this flow.
-                privilege_number = self.claim_privilege_number(compact=compact)
+                    # Claim a privilege number for this jurisdiction
+                    # Note that this number claim is not rolled back on failure, which can result in gaps
+                    # in the privilege numbers. Having gaps in the privilege numbers was deemed acceptable
+                    # for exceptional circumstances like errors in this flow.
+                    privilege_number = self.claim_privilege_number(compact=compact)
 
-                privilege_record = self._generate_privilege_record(
-                    compact=compact,
-                    provider_id=provider_id,
-                    jurisdiction_postal_abbreviation=postal_abbreviation,
-                    license_expiration_date=license_expiration_date,
-                    compact_transaction_id=compact_transaction_id,
-                    original_issuance_date=original_issuance_date,
-                    attestations=attestations,
-                    license_type=license_type,
-                    privilege_number=privilege_number,
-                )
+                    privilege_record = self._generate_privilege_record(
+                        compact=compact,
+                        provider_id=provider_id,
+                        jurisdiction_postal_abbreviation=postal_abbreviation,
+                        license_expiration_date=license_expiration_date,
+                        compact_transaction_id=compact_transaction_id,
+                        original_issuance_date=original_issuance_date,
+                        attestations=attestations,
+                        license_type=license_type,
+                        privilege_number=privilege_number,
+                    )
 
-                # Create privilege update record if this is updating an existing privilege
-                if original_privilege:
-                    update_record = {
-                        'type': 'privilegeUpdate',
-                        'updateType': 'renewal',
-                        'providerId': provider_id,
-                        'compact': compact,
-                        'jurisdiction': postal_abbreviation.lower(),
-                        'previous': original_privilege,
-                        'updatedValues': {
-                            'dateOfRenewal': privilege_record['dateOfRenewal'],
-                            'dateOfExpiration': privilege_record['dateOfExpiration'],
-                            'compactTransactionId': compact_transaction_id,
-                        },
-                    }
-                    privilege_update_records.append(update_record)
+                    # Create privilege update record if this is updating an existing privilege
+                    if original_privilege:
+                        update_record = {
+                            'type': 'privilegeUpdate',
+                            'updateType': 'renewal',
+                            'providerId': provider_id,
+                            'compact': compact,
+                            'jurisdiction': postal_abbreviation.lower(),
+                            'previous': original_privilege,
+                            'updatedValues': {
+                                'dateOfRenewal': privilege_record['dateOfRenewal'],
+                                'dateOfExpiration': privilege_record['dateOfExpiration'],
+                                'compactTransactionId': compact_transaction_id,
+                            },
+                        }
+                        privilege_update_records.append(update_record)
+                        transactions.append(
+                            {
+                                'Put': {
+                                    'TableName': self.config.provider_table_name,
+                                    'Item': TypeSerializer().serialize(
+                                        PrivilegeUpdateRecordSchema().dump(update_record)
+                                    )['M'],
+                                }
+                            }
+                        )
+
                     transactions.append(
                         {
                             'Put': {
                                 'TableName': self.config.provider_table_name,
-                                'Item': TypeSerializer().serialize(PrivilegeUpdateRecordSchema().dump(update_record))[
-                                    'M'
-                                ],
+                                'Item': TypeSerializer().serialize(PrivilegeRecordSchema().dump(privilege_record))['M'],
                             }
                         }
                     )
 
+                # We save this update till last so that it is least likely to be changed in the event of a failure in
+                # one of the other transactions.
                 transactions.append(
                     {
-                        'Put': {
+                        'Update': {
                             'TableName': self.config.provider_table_name,
-                            'Item': TypeSerializer().serialize(PrivilegeRecordSchema().dump(privilege_record))['M'],
+                            'Key': {
+                                'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                                'sk': {'S': f'{compact}#PROVIDER'},
+                            },
+                            'UpdateExpression': 'ADD #privilegeJurisdictions :newJurisdictions',
+                            'ExpressionAttributeNames': {'#privilegeJurisdictions': 'privilegeJurisdictions'},
+                            'ExpressionAttributeValues': {
+                                ':newJurisdictions': {'SS': jurisdiction_postal_abbreviations}
+                            },
                         }
                     }
                 )
 
-            # We save this update till last so that it is least likely to be changed in the event of a failure in one of
-            # the other transactions.
-            transactions.append(
-                {
-                    'Update': {
-                        'TableName': self.config.provider_table_name,
-                        'Key': {
-                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                            'sk': {'S': f'{compact}#PROVIDER'},
-                        },
-                        'UpdateExpression': 'ADD #privilegeJurisdictions :newJurisdictions',
-                        'ExpressionAttributeNames': {'#privilegeJurisdictions': 'privilegeJurisdictions'},
-                        'ExpressionAttributeValues': {':newJurisdictions': {'SS': jurisdiction_postal_abbreviations}},
-                    }
-                }
-            )
+                # Unfortunately, we can't guarantee that the number of transactions is below the 100 action limit
+                # for extremely large purchases. To handle those large purchases, we will have to break our transactions
+                # up and handle a multi-transaction roll-back on failure.
+                # We'll collect data for sizes, just so we can keep an eye on them and understand user behavior
+                metrics.add_metric(
+                    name='privilege-purchase-transaction-size', unit=MetricUnit.Count, value=len(transactions)
+                )
+                metrics.add_metric(
+                    name='privileges-purchased', unit=MetricUnit.Count, value=len(jurisdiction_postal_abbreviations)
+                )
+                # 100 is the maximum transaction size
+                batch_size = 100
+                # Iterate over the transactions until they are empty
+                while transaction_batch := transactions[:batch_size]:
+                    self.config.dynamodb_client.transact_write_items(TransactItems=transaction_batch)
+                    processed_transactions.extend(transaction_batch)
+                    transactions = transactions[batch_size:]
+                    if transactions:
+                        logger.info(
+                            'Breaking privilege updates into multiple transactions',
+                            privilege_jurisdictions=jurisdiction_postal_abbreviations,
+                            compact_transaction_id=compact_transaction_id,
+                        )
 
-            # Unfortunately, we can't guarantee that the number of transactions is below the 100 action limit
-            # for extremely large purchases. To handle those large purchases, we will have to break our transactions
-            # up and handle a multi-transaction roll-back on failure.
-            # We'll collect data for sizes, just so we can keep an eye on them and understand user behavior
-            metrics.add_metric(
-                name='privilege-purchase-transaction-size', unit=MetricUnit.Count, value=len(transactions)
-            )
-            metrics.add_metric(
-                name='privileges-purchased', unit=MetricUnit.Count, value=len(jurisdiction_postal_abbreviations)
-            )
-            # 100 is the maximum transaction size
-            batch_size = 100
-            # Iterate over the transactions until they are empty
-            while transaction_batch := transactions[:batch_size]:
-                self.config.dynamodb_client.transact_write_items(TransactItems=transaction_batch)
-                processed_transactions.extend(transaction_batch)
-                transactions = transactions[batch_size:]
-                if transactions:
-                    logger.info(
-                        'Breaking privilege updates into multiple transactions',
-                        compact=compact,
-                        provider_id=provider_id,
-                        privilege_jurisdictions=jurisdiction_postal_abbreviations,
-                        compact_transaction_id=compact_transaction_id,
-                    )
-
-        except ClientError as e:
-            message = 'Unable to create all provider privileges. Rolling back transaction.'
-            logger.info(message, error=str(e))
-            self._rollback_privilege_transactions(
-                processed_transactions=processed_transactions,
-                provider_record=provider_record,
-                existing_privileges=existing_privileges,
-            )
-            raise CCAwsServiceException(message) from e
+            except ClientError as e:
+                message = 'Unable to create all provider privileges. Rolling back transaction.'
+                logger.info(message, error=str(e))
+                self._rollback_privilege_transactions(
+                    processed_transactions=processed_transactions,
+                    provider_record=provider_record,
+                    existing_privileges=existing_privileges,
+                )
+                raise CCAwsServiceException(message) from e
 
     def _rollback_privilege_transactions(
         self,
@@ -372,9 +379,6 @@ class DataClient:
     ):
         """Roll back successful privilege transactions after a failure."""
         rollback_transactions = []
-
-        compact = provider_record['compact']
-        provider_id = provider_record['providerId']
 
         # Create a lookup of existing privileges by jurisdiction
         existing_privileges_by_jurisdiction = {
@@ -403,12 +407,7 @@ class DataClient:
                     # For privilege records, check if it was an update or new creation
                     original_privilege = existing_privileges_by_jurisdiction.get(item['jurisdiction'])
                     if original_privilege:
-                        logger.info(
-                            'Restoring original privilege record',
-                            provider_id=provider_id,
-                            compact=compact,
-                            jurisdiction=item['jurisdiction'],
-                        )
+                        logger.info('Restoring original privilege record', jurisdiction=item['jurisdiction'])
                         # If it was an update, restore the original record
                         rollback_transactions.append(
                             {
@@ -422,12 +421,7 @@ class DataClient:
                         )
                     else:
                         # If it was a new creation, delete it
-                        logger.info(
-                            'Deleting new privilege record',
-                            provider_id=provider_id,
-                            compact=compact,
-                            jurisdiction=item['jurisdiction'],
-                        )
+                        logger.info('Deleting new privilege record', jurisdiction=item['jurisdiction'])
                         rollback_transactions.append(
                             {
                                 'Delete': {
@@ -454,13 +448,13 @@ class DataClient:
         batch_size = 100
         while rollback_batch := rollback_transactions[:batch_size]:
             try:
-                logger.info('Submitting rollback transaction', provider_id=provider_id, compact=compact)
+                logger.info('Submitting rollback transaction')
                 self.config.dynamodb_client.transact_write_items(TransactItems=rollback_batch)
                 rollback_transactions = rollback_transactions[batch_size:]
             except ClientError as e:
                 logger.error('Failed to roll back privilege transactions', error=str(e))
                 raise CCAwsServiceException('Failed to roll back privilege transactions') from e
-        logger.info('Privilege rollback complete', provider_id=provider_id, compact=compact)
+        logger.info('Privilege rollback complete')
 
     def _get_military_affiliation_records_by_status(
         self, compact: str, provider_id: str, status: MilitaryAffiliationStatus
@@ -484,6 +478,7 @@ class DataClient:
             compact, provider_id, MilitaryAffiliationStatus.INITIALIZING
         )
 
+    @logger_inject_kwargs(logger)
     def complete_military_affiliation_initialization(self, compact: str, provider_id: str):
         """
         This method is called when the client has uploaded the document for a military affiliation record.
@@ -491,6 +486,8 @@ class DataClient:
         It gets all records in an initializing state, sets the latest to active, and the rest to inactive for a
         self-healing process.
         """
+        logger.info('Completing military affiliation initialization')
+
         initializing_military_affiliation_records = self._get_initializing_military_affiliation_records(
             compact, provider_id
         )
@@ -513,6 +510,7 @@ class DataClient:
                 serialized_record = schema.dump(record)
                 batch.put_item(Item=serialized_record)
 
+    @logger_inject_kwargs(logger)
     def create_military_affiliation(
         self,
         compact: str,
@@ -533,6 +531,7 @@ class DataClient:
         :param document_keys: The list of s3 document keys for the documents
         :return: The created military affiliation record
         """
+        logger.info('Creating military affiliation')
 
         latest_military_affiliation_record = {
             'type': 'militaryAffiliation',
@@ -576,6 +575,7 @@ class DataClient:
                 serialized_record = schema.dump(record)
                 batch.put_item(Item=serialized_record)
 
+    @logger_inject_kwargs(logger)
     def batch_get_providers_by_id(self, compact: str, provider_ids: list[str]) -> list[dict]:
         """
         Get provider records by their IDs in batches.
@@ -631,12 +631,13 @@ class DataClient:
 
         return providers
 
+    @logger_inject_kwargs(logger)
     def claim_privilege_number(self, compact: str) -> int:
         """
         Claim a unique privilege number for a compact by atomically incrementing the privilege counter.
         If the counter doesn't exist yet, it will be created with an initial value of 1.
         """
-        logger.info('Claiming privilege id', compact=compact)
+        logger.info('Claiming privilege id')
         resp = self.config.provider_table.update_item(
             Key={
                 'pk': f'{compact}#PRIVILEGE_COUNT',
@@ -652,5 +653,5 @@ class DataClient:
             ReturnValues='UPDATED_NEW',
         )
         privilege_count = resp['Attributes']['privilegeCount']
-        logger.info('Claimed privilege id', compact=compact, privilege_count=privilege_count)
+        logger.info('Claimed privilege id', privilege_count=privilege_count)
         return privilege_count
