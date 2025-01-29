@@ -89,7 +89,7 @@ class TestProviderRegistration(TstFunction):
 
         return provider_data, license_data
 
-    def get_api_event(self):
+    def _get_api_event(self):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['requestContext']['identity']['sourceIp'] = MOCK_IP_ADDRESS
@@ -97,7 +97,7 @@ class TestProviderRegistration(TstFunction):
 
     def _get_test_event(self, body_overrides=None):
         """Helper to get a test event with optional body overrides."""
-        event = self.get_api_event()
+        event = self._get_api_event()
         body = generate_test_request()
         if body_overrides:
             body.update(body_overrides)
