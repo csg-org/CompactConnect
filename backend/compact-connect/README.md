@@ -107,6 +107,40 @@ Keeping documentation current is an important part of feature development in thi
 3) If you exported the api specification from somewhere other than the CSG Test environment, be sure to set the `servers[0].url` entry back to the correct base URL for the CSG Test environment.
 4) Update the [Postman Collection and Environment](./docs/postman) as appropriate.
 
+## Google reCAPTCHA Setup
+[Back to top](#compact-connect---backend-developer-documentation)
+
+The practitioner registration endpoint uses Google reCAPTCHA to prevent abuse. Follow these steps to set up reCAPTCHA for your environment:
+
+1. Visit https://www.google.com/recaptcha/
+2. Go to "v3 Admin Console"
+   - If needed, enter your Google account credentials
+3. Create a site
+   - Recaptcha type is v3 (score based)
+   - Domain will be the frontend browser domain for the environment ('localhost' for local development)
+   - Google Cloud Platform may require a project name
+   - Submit
+4. Open the Settings for the new site
+   - The Site Key (Public) will need to be set in the `VUE_APP_RECAPTCHA_KEY` environment variable in your `.env` file of the webroot folder
+   - The Secret Key (Private) will need to be manually stored in the AWS account in secrets manager, using the following secret name:
+     `compact-connect/env/{value of 'environment_name' in cdk.context.json}/recaptcha/token`
+   The value of the secret key should be in the following format:
+   ```
+   {
+     "token": "<value of private Secret Key from Google reCAPTCHA>"
+   }
+   ```
+   You can run the following aws cli command to create the secret (make sure you are logged in to the same AWS account you want to store the secret in, under the us-east-1 region):
+   ```
+   aws secretsmanager create-secret --name compact-connect/env/{value of 'environment_name' in cdk.context.json}/recaptcha/token --secret-string '{"token": "<value of private Secret Key from Google reCAPTCHA>"}'
+   ```
+
+For Production environments, additional billing setup is required:
+1. In the Settings for a reCAPTCHA site, click "View in Cloud Console"
+2. From the main nav, go to Billing
+3. If you have an existing billing account, you may link it, otherwise you can Create a New Billing account, where you will add payment information
+4. More info on Google Recaptcha billing: https://cloud.google.com/recaptcha/docs/billing-information
+
 ## Deployment
 [Back to top](#compact-connect---backend-developer-documentation)
 
@@ -132,29 +166,7 @@ its environment:
    The key under `environments` must match the value you put under `environment_name`.
 6) Configure your aws cli to authenticate against your own account. There are several ways to do this based on the
    type of authentication you use to login to your account. See the [AWS CLI Configuration Guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html).
-7) Google reCAPTCHA configuration: The practitioner registration endpoint uses Google reCAPTCHA to prevent abuse. In order to deploy the environment, you must complete the following steps:
-  1. Visit https://www.google.com/recaptcha/
-  2. Go to "v3 Admin Console"
-     a. If needed, enter your Google account credentials
-  3. Create a site
-    a. Recaptcha type is v3 (score based)
-    b. Domain will be the frontend browser domain for the environment ('localhost' for local development)
-    c. Google Cloud Platform may require a project name
-    d. Submit
-  4. Open the Settings for the new site
-    a. The Site Key (Public) will need to be set in the `VUE_APP_RECAPTCHA_KEY` environment variable in your `.env` file of the webroot folder.
-    b. The Secret Key (Private) will need to be manually stored in the AWS account in secrets manager, using the following secret name:
-      `compact-connect/env/{value of 'environment_name' in cdk.context.json}/recaptcha/token`
-    The value of the secret key should be the in the following format:
-    ```
-    {
-      "token": "<value of private Secret Key from Google reCAPTCHA>"
-    }
-    ```
-    you can run the following aws cli command to create the secret:
-    ```
-    aws secretsmanager create-secret --name compact-connect/env/{value of 'environment_name' in cdk.context.json}/recaptcha/token --secret-string '{"token": "<value of private Secret Key from Google reCAPTCHA>"}'
-    ```
+7) Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for your sandbox environment.
 8) Run `cdk bootstrap` to add some base CDK support infrastructure to your AWS account.
 9) Run `cdk deploy 'Sandbox/*'` to get the initial stack resources deployed.
 
@@ -182,35 +194,8 @@ authentication is working as expected.
 The production environment requires a few steps to fully set up before deploys can be automated. Refer to the
 [README.md](../multi-account/README.md) for details on setting up a full multi-account architecture environment. Once
 that is done, perform the following steps to deploy the CI/CD pipeline into the appropriate AWS account:
-- Google reCAPTCHA configuration: The practictioner registration endpoint uses Google reCAPTCHA to prevent abuse. In order to deploy the environment, you must complete the following steps for each environment you will be deploying to:
-  - Visit https://www.google.com/recaptcha/
-  - Go to "v3 Admin Console"
-    a. If needed, enter your Google account credentials
-  - Create a site
-    a. Recaptcha type is v3 (score based)
-    b. Domain will be the frontend browser domain for the environment
-    c. Google Cloud Platform may require a project name
-    d. Submit
-  - Open the Settings for the new site
-    a. The Site Key (Public) will need to be set in the `VUE_APP_RECAPTCHA_KEY` environment variable in each respective `webroot-deploy-<environment>.yml` Github Actions workflow under the `.github/workflows` folder.
-    b. The Secret Key (Private) will need to be manually stored in the respective AWS account in secrets manager for the environment, using the following secret name:
-      `compact-connect/env/{value of 'environment_name'}/recaptcha/token`
-    The value of the secret key should be the in the following format:
-    ```
-    {
-      "token": "<value of private Secret Key from Google reCAPTCHA>"
-    }
-    ```
-    you can run the following aws cli command to create the secret:
-    ```
-    aws secretsmanager create-secret --name compact-connect/env/{value of 'environment_name'}/recaptcha/token --secret-string '{"token": "<value of private Secret Key from Google reCAPTCHA>"}'
-    ```
- - For Production sites, setup reCAPTCHA Billing
-  a. In the Settings for a reCAPTCHA site, click "View in Cloud Console"
-  b. From the main nav, go to Billing
-  c. If you have an existing billing account, you may link it, otherwise you can Create a New Billing account, where you
-     will add payment information.
-  d. More info on Google Recaptcha billing: https://cloud.google.com/recaptcha/docs/billing-information
+- Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for each environment you will be deploying to (test, prod, etc.).
+  For production environments, make sure to complete the billing setup steps as well.
 - Have someone with suitable permissions in the GitHub organization that hosts this code navigate to the AWS Console
   for the Deploy account, go to the
   [AWS CodeStar Connections](https://us-east-1.console.aws.amazon.com/codesuite/settings/connections) page and create a
