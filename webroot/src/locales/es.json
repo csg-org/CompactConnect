@@ -480,6 +480,8 @@
         "licensingListTitle": "Datos de licencia",
         "searchTitle": "Iniciar una búsqueda",
         "attestation": "Atestación",
+        "stateProvidedEmail": "Correo electrónico proporcionado por el estado",
+        "accountEmail": "Correo electrónico de la cuenta",
         "attestations": "Atestaciónes",
         "searchSubtext": "Introduzca al menos un campo para buscar datos de licencia.",
         "searchLabel": "Buscar",

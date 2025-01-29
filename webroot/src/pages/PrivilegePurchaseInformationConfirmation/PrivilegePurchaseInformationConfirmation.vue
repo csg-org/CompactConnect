@@ -41,29 +41,29 @@
                 </div>
                 <div class="chunk-row">
                     <div class="chunk in-row">
-                        <div class="chunk-title">{{$t('payment.streetAddress2')}}</div>
+                        <div class="chunk-title">{{$t('common.city')}}</div>
                         <div class="chunk-text">{{userFullName}}</div>
                     </div>
                     <div class="chunk in-row">
-                        <div class="chunk-title">{{$t('payment.streetAddress2')}}</div>
+                        <div class="chunk-title">{{$t('common.state')}}</div>
                         <div class="chunk-text">{{userFullName}}</div>
                     </div>
                     <div class="chunk in-row">
-                        <div class="chunk-title">{{$t('payment.streetAddress2')}}</div>
+                        <div class="chunk-title">{{$t('common.zipCode')}}</div>
                         <div class="chunk-text">{{userFullName}}</div>
                     </div>
                 </div>
                 <div class="chunk">
-                    <div class="chunk-title">{{$t('payment.streetAddress2')}}</div>
+                    <div class="chunk-title">{{$t('licensing.stateProvidedEmail')}}</div>
                     <div class="chunk-text">{{userFullName}}</div>
                 </div>
                 <div class="chunk">
-                    <div class="chunk-title">{{$t('payment.streetAddress2')}}</div>
+                    <div class="chunk-title">{{$t('licensing.accountEmail')}}</div>
                     <div class="chunk-text">{{userFullName}}</div>
                 </div>
                 <div class="chunk">
-                    <div class="chunk-title">{{$t('payment.streetAddress2')}}</div>
-                    <div class="chunk-text">{{userFullName}}</div>
+                    <div class="chunk-title">{{$t('common.phoneNumber')}}</div>
+                    <div class="chunk-text">{{phoneNumber}}</div>
                 </div>
                 <div class="chunk">
                     <div class="chunk-title">{{$t('licensing.attestations')}}</div>

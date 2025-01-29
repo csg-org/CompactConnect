@@ -44,25 +44,20 @@ const parensPhoneFormatter = (numberValue: string, inputValue: string): string =
  */
 const singleDelimeterPhoneFormatter = (numberValue: string, numberDelimeter: string): string => {
     let formattedPhoneNumber = '';
-    let delimeter = '';
-
-    // If no deleimeter was passed then set a default
-    if (!numberDelimeter) {
-        delimeter = '-';
-    }
+    const delimeter = numberDelimeter || '-';
 
     // If the number value is at least three digits
     if (numberValue.length >= 3) {
         // Add the post-NPA delimeter
-        formattedPhoneNumber = numberValue.substr(0, 3) + delimeter;
+        formattedPhoneNumber = numberValue.substring(0, 3) + delimeter;
 
         // If the number value is at least 6 digits
         if (numberValue.length >= 6) {
             // Add the post-NXX delimeter
-            formattedPhoneNumber += numberValue.substr(3, 3) + delimeter + numberValue.substr(6, 4);
+            formattedPhoneNumber += numberValue.substring(3, 6) + delimeter + numberValue.substring(6, 9);
         } else {
             // Otherwise just display the rest of the numbers unformatted
-            formattedPhoneNumber += numberValue.substr(3);
+            formattedPhoneNumber += numberValue.substring(3);
         }
     } else {
         // Otherwise just display the numbers unformatted
@@ -112,6 +107,7 @@ const formatPhoneNumber = (value: string, format: string): string => {
         // (xxx) xxx-xxxx
         newValue = parensPhoneFormatter(numberValue, value);
     } else if (format === 'dashed') {
+        console.log('inside', numberValue);
         // xxx-xxx-xxxx
         newValue = singleDelimeterPhoneFormatter(numberValue, '-');
     } else if (format === 'dotted') {

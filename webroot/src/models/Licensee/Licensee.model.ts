@@ -7,6 +7,7 @@
 
 import deleteUndefinedProperties from '@models/_helpers';
 import { dateDisplay, relativeFromNowDisplay } from '@models/_formatters/date';
+import { formatPhoneNumber, stripPhoneNumber } from '@models/_formatters/phone';
 import { Address, AddressSerializer } from '@models/Address/Address.model';
 import { License, LicenseOccupation, LicenseSerializer } from '@models/License/License.model';
 import { MilitaryAffiliation, MilitaryAffiliationSerializer } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
@@ -36,6 +37,7 @@ export interface InterfaceLicensee {
     dob?: string | null;
     birthMonthDay?: string | null;
     ssn?: string | null;
+    phoneNumber?: string | null;
     occupation?: LicenseOccupation | null;
     militaryAffiliations?: Array <MilitaryAffiliation>;
     licenseStates?: Array<State>;
@@ -61,6 +63,7 @@ export class Licensee implements InterfaceLicensee {
     public dob? = null;
     public birthMonthDay? = null;
     public ssn? = null;
+    public phoneNumber? = null;
     public occupation? = null;
     public licenseStates? = [];
     public licenses? = [];
@@ -196,6 +199,14 @@ export class Licensee implements InterfaceLicensee {
         return this.$t(`licensing.statusOptions.${this.status}`);
     }
 
+    public phoneNumberDisplay(): string {
+        if (this.phoneNumber) {
+            console.log('stripped', stripPhoneNumber(this.phoneNumber));
+        }
+
+        return this.phoneNumber ? formatPhoneNumber(stripPhoneNumber(this.phoneNumber), 'dashed') : '';
+    }
+
     public isMilitary(): boolean {
         // The API does not return the affiliations in the get-all endpoint therefore all users will appear unaffiliated
         // if only that endpoint has been called
@@ -232,6 +243,7 @@ export class LicenseeSerializer {
             dob: json.dateOfBirth,
             birthMonthDay: json.birthMonthDay,
             ssn: json.ssn,
+            phoneNumber: json.phoneNumber,
             occupation: json.licenseType,
             licenseStates: [] as Array<State>,
             licenses: [] as Array<License>,

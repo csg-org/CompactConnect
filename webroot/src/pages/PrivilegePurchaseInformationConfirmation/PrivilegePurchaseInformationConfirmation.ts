@@ -63,13 +63,11 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
     }
 
     get userFullName(): string {
-        let name = '';
+        return this.user?.getFullName() || '';
+    }
 
-        if (this.user) {
-            name = this.user.getFullName();
-        }
-
-        return name;
+    get phoneNumber(): string {
+        return this.licensee?.phoneNumberDisplay() || '';
     }
 
     get areAllAttestationsChecked(): boolean {
