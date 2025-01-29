@@ -4,7 +4,9 @@
         "yes": "Sí",
         "no": "No",
         "back": "Volver",
+        "next": "Siguiente",
         "continue": "Continuar",
+        "confirm": "Confirmar",
         "cancel": "Cancelar",
         "close": "Cerrar",
         "skip": "Saltear",
@@ -16,7 +18,6 @@
         "selectFiles": "Selecciona archivos",
         "replaceFile": "Reemplazar el archivo",
         "replaceFiles": "Reemplazar archivos",
-        "next": "Siguiente",
         "change": "Cambiar",
         "add": "Agregar",
         "remove": "Eliminar",
@@ -629,7 +630,14 @@
         "editPermissions": "Editar permisos",
         "editUserPermissions": "Editar permisos de usuario",
         "addState": "Agregar estado / jurisdiccion",
-        "inviteNewUser": "Invitar nuevo usuario"
+        "inviteNewUser": "Invitar nuevo usuario",
+        "resendInvite": "Reenviar invitación",
+        "reinviteSent": "Reinvite enviado!",
+        "deactivate": "Desactivar",
+        "deactivated": "Desactivado",
+        "confirmUserReinviteTitle": "¿Está seguro de que desea volver a enviar la invitación a {name}?",
+        "confirmUserReinviteSubtext": "Se enviará un correo electrónico a {email} y el usuario deberá establecer una nueva contraseña.",
+        "confirmUserDeactivate": "¿Está seguro de que desea desactivar {name} de este acuerdo? No se puede deshacer."
     },
     "styleGuide": {
         "headerPlaceholder": "Contenido del encabezado",

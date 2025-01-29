@@ -7,13 +7,19 @@
 
 import {
     Component,
-    Vue,
+    mixins,
     Prop,
     Watch,
     toNative
 } from 'vue-facing-decorator';
+import { reactive, nextTick } from 'vue';
+import MixinForm from '@components/Forms/_mixins/form.mixin';
 import RightCaretIcon from '@components/Icons/RightCaretIcon/RightCaretIcon.vue';
 import UserRowEdit from '@components/Users/UserRowEdit/UserRowEdit.vue';
+import InputButton from '@components/Forms/InputButton/InputButton.vue';
+import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import Modal from '@components/Modal/Modal.vue';
+import { FormInput } from '@/models/FormInput/FormInput.model';
 import { SortDirection } from '@store/sorting/sorting.state';
 
 @Component({
@@ -21,9 +27,12 @@ import { SortDirection } from '@store/sorting/sorting.state';
     components: {
         RightCaretIcon,
         UserRowEdit,
+        InputButton,
+        InputSubmit,
+        Modal,
     },
 })
-class UserRow extends Vue {
+class UserRow extends mixins(MixinForm) {
     @Prop({ required: true }) protected listId!: string;
     @Prop({ required: true }) item!: any;
     @Prop({ default: false }) isHeaderRow?: boolean;
@@ -37,7 +46,18 @@ class UserRow extends Vue {
     lastSortSelectDirection = '';
     isRowExpanded = false;
     isRowActionMenuDisplayed = false;
-    isModalDisplayed = false;
+    isEditUserModalDisplayed = false;
+    isReinviteUserModalDisplayed = false;
+    isDeactivateUserModalDisplayed = false;
+    isReinviteSent = false;
+    isDeactivated = false;
+
+    //
+    // Lifecycle
+    //
+    created() {
+        this.initFormInputs();
+    }
 
     //
     // Computed
@@ -86,9 +106,26 @@ class UserRow extends Vue {
         return this.isAccountStatusPending;
     }
 
+    get accountFullName(): string {
+        return this.item?.getFullName() || '';
+    }
+
+    get accountEmail(): string {
+        return this.item?.email || '';
+    }
+
     //
     // Methods
     //
+    initFormInputs(): void {
+        this.formData = reactive({
+            submitModalContinue: new FormInput({
+                isSubmitInput: true,
+                id: 'submit-modal-continue',
+            }),
+        });
+    }
+
     isSortOptionEnabled(optionName: string): boolean {
         return Boolean(this.isHeaderRow && this.sortOptionNames.includes(optionName));
     }
@@ -178,11 +215,97 @@ class UserRow extends Vue {
     }
 
     toggleEditUserModal(): void {
-        this.isModalDisplayed = !this.isModalDisplayed;
+        this.isEditUserModalDisplayed = !this.isEditUserModalDisplayed;
     }
 
     closeEditUserModal(): void {
-        this.isModalDisplayed = false;
+        this.isEditUserModalDisplayed = false;
+    }
+
+    async toggleReinviteUserModal(): Promise<void> {
+        if (!this.isReinviteSent) {
+            this.updateFormSubmitSuccess('');
+            this.updateFormSubmitError('');
+            this.isReinviteUserModalDisplayed = !this.isReinviteUserModalDisplayed;
+            await nextTick();
+            document.getElementById('reinvite-modal-cancel-button')?.focus();
+        }
+    }
+
+    closeReinviteUserModal(): void {
+        this.isReinviteUserModalDisplayed = false;
+    }
+
+    focusTrapReinviteUserModal(event: KeyboardEvent): void {
+        const firstTabIndex = document.getElementById('reinvite-modal-cancel-button');
+        const lastTabIndex = document.getElementById(this.formData.submitModalContinue.id);
+
+        if (event.shiftKey) {
+            // shift + tab to last input
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+                event.preventDefault();
+            }
+        } else if (document.activeElement === lastTabIndex) {
+            // Tab to first input
+            firstTabIndex?.focus();
+            event.preventDefault();
+        }
+    }
+
+    async submitReinviteUser(): Promise<void> {
+        this.startFormLoading();
+
+        // @TODO
+        console.log('submit resend invite');
+        await new Promise((resolve) => setTimeout(() => { resolve(true); }, 2000));
+
+        this.isReinviteSent = true;
+        this.endFormLoading();
+        this.closeReinviteUserModal();
+    }
+
+    async toggleDeactivateUserModal(): Promise<void> {
+        if (!this.isDeactivated) {
+            this.updateFormSubmitSuccess('');
+            this.updateFormSubmitError('');
+            this.isDeactivateUserModalDisplayed = !this.isDeactivateUserModalDisplayed;
+            await nextTick();
+            document.getElementById('deactivate-modal-cancel-button')?.focus();
+        }
+    }
+
+    closeDeactivateUserModal(): void {
+        this.isDeactivateUserModalDisplayed = false;
+    }
+
+    focusTrapDeactivateUserModal(event: KeyboardEvent): void {
+        const firstTabIndex = document.getElementById('deactivate-modal-cancel-button');
+        const lastTabIndex = document.getElementById(this.formData.submitModalContinue.id);
+
+        if (event.shiftKey) {
+            // shift + tab to last input
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+                event.preventDefault();
+            }
+        } else if (document.activeElement === lastTabIndex) {
+            // Tab to first input
+            firstTabIndex?.focus();
+            event.preventDefault();
+        }
+    }
+
+    async submitDeactivateUser(): Promise<void> {
+        this.startFormLoading();
+
+        // @TODO
+        console.log('submit deactivate');
+        await new Promise((resolve) => setTimeout(() => { resolve(true); }, 2000));
+
+        this.isDeactivated = true;
+        this.endFormLoading();
+        this.closeDeactivateUserModal();
     }
 
     //

@@ -122,6 +122,26 @@ export class DataApi {
     }
 
     /**
+     * REINVITE User by ID.
+     * @param  {string}          compact A compact type.
+     * @param  {string}          userId  A user ID.
+     * @return {Promise<object>}         The server response.
+     */
+    public reinviteUser(compact, userId) {
+        return userDataApi.reinviteUser(compact, userId);
+    }
+
+    /**
+     * DELETE User by ID.
+     * @param  {string}          compact A compact type.
+     * @param  {string}          userId  A user ID.
+     * @return {Promise<object>}         The server response.
+     */
+    public deleteUser(compact, userId) {
+        return userDataApi.deleteUser(compact, userId);
+    }
+
+    /**
      * UPDATE Password of authenticated user.
      * @param  {object}          data The request data.
      * @return {Promise<object>}      Axios-formatted response from AWS Cognito.

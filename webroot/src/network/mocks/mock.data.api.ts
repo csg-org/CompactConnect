@@ -136,6 +136,16 @@ export class DataApi {
         return this.wait(500).then(() => StaffUserSerializer.fromServer(users.items[0]));
     }
 
+    // Reinvite User by ID
+    public reinviteUser() {
+        return this.wait(500).then(() => ({ message: 'success' }));
+    }
+
+    // Delete User by ID
+    public deleteUser() {
+        return this.wait(500).then(() => ({ message: 'success' }));
+    }
+
     // Update Authenticated user password
     public updateAuthenticatedUserPassword() {
         return this.wait(500).then(() => ({ success: true }));

@@ -104,6 +104,7 @@
             .row-menu-item {
                 padding: 0.6rem 0.8rem;
                 border-radius: 8px;
+                font-weight: @fontWeightBold;
                 cursor: pointer;
 
                 &:not(:first-child) {
@@ -112,6 +113,15 @@
 
                 &:hover {
                     background-color: @veryLightGrey;
+                }
+
+                &.danger {
+                    color: @midRed;
+                }
+
+                &.disabled {
+                    font-weight: @fontWeight;
+                    cursor: default;
                 }
             }
         }
@@ -177,6 +187,34 @@
 
         @media @desktopWidth {
             width: 50rem;
+        }
+    }
+
+    .reinvite-user-modal,
+    .deactivate-user-modal {
+        :deep(.modal-container) {
+            width: 95%;
+            max-width: 60rem;
+            padding: 2rem;
+
+            @media @tabletWidth {
+                padding: 4rem;
+            }
+
+            .modal-content {
+                padding-top: 1rem;
+
+                .action-button-row {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: flex-end;
+                    margin-top: 4rem;
+
+                    .submit-button {
+                        margin-left: 1rem;
+                    }
+                }
+            }
         }
     }
 }
