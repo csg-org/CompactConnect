@@ -122,7 +122,7 @@ describe('PrivilegeAttestation model', () => {
             moment(data.dateOfUpdate, serverDateFormat).format(displayDateFormat)
         );
     });
-    it('should prepare a Staff User for server request through serializer', () => {
+    it('should prepare a PrivilegeAttestation for server request through serializer', () => {
         const privilegeAttestation = new PrivilegeAttestation({
             id: 'test-id',
             dateCreated: '2020-01-01',
