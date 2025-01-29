@@ -8,7 +8,10 @@
 <template>
     <div class="privileges-info-container">
         <form class="confirm-info-form" @submit.prevent="handleSubmit">
-            <div class="confirm-info-core-container">
+            <div v-if="!areFormInputsSet" class="loading-container">
+                <LoadingSpinner v-if="!userStore.isLoadingAccount" />
+            </div>
+            <div v-else class="confirm-info-core-container">
                 <div class="privilege-purchase-title">
                     {{$t('licensing.privilegePurchaseTitle')}}
                 </div>
@@ -67,10 +70,16 @@
                 </div>
                 <div class="chunk">
                     <div class="chunk-title">{{$t('licensing.attestations')}}</div>
-                    <div class="chunk-text">Attestations</div>
+                    <div class="chunk-text">
+                        <InputCheckbox :formInput="formData.homeState" />
+                        <InputCheckbox :formInput="formData.address" />
+                    </div>
+                </div>
+                <div class="disclaimer-section">
+                    {{$t('licensing.incorrectInfoDisclaimer')}}
                 </div>
             </div>
-            <div class="button-row">
+            <div v-if="areFormInputsSet" class="button-row">
                 <InputButton
                     :label="cancelText"
                     :isTextLike="true"
@@ -89,7 +98,7 @@
                     <InputSubmit
                         :formInput="formData.submit"
                         :label="$t('common.confirm')"
-                        :isEnabled="!isFormLoading && areAllAttestationsChecked"
+                        :isEnabled="!isFormLoading"
                     />
                 </div>
             </div>
