@@ -18,7 +18,7 @@ from cc_common.data_model.schema.military_affiliation import (
 )
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
-from cc_common.exceptions import CCAwsServiceException, CCNotFoundException
+from cc_common.exceptions import CCAwsServiceException, CCInvalidRequestException, CCNotFoundException
 from cc_common.utils import logger_inject_kwargs
 
 
@@ -187,13 +187,12 @@ class DataClient:
         license_expiration_date: date,
         compact_transaction_id: str,
         attestations: list[dict],
-        license_type: str,
+        license_type_abbreviation: str,
         privilege_number: int,
         original_issuance_date: datetime | None = None,
     ):
         current_datetime = config.current_standard_datetime
-        # Get license-type abbreviation from config
-        license_type_abbreviation = self.config.license_type_abbreviations[compact][license_type]
+
         return {
             'providerId': provider_id,
             'compact': compact,
@@ -270,6 +269,14 @@ class DataClient:
                     # for exceptional circumstances like errors in this flow.
                     privilege_number = self.claim_privilege_number(compact=compact)
 
+                    try:
+                        license_type_abbreviation = self.config.license_type_abbreviations[compact][license_type]
+                    except KeyError as e:
+                        # This shouldn't happen, since license type comes from a validated record, but we'll check
+                        # anyway, in case of miss-configuration.
+                        logger.warning('License type abbreviation not found', exc_info=e)
+                        raise CCInvalidRequestException(f'Compact or license type not supported: {e}') from e
+
                     privilege_record = self._generate_privilege_record(
                         compact=compact,
                         provider_id=provider_id,
@@ -278,7 +285,7 @@ class DataClient:
                         compact_transaction_id=compact_transaction_id,
                         original_issuance_date=original_issuance_date,
                         attestations=attestations,
-                        license_type=license_type,
+                        license_type_abbreviation=license_type_abbreviation,
                         privilege_number=privilege_number,
                     )
 
