@@ -194,8 +194,7 @@ authentication is working as expected.
 The production environment requires a few steps to fully set up before deploys can be automated. Refer to the
 [README.md](../multi-account/README.md) for details on setting up a full multi-account architecture environment. Once
 that is done, perform the following steps to deploy the CI/CD pipeline into the appropriate AWS account:
-- Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for each environment you will be deploying to (test, prod, etc.).
-  For production environments, make sure to complete the billing setup steps as well.
+- Complete the [Google reCAPTCHA Setup](#google-recaptcha-setup) steps for each environment you will be deploying to (test, prod, etc.). Use the appropriate domain name for the environment (`app.test.compactconnect.org` for test environment, `app.compactconnect.org` for production). For the production environment, make sure to complete the billing setup steps as well.
 - Have someone with suitable permissions in the GitHub organization that hosts this code navigate to the AWS Console
   for the Deploy account, go to the
   [AWS CodeStar Connections](https://us-east-1.console.aws.amazon.com/codesuite/settings/connections) page and create a
