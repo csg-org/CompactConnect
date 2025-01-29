@@ -182,6 +182,7 @@ class TstFunction(TstLambdas):
                 license_expiration_date=date(2050, 6, 6),
                 compact_transaction_id='1234567890',
                 existing_privileges=[],
+                license_type='speech-language pathologist',
                 # This attestation id/version pair is defined in the 'privilege.json' file under the
                 # common/tests/resources/dynamo directory
                 attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],

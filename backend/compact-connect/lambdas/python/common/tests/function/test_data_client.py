@@ -27,6 +27,7 @@ class TestDataClient(TstFunction):
             existing_privileges=[],
             compact_transaction_id='test_transaction_id',
             attestations=self.sample_privilege_attestations,
+            license_type='audiologist',
         )
 
         # Verify that the privilege record was created
@@ -47,6 +48,7 @@ class TestDataClient(TstFunction):
                 'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                 'compactTransactionId': 'test_transaction_id',
                 'attestations': self.sample_privilege_attestations,
+                'privilegeId': 'AUD-CA-1',
             },
             new_privilege,
         )
@@ -77,6 +79,7 @@ class TestDataClient(TstFunction):
             'dateOfUpdate': '2023-11-08T23:59:59+00:00',
             'compactTransactionId': '1234567890',
             'attestations': self.sample_privilege_attestations,
+            'privilegeId': 'AUD-KY-1',
         }
         self._provider_table.put_item(Item=original_privilege)
 
@@ -95,6 +98,7 @@ class TestDataClient(TstFunction):
             existing_privileges=[PrivilegeRecordSchema().load(original_privilege)],
             compact_transaction_id='test_transaction_id',
             attestations=self.sample_privilege_attestations,
+            license_type='audiologist',
         )
 
         # Verify that the privilege record was created
@@ -120,11 +124,12 @@ class TestDataClient(TstFunction):
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'compactTransactionId': 'test_transaction_id',
                     'attestations': self.sample_privilege_attestations,
+                    'privilegeId': 'AUD-KY-1',
                 },
                 # A new history record
                 {
                     'pk': 'aslp#PROVIDER#test_provider_id',
-                    'sk': 'aslp#PROVIDER#privilege/ky#UPDATE#1731110399/5a9ac1180424bee1436ed2be1c6884b4',
+                    'sk': 'aslp#PROVIDER#privilege/ky#UPDATE#1731110399/483bebc6cb3fd6b517f8ce9ad706c518',
                     'type': 'privilegeUpdate',
                     'updateType': 'renewal',
                     'providerId': 'test_provider_id',
@@ -138,6 +143,7 @@ class TestDataClient(TstFunction):
                         'dateOfUpdate': '2023-11-08T23:59:59+00:00',
                         'compactTransactionId': '1234567890',
                         'attestations': self.sample_privilege_attestations,
+                        'privilegeId': 'AUD-KY-1',
                     },
                     'updatedValues': {
                         'dateOfRenewal': '2024-11-08T23:59:59+00:00',
@@ -201,6 +207,7 @@ class TestDataClient(TstFunction):
             existing_privileges=original_privileges,
             compact_transaction_id='test_transaction_id',
             attestations=self.sample_privilege_attestations,
+            license_type='audiologist',
         )
 
         # Verify that all privileges were updated
@@ -300,6 +307,7 @@ class TestDataClient(TstFunction):
                 existing_privileges=original_privileges,
                 compact_transaction_id='test_transaction_id',
                 attestations=self.sample_privilege_attestations,
+                license_type='audiologist',
             )
 
         # Verify that all privileges were restored to their original state
@@ -320,3 +328,54 @@ class TestDataClient(TstFunction):
             Key={'pk': f'aslp#PROVIDER#{provider_uuid}', 'sk': 'aslp#PROVIDER'},
         )['Item']
         self.assertEqual(set(jurisdictions), provider['privilegeJurisdictions'])
+
+    def test_claim_privilege_id_creates_counter_if_not_exists(self):
+        """Test that claiming a privilege id creates the counter if it doesn't exist"""
+        from cc_common.data_model.data_client import DataClient
+
+        client = DataClient(self.config)
+
+        # First claim should create the counter and return 1
+        privilege_count = client.claim_privilege_number(compact='aslp')
+        self.assertEqual(1, privilege_count)
+
+        # Verify the counter was created with the correct value
+        counter_record = self.config.provider_table.get_item(
+            Key={
+                'pk': 'aslp#PRIVILEGE_COUNT',
+                'sk': 'aslp#PRIVILEGE_COUNT',
+            }
+        )['Item']
+        self.assertEqual(1, counter_record['privilegeCount'])
+
+    def test_claim_privilege_id_increments_existing_counter(self):
+        """Test that claiming a privilege id increments an existing counter"""
+        from cc_common.data_model.data_client import DataClient
+
+        client = DataClient(self.config)
+
+        # Create initial counter record
+        self.config.provider_table.put_item(
+            Item={
+                'pk': 'aslp#PRIVILEGE_COUNT',
+                'sk': 'aslp#PRIVILEGE_COUNT',
+                'type': 'privilegeCount',
+                'compact': 'aslp',
+                'privilegeCount': 42,
+            }
+        )
+
+        # Claim should increment the counter and return 43
+        privilege_count = client.claim_privilege_number(compact='aslp')
+        self.assertEqual(43, privilege_count)
+
+        # Verify the counter was incremented
+        counter_record = self.config.provider_table.get_item(
+            Key={
+                'pk': 'aslp#PRIVILEGE_COUNT',
+                'sk': 'aslp#PRIVILEGE_COUNT',
+            }
+        )['Item']
+        self.assertEqual(43, counter_record['privilegeCount'])
+        self.assertEqual('privilegeCount', counter_record['type'])
+        self.assertEqual('aslp', counter_record['compact'])

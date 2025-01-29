@@ -25,7 +25,12 @@ class TstLambdas(TestCase):
                 'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'LICENSE_TYPES': json.dumps(
-                    {'aslp': ['audiologist', 'speech-language pathologist', 'speech and language pathologist']},
+                    {
+                        'aslp': [
+                            {'name': 'audiologist', 'abbreviation': 'aud'},
+                            {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
+                        ],
+                    },
                 ),
             },
         )

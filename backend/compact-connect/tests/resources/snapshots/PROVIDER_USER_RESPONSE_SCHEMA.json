@@ -231,13 +231,9 @@
                       "enum": [
                         "audiologist",
                         "speech-language pathologist",
-                        "speech and language pathologist",
                         "occupational therapist",
                         "occupational therapy assistant",
-                        "licensed professional counselor",
-                        "licensed mental health counselor",
-                        "licensed clinical mental health counselor",
-                        "licensed professional clinical counselor"
+                        "licensed professional counselor"
                       ],
                       "type": "string"
                     },
@@ -328,13 +324,9 @@
                       "enum": [
                         "audiologist",
                         "speech-language pathologist",
-                        "speech and language pathologist",
                         "occupational therapist",
                         "occupational therapy assistant",
-                        "licensed professional counselor",
-                        "licensed mental health counselor",
-                        "licensed clinical mental health counselor",
-                        "licensed professional clinical counselor"
+                        "licensed professional counselor"
                       ],
                       "type": "string"
                     },
@@ -435,13 +427,9 @@
             "enum": [
               "audiologist",
               "speech-language pathologist",
-              "speech and language pathologist",
               "occupational therapist",
               "occupational therapy assistant",
-              "licensed professional counselor",
-              "licensed mental health counselor",
-              "licensed clinical mental health counselor",
-              "licensed professional clinical counselor"
+              "licensed professional counselor"
             ],
             "type": "string"
           },
@@ -924,13 +912,9 @@
       "enum": [
         "audiologist",
         "speech-language pathologist",
-        "speech and language pathologist",
         "occupational therapist",
         "occupational therapy assistant",
-        "licensed professional counselor",
-        "licensed mental health counselor",
-        "licensed clinical mental health counselor",
-        "licensed professional clinical counselor"
+        "licensed professional counselor"
       ],
       "type": "string"
     },

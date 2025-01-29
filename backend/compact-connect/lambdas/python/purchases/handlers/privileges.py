@@ -318,6 +318,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             compact_transaction_id=transaction_response['transactionId'],
             provider_record=provider_record,
             existing_privileges=existing_privileges,
+            license_type=license_record['licenseType'],
             attestations=body['attestations'],
         )
 

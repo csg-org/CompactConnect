@@ -101,6 +101,7 @@
       "dateOfExpiration": "2025-04-04",
       "dateOfUpdate": "2020-05-05T12:59:59+00:00",
       "compactTransactionId": "1234567890",
+      "privilegeId": "SLP-NE-1",
       "history": [
         {
           "type": "privilegeUpdate",
@@ -114,7 +115,8 @@
             "dateOfRenewal": "2016-05-05T12:59:59+00:00",
             "dateOfExpiration": "2020-06-06",
             "dateOfUpdate": "2016-05-05T12:59:59+00:00",
-            "compactTransactionId": "0123456789"
+            "compactTransactionId": "0123456789",
+            "privilegeId": "SLP-NE-1"
           },
           "updatedValues": {
             "dateOfRenewal": "2020-05-05T12:59:59+00:00",

@@ -180,9 +180,13 @@ class DataClient:
         license_expiration_date: date,
         compact_transaction_id: str,
         attestations: list[dict],
+        license_type: str,
+        privilege_number: int,
         original_issuance_date: datetime | None = None,
     ):
         current_datetime = config.current_standard_datetime
+        # Get license-type abbreviation from config
+        license_type_abbreviation = self.config.license_type_abbreviations[compact][license_type]
         return {
             'providerId': provider_id,
             'compact': compact,
@@ -192,6 +196,9 @@ class DataClient:
             'dateOfExpiration': license_expiration_date,
             'compactTransactionId': compact_transaction_id,
             'attestations': attestations,
+            'privilegeId': '-'.join((
+                license_type_abbreviation.upper(), jurisdiction_postal_abbreviation.upper(), str(privilege_number)
+            )),
         }
 
     def create_provider_privileges(
@@ -204,6 +211,7 @@ class DataClient:
         provider_record: dict,
         existing_privileges: list[dict],
         attestations: list[dict],
+        license_type: str,
     ):
         """
         Create privilege records for a provider in the database.
@@ -221,12 +229,13 @@ class DataClient:
         :param existing_privileges: The list of existing privileges for this user. Used to track the original issuance
         date of the privilege.
         :param attestations: List of attestations that were accepted when purchasing the privileges
+        :param license_type: The type of license (e.g. audiologist, speech-language-pathologist)
         """
         logger.info(
             'Creating provider privileges',
             provider_id=provider_id,
             compact=compact,
-            privlige_jurisdictions=jurisdiction_postal_abbreviations,
+            privilege_jurisdictions=jurisdiction_postal_abbreviations,
             compact_transaction_id=compact_transaction_id,
         )
 
@@ -248,6 +257,12 @@ class DataClient:
                 )
                 original_issuance_date = original_privilege['dateOfIssuance'] if original_privilege else None
 
+                # Claim a privilege number for this jurisdiction
+                # Note that this number claim is not rolled back on failure, which can result in gaps
+                # in the privilege numbers. Having gaps in the privilege numbers was deemed acceptable
+                # for exceptional circumstances like errors in this flow.
+                privilege_number = self.claim_privilege_number(compact=compact)
+
                 privilege_record = self._generate_privilege_record(
                     compact=compact,
                     provider_id=provider_id,
@@ -256,6 +271,8 @@ class DataClient:
                     compact_transaction_id=compact_transaction_id,
                     original_issuance_date=original_issuance_date,
                     attestations=attestations,
+                    license_type=license_type,
+                    privilege_number=privilege_number,
                 )
 
                 # Create privilege update record if this is updating an existing privilege
@@ -333,7 +350,7 @@ class DataClient:
                         'Breaking privilege updates into multiple transactions',
                         compact=compact,
                         provider_id=provider_id,
-                        privlige_jurisdictions=jurisdiction_postal_abbreviations,
+                        privilege_jurisdictions=jurisdiction_postal_abbreviations,
                         compact_transaction_id=compact_transaction_id,
                     )
 
@@ -613,3 +630,27 @@ class DataClient:
                 logger.error('Failed to fetch all provider records', unprocessed_keys=response['UnprocessedKeys'])
 
         return providers
+
+    def claim_privilege_number(self, compact: str) -> int:
+        """
+        Claim a unique privilege number for a compact by atomically incrementing the privilege counter.
+        If the counter doesn't exist yet, it will be created with an initial value of 1.
+        """
+        logger.info('Claiming privilege id', compact=compact)
+        resp = self.config.provider_table.update_item(
+            Key={
+                'pk': f'{compact}#PRIVILEGE_COUNT',
+                'sk': f'{compact}#PRIVILEGE_COUNT',
+            },
+            UpdateExpression='ADD #count :increment',
+            ExpressionAttributeNames={
+                '#count': 'privilegeCount',
+            },
+            ExpressionAttributeValues={
+                ':increment': 1,
+            },
+            ReturnValues='UPDATED_NEW',
+        )
+        privilege_count = resp['Attributes']['privilegeCount']
+        logger.info('Claimed privilege id', compact=compact, privilege_count=privilege_count)
+        return privilege_count

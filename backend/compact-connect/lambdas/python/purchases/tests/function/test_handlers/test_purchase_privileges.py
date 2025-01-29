@@ -456,6 +456,8 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(len(generate_default_attestation_list()), len(privilege_record['attestations']))
         # make sure we are tracking the transaction id
         self.assertEqual(MOCK_TRANSACTION_ID, privilege_record['compactTransactionId'])
+        # verify the privilegeId is formatted correctly
+        self.assertEqual('SLP-KY-1', privilege_record['privilegeId'])
 
     @patch('handlers.privileges.PurchaseClient')
     @patch('handlers.privileges.config.data_client')
@@ -502,7 +504,7 @@ class TestPostPurchasePrivileges(TstFunction):
         response_body = json.loads(resp['body'])
 
         self.assertEqual(
-            {'message': f'Attestation "{attestations[0]['attestationId']}" version 0 is not the latest version (1)'},
+            {'message': f'Attestation "{attestations[0]["attestationId"]}" version 0 is not the latest version (1)'},
             response_body,
         )
         mock_purchase_client_constructor.assert_not_called()
