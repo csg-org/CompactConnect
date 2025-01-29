@@ -9,6 +9,7 @@
         "cancel": "Cancel",
         "close": "Close",
         "skip": "Skip",
+        "confirm": "Confirm",
         "choose": "Choose",
         "chooseOne": "Choose one",
         "select": "Select",
@@ -562,7 +563,9 @@
                 "name": "Licensed Professional Clinical Counselor",
                 "key": "licensed professional clinical counselor"
             }
-        ]
+        ],
+        "privilegePurchaseTitle": "Privilege purchase",
+        "personalInfoTitle": "Personal information"
     },
     "military": {
         "militaryStatusTitle": "Military status",

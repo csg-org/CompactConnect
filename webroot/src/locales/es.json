@@ -8,6 +8,7 @@
         "cancel": "Cancelar",
         "close": "Cerrar",
         "skip": "Saltear",
+        "confirm": "Confirmar",
         "choose": "Elige",
         "chooseOne": "Elige uno",
         "select": "Seleccionar",
@@ -562,7 +563,9 @@
                 "name": "Consejero clínico profesional autorizado",
                 "key": "licensed professional clinical counselor"
             }
-        ]
+        ],
+        "privilegePurchaseTitle": "Compra privada",
+        "personalInfoTitle": "Información personal"
     },
     "military": {
         "militaryStatusTitle": "Estado militar",

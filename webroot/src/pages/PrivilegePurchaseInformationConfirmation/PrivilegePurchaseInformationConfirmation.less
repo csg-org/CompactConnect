@@ -1,0 +1,106 @@
+//
+//  PrivilegePurchaseInformationConfirmation.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 1/28/2025.
+//
+.privileges-info-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 2rem 12rem 2rem;
+
+    @media @tabletWidth {
+        padding: 2rem;
+    }
+
+    .confirm-info-form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+
+        @media @desktopWidth {
+            max-width: unset;
+        }
+
+        .button-row {
+            position: fixed;
+            bottom: 0;
+            z-index: 3;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            background-color: @veryLightGrey;
+
+            @media @tabletWidth {
+                position: unset;
+                display: flex;
+                flex-direction: row;
+                align-items: flex-end;
+                justify-content: space-between;
+                width: 100%;
+                margin-top: 2rem;
+                background-color: unset;
+            }
+
+            :deep(.input-container) {
+                margin-bottom: 1rem;
+
+                @media @tabletWidth {
+                    margin-bottom: unset;
+                }
+
+                input {
+                    width: 41vw;
+
+                    @media @tabletWidth {
+                        width: unset;
+                    }
+                }
+            }
+
+            .right-cell {
+                display: flex;
+                flex-direction: row;
+                align-items: flex-end;
+                justify-content: space-between;
+
+                .back-button {
+                    margin-right: 1rem;
+                }
+            }
+        }
+
+        .confirm-info-core-container {
+            width: 100%;
+            padding: 2rem;
+            border-radius: 20px;
+            background-color: @white;
+
+            @media @tabletWidth {
+                width: 72rem;
+            }
+
+            @media @desktopWidth {
+                width: unset;
+                min-width: 72rem;
+                margin-top: 8rem;
+            }
+
+            .privilege-purchase-title {
+                margin-bottom: 1rem;
+                font-size: @fontSizeLarger;
+            }
+
+            .personal-info-title {
+                margin-bottom: 1rem;
+                font-size: @fontSizeLarge;
+            }
+        }
+    }
+}
