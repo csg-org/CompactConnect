@@ -219,7 +219,7 @@ class TestIngest(TstFunction):
 
         provider_data = self._get_provider_via_api(provider_id)
 
-        # The new name and jurisdiction should be reflected in the provider data
+        # The old name and jurisdiction should be reflected in the provider data
         self.assertEqual('Guðmundsdóttir', provider_data['familyName'])
         self.assertEqual('oh', provider_data['licenseJurisdiction'])
 
