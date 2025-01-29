@@ -52,10 +52,13 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
     }
 
     get user(): LicenseeUser | null {
+        console.log('this.user', this.userStore.model);
         return this.userStore.model;
     }
 
     get licensee(): Licensee | null {
+        console.log('this.user?.licensee', this.user?.licensee);
+
         return this.user?.licensee || null;
     }
 

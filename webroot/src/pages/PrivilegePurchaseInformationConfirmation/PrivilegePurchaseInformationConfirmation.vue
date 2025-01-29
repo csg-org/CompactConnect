@@ -15,6 +15,44 @@
                 <div class="personal-info-title">
                     {{$t('licensing.personalInfoTitle')}}
                 </div>
+                <div class="chunk">
+                    <div class="chunk-title">{{$t('common.name')}}</div>
+                    <div class="chunk-text">{{userFullName}}</div>
+                </div>
+                <div class="chunk">
+                    <div class="chunk-title">{{$t('licensing.homeState')}}</div>
+                    <div class="chunk-text">{{userFullName}}</div>
+                </div>
+                <div class="chunk">
+                    <div class="chunk-title">{{$t('licensing.licenseNumber')}}</div>
+                    <div class="chunk-text">{{userFullName}}</div>
+                </div>
+                <div class="chunk">
+                    <div class="chunk-title">{{$t('licensing.licenseExpirationDate')}}</div>
+                    <div class="chunk-text">{{userFullName}}</div>
+                </div>
+                <div class="chunk">
+                    <div class="chunk-title">{{$t('payment.streetAddress')}}</div>
+                    <div class="chunk-text">{{userFullName}}</div>
+                </div>
+                <div class="chunk">
+                    <div class="chunk-title">{{$t('payment.streetAddress2')}}</div>
+                    <div class="chunk-text">{{userFullName}}</div>
+                </div>
+                <div class="chunk-row">
+                    <div class="chunk in-row">
+                        <div class="chunk-title">{{$t('payment.streetAddress2')}}</div>
+                        <div class="chunk-text">{{userFullName}}</div>
+                    </div>
+                    <div class="chunk in-row">
+                        <div class="chunk-title">{{$t('payment.streetAddress2')}}</div>
+                        <div class="chunk-text">{{userFullName}}</div>
+                    </div>
+                    <div class="chunk in-row">
+                        <div class="chunk-title">{{$t('payment.streetAddress2')}}</div>
+                        <div class="chunk-text">{{userFullName}}</div>
+                    </div>
+                </div>
             </div>
             <div class="button-row">
                 <InputButton

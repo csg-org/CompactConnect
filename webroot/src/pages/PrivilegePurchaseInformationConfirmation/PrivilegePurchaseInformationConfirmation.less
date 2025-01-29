@@ -21,7 +21,7 @@
         width: 100%;
 
         @media @desktopWidth {
-            max-width: unset;
+            width: unset;
         }
 
         .button-row {
@@ -100,6 +100,30 @@
             .personal-info-title {
                 margin-bottom: 1rem;
                 font-size: @fontSizeLarge;
+            }
+
+            .chunk {
+                display: flex;
+                flex-direction: column;
+                padding: 1rem 0;
+
+                &.in-row {
+                    padding-right: 2rem;
+                }
+
+                .chunk-title {
+                    font-weight: @fontWeightBold;
+                    font-size: 1.4rem;
+                }
+
+                .chunk-text {
+                    font-size: 1.6rem;
+                }
+            }
+
+            .chunk-row {
+                display: flex;
+                flex-direction: row;
             }
         }
     }
