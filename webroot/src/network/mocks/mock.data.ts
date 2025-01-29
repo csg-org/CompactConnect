@@ -452,6 +452,7 @@ export const licensees = {
                 status: 'active'
             }],
             npi: '6944447281',
+            licenseNumber: 'A-944447281',
             homeAddressPostalCode: '',
             givenName: 'Janet',
             homeAddressStreet1: '1640 Riverside Drive',
@@ -469,6 +470,7 @@ export const licensees = {
                     compact: 'aslp',
                     homeAddressStreet2: '',
                     npi: '6944447281',
+                    licenseNumber: 'A-944447281',
                     homeAddressPostalCode: '',
                     jurisdiction: 'co',
                     givenName: 'Jane',
@@ -493,6 +495,7 @@ export const licensees = {
                     compact: 'aslp',
                     homeAddressStreet2: '',
                     npi: '6944447281',
+                    licenseNumber: 'A-944447281',
                     homeAddressPostalCode: '',
                     jurisdiction: 'co',
                     givenName: 'Jane',
@@ -516,6 +519,7 @@ export const licensees = {
                 {
                     compact: 'aslp',
                     homeAddressStreet2: '',
+                    licenseNumber: 'A-944447281',
                     npi: '6944447281',
                     homeAddressPostalCode: '',
                     jurisdiction: 'ca',
@@ -540,6 +544,7 @@ export const licensees = {
                 {
                     compact: 'aslp',
                     homeAddressStreet2: '',
+                    licenseNumber: 'A-944447281',
                     npi: '6944447281',
                     homeAddressPostalCode: '',
                     jurisdiction: 'nv',
@@ -564,6 +569,7 @@ export const licensees = {
                 {
                     compact: 'aslp',
                     homeAddressStreet2: '',
+                    licenseNumber: 'A-944447281',
                     npi: '6944447281',
                     homeAddressPostalCode: '',
                     jurisdiction: 'nv',
