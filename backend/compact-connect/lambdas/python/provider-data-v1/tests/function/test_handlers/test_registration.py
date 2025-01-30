@@ -326,13 +326,13 @@ class TestProviderRegistration(TstFunction):
             register_provider(self._get_test_event(), self.mock_context)
         self.assertEqual('Failed to set registration values', context.exception.message)
 
-        # Verify the home jurisdiction selection record was rolled back (deleted)
+        # Verify the cognito user was deleted
         mock_cognito.admin_delete_user.assert_called_with(
             UserPoolId=self.config.provider_user_pool_id,
             Username='test@example.com',
         )
 
-        # Verify the provider record was rolled back (deleted)
+        # Verify the provider record was rolled back and the cognitoSub is not present
         provider_record = self.config.provider_table.get_item(
             Key={
                 'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data['providerId']}',
