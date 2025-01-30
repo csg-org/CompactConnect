@@ -32,6 +32,7 @@ export enum MutationTypes {
     GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE = '[User] Get Privilege Purchase Information Failure',
     SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE = '[User] Save Selected Privilege Purchases To Store',
     SET_ATTESTATIONS_ACCEPTED = '[User] Set Attestations Accepted',
+    SET_ATTESTATIONS = '[User] Set Attestations',
     POST_PRIVILEGE_PURCHASE_REQUEST = '[User] Post Privilege Purchase Request',
     POST_PRIVILEGE_PURCHASE_SUCCESS = '[User] Post Privilege Purchase Success',
     POST_PRIVILEGE_PURCHASE_FAILURE = '[User] Post Privilege Purchase Failure',
@@ -137,6 +138,18 @@ export default {
     },
     [MutationTypes.SET_ATTESTATIONS_ACCEPTED]: (state: any, areAttestationsAccepted: boolean) => {
         state.arePurchaseAttestationsAccepted = areAttestationsAccepted;
+    },
+    [MutationTypes.SET_ATTESTATIONS]: (state: any, attestations) => {
+        const { purchase } = state;
+
+        if (!purchase.attestations) {
+            purchase.attestations = [];
+        }
+
+        purchase.attestations = [
+            ...purchase.attestations,
+            ...attestations,
+        ];
     },
     [MutationTypes.POST_PRIVILEGE_PURCHASE_REQUEST]: (state: any) => {
         state.isLoadingPrivilegePurchaseOptions = true;

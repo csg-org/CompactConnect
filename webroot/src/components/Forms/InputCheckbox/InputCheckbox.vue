@@ -21,6 +21,12 @@
             <span class="checkbox-replacement"></span>
             <label :for="formInput.id" class="input-label">{{ formInput.label }}</label>
         </div>
+        <span
+            v-if="formInput.errorMessage && !formInput.shouldHideErrorMessage"
+            class="form-field-error"
+        >
+            {{ formInput.errorMessage }}
+        </span>
     </div>
 </template>
 
