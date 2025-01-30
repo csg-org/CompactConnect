@@ -15,7 +15,9 @@ import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
+import { PrivilegeAttestation } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
+import { dataApi } from '@network/data.api';
 import Joi from 'joi';
 
 @Component({
@@ -146,22 +148,17 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
     }
 
     async fetchAttestations(): Promise<void> {
-        console.log('fetch');
-        // const compact: string = this.currentCompactType || '';
-        // const attestationIds = this.attestationIds[compact] || [];
-        // const attestationRecords = await Promise.all(attestationIds.map((attestationId) =>
-        //     dataApi.getAttestation(compact, attestationId)));
+        const compact: string = this.currentCompactType || '';
+        const attestationIds = this.attestationIds[compact] || [];
+        const attestationRecords = await Promise.all(attestationIds.map((attestationId) =>
+            dataApi.getAttestation(compact, attestationId)));
 
-        // this.attestationRecords = attestationRecords;
+        this.attestationRecords = attestationRecords;
     }
 
-    getAttestation(attestationId: string | null | undefined): any | null {
-        return { text: attestationId, attestationId, version: '1' };
+    getAttestation(attestationId: string | null | undefined): PrivilegeAttestation | null {
+        return this.attestationRecords.find((attestationRecord) => attestationRecord.id === attestationId) || null;
     }
-
-    // getAttestation(attestationId: string | null | undefined): PrivilegeAttestation | null {
-    //     return this.attestationRecords.find((attestationRecord) => attestationRecord.id === attestationId) || null;
-    // }
 
     handleSubmit() {
         this.validateAll({ asTouched: true });
@@ -177,7 +174,6 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
 
             if (!this.isFormError) {
                 this.isFormSuccessful = true;
-                this.$store.dispatch('user/setAttestationsAccepted', true);
                 this.endFormLoading();
                 this.$router.push({
                     name: 'SelectPrivileges',

@@ -261,6 +261,7 @@ export default {
         commit(MutationTypes.SET_ATTESTATIONS_ACCEPTED, areAttestationsAccepted);
     },
     setAttestations: ({ commit }, attestations) => {
+        console.log('setAttestations', attestations);
         commit(MutationTypes.SET_ATTESTATIONS, attestations);
     },
     postPrivilegePurchases: ({ commit, dispatch }, privilegePurchases) => {

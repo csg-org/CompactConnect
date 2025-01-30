@@ -107,7 +107,6 @@ const formatPhoneNumber = (value: string, format: string): string => {
         // (xxx) xxx-xxxx
         newValue = parensPhoneFormatter(numberValue, value);
     } else if (format === 'dashed') {
-        console.log('inside', numberValue);
         // xxx-xxx-xxxx
         newValue = singleDelimeterPhoneFormatter(numberValue, '-');
     } else if (format === 'dotted') {

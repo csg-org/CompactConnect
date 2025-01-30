@@ -202,10 +202,6 @@ export class Licensee implements InterfaceLicensee {
     }
 
     public phoneNumberDisplay(): string {
-        if (this.phoneNumber) {
-            console.log('stripped', stripPhoneNumber(this.phoneNumber));
-        }
-
         return this.phoneNumber ? formatPhoneNumber(stripPhoneNumber(this.phoneNumber), 'dashed') : '';
     }
 
