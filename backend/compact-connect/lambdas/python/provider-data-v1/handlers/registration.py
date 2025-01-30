@@ -14,8 +14,8 @@ from cc_common.exceptions import (
 )
 from cc_common.utils import api_handler
 
-RECAPTCHA_SUCCESS_METRIC_NAME = 'recaptcha-success'
-REGISTRATION_SUCCESS_METRIC_NAME = 'registration-success'
+RECAPTCHA_ATTEMPT_METRIC_NAME = 'recaptcha-attempt'
+REGISTRATION_ATTEMPT_METRIC_NAME = 'registration-attempt'
 
 # Module level variable for caching
 _RECAPTCHA_SECRET = None
@@ -121,7 +121,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             ip_address=source_ip,
         )
         metrics.add_metric(name='registration-rate-limit-throttles', unit=MetricUnit.Count, value=1)
-        metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+        metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCRateLimitingException('Rate limit exceeded. Please try again later.')
 
     # Verify reCAPTCHA token
@@ -136,11 +136,11 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             license_type=body['licenseType'],
             ip_address=source_ip,
         )
-        metrics.add_metric(name=RECAPTCHA_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
-        metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+        metrics.add_metric(name=RECAPTCHA_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+        metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCAccessDeniedException('Invalid request')
 
-    metrics.add_metric(name=RECAPTCHA_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=1)
+    metrics.add_metric(name=RECAPTCHA_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=1)
 
     # Query license records for one matching on all provided fields
     matching_record = config.data_client.find_matching_license_record(
@@ -162,7 +162,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             family_name=body['familyName'],
             license_type=body['licenseType'],
         )
-        metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+        metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         return {'message': 'request processed'}
 
     # First check if the provider is already registered
@@ -176,11 +176,11 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
                 compact=body['compact'],
                 provider_id=matching_record['providerId'],
             )
-            metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+            metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
             return {'message': 'request processed'}
     except Exception as e:
         logger.error('Failed to check if provider is registered', error=str(e))
-        metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+        metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCInternalException('Failed to check if provider is registered') from e
 
     # Create Cognito user
@@ -203,7 +203,7 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
 
     except Exception as e:
         logger.error('Failed to create Cognito user', error=str(e))
-        metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+        metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCInternalException('Failed to create user account') from e
 
     # Set registration values and create home jurisdiction selection in a transaction
@@ -225,9 +225,9 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             )
         except ClientError as cognito_e:
             logger.error('Failed to roll back Cognito user creation', error=str(cognito_e))
-        metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+        metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCInternalException('Failed to set registration values') from e
 
     logger.info('Registered user successfully', compact=body['compact'], provider_id=matching_record['providerId'])
-    metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=1)
+    metrics.add_metric(name=REGISTRATION_ATTEMPT_METRIC_NAME, unit=MetricUnit.NoUnit, value=1)
     return {'message': 'request processed'}

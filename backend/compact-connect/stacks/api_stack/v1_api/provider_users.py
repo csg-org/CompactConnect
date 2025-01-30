@@ -224,25 +224,23 @@ class ProviderUsers:
         self.api.log_groups.append(self.provider_registration_handler.log_group)
 
         # Create metrics for registration attempts and successes
-        # This metric uses SAMPLE_COUNT to count the number of times we added a value of 1 to the metric,
-        # which only happens when a registration is successful. The registration handler code only adds a value of 1
-        # to this metric when a user is successfully registered. Failed registrations add a value of 0,
-        # which are not counted by SAMPLE_COUNT.
+        # This metric uses SAMPLE_COUNT to count the number of times we added a value of 1 to the metric.
+        # The registration handler code only adds a value of 1 to this metric when a user is successfully
+        # registered. Failed registrations add a value of 0, which are not counted by SAMPLE_COUNT.
         registration_successes = Metric(
             namespace='compact-connect',
-            metric_name='registration-success',
+            metric_name='registration-attempt',
             statistic=Stats.SAMPLE_COUNT,
             period=Duration.minutes(5),
         )
 
         # This metric uses SUM to count the total number of registration attempts.
-        # The registration handler code adds a value to this metric for every registration attempt
+        # The registration handler code adds to this metric for every registration attempt
         # (both successful and failed).
-        # By using SUM, we get the total count of all attempts, regardless of success or failure.
         # This allows us to calculate failures by subtracting successes from total attempts.
         registration_attempts = Metric(
             namespace='compact-connect',
-            metric_name='registration-success',
+            metric_name='registration-attempt',
             statistic=Stats.SUM,
             period=Duration.minutes(5),
         )
@@ -274,16 +272,23 @@ class ProviderUsers:
         registration_failures_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
 
         # Create metrics for daily registration monitoring
+        # This metric uses SAMPLE_COUNT to count the number of times we added a value of 1 to the metric.
+        # The registration handler code only adds a value of 1 to this metric when a user is successfully
+        # registered. Failed registrations add a value of 0, which are not counted by SAMPLE_COUNT.
         daily_registration_successes = Metric(
             namespace='compact-connect',
-            metric_name='registration-success',
+            metric_name='registration-attempt',
             statistic=Stats.SAMPLE_COUNT,
             period=Duration.days(1),
         )
 
+        # This metric uses SUM to count the total number of registration attempts.
+        # The registration handler code adds to this metric for every registration attempt
+        # (both successful and failed).
+        # This allows us to calculate failures by subtracting successes from total attempts.
         daily_registration_attempts = Metric(
             namespace='compact-connect',
-            metric_name='registration-success',
+            metric_name='registration-attempt',
             statistic=Stats.SUM,
             period=Duration.days(1),
         )
