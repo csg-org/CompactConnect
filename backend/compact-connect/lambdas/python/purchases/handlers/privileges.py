@@ -296,7 +296,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     user_active_military = _determine_military_affiliation_status(user_provider_data['items'])
 
     # Validate attestations are the latest versions before proceeding with the purchase
-    _validate_attestations(compact_name, body['attestations'], user_active_military)
+    _validate_attestations(compact_name, body.get('attestations', []), user_active_military)
 
     purchase_client = PurchaseClient()
     transaction_response = None
