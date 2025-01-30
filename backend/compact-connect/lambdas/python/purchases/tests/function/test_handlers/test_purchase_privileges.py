@@ -30,6 +30,7 @@ ALL_ATTESTATION_IDS = [
 TEST_EMAIL = 'testRegisteredEmail@example.com'
 TEST_COGNITO_SUB = '1234567890'
 
+
 def generate_default_attestation_list():
     return [
         {'attestationId': 'jurisprudence-confirmation', 'version': '1'},
@@ -98,7 +99,11 @@ class TestPostPurchasePrivileges(TstFunction):
                 self.config.compact_configuration_table.put_item(Item=serialized_data)
         # register the user in the system
         self.config.data_client.process_registration_values(
-            compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID, cognito_sub=TEST_COGNITO_SUB, email_address=TEST_EMAIL, jurisdiction='oh'
+            compact=TEST_COMPACT,
+            provider_id=TEST_PROVIDER_ID,
+            cognito_sub=TEST_COGNITO_SUB,
+            email_address=TEST_EMAIL,
+            jurisdiction='oh',
         )
 
     def _load_test_jurisdiction(self):
