@@ -78,8 +78,8 @@ def _store_compact_reports_in_s3(
     
     # Define paths for all report files
     paths = {
-        'financial_summary_gz': f"{base_path}/{compact}-{date_range}-financial-summary.csv.gz",
-        'transaction_detail_gz': f"{base_path}/{compact}-{date_range}-transaction-detail.csv.gz",
+        'financial_summary_gz': f"{base_path}/{compact}-financial-summary-{date_range}.csv.gz",
+        'transaction_detail_gz': f"{base_path}/{compact}-transaction-detail-{date_range}.csv.gz",
         'report_zip': f"{base_path}/{compact}-{date_range}-report.zip",
     }
     
@@ -100,8 +100,8 @@ def _store_compact_reports_in_s3(
     # Create and store combined zip with uncompressed CSVs
     zip_buffer = BytesIO()
     with ZipFile(zip_buffer, 'w', compression=ZIP_DEFLATED) as zip_file:
-        zip_file.writestr('financial-summary.csv', summary_report.encode('utf-8'))
-        zip_file.writestr('transaction-detail.csv', transaction_detail.encode('utf-8'))
+        zip_file.writestr(f'{compact}-financial-summary-{date_range}.csv', summary_report.encode('utf-8'))
+        zip_file.writestr(f'{compact}-transaction-detail-{date_range}.csv', transaction_detail.encode('utf-8'))
     s3_client.put_object(Bucket=bucket_name, Key=paths['report_zip'], Body=zip_buffer.getvalue())
     
     return paths
@@ -150,7 +150,7 @@ def _store_jurisdiction_reports_in_s3(
     # Create and store zip with uncompressed CSV
     zip_buffer = BytesIO()
     with ZipFile(zip_buffer, 'w', compression=ZIP_DEFLATED) as zip_file:
-        zip_file.writestr('transaction-detail.csv', transaction_detail.encode('utf-8'))
+        zip_file.writestr(f'{jurisdiction}-transaction-detail-{date_range}.csv', transaction_detail.encode('utf-8'))
     s3_client.put_object(Bucket=bucket_name, Key=paths['report_zip'], Body=zip_buffer.getvalue())
     
     return paths
@@ -391,7 +391,7 @@ def _generate_compact_transaction_report(transactions: list[dict], providers: di
             'Licensee First Name',
             'Licensee Last Name',
             'Licensee Id',
-            'Transaction Date',
+            'Transaction Settlement Date',
             'State',
             'State Fee',
             'Compact Fee',
@@ -461,7 +461,7 @@ def _generate_jurisdiction_reports(
                 'First Name',
                 'Last Name',
                 'Licensee Id',
-                'Transaction Date',
+                'Transaction Settlement Date',
                 'State Fee',
                 'State',
                 'Compact Fee',
