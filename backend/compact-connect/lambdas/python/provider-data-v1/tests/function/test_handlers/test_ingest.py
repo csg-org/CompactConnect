@@ -174,7 +174,12 @@ class TestIngest(TstFunction):
         message['detail']['jurisdiction'] = 'ky'
         message['detail']['status'] = 'active'
         # remove the home state selection for the provider which was added by the TstFunction test setup
-        self.config.data_client.rollback_home_jurisdiction_selection(compact='aslp', provider_id=provider_id)
+        self.config.provider_table.delete_item(
+            Key={
+                'pk': f'aslp#PROVIDER#{provider_id}',
+                'sk': 'aslp#PROVIDER#home-jurisdiction#',
+            }
+        )
 
         event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
 

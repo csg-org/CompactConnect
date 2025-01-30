@@ -683,20 +683,48 @@ class DataClient:
 
         return providers
 
-    def create_home_jurisdiction_selection(self, *, compact: str, provider_id: str, jurisdiction: str):
-        """Create a home jurisdiction selection record for a provider.
+    def provider_is_registered_in_compact_connect(self, *, compact: str, provider_id: str) -> bool:
+        """Check if a provider is already registered in the system by checking for the cognitoSub field.
 
         :param compact: The compact name
         :param provider_id: The provider ID
-        :param jurisdiction: The jurisdiction postal code
+        :return: True if the provider is already registered, False otherwise
+        """
+        logger.info('Checking if provider is registered', provider_id=provider_id, compact=compact)
+        provider = self.config.provider_table.get_item(
+            Key={
+                'pk': f'{compact}#PROVIDER#{provider_id}',
+                'sk': f'{compact}#PROVIDER',
+            },
+            ProjectionExpression='cognitoSub',
+            ConsistentRead=True,
+        ).get('Item')
+        return provider is not None and provider.get('cognitoSub') is not None
+
+    def process_registration_values(
+        self, *, compact: str, provider_id: str, cognito_sub: str, email_address: str, jurisdiction: str
+    ) -> None:
+        """Set the registration values on a provider record and create home jurisdiction selection record
+        in a transaction.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param cognito_sub: The Cognito sub of the user
+        :param email_address: The email address used for registration
+        :param jurisdiction: The jurisdiction postal code for home jurisdiction selection
+        :return: None
+        :raises: CCAwsServiceException if the transaction fails
         """
         logger.info(
-            'Creating home jurisdiction selection record',
+            'Setting registration values and creating home jurisdiction selection',
             provider_id=provider_id,
             compact=compact,
+            email_address=email_address,
             jurisdiction=jurisdiction,
         )
-        record = {
+
+        # Create the home jurisdiction selection record
+        home_jurisdiction_selection_record = {
             'type': 'homeJurisdictionSelection',
             'compact': compact,
             'providerId': provider_id,
@@ -705,59 +733,38 @@ class DataClient:
         }
 
         schema = ProviderHomeJurisdictionSelectionRecordSchema()
-        serialized_record = schema.dump(record)
+        serialized_record = schema.dump(home_jurisdiction_selection_record)
 
-        self.config.provider_table.put_item(Item=serialized_record, ConditionExpression=Attr('pk').not_exists())
-
-    def rollback_home_jurisdiction_selection(self, *, compact: str, provider_id: str) -> None:
-        """Delete a home jurisdiction selection record for a provider.
-
-        This method is only intended to be used when a failure occurs in the registration process.
-
-
-        :param compact: The compact name
-        :param provider_id: The provider ID
-        :return: None
-        """
-        logger.info(
-            'Deleting home jurisdiction selection record if it exists', provider_id=provider_id, compact=compact
-        )
-        self.config.provider_table.delete_item(
-            Key={
-                'pk': f'{compact}#PROVIDER#{provider_id}',
-                'sk': f'{compact}#PROVIDER#home-jurisdiction#',
-            }
-        )
-
-    def set_registration_values(self, *, compact: str, provider_id: str, cognito_sub: str, email_address: str) -> None:
-        """Set the registration values on a provider record after successful registration.
-
-        :param compact: The compact name
-        :param provider_id: The provider ID
-        :param cognito_sub: The Cognito sub of the user
-        :param email_address: The email address used for registration
-        :return: None
-        """
-        logger.info(
-            'Setting registration values on provider record',
-            provider_id=provider_id,
-            compact=compact,
-            email_address=email_address,
-        )
-        self.config.provider_table.update_item(
-            Key={
-                'pk': f'{compact}#PROVIDER#{provider_id}',
-                'sk': f'{compact}#PROVIDER',
-            },
-            UpdateExpression='SET #cognitoSub = :cognitoSub, #email = :email',
-            ExpressionAttributeNames={
-                '#cognitoSub': 'cognitoSub',
-                '#email': 'compactConnectRegisteredEmailAddress',
-            },
-            ExpressionAttributeValues={
-                ':cognitoSub': cognito_sub,
-                ':email': email_address,
-            },
+        # Create both records in a transaction
+        self.config.dynamodb_client.transact_write_items(
+            TransactItems=[
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table_name,
+                        'Key': {
+                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                            'sk': {'S': f'{compact}#PROVIDER'},
+                        },
+                        'UpdateExpression': 'SET #cognitoSub = :cognitoSub, #email = :email',
+                        'ExpressionAttributeNames': {
+                            '#cognitoSub': 'cognitoSub',
+                            '#email': 'compactConnectRegisteredEmailAddress',
+                        },
+                        'ExpressionAttributeValues': {
+                            ':cognitoSub': {'S': cognito_sub},
+                            ':email': {'S': email_address},
+                        },
+                        'ConditionExpression': 'attribute_not_exists(cognitoSub)',
+                    }
+                },
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table_name,
+                        'Item': TypeSerializer().serialize(serialized_record)['M'],
+                        'ConditionExpression': 'attribute_not_exists(pk)',
+                    }
+                },
+            ]
         )
 
     def find_home_state_license(self, *, compact: str, provider_id: str, licenses: list[dict]) -> dict | None:

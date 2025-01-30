@@ -87,11 +87,11 @@ class TestTransformations(TstFunction):
             expected_provider = json.load(f)
 
         # register the provider in the system
-        client.create_home_jurisdiction_selection(compact='aslp', provider_id=provider_id, jurisdiction='oh')
-        client.set_registration_values(
+        client.process_registration_values(
             compact='aslp',
             provider_id=provider_id,
             cognito_sub=expected_provider['cognitoSub'],
+            jurisdiction='oh',
             email_address=expected_provider['compactConnectRegisteredEmailAddress'],
         )
 

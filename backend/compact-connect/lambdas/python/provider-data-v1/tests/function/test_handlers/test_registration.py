@@ -21,6 +21,8 @@ MOCK_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
 MOCK_IP_ADDRESS = '127.0.0.1'
 MOCK_DATETIME_STRING = '2025-01-23T08:15:00+00:00'
 
+MOCK_COGNITO_SUB = '3408b4e8-0061-7052-bbe0-fda9a9369c80'
+
 
 def generate_test_request():
     return {
@@ -52,6 +54,10 @@ class TestProviderRegistration(TstFunction):
         with open('../common/tests/resources/dynamo/provider.json') as f:
             provider_data = json.load(f)
             provider_data['providerId'] = MOCK_PROVIDER_ID
+            if is_registered:
+                provider_data['cognitoSub'] = MOCK_COGNITO_SUB
+            else:
+                provider_data.pop('cognitoSub', None)
             self.config.provider_table.put_item(Item=provider_data)
 
         with open('../common/tests/resources/dynamo/license.json') as f:
@@ -82,7 +88,6 @@ class TestProviderRegistration(TstFunction):
                 'providerId': MOCK_PROVIDER_ID,
                 'jurisdiction': MOCK_STATE,
                 'dateOfSelection': datetime.fromisoformat('2024-01-01T00:00:00Z'),
-                'dateOfUpdate': datetime.fromisoformat('2024-01-01T00:00:00Z'),
             }
             serialized_record = home_jurisdiction_schema.dump(home_jurisdiction_record)
             self.config.provider_table.put_item(Item=serialized_record)
@@ -148,7 +153,7 @@ class TestProviderRegistration(TstFunction):
 
     def _when_registering_cognito_user(self, mock_cognito_client):
         mock_cognito_client.admin_create_user.return_value = {
-            'User': {'Attributes': [{'Name': 'sub', 'Value': '1234567890'}]}
+            'User': {'Attributes': [{'Name': 'sub', 'Value': MOCK_COGNITO_SUB}]}
         }
 
     @patch('handlers.registration.verify_recaptcha')
@@ -177,6 +182,20 @@ class TestProviderRegistration(TstFunction):
             ],
         )
 
+    @patch('handlers.registration.verify_recaptcha')
+    @patch('cc_common.config._Config.cognito_client')
+    def test_registration_creates_home_jurisdiction_selection(self, mock_cognito, mock_verify_recaptcha):
+        mock_verify_recaptcha.return_value = True
+        provider_data, license_data = self._add_mock_provider_records(is_registered=False)
+        self._when_registering_cognito_user(mock_cognito)
+
+        from handlers.registration import register_provider
+
+        response = register_provider(self._get_test_event(), self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
+
         # Verify home jurisdiction selection record was created
         home_jurisdiction = self.config.provider_table.get_item(
             Key={
@@ -190,6 +209,44 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual(MOCK_STATE, home_jurisdiction['jurisdiction'])
         self.assertIsNotNone(home_jurisdiction['dateOfSelection'])
         self.assertIsNotNone(home_jurisdiction['dateOfUpdate'])
+
+    @patch('handlers.registration.verify_recaptcha')
+    @patch('cc_common.config._Config.cognito_client')
+    def test_registration_sets_registration_values(self, mock_cognito, mock_verify_recaptcha):
+        mock_verify_recaptcha.return_value = True
+        provider_data, license_data = self._add_mock_provider_records()
+        self._when_registering_cognito_user(mock_cognito)
+
+        from handlers.registration import register_provider
+
+        response = register_provider(self._get_test_event(), self.mock_context)
+
+        self.assertEqual(200, response['statusCode'])
+        self.assertEqual({'message': 'request processed'}, json.loads(response['body']))
+
+        # Verify Cognito user was created with correct attributes
+        mock_cognito.admin_create_user.assert_called_once_with(
+            UserPoolId=self.config.provider_user_pool_id,
+            Username='test@example.com',
+            UserAttributes=[
+                {'Name': 'custom:compact', 'Value': TEST_COMPACT},
+                {'Name': 'custom:providerId', 'Value': provider_data['providerId']},
+                {'Name': 'email', 'Value': 'test@example.com'},
+                {'Name': 'email_verified', 'Value': 'true'},
+            ],
+        )
+
+        # Verify home jurisdiction selection record was created
+        provider_record = self.config.provider_table.get_item(
+            Key={
+                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data['providerId']}',
+                'sk': f'{TEST_COMPACT}#PROVIDER',
+            }
+        )['Item']
+        self.assertEqual(TEST_COMPACT, provider_record['compact'])
+        self.assertEqual(provider_data['providerId'], provider_record['providerId'])
+        self.assertEqual('test@example.com', provider_record['compactConnectRegisteredEmailAddress'])
+        self.assertEqual(MOCK_COGNITO_SUB, provider_record['cognitoSub'])
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_200_if_dob_does_not_match(self, mock_verify_recaptcha):
@@ -228,12 +285,10 @@ class TestProviderRegistration(TstFunction):
 
     @patch('handlers.registration.verify_recaptcha')
     @patch('cc_common.config._Config.cognito_client')
-    def test_registration_rolls_back_home_jurisdiction_selection_on_cognito_failure(
-        self, mock_cognito, mock_verify_recaptcha
-    ):
+    def test_registration_raises_exception_on_cognito_failure(self, mock_cognito, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
         mock_cognito.admin_create_user.side_effect = Exception('Failed to create Cognito user')
-        provider_data, license_data = self._add_mock_provider_records()
+        self._add_mock_provider_records()
         from handlers.registration import register_provider
 
         # Verify the registration fails with the expected error
@@ -241,14 +296,50 @@ class TestProviderRegistration(TstFunction):
             register_provider(self._get_test_event(), self.mock_context)
         self.assertEqual('Failed to create user account', context.exception.message)
 
+    @patch('handlers.registration.verify_recaptcha')
+    @patch('cc_common.config._Config.cognito_client')
+    def test_registration_rolls_back_cognito_user_on_dynamo_transaction_failure(
+        self, mock_cognito, mock_verify_recaptcha
+    ):
+        mock_verify_recaptcha.return_value = True
+        self._when_registering_cognito_user(mock_cognito)
+        provider_data, license_data = self._add_mock_provider_records(is_registered=False)
+        # this simulates having a user shown as not registered, but another user registers for the exact same
+        # account in the system at the same time. Highly unlikely, but we check here to make sure the race condition
+        # is handled by the conditional expressions
+        from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
+        from handlers.registration import register_provider
+
+        home_jurisdiction_schema = ProviderHomeJurisdictionSelectionRecordSchema()
+        home_jurisdiction_record = {
+            'type': 'homeJurisdictionSelection',
+            'compact': TEST_COMPACT,
+            'providerId': MOCK_PROVIDER_ID,
+            'jurisdiction': MOCK_STATE,
+            'dateOfSelection': datetime.fromisoformat('2024-01-01T00:00:00Z'),
+        }
+        serialized_record = home_jurisdiction_schema.dump(home_jurisdiction_record)
+        self.config.provider_table.put_item(Item=serialized_record)
+
+        # Verify the registration fails with the expected error
+        with self.assertRaises(CCInternalException) as context:
+            register_provider(self._get_test_event(), self.mock_context)
+        self.assertEqual('Failed to set registration values', context.exception.message)
+
         # Verify the home jurisdiction selection record was rolled back (deleted)
-        home_jurisdiction = self.config.provider_table.get_item(
+        mock_cognito.admin_delete_user.assert_called_with(
+            UserPoolId=self.config.provider_user_pool_id,
+            Username='test@example.com',
+        )
+
+        # Verify the provider record was rolled back (deleted)
+        provider_record = self.config.provider_table.get_item(
             Key={
                 'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data['providerId']}',
-                'sk': f'{TEST_COMPACT}#PROVIDER#home-jurisdiction#',
+                'sk': f'{TEST_COMPACT}#PROVIDER',
             }
         ).get('Item')
-        self.assertIsNone(home_jurisdiction)
+        self.assertIsNone(provider_record.get('cognitoSub'))
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_rate_limits_provider_users(self, mock_verify_recaptcha):

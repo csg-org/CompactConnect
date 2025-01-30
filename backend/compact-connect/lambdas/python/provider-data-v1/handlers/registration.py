@@ -165,25 +165,12 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
         metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         return {'message': 'request processed'}
 
-    # Check if already registered by looking for home jurisdiction record
-    # this is only created if the provider has registered previously
+    # First check if the provider is already registered
     try:
-        # Create home jurisdiction selection record.
-        # If the record already exists for this provider,
-        # then this will fail with a 'ConditionalCheckFailedException'
-        config.data_client.create_home_jurisdiction_selection(
+        if config.data_client.provider_is_registered_in_compact_connect(
             compact=body['compact'],
             provider_id=matching_record['providerId'],
-            jurisdiction=body['jurisdiction'],
-        )
-        logger.info(
-            'Created home jurisdiction selection record',
-            compact=body['compact'],
-            provider_id=matching_record['providerId'],
-            jurisdiction=body['jurisdiction'],
-        )
-    except ClientError as e:
-        if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+        ):
             logger.warning(
                 'This provider is already registered in the system',
                 compact=body['compact'],
@@ -191,10 +178,13 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             )
             metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
             return {'message': 'request processed'}
-        raise e
+    except Exception as e:
+        logger.error('Failed to check if provider is registered', error=str(e))
+        metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
+        raise CCInternalException('Failed to check if provider is registered') from e
 
+    # Create Cognito user
     try:
-        # Create Cognito user
         response = config.cognito_client.admin_create_user(
             UserPoolId=config.provider_user_pool_id,
             Username=body['email'],
@@ -206,27 +196,35 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
             ],
         )
         # Get the Cognito sub from the response
-        cognito_sub = next(attr['Value'] for attr in response['User']['Attributes'] if attr['Name'] == 'sub')
+        cognito_sub = next((attr['Value'] for attr in response['User']['Attributes'] if attr['Name'] == 'sub'), None)
+        if cognito_sub is None:
+            logger.info('Failed to get cognito sub from response', response=response)
+            raise CCInternalException('Failed to get cognito sub from response')
+
     except Exception as e:
         logger.error('Failed to create Cognito user', error=str(e))
-        # Roll back home jurisdiction selection record
-        config.data_client.rollback_home_jurisdiction_selection(
-            compact=body['compact'],
-            provider_id=matching_record['providerId'],
-        )
         metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCInternalException('Failed to create user account') from e
 
+    # Set registration values and create home jurisdiction selection in a transaction
     try:
-        # Set the registration values on the provider record
-        config.data_client.set_registration_values(
+        config.data_client.process_registration_values(
             compact=body['compact'],
             provider_id=matching_record['providerId'],
             cognito_sub=cognito_sub,
             email_address=body['email'],
+            jurisdiction=body['jurisdiction'],
         )
     except Exception as e:
-        logger.error('Failed to set registration values', error=str(e))
+        logger.error('Failed to set registration values, rolling back cognito user creation', error=str(e))
+        # Roll back Cognito user creation
+        try:
+            config.cognito_client.admin_delete_user(
+                UserPoolId=config.provider_user_pool_id,
+                Username=body['email'],
+            )
+        except ClientError as cognito_e:
+            logger.error('Failed to roll back Cognito user creation', error=str(cognito_e))
         metrics.add_metric(name=REGISTRATION_SUCCESS_METRIC_NAME, unit=MetricUnit.NoUnit, value=0)
         raise CCInternalException('Failed to set registration values') from e
 
