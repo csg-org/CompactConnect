@@ -1,6 +1,6 @@
 {
   "pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
-  "sk": "aslp#PROVIDER#license/oh#UPDATE#1586264399/10bd49b5c65f404b9b505884a61cd3c4",
+  "sk": "aslp#PROVIDER#license/oh#UPDATE#1586264399/f122e9119a9e67e97a2d93530080d52a",
   "type": "licenseUpdate",
   "updateType": "renewal",
   "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
@@ -10,6 +10,7 @@
   "previous": {
     "ssn": "123-12-1234",
     "npi": "0608337260",
+    "licenseNumber": "A0608337260",
     "licenseType": "speech-language pathologist",
     "givenName": "Björk",
     "middleName": "Gunnar",
