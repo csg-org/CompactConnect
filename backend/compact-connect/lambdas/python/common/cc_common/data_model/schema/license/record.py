@@ -35,6 +35,7 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
 
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
     jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
@@ -56,6 +57,7 @@ class LicenseUpdateRecordPreviousSchema(StrictSchema):
 
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     licenseType = String(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))

@@ -260,6 +260,9 @@ export default {
     setAttestationsAccepted: ({ commit }, areAttestationsAccepted: boolean) => {
         commit(MutationTypes.SET_ATTESTATIONS_ACCEPTED, areAttestationsAccepted);
     },
+    setAttestations: ({ commit }, attestations) => {
+        commit(MutationTypes.SET_ATTESTATIONS, attestations);
+    },
     postPrivilegePurchases: ({ commit, dispatch }, privilegePurchases) => {
         commit(MutationTypes.POST_PRIVILEGE_PURCHASE_REQUEST);
         return dataApi.postPrivilegePurchases(privilegePurchases).then((serverResponse) => {

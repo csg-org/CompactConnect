@@ -182,6 +182,11 @@
                       "pattern": "^[0-9]{10}$",
                       "type": "string"
                     },
+                    "licenseNumber": {
+                      "maxLength": 100,
+                      "minLength": 1,
+                      "type": "string"
+                    },
                     "givenName": {
                       "maxLength": 100,
                       "minLength": 1,
@@ -277,6 +282,11 @@
                     },
                     "npi": {
                       "pattern": "^[0-9]{10}$",
+                      "type": "string"
+                    },
+                    "licenseNumber": {
+                      "maxLength": 100,
+                      "minLength": 1,
                       "type": "string"
                     },
                     "givenName": {
@@ -384,6 +394,11 @@
           },
           "npi": {
             "pattern": "^[0-9]{10}$",
+            "type": "string"
+          },
+          "licenseNumber": {
+            "maxLength": 100,
+            "minLength": 1,
             "type": "string"
           },
           "givenName": {
@@ -903,6 +918,11 @@
     },
     "npi": {
       "pattern": "^[0-9]{10}$",
+      "type": "string"
+    },
+    "licenseNumber": {
+      "maxLength": 100,
+      "minLength": 1,
       "type": "string"
     },
     "givenName": {

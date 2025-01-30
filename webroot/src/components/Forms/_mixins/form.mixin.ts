@@ -80,7 +80,10 @@ class MixinForm extends Vue {
                 'array.min': this.$t('inputErrors.required'),
                 'array.max': this.$t('inputErrors.maxFiles', { max: '{#limit}' }),
                 'array.length': this.$t('inputErrors.lengthFiles', { length: '{#limit}' }),
-            }
+            },
+            boolean: {
+                'any.invalid': this.$t('inputErrors.required'),
+            },
         };
 
         return messages;

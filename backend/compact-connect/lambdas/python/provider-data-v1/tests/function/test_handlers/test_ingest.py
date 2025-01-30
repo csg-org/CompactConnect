@@ -224,6 +224,7 @@ class TestIngest(TstFunction):
                     'previous': {
                         'ssn': '123-12-1234',
                         'npi': '0608337260',
+                        'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
@@ -304,6 +305,7 @@ class TestIngest(TstFunction):
                     'previous': {
                         'ssn': '123-12-1234',
                         'npi': '0608337260',
+                        'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
@@ -386,6 +388,7 @@ class TestIngest(TstFunction):
                     'previous': {
                         'ssn': '123-12-1234',
                         'npi': '0608337260',
+                        'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
@@ -513,6 +516,7 @@ class TestIngest(TstFunction):
                     'previous': {
                         'ssn': '123-12-1234',
                         'npi': '0608337260',
+                        'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
@@ -589,6 +593,7 @@ class TestIngest(TstFunction):
                     'previous': {
                         'ssn': '123-12-1234',
                         'npi': '0608337260',
+                        'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',

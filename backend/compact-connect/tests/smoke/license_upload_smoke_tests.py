@@ -44,6 +44,7 @@ def upload_licenses_record():
     post_body = [
         {
             'npi': '1111111111',
+            'licenseNumber': 'A0608337260',
             'homeAddressPostalCode': '68001',
             'givenName': 'Joe',
             'familyName': 'Dokes',
