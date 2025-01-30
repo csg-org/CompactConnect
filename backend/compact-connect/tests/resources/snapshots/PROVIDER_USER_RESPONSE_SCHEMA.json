@@ -574,7 +574,7 @@
                       ],
                       "type": "string"
                     },
-                    "licenseJurisdiction": {
+                    "jurisdiction": {
                       "enum": [
                         "al",
                         "ak",
@@ -632,14 +632,17 @@
                       ],
                       "type": "string"
                     },
-                    "status": {
-                      "enum": [
-                        "active",
-                        "inactive"
-                      ],
+                    "dateOfIssuance": {
+                      "format": "date",
+                      "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                       "type": "string"
                     },
-                    "dateOfIssuance": {
+                    "dateOfRenewal": {
+                      "format": "date",
+                      "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                      "type": "string"
+                    },
+                    "dateOfExpiration": {
                       "format": "date",
                       "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                       "type": "string"
@@ -649,10 +652,38 @@
                       "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                       "type": "string"
                     },
-                    "dateOfExpiration": {
-                      "format": "date",
-                      "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                    "compactTransactionId": {
                       "type": "string"
+                    },
+                    "privilegeId": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "active",
+                        "inactive"
+                      ],
+                      "type": "string"
+                    },
+                    "attestations": {
+                      "items": {
+                        "properties": {
+                          "attestationId": {
+                            "maxLength": 100,
+                            "type": "string"
+                          },
+                          "version": {
+                            "maxLength": 100,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "attestationId",
+                          "version"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
                     }
                   },
                   "type": "object"
@@ -677,7 +708,7 @@
                       ],
                       "type": "string"
                     },
-                    "licenseJurisdiction": {
+                    "jurisdiction": {
                       "enum": [
                         "al",
                         "ak",
@@ -735,14 +766,17 @@
                       ],
                       "type": "string"
                     },
-                    "status": {
-                      "enum": [
-                        "active",
-                        "inactive"
-                      ],
+                    "dateOfIssuance": {
+                      "format": "date",
+                      "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                       "type": "string"
                     },
-                    "dateOfIssuance": {
+                    "dateOfRenewal": {
+                      "format": "date",
+                      "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                      "type": "string"
+                    },
+                    "dateOfExpiration": {
                       "format": "date",
                       "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                       "type": "string"
@@ -752,10 +786,38 @@
                       "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                       "type": "string"
                     },
-                    "dateOfExpiration": {
-                      "format": "date",
-                      "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                    "compactTransactionId": {
                       "type": "string"
+                    },
+                    "privilegeId": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "enum": [
+                        "active",
+                        "inactive"
+                      ],
+                      "type": "string"
+                    },
+                    "attestations": {
+                      "items": {
+                        "properties": {
+                          "attestationId": {
+                            "maxLength": 100,
+                            "type": "string"
+                          },
+                          "version": {
+                            "maxLength": 100,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "attestationId",
+                          "version"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
                     }
                   },
                   "type": "object"
@@ -790,7 +852,7 @@
             ],
             "type": "string"
           },
-          "licenseJurisdiction": {
+          "jurisdiction": {
             "enum": [
               "al",
               "ak",
@@ -848,14 +910,17 @@
             ],
             "type": "string"
           },
-          "status": {
-            "enum": [
-              "active",
-              "inactive"
-            ],
+          "dateOfIssuance": {
+            "format": "date",
+            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
             "type": "string"
           },
-          "dateOfIssuance": {
+          "dateOfRenewal": {
+            "format": "date",
+            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "type": "string"
+          },
+          "dateOfExpiration": {
             "format": "date",
             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
             "type": "string"
@@ -865,10 +930,38 @@
             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
             "type": "string"
           },
-          "dateOfExpiration": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+          "compactTransactionId": {
             "type": "string"
+          },
+          "privilegeId": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "type": "string"
+          },
+          "attestations": {
+            "items": {
+              "properties": {
+                "attestationId": {
+                  "maxLength": 100,
+                  "type": "string"
+                },
+                "version": {
+                  "maxLength": 100,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "attestationId",
+                "version"
+              ],
+              "type": "object"
+            },
+            "type": "array"
           }
         },
         "type": "object"

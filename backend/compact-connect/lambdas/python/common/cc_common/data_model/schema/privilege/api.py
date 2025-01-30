@@ -65,13 +65,13 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     """
 
     type = String(required=True, allow_none=False)
-    dateOfUpdate = Raw(required=True, allow_none=False)
     providerId = Raw(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     dateOfIssuance = Raw(required=True, allow_none=False)
     dateOfRenewal = Raw(required=True, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
+    dateOfUpdate = Raw(required=True, allow_none=False)
     # the id of the transaction that was made when the user purchased the privilege
     compactTransactionId = String(required=False, allow_none=False)
     # the human-friendly identifier for this privilege

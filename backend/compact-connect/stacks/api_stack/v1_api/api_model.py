@@ -1005,11 +1005,22 @@ class ApiModel:
             'type': JsonSchema(type=JsonSchemaType.STRING, enum=['privilege']),
             'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
             'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
-            'licenseJurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
-            'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+            'jurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
             'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+            'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+            'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+            'compactTransactionId': JsonSchema(type=JsonSchemaType.STRING),
+            'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
+            'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+            'attestations': JsonSchema(type=JsonSchemaType.ARRAY, items=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=['attestationId', 'version'],
+                properties={
+                    'attestationId': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
+                    'version': JsonSchema(type=JsonSchemaType.STRING, max_length=100),
+                },
+            )),
         }
 
     @property

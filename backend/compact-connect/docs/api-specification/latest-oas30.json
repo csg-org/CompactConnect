@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-01-22T18:15:37Z"
+    "version": "2025-01-30T21:24:05Z"
   },
   "servers": [
     {
@@ -1303,13 +1303,9 @@
                   "enum": [
                     "audiologist",
                     "speech-language pathologist",
-                    "speech and language pathologist",
                     "occupational therapist",
                     "occupational therapy assistant",
-                    "licensed professional counselor",
-                    "licensed mental health counselor",
-                    "licensed clinical mental health counselor",
-                    "licensed professional clinical counselor"
+                    "licensed professional counselor"
                   ]
                 },
                 "dateOfExpiration": {
@@ -1480,7 +1476,6 @@
       },
       "SandboLicendmj7qfw2x1tR": {
         "required": [
-          "attestations",
           "orderInformation",
           "selectedJurisdictions"
         ],
@@ -1840,13 +1835,9 @@
               "enum": [
                 "audiologist",
                 "speech-language pathologist",
-                "speech and language pathologist",
                 "occupational therapist",
                 "occupational therapy assistant",
-                "licensed professional counselor",
-                "licensed mental health counselor",
-                "licensed clinical mental health counselor",
-                "licensed professional clinical counselor"
+                "licensed professional counselor"
               ]
             },
             "dateOfExpiration": {
@@ -2377,7 +2368,15 @@
             "items": {
               "type": "object",
               "properties": {
-                "licenseJurisdiction": {
+                "compact": {
+                  "type": "string",
+                  "enum": [
+                    "aslp",
+                    "octp",
+                    "coun"
+                  ]
+                },
+                "jurisdiction": {
                   "type": "string",
                   "enum": [
                     "al",
@@ -2435,22 +2434,25 @@
                     "wy"
                   ]
                 },
-                "dateOfExpiration": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                  "type": "string",
-                  "format": "date"
-                },
-                "compact": {
-                  "type": "string",
-                  "enum": [
-                    "aslp",
-                    "octp",
-                    "coun"
-                  ]
-                },
-                "providerId": {
-                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                  "type": "string"
+                "attestations": {
+                  "type": "array",
+                  "items": {
+                    "required": [
+                      "attestationId",
+                      "version"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "attestationId": {
+                        "maxLength": 100,
+                        "type": "string"
+                      },
+                      "version": {
+                        "maxLength": 100,
+                        "type": "string"
+                      }
+                    }
+                  }
                 },
                 "history": {
                   "type": "array",
@@ -2475,7 +2477,32 @@
                       "previous": {
                         "type": "object",
                         "properties": {
-                          "licenseJurisdiction": {
+                          "dateOfExpiration": {
+                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "compact": {
+                            "type": "string",
+                            "enum": [
+                              "aslp",
+                              "octp",
+                              "coun"
+                            ]
+                          },
+                          "privilegeId": {
+                            "type": "string"
+                          },
+                          "providerId": {
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                            "type": "string"
+                          },
+                          "dateOfRenewal": {
+                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "jurisdiction": {
                             "type": "string",
                             "enum": [
                               "al",
@@ -2533,28 +2560,34 @@
                               "wy"
                             ]
                           },
-                          "dateOfExpiration": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "compact": {
-                            "type": "string",
-                            "enum": [
-                              "aslp",
-                              "octp",
-                              "coun"
-                            ]
-                          },
-                          "providerId": {
-                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                            "type": "string"
+                          "attestations": {
+                            "type": "array",
+                            "items": {
+                              "required": [
+                                "attestationId",
+                                "version"
+                              ],
+                              "type": "object",
+                              "properties": {
+                                "attestationId": {
+                                  "maxLength": 100,
+                                  "type": "string"
+                                },
+                                "version": {
+                                  "maxLength": 100,
+                                  "type": "string"
+                                }
+                              }
+                            }
                           },
                           "type": {
                             "type": "string",
                             "enum": [
                               "privilege"
                             ]
+                          },
+                          "compactTransactionId": {
+                            "type": "string"
                           },
                           "dateOfIssuance": {
                             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
@@ -2636,7 +2669,32 @@
                       "updatedValues": {
                         "type": "object",
                         "properties": {
-                          "licenseJurisdiction": {
+                          "dateOfExpiration": {
+                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "compact": {
+                            "type": "string",
+                            "enum": [
+                              "aslp",
+                              "octp",
+                              "coun"
+                            ]
+                          },
+                          "privilegeId": {
+                            "type": "string"
+                          },
+                          "providerId": {
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                            "type": "string"
+                          },
+                          "dateOfRenewal": {
+                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "jurisdiction": {
                             "type": "string",
                             "enum": [
                               "al",
@@ -2694,28 +2752,34 @@
                               "wy"
                             ]
                           },
-                          "dateOfExpiration": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "compact": {
-                            "type": "string",
-                            "enum": [
-                              "aslp",
-                              "octp",
-                              "coun"
-                            ]
-                          },
-                          "providerId": {
-                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                            "type": "string"
+                          "attestations": {
+                            "type": "array",
+                            "items": {
+                              "required": [
+                                "attestationId",
+                                "version"
+                              ],
+                              "type": "object",
+                              "properties": {
+                                "attestationId": {
+                                  "maxLength": 100,
+                                  "type": "string"
+                                },
+                                "version": {
+                                  "maxLength": 100,
+                                  "type": "string"
+                                }
+                              }
+                            }
                           },
                           "type": {
                             "type": "string",
                             "enum": [
                               "privilege"
                             ]
+                          },
+                          "compactTransactionId": {
+                            "type": "string"
                           },
                           "dateOfIssuance": {
                             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
@@ -2764,7 +2828,27 @@
                     "privilege"
                   ]
                 },
+                "compactTransactionId": {
+                  "type": "string"
+                },
                 "dateOfIssuance": {
+                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "dateOfExpiration": {
+                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "privilegeId": {
+                  "type": "string"
+                },
+                "providerId": {
+                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                  "type": "string"
+                },
+                "dateOfRenewal": {
                   "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                   "type": "string",
                   "format": "date"
@@ -2958,13 +3042,9 @@
             "enum": [
               "audiologist",
               "speech-language pathologist",
-              "speech and language pathologist",
               "occupational therapist",
               "occupational therapy assistant",
-              "licensed professional counselor",
-              "licensed mental health counselor",
-              "licensed clinical mental health counselor",
-              "licensed professional clinical counselor"
+              "licensed professional counselor"
             ]
           },
           "licenses": {
@@ -3139,13 +3219,9 @@
                             "enum": [
                               "audiologist",
                               "speech-language pathologist",
-                              "speech and language pathologist",
                               "occupational therapist",
                               "occupational therapy assistant",
-                              "licensed professional counselor",
-                              "licensed mental health counselor",
-                              "licensed clinical mental health counselor",
-                              "licensed professional clinical counselor"
+                              "licensed professional counselor"
                             ]
                           },
                           "dateOfExpiration": {
@@ -3294,13 +3370,9 @@
                             "enum": [
                               "audiologist",
                               "speech-language pathologist",
-                              "speech and language pathologist",
                               "occupational therapist",
                               "occupational therapy assistant",
-                              "licensed professional counselor",
-                              "licensed mental health counselor",
-                              "licensed clinical mental health counselor",
-                              "licensed professional clinical counselor"
+                              "licensed professional counselor"
                             ]
                           },
                           "dateOfExpiration": {
@@ -3384,13 +3456,9 @@
                   "enum": [
                     "audiologist",
                     "speech-language pathologist",
-                    "speech and language pathologist",
                     "occupational therapist",
                     "occupational therapy assistant",
-                    "licensed professional counselor",
-                    "licensed mental health counselor",
-                    "licensed clinical mental health counselor",
-                    "licensed professional clinical counselor"
+                    "licensed professional counselor"
                   ]
                 },
                 "dateOfExpiration": {

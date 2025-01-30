@@ -106,8 +106,8 @@ class DataClient:
         *,
         compact: str,
         dynamo_pagination: dict,
-        provider_name: tuple[str, str] = None,  # (familyName, givenName)
-        jurisdiction: str = None,
+        provider_name: tuple[str, str] | None = None,  # (familyName, givenName)
+        jurisdiction: str | None = None,
         scan_forward: bool = True,
     ):
         logger.info('Getting providers by family name')
@@ -149,7 +149,7 @@ class DataClient:
         *,
         compact: str,
         dynamo_pagination: dict,
-        jurisdiction: str = None,
+        jurisdiction: str | None = None,
         scan_forward: bool = True,
     ):
         logger.info('Getting providers by date updated')
