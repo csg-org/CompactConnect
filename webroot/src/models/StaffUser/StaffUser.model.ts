@@ -31,6 +31,7 @@ export interface CompactPermission {
 }
 
 export interface InterfaceStaffUserCreate extends InterfaceUserCreate {
+    email?: string | null;
     permissions?: Array<CompactPermission>;
 }
 
@@ -38,6 +39,7 @@ export interface InterfaceStaffUserCreate extends InterfaceUserCreate {
 // =                        Model                         =
 // ========================================================
 export class StaffUser extends User implements InterfaceStaffUserCreate {
+    public email? = null;
     public permissions? = [];
 
     constructor(data?: InterfaceStaffUserCreate) {

@@ -59,7 +59,6 @@ export class License implements InterfaceLicense {
     public compact? = null;
     public isPrivilege? = false;
     public issueState? = new State();
-    public isHomeState? = false;
     public issueDate? = null;
     public renewalDate? = null;
     public npi? = null;
@@ -122,7 +121,6 @@ export class LicenseSerializer {
             compact: new Compact({ type: json.compact }),
             isPrivilege: Boolean(json.type === 'privilege'),
             issueState: new State({ abbrev: json.jurisdiction || json.licenseJurisdiction }),
-            isHomeState: Boolean(json.type === 'license-home'),
             issueDate: json.dateOfIssuance,
             npi: json.npi,
             licenseNumber: json.licenseNumber,

@@ -9,9 +9,15 @@ import deleteUndefinedProperties from '@models/_helpers';
 import { dateDisplay, relativeFromNowDisplay } from '@models/_formatters/date';
 import { formatPhoneNumber, stripPhoneNumber } from '@models/_formatters/phone';
 import { Address, AddressSerializer } from '@models/Address/Address.model';
-import { License, LicenseOccupation, LicenseSerializer } from '@models/License/License.model';
+import {
+    License,
+    LicenseOccupation,
+    LicenseSerializer,
+    LicenseStatus
+} from '@models/License/License.model';
 import { MilitaryAffiliation, MilitaryAffiliationSerializer } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
 import { State } from '@models/State/State.model';
+import moment from 'moment';
 
 /**
  * This model is used to represent both get one and get all server responses
@@ -35,6 +41,7 @@ export interface InterfaceLicensee {
     middleName?: string | null;
     lastName?: string | null;
     address?: Address;
+    homeJurisdiction?: string | null;
     dob?: string | null;
     birthMonthDay?: string | null;
     ssn?: string | null;
@@ -61,6 +68,7 @@ export class Licensee implements InterfaceLicensee {
     public firstName? = null;
     public middleName? = null;
     public lastName? = null;
+    public homeJurisdiction? = null;
     public address? = new Address();
     public dob? = null;
     public birthMonthDay? = null;
@@ -94,10 +102,6 @@ export class Licensee implements InterfaceLicensee {
         const lastName = this.lastName || '';
 
         return `${firstName} ${lastName}`.trim();
-    }
-
-    public residenceLocation(): string {
-        return this.address?.state?.name() || '';
     }
 
     public dobDisplay(): string {
@@ -216,6 +220,42 @@ export class Licensee implements InterfaceLicensee {
         // if only that endpoint has been called
         return this.militaryAffiliations?.find((affiliation) => ((affiliation as MilitaryAffiliation).status as any) === 'active') || null;
     }
+
+    public bestHomeStateLicense(): License {
+        let bestHomeLicense = new License();
+        const homeStateLicenses = this.licenses?.filter((license: License) =>
+            (license.issueState?.abbrev === this.homeJurisdiction)) || [];
+        const activeHomeStateLicenses = homeStateLicenses.filter((license: License) =>
+            (license.statusState === LicenseStatus.ACTIVE));
+        const inActiveHomeStateLicenses = homeStateLicenses.filter((license: License) =>
+            (license.statusState === LicenseStatus.INACTIVE));
+
+        if (activeHomeStateLicenses.length) {
+            bestHomeLicense = activeHomeStateLicenses.reduce(function getMostRecent(prev: any, current: any) {
+                return (prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev.issueDate : current.issueDate;
+            } as any);
+        } else if (inActiveHomeStateLicenses.length) {
+            bestHomeLicense = inActiveHomeStateLicenses.reduce(function getMostRecent(prev: any, current: any) {
+                return (prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev.issueDate : current.issueDate;
+            } as any);
+        }
+
+        return bestHomeLicense;
+    }
+
+    public mailingAddress(): Address {
+        console.log('bestHomeState', this.bestHomeStateLicense());
+
+        return new Address();
+
+        // return AddressSerializer.fromServer({
+        //     street1: json.homeAddressStreet1,
+        //     street2: json.homeAddressStreet2,
+        //     city: json.homeAddressCity,
+        //     state: json.homeAddressState,
+        //     zip: json.homeAddressPostalCode,
+        // });
+    }
 }
 
 // ========================================================
@@ -232,6 +272,7 @@ export class LicenseeSerializer {
             firstName: json.givenName,
             middleName: json.middleName,
             lastName: json.familyName,
+            homeJurisdiction: json.homeJurisdictionSelection?.jurisdiction,
             address: AddressSerializer.fromServer({
                 street1: json.homeAddressStreet1,
                 street2: json.homeAddressStreet2,

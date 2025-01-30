@@ -19,6 +19,8 @@ import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import ChangePassword from '@components/ChangePassword/ChangePassword.vue';
 import { User } from '@models/User/User.model';
+import { LicenseeUser } from '@models/LicenseeUser/LicenseeUser.model';
+import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import { dataApi } from '@network/data.api';
 import Joi from 'joi';
@@ -63,7 +65,19 @@ class UserAccount extends mixins(MixinForm) {
         return this.authType === AuthTypes.LICENSEE;
     }
 
-    get user(): User {
+    get email(): string {
+        let email = '';
+
+        if (this.isLicensee) {
+            email = (this.user as any)?.compactConnectRegisteredEmailAddress;
+        } else if (this.isStaff) {
+            email = (this.user as any)?.email;
+        }
+
+        return email;
+    }
+
+    get user(): User | LicenseeUser | StaffUser {
         return this.userStore.model || new User();
     }
 
@@ -113,7 +127,7 @@ class UserAccount extends mixins(MixinForm) {
                 label: computed(() => this.$t('common.emailAddress')),
                 placeholder: computed(() => this.$t('common.emailAddress')),
                 autocomplete: 'email',
-                value: this.user.email,
+                value: this.email,
                 validation: Joi.string().email({ tlds: false }).messages(this.joiMessages.string),
                 isDisabled: true,
             }),
@@ -169,7 +183,7 @@ class UserAccount extends mixins(MixinForm) {
 
         this.formData.firstName.value = user.firstName;
         this.formData.lastName.value = user.lastName;
-        this.formData.email.value = user.email;
+        this.formData.email.value = this.email;
     }
 }
 

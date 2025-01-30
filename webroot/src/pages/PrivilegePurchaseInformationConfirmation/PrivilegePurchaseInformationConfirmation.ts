@@ -19,6 +19,8 @@ import { PrivilegeAttestation } from '@models/PrivilegeAttestation/PrivilegeAtte
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import { dataApi } from '@network/data.api';
 import Joi from 'joi';
+import { License } from '@/models/License/License.model';
+import { State } from '@/models/State/State.model';
 
 @Component({
     name: 'PrivilegePurchaseInformationConfirmation',
@@ -109,6 +111,20 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
 
     get cancelText(): string {
         return this.$t('common.cancel');
+    }
+
+    get homeStateLicense(): License {
+        return this.licensee?.bestHomeStateLicense() || new License();
+    }
+
+    get homeStateText(): string {
+        let stateName = '';
+
+        if (this.homeStateLicense?.issueState?.abbrev) {
+            stateName = new State({ abbrev: this.homeStateLicense?.issueState?.abbrev }).name();
+        }
+
+        return stateName;
     }
 
     //

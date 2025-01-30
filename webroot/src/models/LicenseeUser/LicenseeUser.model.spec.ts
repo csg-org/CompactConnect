@@ -38,7 +38,8 @@ describe('User model', () => {
 
         expect(user).to.be.an.instanceof(LicenseeUser);
         expect(user.id).to.equal(null);
-        expect(user.email).to.equal(null);
+        expect(user.stateProvidedEmail).to.equal(null);
+        expect(user.compactConnectRegisteredEmailAddress).to.equal(null);
         expect(user.firstName).to.equal(null);
         expect(user.lastName).to.equal(null);
         expect(user.userType).to.equal(null);
@@ -49,7 +50,8 @@ describe('User model', () => {
         const licenseeData = new Licensee({});
         const data = {
             accountStatus: 'active',
-            email: 'hello@hello.com',
+            stateProvidedEmail: 'hello@hello.com',
+            compactConnectRegisteredEmailAddress: 'hello+registered@hello.com',
             firstName: 'Faa',
             id: '443df4d8-60e7-4agg-aff4-c5d12ecc1234',
             lastName: 'Foo',
@@ -61,7 +63,8 @@ describe('User model', () => {
 
         expect(user).to.be.an.instanceof(LicenseeUser);
         expect(user.id).to.equal(data.id);
-        expect(user.email).to.equal(data.email);
+        expect(user.stateProvidedEmail).to.equal(data.stateProvidedEmail);
+        expect(user.compactConnectRegisteredEmailAddress).to.equal(data.compactConnectRegisteredEmailAddress);
         expect(user.firstName).to.equal(data.firstName);
         expect(user.lastName).to.equal(data.lastName);
         expect(user.userType).to.equal(data.userType);
@@ -122,7 +125,8 @@ describe('User model', () => {
                     status: 'inactive'
                 }
             ],
-            emailAddress: 'asfadfd@slsgfss.com',
+            email: 'hello@hello.com',
+            compactConnectRegisteredEmailAddress: 'hello+registered@hello.com',
             dateOfExpiration: '2024-08-29',
             homeAddressState: 'co',
             providerId: '2',
@@ -138,7 +142,8 @@ describe('User model', () => {
 
         expect(user).to.be.an.instanceof(LicenseeUser);
         expect(user.id).to.equal(data.providerId);
-        expect(user.email).to.equal(data.emailAddress);
+        expect(user.stateProvidedEmail).to.equal(data.email);
+        expect(user.compactConnectRegisteredEmailAddress).to.equal(data.compactConnectRegisteredEmailAddress);
         expect(user.firstName).to.equal(data.givenName);
         expect(user.lastName).to.equal(data.familyName);
         expect(user.userType).to.equal(AuthTypes.LICENSEE);
@@ -203,7 +208,8 @@ describe('User model', () => {
                     status: 'inactive'
                 }
             ],
-            emailAddress: 'asfadfd@slsgfss.com',
+            email: 'hello@hello.com',
+            compactConnectRegisteredEmailAddress: 'hello+registered@hello.com',
             dateOfExpiration: '2024-08-29',
             homeAddressState: 'co',
             providerId: '2',
@@ -218,7 +224,8 @@ describe('User model', () => {
 
         expect(user).to.be.an.instanceof(LicenseeUser);
         expect(user.id).to.equal(data.providerId);
-        expect(user.email).to.equal(data.emailAddress);
+        expect(user.stateProvidedEmail).to.equal(data.email);
+        expect(user.compactConnectRegisteredEmailAddress).to.equal(data.compactConnectRegisteredEmailAddress);
         expect(user.firstName).to.equal(data.givenName);
         expect(user.lastName).to.equal(data.familyName);
         expect(user.userType).to.equal(AuthTypes.LICENSEE);

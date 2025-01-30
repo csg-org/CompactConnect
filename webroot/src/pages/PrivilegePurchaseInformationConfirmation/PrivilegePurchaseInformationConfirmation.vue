@@ -24,7 +24,7 @@
                 </div>
                 <div class="chunk">
                     <div class="chunk-title">{{$t('licensing.homeState')}}</div>
-                    <div class="chunk-text">{{userFullName}}</div>
+                    <div class="chunk-text">{{homeStateText}}</div>
                 </div>
                 <div class="chunk">
                     <div class="chunk-title">{{$t('licensing.licenseNumber')}}</div>

@@ -33,7 +33,6 @@ describe('User model', () => {
 
         expect(user).to.be.an.instanceof(User);
         expect(user.id).to.equal(null);
-        expect(user.email).to.equal(null);
         expect(user.firstName).to.equal(null);
         expect(user.lastName).to.equal(null);
         expect(user.accountStatus).to.equal('');
@@ -67,7 +66,6 @@ describe('User model', () => {
 
         expect(user).to.be.an.instanceof(User);
         expect(user.id).to.equal(data.id);
-        expect(user.email).to.equal(data.email);
         expect(user.firstName).to.equal(data.firstName);
         expect(user.lastName).to.equal(data.lastName);
         expect(user.accountStatus).to.equal(data.accountStatus);
