@@ -16,6 +16,16 @@ class TestDataClient(TstFunction):
     def test_data_client_created_privilege_record(self):
         from cc_common.data_model.data_client import DataClient
 
+        # Imagine that there have been 123 privileges issued for the compact
+        # and that the next privilege number will be 124
+        self.config.provider_table.put_item(
+            Item={
+                'pk': 'aslp#PRIVILEGE_COUNT',
+                'sk': 'aslp#PRIVILEGE_COUNT',
+                'privilegeCount': 123,
+            }
+        )
+
         test_data_client = DataClient(self.config)
 
         test_data_client.create_provider_privileges(
@@ -48,7 +58,7 @@ class TestDataClient(TstFunction):
                 'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                 'compactTransactionId': 'test_transaction_id',
                 'attestations': self.sample_privilege_attestations,
-                'privilegeId': 'AUD-CA-1',
+                'privilegeId': 'AUD-CA-124',
             },
             new_privilege,
         )
@@ -63,6 +73,16 @@ class TestDataClient(TstFunction):
     def test_data_client_updates_privilege_records(self):
         from cc_common.data_model.data_client import DataClient
         from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
+
+        # Imagine that there have been 123 privileges issued for the compact
+        # and that the next privilege number will be 124
+        self.config.provider_table.put_item(
+            Item={
+                'pk': 'aslp#PRIVILEGE_COUNT',
+                'sk': 'aslp#PRIVILEGE_COUNT',
+                'privilegeCount': 123,
+            }
+        )
 
         # Create the first privilege
         provider_uuid = str(uuid4())
@@ -124,6 +144,7 @@ class TestDataClient(TstFunction):
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'compactTransactionId': 'test_transaction_id',
                     'attestations': self.sample_privilege_attestations,
+                    # Should remain the same, since we're renewing the same privilege
                     'privilegeId': 'AUD-KY-1',
                 },
                 # A new history record
@@ -204,6 +225,7 @@ class TestDataClient(TstFunction):
                 'providerId': provider_uuid,
                 'compact': 'aslp',
                 'jurisdiction': jurisdiction,
+                'privilegeId': f'AUD-{jurisdiction.upper()}-1',
                 'dateOfIssuance': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                 'dateOfRenewal': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                 'dateOfExpiration': date(2024, 10, 31),
@@ -280,6 +302,7 @@ class TestDataClient(TstFunction):
                 'providerId': provider_uuid,
                 'compact': 'aslp',
                 'jurisdiction': jurisdiction,
+                'privilegeId': f'AUD-{jurisdiction.upper()}-1',
                 'dateOfIssuance': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                 'dateOfRenewal': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                 'dateOfExpiration': date(2024, 10, 31),

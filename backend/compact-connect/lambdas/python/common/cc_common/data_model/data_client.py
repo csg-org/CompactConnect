@@ -1,5 +1,5 @@
 import time
-from datetime import date, datetime
+from datetime import date
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -187,24 +187,48 @@ class DataClient:
         license_expiration_date: date,
         compact_transaction_id: str,
         attestations: list[dict],
-        license_type_abbreviation: str,
-        privilege_number: int,
-        original_issuance_date: datetime | None = None,
+        license_type: str,
+        original_privilege: dict | None = None,
     ):
         current_datetime = config.current_standard_datetime
+        try:
+            license_type_abbreviation = self.config.license_type_abbreviations[compact][license_type]
+        except KeyError as e:
+            # This shouldn't happen, since license type comes from a validated record, but we'll check
+            # anyway, in case of miss-configuration.
+            logger.warning('License type abbreviation not found', exc_info=e)
+            raise CCInvalidRequestException(f'Compact or license type not supported: {e}') from e
+
+        if original_privilege:
+            # Copy over the original issuance date and privilege id
+            date_of_issuance = original_privilege['dateOfIssuance']
+            # TODO: This privilege number copy-over approach has a gap in it, in the event that a  # noqa: FIX002
+            # provider's license type changes. In that event, the privilege id will have the original
+            # license type abbreviation in it, not the new one.
+            # This gap should be closed as part of https://github.com/csg-org/CompactConnect/issues/443.
+            privilege_id = original_privilege['privilegeId']
+        else:
+            date_of_issuance = current_datetime
+            # Claim a privilege number for this jurisdiction
+            # Note that this number claim is not rolled back on failure, which can result in gaps
+            # in the privilege numbers. Having gaps in the privilege numbers was deemed acceptable
+            # for exceptional circumstances like errors in this flow.
+            privilege_number = self.claim_privilege_number(compact=compact)
+            logger.info('Claimed a new privilege number', privilege_number=privilege_number)
+            privilege_id = '-'.join(
+                (license_type_abbreviation.upper(), jurisdiction_postal_abbreviation.upper(), str(privilege_number))
+            )
 
         return {
             'providerId': provider_id,
             'compact': compact,
             'jurisdiction': jurisdiction_postal_abbreviation.lower(),
-            'dateOfIssuance': original_issuance_date if original_issuance_date else current_datetime,
+            'dateOfIssuance': date_of_issuance,
             'dateOfRenewal': current_datetime,
             'dateOfExpiration': license_expiration_date,
             'compactTransactionId': compact_transaction_id,
             'attestations': attestations,
-            'privilegeId': '-'.join(
-                (license_type_abbreviation.upper(), jurisdiction_postal_abbreviation.upper(), str(privilege_number))
-            ),
+            'privilegeId': privilege_id,
         }
 
     def create_provider_privileges(
@@ -261,21 +285,6 @@ class DataClient:
                         ),
                         None,
                     )
-                    original_issuance_date = original_privilege['dateOfIssuance'] if original_privilege else None
-
-                    # Claim a privilege number for this jurisdiction
-                    # Note that this number claim is not rolled back on failure, which can result in gaps
-                    # in the privilege numbers. Having gaps in the privilege numbers was deemed acceptable
-                    # for exceptional circumstances like errors in this flow.
-                    privilege_number = self.claim_privilege_number(compact=compact)
-
-                    try:
-                        license_type_abbreviation = self.config.license_type_abbreviations[compact][license_type]
-                    except KeyError as e:
-                        # This shouldn't happen, since license type comes from a validated record, but we'll check
-                        # anyway, in case of miss-configuration.
-                        logger.warning('License type abbreviation not found', exc_info=e)
-                        raise CCInvalidRequestException(f'Compact or license type not supported: {e}') from e
 
                     privilege_record = self._generate_privilege_record(
                         compact=compact,
@@ -283,10 +292,9 @@ class DataClient:
                         jurisdiction_postal_abbreviation=postal_abbreviation,
                         license_expiration_date=license_expiration_date,
                         compact_transaction_id=compact_transaction_id,
-                        original_issuance_date=original_issuance_date,
                         attestations=attestations,
-                        license_type_abbreviation=license_type_abbreviation,
-                        privilege_number=privilege_number,
+                        license_type=license_type,
+                        original_privilege=original_privilege,
                     )
 
                     # Create privilege update record if this is updating an existing privilege
