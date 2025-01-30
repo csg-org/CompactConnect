@@ -162,6 +162,26 @@ class TestDataClient(TstFunction):
         self.assertEqual({'ky'}, provider['privilegeJurisdictions'])
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    def test_data_client_create_privilege_record_invalid_license_type(self):
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.exceptions import CCInvalidRequestException
+
+        test_data_client = DataClient(self.config)
+
+        with self.assertRaises(CCInvalidRequestException):
+            test_data_client.create_provider_privileges(
+                compact='aslp',
+                provider_id='test_provider_id',
+                jurisdiction_postal_abbreviations=['ca'],
+                license_expiration_date=date.fromisoformat('2024-10-31'),
+                provider_record={},
+                existing_privileges=[],
+                compact_transaction_id='test_transaction_id',
+                attestations=self.sample_privilege_attestations,
+                license_type='not-supported-license-type',
+            )
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_data_client_handles_large_privilege_purchase(self):
         """Test that we can process privilege purchases with more than 100 transaction items."""
         from cc_common.data_model.data_client import DataClient
