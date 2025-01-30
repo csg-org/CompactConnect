@@ -8,7 +8,6 @@ from decimal import Decimal
 from io import BytesIO, StringIO
 from zipfile import ZIP_DEFLATED, ZipFile
 
-import boto3
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.compact import COMPACT_TYPE, Compact
@@ -340,7 +339,9 @@ def _generate_compact_summary_report(
     # Single pass through transactions to calculate all fees
     for transaction in transactions:
         for item in transaction['lineItems']:
-            fee = Decimal(item['unitPrice']) * int(item['quantity'])
+            # sometimes authorize.net has returned this quantity field as '1.0'
+            # so we need to account for this by first casting to a float, then an int
+            fee = Decimal(item['unitPrice']) * int(float(item['quantity']))
 
             if item['itemId'].endswith('-compact-fee'):
                 compact_fees += fee
@@ -499,8 +500,10 @@ def _generate_jurisdiction_reports(
                 ]
             )
 
-            total_privileges += float(item['quantity'])
-            total_amount += float(item['unitPrice']) * float(item['quantity'])
+            # sometimes authorize.net has returned this quantity field as '1.0'
+            # so we need to account for this by first casting to a float, then an int
+            total_privileges += int(float(item['quantity']))
+            total_amount += float(item['unitPrice']) * int(float(item['quantity']))
 
         # Add summary rows
         writer.writerow([''] * 8)

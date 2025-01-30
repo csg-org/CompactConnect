@@ -58,7 +58,8 @@ def _generate_mock_transaction(
             'description': f'Compact Privilege for {jurisdiction.upper()}',
             'itemId': f'{TEST_COMPACT}-{jurisdiction}',
             'name': f'{jurisdiction.upper()} Compact Privilege',
-            'quantity': '1',
+            # setting this as '1.0' to simulate behavior we've seen returned from authorize.net
+            'quantity': '1.0',
             'taxable': False,
             'unitPrice': MOCK_JURISDICTION_FEE,
         }
