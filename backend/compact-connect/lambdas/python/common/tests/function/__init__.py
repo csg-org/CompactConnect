@@ -209,7 +209,8 @@ class TstFunction(TstLambdas):
 
     def _create_compact_staff_user(self, compacts: list[str]):
         """Create a compact-staff style user for each jurisdiction in the provided compact."""
-        from cc_common.data_model.schema.user import UserRecordSchema
+        from cc_common.data_model.schema.common import StaffUserStatus
+        from cc_common.data_model.schema.user.record import UserRecordSchema
 
         schema = UserRecordSchema()
 
@@ -222,6 +223,7 @@ class TstFunction(TstLambdas):
                     {
                         'userId': sub,
                         'compact': compact,
+                        'status': StaffUserStatus.INACTIVE.value,
                         'attributes': {
                             'email': email,
                             'familyName': self.faker.unique.last_name(),
@@ -235,7 +237,8 @@ class TstFunction(TstLambdas):
 
     def _create_board_staff_users(self, compacts: list[str]):
         """Create a board-staff style user for each jurisdiction in the provided compact."""
-        from cc_common.data_model.schema.user import UserRecordSchema
+        from cc_common.data_model.schema.common import StaffUserStatus
+        from cc_common.data_model.schema.user.record import UserRecordSchema
 
         schema = UserRecordSchema()
 
@@ -249,6 +252,7 @@ class TstFunction(TstLambdas):
                         {
                             'userId': sub,
                             'compact': compact,
+                            'status': StaffUserStatus.INACTIVE.value,
                             'attributes': {
                                 'email': email,
                                 'familyName': self.faker.unique.last_name(),

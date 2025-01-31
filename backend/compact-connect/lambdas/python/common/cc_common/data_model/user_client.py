@@ -7,7 +7,12 @@ from botocore.exceptions import ClientError
 
 from cc_common.config import _Config, logger
 from cc_common.data_model.query_paginator import paginated_query
-from cc_common.data_model.schema.user import CompactPermissionsRecordSchema, UserAttributesSchema, UserRecordSchema
+from cc_common.data_model.schema.common import StaffUserStatus
+from cc_common.data_model.schema.user.record import (
+    CompactPermissionsRecordSchema,
+    UserAttributesRecordSchema,
+    UserRecordSchema,
+)
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException, CCNotFoundException
 from cc_common.utils import get_sub_from_user_attributes
 
@@ -34,7 +39,7 @@ class UserClient:
     def __init__(self, config: _Config):
         self.config = config
         self.schema = UserRecordSchema()
-        self.user_attributes_schema = UserAttributesSchema()
+        self.user_attributes_schema = UserAttributesRecordSchema()
         self.compact_permissions_schema = CompactPermissionsRecordSchema()
 
     @paginated_query
@@ -326,7 +331,13 @@ class UserClient:
 
         try:
             user = self.schema.dump(
-                {'userId': user_id, 'compact': compact, 'attributes': attributes, 'permissions': permissions},
+                {
+                    'userId': user_id,
+                    'compact': compact,
+                    'attributes': attributes,
+                    'permissions': permissions,
+                    'status': StaffUserStatus.INACTIVE.value,
+                },
             )
             # If the user doesn't already exist, add them
             self.config.users_table.put_item(

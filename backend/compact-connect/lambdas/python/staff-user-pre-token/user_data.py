@@ -2,14 +2,15 @@ from boto3.dynamodb.conditions import Key
 from cc_common.config import config, logger
 
 
-class UserScopes(set):
-    """Custom Set that will populate itself based on the user's database record contents"""
+class UserData:
+    """Class that will populate itself based on the user's database record contents"""
 
     def __init__(self, sub: str):
         # Some auth flows (like Secure Remote Password) don't grant 'profile', so we'll make sure it's included by
         # default
-        super().__init__(('profile',))
+        super().__init__()
 
+        self.scopes = set(('profile',))
         self._get_scopes_from_db(sub)
 
     def _get_scopes_from_db(self, sub: str):
@@ -18,13 +19,13 @@ class UserScopes(set):
         Note: See the accompanying unit tests for expected db record shape.
         :param sub: The `sub` field value from the Cognito Authorizer (which gets it from the JWT)
         """
-        user_data = self._get_user_data(sub)
+        self._get_user_records(sub)
         permissions = {
             compact_record['compact']: {
                 'actions': set(compact_record['permissions'].get('actions', [])),
                 'jurisdictions': compact_record['permissions']['jurisdictions'],
             }
-            for compact_record in user_data
+            for compact_record in self.records
         }
 
         # Ensure included compacts are limited to supported values
@@ -35,13 +36,11 @@ class UserScopes(set):
         for compact_name, compact_permissions in permissions.items():
             self._process_compact_permissions(compact_name, compact_permissions)
 
-    @staticmethod
-    def _get_user_data(sub: str):
-        user_data = config.users_table.query(KeyConditionExpression=Key('pk').eq(f'USER#{sub}')).get('Items', [])
-        if not user_data:
+    def _get_user_records(self, sub: str):
+        self.records = config.users_table.query(KeyConditionExpression=Key('pk').eq(f'USER#{sub}')).get('Items', [])
+        if not self.records:
             logger.error('Authenticated user not found!', sub=sub)
             raise RuntimeError('Authenticated user not found!')
-        return user_data
 
     def _process_compact_permissions(self, compact_name, compact_permissions):
         # Compact-level permissions
@@ -55,16 +54,16 @@ class UserScopes(set):
             raise ValueError(f'User {compact_name} permissions include disallowed actions: {disallowed_actions}')
 
         # readGeneral is always added an implicit permission granted to all staff users at the compact level
-        self.add(f'{compact_name}/readGeneral')
+        self.scopes.add(f'{compact_name}/readGeneral')
 
         if 'readPrivate' in compact_actions:
             # This action only has one level of authz, since there is no external scope for it
-            self.add(f'{compact_name}/{compact_name}.readPrivate')
+            self.scopes.add(f'{compact_name}/{compact_name}.readPrivate')
 
         if 'admin' in compact_actions:
             # Two levels of authz for admin
-            self.add(f'{compact_name}/admin')
-            self.add(f'{compact_name}/{compact_name}.admin')
+            self.scopes.add(f'{compact_name}/admin')
+            self.scopes.add(f'{compact_name}/{compact_name}.admin')
 
         # Ensure included jurisdictions are limited to supported values
         jurisdictions = compact_permissions['jurisdictions']
@@ -82,14 +81,13 @@ class UserScopes(set):
         disallowed_actions = jurisdiction_actions - {'write', 'admin', 'readPrivate'}
         if disallowed_actions:
             raise ValueError(
-                f'User {compact_name}/{jurisdiction_name} permissions include disallowed actions: '
-                f'{disallowed_actions}',
+                f'User {compact_name}/{jurisdiction_name} permissions include disallowed actions: {disallowed_actions}',
             )
         for action in jurisdiction_actions:
-            self.add(f'{compact_name}/{jurisdiction_name}.{action}')
+            self.scopes.add(f'{compact_name}/{jurisdiction_name}.{action}')
 
             # Grant coarse-grain scope, which provides access to the API itself
             # Since `readGeneral` is implicitly granted to all users, we do not
             # need to grant a coarse-grain scope for the `readPrivate` action.
             if action != 'readPrivate':
-                self.add(f'{compact_name}/{action}')
+                self.scopes.add(f'{compact_name}/{action}')
