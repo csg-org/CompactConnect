@@ -1,10 +1,10 @@
 # ruff: noqa: E501  line-too-long The lines displaying the csv file contents are long, but they are necessary for the test.
 import json
-from io import BytesIO
-from zipfile import ZipFile
 from datetime import datetime, timedelta
 from decimal import Decimal
+from io import BytesIO
 from unittest.mock import patch
+from zipfile import ZipFile
 
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 from moto import mock_aws
@@ -208,12 +208,12 @@ class TestGenerateTransactionReports(TstFunction):
 
         # Verify email notifications
         call_args = mock_lambda_client.invoke.call_args_list
-        
+
         # Check compact report email
         compact_call = call_args[0][1]
         self.assertEqual(self.config.email_notification_service_lambda_name, compact_call['FunctionName'])
         self.assertEqual('RequestResponse', compact_call['InvocationType'])
-        
+
         compact_payload = json.loads(compact_call['Payload'])
         expected_compact_path = (
             f"compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/"
@@ -239,7 +239,7 @@ class TestGenerateTransactionReports(TstFunction):
         ohio_call = call_args[1][1]
         self.assertEqual(self.config.email_notification_service_lambda_name, ohio_call['FunctionName'])
         self.assertEqual('RequestResponse', ohio_call['InvocationType'])
-        
+
         ohio_payload = json.loads(ohio_call['Payload'])
         expected_ohio_path = (
             f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/oh/"
@@ -265,35 +265,31 @@ class TestGenerateTransactionReports(TstFunction):
         # Verify S3 stored files
         # Check compact reports
         compact_zip_obj = self.config.s3_client.get_object(
-            Bucket=self.config.transaction_reports_bucket_name,
-            Key=expected_compact_path
+            Bucket=self.config.transaction_reports_bucket_name, Key=expected_compact_path
         )
-        
-        
+
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
             with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
-                    'Total Transactions,0\nTotal Compact Fees,$0.00\nState Fees (Ohio),$0.00\n',
-                    summary_content
+                    'Total Transactions,0\nTotal Compact Fees,$0.00\nState Fees (Ohio),$0.00\n', summary_content
                 )
-            
+
             # Check transaction detail
             with zip_file.open(f'{TEST_COMPACT}-transaction-detail-{date_range}.csv') as f:
                 detail_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date,State,State Fee,Compact Fee,Transaction Id\n'
                     'No transactions for this period,,,,,,,\n',
-                    detail_content
+                    detail_content,
                 )
 
         # Check jurisdiction report
         ohio_zip_obj = self.config.s3_client.get_object(
-            Bucket=self.config.transaction_reports_bucket_name,
-            Key=expected_ohio_path
+            Bucket=self.config.transaction_reports_bucket_name, Key=expected_ohio_path
         )
-        
+
         with ZipFile(BytesIO(ohio_zip_obj['Body'].read())) as zip_file:
             with zip_file.open(f'oh-transaction-detail-{date_range}.csv') as f:
                 ohio_content = f.read().decode('utf-8')
@@ -303,7 +299,7 @@ class TestGenerateTransactionReports(TstFunction):
                     ',,,,,,,\n'
                     'Privileges Purchased,Total State Amount,,,,,,\n'
                     '0,$0.00,,,,,,\n',
-                    ohio_content
+                    ohio_content,
                 )
 
     # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
@@ -320,7 +316,7 @@ class TestGenerateTransactionReports(TstFunction):
         # Add test transactions
         mock_user_1 = self._add_mock_provider_to_db('12345', 'John', 'Doe')
         mock_user_2 = self._add_mock_provider_to_db('5678', 'Jane', 'Johnson')
-        
+
         # in this case, there will be two transactions, one in march and the other in April
         # the lambda should pick up both transactions
         self._add_mock_transaction_to_db(
@@ -347,12 +343,12 @@ class TestGenerateTransactionReports(TstFunction):
 
         # Verify email notifications
         calls_args = mock_lambda_client.invoke.call_args_list
-        
+
         # Check compact report email
         compact_call = calls_args[0][1]
         self.assertEqual(self.config.email_notification_service_lambda_name, compact_call['FunctionName'])
         self.assertEqual('RequestResponse', compact_call['InvocationType'])
-        
+
         expected_compact_path = (
             f"compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/"
             f"{end_time.strftime('%Y/%m/%d')}/"
@@ -379,7 +375,7 @@ class TestGenerateTransactionReports(TstFunction):
             jurisdiction_call = calls_args[idx + 1][1]
             self.assertEqual(self.config.email_notification_service_lambda_name, jurisdiction_call['FunctionName'])
             self.assertEqual('RequestResponse', jurisdiction_call['InvocationType'])
-            
+
             expected_jurisdiction_path = (
                 f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
                 f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
@@ -405,10 +401,9 @@ class TestGenerateTransactionReports(TstFunction):
         # Verify S3 stored files
         # Check compact reports
         compact_zip_obj = self.config.s3_client.get_object(
-            Bucket=self.config.transaction_reports_bucket_name,
-            Key=expected_compact_path
+            Bucket=self.config.transaction_reports_bucket_name, Key=expected_compact_path
         )
-        
+
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
             with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
@@ -418,9 +413,9 @@ class TestGenerateTransactionReports(TstFunction):
                     'Total Compact Fees,$21.00\n'
                     'State Fees (Kentucky),$100.00\n'
                     'State Fees (Ohio),$100.00\n',
-                    summary_content
+                    summary_content,
                 )
-            
+
             # Check transaction detail
             with zip_file.open(f'{TEST_COMPACT}-transaction-detail-{date_range}.csv') as f:
                 detail_content = f.read().decode('utf-8')
@@ -428,7 +423,7 @@ class TestGenerateTransactionReports(TstFunction):
                     f'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date,State,State Fee,Compact Fee,Transaction Id\n'
                     f'{mock_user_1["givenName"]},{mock_user_1["familyName"]},{mock_user_1["providerId"]},03-30-2025,OH,100,10.50,{MOCK_TRANSACTION_ID}\n'
                     f'{mock_user_2["givenName"]},{mock_user_2["familyName"]},{mock_user_2["providerId"]},04-01-2025,KY,100,10.50,{MOCK_TRANSACTION_ID}\n',
-                    detail_content
+                    detail_content,
                 )
 
         # Check jurisdiction reports
@@ -439,9 +434,9 @@ class TestGenerateTransactionReports(TstFunction):
                     f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
                     f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
                     f"{jurisdiction}-{date_range}-report.zip"
-                )
+                ),
             )
-            
+
             with ZipFile(BytesIO(jurisdiction_zip_obj['Body'].read())) as zip_file:
                 with zip_file.open(f'{jurisdiction}-transaction-detail-{date_range}.csv') as f:
                     content = f.read().decode('utf-8')
@@ -452,7 +447,7 @@ class TestGenerateTransactionReports(TstFunction):
                         ',,,,,,,\n'
                         'Privileges Purchased,Total State Amount,,,,,,\n'
                         '1,$100.00,,,,,,\n',
-                        content
+                        content,
                     )
 
     # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
@@ -467,7 +462,6 @@ class TestGenerateTransactionReports(TstFunction):
         self._add_compact_configuration_data(
             jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION, NEBRASKA_JURISDICTION]
         )
-        
 
         mock_user = self._add_mock_provider_to_db('12345', 'John', 'Doe')
         # Create a transaction with privileges for multiple jurisdictions
@@ -489,12 +483,12 @@ class TestGenerateTransactionReports(TstFunction):
 
         # Verify email notifications
         calls_args = mock_lambda_client.invoke.call_args_list
-        
+
         # Check compact report email
         compact_call = calls_args[0][1]
         self.assertEqual(self.config.email_notification_service_lambda_name, compact_call['FunctionName'])
         self.assertEqual('RequestResponse', compact_call['InvocationType'])
-        
+
         expected_compact_path = (
             f"compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/"
             f"{end_time.strftime('%Y/%m/%d')}/"
@@ -521,7 +515,7 @@ class TestGenerateTransactionReports(TstFunction):
             jurisdiction_call = calls_args[idx + 1][1]
             self.assertEqual(self.config.email_notification_service_lambda_name, jurisdiction_call['FunctionName'])
             self.assertEqual('RequestResponse', jurisdiction_call['InvocationType'])
-            
+
             expected_jurisdiction_path = (
                 f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
                 f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
@@ -547,10 +541,9 @@ class TestGenerateTransactionReports(TstFunction):
         # Verify S3 stored files
         # Check compact reports
         compact_zip_obj = self.config.s3_client.get_object(
-            Bucket=self.config.transaction_reports_bucket_name,
-            Key=expected_compact_path
+            Bucket=self.config.transaction_reports_bucket_name, Key=expected_compact_path
         )
-        
+
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
             with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
@@ -561,14 +554,15 @@ class TestGenerateTransactionReports(TstFunction):
                     'State Fees (Kentucky),$100.00\n'
                     'State Fees (Nebraska),$100.00\n'
                     'State Fees (Ohio),$100.00\n',
-                    summary_content
+                    summary_content,
                 )
-            
+
             # Check transaction detail
             with zip_file.open(f'{TEST_COMPACT}-transaction-detail-{date_range}.csv') as f:
                 detail_content = f.read().decode('utf-8')
                 expected_lines = [
-                    'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date,State,State Fee,Compact Fee,Transaction Id']
+                    'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date,State,State Fee,Compact Fee,Transaction Id'
+                ]
                 for state in ['OH', 'KY', 'NE']:
                     expected_lines.append(
                         f'{mock_user["givenName"]},{mock_user["familyName"]},{mock_user["providerId"]},03-30-2025,{state},100,10.50,{MOCK_TRANSACTION_ID}'
@@ -583,9 +577,9 @@ class TestGenerateTransactionReports(TstFunction):
                     f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
                     f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
                     f"{jurisdiction}-{date_range}-report.zip"
-                )
+                ),
             )
-            
+
             with ZipFile(BytesIO(jurisdiction_zip_obj['Body'].read())) as zip_file:
                 with zip_file.open(f'{jurisdiction}-transaction-detail-{date_range}.csv') as f:
                     content = f.read().decode('utf-8')
@@ -595,7 +589,7 @@ class TestGenerateTransactionReports(TstFunction):
                         ',,,,,,,\n'
                         'Privileges Purchased,Total State Amount,,,,,,\n'
                         '1,$100.00,,,,,,\n',
-                        content
+                        content,
                     )
 
     # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
@@ -645,9 +639,9 @@ class TestGenerateTransactionReports(TstFunction):
                 f"compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/"
                 f"{end_time.strftime('%Y/%m/%d')}/"
                 f"{TEST_COMPACT}-{date_range}-report.zip"
-            )
+            ),
         )
-        
+
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
             # Check financial summary
             with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
@@ -656,55 +650,55 @@ class TestGenerateTransactionReports(TstFunction):
                     'Total Transactions,600\n'
                     'Total Compact Fees,$6300.00\n'  # $10.50 x 600
                     'State Fees (Kentucky),$30000.00\n'  # $100 x 300
-                    'State Fees (Ohio),$30000.00\n', # $100 x 300
-                    summary_content
+                    'State Fees (Ohio),$30000.00\n',  # $100 x 300
+                    summary_content,
                 )
-            
+
             # Check transaction detail
             with zip_file.open(f'{TEST_COMPACT}-transaction-detail-{date_range}.csv') as f:
                 detail_content = f.read().decode('utf-8').split('\n')
                 # Verify header
                 self.assertEqual(
                     'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date,State,State Fee,Compact Fee,Transaction Id',
-                    detail_content[0]
+                    detail_content[0],
                 )
-                
+
                 # Count transactions by state
                 oh_transactions = [line for line in detail_content if ',OH,' in line]
                 ky_transactions = [line for line in detail_content if ',KY,' in line]
                 self.assertEqual(300, len(oh_transactions))
                 self.assertEqual(300, len(ky_transactions))
-                
+
                 # Verify all providers are included
                 for i in range(300):
                     # Check Ohio transactions (first 300 providers)
                     self.assertIn(f'First{i},Last{i},user_{i},', oh_transactions[i])
                     self.assertIn('tx_' + str(i), oh_transactions[i])
-                    
+
                     # Check Kentucky transactions (next 300 providers)
                     ky_idx = i + 300
                     self.assertIn(f'First{ky_idx},Last{ky_idx},user_{ky_idx},', ky_transactions[i])
                     self.assertIn('tx_' + str(ky_idx), ky_transactions[i])
 
         # Check jurisdiction reports
-        for jurisdiction, start_idx in [('oh', 0), ('ky', 300)]:
+        for jurisdiction, _start_idx in [('oh', 0), ('ky', 300)]:
             jurisdiction_zip_obj = self.config.s3_client.get_object(
                 Bucket=self.config.transaction_reports_bucket_name,
                 Key=(
                     f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
                     f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
                     f"{jurisdiction}-{date_range}-report.zip"
-                )
+                ),
             )
-            
+
             with ZipFile(BytesIO(jurisdiction_zip_obj['Body'].read())) as zip_file:
                 with zip_file.open(f'{jurisdiction}-transaction-detail-{date_range}.csv') as f:
                     content = f.read().decode('utf-8').split('\n')
-                    
+
                     # Verify header
                     self.assertEqual(
                         'First Name,Last Name,Licensee Id,Transaction Settlement Date,State Fee,State,Compact Fee,Transaction Id',
-                        content[0]
+                        content[0],
                     )
 
                     # 300 transactions + 5 extra lines for the header, spacing, summary headers, summary values, and line at EOF
@@ -782,7 +776,7 @@ class TestGenerateTransactionReports(TstFunction):
                 f"compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/"
                 f"{end_time.strftime('%Y/%m/%d')}/"
                 f"{TEST_COMPACT}-{date_range}-report.zip"
-            )
+            ),
         )
 
         with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
@@ -796,7 +790,7 @@ class TestGenerateTransactionReports(TstFunction):
                     'State Fees (Kentucky),$100.00\n'
                     'State Fees (Ohio),$100.00\n'
                     'State Fees (UNKNOWN (xx)),$100.00\n',
-                    summary_content
+                    summary_content,
                 )
 
         calls_args = mock_lambda_client.invoke.call_args_list

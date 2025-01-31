@@ -166,7 +166,7 @@ class ReportingStack(AppStack):
                     'id': 'AwsSolutions-IAM5',
                     'reason': """
                             This policy contains wild-carded actions and resources but they are scoped to the
-                            specific actions, KMS key, reporting bucket, and Tables that this lambda specifically 
+                            specific actions, KMS key, reporting bucket, and Tables that this lambda specifically
                             needs access to.
                             """,
                 },
@@ -183,10 +183,7 @@ class ReportingStack(AppStack):
                 targets=[
                     LambdaFunction(
                         handler=self.transaction_reporter,
-                        event=RuleTargetInput.from_object({
-                            'compact': compact.lower(),
-                            'reportingCycle': 'weekly'
-                        }),
+                        event=RuleTargetInput.from_object({'compact': compact.lower(), 'reportingCycle': 'weekly'}),
                     )
                 ],
             )
@@ -200,10 +197,7 @@ class ReportingStack(AppStack):
                 targets=[
                     LambdaFunction(
                         handler=self.transaction_reporter,
-                        event=RuleTargetInput.from_object({
-                            'compact': compact.lower(),
-                            'reportingCycle': 'monthly'
-                        }),
+                        event=RuleTargetInput.from_object({'compact': compact.lower(), 'reportingCycle': 'monthly'}),
                     )
                 ],
             )

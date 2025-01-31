@@ -35,7 +35,8 @@ class TstFunction(TstLambdas):
         self.create_provider_table()
         self.create_transaction_history_table()
         self._transaction_reports_bucket = boto3.resource('s3').create_bucket(
-            Bucket=os.environ['TRANSACTION_REPORTS_BUCKET_NAME'])
+            Bucket=os.environ['TRANSACTION_REPORTS_BUCKET_NAME']
+        )
 
     def create_compact_configuration_table(self):
         self._compact_configuration_table = boto3.resource('dynamodb').create_table(

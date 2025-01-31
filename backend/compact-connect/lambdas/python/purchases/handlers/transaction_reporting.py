@@ -27,9 +27,7 @@ def _get_date_range_for_reporting_cycle(reporting_cycle: str) -> tuple[datetime,
     if reporting_cycle == 'weekly':
         # This report is run on Friday 10:00 PM UTC
         # we want to capture the full week, so we set the end time to 10:00 PM UTC of the current day
-        end_time = config.current_standard_datetime.replace(
-        hour=22, minute=0, second=0, microsecond=0
-        )
+        end_time = config.current_standard_datetime.replace(hour=22, minute=0, second=0, microsecond=0)
         # Go back 7 days to capture the full week
         start_time = end_time - timedelta(days=7)
     elif reporting_cycle == 'monthly':
@@ -57,7 +55,7 @@ def _store_compact_reports_in_s3(
     bucket_name: str,
 ) -> dict[str, str]:
     """Store compact reports in S3 with appropriate compression formats.
-    
+
     :param compact: Compact name
     :param reporting_cycle: Either 'weekly' or 'monthly'
     :param start_time: Report start time
@@ -72,35 +70,35 @@ def _store_compact_reports_in_s3(
         f"compact/{compact}/reports/compact-transactions/reporting-cycle/{reporting_cycle}/"
         f"{end_time.strftime('%Y/%m/%d')}"
     )
-    
+
     # Define paths for all report files
     paths = {
-        'financial_summary_gz': f"{base_path}/{compact}-financial-summary-{date_range}.csv.gz",
-        'transaction_detail_gz': f"{base_path}/{compact}-transaction-detail-{date_range}.csv.gz",
-        'report_zip': f"{base_path}/{compact}-{date_range}-report.zip",
+        'financial_summary_gz': f'{base_path}/{compact}-financial-summary-{date_range}.csv.gz',
+        'transaction_detail_gz': f'{base_path}/{compact}-transaction-detail-{date_range}.csv.gz',
+        'report_zip': f'{base_path}/{compact}-{date_range}-report.zip',
     }
-    
+
     s3_client = config.s3_client
-    
+
     # Store gzipped financial summary
     gzip_buffer = BytesIO()
     with gzip.GzipFile(fileobj=gzip_buffer, mode='wb') as gz:
         gz.write(summary_report.encode('utf-8'))
     s3_client.put_object(Bucket=bucket_name, Key=paths['financial_summary_gz'], Body=gzip_buffer.getvalue())
-    
+
     # Store gzipped transaction detail
     gzip_buffer = BytesIO()
     with gzip.GzipFile(fileobj=gzip_buffer, mode='wb') as gz:
         gz.write(transaction_detail.encode('utf-8'))
     s3_client.put_object(Bucket=bucket_name, Key=paths['transaction_detail_gz'], Body=gzip_buffer.getvalue())
-    
+
     # Create and store combined zip with uncompressed CSVs
     zip_buffer = BytesIO()
     with ZipFile(zip_buffer, 'w', compression=ZIP_DEFLATED) as zip_file:
         zip_file.writestr(f'{compact}-financial-summary-{date_range}.csv', summary_report.encode('utf-8'))
         zip_file.writestr(f'{compact}-transaction-detail-{date_range}.csv', transaction_detail.encode('utf-8'))
     s3_client.put_object(Bucket=bucket_name, Key=paths['report_zip'], Body=zip_buffer.getvalue())
-    
+
     return paths
 
 
@@ -114,7 +112,7 @@ def _store_jurisdiction_reports_in_s3(
     bucket_name: str,
 ) -> dict[str, str]:
     """Store jurisdiction reports in S3 with appropriate compression formats.
-    
+
     :param compact: Compact name
     :param jurisdiction: Jurisdiction postal code
     :param reporting_cycle: Either 'weekly' or 'monthly'
@@ -129,27 +127,27 @@ def _store_jurisdiction_reports_in_s3(
         f"compact/{compact}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
         f"reporting-cycle/{reporting_cycle}/{end_time.strftime('%Y/%m/%d')}"
     )
-    
+
     # Define paths for all report files
     paths = {
-        'transaction_detail_gz': f"{base_path}/{jurisdiction}-{date_range}-transaction-detail.csv.gz",
-        'report_zip': f"{base_path}/{jurisdiction}-{date_range}-report.zip",
+        'transaction_detail_gz': f'{base_path}/{jurisdiction}-{date_range}-transaction-detail.csv.gz',
+        'report_zip': f'{base_path}/{jurisdiction}-{date_range}-report.zip',
     }
-    
+
     s3_client = config.s3_client
-    
+
     # Store gzipped transaction detail
     gzip_buffer = BytesIO()
     with gzip.GzipFile(fileobj=gzip_buffer, mode='wb') as gz:
         gz.write(transaction_detail.encode('utf-8'))
     s3_client.put_object(Bucket=bucket_name, Key=paths['transaction_detail_gz'], Body=gzip_buffer.getvalue())
-    
+
     # Create and store zip with uncompressed CSV
     zip_buffer = BytesIO()
     with ZipFile(zip_buffer, 'w', compression=ZIP_DEFLATED) as zip_file:
         zip_file.writestr(f'{jurisdiction}-transaction-detail-{date_range}.csv', transaction_detail.encode('utf-8'))
     s3_client.put_object(Bucket=bucket_name, Key=paths['report_zip'], Body=zip_buffer.getvalue())
-    
+
     return paths
 
 
@@ -164,7 +162,7 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     compact = event['compact']
     reporting_cycle = event['reportingCycle']
     logger.info('Generating transaction reports', compact=compact, reporting_cycle=reporting_cycle)
-    
+
     # this is used to track any errors that occur when generating the reports
     # without preventing valid reports from being sent
     lambda_error_messages = []
@@ -172,7 +170,7 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     # Initialize clients
     data_client = config.data_client
     transaction_client = config.transaction_client
-    
+
     # Get the S3 bucket name
     bucket_name = config.transaction_reports_bucket_name
 
