@@ -172,6 +172,7 @@ describe('Nightly runs', () => {
     it('should not send an email if there were no ingest events', async () => {
         const mockDynamoDBClient = mockClient(DynamoDBClient);
         const mockS3Client = mockClient(S3Client);
+
         mockDynamoDBClient.on(QueryCommand).callsFake((input) => {
             const tableName = input.TableName;
 
@@ -271,6 +272,7 @@ describe('Weekly runs', () => {
     it('should send an "All\'s Well" email if there were success events without failures', async () => {
         const mockDynamoDBClient = mockClient(DynamoDBClient);
         const mockS3Client = mockClient(S3Client);
+
         mockDynamoDBClient.on(QueryCommand).callsFake((input) => {
             const tableName = input.TableName;
 
@@ -335,6 +337,7 @@ describe('Weekly runs', () => {
     it('should send "no license updates" email if there were no events', async () => {
         const mockDynamoDBClient = mockClient(DynamoDBClient);
         const mockS3Client = mockClient(S3Client);
+
         mockDynamoDBClient.on(QueryCommand).callsFake((input) => {
             const tableName = input.TableName;
 
@@ -381,6 +384,7 @@ describe('Weekly runs', () => {
     it('should send a report email and not an alls well, when there were errors', async () => {
         const mockDynamoDBClient = mockClient(DynamoDBClient);
         const mockS3Client = mockClient(S3Client);
+
         mockDynamoDBClient.on(QueryCommand).callsFake((input) => {
             const tableName = input.TableName;
 
