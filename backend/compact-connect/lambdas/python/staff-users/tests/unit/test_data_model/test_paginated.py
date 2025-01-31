@@ -15,7 +15,7 @@ class TestPaginated(TstLambdas):
 
     def test_pagination_parameters(self):
         from cc_common.data_model.query_paginator import paginated_query
-        from cc_common.data_model.schema.user import UserRecordSchema
+        from cc_common.data_model.schema.user.record import UserRecordSchema
 
         calls = []
 
@@ -61,7 +61,7 @@ class TestPaginated(TstLambdas):
         multiple times to fill out the requested page size.
         """
         from cc_common.data_model.query_paginator import paginated_query
-        from cc_common.data_model.schema.user import UserRecordSchema
+        from cc_common.data_model.schema.user.record import UserRecordSchema
 
         calls = []
 
@@ -118,7 +118,7 @@ class TestPaginated(TstLambdas):
         closely at the last_key behavior between each query.
         """
         from cc_common.data_model.query_paginator import paginated_query
-        from cc_common.data_model.schema.user import UserRecordSchema
+        from cc_common.data_model.schema.user.record import UserRecordSchema
 
         calls = []
 
@@ -240,7 +240,7 @@ class TestPaginated(TstLambdas):
 
     def test_no_pagination_parameters(self):
         from cc_common.data_model.query_paginator import paginated_query
-        from cc_common.data_model.schema.user import UserRecordSchema
+        from cc_common.data_model.schema.user.record import UserRecordSchema
 
         calls = []
 

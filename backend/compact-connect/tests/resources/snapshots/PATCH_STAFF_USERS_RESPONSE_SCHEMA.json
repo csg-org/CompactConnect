@@ -4,6 +4,13 @@
     "userId": {
       "type": "string"
     },
+    "status": {
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "type": "string"
+    },
     "attributes": {
       "additionalProperties": false,
       "properties": {
@@ -80,7 +87,8 @@
   "required": [
     "userId",
     "attributes",
-    "permissions"
+    "permissions",
+    "status"
   ],
   "type": "object",
   "$schema": "http://json-schema.org/draft-04/schema#"

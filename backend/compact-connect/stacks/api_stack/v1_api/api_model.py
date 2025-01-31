@@ -330,9 +330,13 @@ class ApiModel:
     def _staff_user_response_schema(self):
         return JsonSchema(
             type=JsonSchemaType.OBJECT,
-            required=['userId', 'attributes', 'permissions'],
+            required=['userId', 'attributes', 'permissions', 'status'],
             additional_properties=False,
-            properties={'userId': JsonSchema(type=JsonSchemaType.STRING), **self._common_staff_user_properties},
+            properties={
+                'userId': JsonSchema(type=JsonSchemaType.STRING),
+                'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+                **self._common_staff_user_properties,
+            },
         )
 
     @property

@@ -3,7 +3,9 @@ import os
 
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from user_scopes import UserScopes
+from cc_common.config import config
+from cc_common.data_model.schema.common import StaffUserStatus
+from user_data import UserData
 
 logger = Logger()
 logger.setLevel(logging.DEBUG if os.environ.get('DEBUG', 'false').lower() == 'true' else logging.INFO)
@@ -25,14 +27,28 @@ def customize_scopes(event: dict, context: LambdaContext):  # noqa: ARG001 unuse
         return event
 
     try:
-        scopes_to_add = UserScopes(sub)
-        logger.debug('Adding scopes', scopes=scopes_to_add)
+        user_data = UserData(sub)
+        logger.debug('Adding scopes', scopes=user_data.scopes)
+
+        # Get all of the user's records and set their status to active
+        for record in user_data.records:
+            # Only update the status if it's not already active
+            if record['status'] != StaffUserStatus.ACTIVE.value:
+                config.users_table.update_item(
+                    Key={'pk': record['pk'], 'sk': record['sk']},
+                    UpdateExpression='SET #status = :status',
+                    ExpressionAttributeNames={'#status': 'status'},
+                    ExpressionAttributeValues={':status': StaffUserStatus.ACTIVE.value},
+                )
+
     # We want to catch almost any exception here, so we can gracefully return execution back to AWS
     except Exception as e:  # noqa: BLE001 broad-exception-caught
         logger.error('Error while getting user scopes!', exc_info=e)
         event['response']['claimsAndScopeOverrideDetails'] = None
         return event
 
-    event['response']['claimsAndScopeOverrideDetails'] = {'accessTokenGeneration': {'scopesToAdd': list(scopes_to_add)}}
+    event['response']['claimsAndScopeOverrideDetails'] = {
+        'accessTokenGeneration': {'scopesToAdd': list(user_data.scopes)}
+    }
 
     return event
