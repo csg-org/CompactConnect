@@ -810,15 +810,15 @@ class TestGenerateTransactionReports(TstFunction):
     # event bridge triggers the monthly report at the first day of the month 5 mins after midnight UTC
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-01T00:05:00+00:00'))
     @patch('handlers.transaction_reporting.config.lambda_client')
-    def test_generate_monthly_report_includes_expected_settled_transactions_for_full_month_range(self, mock_lambda_client):
+    def test_generate_monthly_report_includes_expected_settled_transactions_for_full_month_range(
+        self, mock_lambda_client
+    ):
         """Test processing monthly report with full month range for Feb 2024 (leap year)."""
         from handlers.transaction_reporting import generate_transaction_reports
 
         _set_default_lambda_client_behavior(mock_lambda_client)
 
-        self._add_compact_configuration_data(
-            jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION]
-        )
+        self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
 
         mock_user = self._add_mock_provider_to_db('12345', 'John', 'Doe')
         # Create a transaction with a privilege which is settled the first day of the month at midnight UTC

@@ -7,7 +7,6 @@ from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.bucket import Bucket
 from constructs import Construct
 
-import stacks.persistent_stack as ps
 
 class TransactionReportsBucket(Bucket):
     """S3 bucket to store transaction report files."""
