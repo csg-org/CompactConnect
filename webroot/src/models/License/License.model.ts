@@ -11,6 +11,7 @@ import { dateDisplay, dateDiff } from '@models/_formatters/date';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import { LicenseHistoryItem, LicenseHistoryItemSerializer } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
+import { Address, AddressSerializer } from '@models/Address/Address.model';
 import moment from 'moment';
 
 // ========================================================
@@ -41,6 +42,7 @@ export interface InterfaceLicense {
     isHomeState?: boolean;
     issueDate?: string | null;
     renewalDate?: string | null;
+    mailingAddress?: Address;
     expireDate?: string | null;
     npi?: string | null;
     licenseNumber?: string | null;
@@ -60,6 +62,7 @@ export class License implements InterfaceLicense {
     public isPrivilege? = false;
     public issueState? = new State();
     public issueDate? = null;
+    public mailingAddress? = new Address();
     public renewalDate? = null;
     public npi? = null;
     public licenseNumber? = null;
@@ -120,6 +123,13 @@ export class LicenseSerializer {
             id: json.id,
             compact: new Compact({ type: json.compact }),
             isPrivilege: Boolean(json.type === 'privilege'),
+            mailingAddress: AddressSerializer.fromServer({
+                street1: json.homeAddressStreet1,
+                street2: json.homeAddressStreet2,
+                city: json.homeAddressCity,
+                state: json.homeAddressState,
+                zip: json.homeAddressPostalCode,
+            }),
             issueState: new State({ abbrev: json.jurisdiction || json.licenseJurisdiction }),
             issueDate: json.dateOfIssuance,
             npi: json.npi,

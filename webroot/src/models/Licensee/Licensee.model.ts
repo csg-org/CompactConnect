@@ -40,8 +40,8 @@ export interface InterfaceLicensee {
     firstName?: string | null;
     middleName?: string | null;
     lastName?: string | null;
-    address?: Address;
-    homeJurisdiction?: string | null;
+    address?: Address; // Deprecated delete in clean up
+    homeJurisdiction?: State;
     dob?: string | null;
     birthMonthDay?: string | null;
     ssn?: string | null;
@@ -68,8 +68,8 @@ export class Licensee implements InterfaceLicensee {
     public firstName? = null;
     public middleName? = null;
     public lastName? = null;
-    public homeJurisdiction? = null;
-    public address? = new Address();
+    public homeJurisdiction? = new State();
+    public address? = new Address(); // Deprecated delete in clean up
     public dob? = null;
     public birthMonthDay? = null;
     public ssn? = null;
@@ -224,7 +224,7 @@ export class Licensee implements InterfaceLicensee {
     public bestHomeStateLicense(): License {
         let bestHomeLicense = new License();
         const homeStateLicenses = this.licenses?.filter((license: License) =>
-            (license.issueState?.abbrev === this.homeJurisdiction)) || [];
+            (license.issueState?.abbrev === this.homeJurisdiction?.abbrev)) || [];
         const activeHomeStateLicenses = homeStateLicenses.filter((license: License) =>
             (license.statusState === LicenseStatus.ACTIVE));
         const inActiveHomeStateLicenses = homeStateLicenses.filter((license: License) =>
@@ -243,18 +243,8 @@ export class Licensee implements InterfaceLicensee {
         return bestHomeLicense;
     }
 
-    public mailingAddress(): Address {
-        console.log('bestHomeState', this.bestHomeStateLicense());
-
-        return new Address();
-
-        // return AddressSerializer.fromServer({
-        //     street1: json.homeAddressStreet1,
-        //     street2: json.homeAddressStreet2,
-        //     city: json.homeAddressCity,
-        //     state: json.homeAddressState,
-        //     zip: json.homeAddressPostalCode,
-        // });
+    public bestHomeStateLicenseMailingAddress(): Address {
+        return this.bestHomeStateLicense().mailingAddress || new Address();
     }
 }
 
@@ -272,14 +262,14 @@ export class LicenseeSerializer {
             firstName: json.givenName,
             middleName: json.middleName,
             lastName: json.familyName,
-            homeJurisdiction: json.homeJurisdictionSelection?.jurisdiction,
+            homeJurisdiction: new State({ abbrev: json.homeJurisdictionSelection?.jurisdiction }),
             address: AddressSerializer.fromServer({
                 street1: json.homeAddressStreet1,
                 street2: json.homeAddressStreet2,
                 city: json.homeAddressCity,
                 state: json.homeAddressState,
                 zip: json.homeAddressPostalCode,
-            }),
+            }), // Deprecated delete in clean up
             dob: json.dateOfBirth,
             birthMonthDay: json.birthMonthDay,
             ssn: json.ssn,

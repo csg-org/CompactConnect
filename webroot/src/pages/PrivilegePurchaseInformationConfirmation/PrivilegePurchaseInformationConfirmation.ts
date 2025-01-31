@@ -12,6 +12,7 @@ import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
+import { Address } from '@models/Address/Address.model';
 import { Compact } from '@models/Compact/Compact.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
@@ -20,7 +21,6 @@ import { FormInput } from '@/models/FormInput/FormInput.model';
 import { dataApi } from '@network/data.api';
 import Joi from 'joi';
 import { License } from '@/models/License/License.model';
-import { State } from '@/models/State/State.model';
 
 @Component({
     name: 'PrivilegePurchaseInformationConfirmation',
@@ -97,8 +97,7 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
     }
 
     get licenseNumber(): string {
-        // TODO: temp come back and fix
-        return 'DA-743963';
+        return this.licensee?.licenseNumber || '';
     }
 
     get areAllAttestationsChecked(): boolean {
@@ -118,13 +117,27 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
     }
 
     get homeStateText(): string {
-        let stateName = '';
+        return this.licensee?.homeJurisdiction?.name() || '';
+    }
 
-        if (this.homeStateLicense?.issueState?.abbrev) {
-            stateName = new State({ abbrev: this.homeStateLicense?.issueState?.abbrev }).name();
-        }
+    get licenseExpirationDate(): string {
+        return this.homeStateLicense?.expireDateDisplay() || '';
+    }
 
-        return stateName;
+    get homeStateLicenseMailingAddress(): Address {
+        return this.homeStateLicense.mailingAddress || new Address();
+    }
+
+    get mailingAddessStateDisplay(): string {
+        return this.homeStateLicense?.mailingAddress?.state?.abbrev?.toUpperCase() || '';
+    }
+
+    get stateProvidedEmail(): string {
+        return this.user?.stateProvidedEmail || '';
+    }
+
+    get accountEmail(): string {
+        return this.user?.compactConnectRegisteredEmailAddress || '';
     }
 
     //
