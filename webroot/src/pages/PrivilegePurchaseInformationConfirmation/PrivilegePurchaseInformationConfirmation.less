@@ -121,12 +121,31 @@
 
                 .chunk-text {
                     font-size: 1.6rem;
+
+                    :deep(.checkbox-container) {
+                        .checkbox-wrapper {
+                            padding-left: 30px;
+                        }
+
+                        .input-label {
+                            font-weight: @fontWeightLight;
+                        }
+
+                        input[type="checkbox"]:checked + .checkbox-replacement::after {
+                            background-color: @primaryColor;
+                        }
+                    }
                 }
             }
 
             .chunk-row {
                 display: flex;
                 flex-direction: row;
+            }
+
+            .disclaimer-section {
+                padding-left: 2rem;
+                border-left: 2px solid @lightTextGrey;
             }
         }
     }
