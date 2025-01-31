@@ -206,7 +206,7 @@ export class Licensee implements InterfaceLicensee {
     }
 
     public phoneNumberDisplay(): string {
-        return this.phoneNumber ? formatPhoneNumber(stripPhoneNumber(this.phoneNumber), 'dashed') : '';
+        return this.phoneNumber ? formatPhoneNumber(stripPhoneNumber(this.phoneNumber)) : '';
     }
 
     public isMilitary(): boolean {
