@@ -178,7 +178,8 @@ class ReportingStack(AppStack):
             Rule(
                 self,
                 f'{compact.capitalize()}-WeeklyTransactionReportRule',
-                schedule=Schedule.cron(week_day='7', hour='1', minute='0', month='*', year='*'),
+                # Send weekly reports every Friday at 5:00 pm EST, which is 10:00 pm UTC
+                schedule=Schedule.cron(week_day='5', hour='22', minute='0', month='*', year='*'),
                 targets=[
                     LambdaFunction(
                         handler=self.transaction_reporter,
@@ -190,11 +191,12 @@ class ReportingStack(AppStack):
                 ],
             )
 
-            # Add monthly report rule to run every month on the first day of the month at midnight
+            # Monthly reports run every month on the first day of the month shortly after midnight UTC
+            # This helps ensure that our time range is the full month
             Rule(
                 self,
                 f'{compact.capitalize()}-MonthlyTransactionReportRule',
-                schedule=Schedule.cron(day='1', hour='0', minute='0', month='*', year='*'),
+                schedule=Schedule.cron(day='1', hour='0', minute='5', month='*', year='*'),
                 targets=[
                     LambdaFunction(
                         handler=self.transaction_reporter,

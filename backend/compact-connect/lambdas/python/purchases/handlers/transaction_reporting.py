@@ -25,17 +25,15 @@ def _get_date_range_for_reporting_cycle(reporting_cycle: str) -> tuple[datetime,
     """
 
     if reporting_cycle == 'weekly':
-        # Set end time to 11:59:59.999999 UTC of the current day
+        # This report is run on Friday 10:00 PM UTC
+        # we want to capture the full week, so we set the end time to 10:00 PM UTC of the current day
         end_time = config.current_standard_datetime.replace(
-        hour=11, minute=59, second=59, microsecond=999999
+        hour=22, minute=0, second=0, microsecond=0
         )
-        # Go back 7 days and set to noon UTC time (12:00:00.000) to capture the full week
-        start_time_day = (end_time - timedelta(days=7))
-        start_time = start_time_day.replace(
-            hour=12, minute=0, second=0, microsecond=0
-        )
+        # Go back 7 days to capture the full week
+        start_time = end_time - timedelta(days=7)
     elif reporting_cycle == 'monthly':
-        # The monthly report is triggered at midnight UTC of the first day of the month
+        # The monthly report is triggered a little after midnight UTC of the first day of the month
         # we report on the previous month, so we set the end time to 23:59:59.999999 UTC of the previous day
         # to capture the full month
         end_time = config.current_standard_datetime.replace(
@@ -45,7 +43,7 @@ def _get_date_range_for_reporting_cycle(reporting_cycle: str) -> tuple[datetime,
         start_time = end_time.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     else:
         raise ValueError(f'Invalid reporting cycle: {reporting_cycle}')
-    
+
     return start_time, end_time
 
 
