@@ -19,7 +19,7 @@
                 @change="input(formInput)"
             />
             <span class="checkbox-replacement"></span>
-            <label :for="formInput.id" class="input-label">{{ formInput.label }}</label>
+            <label :for="formInput.id" class="input-label"><div v-html="formInput.label" /></label>
         </div>
         <span
             v-if="formInput.errorMessage && !formInput.shouldHideErrorMessage"

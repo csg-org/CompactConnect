@@ -44,7 +44,7 @@
                     :for="`${formInput.name}-${index + 1}`"
                     class="radio-button-label"
                 >
-                    {{ option.name }}
+                    <div v-html="option.name" />
                 </label>
             </div>
         </div>
