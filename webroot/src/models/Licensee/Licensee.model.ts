@@ -222,6 +222,8 @@ export class Licensee implements InterfaceLicensee {
     }
 
     public bestHomeStateLicense(): License {
+        // Return most recently issued active license that matches the user's registered home jurisdiction
+        // If no active license return  most recently issued active license that matches the user's registered home jurisdiction
         let bestHomeLicense = new License();
         const homeStateLicenses = this.licenses?.filter((license: License) =>
             (license.issueState?.abbrev === this.homeJurisdiction?.abbrev)) || [];
