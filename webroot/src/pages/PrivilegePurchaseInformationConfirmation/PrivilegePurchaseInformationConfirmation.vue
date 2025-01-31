@@ -9,7 +9,7 @@
     <div class="privileges-info-container">
         <form class="confirm-info-form" @submit.prevent="handleSubmit">
             <div v-if="!areFormInputsSet" class="loading-container">
-                <LoadingSpinner v-if="!userStore.isLoadingAccount" />
+                <LoadingSpinner />
             </div>
             <div v-else class="confirm-info-core-container">
                 <div class="privilege-purchase-title">

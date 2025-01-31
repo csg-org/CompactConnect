@@ -125,7 +125,7 @@ describe('User model', () => {
                     status: 'inactive'
                 }
             ],
-            email: 'hello@hello.com',
+            emailAddress: 'hello@hello.com',
             compactConnectRegisteredEmailAddress: 'hello+registered@hello.com',
             dateOfExpiration: '2024-08-29',
             homeAddressState: 'co',
@@ -142,7 +142,7 @@ describe('User model', () => {
 
         expect(user).to.be.an.instanceof(LicenseeUser);
         expect(user.id).to.equal(data.providerId);
-        expect(user.stateProvidedEmail).to.equal(data.email);
+        expect(user.stateProvidedEmail).to.equal(data.emailAddress);
         expect(user.compactConnectRegisteredEmailAddress).to.equal(data.compactConnectRegisteredEmailAddress);
         expect(user.firstName).to.equal(data.givenName);
         expect(user.lastName).to.equal(data.familyName);
@@ -208,7 +208,7 @@ describe('User model', () => {
                     status: 'inactive'
                 }
             ],
-            email: 'hello@hello.com',
+            emailAddress: 'hello@hello.com',
             compactConnectRegisteredEmailAddress: 'hello+registered@hello.com',
             dateOfExpiration: '2024-08-29',
             homeAddressState: 'co',
@@ -224,7 +224,7 @@ describe('User model', () => {
 
         expect(user).to.be.an.instanceof(LicenseeUser);
         expect(user.id).to.equal(data.providerId);
-        expect(user.stateProvidedEmail).to.equal(data.email);
+        expect(user.stateProvidedEmail).to.equal(data.emailAddress);
         expect(user.compactConnectRegisteredEmailAddress).to.equal(data.compactConnectRegisteredEmailAddress);
         expect(user.firstName).to.equal(data.givenName);
         expect(user.lastName).to.equal(data.familyName);

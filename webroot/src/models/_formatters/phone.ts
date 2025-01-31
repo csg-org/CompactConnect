@@ -54,7 +54,8 @@ const singleDelimeterPhoneFormatter = (numberValue: string, numberDelimeter: str
         // If the number value is at least 6 digits
         if (numberValue.length >= 6) {
             // Add the post-NXX delimeter
-            formattedPhoneNumber += numberValue.substring(3, 6) + delimeter + numberValue.substring(6, 9);
+
+            formattedPhoneNumber += numberValue.substring(3, 6) + delimeter + numberValue.substring(6, 10);
         } else {
             // Otherwise just display the rest of the numbers unformatted
             formattedPhoneNumber += numberValue.substring(3);

@@ -231,12 +231,12 @@ export class Licensee implements InterfaceLicensee {
             (license.statusState === LicenseStatus.INACTIVE));
 
         if (activeHomeStateLicenses.length) {
-            bestHomeLicense = activeHomeStateLicenses.reduce(function getMostRecent(prev: any, current: any) {
-                return (prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev.issueDate : current.issueDate;
+            bestHomeLicense = activeHomeStateLicenses.reduce(function getMostRecent(prev: License, current: License) {
+                return (prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev : current;
             } as any);
         } else if (inActiveHomeStateLicenses.length) {
-            bestHomeLicense = inActiveHomeStateLicenses.reduce(function getMostRecent(prev: any, current: any) {
-                return (prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev.issueDate : current.issueDate;
+            bestHomeLicense = inActiveHomeStateLicenses.reduce(function getMostRecent(prev: License, current: License) {
+                return (prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev : current;
             } as any);
         }
 
@@ -253,8 +253,6 @@ export class Licensee implements InterfaceLicensee {
 // ========================================================
 export class LicenseeSerializer {
     static fromServer(json: any): Licensee {
-        console.log('json', json);
-
         const licenseeData: any = {
             id: json.providerId,
             npi: json.npi,

@@ -39,6 +39,7 @@ describe('Staff User model', () => {
         expect(user.firstName).to.equal(null);
         expect(user.lastName).to.equal(null);
         expect(user.userType).to.equal(null);
+        expect(user.email).to.equal(null);
         expect(user.permissions).to.matchPattern([]);
         expect(user.accountStatus).to.equal('');
         expect(user.getFullName()).to.equal('');
