@@ -23,7 +23,7 @@ class TestReinviteUser(TstFunction):
 
         self.assertEqual(404, resp['statusCode'])
 
-    def test_delete_user_not_found_jurisdiction_admin(self):
+    def test_reinvite_user_not_found_jurisdiction_admin(self):
         from handlers.users import reinvite_user
 
         with open('tests/resources/api-event.json') as f:
