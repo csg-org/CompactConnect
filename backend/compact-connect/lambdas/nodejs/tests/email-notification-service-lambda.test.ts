@@ -236,11 +236,11 @@ describe('EmailNotificationServiceLambda', () => {
             expect(rawEmailData).toBeDefined();
             const rawEmailString = rawEmailData?.toString();
 
-            expect(rawEmailString).toContain('Content-Type: application/zip');
-            expect(rawEmailString).toContain('Content-Disposition: attachment; filename=aslp-transaction-report.zip');
+            expect(rawEmailString).toContain('Content-Type: application/zip; name=aslp-settled-transaction-report.zip');
+            expect(rawEmailString).toContain('Content-Disposition: attachment;');
             expect(rawEmailString).toContain('Weekly Report for Compact ASLP');
             expect(rawEmailString).toContain('Please find attached the weekly settled')
-            expect(rawEmailString).toContain('transaction reports for your compact for the period 2024-03-01 to')
+            expect(rawEmailString).toContain('transaction reports for the compact for the period 2024-03-01 to')
             expect(rawEmailString).toContain('2024-03-07:</p>')
             expect(rawEmailString).toContain('To: summary@example.com');
         });
@@ -331,7 +331,7 @@ describe('EmailNotificationServiceLambda', () => {
             const rawEmailString = rawEmailData?.toString();
 
             expect(rawEmailString).toContain('Content-Type: application/zip');
-            expect(rawEmailString).toContain('Content-Disposition: attachment; filename=oh-transaction-report.zip');
+            expect(rawEmailString).toContain('Content-Disposition: attachment; filename=oh-settled-transaction-report.zip');
             expect(rawEmailString).toContain('Ohio Weekly Report for Compact ASLP');
             expect(rawEmailString).toContain('Please find attached the weekly settled');
             expect(rawEmailString).toContain('transaction report for your jurisdiction for the period 2024-03-01 to');

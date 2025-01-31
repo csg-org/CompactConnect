@@ -390,10 +390,10 @@ describe('Email Service', () => {
                 from: 'Compact Connect <noreply@example.org>',
                 to: ['summary@example.com'],
                 subject: 'Weekly Report for Compact ASLP',
-                html: expect.stringContaining('Please find attached the weekly settled transaction reports for your compact for the period 2024-03-01 to 2024-03-07'),
+                html: expect.stringContaining('Please find attached the weekly settled transaction reports for the compact for the period 2024-03-01 to 2024-03-07'),
                 attachments: [
                     {
-                        filename: 'aslp-transaction-report.zip',
+                        filename: 'aslp-settled-transaction-report.zip',
                         content: expect.any(Buffer),
                         contentType: 'application/zip'
                     }
@@ -413,7 +413,7 @@ describe('Email Service', () => {
             expect(MOCK_TRANSPORT.sendMail).toHaveBeenCalledWith(
                 expect.objectContaining({
                     subject: 'Monthly Report for Compact ASLP',
-                    html: expect.stringContaining('Please find attached the monthly settled transaction reports for your compact for the period 2024-03-01 to 2024-03-31')
+                    html: expect.stringContaining('Please find attached the monthly settled transaction reports for the compact for the period 2024-03-01 to 2024-03-31')
                 })
             );
         });
@@ -507,7 +507,7 @@ describe('Email Service', () => {
                 html: expect.stringContaining('Please find attached the weekly settled transaction report for your jurisdiction for the period 2024-03-01 to 2024-03-07'),
                 attachments: [
                     {
-                        filename: 'oh-transaction-report.zip',
+                        filename: 'oh-settled-transaction-report.zip',
                         content: expect.any(Buffer),
                         contentType: 'application/zip'
                     }

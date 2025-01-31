@@ -928,9 +928,9 @@ export class EmailService {
 
         const report = JSON.parse(JSON.stringify(this.emailTemplate));
         const subject = `${reportingCycle === 'weekly' ? 'Weekly' : 'Monthly'} Report for Compact ${compact.toUpperCase()}`;
-        const bodyText = `Please find attached the ${reportingCycle} settled transaction reports for your compact for the period ${startDate} to ${endDate}:\n\n` +
-            '- Financial Summary Report - A summary of all transactions and fees\n' +
-            '- Transaction Detail Report - A detailed list of all transactions';
+        const bodyText = `Please find attached the ${reportingCycle} settled transaction reports for the compact for the period ${startDate} to ${endDate}:\n\n` +
+            '- Financial Summary Report - A summary of all settled transactions and fees\n' +
+            '- Transaction Detail Report - A detailed list of all settled transactions';
 
         this.insertHeader(report, subject);
         this.insertMarkdownBody(report, bodyText);
@@ -945,7 +945,7 @@ export class EmailService {
             errorMessage: 'Unable to send compact transaction report email',
             attachments: [
                 {
-                    filename: `${compact}-transaction-report.zip`,
+                    filename: `${compact}-settled-transaction-report.zip`,
                     content: reportZipBuffer,
                     contentType: 'application/zip'
                 }
@@ -1002,7 +1002,7 @@ export class EmailService {
             errorMessage: 'Unable to send jurisdiction transaction report email',
             attachments: [
                 {
-                    filename: `${jurisdiction}-transaction-report.zip`,
+                    filename: `${jurisdiction}-settled-transaction-report.zip`,
                     content: reportZipBuffer,
                     contentType: 'application/zip'
                 }
