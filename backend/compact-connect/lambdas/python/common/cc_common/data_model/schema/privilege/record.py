@@ -45,10 +45,9 @@ class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
     # the id of the transaction that was made when the user purchased the privilege
     compactTransactionId = String(required=False, allow_none=False)
     # list of attestations that were accepted when purchasing this privilege
-    attestations = List(Nested(AttestationVersionRecordSchema()), required=False, allow_none=False)
+    attestations = List(Nested(AttestationVersionRecordSchema()), required=True, allow_none=False)
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
-
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
