@@ -768,7 +768,7 @@ export class EmailService {
                     }
                 },
                 'props': {
-                    'text': '© 2024 CompactConnect'
+                    'text': '© 2025 CompactConnect'
                 }
             }
         };
@@ -819,6 +819,7 @@ export class EmailService {
                 },
                 'style': {
                     'textAlign': 'center',
+                    'color': '#242424',
                     'padding': {
                         'top': 28,
                         'bottom': 12,
@@ -848,6 +849,7 @@ export class EmailService {
                 'style': {
                     'fontSize': 16,
                     'fontWeight': 'normal',
+                    'color': '#A3A3A3',
                     'padding': {
                         'top': 24,
                         'bottom': 24,
@@ -856,6 +858,40 @@ export class EmailService {
                     }
                 },
                 'props': {
+                    'text': bodyText
+                }
+            }
+        };
+
+        report['root']['data']['childrenIds'].push(blockId);
+    }
+
+    /**
+     * Inserts a body text block into the email that can be formatted using markdown.
+     *
+     * @param report The report object to insert the block into.
+     * @param bodyText The text to insert into the block.
+     */
+    private insertMarkdownBody(report: TReaderDocument, bodyText: string) {
+        const blockId = `block-markdown-body`;
+
+        report[blockId] = {
+            'type': 'Text',
+            'data': {
+                'style': {
+                    'fontSize': 16,
+                    'fontWeight': 'normal',
+                    'textAlign': 'left',
+                    'color': '#A3A3A3',
+                    'padding': {
+                        'top': 24,
+                        'bottom': 24,
+                        'right': 40,
+                        'left': 40
+                    }
+                },
+                'props': {
+                    'markdown': true,
                     'text': bodyText
                 }
             }
@@ -892,12 +928,12 @@ export class EmailService {
 
         const report = JSON.parse(JSON.stringify(this.emailTemplate));
         const subject = `${reportingCycle === 'weekly' ? 'Weekly' : 'Monthly'} Report for Compact ${compact.toUpperCase()}`;
-        const bodyText = `Please find attached the ${reportingCycle} transaction reports for your compact for the period ${startDate} to ${endDate}:\n\n` +
-            '1. Financial Summary Report - A summary of all transactions and fees\n' +
-            '2. Transaction Detail Report - A detailed list of all transactions';
+        const bodyText = `Please find attached the ${reportingCycle} settled transaction reports for your compact for the period ${startDate} to ${endDate}:\n\n` +
+            '- Financial Summary Report - A summary of all transactions and fees\n' +
+            '- Transaction Detail Report - A detailed list of all transactions';
 
         this.insertHeader(report, subject);
-        this.insertBody(report, bodyText);
+        this.insertMarkdownBody(report, bodyText);
         this.insertFooter(report);
 
         const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
@@ -951,8 +987,7 @@ export class EmailService {
 
         const report = JSON.parse(JSON.stringify(this.emailTemplate));
         const subject = `${jurisdictionConfig.jurisdictionName} ${reportingCycle === 'weekly' ? 'Weekly' : 'Monthly'} Report for Compact ${compact.toUpperCase()}`;
-        const bodyText = `Please find attached the ${reportingCycle} transaction report for your jurisdiction for the period ${startDate} to ${endDate}:\n\n` +
-            'Transaction Detail Report - A detailed list of all transactions';
+        const bodyText = `Please find attached the ${reportingCycle} settled transaction report for your jurisdiction for the period ${startDate} to ${endDate}.`;
 
         this.insertHeader(report, subject);
         this.insertBody(report, bodyText);
