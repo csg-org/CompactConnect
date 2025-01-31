@@ -18,7 +18,7 @@ from cc_common.exceptions import CCInternalException, CCNotFoundException
 def _get_date_range_for_reporting_cycle(reporting_cycle: str) -> tuple[datetime, datetime]:
     """Calculate the start and end dates for the reporting cycle.
 
-    The weekly reporting cycle captures noon to noon of the previous week.
+    The weekly reporting cycle captures the previous week.
     The monthly reporting cycle captures the first day of the month to the last day of the month.
     :param reporting_cycle: Either 'weekly' or 'monthly'
     :return: Tuple of (start_time, end_time) in UTC
