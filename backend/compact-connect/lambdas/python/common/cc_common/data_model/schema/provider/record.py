@@ -29,6 +29,7 @@ class ProviderPrivateSchema(ForgivingSchema):
     compact = Compact(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     ssn = SocialSecurityNumber(required=True, allow_none=False)
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseType = String(required=True, allow_none=False)
     jurisdictionStatus = ActiveInactive(required=True, allow_none=False)

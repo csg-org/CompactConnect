@@ -9,7 +9,7 @@ from .. import TstFunction
 
 @mock_aws
 class TestClient(TstFunction):
-    def test_get_user(self):
+    def test_get_user_in_compact(self):
         user_id = self._load_user_data()
 
         from cc_common.data_model.user_client import UserClient
@@ -22,7 +22,7 @@ class TestClient(TstFunction):
         self.assertEqual({'type', 'userId', 'attributes', 'permissions', 'dateOfUpdate', 'compact'}, user.keys())
         self.assertEqual(UUID(user_id), user['userId'])
 
-    def test_get_user_not_found(self):
+    def test_get_user_in_compact_not_found(self):
         """User ID not found should raise an exception"""
         from cc_common.data_model.user_client import UserClient
         from cc_common.exceptions import CCNotFoundException
@@ -125,6 +125,20 @@ class TestClient(TstFunction):
         family_names = [user['attributes']['familyName'] for user in resp['items']]
         sorted_family_names = sorted(family_names)
         self.assertEqual(sorted_family_names, family_names)
+
+    def test_update_user_permissions_not_found(self):
+        from cc_common.data_model.user_client import UserClient
+        from cc_common.exceptions import CCNotFoundException
+
+        client = UserClient(self.config)
+
+        with self.assertRaises(CCNotFoundException):
+            client.update_user_permissions(
+                compact='aslp',
+                user_id='does-not-exist',
+                jurisdiction_action_additions={'oh': {'admin'}},
+                jurisdiction_action_removals={'oh': {'write'}},
+            )
 
     def test_update_user_permissions_jurisdiction_actions(self):
         user_id = UUID(self._load_user_data())
@@ -235,6 +249,18 @@ class TestClient(TstFunction):
         # Checking that we're getting the whole object, not just changes
         self.assertFalse({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - user.keys())
 
+    def test_update_user_attributes_not_found(self):
+        from cc_common.data_model.user_client import UserClient
+        from cc_common.exceptions import CCNotFoundException
+
+        client = UserClient(self.config)
+
+        with self.assertRaises(CCNotFoundException):
+            client.update_user_attributes(
+                user_id='does-not-exist',
+                attributes={'givenName': 'Bob', 'familyName': 'Smith'},
+            )
+
     def test_create_new_user(self):
         from cc_common.data_model.user_client import UserClient
 
@@ -310,3 +336,23 @@ class TestClient(TstFunction):
             {'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}, 'ne': {'write', 'admin'}}},
             second_user['permissions'],
         )
+
+    def test_delete_user_in_compact(self):
+        user_id = self._load_user_data()
+
+        from cc_common.data_model.user_client import UserClient
+
+        client = UserClient(self.config)
+
+        client.delete_user(compact='aslp', user_id=user_id)
+
+    def test_delete_user_in_compact_not_found(self):
+        """User ID not found should raise an exception"""
+        from cc_common.data_model.user_client import UserClient
+        from cc_common.exceptions import CCNotFoundException
+
+        client = UserClient(self.config)
+
+        # This user isn't in the DB, so it should raise an exception
+        with self.assertRaises(CCNotFoundException):
+            client.get_user_in_compact(compact='aslp', user_id='123')

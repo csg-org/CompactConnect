@@ -70,10 +70,14 @@ class TstFunction(TstLambdas):
         cognito_client = boto3.client('cognito-idp')
         cognito_client.delete_user_pool(UserPoolId=self._user_pool_id)
 
-    def _load_user_data(self) -> str:
+    def _load_user_data(self, second_jurisdiction: str = None) -> str:
         with open('../common/tests/resources/dynamo/user.json') as f:
             # This item is saved in its serialized form, so we have to deserialize it first
             item = TypeDeserializer().deserialize({'M': json.load(f)})
+
+        # Add write permissions to a second jurisdiction
+        if second_jurisdiction:
+            item['permissions']['jurisdictions'][second_jurisdiction] = {'write'}
 
         logger.info('Loading user: %s', item)
         self._table.put_item(Item=item)

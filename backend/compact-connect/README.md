@@ -105,8 +105,7 @@ Keeping documentation current is an important part of feature development in thi
 1) Export a fresh api specification (OAS 3.0) is exported from API Gateway and used to update [the Open API Specification JSON file](./docs/api-specification/latest-oas30.json).
 2) Run `bin/trim_oas30.py` to organize and trim the API to include only supported API endpoints (and update the script itself, if needed).
 3) If you exported the api specification from somewhere other than the CSG Test environment, be sure to set the `servers[0].url` entry back to the correct base URL for the CSG Test environment.
-4) Update the change summary at the bottom of the [Technical User Docs](./docs/README.md).
-5) Update the [Postman Collection and Environment](./docs/postman) as appropriate.
+4) Update the [Postman Collection and Environment](./docs/postman) as appropriate.
 
 ## Deployment
 [Back to top](#compact-connect---backend-developer-documentation)

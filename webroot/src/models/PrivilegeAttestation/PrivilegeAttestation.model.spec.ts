@@ -50,6 +50,7 @@ describe('PrivilegeAttestation model', () => {
         expect(privilegeAttestation.dateCreatedDisplay()).to.equal('');
         expect(privilegeAttestation.dateCreatedDisplay()).to.equal('');
         expect(privilegeAttestation.textDisplay()).to.equal('');
+        expect(privilegeAttestation.dateUpdatedDisplay()).to.equal('');
     });
     it('should create a PrivilegeAttestation with specific values', () => {
         const data = {
@@ -123,9 +124,10 @@ describe('PrivilegeAttestation model', () => {
         expect(privilegeAttestation.dateUpdatedDisplay()).to.equal(
             moment(data.dateOfUpdate, serverDateFormat).format(displayDateFormat)
         );
+
         expect(privilegeAttestation.textDisplay()).to.equal('test-text<br>test-text');
     });
-    it('should prepare a Staff User for server request through serializer', () => {
+    it('should prepare a PrivilegeAttestation for server request through serializer', () => {
         const privilegeAttestation = new PrivilegeAttestation({
             id: 'test-id',
             dateCreated: '2020-01-01',
