@@ -1,5 +1,5 @@
 <!--
-    PurchaseSuccessful.vue
+    PrivilegePurchaseSuccessful.vue
     CompactConnect
 
     Created by InspiringApps on 11/5/2024.
@@ -26,5 +26,5 @@
     </div>
 </template>
 
-<script lang="ts" src="./PurchaseSuccessful.ts"></script>
-<style scoped lang="less" src="./PurchaseSuccessful.less"></style>
+<script lang="ts" src="./PrivilegePurchaseSuccessful.ts"></script>
+<style scoped lang="less" src="./PrivilegePurchaseSuccessful.less"></style>

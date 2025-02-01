@@ -192,7 +192,7 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
     handleBackClicked() {
         if (this.currentCompactType) {
             this.$router.push({
-                name: 'SelectPrivileges',
+                name: 'PrivilegePurchaseSelect',
                 params: { compact: this.currentCompactType }
             });
         }
@@ -213,7 +213,7 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
                 this.$store.dispatch('user/setAttestationsAccepted', true);
                 this.endFormLoading();
                 this.$router.push({
-                    name: 'FinalizePrivilegePurchase',
+                    name: 'PrivilegePurchaseFinalize',
                     params: { compact: this.currentCompactType }
                 });
             }

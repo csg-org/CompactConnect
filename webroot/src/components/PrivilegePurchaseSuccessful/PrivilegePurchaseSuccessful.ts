@@ -1,5 +1,5 @@
 //
-//  PurchaseSuccessful.ts
+//  PrivilegePurchaseSuccessful.ts
 //  CompactConnect
 //
 //  Created by InspiringApps on 11/5/2024.
@@ -10,12 +10,12 @@ import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import { CompactType } from '@models/Compact/Compact.model';
 
 @Component({
-    name: 'PurchaseSuccessful',
+    name: 'PrivilegePurchaseSuccessful',
     components: {
         InputButton
     }
 })
-export default class PurchaseSuccessful extends Vue {
+export default class PrivilegePurchaseSuccessful extends Vue {
     //
     // Computed
     //

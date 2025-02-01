@@ -1,5 +1,5 @@
 //
-//  FinalizePrivilegePurchase.ts
+//  PrivilegePurchaseFinalize.ts
 //  CompactConnect
 //
 //  Created by InspiringApps on 10/28/2024.
@@ -26,7 +26,7 @@ import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/Privile
 import Joi from 'joi';
 
 @Component({
-    name: 'FinalizePrivilegePurchase',
+    name: 'PrivilegePurchaseFinalize',
     components: {
         MockPopulate,
         InputText,
@@ -38,7 +38,7 @@ import Joi from 'joi';
         CollapseCaretButton
     }
 })
-export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
+export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     //
     // Data
     //
@@ -459,7 +459,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
 
             if (purchaseServerEvent?.message === 'Successfully processed charge') {
                 this.$router.push({
-                    name: 'PurchaseSuccessful',
+                    name: 'PrivilegePurchaseSuccessful',
                     params: { compact: this.currentCompactType }
                 });
             } else if (purchaseServerEvent?.message) {
@@ -484,7 +484,7 @@ export default class FinalizePrivilegePurchase extends mixins(MixinForm) {
     handleBackClicked(): void {
         if (this.currentCompactType) {
             this.$router.push({
-                name: 'SelectPrivileges',
+                name: 'PrivilegePurchaseSelect',
                 params: { compact: this.currentCompactType }
             });
         }

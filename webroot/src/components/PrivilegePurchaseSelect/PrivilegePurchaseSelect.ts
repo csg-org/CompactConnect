@@ -1,5 +1,5 @@
 //
-//  SelectPrivileges.ts
+//  PrivilegePurchaseSelect.ts
 //  CompactConnect
 //
 //  Created by InspiringApps on 10/15/2024.
@@ -21,7 +21,7 @@ import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/Privile
 import { State } from '@/models/State/State.model';
 
 @Component({
-    name: 'SelectPrivileges',
+    name: 'PrivilegePurchaseSelect',
     components: {
         InputCheckbox,
         InputSubmit,
@@ -29,7 +29,7 @@ import { State } from '@/models/State/State.model';
         SelectedStatePurchaseInformation
     }
 })
-export default class SelectPrivileges extends mixins(MixinForm) {
+export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
     //
     // Data
     //

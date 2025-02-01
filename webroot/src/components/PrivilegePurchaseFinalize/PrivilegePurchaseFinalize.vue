@@ -1,5 +1,5 @@
 <!--
-    FinalizePrivilegePurchase.vue
+    PrivilegePurchaseFinalize.vue
     CompactConnect
 
     Created by InspiringApps on 10/28/2024.
@@ -129,5 +129,5 @@
     </div>
 </template>
 
-<script lang="ts" src="./FinalizePrivilegePurchase.ts"></script>
-<style scoped lang="less" src="./FinalizePrivilegePurchase.less"></style>
+<script lang="ts" src="./PrivilegePurchaseFinalize.ts"></script>
+<style scoped lang="less" src="./PrivilegePurchaseFinalize.less"></style>
