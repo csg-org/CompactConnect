@@ -107,19 +107,21 @@ def get_mock_license(i: int, *, compact: str, jurisdiction: str = None) -> dict:
     license_data = _set_dates(license_data)
     return schema.dump(license_data)
 
+
 def generate_mock_license_number() -> str:
     license_str = ''
-    size = randint(5,20)
+    size = randint(5, 20)
 
     for _ in range(size):
         if choice([True, False]):
-            if randint(0,9) > 2:
+            if randint(0, 9) > 2:
                 license_str += chr(randint(ord('A'), ord('Z')))
             else:
                 license_str += '-'
         else:
-            license_str += str(randint(0,9))
+            license_str += str(randint(0, 9))
     return license_str
+
 
 def _set_address_state(license_data: dict, jurisdiction: str) -> dict:
     # 1/5 will have a military waiver
