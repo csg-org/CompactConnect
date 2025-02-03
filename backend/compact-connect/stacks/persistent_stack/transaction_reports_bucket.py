@@ -20,6 +20,11 @@ class TransactionReportsBucket(Bucket):
         encryption_key: IKey,
         **kwargs,
     ):
+        # TODO - we currently don't set a lifecycle policy on this buckets objects  # noqa: FIX002
+        #   as this will be included when we start supporting archival of old data in the system.
+        #   See https://github.com/csg-org/CompactConnect/issues/187
+        #   As part of that work, we will need to create a lifecycle policy to delete old reports
+        #   after a certain period of time so the storage size does not grow indefinitely.
         super().__init__(
             scope,
             construct_id,
