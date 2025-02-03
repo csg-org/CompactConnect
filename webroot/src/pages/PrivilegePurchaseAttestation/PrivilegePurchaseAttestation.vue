@@ -7,23 +7,41 @@
 
 <template>
     <div class="privilege-purchase-attestation-container">
-        <form class="privilege-form" @submit.prevent="handleSubmit">
-            <div class="attestation-text">
-                Attestations
+        <form class="privilege-purchase-attestation-form" @submit.prevent="handleSubmit">
+            <div class="privilege-purchase-attestation-form-container">
+                <h1 class="form-title">{{ $t('licensing.attestations') }}</h1>
+                <div v-if="!areFormInputsSet" class="loading-container">
+                    <LoadingSpinner v-if="!userStore.isLoadingAccount" />
+                </div>
+                <div v-else>
+                    <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
+                    <InputRadioGroup :formInput="formData.investigations" />
+                    <div class="form-section-title">{{ $t('licensing.discipline') }} *</div>
+                    <InputCheckbox :formInput="formData.disciplineCurrent" />
+                    <InputCheckbox :formInput="formData.disciplinePrior" />
+                    <div class="form-section-title form-section-gap">
+                        {{ $t('licensing.provisionOfInformation') }} *
+                    </div>
+                    <InputCheckbox :formInput="formData.trueInformation" />
+                    <div class="form-section-title form-section-gap">
+                        {{ $t('licensing.militaryAffiliation') }} *
+                    </div>
+                    <InputCheckbox :formInput="formData.militaryAffiliation" />
+                </div>
             </div>
-            <div class="button-row">
+            <div v-if="areFormInputsSet" class="button-row">
                 <InputButton
-                    :label="cancelText"
                     :isTextLike="true"
-                    aria-label="close modal"
-                    class="icon icon-close-modal"
+                    :label="$t('common.cancel')"
+                    :aria-label="$t('common.cancel')"
+                    class="cancel"
                     @click="handleCancelClicked"
                 />
                 <div class="right-cell">
                     <InputButton
-                        :label="backText"
-                        aria-label="close modal"
-                        class="back-button"
+                        :label="$t('common.back')"
+                        :aria-label="$t('common.back')"
+                        class="back"
                         @click="handleBackClicked"
                     />
                     <InputSubmit

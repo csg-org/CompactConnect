@@ -1,7 +1,6 @@
 import json
 from uuid import UUID
 
-from cc_common.exceptions import CCInvalidRequestException
 from moto import mock_aws
 
 from .. import TstFunction
@@ -9,7 +8,7 @@ from .. import TstFunction
 
 @mock_aws
 class TestClient(TstFunction):
-    def test_get_user(self):
+    def test_get_user_in_compact(self):
         user_id = self._load_user_data()
 
         from cc_common.data_model.user_client import UserClient
@@ -19,10 +18,12 @@ class TestClient(TstFunction):
         user = client.get_user_in_compact(compact='aslp', user_id=user_id)
 
         # Verify that we're getting the expected fields
-        self.assertEqual({'type', 'userId', 'attributes', 'permissions', 'dateOfUpdate', 'compact'}, user.keys())
+        self.assertEqual(
+            {'type', 'userId', 'attributes', 'permissions', 'dateOfUpdate', 'compact', 'status'}, user.keys()
+        )
         self.assertEqual(UUID(user_id), user['userId'])
 
-    def test_get_user_not_found(self):
+    def test_get_user_in_compact_not_found(self):
         """User ID not found should raise an exception"""
         from cc_common.data_model.user_client import UserClient
         from cc_common.exceptions import CCNotFoundException
@@ -57,7 +58,9 @@ class TestClient(TstFunction):
 
         # Verify that we're getting the expected fields
         for user in resp['items']:
-            self.assertEqual({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'}, user.keys())
+            self.assertEqual(
+                {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate', 'status'}, user.keys()
+            )
 
         # Verify we're seeing the expected sorting
         family_names = [user['attributes']['familyName'] for user in resp['items']]
@@ -89,7 +92,9 @@ class TestClient(TstFunction):
 
         # Verify that we're getting the expected fields
         for user in resp['items']:
-            self.assertEqual({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'}, user.keys())
+            self.assertEqual(
+                {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate', 'status'}, user.keys()
+            )
 
         # Verify we're seeing the expected sorting
         family_names = [user['attributes']['familyName'] for user in resp['items']]
@@ -119,12 +124,28 @@ class TestClient(TstFunction):
 
         # Verify that we're getting the expected fields
         for user in resp['items']:
-            self.assertEqual({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'}, user.keys())
+            self.assertEqual(
+                {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate', 'status'}, user.keys()
+            )
 
         # Verify we're seeing the expected sorting
         family_names = [user['attributes']['familyName'] for user in resp['items']]
         sorted_family_names = sorted(family_names)
         self.assertEqual(sorted_family_names, family_names)
+
+    def test_update_user_permissions_not_found(self):
+        from cc_common.data_model.user_client import UserClient
+        from cc_common.exceptions import CCNotFoundException
+
+        client = UserClient(self.config)
+
+        with self.assertRaises(CCNotFoundException):
+            client.update_user_permissions(
+                compact='aslp',
+                user_id='does-not-exist',
+                jurisdiction_action_additions={'oh': {'admin'}},
+                jurisdiction_action_removals={'oh': {'write'}},
+            )
 
     def test_update_user_permissions_jurisdiction_actions(self):
         user_id = UUID(self._load_user_data())
@@ -146,7 +167,9 @@ class TestClient(TstFunction):
             resp['permissions'],
         )
         # Just checking that we're getting the whole object, not just changes
-        self.assertFalse({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - resp.keys())
+        self.assertFalse(
+            {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate', 'status'} - resp.keys()
+        )
 
     def test_update_user_permissions_board_to_compact_admin(self):
         # The sample user looks like board staff in aslp/oh
@@ -166,7 +189,9 @@ class TestClient(TstFunction):
         self.assertEqual(user_id, resp['userId'])
         self.assertEqual({'actions': {'readPrivate', 'admin'}, 'jurisdictions': {}}, resp['permissions'])
         # Checking that we're getting the whole object, not just changes
-        self.assertFalse({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - resp.keys())
+        self.assertFalse(
+            {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate', 'status'} - resp.keys()
+        )
 
     def test_update_user_permissions_compact_to_board_admin(self):
         from boto3.dynamodb.types import TypeDeserializer
@@ -193,10 +218,13 @@ class TestClient(TstFunction):
         self.assertEqual(user_id, resp['userId'])
         self.assertEqual({'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}}, resp['permissions'])
         # Checking that we're getting the whole object, not just changes
-        self.assertFalse({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - resp.keys())
+        self.assertFalse(
+            {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate', 'status'} - resp.keys()
+        )
 
     def test_update_user_permissions_no_change(self):
         from boto3.dynamodb.types import TypeDeserializer
+        from cc_common.exceptions import CCInvalidRequestException
 
         with open('tests/resources/dynamo/user.json') as f:
             user_data = TypeDeserializer().deserialize({'M': json.load(f)})
@@ -233,9 +261,24 @@ class TestClient(TstFunction):
         self.assertEqual(user_id, user['userId'])
         self.assertEqual({'givenName': 'Bob', 'familyName': 'Smith', 'email': 'justin@example.org'}, user['attributes'])
         # Checking that we're getting the whole object, not just changes
-        self.assertFalse({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'} - user.keys())
+        self.assertFalse(
+            {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate', 'status'} - user.keys()
+        )
+
+    def test_update_user_attributes_not_found(self):
+        from cc_common.data_model.user_client import UserClient
+        from cc_common.exceptions import CCNotFoundException
+
+        client = UserClient(self.config)
+
+        with self.assertRaises(CCNotFoundException):
+            client.update_user_attributes(
+                user_id='does-not-exist',
+                attributes={'givenName': 'Bob', 'familyName': 'Smith'},
+            )
 
     def test_create_new_user(self):
+        from cc_common.data_model.schema.common import StaffUserStatus
         from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
@@ -246,7 +289,11 @@ class TestClient(TstFunction):
             permissions={'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}},
         )
 
-        self.assertEqual({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'}, resp.keys())
+        self.assertEqual(
+            {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate', 'status'},
+            resp.keys(),
+        )
+        self.assertEqual(StaffUserStatus.INACTIVE.value, resp['status'])
         self.assertEqual({'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'}, resp['attributes'])
         self.assertEqual({'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}}}, resp['permissions'])
 
@@ -256,6 +303,7 @@ class TestClient(TstFunction):
         we're looking at here is that we have two sets of permissions (DB records, internally) but that they share the
         same userId.
         """
+        from cc_common.data_model.schema.common import StaffUserStatus
         from cc_common.data_model.user_client import UserClient
 
         client = UserClient(self.config)
@@ -275,7 +323,10 @@ class TestClient(TstFunction):
         )
 
         self.assertEqual(first_user['userId'], second_user['userId'])
-        self.assertEqual({'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate'}, second_user.keys())
+        self.assertEqual(
+            {'type', 'userId', 'compact', 'attributes', 'permissions', 'dateOfUpdate', 'status'},
+            second_user.keys(),
+        )
         self.assertEqual(
             {'givenName': 'Bob', 'familyName': 'Smith', 'email': 'bob@example.org'},
             second_user['attributes'],
@@ -283,6 +334,7 @@ class TestClient(TstFunction):
         # The second user should see the second compact permissions, not the first, since they are presented separately
         self.assertEqual('octp', second_user['compact'])
         self.assertEqual({'actions': {'read'}, 'jurisdictions': {'ne': {'write', 'admin'}}}, second_user['permissions'])
+        self.assertEqual(StaffUserStatus.INACTIVE.value, second_user['status'])
 
     def test_create_existing_user_same_compact(self):
         from cc_common.data_model.user_client import UserClient
@@ -310,3 +362,23 @@ class TestClient(TstFunction):
             {'actions': {'read'}, 'jurisdictions': {'oh': {'write', 'admin'}, 'ne': {'write', 'admin'}}},
             second_user['permissions'],
         )
+
+    def test_delete_user_in_compact(self):
+        user_id = self._load_user_data()
+
+        from cc_common.data_model.user_client import UserClient
+
+        client = UserClient(self.config)
+
+        client.delete_user(compact='aslp', user_id=user_id)
+
+    def test_delete_user_in_compact_not_found(self):
+        """User ID not found should raise an exception"""
+        from cc_common.data_model.user_client import UserClient
+        from cc_common.exceptions import CCNotFoundException
+
+        client = UserClient(self.config)
+
+        # This user isn't in the DB, so it should raise an exception
+        with self.assertRaises(CCNotFoundException):
+            client.get_user_in_compact(compact='aslp', user_id='123')

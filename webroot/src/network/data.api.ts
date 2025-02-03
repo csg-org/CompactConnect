@@ -88,6 +88,16 @@ export class DataApi {
         return licenseDataApi.getLicensee(compact, licenseeId);
     }
 
+    /**
+     * GET Attestation by ID.
+     * @param  {string}          compact       A compact type.
+     * @param  {string}          attestationId An attestation ID.
+     * @return {Promise<object>}               A PrivilegeAttestation model instance.
+     */
+    public getAttestation(compact, attestationId) {
+        return licenseDataApi.getAttestation(compact, attestationId);
+    }
+
     // ========================================================================
     //                              USER API
     // ========================================================================

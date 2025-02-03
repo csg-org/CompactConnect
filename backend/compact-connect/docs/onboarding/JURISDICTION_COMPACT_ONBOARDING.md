@@ -158,6 +158,7 @@ compact-connect
 Note the jurisdiction configuration file name must be the name of the jurisdiction with '-'
 characters in place of spaces.
 
+# Compact Onboarding for Compact Connect
 
 ## Add Global Compact Configuration File to the System
 In addition to the jurisdiction configuration files, if a new compact is being added, a global compact configuration
@@ -238,8 +239,22 @@ attestations:
 
 The system automatically handles versioning of attestations. When the text, displayName, description, or required status of an attestation changes, the system will automatically increment the version number. Providers must always accept the latest version of each attestation when purchasing privileges.
 
+## Uploading Authorize.net API Keys
+Compact administrators can configure their Authorize.net payment processing credentials through the Compact Connect UI. These credentials are used to securely process payments for compact privilege applications. For detailed instructions on how to generate these keys in your Authorize.net account, please visit the [Authorize.net documentation](https://support.authorize.net/knowledgebase/Knowledgearticle/?code=000001271). Once these credentials have been generated, the compact admin can set up payment processing for your compact using the following steps:
 
-## Updating Snapshot Tests to match Configuration Changes
+1. Log in to the Compact Connect UI as a compact administrator
+2. Navigate to the Compact Settings page (gear icon in the bottom left corner of the side navigation bar)
+3. Locate the "Authorize.net Credentials" section
+4. Enter the following Authorize.net credentials into the form and press "Submit":
+   - API Login ID
+   - Transaction Key
+
+If the request is successful, payment processing will be enabled for your compact.
+
+**Important Security Notes:**
+- If you ever suspect your credentials have been compromised, generate new ones immediately in your Authorize.net account and update the credentials through the Compact Connect UI.
+
+# Updating CDK Snapshot Tests to match Configuration Changes
 In order to ensure that the system is functioning as expected, we have tests in place to verify that the configuration
 files are being formatted correctly. We do this through 'Snapshot' tests, which are json files stored under the
 `tests/resources/snapshots` directory.
