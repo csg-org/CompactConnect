@@ -60,22 +60,29 @@ def _get_display_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
 def _get_query_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
     """Get the query date range for DynamoDB queries.
 
-    Since the DynamoDB BETWEEN condition is exclusive and our SK format includes additional
-    components after the timestamp (COMPACT#name#TIME#timestamp#BATCH#id#TX#id), we need to adjust
-    our timestamps to ensure we capture all transactions:
-    - For start time: subtract 1 second to ensure we capture transactions exactly at the start time
-    - For end time: add 1 second to ensure we capture transactions exactly at the end time
+    Our Sort Key format for transactions includes additional components after the timestamp
+    (COMPACT#name#TIME#timestamp#BATCH#id#TX#id), So the DynamoDB BETWEEN condition is INCLUSIVE for the beginning
+    range and EXCLUSIVE at the end range. We need to adjust our timestamps accordingly to ensure we capture all
+    settled transactions exactly once.
 
     :param reporting_cycle: Either 'weekly' or 'monthly'
     :return: Tuple of (start_time, end_time) in UTC for DynamoDB queries
     """
-    display_start, display_end = _get_display_date_range(reporting_cycle)
+    if reporting_cycle == 'weekly':
+        # we can return the start and end times directly because the BETWEEN condition is 
+        # inclusive for the beginning range and exclusive at the end range
+        return _get_weekly_date_boundaries(config.current_standard_datetime)
 
-    # Add/subtract 1 second for query times to handle exclusive BETWEEN
-    query_start = display_start - timedelta(seconds=1)
-    query_end = display_end + timedelta(seconds=1)
+    elif reporting_cycle == 'monthly':
+        start_time, end_time =  _get_monthly_date_boundaries(config.current_standard_datetime)
+        query_start = start_time
+        # we need to add 1 second to the end time to ensure we capture all settled transactions in the month
+        query_end = end_time + timedelta(seconds=1)
 
-    return query_start, query_end
+        return query_start, query_end
+
+    raise ValueError(f'Invalid reporting cycle: {reporting_cycle}')
+
 
 
 def _store_compact_reports_in_s3(

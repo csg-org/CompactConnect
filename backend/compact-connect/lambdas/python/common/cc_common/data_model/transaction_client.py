@@ -65,14 +65,21 @@ class TransactionClient:
 
         # Generate list of months to query
         current_date = start_date.replace(day=1)
+        current_epoch = current_date.timestamp()
         months_to_query = []
-        while current_date <= end_date:
+        # here we check if the end epoch is greater than the current epoch
+        # if it is, we add the current month to the list of months to query
+        # we then move to the first day of the next month
+        # we repeat this process until the end epoch is less than the current epoch
+        while end_epoch > current_epoch:
             months_to_query.append(current_date.strftime('%Y-%m'))
             # Move to first day of next month
             if current_date.month == 12:
                 current_date = current_date.replace(year=current_date.year + 1, month=1)
             else:
                 current_date = current_date.replace(month=current_date.month + 1)
+
+            current_epoch = current_date.timestamp()
 
         # Query each month in the range
         for month in months_to_query:

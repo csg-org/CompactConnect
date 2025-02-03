@@ -818,10 +818,11 @@ class TestGenerateTransactionReports(TstFunction):
 
         _set_default_lambda_client_behavior(mock_lambda_client)
 
-        self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
+        self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION, NEBRASKA_JURISDICTION])
 
         mock_user = self._add_mock_provider_to_db('12345', 'John', 'Doe')
         # Create a transaction with a privilege which is settled the first day of the month at midnight UTC
+        # This transaction should be included in the monthly report
         self._add_mock_transaction_to_db(
             jurisdictions=['oh'],
             licensee_id=mock_user['providerId'],
@@ -836,6 +837,15 @@ class TestGenerateTransactionReports(TstFunction):
             licensee_id=mock_user['providerId'],
             month_iso_string='2024-02',
             transaction_settlement_time_utc=datetime.fromisoformat('2024-02-29T23:59:59+00:00'),
+        )
+
+        # Create a transaction with a privilege which is settled at the very end of the previous month
+        # This transaction should NOT be included in the monthly report
+        self._add_mock_transaction_to_db(
+            jurisdictions=['ne'],
+            licensee_id=mock_user['providerId'],
+            month_iso_string='2024-01',
+            transaction_settlement_time_utc=datetime.fromisoformat('2024-01-31T23:59:59+00:00'),
         )
 
         # Create a transaction with a privilege which is settled the last day of the month at midnight UTC
@@ -899,6 +909,123 @@ class TestGenerateTransactionReports(TstFunction):
                     'Total Transactions,2\n'
                     'Total Compact Fees,$21.00\n'  # $10.50 x 2 privileges
                     'State Fees (Kentucky),$100.00\n'
+                    'State Fees (Nebraska),$0.00\n'
+                    'State Fees (Ohio),$100.00\n',
+                    summary_content,
+                )
+
+    # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-03-08T22:00:01+00:00'))
+    @patch('handlers.transaction_reporting.config.lambda_client')
+    def test_generate_weekly_report_includes_expected_settled_transactions_for_full_week_range(self, mock_lambda_client):
+        """Test processing weekly report with full week range for Mar 2024."""
+        from handlers.transaction_reporting import generate_transaction_reports
+
+        _set_default_lambda_client_behavior(mock_lambda_client)
+
+        self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION, NEBRASKA_JURISDICTION])
+
+        mock_user = self._add_mock_provider_to_db('12345', 'John', 'Doe')
+
+        # Create a transaction with a privilege which is settled the first day of the week a second after 10:00 PM UTC
+        self._add_mock_transaction_to_db(
+            jurisdictions=['oh'],
+            licensee_id=mock_user['providerId'],
+            month_iso_string='2025-03',
+            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-01T22:00:01+00:00'),
+        )
+
+        # Create a transaction with a privilege which is settled the first day of the week right at 10:00 PM UTC
+        # This transaction should be included in the weekly report
+        self._add_mock_transaction_to_db(
+            jurisdictions=['ky'],
+            licensee_id=mock_user['providerId'],
+            month_iso_string='2025-03',
+            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-01T22:00:00+00:00'),
+        )
+
+        # Create a transaction with a privilege which is settled the last day of the week right at 9:59:59 PM UTC
+        # This transaction should be included in the weekly report
+        self._add_mock_transaction_to_db(
+            jurisdictions=['ne'],
+            licensee_id=mock_user['providerId'],
+            month_iso_string='2025-03',
+            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-08T21:59:59+00:00'),
+        )
+
+
+        # Create a transaction with a privilege which is settled at the end of the week at 10:00 PM UTC
+        # This transaction should NOT be included in the weekly report
+        self._add_mock_transaction_to_db(
+            jurisdictions=['ky'],
+            licensee_id=mock_user['providerId'],
+            month_iso_string='2025-03',
+            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-08T22:00:00+00:00'),
+        )
+
+        # Create a transaction with a privilege which is settled the last day of the week a second after 10:00 PM UTC
+        # This transaction should NOT be included in the weekly report
+        self._add_mock_transaction_to_db(
+            jurisdictions=['ne'],
+            licensee_id=mock_user['providerId'],
+            month_iso_string='2025-03',
+            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-08T22:00:01+00:00'),
+        )
+
+
+        # Calculate expected date range
+        # the end time should be Friday at 10:00 PM UTC
+        end_time = datetime.fromisoformat('2025-03-08T22:00:00+00:00')
+        # the start time should be 7 days ago at 10:00 PM UTC
+        start_time = end_time - timedelta(days=7)
+        date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
+
+        generate_transaction_reports(generate_mock_event(reporting_cycle='weekly'), self.mock_context)
+
+        # Verify email notifications
+        calls_args = mock_lambda_client.invoke.call_args_list
+
+        # Check compact report email
+        compact_call = calls_args[0][1]
+        self.assertEqual(self.config.email_notification_service_lambda_name, compact_call['FunctionName'])
+        self.assertEqual('RequestResponse', compact_call['InvocationType'])
+
+        expected_compact_path = (
+            f"compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/"
+            f"{end_time.strftime('%Y/%m/%d')}/"
+            f"{TEST_COMPACT}-{date_range}-report.zip"
+        )
+        compact_payload = json.loads(compact_call['Payload'])
+        self.assertEqual(
+            {
+                'compact': TEST_COMPACT,
+                'recipientType': 'COMPACT_SUMMARY_REPORT',
+                'template': 'CompactTransactionReporting',
+                'templateVariables': {
+                    'reportS3Path': expected_compact_path,
+                    'reportingCycle': 'weekly',
+                    'startDate': start_time.strftime('%Y-%m-%d'),
+                    'endDate': end_time.strftime('%Y-%m-%d'),
+                },
+            },
+            compact_payload,
+        )
+
+        # Verify S3 stored files
+        # Check compact reports
+        compact_zip_obj = self.config.s3_client.get_object(
+            Bucket=self.config.transaction_reports_bucket_name, Key=expected_compact_path
+        )
+
+        with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
+            # Check financial summary
+            with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
+                summary_content = f.read().decode('utf-8')
+                self.assertEqual(
+                    'Total Transactions,3\n'
+                    'Total Compact Fees,$31.50\n'  # $10.50 x 2 privileges
+                    'State Fees (Kentucky),$100.00\n'
+                    'State Fees (Nebraska),$100.00\n'
                     'State Fees (Ohio),$100.00\n',
                     summary_content,
                 )
