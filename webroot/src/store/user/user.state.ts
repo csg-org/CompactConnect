@@ -26,7 +26,7 @@ export interface State {
     currentCompact: Compact | null;
     selectedPrivilegesToPurchase: Array<string> | null;
     arePurchaseAttestationsAccepted: boolean;
-    purchase: any;
+    purchase: any; // @TODO: Migration to this prop, including typing, will be in #302.
     error: any | null;
 }
 
