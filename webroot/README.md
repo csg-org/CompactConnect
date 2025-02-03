@@ -101,9 +101,9 @@
             - `15mh24ea4af3of8jcnv8h2ic10`
     - **`VUE_APP_RECAPTCHA_KEY`**
         - _Server_ :arrow_heading_up:
-            - Dev(JCC-Test): `TODO`
-            - Test(CSG-Test): `TODO`
-            - Prod: `TODO`
+            - Dev(JCC-Test): `6Le-3bgqAAAAAILDVUKkRnAF9SSzb8o9uv5lY7Ih`
+            - Test(CSG-Test): `6LcWQMkqAAAAAL_Wkh6Ik_HSqSqNqROzOyPCrvNC`
+            - Prod: `6LcEQckqAAAAAJUQDEO1KsoeH17-EH5h2UfrwdyK`
         - _Local_ :arrow_heading_down:
             - `6Le-3bgqAAAAAILDVUKkRnAF9SSzb8o9uv5lY7Ih`
     - **`VUE_APP_MOCK_API`** :arrow_heading_down:

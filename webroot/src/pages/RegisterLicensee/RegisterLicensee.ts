@@ -297,7 +297,7 @@ class RegisterLicensee extends mixins(MixinForm) {
         const { recaptchaKey, isUsingMockApi } = this.$envConfig;
 
         if (!isUsingMockApi) {
-            const { grecaptcha } = window as any;
+            const { grecaptcha } = window as any; // From the SDK loaded in initRecaptcha() above
             const recaptchaToken = await new Promise((resolve, reject) => {
                 grecaptcha.ready(() => {
                     grecaptcha.execute(recaptchaKey, { action: 'submit' }).then((token) => {

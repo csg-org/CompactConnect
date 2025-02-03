@@ -284,7 +284,7 @@ const setCspHeader = (requestDomain, headers = {}) => {
                 domains.cognitoStaff,
                 domains.cognitoProvider,
                 cognitoIdpUrl,
-                'https://www.google.com/recaptcha',
+                'https://www.google.com/recaptcha/',
             ]),
         ].join(' ')}`,
     }];
