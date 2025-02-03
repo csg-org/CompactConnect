@@ -829,15 +829,13 @@ class TestGenerateTransactionReports(TstFunction):
             transaction_settlement_time_utc=datetime.fromisoformat('2024-02-01T00:00:00+00:00'),
         )
 
-        # Create a transaction with a priviliege which is settled at the end of the month
+        # Create a transaction with a privilege which is settled at the very end of the month
         # This transaction should be included in the monthly report
         self._add_mock_transaction_to_db(
             jurisdictions=['ky'],
             licensee_id=mock_user['providerId'],
             month_iso_string='2024-02',
-            # NOTE: the moto mock does not correctly mock the behavior of the BETWEEN condition, which according to AWS is inclusive
-            # so for the purposes of this test we use a time that is just before midnight UTC
-            transaction_settlement_time_utc=datetime.fromisoformat('2024-02-29T23:59:58+00:00'),
+            transaction_settlement_time_utc=datetime.fromisoformat('2024-02-29T23:59:59+00:00'),
         )
 
         # Create a transaction with a privilege which is settled the last day of the month at midnight UTC

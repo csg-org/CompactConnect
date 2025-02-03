@@ -15,34 +15,70 @@ from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 
 
-def _get_date_range_for_reporting_cycle(reporting_cycle: str) -> tuple[datetime, datetime]:
-    """Calculate the start and end dates for the reporting cycle.
-
-    The weekly reporting cycle captures the previous week.
-    The monthly reporting cycle captures the first day of the month to the last day of the month.
-    :param reporting_cycle: Either 'weekly' or 'monthly'
-    :return: Tuple of (start_time, end_time) in UTC
+def _get_weekly_date_boundaries(current_time: datetime) -> tuple[datetime, datetime]:
+    """Calculate the start and end times for weekly reporting boundaries.
+    
+    :param current_time: The current time in UTC
+    :return: Tuple of (start_time, end_time) for the weekly report boundaries
     """
+    # Reports run on Friday 10:00 PM UTC
+    end_time = current_time.replace(hour=22, minute=0, second=0, microsecond=0)
+    # Go back 7 days to capture the full week
+    start_time = end_time - timedelta(days=7)
+    return start_time, end_time
 
+
+def _get_monthly_date_boundaries(current_time: datetime) -> tuple[datetime, datetime]:
+    """Calculate the start and end times for monthly reporting boundaries.
+    
+    :param current_time: The current time in UTC
+    :return: Tuple of (start_time, end_time) for the monthly report boundaries
+    """
+    # Reports run shortly after midnight on the first day of the month
+    # End time is the last microsecond of the previous month
+    end_time = current_time.replace(
+        hour=0, minute=0, second=0, microsecond=0
+    ) - timedelta(microseconds=1)
+    # Start time is the first microsecond of the previous month
+    start_time = end_time.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    return start_time, end_time
+
+
+def _get_display_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
+    """Get the display date range for reports.
+
+    These dates are used for report filenames and email notifications.
+
+    :param reporting_cycle: Either 'weekly' or 'monthly'
+    :return: Tuple of (start_time, end_time) in UTC for display purposes
+    """
     if reporting_cycle == 'weekly':
-        # This report is run on Friday 10:00 PM UTC
-        # we want to capture the full week, so we set the end time to 10:00 PM UTC of the current day
-        end_time = config.current_standard_datetime.replace(hour=22, minute=0, second=0, microsecond=0)
-        # Go back 7 days to capture the full week
-        start_time = end_time - timedelta(days=7)
+        return _get_weekly_date_boundaries(config.current_standard_datetime)
     elif reporting_cycle == 'monthly':
-        # The monthly report is triggered a little after midnight UTC of the first day of the month
-        # we report on the previous month, so we set the end time to 23:59:59.999999 UTC of the previous day
-        # to capture the full month
-        end_time = config.current_standard_datetime.replace(
-            hour=23, minute=59, second=59, microsecond=999999
-        ) - timedelta(days=1)
-        # Go back to the first day of the current month to capture the full month
-        start_time = end_time.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        return _get_monthly_date_boundaries(config.current_standard_datetime)
     else:
         raise ValueError(f'Invalid reporting cycle: {reporting_cycle}')
 
-    return start_time, end_time
+
+def _get_query_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
+    """Get the query date range for DynamoDB queries.
+
+    Since the DynamoDB BETWEEN condition is exclusive and our SK format includes additional
+    components after the timestamp (COMPACT#name#TIME#timestamp#BATCH#id#TX#id), we need to adjust
+    our timestamps to ensure we capture all transactions:
+    - For start time: subtract 1 second to ensure we capture transactions exactly at the start time
+    - For end time: add 1 second to ensure we capture transactions exactly at the end time
+
+    :param reporting_cycle: Either 'weekly' or 'monthly'
+    :return: Tuple of (start_time, end_time) in UTC for DynamoDB queries
+    """
+    display_start, display_end = _get_display_date_range(reporting_cycle)
+
+    # Add/subtract 1 second for query times to handle exclusive BETWEEN
+    query_start = display_start - timedelta(seconds=1)
+    query_end = display_end + timedelta(seconds=1)
+
+    return query_start, query_end
 
 
 def _store_compact_reports_in_s3(
@@ -174,10 +210,12 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     # Get the S3 bucket name
     bucket_name = config.transaction_reports_bucket_name
 
-    # Calculate time range based on reporting cycle
-    start_time, end_time = _get_date_range_for_reporting_cycle(reporting_cycle)
-    start_epoch = int(start_time.timestamp())
-    end_epoch = int(end_time.timestamp())
+    # Get both query and display date ranges
+    query_start_time, query_end_time = _get_query_date_range(reporting_cycle)
+    
+    # Convert query times to epochs for DynamoDB
+    start_epoch = int(query_start_time.timestamp())
+    end_epoch = int(query_end_time.timestamp())
 
     # Get all transactions for the time period
     transactions = transaction_client.get_transactions_in_range(
@@ -227,12 +265,14 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     compact_transaction_csv = _generate_compact_transaction_report(transactions, providers)
     jurisdiction_reports = _generate_jurisdiction_reports(transactions, providers, jurisdiction_configurations)
 
+    display_start_time, display_end_time = _get_display_date_range(reporting_cycle)
+
     # Store compact reports in S3 and get paths
     compact_paths = _store_compact_reports_in_s3(
         compact=compact,
         reporting_cycle=reporting_cycle,
-        start_time=start_time,
-        end_time=end_time,
+        start_time=display_start_time,
+        end_time=display_end_time,
         summary_report=compact_summary_csv,
         transaction_detail=compact_transaction_csv,
         bucket_name=bucket_name,
@@ -250,8 +290,8 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
                 'templateVariables': {
                     'reportS3Path': compact_paths['report_zip'],
                     'reportingCycle': reporting_cycle,
-                    'startDate': start_time.strftime('%Y-%m-%d'),
-                    'endDate': end_time.strftime('%Y-%m-%d'),
+                    'startDate': display_start_time.strftime('%Y-%m-%d'),
+                    'endDate': display_end_time.strftime('%Y-%m-%d'),
                 },
             }
         ),
@@ -272,8 +312,8 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
             compact=compact,
             jurisdiction=jurisdiction,
             reporting_cycle=reporting_cycle,
-            start_time=start_time,
-            end_time=end_time,
+            start_time=display_start_time,
+            end_time=display_end_time,
             transaction_detail=report_csv,
             bucket_name=bucket_name,
         )
@@ -290,8 +330,8 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
                     'templateVariables': {
                         'reportS3Path': jurisdiction_paths['report_zip'],
                         'reportingCycle': reporting_cycle,
-                        'startDate': start_time.strftime('%Y-%m-%d'),
-                        'endDate': end_time.strftime('%Y-%m-%d'),
+                        'startDate': display_start_time.strftime('%Y-%m-%d'),
+                        'endDate': display_end_time.strftime('%Y-%m-%d'),
                     },
                 }
             ),
