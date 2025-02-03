@@ -53,7 +53,6 @@ class TransactionClient:
         """
         # Calculate the month keys we need to query based on the epoch timestamps
         start_date = datetime.fromtimestamp(start_epoch, tz=UTC)
-        end_date = datetime.fromtimestamp(end_epoch, tz=UTC)
 
         # Build query parameters
         query_params = {
