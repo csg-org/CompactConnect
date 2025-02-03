@@ -48,7 +48,7 @@ jobs:
       VUE_APP_COGNITO_CLIENT_ID_STAFF: ${{ secrets.TEST_WEBROOT_COGNITO_CLIENT_ID_STAFF }}
       VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE: https://compact-connect-provider-test.auth.us-east-1.amazoncognito.com
       VUE_APP_COGNITO_CLIENT_ID_LICENSEE: ${{ secrets.TEST_WEBROOT_COGNITO_CLIENT_ID_LICENSEE }}
-      VUE_APP_RECAPTCHA_KEY: 6Le-3bgqAAAAAILDVUKkRnAF9SSzb8o9uv5lY7Ih
+      VUE_APP_RECAPTCHA_KEY: 6LcWQMkqAAAAAL_Wkh6Ik_HSqSqNqROzOyPCrvNC
 
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
