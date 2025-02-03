@@ -818,7 +818,9 @@ class TestGenerateTransactionReports(TstFunction):
 
         _set_default_lambda_client_behavior(mock_lambda_client)
 
-        self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION, NEBRASKA_JURISDICTION])
+        self._add_compact_configuration_data(
+            jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION, NEBRASKA_JURISDICTION]
+        )
 
         mock_user = self._add_mock_provider_to_db('12345', 'John', 'Doe')
         # Create a transaction with a privilege which is settled the first day of the month at midnight UTC
@@ -917,13 +919,17 @@ class TestGenerateTransactionReports(TstFunction):
     # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-03-08T22:00:01+00:00'))
     @patch('handlers.transaction_reporting.config.lambda_client')
-    def test_generate_weekly_report_includes_expected_settled_transactions_for_full_week_range(self, mock_lambda_client):
+    def test_generate_weekly_report_includes_expected_settled_transactions_for_full_week_range(
+        self, mock_lambda_client
+    ):
         """Test processing weekly report with full week range for Mar 2024."""
         from handlers.transaction_reporting import generate_transaction_reports
 
         _set_default_lambda_client_behavior(mock_lambda_client)
 
-        self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION, NEBRASKA_JURISDICTION])
+        self._add_compact_configuration_data(
+            jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION, NEBRASKA_JURISDICTION]
+        )
 
         mock_user = self._add_mock_provider_to_db('12345', 'John', 'Doe')
 
@@ -953,7 +959,6 @@ class TestGenerateTransactionReports(TstFunction):
             transaction_settlement_time_utc=datetime.fromisoformat('2025-03-08T21:59:59+00:00'),
         )
 
-
         # Create a transaction with a privilege which is settled at the end of the week at 10:00 PM UTC
         # This transaction should NOT be included in the weekly report
         self._add_mock_transaction_to_db(
@@ -971,7 +976,6 @@ class TestGenerateTransactionReports(TstFunction):
             month_iso_string='2025-03',
             transaction_settlement_time_utc=datetime.fromisoformat('2025-03-08T22:00:01+00:00'),
         )
-
 
         # Calculate expected date range
         # the end time should be Friday at 10:00 PM UTC

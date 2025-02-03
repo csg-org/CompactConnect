@@ -69,12 +69,12 @@ def _get_query_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
     :return: Tuple of (start_time, end_time) in UTC for DynamoDB queries
     """
     if reporting_cycle == 'weekly':
-        # we can return the start and end times directly because the BETWEEN condition is 
+        # we can return the start and end times directly because the BETWEEN condition is
         # inclusive for the beginning range and exclusive at the end range
         return _get_weekly_date_boundaries(config.current_standard_datetime)
 
-    elif reporting_cycle == 'monthly':
-        start_time, end_time =  _get_monthly_date_boundaries(config.current_standard_datetime)
+    if reporting_cycle == 'monthly':
+        start_time, end_time = _get_monthly_date_boundaries(config.current_standard_datetime)
         query_start = start_time
         # we need to add 1 second to the end time to ensure we capture all settled transactions in the month
         query_end = end_time + timedelta(seconds=1)
@@ -82,7 +82,6 @@ def _get_query_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
         return query_start, query_end
 
     raise ValueError(f'Invalid reporting cycle: {reporting_cycle}')
-
 
 
 def _store_compact_reports_in_s3(
