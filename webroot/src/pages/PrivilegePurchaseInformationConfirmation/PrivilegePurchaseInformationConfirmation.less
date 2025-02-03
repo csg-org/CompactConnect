@@ -17,6 +17,10 @@
     .loading-container {
         width: 100%;
         height: 400px;
+
+        :deep(.loading-spinner-mask) {
+            height: 100%;
+        }
     }
 
     .confirm-info-form {
@@ -89,27 +93,35 @@
 
             @media @tabletWidth {
                 width: 72rem;
-                padding-right: 14rem;
+                padding-right: 4rem;
                 padding-left: 4rem;
             }
 
             @media @desktopWidth {
                 width: 90rem;
                 margin-top: 8rem;
-                padding-right: 26rem;
+                padding-right: 4rem;
                 padding-left: 4rem;
+            }
+
+            &.right-gap {
+                @media @tabletWidth {
+                    padding-right: 14rem;
+                }
+
+                @media @desktopWidth {
+                    padding-right: 26rem;
+                }
             }
 
             .privilege-purchase-title {
                 margin-bottom: 1rem;
-                font-weight: @fontWeightBold;
-                font-size: @fontSizeLarger;
             }
 
             .personal-info-title {
                 margin-bottom: 1rem;
                 font-weight: @fontWeightBold;
-                font-size: @fontSizeLarge;
+                font-size: @h3FontSize;
             }
 
             .chunk {
