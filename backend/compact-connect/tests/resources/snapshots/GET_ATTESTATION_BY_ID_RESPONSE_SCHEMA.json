@@ -29,6 +29,9 @@
     },
     "required": {
       "type": "boolean"
+    },
+    "locale": {
+      "type": "string"
     }
   },
   "type": "object",

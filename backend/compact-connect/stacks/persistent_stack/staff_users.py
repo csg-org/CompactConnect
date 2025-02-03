@@ -118,7 +118,7 @@ class StaffUsers(UserPool):
                 'JURISDICTIONS': json.dumps(jurisdictions),
             },
         )
-        self.user_table.grant_read_data(scope_customization_handler)
+        self.user_table.grant_read_write_data(scope_customization_handler)
 
         NagSuppressions.add_resource_suppressions(
             scope_customization_handler,

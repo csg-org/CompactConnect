@@ -10,6 +10,7 @@ class TestPatchUser(TstFunction):
     def test_patch_user(self):
         self._load_user_data()
 
+        from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user
 
         with open('tests/resources/api-event.json') as f:
@@ -28,6 +29,7 @@ class TestPatchUser(TstFunction):
             {
                 'attributes': {'email': 'justin@example.org', 'familyName': 'Williams', 'givenName': 'Justin'},
                 'dateOfUpdate': '2024-09-12T23:59:59+00:00',
+                'status': StaffUserStatus.INACTIVE.value,
                 'permissions': {
                     'aslp': {
                         'actions': {'readPrivate': True},
@@ -41,6 +43,9 @@ class TestPatchUser(TstFunction):
         )
 
     def test_patch_user_document_path_overlap(self):
+        from cc_common.data_model.schema.common import StaffUserStatus
+        from handlers.users import patch_user
+
         user = {
             'pk': 'USER#648864e8-10f1-702f-e666-2e0ff3482502',
             'sk': 'COMPACT#octp',
@@ -49,6 +54,7 @@ class TestPatchUser(TstFunction):
                 'familyName': 'User',
                 'givenName': 'Test',
             },
+            'status': StaffUserStatus.INACTIVE.value,
             'compact': 'octp',
             'dateOfUpdate': '2024-09-12T12:34:56+00:00',
             'famGiv': 'User#Test',
@@ -57,8 +63,6 @@ class TestPatchUser(TstFunction):
             'userId': '648864e8-10f1-702f-e666-2e0ff3482502',
         }
         self._table.put_item(Item=user)
-
-        from handlers.users import patch_user
 
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -101,11 +105,13 @@ class TestPatchUser(TstFunction):
                 },
                 'type': 'user',
                 'userId': '648864e8-10f1-702f-e666-2e0ff3482502',
+                'status': StaffUserStatus.INACTIVE.value,
             },
             user,
         )
 
     def test_patch_user_add_to_empty_actions(self):
+        from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user, post_user
 
         with open('tests/resources/api-event.json') as f:
@@ -140,9 +146,13 @@ class TestPatchUser(TstFunction):
         del user['userId']
         del user['dateOfUpdate']
 
+        # Add status to the comparison
+        api_user['status'] = StaffUserStatus.INACTIVE.value
+
         self.assertEqual(api_user, user)
 
     def test_patch_user_remove_all_actions(self):
+        from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user, post_user
 
         with open('tests/resources/api-event.json') as f:
@@ -174,6 +184,9 @@ class TestPatchUser(TstFunction):
         # Drop backend-generated fields from comparison
         del user['userId']
         del user['dateOfUpdate']
+
+        # Add status to the comparison
+        api_user['status'] = StaffUserStatus.INACTIVE.value
 
         api_user['permissions'] = {'aslp': {'jurisdictions': {}}}
         self.assertEqual(api_user, user)
@@ -215,6 +228,7 @@ class TestPatchUser(TstFunction):
     def test_patch_user_allows_adding_read_private_permission(self):
         self._load_user_data()
 
+        from cc_common.data_model.schema.common import StaffUserStatus
         from handlers.users import patch_user
 
         with open('tests/resources/api-event.json') as f:
@@ -246,6 +260,7 @@ class TestPatchUser(TstFunction):
             {
                 'attributes': {'email': 'justin@example.org', 'familyName': 'Williams', 'givenName': 'Justin'},
                 'dateOfUpdate': '2024-09-12T23:59:59+00:00',
+                'status': StaffUserStatus.INACTIVE.value,
                 'permissions': {
                     'aslp': {
                         'actions': {'readPrivate': True},

@@ -48,6 +48,8 @@ describe('PrivilegeAttestation model', () => {
 
         // Test methods
         expect(privilegeAttestation.dateCreatedDisplay()).to.equal('');
+        expect(privilegeAttestation.dateCreatedDisplay()).to.equal('');
+        expect(privilegeAttestation.textDisplay()).to.equal('');
         expect(privilegeAttestation.dateUpdatedDisplay()).to.equal('');
     });
     it('should create a PrivilegeAttestation with specific values', () => {
@@ -58,7 +60,7 @@ describe('PrivilegeAttestation model', () => {
             compact: new Compact(),
             type: 'test-type',
             name: 'test-name',
-            text: 'test-text',
+            text: 'test-text\ntest-text',
             version: 'test-version',
             locale: 'test-locale',
             isRequired: true,
@@ -85,6 +87,7 @@ describe('PrivilegeAttestation model', () => {
         expect(privilegeAttestation.dateUpdatedDisplay()).to.equal(
             moment(data.dateUpdated, serverDateFormat).format(displayDateFormat)
         );
+        expect(privilegeAttestation.textDisplay()).to.equal('test-text<br>test-text');
     });
     it('should create a PrivilegeAttestation with specific values through serializer', () => {
         const data = {
@@ -94,7 +97,7 @@ describe('PrivilegeAttestation model', () => {
             compact: 'aslp',
             type: 'test-type',
             displayName: 'test-name',
-            text: 'test-text',
+            text: 'test-text\ntest-text',
             version: 'test-version',
             locale: 'test-locale',
             required: true,
@@ -121,6 +124,8 @@ describe('PrivilegeAttestation model', () => {
         expect(privilegeAttestation.dateUpdatedDisplay()).to.equal(
             moment(data.dateOfUpdate, serverDateFormat).format(displayDateFormat)
         );
+
+        expect(privilegeAttestation.textDisplay()).to.equal('test-text<br>test-text');
     });
     it('should prepare a PrivilegeAttestation for server request through serializer', () => {
         const privilegeAttestation = new PrivilegeAttestation({

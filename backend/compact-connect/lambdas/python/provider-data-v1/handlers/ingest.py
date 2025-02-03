@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from boto3.dynamodb.types import TypeSerializer
 from cc_common.config import config, logger
 from cc_common.data_model.schema import LicenseRecordSchema, ProviderRecordSchema
-from cc_common.data_model.schema.common import Status, UpdateCategory
+from cc_common.data_model.schema.common import ProviderEligibilityStatus, UpdateCategory
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
 from cc_common.exceptions import CCNotFoundException
@@ -76,7 +76,15 @@ def ingest_license_message(message: dict):
             dynamo_transactions=dynamo_transactions,
         )
     licenses[license_post['jurisdiction']] = license_post
-    best_license = _find_best_license(licenses.values())
+
+    # First try to find the home state license
+    best_license = config.data_client.find_home_state_license(
+        compact=compact, provider_id=provider_id, licenses=list(licenses.values())
+    )
+    # If no home state selection exists yet, fall back to finding the best license based on status and date
+    if best_license is None:
+        best_license = _find_best_license(licenses.values())
+
     if best_license is license_post:
         logger.info('Updating provider data', provider_id=provider_id, compact=compact, jurisdiction=jurisdiction)
 
@@ -123,7 +131,13 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
         if key not in existing_license.keys() or value != existing_license[key]
     }
     # If any fields are missing from the new license, other than ones we add later, we'll consider them removed
-    removed_values = (existing_license.keys() - new_license.keys()) - {'type', 'providerId', 'status', 'dateOfUpdate'}
+    removed_values = (existing_license.keys() - new_license.keys()) - {
+        'type',
+        'providerId',
+        'status',
+        'dateOfUpdate',
+        'ssnLastFour',
+    }
     if not updated_values and not removed_values:
         return
     # Categorize the update
@@ -154,7 +168,7 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
             and updated_values['dateOfRenewal'] > original_values['dateOfRenewal']
         ):
             update_type = UpdateCategory.RENEWAL
-    elif updated_values == {'jurisdictionStatus': Status.INACTIVE}:
+    elif updated_values == {'jurisdictionStatus': ProviderEligibilityStatus.INACTIVE.value}:
         update_type = UpdateCategory.DEACTIVATION
     if update_type is None:
         update_type = UpdateCategory.OTHER
@@ -180,7 +194,11 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
 def _find_best_license(all_licenses: Iterable) -> dict:
     # Last issued active license, if there are any active licenses
     latest_active_licenses = sorted(
-        [license_data for license_data in all_licenses if license_data['jurisdictionStatus'] == 'active'],
+        [
+            license_data
+            for license_data in all_licenses
+            if license_data['jurisdictionStatus'] == ProviderEligibilityStatus.ACTIVE.value
+        ],
         key=lambda x: x['dateOfIssuance'],
         reverse=True,
     )

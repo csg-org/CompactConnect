@@ -18,6 +18,7 @@ from cc_common.exceptions import (
     CCAccessDeniedException,
     CCInvalidRequestException,
     CCNotFoundException,
+    CCRateLimitingException,
     CCUnauthorizedException,
 )
 
@@ -52,6 +53,7 @@ class CaseInsensitiveDict(UserDict):
     To accommodate HTTP2 vs HTTP1.1 behavior RE header capitalization
     https://www.rfc-editor.org/rfc/rfc7540#section-8.1.2
     """
+
     def __init__(self, in_dict: dict[str, Any], /):
         if in_dict:
             # Force all keys to lowercase
@@ -59,7 +61,7 @@ class CaseInsensitiveDict(UserDict):
         else:
             super().__init__({})
 
-    def pop(self, key: str, default = None):
+    def pop(self, key: str, default=None):
         return super().pop(key.lower(), default)
 
     def __setitem__(self, key: str, value):
@@ -68,7 +70,7 @@ class CaseInsensitiveDict(UserDict):
     def __getitem__(self, key: str):
         return super().__getitem__(key.lower())
 
-    def get(self, key: str, default = None):
+    def get(self, key: str, default=None):
         return super().get(key.lower(), default)
 
 
@@ -134,6 +136,13 @@ def api_handler(fn: Callable):
                 'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
                 'statusCode': 404,
                 'body': json.dumps({'message': f'{e.message}'}),
+            }
+        except CCRateLimitingException as e:
+            logger.info('Rate limiting request', exc_info=e)
+            return {
+                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
+                'statusCode': 429,
+                'body': json.dumps({'message': e.message}),
             }
         except CCInvalidRequestException as e:
             logger.info('Invalid request', exc_info=e)
