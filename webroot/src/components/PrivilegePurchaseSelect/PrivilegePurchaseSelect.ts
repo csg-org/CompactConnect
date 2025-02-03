@@ -42,6 +42,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         await this.$store.dispatch('user/getPrivilegePurchaseInformationRequest');
 
         if (this.alreadyObtainedPrivilegeStates?.length) {
+            console.log('huh');
             this.initFormInputs();
         }
     }
