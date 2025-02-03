@@ -51,7 +51,7 @@ describe('User model', () => {
         const data = {
             accountStatus: 'active',
             stateProvidedEmail: 'hello@example.com',
-            compactConnectEmail: 'hello+registered@hello.com',
+            compactConnectEmail: 'hello+registered@example.com',
             firstName: 'Faa',
             id: '443df4d8-60e7-4agg-aff4-c5d12ecc1234',
             lastName: 'Foo',
@@ -126,7 +126,7 @@ describe('User model', () => {
                 }
             ],
             emailAddress: 'hello@example.com',
-            compactConnectRegisteredEmailAddress: 'hello+registered@hello.com',
+            compactConnectRegisteredEmailAddress: 'hello+registered@example.com',
             dateOfExpiration: '2024-08-29',
             homeAddressState: 'co',
             providerId: '2',
@@ -209,7 +209,7 @@ describe('User model', () => {
                 }
             ],
             emailAddress: 'hello@example.com',
-            compactConnectRegisteredEmailAddress: 'hello+registered@hello.com',
+            compactConnectRegisteredEmailAddress: 'hello+registered@example.com',
             dateOfExpiration: '2024-08-29',
             homeAddressState: 'co',
             providerId: '2',
