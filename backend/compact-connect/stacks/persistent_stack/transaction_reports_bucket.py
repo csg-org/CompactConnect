@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from aws_cdk.aws_kms import IKey
-from aws_cdk.aws_s3 import BucketEncryption, CorsRule, HttpMethods
+from aws_cdk.aws_s3 import BucketEncryption
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.bucket import Bucket
@@ -27,13 +27,6 @@ class TransactionReportsBucket(Bucket):
             encryption_key=encryption_key,
             server_access_logs_bucket=access_logs_bucket,
             versioned=True,
-            cors=[
-                CorsRule(
-                    allowed_methods=[HttpMethods.GET, HttpMethods.POST],
-                    allowed_origins=['*'],
-                    allowed_headers=['*'],
-                ),
-            ],
             **kwargs,
         )
 

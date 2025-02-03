@@ -105,6 +105,9 @@ def _store_compact_reports_in_s3(
     )
 
     # Define paths for all report files
+    # Currently, we are only sending the .zip file in the email reporting, but we are storing the
+    # .gz files for potential future references as admins may want to pull down reporting for previous
+    # periods
     paths = {
         'financial_summary_gz': f'{base_path}/{compact}-financial-summary-{date_range}.csv.gz',
         'transaction_detail_gz': f'{base_path}/{compact}-transaction-detail-{date_range}.csv.gz',
@@ -162,6 +165,9 @@ def _store_jurisdiction_reports_in_s3(
     )
 
     # Define paths for all report files
+    # Currently, we are only sending the .zip file in the email reporting, but we are storing the
+    # .gz files for potential future references as admins may want to pull down reporting for previous
+    # periods.
     paths = {
         'transaction_detail_gz': f'{base_path}/{jurisdiction}-{date_range}-transaction-detail.csv.gz',
         'report_zip': f'{base_path}/{jurisdiction}-{date_range}-report.zip',
