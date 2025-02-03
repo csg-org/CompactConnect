@@ -17,7 +17,7 @@ from cc_common.exceptions import CCInternalException, CCNotFoundException
 
 def _get_weekly_date_boundaries(current_time: datetime) -> tuple[datetime, datetime]:
     """Calculate the start and end times for weekly reporting boundaries.
-    
+
     :param current_time: The current time in UTC
     :return: Tuple of (start_time, end_time) for the weekly report boundaries
     """
@@ -30,15 +30,13 @@ def _get_weekly_date_boundaries(current_time: datetime) -> tuple[datetime, datet
 
 def _get_monthly_date_boundaries(current_time: datetime) -> tuple[datetime, datetime]:
     """Calculate the start and end times for monthly reporting boundaries.
-    
+
     :param current_time: The current time in UTC
     :return: Tuple of (start_time, end_time) for the monthly report boundaries
     """
     # Reports run shortly after midnight on the first day of the month
     # End time is the last microsecond of the previous month
-    end_time = current_time.replace(
-        hour=0, minute=0, second=0, microsecond=0
-    ) - timedelta(microseconds=1)
+    end_time = current_time.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(microseconds=1)
     # Start time is the first microsecond of the previous month
     start_time = end_time.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     return start_time, end_time
@@ -54,10 +52,9 @@ def _get_display_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
     """
     if reporting_cycle == 'weekly':
         return _get_weekly_date_boundaries(config.current_standard_datetime)
-    elif reporting_cycle == 'monthly':
+    if reporting_cycle == 'monthly':
         return _get_monthly_date_boundaries(config.current_standard_datetime)
-    else:
-        raise ValueError(f'Invalid reporting cycle: {reporting_cycle}')
+    raise ValueError(f'Invalid reporting cycle: {reporting_cycle}')
 
 
 def _get_query_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
@@ -212,7 +209,7 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
 
     # Get both query and display date ranges
     query_start_time, query_end_time = _get_query_date_range(reporting_cycle)
-    
+
     # Convert query times to epochs for DynamoDB
     start_epoch = int(query_start_time.timestamp())
     end_epoch = int(query_end_time.timestamp())
