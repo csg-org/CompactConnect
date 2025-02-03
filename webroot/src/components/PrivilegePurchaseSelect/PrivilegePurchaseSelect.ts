@@ -12,6 +12,7 @@ import SelectedStatePurchaseInformation from '@components/SelectedStatePurchaseI
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import { License, LicenseStatus } from '@/models/License/License.model';
@@ -26,7 +27,8 @@ import { State } from '@/models/State/State.model';
         InputCheckbox,
         InputSubmit,
         InputButton,
-        SelectedStatePurchaseInformation
+        SelectedStatePurchaseInformation,
+        ProgressBar
     }
 })
 export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
@@ -239,6 +241,10 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         }
 
         return allConfirmed;
+    }
+
+    get progressPercent(): number {
+        return 25;
     }
 
     //

@@ -5,13 +5,18 @@
 //  Created by InspiringApps on 2/3/2025.
 //
 
-import { Component, Vue, toNative } from 'vue-facing-decorator';
+import {
+    Component,
+    Vue,
+    toNative,
+    Prop
+} from 'vue-facing-decorator';
 
 @Component({
     name: 'ProgressBar',
 })
 class ProgressBar extends Vue {
-    // PROPS
+    @Prop({ required: true }) progressPercent?: boolean;
 
     //
     // Data

@@ -16,6 +16,7 @@ import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputCreditCard from '@components/Forms/InputCreditCard/InputCreditCard.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
@@ -35,7 +36,8 @@ import Joi from 'joi';
         InputSubmit,
         InputButton,
         InputCreditCard,
-        CollapseCaretButton
+        CollapseCaretButton,
+        ProgressBar
     }
 })
 export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
@@ -313,6 +315,10 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
 
     get isMockPopulateEnabled(): boolean {
         return Boolean(this.$envConfig.isDevelopment);
+    }
+
+    get progressPercent(): number {
+        return 75;
     }
 
     //

@@ -9,6 +9,7 @@
     <div class="select-privileges-container">
         <form class="privilege-form" @submit.prevent="handleSubmit">
             <div class="select-privileges-core-container">
+                <ProgressBar :progressPercent="progressPercent" />
                 <div class="select-privileges-title">
                     {{selectPrivilegesTitleText}}
                 </div>

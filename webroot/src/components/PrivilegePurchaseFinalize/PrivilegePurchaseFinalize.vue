@@ -10,6 +10,7 @@
         <form class="complete-purchase-form" @submit.prevent="handleSubmit">
             <div class="finalize-purchase-container">
                 <div class="finalize-purchase-core-container">
+                    <ProgressBar :progressPercent="progressPercent" />
                     <div class="finalize-purchase-title-row">
                         <div class="finalize-purchase-title">{{paymentTitleText}}</div>
                         <CollapseCaretButton v-if="isPhone" @toggleCollapse="togglePaymentCollapsed" />

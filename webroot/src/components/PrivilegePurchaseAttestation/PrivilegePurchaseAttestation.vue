@@ -9,6 +9,7 @@
     <div class="privilege-purchase-attestation-container">
         <form class="privilege-purchase-attestation-form" @submit.prevent="handleSubmit">
             <div class="privilege-purchase-attestation-form-container">
+                <ProgressBar :progressPercent="progressPercent" />
                 <h1 class="form-title">{{ $t('licensing.attestations') }}</h1>
                 <div v-if="!areFormInputsSet" class="loading-container">
                     <LoadingSpinner v-if="!userStore.isLoadingAccount" />

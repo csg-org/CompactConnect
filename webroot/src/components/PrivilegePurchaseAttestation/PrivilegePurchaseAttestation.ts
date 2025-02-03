@@ -13,6 +13,7 @@ import InputRadioGroup from '@components/Forms/InputRadioGroup/InputRadioGroup.v
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { PrivilegeAttestation } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
@@ -34,6 +35,7 @@ interface AttestationOption {
         InputCheckbox,
         InputButton,
         InputSubmit,
+        ProgressBar
     }
 })
 export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
@@ -113,6 +115,10 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
 
     get isMockPopulateEnabled(): boolean {
         return Boolean(this.$envConfig.isDevelopment);
+    }
+
+    get progressPercent(): number {
+        return 50;
     }
 
     //

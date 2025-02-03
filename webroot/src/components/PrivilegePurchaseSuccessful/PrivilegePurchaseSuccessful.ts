@@ -7,12 +7,14 @@
 
 import { Component, Vue } from 'vue-facing-decorator';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
+import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import { CompactType } from '@models/Compact/Compact.model';
 
 @Component({
     name: 'PrivilegePurchaseSuccessful',
     components: {
-        InputButton
+        InputButton,
+        ProgressBar
     }
 })
 export default class PrivilegePurchaseSuccessful extends Vue {
@@ -37,6 +39,10 @@ export default class PrivilegePurchaseSuccessful extends Vue {
 
     get compactType(): CompactType | null {
         return this.userStore.currentCompact?.type;
+    }
+
+    get progressPercent(): number {
+        return 100;
     }
 
     //
