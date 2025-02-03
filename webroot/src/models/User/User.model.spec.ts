@@ -34,6 +34,7 @@ describe('User model', () => {
         expect(user).to.be.an.instanceof(User);
         expect(user.id).to.equal(null);
         expect(user.firstName).to.equal(null);
+        expect(user.compactConnectEmail).to.equal(null);
         expect(user.lastName).to.equal(null);
         expect(user.accountStatus).to.equal('');
         expect(user.getFullName()).to.equal('');
@@ -43,7 +44,7 @@ describe('User model', () => {
     it('should create a User with specific values', () => {
         const data = {
             id: 'id',
-            email: 'email',
+            compactConnectEmail: 'email',
             firstName: 'firstName',
             lastName: 'lastName',
             permissions: [
@@ -69,6 +70,7 @@ describe('User model', () => {
         expect(user.firstName).to.equal(data.firstName);
         expect(user.lastName).to.equal(data.lastName);
         expect(user.accountStatus).to.equal(data.accountStatus);
+        expect(user.compactConnectEmail).to.equal(data.compactConnectEmail);
         expect(user.getFullName()).to.equal(`${data.firstName} ${data.lastName}`);
         expect(user.getInitials()).to.equal('FL');
         expect(user.accountStatusDisplay()).to.equal('Active');

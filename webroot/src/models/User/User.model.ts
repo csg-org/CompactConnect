@@ -16,6 +16,7 @@ export interface InterfaceUserCreate {
     id?: string | null;
     firstName?: string | null;
     lastName?: string | null;
+    compactConnectEmail?: string | null;
     userType?: AuthTypes | null;
     accountStatus?: string;
     serverPage?: number;
@@ -30,6 +31,7 @@ export class User implements InterfaceUserCreate {
     public id? = null;
     public firstName? = null;
     public lastName? = null;
+    public compactConnectEmail? = null
     public userType? = null;
     public accountStatus? = '';
     public serverPage? = 0;

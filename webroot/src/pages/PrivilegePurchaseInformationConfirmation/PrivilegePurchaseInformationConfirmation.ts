@@ -49,8 +49,7 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
             'personal-information-home-state-attestation',
         ],
     }
-    // attestationRecords: Array<PrivilegeAttestation> = []; // eslint-disable-line lines-between-class-members
-    attestationRecords: Array<any> = []; // eslint-disable-line lines-between-class-members
+    attestationRecords: Array<PrivilegeAttestation> = []; // eslint-disable-line lines-between-class-members
     areFormInputsSet = false;
 
     //
@@ -97,10 +96,6 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
         return this.licensee?.licenseNumber || '';
     }
 
-    get areAllAttestationsChecked(): boolean {
-        return true;
-    }
-
     get backText(): string {
         return this.$t('common.back');
     }
@@ -134,12 +129,8 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
     }
 
     get accountEmail(): string {
-        return this.user?.compactConnectRegisteredEmailAddress || '';
+        return this.user?.compactConnectEmail || '';
     }
-
-    //
-    // Methods
-    //
 
     //
     // Methods

@@ -16,7 +16,6 @@ import { User, InterfaceUserCreate } from '@models/User/User.model';
 // ========================================================
 export interface InterfaceLicenseeUserCreate extends InterfaceUserCreate {
     stateProvidedEmail?: string | null;
-    compactConnectRegisteredEmailAddress?: string | null;
     licensee?: Licensee | null;
 }
 
@@ -25,7 +24,6 @@ export interface InterfaceLicenseeUserCreate extends InterfaceUserCreate {
 // ========================================================
 export class LicenseeUser extends User implements InterfaceLicenseeUserCreate {
     public stateProvidedEmail? = null;
-    public compactConnectRegisteredEmailAddress? = null;
     public licensee? = null;
 
     constructor(data?: InterfaceLicenseeUserCreate) {
@@ -51,7 +49,7 @@ export class LicenseeUserSerializer {
         const userData: any = {
             id: json.providerId,
             stateProvidedEmail: json.emailAddress,
-            compactConnectRegisteredEmailAddress: json.compactConnectRegisteredEmailAddress,
+            compactConnectEmail: json.compactConnectRegisteredEmailAddress,
             firstName: json.givenName,
             lastName: json.familyName,
             accountStatus: json.status || 'inactive',

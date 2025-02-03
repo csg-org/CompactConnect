@@ -66,15 +66,7 @@ class UserAccount extends mixins(MixinForm) {
     }
 
     get email(): string {
-        let email = '';
-
-        if (this.isLicensee) {
-            email = (this.user as any)?.compactConnectRegisteredEmailAddress;
-        } else if (this.isStaff) {
-            email = (this.user as any)?.email;
-        }
-
-        return email;
+        return this.user?.compactConnectEmail || '';
     }
 
     get user(): User | LicenseeUser | StaffUser {

@@ -31,7 +31,6 @@ export interface CompactPermission {
 }
 
 export interface InterfaceStaffUserCreate extends InterfaceUserCreate {
-    email?: string | null;
     permissions?: Array<CompactPermission>;
 }
 
@@ -39,7 +38,6 @@ export interface InterfaceStaffUserCreate extends InterfaceUserCreate {
 // =                        Model                         =
 // ========================================================
 export class StaffUser extends User implements InterfaceStaffUserCreate {
-    public email? = null;
     public permissions? = [];
 
     constructor(data?: InterfaceStaffUserCreate) {
@@ -288,9 +286,9 @@ export class StaffUserSerializer {
     static fromServer(json: any, fetchConfig?: any): User {
         const userData: any = {
             id: json.userId,
-            email: json.attributes?.email,
             firstName: json.attributes?.givenName,
             lastName: json.attributes?.familyName,
+            compactConnectEmail: json.attributes?.email,
             userType: AuthTypes.STAFF,
             permissions: [],
             accountStatus: json.status || 'active', // Temp 'active' fallback until server responses include this field, per team discussion

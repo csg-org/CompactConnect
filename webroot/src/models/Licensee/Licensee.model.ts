@@ -223,21 +223,21 @@ export class Licensee implements InterfaceLicensee {
 
     public bestHomeStateLicense(): License {
         // Return most recently issued active license that matches the user's registered home jurisdiction
-        // If no active license return  most recently issued active license that matches the user's registered home jurisdiction
+        // If no active license return  most recently issued inactive license that matches the user's registered home jurisdiction
         let bestHomeLicense = new License();
         const homeStateLicenses = this.licenses?.filter((license: License) =>
             (license.issueState?.abbrev === this.homeJurisdiction?.abbrev)) || [];
         const activeHomeStateLicenses = homeStateLicenses.filter((license: License) =>
             (license.statusState === LicenseStatus.ACTIVE));
-        const inActiveHomeStateLicenses = homeStateLicenses.filter((license: License) =>
+        const inactiveHomeStateLicenses = homeStateLicenses.filter((license: License) =>
             (license.statusState === LicenseStatus.INACTIVE));
 
         if (activeHomeStateLicenses.length) {
             bestHomeLicense = activeHomeStateLicenses.reduce(function getMostRecent(prev: License, current: License) {
                 return (prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev : current;
             } as any);
-        } else if (inActiveHomeStateLicenses.length) {
-            bestHomeLicense = inActiveHomeStateLicenses.reduce(function getMostRecent(prev: License, current: License) {
+        } else if (inactiveHomeStateLicenses.length) {
+            bestHomeLicense = inactiveHomeStateLicenses.reduce(function getMostRecent(prev: License, current: License) {
                 return (prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev : current;
             } as any);
         }
