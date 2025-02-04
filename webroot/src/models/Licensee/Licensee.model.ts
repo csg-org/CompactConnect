@@ -7,10 +7,17 @@
 
 import deleteUndefinedProperties from '@models/_helpers';
 import { dateDisplay, relativeFromNowDisplay } from '@models/_formatters/date';
+import { formatPhoneNumber, stripPhoneNumber } from '@models/_formatters/phone';
 import { Address, AddressSerializer } from '@models/Address/Address.model';
-import { License, LicenseOccupation, LicenseSerializer } from '@models/License/License.model';
+import {
+    License,
+    LicenseOccupation,
+    LicenseSerializer,
+    LicenseStatus
+} from '@models/License/License.model';
 import { MilitaryAffiliation, MilitaryAffiliationSerializer } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
 import { State } from '@models/State/State.model';
+import moment from 'moment';
 
 /**
  * This model is used to represent both get one and get all server responses
@@ -33,10 +40,12 @@ export interface InterfaceLicensee {
     firstName?: string | null;
     middleName?: string | null;
     lastName?: string | null;
-    address?: Address;
+    address?: Address; // TODO: Deprecated delete in clean up ticket
+    homeJurisdiction?: State;
     dob?: string | null;
     birthMonthDay?: string | null;
     ssn?: string | null;
+    phoneNumber?: string | null;
     occupation?: LicenseOccupation | null;
     militaryAffiliations?: Array <MilitaryAffiliation>;
     licenseStates?: Array<State>;
@@ -59,10 +68,12 @@ export class Licensee implements InterfaceLicensee {
     public firstName? = null;
     public middleName? = null;
     public lastName? = null;
-    public address? = new Address();
+    public homeJurisdiction? = new State();
+    public address? = new Address(); // TODO: Deprecated delete in clean up ticket
     public dob? = null;
     public birthMonthDay? = null;
     public ssn? = null;
+    public phoneNumber? = null;
     public occupation? = null;
     public licenseStates? = [];
     public licenses? = [];
@@ -91,10 +102,6 @@ export class Licensee implements InterfaceLicensee {
         const lastName = this.lastName || '';
 
         return `${firstName} ${lastName}`.trim();
-    }
-
-    public residenceLocation(): string {
-        return this.address?.state?.name() || '';
     }
 
     public dobDisplay(): string {
@@ -198,6 +205,10 @@ export class Licensee implements InterfaceLicensee {
         return this.$t(`licensing.statusOptions.${this.status}`);
     }
 
+    public phoneNumberDisplay(): string {
+        return this.phoneNumber ? formatPhoneNumber(stripPhoneNumber(this.phoneNumber)) : '';
+    }
+
     public isMilitary(): boolean {
         // The API does not return the affiliations in the get-all endpoint therefore all users will appear unaffiliated
         // if only that endpoint has been called
@@ -208,6 +219,34 @@ export class Licensee implements InterfaceLicensee {
         // The API does not return the affiliations in the get-all endpoint therefore all users will appear unaffiliated
         // if only that endpoint has been called
         return this.militaryAffiliations?.find((affiliation) => ((affiliation as MilitaryAffiliation).status as any) === 'active') || null;
+    }
+
+    public bestHomeStateLicense(): License {
+        // Return most recently issued active license that matches the user's registered home jurisdiction
+        // If no active license return  most recently issued inactive license that matches the user's registered home jurisdiction
+        let bestHomeLicense = new License();
+        const homeStateLicenses = this.licenses?.filter((license: License) =>
+            (license.issueState?.abbrev === this.homeJurisdiction?.abbrev)) || [];
+        const activeHomeStateLicenses = homeStateLicenses.filter((license: License) =>
+            (license.statusState === LicenseStatus.ACTIVE));
+        const inactiveHomeStateLicenses = homeStateLicenses.filter((license: License) =>
+            (license.statusState === LicenseStatus.INACTIVE));
+
+        if (activeHomeStateLicenses.length) {
+            bestHomeLicense = activeHomeStateLicenses.reduce(function getMostRecent(prev: License, current: License) {
+                return (prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev : current;
+            } as any);
+        } else if (inactiveHomeStateLicenses.length) {
+            bestHomeLicense = inactiveHomeStateLicenses.reduce(function getMostRecent(prev: License, current: License) {
+                return (prev && moment(prev.issueDate).isAfter(current.issueDate)) ? prev : current;
+            } as any);
+        }
+
+        return bestHomeLicense;
+    }
+
+    public bestHomeStateLicenseMailingAddress(): Address {
+        return this.bestHomeStateLicense().mailingAddress || new Address();
     }
 }
 
@@ -223,16 +262,18 @@ export class LicenseeSerializer {
             firstName: json.givenName,
             middleName: json.middleName,
             lastName: json.familyName,
+            homeJurisdiction: new State({ abbrev: json.homeJurisdictionSelection?.jurisdiction }),
             address: AddressSerializer.fromServer({
                 street1: json.homeAddressStreet1,
                 street2: json.homeAddressStreet2,
                 city: json.homeAddressCity,
                 state: json.homeAddressState,
                 zip: json.homeAddressPostalCode,
-            }),
+            }), // TODO: Deprecated delete in clean up ticket
             dob: json.dateOfBirth,
             birthMonthDay: json.birthMonthDay,
             ssn: json.ssn,
+            phoneNumber: json.phoneNumber,
             occupation: json.licenseType,
             licenseStates: [] as Array<State>,
             licenses: [] as Array<License>,

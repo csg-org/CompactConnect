@@ -8,6 +8,7 @@
         "cancel": "Cancelar",
         "close": "Cerrar",
         "skip": "Saltear",
+        "confirm": "Confirmar",
         "choose": "Elige",
         "chooseOne": "Elige uno",
         "select": "Seleccionar",
@@ -37,6 +38,7 @@
         "saving": "Guardando...",
         "loading": "Cargando...",
         "viewing": "Viendo",
+        "name": "Nombre",
         "firstName": "Nombre",
         "givenName": "Nombre de pila",
         "middleName": "Segundo nombre",
@@ -485,6 +487,9 @@
         "licensingListTitle": "Datos de licencia",
         "searchTitle": "Iniciar una búsqueda",
         "attestation": "Atestación",
+        "stateProvidedEmail": "Correo electrónico proporcionado por el estado",
+        "accountEmail": "Correo electrónico de la cuenta",
+        "attestations": "Atestaciónes",
         "searchSubtext": "Introduzca al menos un campo para buscar datos de licencia.",
         "searchLabel": "Buscar",
         "searchPlaceholderName": "Introducir nombre",
@@ -502,6 +507,7 @@
         "personalInformation": "Información personal",
         "ssn": "SSN",
         "ssnLastFour": "Últimos 4 números del SSN",
+        "incorrectInfoDisclaimer": "La información en esta página fue proporcionada por su estado de origen. Si la información es incorrecta, debe comunicarse con ese estado y pedirles que la corrijan. Consulte la página compacta de Preguntas Frecuentes para obtener más información.",
         "noRefundsMessage": "Todas las compras de privilegios compactos son definitivas. No se emitirán reembolsos.",
         "licenseType": "Tipo de licencia",
         "adverseActions": "Acciones adversas",
@@ -512,6 +518,8 @@
         "expirationDate": "Fecha de caducidad",
         "lastUpdate": "Última carga",
         "license": "Licencia",
+        "licenseNumber": "Número de licencia",
+        "licenseExpirationDate": "Fecha de vencimiento de la licencia",
         "licenseExpiredMessage": "Su licencia ha caducado.",
         "obtainPrivileges": "Obtener privilegios",
         "expired": "Caducada",
@@ -567,7 +575,9 @@
                 "key": "licensed professional counselor",
                 "compactKey": "coun"
             }
-        ]
+        ],
+        "privilegePurchaseTitle": "Compra privada",
+        "personalInfoTitle": "Información personal"
     },
     "military": {
         "militaryStatusTitle": "Estado militar",

@@ -357,7 +357,7 @@ export default class SelectPrivileges extends mixins(MixinForm) {
     handleBackClicked() {
         if (this.currentCompactType) {
             this.$router.push({
-                name: 'LicenseeDashboard',
+                name: 'PrivilegePurchaseInformationConfirmation',
                 params: { compact: this.currentCompactType }
             });
         }

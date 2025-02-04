@@ -286,9 +286,9 @@ export class StaffUserSerializer {
     static fromServer(json: any, fetchConfig?: any): User {
         const userData: any = {
             id: json.userId,
-            email: json.attributes?.email,
             firstName: json.attributes?.givenName,
             lastName: json.attributes?.familyName,
+            compactConnectEmail: json.attributes?.email,
             userType: AuthTypes.STAFF,
             permissions: [],
             accountStatus: json.status || 'active', // Temp 'active' fallback until server responses include this field, per team discussion

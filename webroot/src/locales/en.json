@@ -9,6 +9,7 @@
         "cancel": "Cancel",
         "close": "Close",
         "skip": "Skip",
+        "confirm": "Confirm",
         "choose": "Choose",
         "chooseOne": "Choose one",
         "select": "Select",
@@ -37,6 +38,7 @@
         "saving": "Saving...",
         "loading": "Loading...",
         "viewing": "Viewing",
+        "name": "Name",
         "firstName": "First Name",
         "givenName": "Given Name",
         "middleName": "Middle Name",
@@ -47,7 +49,7 @@
         "dateOfBirthShort": "DOB",
         "dateFormat": "mm/dd/yyyy",
         "emailAddress": "Email Address",
-        "phoneNumber": "Phone Number",
+        "phoneNumber": "Phone number",
         "address": "Address",
         "city": "City",
         "state": "State",
@@ -485,6 +487,9 @@
         "license": "License",
         "licensingListTitle": "Licensing Data",
         "attestation": "Attestation",
+        "attestations": "Attestations",
+        "stateProvidedEmail": "State-provided email",
+        "accountEmail": "Account email",
         "searchTitle": "Begin a search",
         "searchSubtext": "Enter at least one field to search for licensing data.",
         "licenseExpiredMessage": "Your license has expired.",
@@ -492,6 +497,8 @@
         "searchPlaceholderName": "Enter name",
         "homeState": "Home State",
         "stateOfHomeLicense": "State of home license",
+        "licenseNumber": "License number",
+        "licenseExpirationDate": "License expiration date",
         "residenceLocation": "Residence location",
         "obtainPrivileges": "Obtain Privileges",
         "privileges": "Privileges",
@@ -506,6 +513,7 @@
         "noRefundsMessage": "All compact privilege purchases are final. Refunds will not be issued.",
         "ssn": "SSN",
         "ssnLastFour": "Last 4 of SSN",
+        "incorrectInfoDisclaimer": "The information on this page was provided by your home state. If the information is incorrect, you must reach out to that state and ask them to correct it. Refer to the compact FAQ page for more information.",
         "deselectState": "Deselect state",
         "commissionFee": "Commission Fee",
         "jurisdictionFee": "Jurisdiction Fee",
@@ -567,7 +575,9 @@
                 "key": "licensed professional counselor",
                 "compactKey": "coun"
             }
-        ]
+        ],
+        "privilegePurchaseTitle": "Privilege purchase",
+        "personalInfoTitle": "Personal information"
     },
     "military": {
         "militaryStatusTitle": "Military status",
