@@ -3,6 +3,10 @@ compactName: "coun"
 compactCommissionFee:
     feeType: "FLAT_RATE"
     feeAmount: 3.50
+transactionFeeConfiguration:
+    processorFees: 
+        percentageRate: 2.9  
+        fixedRatePerTransaction: 0.30
 compactOperationsTeamEmails: []
 compactAdverseActionsNotificationEmails: []
 compactSummaryReportNotificationEmails: []

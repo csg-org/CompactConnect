@@ -3,6 +3,14 @@ compactName: "aslp"
 compactCommissionFee:
     feeType: "FLAT_RATE"
     feeAmount: 3.50
+transactionFeeConfiguration:
+    processorFees: 
+        percentageRate: 2.9  
+        fixedRatePerTransaction: 0.30
+    licenseeCharges:
+        active: true
+        chargeType: "FLAT_FEE_PER_PRIVILEGE"
+        chargeAmount: 3.00
 compactOperationsTeamEmails: []
 compactAdverseActionsNotificationEmails: []
 compactSummaryReportNotificationEmails: []
