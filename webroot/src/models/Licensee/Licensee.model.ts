@@ -40,7 +40,7 @@ export interface InterfaceLicensee {
     firstName?: string | null;
     middleName?: string | null;
     lastName?: string | null;
-    address?: Address; // Deprecated delete in clean up ticket
+    address?: Address; // TODO: Deprecated delete in clean up ticket
     homeJurisdiction?: State;
     dob?: string | null;
     birthMonthDay?: string | null;
@@ -69,7 +69,7 @@ export class Licensee implements InterfaceLicensee {
     public middleName? = null;
     public lastName? = null;
     public homeJurisdiction? = new State();
-    public address? = new Address(); // Deprecated delete in clean up ticket
+    public address? = new Address(); // TODO: Deprecated delete in clean up ticket
     public dob? = null;
     public birthMonthDay? = null;
     public ssn? = null;
@@ -269,7 +269,7 @@ export class LicenseeSerializer {
                 city: json.homeAddressCity,
                 state: json.homeAddressState,
                 zip: json.homeAddressPostalCode,
-            }), // Deprecated delete in clean up ticket
+            }), // TODO: Deprecated delete in clean up ticket
             dob: json.dateOfBirth,
             birthMonthDay: json.birthMonthDay,
             ssn: json.ssn,
