@@ -118,6 +118,10 @@ class _Config:
         return os.environ['PROV_DATE_OF_UPDATE_INDEX_NAME']
 
     @property
+    def license_gsi_name(self):
+        return os.environ['LICENSE_GSI_NAME']
+
+    @property
     def ssn_inverted_index_name(self):
         return os.environ['SSN_INVERTED_INDEX_NAME']
 
@@ -132,6 +136,10 @@ class _Config:
     @property
     def user_pool_id(self):
         return os.environ['USER_POOL_ID']
+
+    @property
+    def provider_user_pool_id(self):
+        return os.environ['PROVIDER_USER_POOL_ID']
 
     @property
     def users_table_name(self):
@@ -192,6 +200,14 @@ class _Config:
     @property
     def transaction_history_table(self):
         return boto3.resource('dynamodb').Table(self.transaction_history_table_name)
+
+    @property
+    def rate_limiting_table_name(self):
+        return os.environ['RATE_LIMITING_TABLE_NAME']
+
+    @property
+    def rate_limiting_table(self):
+        return boto3.resource('dynamodb').Table(self.rate_limiting_table_name)
 
     @cached_property
     def allowed_origins(self):

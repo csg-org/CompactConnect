@@ -25,6 +25,7 @@ import { License, LicenseStatus } from '@/models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
+import { PrivilegeAttestation } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import moment from 'moment';
 
 @Component({
@@ -42,6 +43,9 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     // PROPS
     @Prop({ required: true }) selectedStatePurchaseData?: PrivilegePurchaseOption;
     @Prop({ default: new FormInput({ value: false }) }) jurisprudenceCheckInput?: FormInput;
+    @Prop({ default: new FormInput({ value: false }) }) scopeOfPracticeCheckInput?: FormInput;
+    @Prop({ required: true }) scopeAttestation?: PrivilegeAttestation;
+    @Prop({ required: true }) jurisprudenceAttestation?: PrivilegeAttestation;
 
     //
     // Lifecycle
@@ -54,6 +58,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     // Data
     //
     isJurisprudencePending = false;
+    isScopeOfPracticePending = false;
     isPriceCollapsed = false;
 
     //
@@ -118,7 +123,11 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     }
 
     get jurisprudenceModalContent(): string {
-        return this.$t('licensing.jurisprudenceUnderstandParagraph');
+        return this.jurisprudenceAttestation?.textDisplay() || '';
+    }
+
+    get scopeModalContent(): string {
+        return this.scopeAttestation?.textDisplay() || '';
     }
 
     get iUnderstandText(): string {
@@ -178,9 +187,13 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     //
     initFormInputs(): void {
         const initFormData: any = {
-            submitUnderstanding: new FormInput({
+            submitJurisprudenceUnderstanding: new FormInput({
                 isSubmitInput: true,
-                id: 'submit-understanding',
+                id: 'submit-jurisprudence-understanding',
+            }),
+            submitScopeUnderstanding: new FormInput({
+                isSubmitInput: true,
+                id: 'submit-scope-understanding',
             }),
         };
 
@@ -194,6 +207,31 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
             if (this.jurisprudenceCheckInput) {
                 this.isJurisprudencePending = true;
                 this.setJurisprudenceInputValue(false);
+
+                this.$nextTick(() => {
+                    const buttonComponent = this.$refs.backButton as any;
+                    const button = buttonComponent.$refs.button as HTMLElement;
+
+                    button.focus();
+                });
+            }
+        }
+    }
+
+    handleScopeOfPracticeClicked(): void {
+        const newValue = this.scopeOfPracticeCheckInput?.value;
+
+        if (newValue) {
+            if (this.scopeOfPracticeCheckInput) {
+                this.isScopeOfPracticePending = true;
+                this.setScopeInputValue(false);
+
+                this.$nextTick(() => {
+                    const buttonComponent = this.$refs.backButton as any;
+                    const button = buttonComponent.$refs.button as HTMLElement;
+
+                    button.focus();
+                });
             }
         }
     }
@@ -204,7 +242,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         this.$emit('exOutState', stateAbbrev);
     }
 
-    submitUnderstanding(): void {
+    submitJurisprudenceUnderstanding(): void {
         const { isJurisprudencePending, jurisprudenceCheckInput } = this;
 
         if (isJurisprudencePending && jurisprudenceCheckInput) {
@@ -214,7 +252,17 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         }
     }
 
-    closeAndInvalidateCheckbox(): void {
+    submitScopeUnderstanding(): void {
+        const { isScopeOfPracticePending, scopeOfPracticeCheckInput } = this;
+
+        if (isScopeOfPracticePending && scopeOfPracticeCheckInput) {
+            this.setScopeInputValue(true);
+            this.$store.dispatch('setModalIsOpen', false);
+            this.isScopeOfPracticePending = false;
+        }
+    }
+
+    closeAndInvalidateJurisprudenceCheckbox(): void {
         const { isJurisprudencePending, jurisprudenceCheckInput } = this;
 
         if (isJurisprudencePending && jurisprudenceCheckInput) {
@@ -224,9 +272,25 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         }
     }
 
+    closeAndInvalidateScopeCheckbox(): void {
+        const { isScopeOfPracticePending, scopeOfPracticeCheckInput } = this;
+
+        if (isScopeOfPracticePending && scopeOfPracticeCheckInput) {
+            this.setScopeInputValue(false);
+            this.$store.dispatch('setModalIsOpen', false);
+            this.isScopeOfPracticePending = false;
+        }
+    }
+
     setJurisprudenceInputValue(newValue): void {
         if (this.jurisprudenceCheckInput) {
             (this.jurisprudenceCheckInput.value as any) = newValue; // any use required here because of outstanding ts bug regarding union type inference
+        }
+    }
+
+    setScopeInputValue(newValue): void {
+        if (this.scopeOfPracticeCheckInput) {
+            (this.scopeOfPracticeCheckInput.value as any) = newValue; // any use required here because of outstanding ts bug regarding union type inference
         }
     }
 
@@ -234,9 +298,26 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
         this.isPriceCollapsed = !this.isPriceCollapsed;
     }
 
-    focusTrap(event: KeyboardEvent): void {
-        const firstTabIndex = document.getElementById('jurisprudence-modal-back-button');
-        const lastTabIndex = document.getElementById(this.formData.submitUnderstanding.id);
+    focusTrapJurisprudence(event: KeyboardEvent): void {
+        const firstTabIndex = document.getElementById('modal-back-button');
+        const lastTabIndex = document.getElementById(this.formData.submitJurisprudenceUnderstanding.id);
+
+        if (event.shiftKey) {
+            // shift + tab to last input
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+                event.preventDefault();
+            }
+        } else if (document.activeElement === lastTabIndex) {
+            // Tab to first input
+            firstTabIndex?.focus();
+            event.preventDefault();
+        }
+    }
+
+    focusTrapScope(event: KeyboardEvent): void {
+        const firstTabIndex = document.getElementById('modal-back-button');
+        const lastTabIndex = document.getElementById(this.formData.submitScopeUnderstanding.id);
 
         if (event.shiftKey) {
             // shift + tab to last input

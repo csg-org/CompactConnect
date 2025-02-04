@@ -21,6 +21,8 @@
   "militaryWaiver": false,
   "emailAddress": "björk@example.com",
   "phoneNumber": "+13213214321",
+  "compactConnectRegisteredEmailAddress": "björkRegisteredEmail@example.com",
+  "cognitoSub": "3408b4e8-0061-7052-bbe0-fda9a9369c80",
   "dateOfBirth": "1985-06-06",
   "dateOfUpdate": "2024-07-08T23:59:59+00:00",
   "dateOfExpiration": "2025-04-04",
@@ -32,6 +34,7 @@
       "compact": "aslp",
       "jurisdiction": "oh",
       "ssn": "123-12-1234",
+      "ssnLastFour": "1234",
       "npi": "0608337260",
       "licenseNumber": "A0608337260",
       "licenseType": "speech-language pathologist",
@@ -146,5 +149,13 @@
       "dateOfUpload": "2024-11-08T23:59:59+00:00",
       "dateOfUpdate": "2024-11-08T23:59:59+00:00"
    }
-  ]
+  ],
+  "homeJurisdictionSelection": {
+    "type": "homeJurisdictionSelection",
+    "compact": "aslp",
+    "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
+    "jurisdiction": "oh",
+    "dateOfSelection": "2024-01-01T00:00:00+00:00",
+    "dateOfUpdate": "2024-01-01T00:00:00+00:00"
+  }
 }

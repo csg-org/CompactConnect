@@ -839,6 +839,8 @@ class ApiModel:
                 'birthMonthDay',
                 'licenses',
                 'privileges',
+                'militaryAffiliations',
+                'homeJurisdictionSelection',
             ],
             properties={
                 'licenses': JsonSchema(
@@ -937,6 +939,59 @@ class ApiModel:
                         },
                     ),
                 ),
+                'homeJurisdictionSelection': JsonSchema(
+                    type=JsonSchemaType.OBJECT,
+                    properties={
+                        'type': JsonSchema(type=JsonSchemaType.STRING, enum=['homeJurisdictionSelection']),
+                        'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                        'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
+                        'jurisdiction': JsonSchema(
+                            type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
+                        ),
+                        'dateOfSelection': JsonSchema(
+                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                        ),
+                        'dateOfUpdate': JsonSchema(
+                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                        ),
+                    },
+                ),
+                'militaryAffiliations': JsonSchema(
+                    type=JsonSchemaType.ARRAY,
+                    items=JsonSchema(
+                        type=JsonSchemaType.OBJECT,
+                        required=[
+                            'type',
+                            'dateOfUpdate',
+                            'providerId',
+                            'compact',
+                            'fileNames',
+                            'affiliationType',
+                            'dateOfUpload',
+                            'status',
+                        ],
+                        properties={
+                            'type': JsonSchema(type=JsonSchemaType.STRING, enum=['militaryAffiliation']),
+                            'dateOfUpdate': JsonSchema(
+                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                            ),
+                            'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
+                            'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                            'fileNames': JsonSchema(
+                                type=JsonSchemaType.ARRAY,
+                                items=JsonSchema(type=JsonSchemaType.STRING),
+                            ),
+                            'affiliationType': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                enum=['militaryMember', 'militaryMemberSpouse'],
+                            ),
+                            'dateOfUpload': JsonSchema(
+                                type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                            ),
+                            'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+                        },
+                    ),
+                ),
                 **self._common_provider_properties,
             },
         )
@@ -996,6 +1051,13 @@ class ApiModel:
             'homeAddressPostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
             'militaryWaiver': JsonSchema(
                 type=JsonSchemaType.BOOLEAN,
+            ),
+            'compactConnectRegisteredEmailAddress': JsonSchema(
+                type=JsonSchemaType.STRING,
+                format='email',
+            ),
+            'cognitoSub': JsonSchema(
+                type=JsonSchemaType.STRING,
             ),
             'birthMonthDay': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.MD_FORMAT),
             'dateOfBirth': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
@@ -1084,7 +1146,86 @@ class ApiModel:
                     'dateCreated': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                     'text': JsonSchema(type=JsonSchemaType.STRING),
                     'required': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                    'locale': JsonSchema(type=JsonSchemaType.STRING),
                 },
             ),
         )
         return self.api._v1_get_attestations_response_model
+
+    @property
+    def provider_registration_request_model(self) -> Model:
+        """Return the provider registration request model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_provider_registration_request_model'):
+            return self.api._v1_provider_registration_request_model
+
+        self.api._v1_provider_registration_request_model = self.api.add_model(
+            'V1ProviderRegistrationRequestModel',
+            description='Provider registration request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=[
+                    'givenName',
+                    'familyName',
+                    'email',
+                    'partialSocial',
+                    'dob',
+                    'jurisdiction',
+                    'licenseType',
+                    'compact',
+                    'token',
+                ],
+                properties={
+                    'givenName': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description="Provider's given name",
+                        max_length=200,
+                    ),
+                    'familyName': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description="Provider's family name",
+                        max_length=200,
+                    ),
+                    'email': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description="Provider's email address",
+                        max_length=100,
+                    ),
+                    'partialSocial': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Last 4 digits of SSN',
+                        min_length=4,
+                        max_length=4,
+                    ),
+                    'dob': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Date of birth in YYYY-MM-DD format',
+                        pattern=r'^\d{4}-\d{2}-\d{2}$',
+                    ),
+                    'jurisdiction': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Two-letter jurisdiction code',
+                        min_length=2,
+                        max_length=2,
+                        enum=self.api.node.get_context('jurisdictions'),
+                    ),
+                    'licenseType': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Type of license',
+                        max_length=500,
+                    ),
+                    'compact': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Compact name',
+                        # note that here we do not specify the enum with the list of compacts
+                        # this is intentional as we do not want the api to return this list
+                        # from the registration endpoint.
+                        max_length=100,
+                    ),
+                    'token': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='ReCAPTCHA token',
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_provider_registration_request_model

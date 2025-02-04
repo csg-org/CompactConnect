@@ -27,6 +27,9 @@ ALL_ATTESTATION_IDS = [
     'under-investigation-attestation',
 ]
 
+TEST_EMAIL = 'testRegisteredEmail@example.com'
+TEST_COGNITO_SUB = '1234567890'
+
 
 def generate_default_attestation_list():
     return [
@@ -94,6 +97,14 @@ class TestPostPurchasePrivileges(TstFunction):
                 serialized_data = AttestationRecordSchema().dump(test_attestation)
 
                 self.config.compact_configuration_table.put_item(Item=serialized_data)
+        # register the user in the system
+        self.config.data_client.process_registration_values(
+            compact=TEST_COMPACT,
+            provider_id=TEST_PROVIDER_ID,
+            cognito_sub=TEST_COGNITO_SUB,
+            email_address=TEST_EMAIL,
+            jurisdiction='oh',
+        )
 
     def _load_test_jurisdiction(self):
         with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
@@ -417,7 +428,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(400, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'message': 'No active license found for this user'}, response_body)
+        self.assertEqual({'message': 'No active license found in selected home state for this user'}, response_body)
 
     @patch('handlers.privileges.PurchaseClient')
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))

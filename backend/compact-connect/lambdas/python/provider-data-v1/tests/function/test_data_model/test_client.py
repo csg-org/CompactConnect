@@ -118,7 +118,7 @@ class TestClient(TstFunction):
 
         # Verify sorting by family name (without getting into how duplicate family names are sorted)
         all_items = [*first_items, *resp['items']]
-        family_names = [item['familyName'] for item in all_items]
+        family_names = [item['familyName'].lower() for item in all_items]
         self.assertListEqual(sorted(family_names, key=quote), family_names)
 
     def test_get_providers_sorted_by_family_name_descending(self):
@@ -135,7 +135,7 @@ class TestClient(TstFunction):
         self.assertEqual(10, len(resp['items']))
 
         # Verify sorting by family name (without getting into how duplicate family names are sorted)
-        family_names = [item['familyName'] for item in resp['items']]
+        family_names = [item['familyName'].lower() for item in resp['items']]
         self.assertListEqual(sorted(family_names, key=quote, reverse=True), family_names)
 
     def test_get_providers_by_family_name(self):

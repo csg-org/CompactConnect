@@ -10,6 +10,7 @@ import PrivilegePurchaseSelect from '@components/PrivilegePurchaseSelect/Privile
 import PrivilegePurchaseAttestation from '@components/PrivilegePurchaseAttestation/PrivilegePurchaseAttestation.vue';
 import PrivilegePurchaseFinalize from '@components/PrivilegePurchaseFinalize/PrivilegePurchaseFinalize.vue';
 import PrivilegePurchaseSuccessful from '@components/PrivilegePurchaseSuccessful/PrivilegePurchaseSuccessful.vue';
+import { Compact } from '@models/Compact/Compact.model';
 
 @Component({
     name: 'PrivilegePurchase',
@@ -28,10 +29,30 @@ export default class PrivilegePurchase extends Vue {
     //
     // Lifecycle
     //
+    created() {
+        if (this.currentCompactType) {
+            this.$router.push({
+                name: 'PrivilegePurchaseSelect',
+                params: { compact: this.currentCompactType }
+            });
+        }
+    }
 
     //
     // Computed
     //
+    get userStore(): any {
+        return this.$store.state.user;
+    }
+
+    get currentCompact(): Compact | null {
+        return this.userStore?.currentCompact || null;
+    }
+
+    get currentCompactType(): string | null {
+        return this.currentCompact?.type || null;
+    }
+
     get routeName(): string {
         return this.$route?.name?.toString() || '';
     }

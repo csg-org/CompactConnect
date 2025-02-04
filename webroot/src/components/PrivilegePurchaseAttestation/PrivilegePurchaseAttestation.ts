@@ -103,7 +103,7 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
         const attestations = this.attestationRecords.filter((record) => attestationIds.includes(record.id));
         const options: Array<AttestationOption> = attestations.map((attestation) => ({
             value: attestation.id || '',
-            name: attestation.text || '',
+            name: attestation.textDisplay() || '',
         }));
 
         return options;
@@ -138,28 +138,28 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
             disciplineCurrent: new FormInput({
                 id: 'discipline-current',
                 name: 'discipline-current',
-                label: this.getAttestation('discipline-no-current-encumbrance-attestation')?.text || '',
+                label: this.getAttestation('discipline-no-current-encumbrance-attestation')?.textDisplay() || '',
                 validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
                 value: false,
             }),
             disciplinePrior: new FormInput({
                 id: 'discipline-prior',
                 name: 'discipline-prior',
-                label: this.getAttestation('discipline-no-prior-encumbrance-attestation')?.text || '',
+                label: this.getAttestation('discipline-no-prior-encumbrance-attestation')?.textDisplay() || '',
                 validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
                 value: false,
             }),
             trueInformation: new FormInput({
                 id: 'true-information',
                 name: 'true-information',
-                label: this.getAttestation('provision-of-true-information-attestation')?.text || '',
+                label: this.getAttestation('provision-of-true-information-attestation')?.textDisplay() || '',
                 validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
                 value: false,
             }),
             militaryAffiliation: new FormInput({
                 id: 'military-affiliation',
                 name: 'military-affiliation',
-                label: this.getAttestation('military-affiliation-confirmation-attestation')?.text || '',
+                label: this.getAttestation('military-affiliation-confirmation-attestation')?.textDisplay() || '',
                 validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
                 value: false,
             }),
