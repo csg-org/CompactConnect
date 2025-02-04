@@ -15,6 +15,7 @@ import {
 } from '@models/License/License.model';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
+import { Address } from '@models/Address/Address.model';
 import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 import i18n from '@/i18n';
 import moment from 'moment';
@@ -41,12 +42,12 @@ describe('License model', () => {
         expect(license.compact).to.equal(null);
         expect(license.isPrivilege).to.equal(false);
         expect(license.issueState).to.be.an.instanceof(State);
-        expect(license.isHomeState).to.equal(false);
         expect(license.issueDate).to.equal(null);
         expect(license.renewalDate).to.equal(null);
         expect(license.expireDate).to.equal(null);
         expect(license.npi).to.equal(null);
         expect(license.licenseNumber).to.equal(null);
+        expect(license.mailingAddress).to.be.an.instanceof(Address);
         expect(license.occupation).to.equal(null);
         expect(license.history).to.matchPattern([]);
         expect(license.statusState).to.equal(LicenseStatus.INACTIVE);
@@ -70,6 +71,7 @@ describe('License model', () => {
             renewalDate: 'test-renewalDate',
             expireDate: 'test-expireDate',
             licenseNumber: 'test-license-number',
+            mailingAddress: new Address(),
             npi: 'test-npi',
             occupation: LicenseOccupation.AUDIOLOGIST,
             statusState: LicenseStatus.ACTIVE,
@@ -84,10 +86,10 @@ describe('License model', () => {
         expect(license.compact).to.be.an.instanceof(Compact);
         expect(license.isPrivilege).to.equal(data.isPrivilege);
         expect(license.issueState).to.be.an.instanceof(State);
-        expect(license.isHomeState).to.equal(data.isHomeState);
         expect(license.issueDate).to.equal(data.issueDate);
         expect(license.renewalDate).to.equal(data.renewalDate);
         expect(license.expireDate).to.equal(data.expireDate);
+        expect(license.mailingAddress).to.be.an.instanceof(Address);
         expect(license.npi).to.equal(data.npi);
         expect(license.licenseNumber).to.equal(data.licenseNumber);
         expect(license.occupation).to.equal(data.occupation);
@@ -113,6 +115,11 @@ describe('License model', () => {
             dateOfExpiration: moment().subtract(1, 'day').format(serverDateFormat),
             npi: 'npi',
             licenseNumber: 'licenseNumber',
+            homeAddressStreet1: 'test-street1',
+            homeAddressStreet2: 'test-street2',
+            homeAddressCity: 'test-city',
+            homeAddressState: 'co',
+            homeAddressPostalCode: 'test-zip',
             licenseType: LicenseOccupation.AUDIOLOGIST,
             status: LicenseStatus.ACTIVE,
             history: [{
@@ -140,8 +147,8 @@ describe('License model', () => {
         expect(license.compact).to.be.an.instanceof(Compact);
         expect(license.isPrivilege).to.equal(true);
         expect(license.issueState).to.be.an.instanceof(State);
+        expect(license.mailingAddress).to.be.an.instanceof(Address);
         expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
-        expect(license.isHomeState).to.equal(false);
         expect(license.issueState.abbrev).to.equal(data.jurisdiction);
         expect(license.issueDate).to.equal(data.dateOfIssuance);
         expect(license.renewalDate).to.equal(data.dateOfRenewal);
@@ -176,6 +183,11 @@ describe('License model', () => {
             licenseNumber: 'licenseNumber',
             licenseType: LicenseOccupation.AUDIOLOGIST,
             status: LicenseStatus.ACTIVE,
+            homeAddressStreet1: 'test-street1',
+            homeAddressStreet2: 'test-street2',
+            homeAddressCity: 'test-city',
+            homeAddressState: 'co',
+            homeAddressPostalCode: 'test-zip',
             history: [{
                 type: 'privilegeUpdate',
                 updateType: 'notrenewal',
@@ -202,7 +214,7 @@ describe('License model', () => {
         expect(license.isPrivilege).to.equal(true);
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.history.length).to.equal(0);
-        expect(license.isHomeState).to.equal(false);
+        expect(license.mailingAddress).to.be.an.instanceof(Address);
         expect(license.issueState.abbrev).to.equal(data.jurisdiction);
         expect(license.issueDate).to.equal(data.dateOfIssuance);
         expect(license.renewalDate).to.equal(data.dateOfRenewal);
