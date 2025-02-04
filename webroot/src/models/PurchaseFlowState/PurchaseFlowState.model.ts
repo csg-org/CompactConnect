@@ -33,21 +33,21 @@ export class PurchaseFlowState implements InterfacePurchaseFlowStateCreate {
     // @TODO
 }
 
-// ========================================================
-// =                      Serializer                      =
-// ========================================================
-export class PurchaseFlowStateSerializer {
-    static fromServer(json: any): PurchaseFlowState {
-        const purchaseFlowStateData = {
-            id: json.id,
-        };
+// // ========================================================
+// // =                      Serializer                      =
+// // ========================================================
+// export class PurchaseFlowStateSerializer {
+//     static fromServer(json: any): PurchaseFlowState {
+//         const purchaseFlowStateData = {
+//             id: json.id,
+//         };
 
-        return new PurchaseFlowState(purchaseFlowStateData);
-    }
+//         return new PurchaseFlowState(purchaseFlowStateData);
+//     }
 
-    static toServer(purchaseFlowStateModel: PurchaseFlowState): any {
-        return {
-            id: purchaseFlowStateModel.id,
-        };
-    }
-}
+//     static toServer(purchaseFlowStateModel: PurchaseFlowState): any {
+//         return {
+//             id: purchaseFlowStateModel.id,
+//         };
+//     }
+// }

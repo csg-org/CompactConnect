@@ -12,7 +12,7 @@ import deleteUndefinedProperties from '@models/_helpers';
 // ========================================================
 export interface InterfacePurchaseFlowStepCreate {
     stepNum?: number;
-    attestationsAccepted?: 
+    attestationsAccepted?: Array<any>;
 }
 
 // ========================================================
@@ -20,6 +20,8 @@ export interface InterfacePurchaseFlowStepCreate {
 // ========================================================
 export class PurchaseFlowStep implements InterfacePurchaseFlowStepCreate {
     public id? = null;
+    public stepNum? = 0;
+    public attestationsAccepted? = [];
 
     constructor(data?: InterfacePurchaseFlowStepCreate) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -31,21 +33,21 @@ export class PurchaseFlowStep implements InterfacePurchaseFlowStepCreate {
     // @TODO
 }
 
-// ========================================================
-// =                      Serializer                      =
-// ========================================================
-export class PurchaseFlowStepSerializer {
-    static fromServer(json: any): PurchaseFlowStep {
-        const purchaseFlowStepData = {
-            id: json.id,
-        };
+// // ========================================================
+// // =                      Serializer                      =
+// // ========================================================
+// export class PurchaseFlowStepSerializer {
+//     static fromServer(json: any): PurchaseFlowStep {
+//         const purchaseFlowStepData = {
+//             id: json.id,
+//         };
 
-        return new PurchaseFlowStep(purchaseFlowStepData);
-    }
+//         return new PurchaseFlowStep(purchaseFlowStepData);
+//     }
 
-    static toServer(purchaseFlowStepModel: PurchaseFlowStep): any {
-        return {
-            id: purchaseFlowStepModel.id,
-        };
-    }
-}
+//     static toServer(purchaseFlowStepModel: PurchaseFlowStep): any {
+//         return {
+//             id: purchaseFlowStepModel.id,
+//         };
+//     }
+// }
