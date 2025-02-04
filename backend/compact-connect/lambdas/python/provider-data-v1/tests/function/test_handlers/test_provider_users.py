@@ -46,6 +46,31 @@ class TestGetProvider(TstFunction):
         self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)
 
+    def test_get_provider_does_not_return_home_jurisdiction_selection_key_if_not_present(self):
+        from handlers.provider_users import get_provider_user_me
+
+        event = self._when_testing_provider_user_event_with_custom_claims()
+        # delete the homeJurisdictionSelection key from the provider dynamodb record
+        self.config.provider_table.delete_item(
+            Key={
+                'pk': f'{TEST_COMPACT}#PROVIDER#{event["requestContext"]["authorizer"]["claims"]["custom:providerId"]}',
+                'sk': f'{TEST_COMPACT}#PROVIDER#home-jurisdiction#',
+            },
+        )
+
+        resp = get_provider_user_me(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        provider_data = json.loads(resp['body'])
+
+        with open('../common/tests/resources/api/provider-detail-response.json') as f:
+            expected_provider = json.load(f)
+            # remove the homeJurisdictionSelection key from the expected provider data
+            del expected_provider['homeJurisdictionSelection']
+
+        self.maxDiff = None
+        self.assertEqual(expected_provider, provider_data)
+
     def test_get_provider_returns_400_if_api_call_made_without_proper_claims(self):
         from handlers.provider_users import get_provider_user_me
 

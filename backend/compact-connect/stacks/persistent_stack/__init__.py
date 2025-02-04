@@ -23,6 +23,7 @@ from stacks.persistent_stack.event_bus import EventBus
 from stacks.persistent_stack.provider_table import ProviderTable
 from stacks.persistent_stack.provider_users import ProviderUsers
 from stacks.persistent_stack.provider_users_bucket import ProviderUsersBucket
+from stacks.persistent_stack.rate_limiting_table import RateLimitingTable
 from stacks.persistent_stack.ssn_table import SSNTable
 from stacks.persistent_stack.staff_users import StaffUsers
 from stacks.persistent_stack.transaction_history_table import TransactionHistoryTable
@@ -179,6 +180,13 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
             event_bus=self.data_event_bus,
+        )
+
+        self.rate_limiting_table = RateLimitingTable(
+            self,
+            'RateLimitingTable',
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy,
         )
 
         self.provider_table = ProviderTable(

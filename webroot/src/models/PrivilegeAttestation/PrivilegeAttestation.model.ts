@@ -61,6 +61,12 @@ export class PrivilegeAttestation implements InterfacePrivilegeAttestation {
     public dateUpdatedDisplay(): string {
         return dateDisplay(this.dateUpdated);
     }
+
+    public textDisplay(): string {
+        const displayText: string = this.text || '';
+
+        return displayText.replace(/(?:\r\n|\r|\n)/g, '<br>');
+    }
 }
 
 // ========================================================

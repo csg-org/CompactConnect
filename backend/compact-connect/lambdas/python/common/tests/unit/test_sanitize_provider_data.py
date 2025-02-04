@@ -63,6 +63,7 @@ class TestSanitizeProviderData(TstLambdas):
         del expected_provider['militaryAffiliations'][0]['documentKeys']
         # also remove the ssn from the license record
         del expected_provider['licenses'][0]['ssn']
+        del expected_provider['licenses'][0]['ssnLastFour']
         del expected_provider['licenses'][0]['dateOfBirth']
         del expected_provider['licenses'][0]['history'][0]['previous']['ssn']
         del expected_provider['licenses'][0]['history'][0]['previous']['dateOfBirth']

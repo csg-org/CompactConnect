@@ -89,25 +89,6 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa
     return options_response
 
 
-def _find_latest_active_license(all_licenses: list[dict]) -> dict | None:
-    """
-    In this scenario, we are looking for the most recent active license record for the user.
-    """
-    if len(all_licenses) == 0:
-        return None
-
-    # Last issued active license, if there are any active licenses
-    latest_active_licenses = sorted(
-        [license_data for license_data in all_licenses if license_data['status'] == 'active'],
-        key=lambda x: x['dateOfIssuance'],
-        reverse=True,
-    )
-    if latest_active_licenses:
-        return latest_active_licenses[0]
-
-    return None
-
-
 def _determine_military_affiliation_status(provider_records: list[dict]) -> bool:
     """
     Determine if the provider has an active military affiliation.
@@ -259,17 +240,19 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     provider_id = _get_caller_provider_id_custom_attribute(event)
     user_provider_data = config.data_client.get_provider(compact=compact_name, provider_id=provider_id)
     provider_record = next((record for record in user_provider_data['items'] if record['type'] == 'provider'), None)
-    license_record = _find_latest_active_license(
-        [record for record in user_provider_data['items'] if record['type'] == 'license']
+    home_state_license_record = config.data_client.find_home_state_license(
+        compact=compact_name,
+        provider_id=provider_id,
+        licenses=[record for record in user_provider_data['items'] if record['type'] == 'license'],
     )
 
     # this should never happen, but we check just in case
     if provider_record is None:
         raise CCNotFoundException('Provider not found')
-    if license_record is None:
-        raise CCInvalidRequestException('No active license found for this user')
+    if home_state_license_record is None or home_state_license_record['status'] == 'inactive':
+        raise CCInvalidRequestException('No active license found in selected home state for this user')
 
-    license_jurisdiction = license_record['jurisdiction']
+    license_jurisdiction = home_state_license_record['jurisdiction']
     if license_jurisdiction.lower() in selected_jurisdictions_postal_abbreviations:
         raise CCInvalidRequestException(
             f"Selected privilege jurisdiction '{license_jurisdiction}'" f' matches license jurisdiction'
@@ -285,14 +268,14 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             privilege['jurisdiction'].lower() in selected_jurisdictions_postal_abbreviations
             # if their latest privilege expiration date matches the license expiration date they will not
             # receive any benefit from purchasing the same privilege, since the expiration date will not change
-            and privilege['dateOfExpiration'] == license_record['dateOfExpiration']
+            and privilege['dateOfExpiration'] == home_state_license_record['dateOfExpiration']
         ):
             raise CCInvalidRequestException(
                 f"Selected privilege jurisdiction '{privilege['jurisdiction'].lower()}'"
                 f' matches existing privilege jurisdiction'
             )
 
-    license_expiration_date: date = license_record['dateOfExpiration']
+    license_expiration_date: date = home_state_license_record['dateOfExpiration']
     user_active_military = _determine_military_affiliation_status(user_provider_data['items'])
 
     # Validate attestations are the latest versions before proceeding with the purchase
