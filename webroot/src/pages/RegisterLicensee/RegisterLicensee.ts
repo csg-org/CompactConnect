@@ -180,7 +180,7 @@ class RegisterLicensee extends mixins(MixinForm) {
         this.watchFormInputs(); // Important if you want automated form validation
     }
 
-    initExtraFields(): void {
+    initExtraFields(): void { // See Auth -> Registration section of README
         const passwordInput: HTMLElement = this.$refs.password as HTMLElement;
 
         passwordInput.style.display = 'inline-block';
