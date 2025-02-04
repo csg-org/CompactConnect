@@ -45,6 +45,12 @@
                 @change="handleJurisprudenceClicked()"
             />
         </div>
+        <div class="jurisprudence-check-box">
+            <InputCheckbox
+                :formInput="scopeOfPracticeCheckInput"
+                @change="handleScopeOfPracticeClicked()"
+            />
+        </div>
         <div class="collapse-button-container">
             <CollapseCaretButton
                 v-if="isPhone"
@@ -53,29 +59,63 @@
         </div>
         <Modal
             v-if="isJurisprudencePending"
-            class="jurisprudence-modal"
+            class="attestation-modal"
             :closeOnBackgroundClick="true"
             :showActions="false"
             :title="jurisprudenceModalTitle"
-            @close-modal="closeAndInvalidateCheckbox"
-            @keydown.tab="focusTrap($event)"
-            @keyup.esc="closeAndInvalidateCheckbox"
+            @close-modal="closeAndInvalidateJurisprudenceCheckbox"
+            @keydown.tab="focusTrapJurisprudence($event)"
+            @keyup.esc="closeAndInvalidateJurisprudenceCheckbox"
         >
             <template v-slot:content>
-                <div class="jurisprudence-modal-content">
-                    {{jurisprudenceModalContent}}
-                    <form @submit.prevent="submitUnderstanding">
+                <div class="attestation-modal-content">
+                    <div v-html="jurisprudenceModalContent"/>
+                    <form @submit.prevent="submitJurisprudenceUnderstanding">
                         <div class="action-button-row">
                             <InputButton
-                                id="jurisprudence-modal-back-button"
+                                id="modal-back-button"
+                                ref="backButton"
                                 class="back-button"
                                 :label="backText"
                                 :isTransparent="true"
-                                :onClick="closeAndInvalidateCheckbox"
+                                :onClick="closeAndInvalidateJurisprudenceCheckbox"
                             />
                             <InputSubmit
                                 class="understand-button"
-                                :formInput="formData.submitUnderstanding"
+                                :formInput="formData.submitJurisprudenceUnderstanding"
+                                :label="iUnderstandText"
+                            />
+                        </div>
+                    </form>
+                </div>
+            </template>
+        </Modal>
+        <Modal
+            v-if="isScopeOfPracticePending"
+            class="attestation-modal"
+            :closeOnBackgroundClick="true"
+            :showActions="false"
+            :title="$t('licensing.scopeAttestTitle')"
+            @close-modal="closeAndInvalidateScopeCheckbox"
+            @keydown.tab="focusTrapScope($event)"
+            @keyup.esc="closeAndInvalidateScopeCheckbox"
+        >
+            <template v-slot:content>
+                <div class="attestation-modal-content">
+                    <div v-html="scopeModalContent"/>
+                    <form @submit.prevent="submitScopeUnderstanding">
+                        <div class="action-button-row">
+                            <InputButton
+                                id="modal-back-button"
+                                ref="backButton"
+                                class="back-button"
+                                :label="backText"
+                                :isTransparent="true"
+                                :onClick="closeAndInvalidateScopeCheckbox"
+                            />
+                            <InputSubmit
+                                class="understand-button"
+                                :formInput="formData.submitScopeUnderstanding"
                                 :label="iUnderstandText"
                             />
                         </div>
