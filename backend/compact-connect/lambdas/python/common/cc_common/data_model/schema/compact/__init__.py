@@ -2,7 +2,7 @@
 from collections import UserDict
 
 from marshmallow import Schema
-from marshmallow.fields import Decimal, String
+from marshmallow.fields import Boolean, Decimal, Nested, String
 from marshmallow.validate import OneOf
 
 from cc_common.data_model.schema.common import CCEnum
@@ -33,6 +33,28 @@ class CompactCommissionFee(UserDict):
         return float(self['feeAmount'])
 
 
+class ProcessorFeesSchema(Schema):
+    """Schema for payment processor fees configuration"""
+
+    percentageRate = Decimal(required=False, allow_none=True)
+    fixedRatePerTransaction = Decimal(required=False, allow_none=True)
+
+
+class LicenseeChargesSchema(Schema):
+    """Schema for licensee transaction fee charges configuration"""
+
+    active = Boolean(required=True, allow_none=False)
+    chargeType = String(required=True, allow_none=False, validate=OneOf(['FLAT_FEE_PER_PRIVILEGE']))
+    chargeAmount = Decimal(required=True, allow_none=False)
+
+
+class TransactionFeeConfigurationSchema(Schema):
+    """Schema for the complete transaction fee configuration"""
+
+    processorFees = Nested(ProcessorFeesSchema(), required=True, allow_none=False)
+    licenseeCharges = Nested(LicenseeChargesSchema(), required=False, allow_none=True)
+
+
 class Compact(UserDict):
     """
     Compact configuration data model. Used to access variables without needing to know the underlying key structure.
@@ -45,6 +67,18 @@ class Compact(UserDict):
     @property
     def compact_commission_fee(self) -> CompactCommissionFee:
         return CompactCommissionFee(self['compactCommissionFee'])
+
+    @property
+    def transaction_fee_configuration(self) -> dict:
+        return self['transactionFeeConfiguration']
+
+    @property
+    def processor_fees(self) -> dict | None:
+        return self.transaction_fee_configuration['processorFees']
+
+    @property
+    def licensee_charges(self) -> dict | None:
+        return self.transaction_fee_configuration.get('licenseeCharges')
 
     @property
     def compact_operations_team_emails(self) -> list[str] | None:
