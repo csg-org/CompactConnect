@@ -107,7 +107,6 @@ def api_handler(fn: Callable):
             identity={'user': event['requestContext'].get('authorizer', {}).get('claims', {}).get('sub')},
             query_params=event['queryStringParameters'],
             username=event['requestContext'].get('authorizer', {}).get('claims', {}).get('cognito:username'),
-            context=context,
         ):
             logger.info(
                 'Incoming request',
@@ -164,8 +163,9 @@ def api_handler(fn: Callable):
 class logger_inject_kwargs:  # noqa: N801 invalid-name
     """Decorator to inject kwargs into the logger context"""
 
-    def __init__(self, logger: Logger):
+    def __init__(self, logger: Logger, *arg_names: tuple[str, ...]):
         self.logger = logger
+        self.arg_names = arg_names
 
     def __get__(self, instance, owner):
         return MethodType(self, instance)
@@ -173,7 +173,9 @@ class logger_inject_kwargs:  # noqa: N801 invalid-name
     def __call__(self, fn: Callable):
         @wraps(fn)
         def wrapped(*args, **kwargs):
-            with self.logger.append_context_keys(**kwargs):
+            if not self.arg_names:
+                raise ValueError('No argument names provided to logger_inject_kwargs')
+            with self.logger.append_context_keys(**{k: kwargs.get(k) for k in self.arg_names}):
                 return fn(*args, **kwargs)
 
         return wrapped
