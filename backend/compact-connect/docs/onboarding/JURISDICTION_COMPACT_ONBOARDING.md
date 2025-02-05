@@ -169,10 +169,7 @@ compactName: "<compact name>"
 compactCommissionFee:
     feeType: "FLAT_RATE"                            # Currently only "FLAT_RATE" type is supported.
     feeAmount: <number>                             # This value will be added to the jurisdiciton fee.
-transactionFeeConfiguration:                        # Required configuration for payment processor fees
-    processorFees:                                  # Required. The fees being charged to the compact by the payment processor
-        percentageRate: <number>                    # Optional: The percentage rate charged by the processor
-        fixedRatePerTransaction: <number>           # Optional: The fixed rate per transaction charged by the processor
+transactionFeeConfiguration:                        # Optional: configuration for payment processor fees
     licenseeCharges:                               # Optional: How the compact wants to charge licensees to cover these fees
         active: true|false                         # Whether the compact is charging licensees for transaction fees
         chargeType: "FLAT_FEE_PER_PRIVILEGE"       # Currently only supporting FLAT_FEE_PER_PRIVILEGE
@@ -193,13 +190,9 @@ At deploy time, if the environment name matches one of the files in the `activeE
 files will be written to the database and accessible by the system.
 
 ### Configure Transaction Fee Settings
-Each compact must decide if they want to charge licensees to absorb payment processor transaction fees. There are two aspects to this configuration:
+Each compact must decide if they want to charge licensees to absorb payment processor transaction fees. This includes the following fields:
 
-1. **Processor Fees Tracking** - For reporting purposes, compacts can estimate the transaction fees charged by their payment processor:
-   - `percentageRate`: The percentage fee charged per transaction (e.g., 2.9%)
-   - `fixedRatePerTransaction`: The fixed fee charged per transaction (e.g., $0.30)
-
-2. **Licensee Charges** - Compacts can choose to charge licensees a fee to help cover transaction costs:
+1. **Licensee Charges** - Compacts can choose to charge licensees a fee to help cover transaction costs:
    - `active`: Whether to charge licensees a transaction fee
    - `chargeType`: Currently only supports "FLAT_FEE_PER_PRIVILEGE"
    - `chargeAmount`: The fixed amount to charge per privilege purchase
@@ -207,9 +200,6 @@ Each compact must decide if they want to charge licensees to absorb payment proc
 Example configuration:
 ```yaml
 transactionFeeConfiguration:
-    processorFees:
-        percentageRate: 2.9
-        fixedRatePerTransaction: 0.30
     licenseeCharges:
         active: true
         chargeType: "FLAT_FEE_PER_PRIVILEGE"

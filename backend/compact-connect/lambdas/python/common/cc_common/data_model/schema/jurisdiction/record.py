@@ -13,7 +13,7 @@ class JurisdictionMilitaryDiscountRecordSchema(Schema):
     discountType = String(
         required=True, allow_none=False, validate=OneOf([e.value for e in JurisdictionMilitaryDiscountType])
     )
-    discountAmount = Decimal(required=True, allow_none=False)
+    discountAmount = Decimal(required=True, allow_none=False, places=2)
 
 
 class JurisdictionJurisprudenceRequirementsRecordSchema(Schema):
@@ -30,7 +30,7 @@ class JurisdictionRecordSchema(BaseRecordSchema):
     jurisdictionName = String(required=True, allow_none=False)
     postalAbbreviation = String(required=True, allow_none=False, validate=OneOf(config.jurisdictions))
     compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    jurisdictionFee = Decimal(required=True, allow_none=False)
+    jurisdictionFee = Decimal(required=True, allow_none=False, places=2)
     militaryDiscount = Nested(JurisdictionMilitaryDiscountRecordSchema(), required=False, allow_none=False)
     jurisdictionOperationsTeamEmails = List(
         Email(required=True, allow_none=False), required=True, allow_none=False, validate=Length(min=1)

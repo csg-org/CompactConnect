@@ -21,7 +21,7 @@ class CompactRecordSchema(BaseRecordSchema):
     # Provided fields
     compactName = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
-    transactionFeeConfiguration = Nested(TransactionFeeConfigurationSchema(), required=True, allow_none=False)
+    transactionFeeConfiguration = Nested(TransactionFeeConfigurationSchema(), required=False, allow_none=False)
     compactOperationsTeamEmails = List(String(required=True, allow_none=False), required=True, allow_none=False)
     compactAdverseActionsNotificationEmails = List(
         String(required=True, allow_none=False),
