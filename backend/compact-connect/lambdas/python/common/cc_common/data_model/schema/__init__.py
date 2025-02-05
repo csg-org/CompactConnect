@@ -5,4 +5,4 @@ from .jurisdiction.record import JurisdictionRecordSchema
 from .license.record import LicenseRecordSchema
 from .privilege.record import PrivilegeRecordSchema
 from .provider.record import ProviderRecordSchema
-from .user import UserRecordSchema
+from .user.record import UserRecordSchema

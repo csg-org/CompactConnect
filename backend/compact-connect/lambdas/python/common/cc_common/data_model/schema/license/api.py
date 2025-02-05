@@ -30,6 +30,7 @@ class LicensePostRequestSchema(ForgivingSchema):
 
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     # This status field is required when posting a license record. It will be transformed into the
     # jurisdictionStatus field when the record is ingested.
     status = ActiveInactive(required=True, allow_none=False)
@@ -59,7 +60,7 @@ class LicensePostRequestSchema(ForgivingSchema):
     def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
         license_types = config.license_types_for_compact(data['compact'])
         if data['licenseType'] not in license_types:
-            raise ValidationError({'licenseType': [f'Must be one of: {', '.join(license_types)}.']})
+            raise ValidationError({'licenseType': [f'Must be one of: {", ".join(license_types)}.']})
 
 
 class LicenseUpdatePreviousGeneralResponseSchema(ForgivingSchema):
@@ -71,6 +72,7 @@ class LicenseUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     """
 
     npi = NationalProviderIdentifier(required=False, allow_none=False)
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     licenseType = String(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
@@ -128,6 +130,7 @@ class LicenseGeneralResponseSchema(ForgivingSchema):
     licenseType = String(required=True, allow_none=False)
     jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))

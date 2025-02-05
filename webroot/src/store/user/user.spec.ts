@@ -552,6 +552,14 @@ describe('User Store Actions', async () => {
             [MutationTypes.SET_ATTESTATIONS_ACCEPTED, true]
         );
     });
+    it('should successfully save attestations', () => {
+        const commit = sinon.spy();
+
+        actions.setAttestations({ commit }, []);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_ATTESTATIONS, []]);
+    });
     it('should successfully start post privilege purchase request', () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
@@ -582,13 +590,20 @@ describe('User Store Actions', async () => {
             [MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE, error]
         );
     });
-
     it('should successfully save attestations accepted', () => {
         const state = {};
 
         mutations[MutationTypes.SET_ATTESTATIONS_ACCEPTED](state, true);
 
         expect(state.arePurchaseAttestationsAccepted).to.equal(true);
+    });
+    it('should successfully save attestations', () => {
+        const state = { purchase: {}};
+        const attestations = [{ attestationId: '1', version: '1' }];
+
+        mutations[MutationTypes.SET_ATTESTATIONS](state, attestations);
+
+        expect(state.purchase.attestations).to.matchPattern(attestations);
     });
     it('should successfully save privileges selected to store', () => {
         const state = {};

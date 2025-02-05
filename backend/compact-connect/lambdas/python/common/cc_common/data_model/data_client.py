@@ -12,13 +12,19 @@ from cc_common.config import _Config, config, logger, metrics
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
+from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
 from cc_common.data_model.schema.military_affiliation import (
     MilitaryAffiliationStatus,
     MilitaryAffiliationType,
 )
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
-from cc_common.exceptions import CCAwsServiceException, CCInvalidRequestException, CCNotFoundException
+from cc_common.exceptions import (
+    CCAwsServiceException,
+    CCInternalException,
+    CCInvalidRequestException,
+    CCNotFoundException,
+)
 from cc_common.utils import logger_inject_kwargs
 
 
@@ -40,9 +46,77 @@ class DataClient:
             )['Item']
         except KeyError as e:
             logger.info('Provider not found by SSN', exc_info=e)
-            raise CCNotFoundException('No licensee found by that identifier') from e
+            raise CCNotFoundException('No provider found by that identifier') from e
 
         return resp['providerId']
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id')
+    def get_provider_home_jurisdiction_selection(self, *, compact: str, provider_id: str) -> dict | None:
+        """Get the home jurisdiction selection record for a provider.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :return: The home jurisdiction record if found, None otherwise
+        :rtype: dict or None
+        """
+        logger.info('Getting home jurisdiction selection record', provider_id=provider_id, compact=compact)
+        resp = self.config.provider_table.get_item(
+            Key={
+                'pk': f'{compact}#PROVIDER#{provider_id}',
+                'sk': f'{compact}#PROVIDER#home-jurisdiction#',
+            },
+            ConsistentRead=True,
+        ).get('Item')
+
+        if resp is None:
+            logger.info('Home jurisdiction selection record not found', provider_id=provider_id, compact=compact)
+            raise CCNotFoundException('No home jurisdiction selection record found')
+
+        return resp
+
+    @logger_inject_kwargs(logger, 'compact', 'jurisdiction', 'family_name', 'given_name')
+    def find_matching_license_record(
+        self,
+        *,
+        compact: str,
+        jurisdiction: str,
+        family_name: str,
+        given_name: str,
+        partial_ssn: str,
+        dob: str,
+        license_type: str,
+    ) -> dict | None:
+        """Query license records using the license GSI and find a matching record.
+
+        :param compact: The compact name
+        :param jurisdiction: The jurisdiction postal code
+        :param family_name: Provider's family name
+        :param given_name: Provider's given name
+        :param partial_ssn: Last 4 digits of SSN
+        :param dob: Date of birth
+        :param license_type: Type of license
+        :return: The matching license record if found, None otherwise
+        """
+        logger.info('Querying license records', compact=compact, state=jurisdiction)
+
+        resp = self.config.provider_table.query(
+            IndexName=self.config.license_gsi_name,
+            KeyConditionExpression=(
+                Key('licenseGSIPK').eq(f'C#{compact.lower()}#J#{jurisdiction.lower()}')
+                & Key('licenseGSISK').eq(f'FN#{quote(family_name.lower())}#GN#{quote(given_name.lower())}')
+            ),
+            FilterExpression=(
+                Attr('ssnLastFour').eq(partial_ssn) & Attr('dateOfBirth').eq(dob) & Attr('licenseType').eq(license_type)
+            ),
+        )
+
+        matching_records = resp.get('Items', [])
+
+        if len(matching_records) > 1:
+            logger.error('Multiple matching license records found')
+            raise CCInternalException('Multiple matching license records found')
+
+        return matching_records[0] if matching_records else None
 
     @logger_inject_kwargs(logger, 'compact')
     def get_or_create_provider_id(self, *, compact: str, ssn: str) -> str:
@@ -115,10 +189,12 @@ class DataClient:
         # Create a name value to use in key condition if name fields are provided
         name_value = None
         if provider_name is not None and provider_name[0] is not None:
-            name_value = f'{quote(provider_name[0])}#'
+            # Make the name lower case for case-insensitive search
+            name_value = f'{quote(provider_name[0].lower())}#'
             # We won't consider givenName if familyName is not provided
             if provider_name[1] is not None:
-                name_value += f'{quote(provider_name[1])}#'
+                # Make the name lower case for case-insensitive search
+                name_value += f'{quote(provider_name[1].lower())}#'
 
         # Set key condition to query by
         key_condition = Key('sk').eq(f'{compact}#PROVIDER')
@@ -315,9 +391,9 @@ class DataClient:
                         {
                             'Put': {
                                 'TableName': self.config.provider_table_name,
-                                'Item': TypeSerializer().serialize(
-                                    PrivilegeUpdateRecordSchema().dump(update_record)
-                                )['M'],
+                                'Item': TypeSerializer().serialize(PrivilegeUpdateRecordSchema().dump(update_record))[
+                                    'M'
+                                ],
                             }
                         }
                     )
@@ -343,9 +419,7 @@ class DataClient:
                         },
                         'UpdateExpression': 'ADD #privilegeJurisdictions :newJurisdictions',
                         'ExpressionAttributeNames': {'#privilegeJurisdictions': 'privilegeJurisdictions'},
-                        'ExpressionAttributeValues': {
-                            ':newJurisdictions': {'SS': jurisdiction_postal_abbreviations}
-                        },
+                        'ExpressionAttributeValues': {':newJurisdictions': {'SS': jurisdiction_postal_abbreviations}},
                     }
                 }
             )
@@ -668,3 +742,148 @@ class DataClient:
         privilege_count = resp['Attributes']['privilegeCount']
         logger.info('Claimed privilege number', privilege_count=privilege_count)
         return privilege_count
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id')
+    def provider_is_registered_in_compact_connect(self, *, compact: str, provider_id: str) -> bool:
+        """Check if a provider is already registered in the system by checking for the cognitoSub field.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :return: True if the provider is already registered, False otherwise
+        """
+        logger.info('Checking if provider is registered')
+        provider = self.config.provider_table.get_item(
+            Key={
+                'pk': f'{compact}#PROVIDER#{provider_id}',
+                'sk': f'{compact}#PROVIDER',
+            },
+            ProjectionExpression='cognitoSub',
+            ConsistentRead=True,
+        ).get('Item')
+        return provider is not None and provider.get('cognitoSub') is not None
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'cognito_sub', 'email_address', 'jurisdiction')
+    def process_registration_values(
+        self, *, compact: str, provider_id: str, cognito_sub: str, email_address: str, jurisdiction: str
+    ) -> None:
+        """Set the registration values on a provider record and create home jurisdiction selection record
+        in a transaction.
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param cognito_sub: The Cognito sub of the user
+        :param email_address: The email address used for registration
+        :param jurisdiction: The jurisdiction postal code for home jurisdiction selection
+        :return: None
+        :raises: CCAwsServiceException if the transaction fails
+        """
+        logger.info('Setting registration values and creating home jurisdiction selection')
+
+        # Create the home jurisdiction selection record
+        home_jurisdiction_selection_record = {
+            'type': 'homeJurisdictionSelection',
+            'compact': compact,
+            'providerId': provider_id,
+            'jurisdiction': jurisdiction,
+            'dateOfSelection': self.config.current_standard_datetime,
+        }
+
+        schema = ProviderHomeJurisdictionSelectionRecordSchema()
+        serialized_record = schema.dump(home_jurisdiction_selection_record)
+
+        # Create both records in a transaction
+        self.config.dynamodb_client.transact_write_items(
+            TransactItems=[
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table_name,
+                        'Key': {
+                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                            'sk': {'S': f'{compact}#PROVIDER'},
+                        },
+                        'UpdateExpression': 'SET #cognitoSub = :cognitoSub, #email = :email',
+                        'ExpressionAttributeNames': {
+                            '#cognitoSub': 'cognitoSub',
+                            '#email': 'compactConnectRegisteredEmailAddress',
+                        },
+                        'ExpressionAttributeValues': {
+                            ':cognitoSub': {'S': cognito_sub},
+                            ':email': {'S': email_address},
+                        },
+                        'ConditionExpression': 'attribute_not_exists(cognitoSub)',
+                    }
+                },
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table_name,
+                        'Item': TypeSerializer().serialize(serialized_record)['M'],
+                        'ConditionExpression': 'attribute_not_exists(pk)',
+                    }
+                },
+            ]
+        )
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id')
+    def find_home_state_license(self, *, compact: str, provider_id: str, licenses: list[dict]) -> dict | None:
+        """Find the license from the provider's selected home jurisdiction.
+
+        This method will:
+        1. Get the home jurisdiction selection record
+        2. Find all licenses from that jurisdiction
+        3. Filter to active licenses if any exist
+        4. Return the most recently issued active license, or None if no matching license is found
+
+
+        :param compact: The compact name
+        :param provider_id: The provider ID
+        :param licenses: List of license records to search through
+        :return: The matching home state license if found, None otherwise
+        """
+        logger.info('Finding home state license')
+
+        # Get home jurisdiction selection
+        try:
+            home_jurisdiction = self.get_provider_home_jurisdiction_selection(
+                compact=compact,
+                provider_id=provider_id,
+            )
+
+            # Find all licenses from home jurisdiction
+            home_state_licenses = [
+                provider_license
+                for provider_license in licenses
+                if provider_license['jurisdiction'].lower() == home_jurisdiction['jurisdiction'].lower()
+            ]
+
+            if not home_state_licenses:
+                # If the user has registered with the system and set a home jurisdiction,
+                # but no licenses are found, there is an issue with the data.
+                logger.error(
+                    'No licenses found for selected home jurisdiction',
+                    jurisdiction=home_jurisdiction['jurisdiction'],
+                )
+                raise CCInternalException("No licenses found for provider's selected home jurisdiction")
+
+            if len(home_state_licenses) == 1:
+                return home_state_licenses[0]
+
+            # If there are multiple licenses for the home jurisdiction, we need to determine which one to use.
+            # Currently, we will use the most recently issued active license.
+            logger.info(
+                'Multiple licenses found for home jurisdiction. Using most recently issued active license.',
+                jurisdiction=home_jurisdiction['jurisdiction'],
+            )
+            active_licenses = [
+                provider_license
+                for provider_license in home_state_licenses
+                if provider_license.get('status', '').lower() == 'active'
+            ]
+
+            target_licenses = active_licenses if active_licenses else home_state_licenses
+
+            # Return the most recently issued license
+            return max(target_licenses, key=lambda x: x['dateOfIssuance'])
+        except CCNotFoundException:
+            # The user has not registered with the system and set a home jurisdiction
+            logger.info('No home jurisdiction selection found. Cannot determine home state license')
+            return None

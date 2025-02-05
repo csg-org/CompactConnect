@@ -6,7 +6,9 @@
   "compact": "aslp",
   "jurisdiction": "oh",
   "ssn": "123-12-1234",
+  "ssnLastFour": "1234",
   "npi": "0608337260",
+  "licenseNumber": "A0608337260",
   "licenseType": "speech-language pathologist",
   "givenName": "Björk",
   "middleName": "Gunnar",
@@ -24,5 +26,7 @@
   "emailAddress": "björk@example.com",
   "phoneNumber": "+13213214321",
   "militaryWaiver": false,
-  "jurisdictionStatus": "active"
+  "jurisdictionStatus": "active",
+  "licenseGSIPK": "C#aslp#J#oh",
+  "licenseGSISK": "FN#gu%C3%B0mundsd%C3%B3ttir#GN#bj%C3%B6rk"
 }

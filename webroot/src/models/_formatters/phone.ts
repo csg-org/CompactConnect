@@ -1,41 +1,4 @@
 /**
- * Receive a string of numbers and return a NANP parentheses format phone number
- * @param {string} numberValue
- * @param {string} inputValue
- * @return {string} formattedPhoneNumber
- */
-const parensPhoneFormatter = (numberValue: string, inputValue: string): string => {
-    let formattedPhoneNumber = '';
-
-    // If the number value is at least three digits
-    if (numberValue.length >= 3) {
-        // Allow the user to delete intuitively back through the NPA
-        if (inputValue.length <= 4 && inputValue.indexOf('(') >= 0) {
-            formattedPhoneNumber = numberValue;
-        } else if ((inputValue.length === 5 || inputValue.length === 6) && inputValue.indexOf('(') >= 0) {
-            formattedPhoneNumber = inputValue;
-        } else {
-            // otherwise add the NPA parens
-            formattedPhoneNumber = `(${numberValue.substr(0, 3)}) `;
-        }
-
-        // If the number value is at least 7 digits
-        if (numberValue.length >= 7) {
-            // Add the NXX-Line dash
-            formattedPhoneNumber += `${numberValue.substr(3, 3)}-${numberValue.substr(6, 4)}`;
-        } else {
-            // Otherwise just display the rest of the numbers unformatted
-            formattedPhoneNumber += numberValue.substr(3);
-        }
-    } else {
-        // Otherwise just display the numbers unformatted
-        formattedPhoneNumber = numberValue;
-    }
-
-    return formattedPhoneNumber;
-};
-
-/**
  * Receive a string of numbers and return a delimeted phone number based
  * on the delimeter argument
  * @param {string} numberValue
@@ -44,25 +7,21 @@ const parensPhoneFormatter = (numberValue: string, inputValue: string): string =
  */
 const singleDelimeterPhoneFormatter = (numberValue: string, numberDelimeter: string): string => {
     let formattedPhoneNumber = '';
-    let delimeter = '';
-
-    // If no deleimeter was passed then set a default
-    if (!numberDelimeter) {
-        delimeter = '-';
-    }
+    const delimeter = numberDelimeter || '-';
 
     // If the number value is at least three digits
     if (numberValue.length >= 3) {
         // Add the post-NPA delimeter
-        formattedPhoneNumber = numberValue.substr(0, 3) + delimeter;
+        formattedPhoneNumber = numberValue.substring(0, 3) + delimeter;
 
         // If the number value is at least 6 digits
         if (numberValue.length >= 6) {
             // Add the post-NXX delimeter
-            formattedPhoneNumber += numberValue.substr(3, 3) + delimeter + numberValue.substr(6, 4);
+
+            formattedPhoneNumber += numberValue.substring(3, 6) + delimeter + numberValue.substring(6);
         } else {
             // Otherwise just display the rest of the numbers unformatted
-            formattedPhoneNumber += numberValue.substr(3);
+            formattedPhoneNumber += numberValue.substring(3);
         }
     } else {
         // Otherwise just display the numbers unformatted
@@ -79,7 +38,7 @@ const singleDelimeterPhoneFormatter = (numberValue: string, numberDelimeter: str
  * @param {string} format
  * @return {string} newValue
  */
-const formatPhoneNumber = (value: string, format: string): string => {
+const formatPhoneNumber = (value: string): string => {
     let valueLength = 0;
     let numberValue = '';
     let countryCode = '';
@@ -107,24 +66,7 @@ const formatPhoneNumber = (value: string, format: string): string => {
         countryCode = allNumbers.slice(0, allNumbers.length - 10);
     }
 
-    // Set a formatted values based on the format type
-    if (format === 'parens') {
-        // (xxx) xxx-xxxx
-        newValue = parensPhoneFormatter(numberValue, value);
-    } else if (format === 'dashed') {
-        // xxx-xxx-xxxx
-        newValue = singleDelimeterPhoneFormatter(numberValue, '-');
-    } else if (format === 'dotted') {
-        // xxx.xxx.xxxx
-        newValue = singleDelimeterPhoneFormatter(numberValue, '.');
-    } else if (format === 'number') {
-        // xxxxxxxxxx
-        newValue = numberValue;
-    } else {
-        // No format assistance
-        newValue = value;
-        return newValue;
-    }
+    newValue = singleDelimeterPhoneFormatter(numberValue, '-');
 
     // Return the formatted phone number
     return (countryCode) ? `+${countryCode} ${newValue}` : newValue;
