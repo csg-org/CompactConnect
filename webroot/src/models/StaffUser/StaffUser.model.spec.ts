@@ -35,7 +35,7 @@ describe('Staff User model', () => {
 
         expect(user).to.be.an.instanceof(StaffUser);
         expect(user.id).to.equal(null);
-        expect(user.email).to.equal(null);
+        expect(user.compactConnectEmail).to.equal(null);
         expect(user.firstName).to.equal(null);
         expect(user.lastName).to.equal(null);
         expect(user.userType).to.equal(null);
@@ -232,7 +232,7 @@ describe('Staff User model', () => {
 
         expect(user).to.be.an.instanceof(StaffUser);
         expect(user.id).to.equal(data.userId);
-        expect(user.email).to.equal(data.attributes.email);
+        expect(user.compactConnectEmail).to.equal(data.attributes.email);
         expect(user.firstName).to.equal(data.attributes.givenName);
         expect(user.lastName).to.equal(data.attributes.familyName);
         expect(user.permissions).to.matchPattern([

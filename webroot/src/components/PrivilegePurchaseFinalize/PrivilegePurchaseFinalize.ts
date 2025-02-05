@@ -53,7 +53,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     // Lifecycle
     //
     created() {
-        if (!this.statesSelected || !this.arePurchaseAttestationsAccepted) {
+        if (!this.statesSelected) {
             this.handleCancelClicked();
         }
 
@@ -85,10 +85,6 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
 
     get currentCompactCommissionFee(): number | null {
         return this.currentCompact?.compactCommissionFee || null;
-    }
-
-    get arePurchaseAttestationsAccepted(): boolean {
-        return this.userStore.arePurchaseAttestationsAccepted;
     }
 
     get isDesktop(): boolean {
@@ -188,7 +184,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     }
 
     get statesSelected(): Array<string> {
-        return this.userStore.selectedPrivilegesToPurchase;
+        return []; // TODO
     }
 
     get selectedStatePurchaseDataList(): Array<PrivilegePurchaseOption> {

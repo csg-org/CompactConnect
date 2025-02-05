@@ -13,15 +13,16 @@ import deleteUndefinedProperties from '@models/_helpers';
 export interface InterfacePurchaseFlowStepCreate {
     stepNum?: number;
     attestationsAccepted?: Array<any>;
+    selectedPrivilegesToPurchase?: Array<string>;
 }
 
 // ========================================================
 // =                        Model                         =
 // ========================================================
 export class PurchaseFlowStep implements InterfacePurchaseFlowStepCreate {
-    public id? = null;
     public stepNum? = 0;
     public attestationsAccepted? = [];
+    public selectedPrivilegesToPurchase? = [];
 
     constructor(data?: InterfacePurchaseFlowStepCreate) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -33,21 +34,23 @@ export class PurchaseFlowStep implements InterfacePurchaseFlowStepCreate {
     // @TODO
 }
 
-// // ========================================================
-// // =                      Serializer                      =
-// // ========================================================
-// export class PurchaseFlowStepSerializer {
-//     static fromServer(json: any): PurchaseFlowStep {
-//         const purchaseFlowStepData = {
-//             id: json.id,
-//         };
+// ========================================================
+// =                      Serializer                      =
+// ========================================================
+export class PurchaseFlowStepSerializer {
+    // static fromServer(json: any): PurchaseFlowStep {
+    //     const purchaseFlowStepData = {
+    //         id: json.id,
+    //     };
 
-//         return new PurchaseFlowStep(purchaseFlowStepData);
-//     }
+    //     return new PurchaseFlowStep(purchaseFlowStepData);
+    // }
 
-//     static toServer(purchaseFlowStepModel: PurchaseFlowStep): any {
-//         return {
-//             id: purchaseFlowStepModel.id,
-//         };
-//     }
-// }
+    // static toServer({ stepNum, atte}): any {
+    //     return {
+    //         stepNum: number,
+    //         attestationsAccepted:
+    //         selectedPrivilegesToPurchase?: Array<string>;
+    //     };
+    // }
+}

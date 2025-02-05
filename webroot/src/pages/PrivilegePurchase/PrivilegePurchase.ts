@@ -6,6 +6,7 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
+import PrivilegePurchaseInformationConfirmation from '@components/PrivilegePurchaseInformationConfirmation/PrivilegePurchaseInformationConfirmation.vue';
 import PrivilegePurchaseSelect from '@components/PrivilegePurchaseSelect/PrivilegePurchaseSelect.vue';
 import PrivilegePurchaseAttestation from '@components/PrivilegePurchaseAttestation/PrivilegePurchaseAttestation.vue';
 import PrivilegePurchaseFinalize from '@components/PrivilegePurchaseFinalize/PrivilegePurchaseFinalize.vue';
@@ -15,6 +16,7 @@ import { Compact } from '@models/Compact/Compact.model';
 @Component({
     name: 'PrivilegePurchase',
     components: {
+        PrivilegePurchaseInformationConfirmation,
         PrivilegePurchaseSelect,
         PrivilegePurchaseAttestation,
         PrivilegePurchaseFinalize,
@@ -32,7 +34,7 @@ export default class PrivilegePurchase extends Vue {
     created() {
         if (this.currentCompactType) {
             this.$router.push({
-                name: 'PrivilegePurchaseSelect',
+                name: 'PrivilegePurchaseInformationConfirmation',
                 params: { compact: this.currentCompactType }
             });
         }
@@ -55,6 +57,10 @@ export default class PrivilegePurchase extends Vue {
 
     get routeName(): string {
         return this.$route?.name?.toString() || '';
+    }
+
+    get isConfirmInfoRoute(): boolean {
+        return Boolean(this.routeName === 'PrivilegePurchaseInformationConfirmation');
     }
 
     get isSelectPrivilegesRoute(): boolean {

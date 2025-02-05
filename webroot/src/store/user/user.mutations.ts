@@ -136,9 +136,7 @@ export default {
     ) => {
         state.selectedPrivilegesToPurchase = privilegePurchaseChoices;
     },
-    [MutationTypes.SET_ATTESTATIONS_ACCEPTED]: (state: any, areAttestationsAccepted: boolean) => {
-        state.arePurchaseAttestationsAccepted = areAttestationsAccepted;
-    },
+
     [MutationTypes.SET_ATTESTATIONS]: (state: any, attestations) => {
         const { purchase } = state;
 
@@ -158,7 +156,7 @@ export default {
     [MutationTypes.POST_PRIVILEGE_PURCHASE_SUCCESS]: (state: any) => {
         state.isLoadingPrivilegePurchaseOptions = false;
         state.selectedPrivilegesToPurchase = null;
-        state.arePurchaseAttestationsAccepted = false;
+        // state.arePurchaseAttestationsAccepted = false;
         state.error = null;
     },
     [MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE]: (state: any, error: Error) => {
