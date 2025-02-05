@@ -121,7 +121,10 @@ The practitioner registration endpoint uses Google reCAPTCHA to prevent abuse. F
    - Google Cloud Platform may require a project name
    - Submit
 4. Open the Settings for the new site
-   - The Site Key (Public) will need to be set in the `VUE_APP_RECAPTCHA_KEY` environment variable in your `.env` file of the webroot folder
+   - The Site Key (Public) will need to be set in the `VUE_APP_RECAPTCHA_KEY` environment variable in:
+        - TEST: `.github/workflows/webroot-deploy-test.yml`
+        - PROD: `.github/workflows/webroot-deploy-production.yml` (#108)
+        - Your local `.env` file of the webroot folder (if running the app locally)
    - The Secret Key (Private) will need to be manually stored in the AWS account in secrets manager, using the following secret name:
      `compact-connect/env/{value of 'environment_name' in cdk.context.json}/recaptcha/token`
    The value of the secret key should be in the following format:

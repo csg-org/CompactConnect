@@ -81,6 +81,14 @@ export class DataApi {
     // ========================================================================
     //                              LICENSE API
     // ========================================================================
+    // Create Licensee Account.
+    public createLicenseeAccount(compact: string, data: object) {
+        return this.wait(500).then(() => ({
+            compact,
+            ...data,
+        }));
+    }
+
     // Get Licensees
     public getLicensees(params: any = {}) {
         return this.wait(500).then(() => ({
