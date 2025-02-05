@@ -150,6 +150,7 @@ class TstFunction(TstLambdas):
         :param home: The jurisdiction for the license
         :param privilege: The jurisdiction for the privilege
         :param start_serial: Starting number for last portion of the provider's SSN
+        :param names: A list of tuples, each containing a family name and given name
         """
         from cc_common.data_model.data_client import DataClient
         from handlers.ingest import ingest_license_message

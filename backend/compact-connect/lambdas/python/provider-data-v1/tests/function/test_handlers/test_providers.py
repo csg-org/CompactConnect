@@ -102,7 +102,22 @@ class TestQueryProviders(TstFunction):
         from handlers.providers import query_providers
 
         # 20 providers, 10 with licenses in oh, 10 with privileges in oh
-        self._generate_providers(home='ne', privilege='oh', start_serial=9999)
+        # We'll force the first 10 names, to be a set of values we know are challenging characters
+        names = [
+            ('山田', '1'),
+            ('後藤', '2'),
+            ('清水', '3'),
+            ('近藤', '4'),
+            ('Anderson', '5'),
+            ('Bañuelos', '6'),
+            ('de la Fuente', '7'),
+            ('Dennis', '8'),
+            ('Figueroa', '9'),
+            ('Frías', '10'),
+        ]
+        self._generate_providers(home='ne', privilege='oh', start_serial=9999, names=names)
+        # We'll leave the last 10 names to be randomly generated to let the Faker data set come up with some
+        # interesting values, to leave the door open to identify new edge cases.
         self._generate_providers(home='oh', privilege='ne', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
@@ -125,7 +140,7 @@ class TestQueryProviders(TstFunction):
         self.assertEqual({'key': 'familyName', 'direction': 'ascending'}, body['sorting'])
         self.assertIsInstance(body['pagination']['lastKey'], str)
         # Check we're actually sorted
-        family_names = [provider['familyName'] for provider in body['providers']]
+        family_names = [provider['familyName'].lower() for provider in body['providers']]
         self.assertListEqual(sorted(family_names, key=quote), family_names)
 
     def test_query_providers_by_family_name(self):
