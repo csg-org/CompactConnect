@@ -55,8 +55,9 @@ class MixinForm extends Vue {
             string: {
                 'string.empty': this.$t('inputErrors.required'),
                 'string.min': this.$t('inputErrors.minLength', { min: '{#limit}' }),
-                'string.email': this.$t('inputErrors.email'),
                 'string.max': this.$t('inputErrors.maxLength', { max: '{#limit}' }),
+                'string.length': this.$t('inputErrors.exactLength', { length: '{#limit}' }),
+                'string.email': this.$t('inputErrors.email'),
             },
             creditCard: {
                 'string.empty': this.$t('inputErrors.required'),
@@ -80,7 +81,10 @@ class MixinForm extends Vue {
                 'array.min': this.$t('inputErrors.required'),
                 'array.max': this.$t('inputErrors.maxFiles', { max: '{#limit}' }),
                 'array.length': this.$t('inputErrors.lengthFiles', { length: '{#limit}' }),
-            }
+            },
+            boolean: {
+                'any.invalid': this.$t('inputErrors.required'),
+            },
         };
 
         return messages;

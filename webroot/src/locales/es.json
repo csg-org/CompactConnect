@@ -10,6 +10,7 @@
         "cancel": "Cancelar",
         "close": "Cerrar",
         "skip": "Saltear",
+        "confirm": "Confirmar",
         "choose": "Elige",
         "chooseOne": "Elige uno",
         "select": "Seleccionar",
@@ -38,9 +39,12 @@
         "saving": "Guardando...",
         "loading": "Cargando...",
         "viewing": "Viendo",
+        "name": "Nombre",
         "firstName": "Nombre",
+        "givenName": "Nombre de pila",
         "middleName": "Segundo nombre",
         "lastName": "Apellido",
+        "givenName": "Apellido",
         "selection": "Selección",
         "dateOfBirth": "Fecha de nacimiento",
         "dateOfBirthShort": "Fecha de nacim.",
@@ -345,6 +349,9 @@
     },
     "navigation": {
         "login": "Iniciar sesión",
+        "loginAsStaff": "Iniciar sesión como personal",
+        "loginAsProvider": "Iniciar sesión como proveedor",
+        "registerAsProvider": "Registrarse como proveedor",
         "home": "Hogar",
         "upload": "Subir",
         "licensing": "Licencia",
@@ -374,6 +381,7 @@
         "email": "Debe ser una dirección de correo electrónico válida",
         "minLength": "Debe tener al menos {min} caracteres",
         "maxLength": "Debe tener menos o igual a {max} caracteres",
+        "exactLength": "Debe tener {length} caracteres",
         "remainingCharacters": "Letras restante",
         "minOfUppercase": "Debe tener al menos {min} letras mayúsculas",
         "minOfLowercase": "Debe tener al menos {min} caracteres en minúscula",
@@ -407,7 +415,8 @@
         "noRecords": "No hay registros que mostrar",
         "dobFormat": "La fecha de nacimiento debe estar en el formato MM/DD/AAAA y debe ser una fecha real que existió.",
         "dobMaxDate": "La fecha de nacimiento debe ser anterior o igual al día de hoy.",
-        "dobMinDate": "La fecha de nacimiento debe ser posterior o igual al 01/01/1900."
+        "dobMinDate": "La fecha de nacimiento debe ser posterior o igual al 01/01/1900.",
+        "rateLimit": "Has superado el número máximo de intentos. Vuelve a intentarlo más tarde."
     },
     "phoneVerification": {
         "pleaseVerifyYourNumber": "Verifique su número de teléfono siguiendo las indicaciones a continuación.",
@@ -479,10 +488,14 @@
         "licensingListTitle": "Datos de licencia",
         "searchTitle": "Iniciar una búsqueda",
         "attestation": "Atestación",
+        "stateProvidedEmail": "Correo electrónico proporcionado por el estado",
+        "accountEmail": "Correo electrónico de la cuenta",
+        "attestations": "Atestaciónes",
         "searchSubtext": "Introduzca al menos un campo para buscar datos de licencia.",
         "searchLabel": "Buscar",
         "searchPlaceholderName": "Introducir nombre",
         "homeState": "Estado de origen",
+        "stateOfHomeLicense": "Estado de la licencia de vivienda",
         "residenceLocation": "Ubicación de la residencia",
         "privileges": "Privilegios",
         "recentPrivilegesTitle": "Privilegios recientes",
@@ -494,7 +507,10 @@
         "birthMonthDay": "Birth month-day",
         "personalInformation": "Información personal",
         "ssn": "SSN",
+        "ssnLastFour": "Últimos 4 números del SSN",
+        "incorrectInfoDisclaimer": "La información en esta página fue proporcionada por su estado de origen. Si la información es incorrecta, debe comunicarse con ese estado y pedirles que la corrijan. Consulte la página compacta de Preguntas Frecuentes para obtener más información.",
         "noRefundsMessage": "Todas las compras de privilegios compactos son definitivas. No se emitirán reembolsos.",
+        "licenseType": "Tipo de licencia",
         "adverseActions": "Acciones adversas",
         "status": "Estado",
         "deselectState": "Deseleccionar estado",
@@ -503,6 +519,8 @@
         "expirationDate": "Fecha de caducidad",
         "lastUpdate": "Última carga",
         "license": "Licencia",
+        "licenseNumber": "Número de licencia",
+        "licenseExpirationDate": "Fecha de vencimiento de la licencia",
         "licenseExpiredMessage": "Su licencia ha caducado.",
         "obtainPrivileges": "Obtener privilegios",
         "expired": "Caducada",
@@ -511,17 +529,23 @@
         "iUnderstand": "Yo entiendo",
         "selectPrivileges": "Seleccionar privilegios",
         "jurisprudenceConfirmation": "Confirmación de jurisprudencia",
-        "jurisprudenceUnderstandParagraph": "Entiendo que una declaración es una declaración jurídicamente vinculante. Entiendo que proporcionar información falsa en esta solicitud podría resultar en la pérdida de mis licencias y/o privilegios. Reconozco que la Comisión puede auditar las certificaciones de jurisprudencia a su discreción.",
         "commissionFee": "Comisión Cuota",
         "jurisdictionFee": "Jurisdicción Cuota",
         "disciplineStatus": "Estado de disciplina",
         "jurisprudenceExplanationText": "Doy fe de haber completado el examen de jurisprudencia requerido.",
+        "scopeAttestTitle": "Alcance de la certificación de práctica",
+        "scopeAttestLabel": "He leído el alcance de la atestación de práctica.",
         "noDiscipline": "No disciplina",
         "blackCircle": "Circulo negro",
         "licenseIcon": "Icono de licencia",
         "houseIcon": "Icono de la casa",
         "twoHomeStateErrorMessage": "Dos estados lo tienen incluido como residente. Actualice su información con esos estados para reflejar su estado de residencia actual.",
         "state": "Estado",
+        "attestations": "Certificaciones",
+        "investigations": "Investigaciones",
+        "discipline": "Disciplina",
+        "provisionOfInformation": "Suministro de información veraz",
+        "militaryAffiliation": "Afiliación militar",
         "statusOptions": {
             "active": "Activo",
             "inactive": "Inactivo"
@@ -529,41 +553,32 @@
         "occupations": [
             {
                 "name": "Audiólogo",
-                "key": "audiologist"
+                "key": "audiologist",
+                "compactKey": "aslp"
             },
             {
                 "name": "Patólogo del habla y lenguaje",
-                "key": "speech-language pathologist"
-            },
-            {
-                "name": "Patólogo del habla y el lenguaje",
-                "key": "speech and language pathologist"
+                "key": "speech-language pathologist",
+                "compactKey": "aslp"
             },
             {
                 "name": "Terapeuta ocupacional",
-                "key": "occupational therapist"
+                "key": "occupational therapist",
+                "compactKey": "octp"
             },
             {
                 "name": "Occupational Therapy Assistant",
-                "key": "occupational therapy assistant"
+                "key": "occupational therapy assistant",
+                "compactKey": "octp"
             },
             {
                 "name": "Asistente de terapia ocupacional",
-                "key": "licensed professional counselor"
-            },
-            {
-                "name": "Consejero de salud mental autorizado",
-                "key": "licensed mental health counselor"
-            },
-            {
-                "name": "Consejero de salud mental clínico autorizado",
-                "key": "licensed clinical mental health counselor"
-            },
-            {
-                "name": "Consejero clínico profesional autorizado",
-                "key": "licensed professional clinical counselor"
+                "key": "licensed professional counselor",
+                "compactKey": "coun"
             }
-        ]
+        ],
+        "privilegePurchaseTitle": "Compra privada",
+        "personalInfoTitle": "Información personal"
     },
     "military": {
         "militaryStatusTitle": "Estado militar",
@@ -602,6 +617,13 @@
         "dateUploaded": "Fecha de carga"
     },
     "account": {
+        "requestAccount": "Solicitar cuenta",
+        "requestAnAccount": "Solicitar una cuenta",
+        "accountSuccessTitle": "Gracias por tu solicitud.",
+        "accountSuccessSubtext": "Si tu información es válida recibirás un correo electrónico para terminar de configurar tu cuenta.",
+        "requestErrorTitle": "Se produjo un error al procesar su solicitud.",
+        "requestErrorCompactMissing": "No se pudo determinar el compacto a partir del tipo de licencia",
+        "requestErrorRecaptcha": "Se produjo un error al obtener el token recaptcha. Si el error persiste, comuníquese con el servicio de asistencia.",
         "accountTitle": "Cuenta",
         "usersListTitle": "Usuarios",
         "usersListEmpty": "Invita a los usuarios con el botón de arriba",
@@ -638,6 +660,13 @@
         "confirmUserReinviteTitle": "¿Está seguro de que desea volver a enviar la invitación a {name}?",
         "confirmUserReinviteSubtext": "Se enviará un correo electrónico a {email} y el usuario deberá establecer una nueva contraseña.",
         "confirmUserDeactivate": "¿Está seguro de que desea desactivar {name} de este acuerdo? No se puede deshacer."
+    },
+    "recaptcha": {
+        "googleDesc": "Este sitio está protegido por reCAPTCHA y se aplican las políticas de privacidad de Google.",
+        "privacyPolicy": "política de privacidad",
+        "and": "y",
+        "terms": "Condiciones de servicio",
+        "apply": "aplicar"
     },
     "styleGuide": {
         "headerPlaceholder": "Contenido del encabezado",

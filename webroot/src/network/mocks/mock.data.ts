@@ -972,6 +972,19 @@ export const users = {
     ],
 };
 
+export const attestation = {
+    attestationId: 'test-id',
+    dateCreated: '2020-01-01',
+    dateOfUpdate: '2021-12-31',
+    compact: 'aslp',
+    type: 'test-type',
+    displayName: 'Test Attestation',
+    text: 'Test Text',
+    version: '1',
+    locale: 'en',
+    required: true,
+};
+
 export const pets = [
     {
         id: 1,

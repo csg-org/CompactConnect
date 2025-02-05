@@ -1,7 +1,7 @@
 {
   "pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
   "sk": "aslp#PROVIDER",
-  "providerFamGivMid": "Gu%C3%B0mundsd%C3%B3ttir#Bj%C3%B6rk#Gunnar",
+  "providerFamGivMid": "gu%C3%B0mundsd%C3%B3ttir#bj%C3%B6rk#gunnar",
   "providerDateOfUpdate": "2024-07-08",
   "type": "provider",
   "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
@@ -23,6 +23,8 @@
   "homeAddressPostalCode": "43004",
   "emailAddress": "björk@example.com",
   "phoneNumber": "+13213214321",
+  "compactConnectRegisteredEmailAddress": "björkRegisteredEmail@example.com",
+  "cognitoSub": "3408b4e8-0061-7052-bbe0-fda9a9369c80",
   "militaryWaiver": false,
   "dateOfExpiration": "2025-04-04",
   "dateOfBirth": "1985-06-06",

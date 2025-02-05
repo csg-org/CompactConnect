@@ -10,6 +10,7 @@
         "cancel": "Cancel",
         "close": "Close",
         "skip": "Skip",
+        "confirm": "Confirm",
         "choose": "Choose",
         "chooseOne": "Choose one",
         "select": "Select",
@@ -38,15 +39,18 @@
         "saving": "Saving...",
         "loading": "Loading...",
         "viewing": "Viewing",
+        "name": "Name",
         "firstName": "First Name",
+        "givenName": "Given Name",
         "middleName": "Middle Name",
         "lastName": "Last Name",
+        "familyName": "Family Name",
         "selection": "Selection",
         "dateOfBirth": "Date of Birth",
         "dateOfBirthShort": "DOB",
         "dateFormat": "mm/dd/yyyy",
         "emailAddress": "Email Address",
-        "phoneNumber": "Phone Number",
+        "phoneNumber": "Phone number",
         "address": "Address",
         "city": "City",
         "state": "State",
@@ -345,6 +349,9 @@
     },
     "navigation": {
         "login": "Login",
+        "loginAsStaff": "Login as Staff",
+        "loginAsProvider": "Login as Provider",
+        "registerAsProvider": "Register as Provider",
         "home": "Home",
         "upload": "Upload data",
         "licensing": "Search licensing data",
@@ -374,6 +381,7 @@
         "email": "Must be a valid email address",
         "minLength": "Must be at least {min} characters",
         "maxLength": "Must be less than or equal to {max} characters",
+        "exactLength": "Must be {length} characters",
         "remainingCharacters": "Remaining characters",
         "minOfUppercase": "Must have at least {min} uppercase characters",
         "minOfLowercase": "Must have at least {min} lowercase characters",
@@ -407,7 +415,8 @@
         "noRecords": "No records to display",
         "dobFormat": "Date of Birth must be in the format MM/DD/YYYY.",
         "dobMaxDate": "Date of Birth must be earlier than than or equal to today.",
-        "dobMinDate": "Date of Birth must be later than or equal to 01/01/1900."
+        "dobMinDate": "Date of Birth must be later than or equal to 01/01/1900.",
+        "rateLimit": "You have exceeded the maximum number of attempts. Please try again later."
     },
     "phoneVerification": {
         "pleaseVerifyYourNumber": "Please verify your phone number by following the prompts below.",
@@ -479,12 +488,18 @@
         "license": "License",
         "licensingListTitle": "Licensing Data",
         "attestation": "Attestation",
+        "attestations": "Attestations",
+        "stateProvidedEmail": "State-provided email",
+        "accountEmail": "Account email",
         "searchTitle": "Begin a search",
         "searchSubtext": "Enter at least one field to search for licensing data.",
         "licenseExpiredMessage": "Your license has expired.",
         "searchLabel": "Search",
         "searchPlaceholderName": "Enter name",
         "homeState": "Home State",
+        "stateOfHomeLicense": "State of home license",
+        "licenseNumber": "License number",
+        "licenseExpirationDate": "License expiration date",
         "residenceLocation": "Residence location",
         "obtainPrivileges": "Obtain Privileges",
         "privileges": "Privileges",
@@ -498,9 +513,12 @@
         "licenseExpired": "License expired",
         "noRefundsMessage": "All compact privilege purchases are final. Refunds will not be issued.",
         "ssn": "SSN",
+        "ssnLastFour": "Last 4 of SSN",
+        "incorrectInfoDisclaimer": "The information on this page was provided by your home state. If the information is incorrect, you must reach out to that state and ask them to correct it. Refer to the compact FAQ page for more information.",
         "deselectState": "Deselect state",
         "commissionFee": "Commission Fee",
         "jurisdictionFee": "Jurisdiction Fee",
+        "licenseType": "License type",
         "adverseActions": "Adverse actions",
         "status": "Status",
         "expired": "Expired",
@@ -513,12 +531,18 @@
         "selectPrivileges": "Select privileges",
         "iUnderstand": "I understand",
         "jurisprudenceConfirmation": "Jurisprudence Confirmation",
-        "jurisprudenceUnderstandParagraph": "I understand that an attestation is alegally binding statement. I understand that providing false information on this application could result in a loss of my licenses and/or privileges. I acknowledge that the Commission may audit jurisprudence attestations at their discretion.",
         "lastUpdate": "Latest upload",
         "disciplineStatus": "Discipline status",
         "noDiscipline": "No discipline",
         "twoHomeStateErrorMessage": "Two states have you listed as a resident. Please update your information with those states to reflect your current residency status.",
         "jurisprudenceExplanationText": "I attest I have completed the required jurisprudence exam.",
+        "scopeAttestTitle": "Scope of practice attestation",
+        "scopeAttestLabel": "I have read the scope of practice attestation.",
+        "attestations": "Attestations",
+        "investigations": "Investigations",
+        "discipline": "Discipline",
+        "provisionOfInformation": "Provision of true information",
+        "militaryAffiliation": "Military affiliation",
         "blackCircle": "Black circle",
         "licenseIcon": "License icon",
         "houseIcon": "House icon",
@@ -529,41 +553,32 @@
         "occupations": [
             {
                 "name": "Audiologist",
-                "key": "audiologist"
+                "key": "audiologist",
+                "compactKey": "aslp"
             },
             {
                 "name": "Speech-Language Pathologist",
-                "key": "speech-language pathologist"
-            },
-            {
-                "name": "Speech and Language Pathologist",
-                "key": "speech and language pathologist"
+                "key": "speech-language pathologist",
+                "compactKey": "aslp"
             },
             {
                 "name": "Occupational Therapist",
-                "key": "occupational therapist"
+                "key": "occupational therapist",
+                "compactKey": "octp"
             },
             {
                 "name": "Occupational Therapy Assistant",
-                "key": "occupational therapy assistant"
+                "key": "occupational therapy assistant",
+                "compactKey": "octp"
             },
             {
                 "name": "Licensed Professional Counselor",
-                "key": "licensed professional counselor"
-            },
-            {
-                "name": "Licensed Mental Health Counselor",
-                "key": "licensed mental health counselor"
-            },
-            {
-                "name": "Licensed Clinical Mental Health Counselor",
-                "key": "licensed clinical mental health counselor"
-            },
-            {
-                "name": "Licensed Professional Clinical Counselor",
-                "key": "licensed professional clinical counselor"
+                "key": "licensed professional counselor",
+                "compactKey": "coun"
             }
-        ]
+        ],
+        "privilegePurchaseTitle": "Privilege purchase",
+        "personalInfoTitle": "Personal information"
     },
     "military": {
         "militaryStatusTitle": "Military status",
@@ -602,6 +617,13 @@
         "dateUploaded": "Date uploaded"
     },
     "account": {
+        "requestAccount": "Request account",
+        "requestAnAccount": "Request an account",
+        "requestSuccessTitle": "Thanks for your request.",
+        "requestSuccessSubtext": "If your information is valid you will be receiving an email to finish setting up your account.",
+        "requestErrorTitle": "There was an error processing your request",
+        "requestErrorCompactMissing": "The compact could not be determined from the license type",
+        "requestErrorRecaptcha": "There was an error fetching the recaptcha token. If the error persists please contact support.",
         "accountTitle": "Account",
         "usersListTitle": "Users",
         "usersListEmpty": "Invite users with the button above",
@@ -638,6 +660,13 @@
         "confirmUserReinviteTitle": "Are you sure you want to resend the invitation to {name}?",
         "confirmUserReinviteSubtext": "An email will be sent to {email} and the user will be forced to set a new password.",
         "confirmUserDeactivate": "Are you sure you want to deactivate {name} from this compact? This cannot be undone."
+    },
+    "recaptcha": {
+        "googleDesc": "This site is protected by reCAPTCHA and the Google",
+        "privacyPolicy": "Privacy Policy",
+        "and": "and",
+        "terms": "Terms of Service",
+        "apply": "apply"
     },
     "styleGuide": {
         "headerPlaceholder": "Header Content",

@@ -112,7 +112,7 @@ class AppStack(Stack):
 
         if not allowed_origins:
             raise ValueError(
-                "This app requires at least one allowed origin for its API CORS configuration. Either provide "
+                'This app requires at least one allowed origin for its API CORS configuration. Either provide '
                 "'domain_name' or set 'allow_local_ui' to true in this environment's context."
             )
         return allowed_origins

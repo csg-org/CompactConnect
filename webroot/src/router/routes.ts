@@ -16,6 +16,12 @@ const routes: Array<RouteConfig> = [
         beforeEnter: guards.noAuthGuard,
     },
     {
+        path: '/Register',
+        name: 'RegisterLicensee',
+        component: () => import(/* webpackChunkName: "register" */ '@pages/RegisterLicensee/RegisterLicensee.vue'),
+        beforeEnter: guards.noAuthGuard,
+    },
+    {
         path: '/Login',
         name: 'Login',
         component: () => import(/* webpackChunkName: "home" */ '@pages/Login/Login.vue'),
@@ -96,6 +102,12 @@ const routes: Array<RouteConfig> = [
         path: '/:compact/Privileges/SelectPrivileges',
         name: 'SelectPrivileges',
         component: () => import(/* webpackChunkName: "privilegePurchase" */ '@pages/SelectPrivileges/SelectPrivileges.vue'),
+        meta: { requiresAuth: true, licenseeAccess: true, },
+    },
+    {
+        path: '/:compact/Privileges/ConfirmInfo',
+        name: 'PrivilegePurchaseInformationConfirmation',
+        component: () => import(/* webpackChunkName: "privilegePurchase" */ '@pages/PrivilegePurchaseInformationConfirmation/PrivilegePurchaseInformationConfirmation.vue'),
         meta: { requiresAuth: true, licenseeAccess: true, },
     },
     {

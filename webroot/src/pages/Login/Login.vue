@@ -6,33 +6,44 @@
 -->
 
 <template>
-    <div v-if="!isUsingMockApi" class="login-container">
+    <div class="login-container">
         <a
+            v-if="!isUsingMockApi"
             :href="hostedLoginUriStaff"
             class="login-link"
+            rel="noopener noreferrer"
         >
-            Login as Staff
+            {{ $t('navigation.loginAsStaff') }}
         </a>
         <a
+            v-if="!isUsingMockApi"
             :href="hostedLoginUriLicensee"
             class="login-link"
+            rel="noopener noreferrer"
         >
-            Login as Provider
+            {{ $t('navigation.loginAsProvider') }}
         </a>
-    </div>
-    <div v-else class="login-container">
         <InputButton
+            v-if="isUsingMockApi"
             label="Mock Staff Login"
             aria-label="Mock Login"
             :isTextLike="true"
             @click="mockStaffLogin"
         />
         <InputButton
+            v-if="isUsingMockApi"
             label="Mock Licensee Login"
             aria-label="Mock Licensee Login"
             :isTextLike="true"
             @click="mockLicenseeLogin"
         />
+        <router-link
+            :to="{ name: 'RegisterLicensee' }"
+            class="login-link"
+            tabindex="0"
+        >
+            {{ $t('navigation.registerAsProvider') }}
+        </router-link>
     </div>
 </template>
 

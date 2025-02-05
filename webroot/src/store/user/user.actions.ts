@@ -62,6 +62,25 @@ export default {
     logoutFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.LOGOUT_FAILURE, error);
     },
+    // CREATE LICENSEE ACCOUNT
+    createLicenseeAccountRequest: async ({ commit, dispatch }, { compact, data }: any) => {
+        commit(MutationTypes.CREATE_LICENSEE_ACCOUNT_REQUEST);
+        return dataApi.createLicenseeAccount(compact, data).then((response) => {
+            dispatch('createLicenseeAccountSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('createLicenseeAccountFailure', error);
+
+            throw error;
+        });
+    },
+    createLicenseeAccountSuccess: ({ commit }) => {
+        commit(MutationTypes.CREATE_LICENSEE_ACCOUNT_SUCCESS);
+    },
+    createLicenseeAccountFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.CREATE_LICENSEE_ACCOUNT_FAILURE, error);
+    },
     // GET STAFF ACCOUNT
     getStaffAccountRequest: async ({ commit, dispatch }) => {
         commit(MutationTypes.GET_ACCOUNT_REQUEST);
@@ -259,6 +278,9 @@ export default {
     },
     setAttestationsAccepted: ({ commit }, areAttestationsAccepted: boolean) => {
         commit(MutationTypes.SET_ATTESTATIONS_ACCEPTED, areAttestationsAccepted);
+    },
+    setAttestations: ({ commit }, attestations) => {
+        commit(MutationTypes.SET_ATTESTATIONS, attestations);
     },
     postPrivilegePurchases: ({ commit, dispatch }, privilegePurchases) => {
         commit(MutationTypes.POST_PRIVILEGE_PURCHASE_REQUEST);

@@ -14,9 +14,9 @@ import deleteUndefinedProperties from '@models/_helpers';
 // ========================================================
 export interface InterfaceUserCreate {
     id?: string | null;
-    email?: string | null;
     firstName?: string | null;
     lastName?: string | null;
+    compactConnectEmail?: string | null;
     userType?: AuthTypes | null;
     accountStatus?: string;
     serverPage?: number;
@@ -29,9 +29,9 @@ export class User implements InterfaceUserCreate {
     public $tm?: any = () => [];
     public $t?: any = () => '';
     public id? = null;
-    public email? = null;
     public firstName? = null;
     public lastName? = null;
+    public compactConnectEmail? = null
     public userType? = null;
     public accountStatus? = '';
     public serverPage? = 0;

@@ -49,6 +49,8 @@ class ProviderPrivateSchema(ForgivingSchema):
     militaryWaiver = Boolean(required=False, allow_none=False)
     emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
+    compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
+    cognitoSub = String(required=False, allow_none=False)
 
     # Generated fields
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
@@ -101,7 +103,12 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema, ProviderPrivateSchema):
     @pre_dump
     def populate_fam_giv_mid(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['providerFamGivMid'] = '#'.join(
-            (quote(in_data['familyName']), quote(in_data['givenName']), quote(in_data.get('middleName', ''))),
+            # make names on GSI lowercase for case-insensitive search
+            (
+                quote(in_data['familyName'].lower()),
+                quote(in_data['givenName'].lower()),
+                quote(in_data.get('middleName', '').lower()),
+            ),
         )
         return in_data
 

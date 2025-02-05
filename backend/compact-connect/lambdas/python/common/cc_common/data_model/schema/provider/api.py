@@ -11,6 +11,7 @@ from cc_common.data_model.schema.fields import (
     NationalProviderIdentifier,
     Set,
 )
+from cc_common.data_model.schema.home_jurisdiction.api import ProviderHomeJurisdictionSelectionGeneralResponseSchema
 from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema
 from cc_common.data_model.schema.military_affiliation.api import MilitaryAffiliationGeneralResponseSchema
 from cc_common.data_model.schema.privilege.api import PrivilegeGeneralResponseSchema
@@ -54,6 +55,8 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
     emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
+    compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
+    cognitoSub = String(required=False, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
     militaryWaiver = Boolean(required=False, allow_none=False)
 
@@ -67,3 +70,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     licenses = List(Nested(LicenseGeneralResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegeGeneralResponseSchema(), required=False, allow_none=False))
     militaryAffiliations = List(Nested(MilitaryAffiliationGeneralResponseSchema(), required=False, allow_none=False))
+    homeJurisdictionSelection = Nested(
+        ProviderHomeJurisdictionSelectionGeneralResponseSchema(), required=False, allow_none=False
+    )
