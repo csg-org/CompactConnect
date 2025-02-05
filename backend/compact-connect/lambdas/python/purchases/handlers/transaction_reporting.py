@@ -15,33 +15,6 @@ from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 
 
-def _get_weekly_date_boundaries(current_time: datetime) -> tuple[datetime, datetime]:
-    """Calculate the start and end times for weekly reporting boundaries.
-
-    :param current_time: The current time in UTC
-    :return: Tuple of (start_time, end_time) for the weekly report boundaries
-    """
-    # Reports run on Friday 10:00 PM UTC
-    end_time = current_time.replace(hour=22, minute=0, second=0, microsecond=0)
-    # Go back 7 days to capture the full week
-    start_time = end_time - timedelta(days=7)
-    return start_time, end_time
-
-
-def _get_monthly_date_boundaries(current_time: datetime) -> tuple[datetime, datetime]:
-    """Calculate the start and end times for monthly reporting boundaries.
-
-    :param current_time: The current time in UTC
-    :return: Tuple of (start_time, end_time) for the monthly report boundaries
-    """
-    # Reports run shortly after midnight on the first day of the month
-    # End time is the last microsecond of the previous month
-    end_time = current_time.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(microseconds=1)
-    # Start time is the first microsecond of the previous month
-    start_time = end_time.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    return start_time, end_time
-
-
 def _get_display_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
     """Get the display date range for reports.
 
@@ -51,9 +24,20 @@ def _get_display_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
     :return: Tuple of (start_time, end_time) in UTC for display purposes
     """
     if reporting_cycle == 'weekly':
-        return _get_weekly_date_boundaries(config.current_standard_datetime)
+        # Reports run on Friday 10:00 PM UTC
+        end_time = config.current_standard_datetime
+        # Go back 7 days to capture the full week
+        start_time = end_time - timedelta(days=7)
+        return start_time, end_time
     if reporting_cycle == 'monthly':
-        return _get_monthly_date_boundaries(config.current_standard_datetime)
+        # Reports run shortly after midnight on the first day of the month
+        # End time is the last day of the previous month
+        end_time = config.current_standard_datetime.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(
+            days=1
+        )
+        # Start time is the first day of the previous month
+        start_time = end_time.replace(day=1)
+        return start_time, end_time
     raise ValueError(f'Invalid reporting cycle: {reporting_cycle}')
 
 
@@ -69,17 +53,19 @@ def _get_query_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
     :return: Tuple of (start_time, end_time) in UTC for DynamoDB queries
     """
     if reporting_cycle == 'weekly':
-        # we can return the start and end times directly because the BETWEEN condition is
-        # inclusive for the beginning range and exclusive at the end range
-        return _get_weekly_date_boundaries(config.current_standard_datetime)
+        # Reports run on Friday 10:00 PM UTC
+        end_time = config.current_standard_datetime.replace(hour=22, minute=0, second=0, microsecond=0)
+        # Go back 7 days to capture the full week
+        start_time = end_time - timedelta(days=7)
+        return start_time, end_time
 
     if reporting_cycle == 'monthly':
-        start_time, end_time = _get_monthly_date_boundaries(config.current_standard_datetime)
-        query_start = start_time
-        # we need to add 1 second to the end time to ensure we capture all settled transactions in the month
-        query_end = end_time + timedelta(seconds=1)
-
-        return query_start, query_end
+        # Reports run shortly after midnight on the first day of the month
+        # End time is midnight, since that will be excluded from the BETWEEN key condition
+        end_time = config.current_standard_datetime.replace(hour=0, minute=0, second=0, microsecond=0)
+        # Start time is midnight of the previous month
+        start_time = (end_time - timedelta(days=1)).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        return start_time, end_time
 
     raise ValueError(f'Invalid reporting cycle: {reporting_cycle}')
 

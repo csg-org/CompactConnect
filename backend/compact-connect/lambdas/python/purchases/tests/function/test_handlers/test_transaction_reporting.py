@@ -860,11 +860,11 @@ class TestGenerateTransactionReports(TstFunction):
         )
 
         # Calculate expected date range
-        # the end time should be the last day of the month
-        end_time = datetime.fromisoformat('2024-02-29T23:59:59:9999+00:00')
+        # the display end time should be the last day of the month
+        display_end_time = '2024-02-29'
         # the start time should be the first day of the month
-        start_time = datetime.fromisoformat('2024-02-01T00:00:00+00:00')
-        date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
+        display_start_time = '2024-02-01'
+        date_range = f'{display_start_time}--{display_end_time}'
 
         generate_transaction_reports(generate_mock_event(reporting_cycle='monthly'), self.mock_context)
 
@@ -877,9 +877,8 @@ class TestGenerateTransactionReports(TstFunction):
         self.assertEqual('RequestResponse', compact_call['InvocationType'])
 
         expected_compact_path = (
-            f"compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/monthly/"
-            f"{end_time.strftime('%Y/%m/%d')}/"
-            f"{TEST_COMPACT}-{date_range}-report.zip"
+            f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/monthly/2024/02/29/'
+            f'{TEST_COMPACT}-{date_range}-report.zip'
         )
         compact_payload = json.loads(compact_call['Payload'])
         self.assertEqual(
@@ -890,8 +889,8 @@ class TestGenerateTransactionReports(TstFunction):
                 'templateVariables': {
                     'reportS3Path': expected_compact_path,
                     'reportingCycle': 'monthly',
-                    'startDate': start_time.strftime('%Y-%m-%d'),
-                    'endDate': end_time.strftime('%Y-%m-%d'),
+                    'startDate': display_start_time,
+                    'endDate': display_end_time,
                 },
             },
             compact_payload,
