@@ -56,20 +56,16 @@ class InputDate extends mixins(MixinInput) {
     @Prop({ default: false }) isLoading?: boolean;
 
     //
-    // Data
-    //
-
-    //
-    // Lifecycle
-    //
-
-    //
-    // Computed
-    //
-
-    //
     // Methods
     //
+    input(): void {
+        const { formInput } = this;
+
+        if (formInput?.value === null) {
+            formInput.value = '';
+            formInput.validate();
+        }
+    }
 }
 
 export default toNative(InputDate);

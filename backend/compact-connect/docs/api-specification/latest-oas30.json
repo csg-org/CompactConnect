@@ -2,11 +2,11 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-02-05T04:44:44Z"
+    "version": "2025-02-05T21:10:07Z"
   },
   "servers": [
     {
-      "url": "https://api.justin.jcc.iaapi.io"
+      "url": "https://api.test.compactconnect.org"
     }
   ],
   "paths": {

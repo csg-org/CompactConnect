@@ -58,6 +58,7 @@ export const responseError = (router) => (error) => {
     if (axiosResponse) {
         // Get API response
         serverResponse = axiosResponse.data || {};
+        serverResponse.responseStatus = axiosResponse.status;
 
         switch (axiosResponse.status) {
         case 401:
