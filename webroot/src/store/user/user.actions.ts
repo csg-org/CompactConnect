@@ -15,6 +15,7 @@ import {
 } from '@/app.config';
 import localStorage from '@store/local.storage';
 import { Compact } from '@models/Compact/Compact.model';
+import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import moment from 'moment';
 import axios from 'axios';
 import { MutationTypes } from './user.mutations';
@@ -331,5 +332,11 @@ export default {
     },
     endMilitaryAffiliationFailure: async ({ commit }, error: Error) => {
         commit(MutationTypes.END_MILITARY_AFFILIATION_FAILURE, error);
+    },
+    cleanPurchaseFlowState: ({ commit }, flowStepNum: number) => {
+        commit(MutationTypes.CLEAN_PURCHASE_FLOW_STATE, flowStepNum);
+    },
+    saveFlowStep: ({ commit }, flowStep: PurchaseFlowStep) => {
+        commit(MutationTypes.SAVE_PURCHASE_FLOW_STEP, flowStep);
     },
 };

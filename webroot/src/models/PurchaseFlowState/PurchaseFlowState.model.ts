@@ -12,7 +12,6 @@ import { PurchaseFlowStep } from '@models/PurchaseFlowStep/PurchaseFlowStep.mode
 // =                       Interface                      =
 // ========================================================
 export interface InterfacePurchaseFlowStateCreate {
-    totalSteps?: number;
     steps?: Array<PurchaseFlowStep>;
 }
 
@@ -20,7 +19,6 @@ export interface InterfacePurchaseFlowStateCreate {
 // =                        Model                         =
 // ========================================================
 export class PurchaseFlowState implements InterfacePurchaseFlowStateCreate {
-    public totalSteps? = 0;
     public steps? = [];
 
     constructor(data?: InterfacePurchaseFlowStateCreate) {

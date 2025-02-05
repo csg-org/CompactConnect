@@ -5,7 +5,12 @@
 //  Created by InspiringApps on 10/15/2024.
 //
 
-import { Component, Watch, mixins } from 'vue-facing-decorator';
+import {
+    Component,
+    Watch,
+    mixins,
+    Prop
+} from 'vue-facing-decorator';
 import { reactive } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import SelectedStatePurchaseInformation from '@components/SelectedStatePurchaseInformation/SelectedStatePurchaseInformation.vue';
@@ -36,6 +41,9 @@ import { dataApi } from '@network/data.api';
     }
 })
 export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
+    @Prop({ default: 0 }) flowStep!: number;
+    @Prop({ default: 0 }) progressPercent!: number;
+
     //
     // Data
     //
@@ -67,7 +75,6 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         await this.fetchAttestations();
 
         if (this.alreadyObtainedPrivilegeStates?.length) {
-            console.log('huh');
             this.initFormInputs();
         }
         this.isLoading = false;
@@ -265,10 +272,6 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         }
 
         return allConfirmed;
-    }
-
-    get progressPercent(): number {
-        return 25;
     }
 
     get areAllScopesConfirmed(): boolean {

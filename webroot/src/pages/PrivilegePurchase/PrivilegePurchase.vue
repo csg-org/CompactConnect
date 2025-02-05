@@ -7,11 +7,31 @@
 
 <template>
     <div>
-        <PrivilegePurchaseInformationConfirmation v-if="isConfirmInfoRoute" :flowStep=1 />
-        <PrivilegePurchaseSelect v-if="isSelectPrivilegesRoute" :flowStep=2 />
-        <PrivilegePurchaseAttestation v-if="isAttestationRoute" :flowStep=3 />
-        <PrivilegePurchaseFinalize v-if="isFinalizeRoute" :flowStep=4 />
-        <PrivilegePurchaseSuccessful v-if="isPurchaseSuccessfulRoute" :flowStep=5 />
+        <PrivilegePurchaseInformationConfirmation
+            v-if="isConfirmInfoRoute"
+            :flowStep="currentFlowStep"
+            :progressPercent="progressPercent"
+        />
+        <PrivilegePurchaseSelect
+            v-if="isSelectPrivilegesRoute"
+            :flowStep="currentFlowStep"
+            :progressPercent="progressPercent"
+        />
+        <PrivilegePurchaseAttestation
+            v-if="isAttestationRoute"
+            :flowStep="currentFlowStep"
+            :progressPercent="progressPercent"
+        />
+        <PrivilegePurchaseFinalize
+            v-if="isFinalizeRoute"
+            :flowStep="currentFlowStep"
+            :progressPercent="progressPercent"
+        />
+        <PrivilegePurchaseSuccessful
+            v-if="isPurchaseSuccessfulRoute"
+            :flowStep="currentFlowStep"
+            :progressPercent="progressPercent"
+        />
     </div>
 </template>
 

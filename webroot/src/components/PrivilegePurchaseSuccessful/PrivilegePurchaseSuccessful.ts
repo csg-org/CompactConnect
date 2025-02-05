@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 11/5/2024.
 //
 
-import { Component, Vue } from 'vue-facing-decorator';
+import { Component, Vue, Prop } from 'vue-facing-decorator';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import { CompactType } from '@models/Compact/Compact.model';
@@ -18,6 +18,8 @@ import { CompactType } from '@models/Compact/Compact.model';
     }
 })
 export default class PrivilegePurchaseSuccessful extends Vue {
+    @Prop({ default: 0 }) flowStep!: number;
+    @Prop({ default: 0 }) progressPercent!: number;
     //
     // Computed
     //
@@ -39,10 +41,6 @@ export default class PrivilegePurchaseSuccessful extends Vue {
 
     get compactType(): CompactType | null {
         return this.userStore.currentCompact?.type;
-    }
-
-    get progressPercent(): number {
-        return 100;
     }
 
     //

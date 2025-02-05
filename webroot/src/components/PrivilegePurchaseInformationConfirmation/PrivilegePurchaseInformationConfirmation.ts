@@ -27,6 +27,8 @@ import { FormInput } from '@/models/FormInput/FormInput.model';
 import { dataApi } from '@network/data.api';
 import Joi from 'joi';
 import { License } from '@/models/License/License.model';
+import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
+import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 
 @Component({
     name: 'PrivilegePurchaseInformationConfirmation',
@@ -39,7 +41,8 @@ import { License } from '@/models/License/License.model';
     }
 })
 export default class PrivilegePurchaseInformationConfirmation extends mixins(MixinForm) {
-    @Prop({ default: 0 }) flowStep?: number;
+    @Prop({ default: 0 }) flowStep!: number;
+    @Prop({ default: 0 }) progressPercent!: number;
 
     //
     // Data
@@ -87,6 +90,10 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
 
     get user(): LicenseeUser | null {
         return this.userStore.model;
+    }
+
+    get purchaseFlowState(): PurchaseFlowState {
+        return this.userStore.purchaseFlowState;
     }
 
     get licensee(): Licensee | null {
@@ -194,13 +201,16 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
 
             const attestationData = this.prepareAttestations();
 
-            this.$store.dispatch('user/setAttestations', attestationData);
+            this.$store.dispatch('user/saveFlowStep', new PurchaseFlowStep({
+                stepNum: this.flowStep,
+                attestationsAccepted: attestationData,
+            }));
 
             if (!this.isFormError) {
                 this.isFormSuccessful = true;
                 this.endFormLoading();
                 this.$router.push({
-                    name: 'SelectPrivileges',
+                    name: 'PrivilegePurchaseSelect',
                     params: { compact: this.currentCompactType }
                 });
             }
@@ -209,7 +219,7 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
         }
     }
 
-    prepareAttestations(): object {
+    prepareAttestations(): Array<any> {
         return this.attestationRecords.map((attestation) => ({
             attestationId: attestation.id,
             version: attestation.version,

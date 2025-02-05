@@ -7,6 +7,7 @@
 import { Compact } from '@models/Compact/Compact.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { StaffUser } from '@/models/StaffUser/StaffUser.model';
+import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { AuthTypes } from '@/app.config';
 
 export enum MutationTypes {
@@ -41,7 +42,9 @@ export enum MutationTypes {
     UPLOAD_MILITARY_AFFILIATION_FAILURE = '[User] Post Military Affiliation Failure',
     END_MILITARY_AFFILIATION_REQUEST = '[User] Patch Military Affiliation Request',
     END_MILITARY_AFFILIATION_SUCCESS = '[User] Patch Military Affiliation Success',
-    END_MILITARY_AFFILIATION_FAILURE = '[User] Patch Military Affiliation Failure'
+    END_MILITARY_AFFILIATION_FAILURE = '[User] Patch Military Affiliation Failure',
+    CLEAN_PURCHASE_FLOW_STATE = '[User] Remove stale Purchase Flow State',
+    SAVE_PURCHASE_FLOW_STEP = '[User] Save a Purchase Flow Step to the Store'
 }
 
 export default {
@@ -187,4 +190,11 @@ export default {
         state.isLoadingAccount = false;
         state.error = error;
     },
+    [MutationTypes.CLEAN_PURCHASE_FLOW_STATE]: (state: any, flowStepNum: number) => {
+        state.purchase.steps = state.purchase.steps.filter((step) => (step.stepNum < flowStepNum));
+    },
+    [MutationTypes.SAVE_PURCHASE_FLOW_STEP]: (state: any, flowStep: PurchaseFlowStep) => {
+        state.purchase.steps = state.purchase.steps.push(flowStep);
+    },
+
 };

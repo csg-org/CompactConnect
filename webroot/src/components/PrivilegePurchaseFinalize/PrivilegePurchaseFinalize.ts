@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 10/28/2024.
 //
 
-import { Component, mixins } from 'vue-facing-decorator';
+import { Component, mixins, Prop } from 'vue-facing-decorator';
 import { reactive, computed } from 'vue';
 import { stateList } from '@/app.config';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
@@ -41,6 +41,9 @@ import Joi from 'joi';
     }
 })
 export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
+    @Prop({ default: 0 }) flowStep!: number;
+    @Prop({ default: 0 }) progressPercent!: number;
+
     //
     // Data
     //
@@ -311,10 +314,6 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
 
     get isMockPopulateEnabled(): boolean {
         return Boolean(this.$envConfig.isDevelopment);
-    }
-
-    get progressPercent(): number {
-        return 75;
     }
 
     //

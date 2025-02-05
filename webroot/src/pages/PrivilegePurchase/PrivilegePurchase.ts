@@ -5,7 +5,7 @@
 //  Created by InspiringApps on 1/31/2025.
 //
 
-import { Component, Vue } from 'vue-facing-decorator';
+import { Component, Vue, Watch } from 'vue-facing-decorator';
 import PrivilegePurchaseInformationConfirmation from '@components/PrivilegePurchaseInformationConfirmation/PrivilegePurchaseInformationConfirmation.vue';
 import PrivilegePurchaseSelect from '@components/PrivilegePurchaseSelect/PrivilegePurchaseSelect.vue';
 import PrivilegePurchaseAttestation from '@components/PrivilegePurchaseAttestation/PrivilegePurchaseAttestation.vue';
@@ -27,15 +27,23 @@ export default class PrivilegePurchase extends Vue {
     //
     // Data
     //
+    flowOrder = [
+        'PrivilegePurchaseInformationConfirmation',
+        'PrivilegePurchaseSelect',
+        'PrivilegePurchaseAttestation',
+        'PrivilegePurchaseFinalize',
+        'PrivilegePurchaseSuccessful'
+    ]
 
     //
     // Lifecycle
     //
     created() {
         if (this.currentCompactType) {
+            this.handlePurchaseFlowState();
+        } else {
             this.$router.push({
-                name: 'PrivilegePurchaseInformationConfirmation',
-                params: { compact: this.currentCompactType }
+                name: 'Home',
             });
         }
     }
@@ -79,7 +87,45 @@ export default class PrivilegePurchase extends Vue {
         return Boolean(this.routeName === 'PrivilegePurchaseSuccessful');
     }
 
+    get currentFlowStep(): number {
+        const {
+            routeName,
+            flowOrder
+        } = this;
+
+        return flowOrder.findIndex((flowRouteName) => (flowRouteName === routeName)) || 0;
+    }
+
+    get numFlowSteps(): number {
+        return this.flowOrder.length;
+    }
+
+    get progressPercent(): number {
+        return Math.round((this.currentFlowStep / this.numFlowSteps) * 100);
+    }
+
     //
     // Methods
     //
+    handlePurchaseFlowState() {
+        const { $store, $router, currentFlowStep } = this;
+
+        const nextStepNeeded = $store.getters['user/getNextNeededPurchaseFlowStep']();
+
+        if (nextStepNeeded !== this.currentFlowStep) {
+            $router.push({
+                name: this.flowOrder[nextStepNeeded],
+                params: { compact: this.currentCompactType }
+            });
+        } else {
+            $store.dispatch('user/cleanPurchaseFlowState', currentFlowStep);
+        }
+    }
+
+    //
+    // Watchers
+    //
+    @Watch('routeName') handlePurchaseFlowNavigation() {
+        this.handlePurchaseFlowState();
+    }
 }
