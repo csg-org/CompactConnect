@@ -181,7 +181,7 @@ export class UserDataApi implements DataApiInterface {
      * @return {Promise<object>}         The server response.
      */
     public async reinviteUser(compact: string, userId: string) {
-        const serverResponse = await this.api.delete(`/v1/compacts/${compact}/staff-users/${userId}/reinvite`);
+        const serverResponse = await this.api.post(`/v1/compacts/${compact}/staff-users/${userId}/reinvite`);
 
         return serverResponse;
     }
