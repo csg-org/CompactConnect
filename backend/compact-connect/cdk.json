@@ -29,19 +29,15 @@
     ],
     "license_types": {
       "aslp": [
-        "audiologist",
-        "speech-language pathologist",
-        "speech and language pathologist"
+        {"name": "audiologist", "abbreviation": "aud"},
+        {"name": "speech-language pathologist", "abbreviation": "slp"}
       ],
       "octp": [
-        "occupational therapist",
-        "occupational therapy assistant"
+        {"name": "occupational therapist", "abbreviation": "ot"},
+        {"name": "occupational therapy assistant", "abbreviation": "ota"}
       ],
       "coun": [
-        "licensed professional counselor",
-        "licensed mental health counselor",
-        "licensed clinical mental health counselor",
-        "licensed professional clinical counselor"
+        {"name": "licensed professional counselor", "abbreviation": "lpc"}
       ]
     },
     "compacts": [

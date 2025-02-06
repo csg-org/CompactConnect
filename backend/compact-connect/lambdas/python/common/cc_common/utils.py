@@ -6,9 +6,11 @@ from decimal import Decimal
 from functools import wraps
 from json import JSONEncoder
 from re import match
+from types import MethodType
 from typing import Any
 from uuid import UUID
 
+from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 
@@ -93,80 +95,96 @@ def api_handler(fn: Callable):
 
         # Determine the appropriate CORS origin header value
         origin = headers.get('Origin')
-        logger.warning('Headers', headers=headers)
         if origin in config.allowed_origins:
             cors_origin = origin
         else:
             cors_origin = config.allowed_origins[0]
 
-        logger.info(
-            'Incoming request',
+        # Propagate these keys to all log messages in this with block
+        with logger.append_context_keys(
             method=event['httpMethod'],
             origin=origin,
             path=event['requestContext']['resourcePath'],
             identity={'user': event['requestContext'].get('authorizer', {}).get('claims', {}).get('sub')},
             query_params=event['queryStringParameters'],
             username=event['requestContext'].get('authorizer', {}).get('claims', {}).get('cognito:username'),
-            context=context,
-        )
+        ):
+            logger.info('Incoming request')
 
-        try:
-            return {
-                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
-                'statusCode': 200,
-                'body': json.dumps(fn(event, context), cls=ResponseEncoder),
-            }
-        except CCUnauthorizedException as e:
-            logger.info('Unauthorized request', exc_info=e)
-            return {
-                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
-                'statusCode': 401,
-                'body': json.dumps({'message': 'Unauthorized'}),
-            }
-        except CCAccessDeniedException as e:
-            logger.info('Forbidden request', exc_info=e)
-            return {
-                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
-                'statusCode': 403,
-                'body': json.dumps({'message': 'Access denied'}),
-            }
-        except CCNotFoundException as e:
-            logger.info('Resource not found', exc_info=e)
-            return {
-                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
-                'statusCode': 404,
-                'body': json.dumps({'message': f'{e.message}'}),
-            }
-        except CCRateLimitingException as e:
-            logger.info('Rate limiting request', exc_info=e)
-            return {
-                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
-                'statusCode': 429,
-                'body': json.dumps({'message': e.message}),
-            }
-        except CCInvalidRequestException as e:
-            logger.info('Invalid request', exc_info=e)
-            return {
-                'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
-                'statusCode': 400,
-                'body': json.dumps({'message': e.message}),
-            }
-        except ClientError as e:
-            # Any boto3 ClientErrors we haven't already caught and transformed are probably on us
-            logger.error('boto3 ClientError', response=e.response, exc_info=e)
-            raise
-        except Exception as e:
-            logger.warning(
-                'Error processing request',
-                method=event['httpMethod'],
-                path=event['requestContext']['resourcePath'],
-                query_params=event['queryStringParameters'],
-                context=context,
-                exc_info=e,
-            )
-            raise
+            try:
+                return {
+                    'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
+                    'statusCode': 200,
+                    'body': json.dumps(fn(event, context), cls=ResponseEncoder),
+                }
+            except CCUnauthorizedException as e:
+                logger.info('Unauthorized request', exc_info=e)
+                return {
+                    'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
+                    'statusCode': 401,
+                    'body': json.dumps({'message': 'Unauthorized'}),
+                }
+            except CCAccessDeniedException as e:
+                logger.info('Forbidden request', exc_info=e)
+                return {
+                    'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
+                    'statusCode': 403,
+                    'body': json.dumps({'message': 'Access denied'}),
+                }
+            except CCNotFoundException as e:
+                logger.info('Resource not found', exc_info=e)
+                return {
+                    'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
+                    'statusCode': 404,
+                    'body': json.dumps({'message': f'{e.message}'}),
+                }
+            except CCRateLimitingException as e:
+                logger.info('Rate limiting request', exc_info=e)
+                return {
+                    'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
+                    'statusCode': 429,
+                    'body': json.dumps({'message': e.message}),
+                }
+            except CCInvalidRequestException as e:
+                logger.info('Invalid request', exc_info=e)
+                return {
+                    'headers': {'Access-Control-Allow-Origin': cors_origin, 'Vary': 'Origin'},
+                    'statusCode': 400,
+                    'body': json.dumps({'message': e.message}),
+                }
+            except ClientError as e:
+                # Any boto3 ClientErrors we haven't already caught and transformed are probably on us
+                logger.error('boto3 ClientError', response=e.response, exc_info=e)
+                raise
+            except Exception as e:
+                logger.warning(
+                    'Error processing request',
+                    exc_info=e,
+                )
+                raise
 
     return caught_handler
+
+
+class logger_inject_kwargs:  # noqa: N801 invalid-name
+    """Decorator to inject kwargs into the logger context"""
+
+    def __init__(self, logger: Logger, *arg_names: tuple[str, ...]):
+        self.logger = logger
+        self.arg_names = arg_names
+
+    def __get__(self, instance, owner):
+        return MethodType(self, instance)
+
+    def __call__(self, fn: Callable):
+        @wraps(fn)
+        def wrapped(*args, **kwargs):
+            if not self.arg_names:
+                raise ValueError('No argument names provided to logger_inject_kwargs')
+            with self.logger.append_context_keys(**{k: kwargs.get(k) for k in self.arg_names}):
+                return fn(*args, **kwargs)
+
+        return wrapped
 
 
 class authorize_compact:  # noqa: N801 invalid-name

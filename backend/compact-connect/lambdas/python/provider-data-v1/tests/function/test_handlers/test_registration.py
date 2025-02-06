@@ -8,7 +8,7 @@ from moto import mock_aws
 from .. import TstFunction
 
 TEST_COMPACT = 'aslp'
-TEST_LICENSE_TYPE = 'speech and language pathologist'
+TEST_LICENSE_TYPE = 'speech-language pathologist'
 
 MOCK_SSN_LAST_FOUR = '1234'
 MOCK_GIVEN_NAME = 'Joe'
@@ -44,9 +44,8 @@ class TestProviderRegistration(TstFunction):
         """
         Adds mock provider and license records to the provider table with customizable data.
 
-        Args:
-            is_registered (bool): If true, addd a home jurisdiction selection record for the provider
-            license_data_overrides (dict): Optional overrides for the license data
+        :param bool is_registered: If true, addd a home jurisdiction selection record for the provider
+        :param dict license_data_overrides: Optional overrides for the license data
         """
         from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
         from cc_common.data_model.schema.license.record import LicenseRecordSchema
@@ -199,7 +198,7 @@ class TestProviderRegistration(TstFunction):
         # Verify home jurisdiction selection record was created
         home_jurisdiction = self.config.provider_table.get_item(
             Key={
-                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data['providerId']}',
+                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data["providerId"]}',
                 'sk': f'{TEST_COMPACT}#PROVIDER#home-jurisdiction#',
             }
         )['Item']
@@ -239,7 +238,7 @@ class TestProviderRegistration(TstFunction):
         # Verify home jurisdiction selection record was created
         provider_record = self.config.provider_table.get_item(
             Key={
-                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data['providerId']}',
+                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data["providerId"]}',
                 'sk': f'{TEST_COMPACT}#PROVIDER',
             }
         )['Item']
@@ -335,7 +334,7 @@ class TestProviderRegistration(TstFunction):
         # Verify the provider record was rolled back and the cognitoSub is not present
         provider_record = self.config.provider_table.get_item(
             Key={
-                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data['providerId']}',
+                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data["providerId"]}',
                 'sk': f'{TEST_COMPACT}#PROVIDER',
             }
         ).get('Item')
@@ -443,7 +442,7 @@ class TestProviderRegistration(TstFunction):
         # Verify home jurisdiction selection record was created
         home_jurisdiction = self.config.provider_table.get_item(
             Key={
-                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data['providerId']}',
+                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data["providerId"]}',
                 'sk': f'{TEST_COMPACT}#PROVIDER#home-jurisdiction#',
             }
         )['Item']
@@ -495,7 +494,7 @@ class TestProviderRegistration(TstFunction):
         # Verify home jurisdiction selection record was created
         home_jurisdiction = self.config.provider_table.get_item(
             Key={
-                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data['providerId']}',
+                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data["providerId"]}',
                 'sk': f'{TEST_COMPACT}#PROVIDER#home-jurisdiction#',
             }
         )['Item']

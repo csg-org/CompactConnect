@@ -105,6 +105,7 @@ class TestTransformations(TstFunction):
             license_expiration_date=date(2025, 4, 4),
             compact_transaction_id='1234567890',
             existing_privileges=[],
+            license_type='speech-language pathologist',
             attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
         )
 
@@ -223,4 +224,5 @@ class TestTransformations(TstFunction):
         expected_provider['privileges'][0]['history'] = []
 
         # Phew! We've loaded the data all the way in via the ingest chain and back out via the API!
+        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)

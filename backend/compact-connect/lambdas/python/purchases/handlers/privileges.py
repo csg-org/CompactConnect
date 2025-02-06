@@ -255,7 +255,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     license_jurisdiction = home_state_license_record['jurisdiction']
     if license_jurisdiction.lower() in selected_jurisdictions_postal_abbreviations:
         raise CCInvalidRequestException(
-            f"Selected privilege jurisdiction '{license_jurisdiction}'" f' matches license jurisdiction'
+            f"Selected privilege jurisdiction '{license_jurisdiction}' matches license jurisdiction"
         )
 
     existing_privileges = [record for record in user_provider_data['items'] if record['type'] == 'privilege']
@@ -279,7 +279,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     user_active_military = _determine_military_affiliation_status(user_provider_data['items'])
 
     # Validate attestations are the latest versions before proceeding with the purchase
-    _validate_attestations(compact_name, body['attestations'], user_active_military)
+    _validate_attestations(compact_name, body.get('attestations', []), user_active_military)
 
     purchase_client = PurchaseClient()
     transaction_response = None
@@ -301,6 +301,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             compact_transaction_id=transaction_response['transactionId'],
             provider_record=provider_record,
             existing_privileges=existing_privileges,
+            license_type=home_state_license_record['licenseType'],
             attestations=body['attestations'],
         )
 
