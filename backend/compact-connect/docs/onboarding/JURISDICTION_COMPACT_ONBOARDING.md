@@ -169,7 +169,7 @@ compactName: "<compact name>"
 compactCommissionFee:
     feeType: "FLAT_RATE"                            # Currently only "FLAT_RATE" type is supported.
     feeAmount: <number>                             # This value will be added to the jurisdiciton fee.
-transactionFeeConfiguration:                        # Optional: configuration for payment processor fees
+transactionFeeConfiguration:                        # Optional: configuration for transaction fees
     licenseeCharges:                               # Optional: How the compact wants to charge licensees to cover these fees
         active: true|false                         # Whether the compact is charging licensees for transaction fees
         chargeType: "FLAT_FEE_PER_PRIVILEGE"       # Currently only supporting FLAT_FEE_PER_PRIVILEGE
@@ -207,10 +207,7 @@ transactionFeeConfiguration:
 ```
 
 In this example:
-- The payment processor charges 2.9% plus $0.30 per transaction (the standard rate for Authorize.net)
-- The compact charges licensees a flat fee of $3.00 per privilege to help cover these costs
-- The processor fee information is used for reporting purposes only
-- The licensee charge amount will be added to each privilege purchase
+- The compact charges licensees a flat fee of $3.00 per privilege to help cover transaction fees
 
 Note: The `licenseeCharges` section is optional. If omitted, no transaction fees will be charged to licensees.
 
