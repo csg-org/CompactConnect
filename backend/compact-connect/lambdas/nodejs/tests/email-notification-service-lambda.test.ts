@@ -2,8 +2,12 @@ import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
 import { SESClient, SendEmailCommand, SendRawEmailCommand } from '@aws-sdk/client-ses';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { Readable } from 'stream';
+import { sdkStreamMixin } from '@smithy/util-stream';
 import { Lambda } from '../email-notification-service/email-notification-service-lambda';
 import { EmailNotificationEvent } from '../lib/models/email-notification-service-event';
+import { describe, it, expect, beforeAll, beforeEach, jest } from '@jest/globals';
 
 const SAMPLE_EVENT: EmailNotificationEvent = {
     template: 'transactionBatchSettlementFailure',
@@ -46,10 +50,14 @@ const asDynamoDBClient = (mock: ReturnType<typeof mockClient>) =>
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESClient;
 
+const asS3Client = (mock: ReturnType<typeof mockClient>) =>
+    mock as unknown as S3Client;
+
 describe('EmailNotificationServiceLambda', () => {
     let lambda: Lambda;
     let mockDynamoDBClient: ReturnType<typeof mockClient>;
     let mockSESClient: ReturnType<typeof mockClient>;
+    let mockS3Client: ReturnType<typeof mockClient>;
 
     beforeAll(async () => {
         process.env.DEBUG = 'true';
@@ -61,10 +69,12 @@ describe('EmailNotificationServiceLambda', () => {
         jest.clearAllMocks();
         mockDynamoDBClient = mockClient(DynamoDBClient);
         mockSESClient = mockClient(SESClient);
+        mockS3Client = mockClient(S3Client);
 
         // Reset environment variables
         process.env.FROM_ADDRESS = 'noreply@example.org';
         process.env.UI_BASE_PATH_URL = 'https://app.test.compactconnect.org';
+        process.env.TRANSACTION_REPORTS_BUCKET_NAME = 'test-transaction-reports-bucket';
 
         // Set up default successful responses
         mockDynamoDBClient.on(GetItemCommand).callsFake((input) => {
@@ -90,9 +100,25 @@ describe('EmailNotificationServiceLambda', () => {
             MessageId: 'message-id-raw'
         });
 
+        // Create a mock stream that implements the required AWS SDK interfaces
+        const mockStream = sdkStreamMixin(
+            new Readable({
+                read() {
+                    this.push(Buffer.from('test data'));
+                    this.push(null);
+                }
+            })
+        );
+
+        // Mock S3 response
+        mockS3Client.on(GetObjectCommand).resolves({
+            Body: mockStream
+        });
+
         lambda = new Lambda({
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
-            sesClient: asSESClient(mockSESClient)
+            sesClient: asSESClient(mockSESClient),
+            s3Client: asS3Client(mockS3Client)
         });
     });
 
@@ -163,21 +189,20 @@ describe('EmailNotificationServiceLambda', () => {
     });
 
     describe('Compact Transaction Report', () => {
-        const SAMPLE_SUMMARY_CSV = 'Total Transactions,2\nTotal Compact Fees,$21.00\n';
-        const SAMPLE_DETAIL_CSV = 'First Name,Last Name,Licensee Id,Transaction Date,State Fee,State,Compact Fee,Transaction Id\n';
-
-        const SAMPLE_TRANSACTION_REPORT_EVENT: EmailNotificationEvent = {
+        const SAMPLE_COMPACT_TRANSACTION_REPORT_EVENT: EmailNotificationEvent = {
             template: 'CompactTransactionReporting',
             recipientType: 'COMPACT_SUMMARY_REPORT',
             compact: 'aslp',
             templateVariables: {
-                compactFinancialSummaryReportCSV: SAMPLE_SUMMARY_CSV,
-                compactTransactionReportCSV: SAMPLE_DETAIL_CSV
+                reportS3Path: 'compact/aslp/reports/test-report.zip',
+                reportingCycle: 'weekly',
+                startDate: '2024-03-01',
+                endDate: '2024-03-07'
             }
         };
 
         it('should successfully send compact transaction report email', async () => {
-            const response = await lambda.handler(SAMPLE_TRANSACTION_REPORT_EVENT, {} as any);
+            const response = await lambda.handler(SAMPLE_COMPACT_TRANSACTION_REPORT_EVENT, {} as any);
 
             expect(response).toEqual({
                 message: 'Email message sent'
@@ -192,6 +217,12 @@ describe('EmailNotificationServiceLambda', () => {
                 }
             });
 
+            // Verify S3 was queried for the report
+            expect(mockS3Client).toHaveReceivedCommandWith(GetObjectCommand, {
+                Bucket: 'test-transaction-reports-bucket',
+                Key: 'compact/aslp/reports/test-report.zip'
+            });
+
             // Verify email was sent with correct parameters
             expect(mockSESClient).toHaveReceivedCommandWith(SendRawEmailCommand, {
                 RawMessage: {
@@ -205,11 +236,12 @@ describe('EmailNotificationServiceLambda', () => {
             expect(rawEmailData).toBeDefined();
             const rawEmailString = rawEmailData?.toString();
 
-            expect(rawEmailString).toContain('Content-Type: text/csv');
-            expect(rawEmailString).toContain('Content-Disposition: attachment; filename=financial-summary-report.csv');
-            expect(rawEmailString).toContain('Content-Disposition: attachment; filename=transaction-detail-report.csv');
+            expect(rawEmailString).toContain('Content-Type: application/zip; name=aslp-settled-transaction-report.zip');
+            expect(rawEmailString).toContain('Content-Disposition: attachment;');
             expect(rawEmailString).toContain('Weekly Report for Compact ASLP');
-            expect(rawEmailString).toContain('Please find attached the weekly transaction reports for your compact');
+            expect(rawEmailString).toContain('Please find attached the weekly settled');
+            expect(rawEmailString).toContain('transaction reports for the compact for the period 2024-03-01 to');
+            expect(rawEmailString).toContain('2024-03-07:</p>');
             expect(rawEmailString).toContain('To: summary@example.com');
         });
 
@@ -222,14 +254,14 @@ describe('EmailNotificationServiceLambda', () => {
                 }
             });
 
-            await expect(lambda.handler(SAMPLE_TRANSACTION_REPORT_EVENT, {} as any))
+            await expect(lambda.handler(SAMPLE_COMPACT_TRANSACTION_REPORT_EVENT, {} as any))
                 .rejects
                 .toThrow('No recipients found for compact aslp with recipient type COMPACT_SUMMARY_REPORT');
         });
 
         it('should throw error when required template variables are missing', async () => {
             const eventWithMissingVariables: EmailNotificationEvent = {
-                ...SAMPLE_TRANSACTION_REPORT_EVENT,
+                ...SAMPLE_COMPACT_TRANSACTION_REPORT_EVENT,
                 templateVariables: {}
             };
 
@@ -237,23 +269,34 @@ describe('EmailNotificationServiceLambda', () => {
                 .rejects
                 .toThrow('Missing required template variables for CompactTransactionReporting template');
         });
+
+        it('should throw error when S3 fails to return compact report', async () => {
+            mockS3Client.on(GetObjectCommand).resolves({
+                Body: undefined
+            });
+
+            await expect(lambda.handler(SAMPLE_COMPACT_TRANSACTION_REPORT_EVENT, {} as any))
+                .rejects
+                .toThrow('Failed to retrieve report from S3: compact/aslp/reports/test-report.zip');
+        });
     });
 
     describe('Jurisdiction Transaction Report', () => {
-        const SAMPLE_DETAIL_CSV = 'First Name,Last Name,Licensee Id,Transaction Date,State Fee,State,Compact Fee,Transaction Id\n';
-
-        const SAMPLE_TRANSACTION_REPORT_EVENT: EmailNotificationEvent = {
+        const SAMPLE_JURISDICTION_TRANSACTION_REPORT_EVENT: EmailNotificationEvent = {
             template: 'JurisdictionTransactionReporting',
             recipientType: 'JURISDICTION_SUMMARY_REPORT',
             compact: 'aslp',
             jurisdiction: 'oh',
             templateVariables: {
-                jurisdictionTransactionReportCSV: SAMPLE_DETAIL_CSV
+                reportS3Path: 'compact/aslp/reports/jurisdiction-transactions/jurisdiction/oh/reporting-cycle/weekly/2024/03/07/transaction-report.zip',
+                reportingCycle: 'weekly',
+                startDate: '2024-03-01',
+                endDate: '2024-03-07'
             }
         };
 
         it('should successfully send jurisdiction transaction report email', async () => {
-            const response = await lambda.handler(SAMPLE_TRANSACTION_REPORT_EVENT, {} as any);
+            const response = await lambda.handler(SAMPLE_JURISDICTION_TRANSACTION_REPORT_EVENT, {} as any);
 
             expect(response).toEqual({
                 message: 'Email message sent'
@@ -268,6 +311,12 @@ describe('EmailNotificationServiceLambda', () => {
                 }
             });
 
+            // Verify S3 was queried for the report
+            expect(mockS3Client).toHaveReceivedCommandWith(GetObjectCommand, {
+                Bucket: 'test-transaction-reports-bucket',
+                Key: 'compact/aslp/reports/jurisdiction-transactions/jurisdiction/oh/reporting-cycle/weekly/2024/03/07/transaction-report.zip'
+            });
+
             // Verify email was sent with correct parameters
             expect(mockSESClient).toHaveReceivedCommandWith(SendRawEmailCommand, {
                 RawMessage: {
@@ -281,9 +330,12 @@ describe('EmailNotificationServiceLambda', () => {
             expect(rawEmailData).toBeDefined();
             const rawEmailString = rawEmailData?.toString();
 
-            expect(rawEmailString).toContain('Content-Type: text/csv');
-            expect(rawEmailString).toContain('Content-Disposition: attachment; filename=oh-transaction-report.csv');
-            expect(rawEmailString).toContain('Subject: Ohio Weekly Report for Compact ASLP');
+            expect(rawEmailString).toContain('Content-Type: application/zip');
+            expect(rawEmailString).toContain('Content-Disposition: attachment; filename=oh-settled-transaction-report.zip');
+            expect(rawEmailString).toContain('Ohio Weekly Report for Compact ASLP');
+            expect(rawEmailString).toContain('Please find attached the weekly settled');
+            expect(rawEmailString).toContain('transaction report for your jurisdiction for the period 2024-03-01 to');
+            expect(rawEmailString).toContain('2024-03-07.</div>');
             expect(rawEmailString).toContain('To: ohio@example.com');
         });
 
@@ -296,14 +348,14 @@ describe('EmailNotificationServiceLambda', () => {
                 }
             });
 
-            await expect(lambda.handler(SAMPLE_TRANSACTION_REPORT_EVENT, {} as any))
+            await expect(lambda.handler(SAMPLE_JURISDICTION_TRANSACTION_REPORT_EVENT, {} as any))
                 .rejects
                 .toThrow('No recipients found for jurisdiction oh in compact aslp');
         });
 
         it('should throw error when required template variables are missing', async () => {
             const eventWithMissingVariables: EmailNotificationEvent = {
-                ...SAMPLE_TRANSACTION_REPORT_EVENT,
+                ...SAMPLE_JURISDICTION_TRANSACTION_REPORT_EVENT,
                 templateVariables: {}
             };
 
@@ -314,13 +366,23 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should throw error when jurisdiction is missing', async () => {
             const eventWithMissingJurisdiction: EmailNotificationEvent = {
-                ...SAMPLE_TRANSACTION_REPORT_EVENT,
+                ...SAMPLE_JURISDICTION_TRANSACTION_REPORT_EVENT,
                 jurisdiction: undefined
             };
 
             await expect(lambda.handler(eventWithMissingJurisdiction, {} as any))
                 .rejects
                 .toThrow('Missing required jurisdiction field for JurisdictionTransactionReporting template');
+        });
+
+        it('should throw error when S3 fails to return jurisdiction report', async () => {
+            mockS3Client.on(GetObjectCommand).resolves({
+                Body: undefined
+            });
+
+            await expect(lambda.handler(SAMPLE_JURISDICTION_TRANSACTION_REPORT_EVENT, {} as any))
+                .rejects
+                .toThrow('Failed to retrieve report from S3: compact/aslp/reports/jurisdiction-transactions/jurisdiction/oh/reporting-cycle/weekly/2024/03/07/transaction-report.zip');
         });
     });
 });
