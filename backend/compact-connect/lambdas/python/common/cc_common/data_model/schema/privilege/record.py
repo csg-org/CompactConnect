@@ -48,6 +48,7 @@ class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
     attestations = List(Nested(AttestationVersionRecordSchema()), required=True, allow_none=False)
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
+
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
