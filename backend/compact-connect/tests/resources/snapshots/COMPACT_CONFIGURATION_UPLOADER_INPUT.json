@@ -7,10 +7,6 @@
         "feeAmount": 3.5
       },
       "transactionFeeConfiguration": {
-        "processorFees": {
-          "percentageRate": 2.9,
-          "fixedRatePerTransaction": 0.3
-        },
         "licenseeCharges": {
           "active": true,
           "chargeType": "FLAT_FEE_PER_PRIVILEGE",
@@ -113,10 +109,6 @@
         "feeAmount": 3.5
       },
       "transactionFeeConfiguration": {
-        "processorFees": {
-          "percentageRate": 2.9,
-          "fixedRatePerTransaction": 0.3
-        },
         "licenseeCharges": {
           "active": true,
           "chargeType": "FLAT_FEE_PER_PRIVILEGE",

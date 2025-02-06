@@ -2,7 +2,6 @@
 import json
 import time
 from datetime import UTC, datetime
-from decimal import Decimal
 
 import requests
 from config import config, logger
@@ -69,8 +68,8 @@ def test_purchase_privilege_options():
 
     if ky_jurisdiction_data != expected_ky_jurisdiction_data:
         raise SmokeTestFailureException(
-            f'KY jurisdiction data does not match expected values.\nExpected:\n {json.dumps(expected_ky_jurisdiction_data)}\nActual:\n '
-            f'{json.dumps(ky_jurisdiction_data)}'
+            f'KY jurisdiction data does not match expected values.\nExpected:\n '
+            f'{json.dumps(expected_ky_jurisdiction_data)}\nActual:\n {json.dumps(ky_jurisdiction_data)}'
         )
 
     logger.info('Successfully verified purchase privilege options')
