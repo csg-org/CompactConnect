@@ -77,6 +77,8 @@ const buildCspHeaders = (environment) => {
     ].join(' ');
     const cspScriptSrcElem = [
         '\'self\'',
+        'https://www.google.com/recaptcha/',
+        'https://www.gstatic.com/recaptcha/',
     ].join(' ');
     const cspScriptSrcAttr = [
         '\'self\'',
