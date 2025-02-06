@@ -189,7 +189,7 @@ describe('EmailNotificationServiceLambda', () => {
     });
 
     describe('Compact Transaction Report', () => {
-        const SAMPLE_TRANSACTION_REPORT_EVENT: EmailNotificationEvent = {
+        const SAMPLE_COMPACT_TRANSACTION_REPORT_EVENT: EmailNotificationEvent = {
             template: 'CompactTransactionReporting',
             recipientType: 'COMPACT_SUMMARY_REPORT',
             compact: 'aslp',
@@ -202,7 +202,7 @@ describe('EmailNotificationServiceLambda', () => {
         };
 
         it('should successfully send compact transaction report email', async () => {
-            const response = await lambda.handler(SAMPLE_TRANSACTION_REPORT_EVENT, {} as any);
+            const response = await lambda.handler(SAMPLE_COMPACT_TRANSACTION_REPORT_EVENT, {} as any);
 
             expect(response).toEqual({
                 message: 'Email message sent'
@@ -254,14 +254,14 @@ describe('EmailNotificationServiceLambda', () => {
                 }
             });
 
-            await expect(lambda.handler(SAMPLE_TRANSACTION_REPORT_EVENT, {} as any))
+            await expect(lambda.handler(SAMPLE_COMPACT_TRANSACTION_REPORT_EVENT, {} as any))
                 .rejects
                 .toThrow('No recipients found for compact aslp with recipient type COMPACT_SUMMARY_REPORT');
         });
 
         it('should throw error when required template variables are missing', async () => {
             const eventWithMissingVariables: EmailNotificationEvent = {
-                ...SAMPLE_TRANSACTION_REPORT_EVENT,
+                ...SAMPLE_COMPACT_TRANSACTION_REPORT_EVENT,
                 templateVariables: {}
             };
 
@@ -270,19 +270,19 @@ describe('EmailNotificationServiceLambda', () => {
                 .toThrow('Missing required template variables for CompactTransactionReporting template');
         });
 
-        it('should throw error when S3 fails to return report', async () => {
+        it('should throw error when S3 fails to return compact report', async () => {
             mockS3Client.on(GetObjectCommand).resolves({
                 Body: undefined
             });
 
-            await expect(lambda.handler(SAMPLE_TRANSACTION_REPORT_EVENT, {} as any))
+            await expect(lambda.handler(SAMPLE_COMPACT_TRANSACTION_REPORT_EVENT, {} as any))
                 .rejects
                 .toThrow('Failed to retrieve report from S3: compact/aslp/reports/test-report.zip');
         });
     });
 
     describe('Jurisdiction Transaction Report', () => {
-        const SAMPLE_TRANSACTION_REPORT_EVENT: EmailNotificationEvent = {
+        const SAMPLE_JURISDICTION_TRANSACTION_REPORT_EVENT: EmailNotificationEvent = {
             template: 'JurisdictionTransactionReporting',
             recipientType: 'JURISDICTION_SUMMARY_REPORT',
             compact: 'aslp',
@@ -296,7 +296,7 @@ describe('EmailNotificationServiceLambda', () => {
         };
 
         it('should successfully send jurisdiction transaction report email', async () => {
-            const response = await lambda.handler(SAMPLE_TRANSACTION_REPORT_EVENT, {} as any);
+            const response = await lambda.handler(SAMPLE_JURISDICTION_TRANSACTION_REPORT_EVENT, {} as any);
 
             expect(response).toEqual({
                 message: 'Email message sent'
@@ -348,14 +348,14 @@ describe('EmailNotificationServiceLambda', () => {
                 }
             });
 
-            await expect(lambda.handler(SAMPLE_TRANSACTION_REPORT_EVENT, {} as any))
+            await expect(lambda.handler(SAMPLE_JURISDICTION_TRANSACTION_REPORT_EVENT, {} as any))
                 .rejects
                 .toThrow('No recipients found for jurisdiction oh in compact aslp');
         });
 
         it('should throw error when required template variables are missing', async () => {
             const eventWithMissingVariables: EmailNotificationEvent = {
-                ...SAMPLE_TRANSACTION_REPORT_EVENT,
+                ...SAMPLE_JURISDICTION_TRANSACTION_REPORT_EVENT,
                 templateVariables: {}
             };
 
@@ -366,7 +366,7 @@ describe('EmailNotificationServiceLambda', () => {
 
         it('should throw error when jurisdiction is missing', async () => {
             const eventWithMissingJurisdiction: EmailNotificationEvent = {
-                ...SAMPLE_TRANSACTION_REPORT_EVENT,
+                ...SAMPLE_JURISDICTION_TRANSACTION_REPORT_EVENT,
                 jurisdiction: undefined
             };
 
@@ -375,12 +375,12 @@ describe('EmailNotificationServiceLambda', () => {
                 .toThrow('Missing required jurisdiction field for JurisdictionTransactionReporting template');
         });
 
-        it('should throw error when S3 fails to return report', async () => {
+        it('should throw error when S3 fails to return jurisdiction report', async () => {
             mockS3Client.on(GetObjectCommand).resolves({
                 Body: undefined
             });
 
-            await expect(lambda.handler(SAMPLE_TRANSACTION_REPORT_EVENT, {} as any))
+            await expect(lambda.handler(SAMPLE_JURISDICTION_TRANSACTION_REPORT_EVENT, {} as any))
                 .rejects
                 .toThrow('Failed to retrieve report from S3: compact/aslp/reports/jurisdiction-transactions/jurisdiction/oh/reporting-cycle/weekly/2024/03/07/transaction-report.zip');
         });
