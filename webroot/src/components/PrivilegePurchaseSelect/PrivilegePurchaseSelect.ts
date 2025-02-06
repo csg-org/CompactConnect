@@ -436,9 +436,6 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
 
     async fetchAttestations(): Promise<void> {
         if (this.currentCompactType) {
-            console.log('this.attestationIds', this.attestationIds);
-            console.log('this.currentCompactType', this.currentCompactType);
-
             this.attestationRecords = await Promise.all((this.attestationIds[this.currentCompactType] as Array<any>)
                 .map(async (attesationId) => (dataApi.getAttestation(this.currentCompactType, attesationId))));
         }

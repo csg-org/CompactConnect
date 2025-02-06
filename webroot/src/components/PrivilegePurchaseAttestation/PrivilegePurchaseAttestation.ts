@@ -10,7 +10,7 @@ import {
     mixins,
     Watch,
     Prop
- } from 'vue-facing-decorator';
+} from 'vue-facing-decorator';
 import { reactive, computed, ComputedRef } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
@@ -21,6 +21,7 @@ import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { Compact } from '@models/Compact/Compact.model';
+import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { PrivilegeAttestation } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import { dataApi } from '@network/data.api';
@@ -219,7 +220,6 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
             this.$store.dispatch('user/saveFlowStep', new PurchaseFlowStep({
                 stepNum: this.flowStep,
                 attestationsAccepted: attestationData,
-                selectedPrivilegesToPurchase: selectedStates
             }));
 
             this.$store.dispatch('user/setAttestations', attestationData);
@@ -238,7 +238,7 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
         }
     }
 
-    prepareAttestations(): object {
+    prepareAttestations(): Array<any> {
         const radioAttestations = this.attestationRecords.filter((attestation) => {
             const checkboxAttestationIds = [
                 this.formData.investigations.value,

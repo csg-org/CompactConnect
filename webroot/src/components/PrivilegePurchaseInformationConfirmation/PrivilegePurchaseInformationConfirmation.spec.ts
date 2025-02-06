@@ -7,7 +7,7 @@
 
 import { expect } from 'chai';
 import { mountShallow } from '@tests/helpers/setup';
-import PrivilegePurchaseInformationConfirmation from '@pages/PrivilegePurchaseInformationConfirmation/PrivilegePurchaseInformationConfirmation.vue';
+import PrivilegePurchaseInformationConfirmation from '@components/PrivilegePurchaseInformationConfirmation/PrivilegePurchaseInformationConfirmation.vue';
 
 describe('PrivilegePurchaseInformationConfirmation page', async () => {
     it('should mount the page component', async () => {

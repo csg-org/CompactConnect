@@ -108,11 +108,13 @@ export default class PrivilegePurchase extends Vue {
     // Methods
     //
     handlePurchaseFlowState() {
+        console.log('flowStateBefore', this.userStore.purchase);
+
         const { $store, $router, currentFlowStep } = this;
 
         const nextStepNeeded = $store.getters['user/getNextNeededPurchaseFlowStep']();
 
-        if (nextStepNeeded > this.currentFlowStep) {
+        if (nextStepNeeded < this.currentFlowStep) {
             $router.push({
                 name: this.flowOrder[nextStepNeeded],
                 params: { compact: this.currentCompactType }
@@ -120,6 +122,8 @@ export default class PrivilegePurchase extends Vue {
         } else {
             $store.dispatch('user/cleanPurchaseFlowState', currentFlowStep);
         }
+
+        console.log('flowStateAfter', this.userStore.purchase);
     }
 
     //

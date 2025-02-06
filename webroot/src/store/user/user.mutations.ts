@@ -191,10 +191,14 @@ export default {
         state.error = error;
     },
     [MutationTypes.CLEAN_PURCHASE_FLOW_STATE]: (state: any, flowStepNum: number) => {
+        console.log('cleaning');
         state.purchase.steps = state.purchase.steps.filter((step) => (step.stepNum < flowStepNum));
     },
     [MutationTypes.SAVE_PURCHASE_FLOW_STEP]: (state: any, flowStep: PurchaseFlowStep) => {
-        state.purchase.steps = state.purchase.steps.push(flowStep);
+        state.purchase.steps = [
+            ...state.purchase.steps,
+            flowStep
+        ];
     },
 
 };

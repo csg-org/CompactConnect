@@ -25,6 +25,8 @@ import { LicenseeUser, LicenseeUserPurchaseSerializer } from '@models/LicenseeUs
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import Joi from 'joi';
+import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
+import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 
 @Component({
     name: 'PrivilegePurchaseFinalize',
@@ -186,8 +188,20 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         return this.$t('common.selection');
     }
 
+    get purchaseFlowState(): PurchaseFlowState {
+        return this.userStore?.purchase || new PurchaseFlowState();
+    }
+
     get statesSelected(): Array<string> {
-        return []; // TODO
+        const statesSelected = [];
+
+        this.purchaseFlowState.steps?.forEach((step: PurchaseFlowStep) => {
+            if (step.selectedPrivilegesToPurchase && step.selectedPrivilegesToPurchase.length) {
+                statesSelected.concat(step.selectedPrivilegesToPurchase);
+            }
+        });
+
+        return statesSelected;
     }
 
     get selectedStatePurchaseDataList(): Array<PrivilegePurchaseOption> {
