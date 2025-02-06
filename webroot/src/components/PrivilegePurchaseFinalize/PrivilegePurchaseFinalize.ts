@@ -192,6 +192,18 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         return this.userStore?.purchase || new PurchaseFlowState();
     }
 
+    get attestationsSelected(): Array<string> {
+        let attestationsAccepted = [];
+
+        this.purchaseFlowState.steps?.forEach((step: PurchaseFlowStep) => {
+            if (step.attestationsAccepted && step.attestationsAccepted.length) {
+                attestationsAccepted = attestationsAccepted.concat(step.attestationsAccepted);
+            }
+        });
+
+        return attestationsAccepted;
+    }
+
     get statesSelected(): Array<string> {
         let statesSelected = [];
 
@@ -319,6 +331,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     }
 
     get isSubmitEnabled(): boolean {
+        console.log('this.isFormValid', this.isFormValid);
         return this.isFormValid && this.formData.noRefunds.value && !this.isFormLoading;
     }
 
@@ -466,22 +479,38 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             this.isFormError = false;
             this.formErrorMessage = '';
 
-            const { formValues, statesSelected } = this;
-            const serverData = LicenseeUserPurchaseSerializer.toServer({ formValues, statesSelected });
+            const {
+                formValues,
+                statesSelected,
+                attestationsSelected
+            } = this;
+            const serverData = LicenseeUserPurchaseSerializer.toServer({
+                formValues,
+                statesSelected,
+                attestationsSelected
+            });
             const purchaseServerEvent = await this.$store.dispatch('user/postPrivilegePurchases', serverData);
 
             this.endFormLoading();
 
+            console.log('purchaseServerEvent', purchaseServerEvent);
+
             if (purchaseServerEvent?.message === 'Successfully processed charge') {
+                this.$store.dispatch('user/saveFlowStep', new PurchaseFlowStep({
+                    stepNum: this.flowStep
+                }));
+
                 this.$router.push({
                     name: 'PrivilegePurchaseSuccessful',
                     params: { compact: this.currentCompactType }
                 });
             } else if (purchaseServerEvent?.message) {
+                console.log('err');
                 this.isFormError = true;
                 this.formErrorMessage = purchaseServerEvent?.message;
             }
         } else {
+            console.log('err2');
             this.isFormError = true;
             this.formErrorMessage = this.formValidationErrorMessage;
         }

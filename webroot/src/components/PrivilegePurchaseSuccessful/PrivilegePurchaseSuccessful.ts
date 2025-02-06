@@ -47,9 +47,13 @@ export default class PrivilegePurchaseSuccessful extends Vue {
     // Methods
     //
     handleFinishClicked() {
-        this.$store.dispatch('user/getLicenseeAccountRequest');
+        const { $store, $router } = this;
 
-        this.$router.push({
+        $store.dispatch('user/cleanPurchaseFlowState', 0);
+
+        $store.dispatch('user/getLicenseeAccountRequest');
+
+        $router.push({
             name: 'LicenseeDashboard',
             params: { compact: this.compactType }
         });

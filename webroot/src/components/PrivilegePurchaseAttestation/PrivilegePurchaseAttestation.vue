@@ -24,7 +24,7 @@
                         {{ $t('licensing.provisionOfInformation') }} *
                     </div>
                     <InputCheckbox :formInput="formData.trueInformation" />
-                    <div class="form-section-title form-section-gap">
+                    <div v-if="isMilitaryAffiliated" class="form-section-title form-section-gap">
                         {{ $t('licensing.militaryAffiliation') }} *
                     </div>
                     <InputCheckbox v-if="isMilitaryAffiliated" :formInput="formData.militaryAffiliation" />

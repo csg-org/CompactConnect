@@ -258,11 +258,11 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
 
     prepareAttestations(): Array<any> {
         const radioAttestations = this.attestationRecords.filter((attestation) => {
-            const checkboxAttestationIds = [
+            const radioAttestationIds = [
                 this.formData.investigations.value,
             ];
 
-            return checkboxAttestationIds.includes(attestation.id);
+            return radioAttestationIds.includes(attestation.id);
         }).map((attestation) => ({
             attestationId: attestation.id,
             version: attestation.version,
@@ -271,9 +271,12 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
             const checkboxAttestationIds: Array<string | null | undefined> = [
                 'discipline-no-current-encumbrance-attestation',
                 'discipline-no-prior-encumbrance-attestation',
-                'provision-of-true-information-attestation',
-                'military-affiliation-confirmation-attestation',
+                'provision-of-true-information-attestation'
             ];
+
+            if (this.isMilitaryAffiliated) {
+                checkboxAttestationIds.push('military-affiliation-confirmation-attestation');
+            }
 
             return checkboxAttestationIds.includes(attestation.id);
         }).map((attestation) => ({
