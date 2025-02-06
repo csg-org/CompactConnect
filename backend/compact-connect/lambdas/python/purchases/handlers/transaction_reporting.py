@@ -24,14 +24,14 @@ def _get_display_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
     :return: Tuple of (start_time, end_time) in UTC for display purposes
     """
     if reporting_cycle == 'weekly':
-        # Reports run on Friday 10:00 PM UTC
         end_time = config.current_standard_datetime
         # Go back 7 days to capture the full week
         start_time = end_time - timedelta(days=7)
         return start_time, end_time
     if reporting_cycle == 'monthly':
         # Reports run shortly after midnight on the first day of the month
-        # End time is the last day of the previous month
+        # knowing this, we can use the current date to get the start and end of the month.
+        # By going back 1 day from the current date, we get the last day of the previous month.
         end_time = config.current_standard_datetime.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(
             days=1
         )
@@ -46,8 +46,15 @@ def _get_query_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
 
     Our Sort Key format for transactions includes additional components after the timestamp
     (COMPACT#name#TIME#timestamp#BATCH#id#TX#id), So the DynamoDB BETWEEN condition is INCLUSIVE for the beginning
-    range and EXCLUSIVE at the end range. We need to adjust our timestamps accordingly to ensure we capture all
-    settled transactions exactly once.
+    range and EXCLUSIVE at the end range. This is because DynamoDB performs lexicographical comparison on the entire
+    sort key string. When the sort key continues beyond the comparison value:
+    
+    - For the lower bound: Additional characters after the comparison point make the full key "greater than" the bound,
+      satisfying the >= condition
+    - For the upper bound: Additional characters after the comparison point make the full key "greater than" the bound,
+     failing the <= condition
+    
+    We need to adjust our timestamps accordingly to ensure we capture all settled transactions exactly once.
 
     :param reporting_cycle: Either 'weekly' or 'monthly'
     :return: Tuple of (start_time, end_time) in UTC for DynamoDB queries
