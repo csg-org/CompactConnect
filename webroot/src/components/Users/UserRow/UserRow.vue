@@ -254,7 +254,7 @@
                 :title="accountFullName"
                 :closeOnBackgroundClick="true"
                 :showActions="false"
-                @keydown.tab="focusTrapReinviteUserModal($event)"
+                @keydown.tab="focusTrapDeactivateUserModal($event)"
                 @keyup.esc="closeDeactivateUserModal"
             >
                 <template v-slot:content>
