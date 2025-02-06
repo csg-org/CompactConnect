@@ -48,12 +48,12 @@ def _get_query_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
     (COMPACT#name#TIME#timestamp#BATCH#id#TX#id), So the DynamoDB BETWEEN condition is INCLUSIVE for the beginning
     range and EXCLUSIVE at the end range. This is because DynamoDB performs lexicographical comparison on the entire
     sort key string. When the sort key continues beyond the comparison value:
-    
+
     - For the lower bound: Additional characters after the comparison point make the full key "greater than" the bound,
       satisfying the >= condition
     - For the upper bound: Additional characters after the comparison point make the full key "greater than" the bound,
      failing the <= condition
-    
+
     We need to adjust our timestamps accordingly to ensure we capture all settled transactions exactly once.
 
     :param reporting_cycle: Either 'weekly' or 'monthly'
@@ -104,28 +104,13 @@ def _store_compact_reports_in_s3(
     )
 
     # Define paths for all report files
-    # Currently, we are only sending the .zip file in the email reporting, but we are storing the
-    # .gz files for potential future references as admins may want to pull down reporting for previous
-    # periods
+    # Currently, we are only sending the .zip file in the email reporting, but there is potential
+    # to store .gz files in the future
     paths = {
-        'financial_summary_gz': f'{base_path}/{compact}-financial-summary-{date_range}.csv.gz',
-        'transaction_detail_gz': f'{base_path}/{compact}-transaction-detail-{date_range}.csv.gz',
         'report_zip': f'{base_path}/{compact}-{date_range}-report.zip',
     }
 
     s3_client = config.s3_client
-
-    # Store gzipped financial summary
-    gzip_buffer = BytesIO()
-    with gzip.GzipFile(fileobj=gzip_buffer, mode='wb') as gz:
-        gz.write(summary_report.encode('utf-8'))
-    s3_client.put_object(Bucket=bucket_name, Key=paths['financial_summary_gz'], Body=gzip_buffer.getvalue())
-
-    # Store gzipped transaction detail
-    gzip_buffer = BytesIO()
-    with gzip.GzipFile(fileobj=gzip_buffer, mode='wb') as gz:
-        gz.write(transaction_detail.encode('utf-8'))
-    s3_client.put_object(Bucket=bucket_name, Key=paths['transaction_detail_gz'], Body=gzip_buffer.getvalue())
 
     # Create and store combined zip with uncompressed CSVs
     zip_buffer = BytesIO()
@@ -164,21 +149,13 @@ def _store_jurisdiction_reports_in_s3(
     )
 
     # Define paths for all report files
-    # Currently, we are only sending the .zip file in the email reporting, but we are storing the
-    # .gz files for potential future references as admins may want to pull down reporting for previous
-    # periods.
+    # Currently, we are only sending the .zip file in the email reporting, but there is potential
+    # to store .gz files in the future
     paths = {
-        'transaction_detail_gz': f'{base_path}/{jurisdiction}-{date_range}-transaction-detail.csv.gz',
         'report_zip': f'{base_path}/{jurisdiction}-{date_range}-report.zip',
     }
 
     s3_client = config.s3_client
-
-    # Store gzipped transaction detail
-    gzip_buffer = BytesIO()
-    with gzip.GzipFile(fileobj=gzip_buffer, mode='wb') as gz:
-        gz.write(transaction_detail.encode('utf-8'))
-    s3_client.put_object(Bucket=bucket_name, Key=paths['transaction_detail_gz'], Body=gzip_buffer.getvalue())
 
     # Create and store zip with uncompressed CSV
     zip_buffer = BytesIO()
