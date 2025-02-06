@@ -112,7 +112,7 @@ export default class PrivilegePurchase extends Vue {
 
         const nextStepNeeded = $store.getters['user/getNextNeededPurchaseFlowStep']();
 
-        if (nextStepNeeded !== this.currentFlowStep) {
+        if (nextStepNeeded > this.currentFlowStep) {
             $router.push({
                 name: this.flowOrder[nextStepNeeded],
                 params: { compact: this.currentCompactType }
