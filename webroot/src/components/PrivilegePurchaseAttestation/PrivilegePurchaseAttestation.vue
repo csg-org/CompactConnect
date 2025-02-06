@@ -27,7 +27,7 @@
                     <div class="form-section-title form-section-gap">
                         {{ $t('licensing.militaryAffiliation') }} *
                     </div>
-                    <InputCheckbox :formInput="formData.militaryAffiliation" />
+                    <InputCheckbox v-if="isMilitaryAffiliated" :formInput="formData.militaryAffiliation" />
                 </div>
             </div>
             <div v-if="areFormInputsSet" class="button-row">

@@ -21,7 +21,9 @@ import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { Compact } from '@models/Compact/Compact.model';
+import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
+import { Licensee } from '@/models/Licensee/Licensee.model';
 import { PrivilegeAttestation } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import { dataApi } from '@network/data.api';
@@ -96,12 +98,24 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
+    get user(): LicenseeUser {
+        return this.userStore?.model;
+    }
+
     get currentCompact(): Compact | null {
         return this.userStore?.currentCompact || null;
     }
 
     get currentCompactType(): string | null {
         return this.currentCompact?.type || null;
+    }
+
+    get licensee(): Licensee | null {
+        return this.user?.licensee || null;
+    }
+
+    get isMilitaryAffiliated(): boolean {
+        return this.licensee?.isMilitary() || false;
     }
 
     get investigationsOptions(): Array<AttestationOption> {
@@ -161,18 +175,22 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
                 validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
                 value: false,
             }),
-            militaryAffiliation: new FormInput({
-                id: 'military-affiliation',
-                name: 'military-affiliation',
-                label: this.getAttestation('military-affiliation-confirmation-attestation')?.textDisplay() || '',
-                validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
-                value: false,
-            }),
             submit: new FormInput({
                 isSubmitInput: true,
                 id: 'submit',
             }),
         });
+
+        if (this.isMilitaryAffiliated) {
+            this.formData.militaryAffiliation = new FormInput({
+                id: 'military-affiliation',
+                name: 'military-affiliation',
+                label: this.getAttestation('military-affiliation-confirmation-attestation')?.textDisplay() || '',
+                validation: Joi.boolean().invalid(false).messages(this.joiMessages.boolean),
+                value: false,
+            });
+        }
+
         this.watchFormInputs(); // Important if you want automated form validation
 
         this.areFormInputsSet = true;

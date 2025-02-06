@@ -193,11 +193,11 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     }
 
     get statesSelected(): Array<string> {
-        const statesSelected = [];
+        let statesSelected = [];
 
         this.purchaseFlowState.steps?.forEach((step: PurchaseFlowStep) => {
             if (step.selectedPrivilegesToPurchase && step.selectedPrivilegesToPurchase.length) {
-                statesSelected.concat(step.selectedPrivilegesToPurchase);
+                statesSelected = statesSelected.concat(step.selectedPrivilegesToPurchase);
             }
         });
 
@@ -499,7 +499,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     handleBackClicked(): void {
         if (this.currentCompactType) {
             this.$router.push({
-                name: 'PrivilegePurchaseSelect',
+                name: 'PrivilegePurchaseAttestation',
                 params: { compact: this.currentCompactType }
             });
         }

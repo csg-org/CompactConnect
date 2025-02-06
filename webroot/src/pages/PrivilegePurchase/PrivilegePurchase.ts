@@ -93,7 +93,7 @@ export default class PrivilegePurchase extends Vue {
             flowOrder
         } = this;
 
-        return flowOrder.findIndex((flowRouteName) => (flowRouteName === routeName)) || 0;
+        return flowOrder.findIndex((flowRouteName) => (flowRouteName === routeName));
     }
 
     get numFlowSteps(): number {
@@ -101,7 +101,7 @@ export default class PrivilegePurchase extends Vue {
     }
 
     get progressPercent(): number {
-        return Math.round((this.currentFlowStep / this.numFlowSteps) * 100);
+        return Math.round(((this.currentFlowStep + 1) / this.numFlowSteps) * 100);
     }
 
     //
@@ -114,7 +114,12 @@ export default class PrivilegePurchase extends Vue {
 
         const nextStepNeeded = $store.getters['user/getNextNeededPurchaseFlowStep']();
 
-        if (nextStepNeeded < this.currentFlowStep) {
+        console.log('nextStepNeeded', nextStepNeeded);
+        console.log('currentFlowStep', currentFlowStep);
+
+        if (nextStepNeeded < currentFlowStep || currentFlowStep === -1) {
+            console.log('?');
+
             $router.push({
                 name: this.flowOrder[nextStepNeeded],
                 params: { compact: this.currentCompactType }
