@@ -28,12 +28,12 @@ def _get_display_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
         start_time = end_time - timedelta(days=7)
         return start_time, end_time
     if reporting_cycle == 'monthly':
-        # Reports run shortly after midnight on the first day of the month
-        # knowing this, we can use the current date to get the start and end of the month.
-        # By going back 1 day from the current date, we get the last day of the previous month.
-        end_time = config.current_standard_datetime.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(
-            days=1
-        )
+        # Reports run shortly after midnight on the first day of the month.
+        # Knowing this, we can use the current date to get the start and end of the month.
+        # By going back 1 day from the first day of the current month, we get the last day of the previous month.
+        end_time = config.current_standard_datetime.replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        ) - timedelta(days=1)
         # Start time is the first day of the previous month
         start_time = end_time.replace(day=1)
         return start_time, end_time
