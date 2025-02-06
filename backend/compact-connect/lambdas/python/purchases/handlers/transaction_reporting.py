@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import csv
-import gzip
 import json
 from datetime import datetime, timedelta
 from decimal import Decimal
