@@ -517,6 +517,8 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     }
 
     handleCancelClicked(): void {
+        this.$store.dispatch('user/cleanPurchaseFlowState', 0);
+
         if (this.currentCompactType) {
             this.$router.push({
                 name: 'LicenseeDashboard',
