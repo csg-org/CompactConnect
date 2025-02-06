@@ -5,7 +5,12 @@
 //  Created by InspiringApps on 11/4/2024.
 //
 
-import { Component, mixins, Watch } from 'vue-facing-decorator';
+import {
+    Component,
+    mixins,
+    Watch,
+    Prop
+ } from 'vue-facing-decorator';
 import { reactive, computed, ComputedRef } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
@@ -39,6 +44,9 @@ interface AttestationOption {
     }
 })
 export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
+    @Prop({ default: 0 }) flowStep!: number;
+    @Prop({ default: 0 }) progressPercent!: number;
+
     //
     // Data
     //
@@ -115,10 +123,6 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
 
     get isMockPopulateEnabled(): boolean {
         return Boolean(this.$envConfig.isDevelopment);
-    }
-
-    get progressPercent(): number {
-        return 50;
     }
 
     //
@@ -211,6 +215,12 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
             this.startFormLoading();
 
             const attestationData = this.prepareAttestations();
+
+            this.$store.dispatch('user/saveFlowStep', new PurchaseFlowStep({
+                stepNum: this.flowStep,
+                attestationsAccepted: attestationData,
+                selectedPrivilegesToPurchase: selectedStates
+            }));
 
             this.$store.dispatch('user/setAttestations', attestationData);
 

@@ -26,6 +26,7 @@ import { Licensee } from '@models/Licensee/Licensee.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { PrivilegeAttestation } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
+import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { State } from '@/models/State/State.model';
 import { dataApi } from '@network/data.api';
 
@@ -344,9 +345,13 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
     handleSubmit() {
         if (this.isAtLeastOnePrivilegeChosen && this.areAllAttesationsConfirmed) {
             const selectedStates = this.formData.stateCheckList.filter((input) => input.value).map((input) => input.id);
+            const attestationData = this.prepareAttestations();
 
-            this.$store.dispatch('user/savePrivilegePurchaseChoicesToStore', selectedStates);
-            this.$store.dispatch('user/setAttestations', this.attestationRecords);
+            this.$store.dispatch('user/saveFlowStep', new PurchaseFlowStep({
+                stepNum: this.flowStep,
+                attestationsAccepted: attestationData,
+                selectedPrivilegesToPurchase: selectedStates
+            }));
 
             this.$router.push({
                 name: 'PrivilegePurchaseAttestation',
@@ -362,6 +367,13 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
                 params: { compact: this.currentCompactType }
             });
         }
+    }
+
+    prepareAttestations(): Array<any> {
+        return this.attestationRecords.map((attestation) => ({
+            attestationId: attestation.id,
+            version: attestation.version,
+        }));
     }
 
     handleBackClicked() {
