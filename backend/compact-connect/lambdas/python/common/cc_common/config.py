@@ -96,7 +96,40 @@ class _Config:
 
     @property
     def license_types(self):
-        return json.loads(os.environ['LICENSE_TYPES'])
+        """
+        Reshapes the new LICENSE_TYPES format into the previous format for backward compatibility.
+        The new format is:
+        {
+            "aslp": [
+                {"abbreviation": "aud", "name": "audiologist"},
+                {"abbreviation": "slp", "name": "speech-language pathologist"}
+            ]
+        }
+        The returned format is:
+        {
+            "aslp": ["audiologist", "speech-language pathologist"]
+        }
+        """
+        raw_license_types = json.loads(os.environ['LICENSE_TYPES'])
+        return {compact: [lt['name'] for lt in license_types] for compact, license_types in raw_license_types.items()}
+
+    @property
+    def license_type_abbreviations(self):
+        """
+        Creates a lookup dictionary for license type abbreviations based on compact and full name.
+        Returns a structure like:
+        {
+            "aslp": {
+                "audiologist": "aud",
+                "speech-language pathologist": "slp"
+            }
+        }
+        """
+        raw_license_types = json.loads(os.environ['LICENSE_TYPES'])
+        return {
+            compact: {lt['name']: lt['abbreviation'] for lt in license_types}
+            for compact, license_types in raw_license_types.items()
+        }
 
     def license_types_for_compact(self, compact):
         return self.license_types[compact]
@@ -192,6 +225,10 @@ class _Config:
         from cc_common.data_model.transaction_client import TransactionClient
 
         return TransactionClient(self)
+
+    @property
+    def transaction_reports_bucket_name(self):
+        return os.environ['TRANSACTION_REPORTS_BUCKET_NAME']
 
     @property
     def transaction_history_table_name(self):

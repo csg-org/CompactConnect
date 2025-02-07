@@ -84,7 +84,7 @@ def get_mock_license(i: int, *, compact: str, jurisdiction: str = None) -> dict:
         jurisdiction = faker.state_abbr().lower()
     license_data = {
         #                                                          |Zero padded 4 digit int|
-        'ssn': f'{(i//1_000_000) % 1000:03}-{(i//10_000) % 100:02}-{(i % 10_000):04}',
+        'ssn': f'{(i // 1_000_000) % 1000:03}-{(i // 10_000) % 100:02}-{(i % 10_000):04}',
         # Some have NPI, some don't
         'npi': str(randint(1_000_000_000, 9_999_999_999)) if choice([True, False]) else None,
         # Some have License number, some don't

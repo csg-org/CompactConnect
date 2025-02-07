@@ -4,14 +4,14 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/lambdas/python/purchases/requirements-dev.in
 #
-boto3==1.36.4
+boto3==1.36.13
     # via moto
-botocore==1.36.4
+botocore==1.36.13
     # via
     #   boto3
     #   moto
     #   s3transfer
-certifi==2024.12.14
+certifi==2025.1.31
     # via requests
 cffi==1.17.1
     # via cryptography
@@ -33,7 +33,7 @@ markupsafe==3.0.2
     # via
     #   jinja2
     #   werkzeug
-moto[dynamodb,s3]==5.0.27
+moto[dynamodb,s3]==5.0.28
     # via -r compact-connect/lambdas/python/purchases/requirements-dev.in
 py-partiql-parser==0.6.1
     # via moto
@@ -54,7 +54,7 @@ requests==2.32.3
     #   responses
 responses==0.25.6
     # via moto
-s3transfer==0.11.1
+s3transfer==0.11.2
     # via boto3
 six==1.17.0
     # via python-dateutil

@@ -3,6 +3,7 @@ import 'aws-sdk-client-mock-jest';
 import { Context, EventBridgeEvent } from 'aws-lambda';
 import { DynamoDBClient, QueryCommand } from '@aws-sdk/client-dynamodb';
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
+import { S3Client } from '@aws-sdk/client-s3';
 
 import { Lambda } from '../ingest-event-reporter/lambda';
 import { EmailService } from '../lib/email-service';
@@ -13,6 +14,7 @@ import {
     SAMPLE_VALIDATION_ERROR_RECORD,
     SAMPLE_INGEST_SUCCESS_RECORD
 } from './sample-records';
+
 
 
 const SAMPLE_NIGHTLY_EVENT: IEventBridgeEvent = {
@@ -47,6 +49,8 @@ const asDynamoDBClient = (mock: ReturnType<typeof mockClient>) =>
   mock as unknown as DynamoDBClient;
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESClient;
+const asS3Client = (mock: ReturnType<typeof mockClient>) =>
+    mock as unknown as S3Client;
 
 
 jest.mock('../lib/email-service');
@@ -71,6 +75,7 @@ const mockSendNoLicenseUpdatesEmail = jest.fn(
 
 describe('Nightly runs', () => {
     let mockSESClient: ReturnType<typeof mockClient>;
+    let mockS3Client: ReturnType<typeof mockClient>;
     let mockEmailService: jest.Mocked<EmailService>;
     let lambda: Lambda;
 
@@ -133,6 +138,7 @@ describe('Nightly runs', () => {
 
         lambda = new Lambda({
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
+            s3Client: asS3Client(mockS3Client),
             sesClient: asSESClient(mockSESClient)
         });
 
@@ -165,6 +171,7 @@ describe('Nightly runs', () => {
 
     it('should not send an email if there were no ingest events', async () => {
         const mockDynamoDBClient = mockClient(DynamoDBClient);
+        const mockS3Client = mockClient(S3Client);
 
         mockDynamoDBClient.on(QueryCommand).callsFake((input) => {
             const tableName = input.TableName;
@@ -185,6 +192,7 @@ describe('Nightly runs', () => {
 
         lambda = new Lambda({
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
+            s3Client: asS3Client(mockS3Client),
             sesClient: asSESClient(mockSESClient)
         });
 
@@ -218,11 +226,13 @@ describe('Nightly runs', () => {
 
     it('should let DynamoDB errors escape', async () => {
         const mockDynamoDBClient = mockClient(DynamoDBClient);
+        const mockS3Client = mockClient(S3Client);
 
         mockDynamoDBClient.on(QueryCommand).rejects(new Error('DynamoDB error'));
 
         lambda = new Lambda({
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
+            s3Client: asS3Client(mockS3Client),
             sesClient: asSESClient(mockSESClient)
         });
 
@@ -261,6 +271,7 @@ describe('Weekly runs', () => {
 
     it('should send an "All\'s Well" email if there were success events without failures', async () => {
         const mockDynamoDBClient = mockClient(DynamoDBClient);
+        const mockS3Client = mockClient(S3Client);
 
         mockDynamoDBClient.on(QueryCommand).callsFake((input) => {
             const tableName = input.TableName;
@@ -300,6 +311,7 @@ describe('Weekly runs', () => {
 
         lambda = new Lambda({
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
+            s3Client: asS3Client(mockS3Client),
             sesClient: asSESClient(mockSESClient)
         });
 
@@ -324,6 +336,7 @@ describe('Weekly runs', () => {
 
     it('should send "no license updates" email if there were no events', async () => {
         const mockDynamoDBClient = mockClient(DynamoDBClient);
+        const mockS3Client = mockClient(S3Client);
 
         mockDynamoDBClient.on(QueryCommand).callsFake((input) => {
             const tableName = input.TableName;
@@ -345,6 +358,7 @@ describe('Weekly runs', () => {
 
         lambda = new Lambda({
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
+            s3Client: asS3Client(mockS3Client),
             sesClient: asSESClient(mockSESClient)
         });
 
@@ -369,6 +383,7 @@ describe('Weekly runs', () => {
 
     it('should send a report email and not an alls well, when there were errors', async () => {
         const mockDynamoDBClient = mockClient(DynamoDBClient);
+        const mockS3Client = mockClient(S3Client);
 
         mockDynamoDBClient.on(QueryCommand).callsFake((input) => {
             const tableName = input.TableName;
@@ -408,6 +423,7 @@ describe('Weekly runs', () => {
 
         lambda = new Lambda({
             dynamoDBClient: asDynamoDBClient(mockDynamoDBClient),
+            s3Client: asS3Client(mockS3Client),
             sesClient: asSESClient(mockSESClient)
         });
 

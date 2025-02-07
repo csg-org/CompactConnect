@@ -37,12 +37,14 @@ class TstFunction(TstLambdas):
         self.create_compact_configuration_table()
         self.create_provider_table()
         self.create_users_table()
+        self.create_transaction_history_table()
 
         # Adding a waiter allows for testing against an actual AWS account, if needed
         waiter = self._compact_configuration_table.meta.client.get_waiter('table_exists')
         waiter.wait(TableName=self._compact_configuration_table.name)
         waiter.wait(TableName=self._provider_table.name)
         waiter.wait(TableName=self._users_table.name)
+        waiter.wait(TableName=self._transaction_history_table.name)
 
         # Create a new Cognito user pool
         cognito_client = boto3.client('cognito-idp')
@@ -131,15 +133,29 @@ class TstFunction(TstLambdas):
             ],
         )
 
+    def create_transaction_history_table(self):
+        self._transaction_history_table = boto3.resource('dynamodb').create_table(
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['TRANSACTION_HISTORY_TABLE_NAME'],
+            BillingMode='PAY_PER_REQUEST',
+        )
+
     def delete_resources(self):
         self._compact_configuration_table.delete()
         self._provider_table.delete()
         self._users_table.delete()
+        self._transaction_history_table.delete()
 
         waiter = self._users_table.meta.client.get_waiter('table_not_exists')
         waiter.wait(TableName=self._compact_configuration_table.name)
         waiter.wait(TableName=self._provider_table.name)
         waiter.wait(TableName=self._users_table.name)
+        waiter = self._transaction_history_table.meta.client.get_waiter('table_not_exists')
+        waiter.wait(TableName=self._transaction_history_table.name)
 
         # Delete the Cognito user pool
         cognito_client = boto3.client('cognito-idp')

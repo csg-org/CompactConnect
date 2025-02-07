@@ -33,7 +33,12 @@ class TstLambdas(TestCase):
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',
                 'LICENSE_TYPES': json.dumps(
-                    {'aslp': ['audiologist', 'speech-language pathologist', 'speech and language pathologist']},
+                    {
+                        'aslp': [
+                            {'name': 'audiologist', 'abbreviation': 'aud'},
+                            {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
+                        ],
+                    },
                 ),
             },
         )
