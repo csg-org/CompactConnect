@@ -230,6 +230,8 @@ const setCspHeader = (requestDomain, headers = {}) => {
             ]),
             buildSrcString('script-src-elem', [
                 'self',
+                'https://www.google.com/recaptcha/',
+                'https://www.gstatic.com/recaptcha/',
             ]),
             buildSrcString('script-src-attr', [
                 'self',
