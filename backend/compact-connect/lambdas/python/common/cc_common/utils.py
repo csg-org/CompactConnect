@@ -170,6 +170,8 @@ class logger_inject_kwargs:  # noqa: N801 invalid-name
     """Decorator to inject kwargs into the logger context"""
 
     def __init__(self, logger: Logger, *arg_names: tuple[str, ...]):
+        if not isinstance(logger, Logger):
+            raise ValueError('logger must be an instance of Logger')
         self.logger = logger
         self.arg_names = arg_names
 
@@ -468,10 +470,24 @@ def get_sub_from_user_attributes(attributes: list):
     raise ValueError('Failed to find user sub!')
 
 
-def _user_has_private_read_access_for_provider(compact: str, provider_information: dict, scopes: set[str]) -> bool:
-    if f'{compact}/{compact}.readPrivate' in scopes:
+def _user_has_read_private_access_for_provider(compact: str, provider_information: dict, scopes: set[str]) -> bool:
+    return _user_has_permission_for_action_on_user(
+        action='readPrivate', compact=compact, provider_information=provider_information, scopes=scopes
+    )
+
+
+def user_has_read_ssn_access_for_provider(compact: str, provider_information: dict, scopes: set[str]) -> bool:
+    return _user_has_permission_for_action_on_user(
+        action='readSSN', compact=compact, provider_information=provider_information, scopes=scopes
+    )
+
+
+def _user_has_permission_for_action_on_user(
+    action: str, compact: str, provider_information: dict, scopes: set[str]
+) -> bool:
+    if f'{compact}/{compact}.{action}' in scopes:
         logger.debug(
-            'User has readPrivate permission at compact level',
+            f'User has {action} permission at compact level',
             compact=compact,
             provider_id=provider_information['providerId'],
         )
@@ -485,9 +501,9 @@ def _user_has_private_read_access_for_provider(compact: str, provider_informatio
         relevant_provider_jurisdictions.add(license_record['jurisdiction'])
 
     for jurisdiction in relevant_provider_jurisdictions:
-        if f'{compact}/{jurisdiction}.readPrivate' in scopes:
+        if f'{compact}/{jurisdiction}.{action}' in scopes:
             logger.debug(
-                'User has readPrivate permission at jurisdiction level',
+                f'User has {action} permission at jurisdiction level',
                 compact=compact,
                 provider_id=provider_information['providerId'],
                 jurisdiction=jurisdiction,
@@ -495,7 +511,7 @@ def _user_has_private_read_access_for_provider(compact: str, provider_informatio
             return True
 
     logger.debug(
-        'Caller does not have readPrivate permission at compact or jurisdiction level',
+        f'Caller does not have {action} permission at compact or jurisdiction level',
         provider_id=provider_information['providerId'],
     )
     return False
@@ -511,7 +527,7 @@ def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, 
     :param set scopes: The user's scopes from the request.
     :return: The provider record, sanitized based on the user's scopes.
     """
-    if _user_has_private_read_access_for_provider(compact=compact, provider_information=provider, scopes=scopes):
+    if _user_has_read_private_access_for_provider(compact=compact, provider_information=provider, scopes=scopes):
         # return full object since caller has 'readPrivate' access for provider
         return provider
 

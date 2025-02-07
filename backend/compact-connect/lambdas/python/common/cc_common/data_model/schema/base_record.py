@@ -9,7 +9,7 @@ from marshmallow.fields import UUID, DateTime, String
 from marshmallow.validate import OneOf
 
 from cc_common.config import config
-from cc_common.data_model.schema.fields import SocialSecurityNumber
+from cc_common.data_model.schema.fields import Compact, SocialSecurityNumber
 from cc_common.exceptions import CCInternalException
 
 
@@ -130,7 +130,37 @@ class SSNIndexRecordSchema(StrictSchema):
     DB -> load() -> Python
     """
 
-    pk = String(required=True, allow_none=False)
-    sk = String(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     providerId = UUID(required=True, allow_none=False)
+
+    # Generated fields
+    pk = String(required=True, allow_none=False)
+    sk = String(required=True, allow_none=False)
+    providerIdGSIpk = String(required=True, allow_none=False)
+
+    @pre_dump
+    def populate_pk_sk(self, in_data, **kwargs):
+        """Populate the pk and sk fields before dumping to the database"""
+        in_data['pk'] = f'{in_data["compact"]}#SSN#{in_data["ssn"]}'
+        in_data['sk'] = f'{in_data["compact"]}#SSN#{in_data["ssn"]}'
+        return in_data
+
+    @post_load
+    def drop_pk_sk(self, in_data, **kwargs):
+        """Drop the pk and sk fields after loading from the database"""
+        in_data.pop('pk', None)
+        in_data.pop('sk', None)
+        return in_data
+
+    @pre_dump
+    def populate_provider_id_gsi_pk(self, in_data, **kwargs):
+        """Populate the providerId GSI pk field before dumping to the database"""
+        in_data['providerIdGSIpk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
+        return in_data
+
+    @post_load
+    def drop_provider_id_gsi_pk(self, in_data, **kwargs):
+        """Drop the providerId GSI pk field after loading from the database"""
+        in_data.pop('providerIdGSIpk', None)
+        return in_data

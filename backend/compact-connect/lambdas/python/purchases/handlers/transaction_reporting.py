@@ -28,6 +28,7 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     # Initialize clients
     data_client = config.data_client
     transaction_client = config.transaction_client
+    compact_configuration_client = config.compact_configuration_client
 
     # Calculate time range for the past week
     # Use 12:00:00.0 AM UTC of the next day for end time to ensure we capture full day
@@ -42,7 +43,7 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     )
 
     # Get compact configuration and jurisdictions
-    compact_configuration_options = data_client.get_privilege_purchase_options(compact=compact)
+    compact_configuration_options = compact_configuration_client.get_privilege_purchase_options(compact=compact)
 
     compact_configuration = next(
         (Compact(item) for item in compact_configuration_options['items'] if item['type'] == COMPACT_TYPE), None
@@ -135,7 +136,7 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
 
     if lambda_error_messages:
         raise CCInternalException(
-            f'One or more errors occurred while generating reports. ' f'Errors: {lambda_error_messages}'
+            f'One or more errors occurred while generating reports. Errors: {lambda_error_messages}'
         )
 
     return {'message': 'reports sent successfully'}

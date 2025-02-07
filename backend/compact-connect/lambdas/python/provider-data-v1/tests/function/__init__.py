@@ -88,16 +88,20 @@ class TstFunction(TstLambdas):
             AttributeDefinitions=[
                 {'AttributeName': 'pk', 'AttributeType': 'S'},
                 {'AttributeName': 'sk', 'AttributeType': 'S'},
+                {'AttributeName': 'providerIdGSIpk', 'AttributeType': 'S'},
             ],
             TableName=os.environ['SSN_TABLE_NAME'],
-            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            KeySchema=[
+                {'AttributeName': 'pk', 'KeyType': 'HASH'},
+                {'AttributeName': 'sk', 'KeyType': 'RANGE'},
+            ],
             BillingMode='PAY_PER_REQUEST',
             GlobalSecondaryIndexes=[
                 {
-                    'IndexName': os.environ['SSN_INVERTED_INDEX_NAME'],
+                    'IndexName': os.environ['SSN_INDEX_NAME'],
                     'KeySchema': [
-                        {'AttributeName': 'sk', 'KeyType': 'HASH'},
-                        {'AttributeName': 'pk', 'KeyType': 'RANGE'},
+                        {'AttributeName': 'providerIdGSIpk', 'KeyType': 'HASH'},
+                        {'AttributeName': 'sk', 'KeyType': 'RANGE'},
                     ],
                     'Projection': {'ProjectionType': 'ALL'},
                 },

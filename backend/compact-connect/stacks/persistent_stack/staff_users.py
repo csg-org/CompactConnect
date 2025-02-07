@@ -87,13 +87,17 @@ class StaffUsers(UserPool):
             scope_name='readGeneral',
             scope_description='Read access for generally available data (not private) in the compact',
         )
+        self.read_ssn_scope = ResourceServerScope(
+            scope_name='readSSN',
+            scope_description='Read access for SSNs in the compact',
+        )
 
         # One resource server for each compact
         self.resource_servers = {
             compact: self.add_resource_server(
                 f'LicenseData-{compact}',
                 identifier=compact,
-                scopes=[self.admin_scope, self.write_scope, self.read_scope],
+                scopes=[self.admin_scope, self.write_scope, self.read_scope, self.read_ssn_scope],
             )
             for compact in self.node.get_context('compacts')
         }

@@ -22,7 +22,7 @@ with open('cdk.json') as context_file:
     _context = json.load(context_file)['context']
 JURISDICTIONS = _context['jurisdictions']
 COMPACTS = _context['compacts']
-LICENSE_TYPES = _context['license_types']
+LICENSE_TYPES = {compact: [t['name'] for t in types] for compact, types in _context['license_types'].items()}
 
 
 os.environ['COMPACTS'] = json.dumps(COMPACTS)
@@ -76,7 +76,7 @@ def generate_csv_rows(count, *, compact: str, jurisdiction: str = None) -> dict:
         i += 1
         if i % 1000 == 0:
             sys.stdout.write(f'Generated {i} records')
-    sys.stdout.write(f'Final record count: {i}')
+    sys.stdout.write(f'Final record count: {i}\n')
 
 
 def get_mock_license(i: int, *, compact: str, jurisdiction: str = None) -> dict:

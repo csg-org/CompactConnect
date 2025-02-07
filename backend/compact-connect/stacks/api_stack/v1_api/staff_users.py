@@ -392,11 +392,10 @@ class StaffUsers:
     ) -> None:
         """Add DELETE method to delete a staff user's record.
 
-        Args:
-            user_id_resource: The API Gateway Resource to add the method to
-            scopes: List of OAuth scopes required for this endpoint
-            env_vars: Environment variables to pass to the Lambda function
-            persistent_stack: Stack containing persistent resources
+        :param user_id_resource: The API Gateway Resource to add the method to
+        :param scopes: List of OAuth scopes required for this endpoint
+        :param env_vars: Environment variables to pass to the Lambda function
+        :param persistent_stack: Stack containing persistent resources
         """
         self.delete_user_handler = self._delete_user_handler(
             env_vars=env_vars,

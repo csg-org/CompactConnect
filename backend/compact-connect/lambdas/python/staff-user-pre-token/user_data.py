@@ -49,7 +49,7 @@ class UserData:
         # Ensure included actions are limited to supported values
         # Note we are keeping in the 'read' permission for backwards compatibility
         # Though we are not using it in the codebase
-        disallowed_actions = compact_actions - {'read', 'admin', 'readPrivate'}
+        disallowed_actions = compact_actions - {'read', 'admin', 'readPrivate', 'readSSN'}
         if disallowed_actions:
             raise ValueError(f'User {compact_name} permissions include disallowed actions: {disallowed_actions}')
 
@@ -59,6 +59,10 @@ class UserData:
         if 'readPrivate' in compact_actions:
             # This action only has one level of authz, since there is no external scope for it
             self.scopes.add(f'{compact_name}/{compact_name}.readPrivate')
+
+        if 'readSSN' in compact_actions:
+            self.scopes.add(f'{compact_name}/readSSN')
+            self.scopes.add(f'{compact_name}/{compact_name}.readSSN')
 
         if 'admin' in compact_actions:
             # Two levels of authz for admin
@@ -78,7 +82,7 @@ class UserData:
 
     def _process_jurisdiction_permissions(self, compact_name, jurisdiction_name, jurisdiction_actions):
         # Ensure included actions are limited to supported values
-        disallowed_actions = jurisdiction_actions - {'write', 'admin', 'readPrivate'}
+        disallowed_actions = jurisdiction_actions - {'write', 'admin', 'readPrivate', 'readSSN'}
         if disallowed_actions:
             raise ValueError(
                 f'User {compact_name}/{jurisdiction_name} permissions include disallowed actions: {disallowed_actions}',
