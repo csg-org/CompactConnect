@@ -119,11 +119,6 @@
             >
                 <span v-if="$matches.phone.only" class="cell-title">{{ $t('account.accountStatus') }}:</span>
                 <span class="account-status">{{ item.accountStatusDisplay() }}</span>
-                <span
-                    v-if="shouldAllowResendInvite"
-                    class="resend-invite"
-                    tabindex="0"
-                >{{ $t('account.resendInvite') }}</span>
                 <span v-if="isSortOptionEnabled('accountStatus')" class="sort-icon" :class="{
                     'is-selected': isSortOptionSelected('accountStatus'),
                     'asc': isSortOptionAscending('accountStatus'),
@@ -149,6 +144,7 @@
                             v-click-outside="closeRowActionMenu"
                         >
                             <li
+                                v-if="!isDeactivated"
                                 class="row-menu-item"
                                 :class="{ 'disabled': isReinviteSent }"
                                 role="button"
@@ -159,6 +155,7 @@
                                 {{ (isReinviteSent) ? $t('account.reinviteSent') : $t('account.resendInvite') }}
                             </li>
                             <li
+                                v-if="!isDeactivated"
                                 class="row-menu-item"
                                 role="button"
                                 @click="toggleEditUserModal"

@@ -19,6 +19,7 @@ import UserRowEdit from '@components/Users/UserRowEdit/UserRowEdit.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import Modal from '@components/Modal/Modal.vue';
+import { StaffUser } from '@/models/StaffUser/StaffUser.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import { SortDirection } from '@store/sorting/sorting.state';
 
@@ -34,7 +35,7 @@ import { SortDirection } from '@store/sorting/sorting.state';
 })
 class UserRow extends mixins(MixinForm) {
     @Prop({ required: true }) protected listId!: string;
-    @Prop({ required: true }) item!: any;
+    @Prop({ required: true }) item!: StaffUser;
     @Prop({ default: false }) isHeaderRow?: boolean;
     @Prop({ default: [] }) sortOptions?: Array<any>;
     @Prop({ default: () => null }) sortChange?: (selectedSortOption?: string, ascending?: boolean) => any;
@@ -112,7 +113,7 @@ class UserRow extends mixins(MixinForm) {
     }
 
     get accountEmail(): string {
-        return this.item?.email || '';
+        return this.item?.compactConnectEmail || '';
     }
 
     //
@@ -268,6 +269,8 @@ class UserRow extends mixins(MixinForm) {
         if (!this.isFormError) {
             this.isFormSuccessful = true;
             this.isReinviteSent = true;
+            this.isDeactivated = false;
+            this.updateUserStoreStatus('pending');
             this.closeReinviteUserModal();
         }
 
@@ -319,10 +322,19 @@ class UserRow extends mixins(MixinForm) {
         if (!this.isFormError) {
             this.isFormSuccessful = true;
             this.isDeactivated = true;
+            this.isReinviteSent = false;
+            this.updateUserStoreStatus('inactive');
             this.closeDeactivateUserModal();
         }
 
         this.endFormLoading();
+    }
+
+    updateUserStoreStatus(status: string): void {
+        this.$store.dispatch(`users/setStoreUser`, new StaffUser({
+            ...this.item,
+            accountStatus: status,
+        }));
     }
 
     resetForm(): void {
