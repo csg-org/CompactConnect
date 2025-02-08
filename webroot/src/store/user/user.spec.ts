@@ -20,6 +20,7 @@ import { PurchaseFlowState } from '@models/PurchaseFlowState/PurchaseFlowState.m
 import { State } from '@models/State/State.model';
 import mutations, { MutationTypes } from './user.mutations';
 import actions from './user.actions';
+import getters from './user.getters';
 
 chai.use(chaiMatchPattern);
 const sinon = require('sinon');
@@ -708,5 +709,37 @@ describe('User Store Actions', async () => {
         expect(commit.firstCall.args).to.matchPattern(
             [MutationTypes.UPLOAD_MILITARY_AFFILIATION_FAILURE, error]
         );
+    });
+});
+describe('User Store Getters', async () => {
+    it('should successfully get state', async () => {
+        const state = {};
+        const prevLastKey = getters.state(state);
+
+        expect(prevLastKey).to.matchPattern(state);
+    });
+    it('should successfully get current compact', async () => {
+        const state = { currentCompact: 'aslp' };
+        const compact = getters.currentCompact(state);
+
+        expect(compact).to.equal('aslp');
+    });
+    it('should successfully get the next needed purchase flow step)', async () => {
+        const state = {
+            purchase: new PurchaseFlowState({
+                steps: [
+                    new PurchaseFlowStep({
+                        stepNum: 0
+                    }),
+                    new PurchaseFlowStep({
+                        stepNum: 4
+                    })
+                ]
+            })
+        };
+
+        const nextStep = getters.getNextNeededPurchaseFlowStep(state)();
+
+        expect(nextStep).to.equal(1);
     });
 });
