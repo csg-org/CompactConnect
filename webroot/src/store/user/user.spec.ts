@@ -573,25 +573,6 @@ describe('User Store Actions', async () => {
             [MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE, error]
         );
     });
-    // it('should successfully start save selected privileges to store', () => {
-    //     const commit = sinon.spy();
-    //     const selected = ['ey'];
-
-    //     actions.savePrivilegePurchaseChoicesToStore({ commit }, selected);
-
-    //     expect(commit.calledOnce).to.equal(true);
-    //     expect(commit.firstCall.args).to.matchPattern(
-    //         [MutationTypes.SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE, selected]
-    //     );
-    // });
-    // it('should successfully save attestations', () => {
-    //     const commit = sinon.spy();
-
-    //     actions.setAttestations({ commit }, []);
-
-    //     expect(commit.calledOnce).to.equal(true);
-    //     expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_ATTESTATIONS, []]);
-    // });
     it('should successfully start post privilege purchase request', () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();

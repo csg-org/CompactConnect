@@ -130,18 +130,6 @@ export default {
         state.isLoadingPrivilegePurchaseOptions = false;
         state.error = error;
     },
-    // [MutationTypes.SET_ATTESTATIONS]: (state: any, attestations) => {
-    //     const { purchase } = state;
-
-    //     if (!purchase.attestations) {
-    //         purchase.attestations = [];
-    //     }
-
-    //     purchase.attestations = [
-    //         ...purchase.attestations,
-    //         ...attestations,
-    //     ];
-    // },
     [MutationTypes.POST_PRIVILEGE_PURCHASE_REQUEST]: (state: any) => {
         state.isLoadingPrivilegePurchaseOptions = true;
         state.error = null;
@@ -149,7 +137,6 @@ export default {
     [MutationTypes.POST_PRIVILEGE_PURCHASE_SUCCESS]: (state: any) => {
         state.isLoadingPrivilegePurchaseOptions = false;
         state.selectedPrivilegesToPurchase = null;
-        // state.arePurchaseAttestationsAccepted = false;
         state.error = null;
     },
     [MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE]: (state: any, error: Error) => {

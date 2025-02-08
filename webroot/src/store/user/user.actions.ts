@@ -255,15 +255,6 @@ export default {
     getPrivilegePurchaseInformationFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE, error);
     },
-    // savePrivilegePurchaseChoicesToStore: ({ commit }, privilegePurchaseChoices: Array<string>) => {
-    //     commit(MutationTypes.SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE, privilegePurchaseChoices);
-    // },
-    // setAttestationsAccepted: ({ commit }, areAttestationsAccepted: boolean) => {
-    //     commit(MutationTypes.SET_ATTESTATIONS_ACCEPTED, areAttestationsAccepted);
-    // },
-    // setAttestations: ({ commit }, attestations) => {
-    //     commit(MutationTypes.SET_ATTESTATIONS, attestations);
-    // },
     postPrivilegePurchases: ({ commit, dispatch }, privilegePurchases) => {
         commit(MutationTypes.POST_PRIVILEGE_PURCHASE_REQUEST);
         return dataApi.postPrivilegePurchases(privilegePurchases).then((serverResponse) => {
