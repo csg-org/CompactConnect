@@ -137,7 +137,7 @@ class SSNIndexRecordSchema(StrictSchema):
     # Generated fields
     pk = String(required=True, allow_none=False)
     sk = String(required=True, allow_none=False)
-    providerIdGSIpk = String(required=True, allow_none=False)
+    providerIdGSIpk = String(required=False, allow_none=False)
 
     @pre_dump
     def populate_pk_sk(self, in_data, **kwargs):

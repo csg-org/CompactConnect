@@ -58,8 +58,9 @@ class SSNTable(Table):
                             'dynamodb:BatchGetItem',
                             'dynamodb:BatchWriteItem',
                             'dynamodb:PartiQL*',
-                            'dynamodb:Query',
-                            'dynamodb:Scan',
+                            # We will allow Scan to open up the table for migration
+                            # TODO: Uncomment this after the migration is complete  # noqa: FIX002
+                            # 'dynamodb:Scan',
                         ],
                         principals=[StarPrincipal()],
                         resources=['*'],

@@ -9,6 +9,7 @@ from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
+from common_constructs.data_migration import DataMigration
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
 from common_constructs.security_profile import SecurityProfile
@@ -194,6 +195,17 @@ class PersistentStack(AppStack):
         )
 
         self.ssn_table = SSNTable(self, 'SSNTable', removal_policy=removal_policy)
+        # Run migration 392 to add a GSI pk field to the SSN records
+        DataMigration(
+            self,
+            '392SSNMigration',
+            migration_dir='392_ssn',
+            lambda_environment={
+                **self.common_env_vars,
+                'SSN_TABLE_NAME': self.ssn_table.table_name,
+            },
+            role=self.ssn_table.ingest_role,
+        )
 
         self.data_event_table = DataEventTable(
             scope=self,
