@@ -15,6 +15,8 @@ import chaiMatchPattern from 'chai-match-pattern';
 import chai from 'chai';
 import { Compact } from '@models/Compact/Compact.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
+import { PurchaseFlowStep } from '@models/PurchaseFlowStep/PurchaseFlowStep.model';
+import { PurchaseFlowState } from '@models/PurchaseFlowState/PurchaseFlowState.model';
 import { State } from '@models/State/State.model';
 import mutations, { MutationTypes } from './user.mutations';
 import actions from './user.actions';
@@ -265,6 +267,45 @@ describe('Use Store Mutations', () => {
 
         expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
         expect(state.error).to.equal(null);
+    });
+    it('should successfully clean purchase flow state', () => {
+        const state = {
+            purchase: new PurchaseFlowState({
+                steps: [
+                    new PurchaseFlowStep({
+                        stepNum: 0
+                    }),
+                    new PurchaseFlowStep({
+                        stepNum: 4
+                    })
+                ]
+            })
+        };
+
+        mutations[MutationTypes.CLEAN_PURCHASE_FLOW_STATE](state, 1);
+
+        expect(state.purchase.steps.length).to.equal(1);
+    });
+    it('should successfully save a purchase flow step', () => {
+        const purchase = new PurchaseFlowState();
+
+        purchase.steps = [
+            new PurchaseFlowStep({
+                stepNum: 0
+            })
+        ];
+
+        const state = {
+            purchase
+        };
+
+        expect(state.purchase.steps.length).to.equal(1);
+
+        mutations[MutationTypes.SAVE_PURCHASE_FLOW_STEP](state, new PurchaseFlowStep({
+            stepNum: 1
+        }));
+
+        expect(state.purchase.steps.length).to.equal(2);
     });
 });
 describe('User Store Actions', async () => {
@@ -531,35 +572,25 @@ describe('User Store Actions', async () => {
             [MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE, error]
         );
     });
-    it('should successfully start save selected privileges to store', () => {
-        const commit = sinon.spy();
-        const selected = ['ey'];
+    // it('should successfully start save selected privileges to store', () => {
+    //     const commit = sinon.spy();
+    //     const selected = ['ey'];
 
-        actions.savePrivilegePurchaseChoicesToStore({ commit }, selected);
+    //     actions.savePrivilegePurchaseChoicesToStore({ commit }, selected);
 
-        expect(commit.calledOnce).to.equal(true);
-        expect(commit.firstCall.args).to.matchPattern(
-            [MutationTypes.SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE, selected]
-        );
-    });
-    it('should successfully start save attestations accepted', () => {
-        const commit = sinon.spy();
+    //     expect(commit.calledOnce).to.equal(true);
+    //     expect(commit.firstCall.args).to.matchPattern(
+    //         [MutationTypes.SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE, selected]
+    //     );
+    // });
+    // it('should successfully save attestations', () => {
+    //     const commit = sinon.spy();
 
-        actions.setAttestationsAccepted({ commit }, true);
+    //     actions.setAttestations({ commit }, []);
 
-        expect(commit.calledOnce).to.equal(true);
-        expect(commit.firstCall.args).to.matchPattern(
-            [MutationTypes.SET_ATTESTATIONS_ACCEPTED, true]
-        );
-    });
-    it('should successfully save attestations', () => {
-        const commit = sinon.spy();
-
-        actions.setAttestations({ commit }, []);
-
-        expect(commit.calledOnce).to.equal(true);
-        expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_ATTESTATIONS, []]);
-    });
+    //     expect(commit.calledOnce).to.equal(true);
+    //     expect(commit.firstCall.args).to.matchPattern([MutationTypes.SET_ATTESTATIONS, []]);
+    // });
     it('should successfully start post privilege purchase request', () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
@@ -590,21 +621,26 @@ describe('User Store Actions', async () => {
             [MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE, error]
         );
     });
-    it('should successfully save attestations', () => {
-        const state = { purchase: {}};
-        const attestations = [{ attestationId: '1', version: '1' }];
+    it('should successfully start clean purchase flow state', () => {
+        const commit = sinon.spy();
 
-        mutations[MutationTypes.SET_ATTESTATIONS](state, attestations);
+        actions.cleanPurchaseFlowState({ commit }, 3);
 
-        expect(state.purchase.attestations).to.matchPattern(attestations);
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern(
+            [MutationTypes.CLEAN_PURCHASE_FLOW_STATE, 3]
+        );
     });
-    it('should successfully save privileges selected to store', () => {
-        const state = {};
-        const selected = ['ey'];
+    it('should successfully start save purchase flow step', () => {
+        const commit = sinon.spy();
+        const flowStep = new PurchaseFlowStep();
 
-        mutations[MutationTypes.SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE](state, selected);
+        actions.saveFlowStep({ commit }, flowStep);
 
-        expect(state.selectedPrivilegesToPurchase).to.matchPattern(selected);
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern(
+            [MutationTypes.SAVE_PURCHASE_FLOW_STEP, flowStep]
+        );
     });
     it('should successfully start end military affiliation request', () => {
         const commit = sinon.spy();

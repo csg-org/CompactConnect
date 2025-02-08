@@ -23,6 +23,7 @@ import { Compact } from '@models/Compact/Compact.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { PrivilegeAttestation } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
+import { AcceptedAttestationToSend } from '@models/AcceptedAttestationToSend/AcceptedAttestationToSend.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import { dataApi } from '@network/data.api';
 import Joi from 'joi';
@@ -220,10 +221,10 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
     }
 
     prepareAttestations(): Array<any> {
-        return this.attestationRecords.map((attestation) => ({
+        return this.attestationRecords.map((attestation) => (new AcceptedAttestationToSend({
             attestationId: attestation.id,
             version: attestation.version,
-        }));
+        })));
     }
 
     handleCancelClicked() {

@@ -6,13 +6,14 @@
 //
 
 import deleteUndefinedProperties from '@models/_helpers';
+import { AcceptedAttestationToSend } from '@models/AcceptedAttestationToSend/AcceptedAttestationToSend.model';
 
 // ========================================================
 // =                       Interface                      =
 // ========================================================
 export interface InterfacePurchaseFlowStepCreate {
     stepNum?: number;
-    attestationsAccepted?: Array<any>;
+    attestationsAccepted?: Array<AcceptedAttestationToSend>;
     selectedPrivilegesToPurchase?: Array<string>;
 }
 
@@ -29,28 +30,4 @@ export class PurchaseFlowStep implements InterfacePurchaseFlowStepCreate {
 
         Object.assign(this, cleanDataObject);
     }
-
-    // Helper methods
-    // @TODO
-}
-
-// ========================================================
-// =                      Serializer                      =
-// ========================================================
-export class PurchaseFlowStepSerializer {
-    // static fromServer(json: any): PurchaseFlowStep {
-    //     const purchaseFlowStepData = {
-    //         id: json.id,
-    //     };
-
-    //     return new PurchaseFlowStep(purchaseFlowStepData);
-    // }
-
-    // static toServer({ stepNum, atte}): any {
-    //     return {
-    //         stepNum: number,
-    //         attestationsAccepted:
-    //         selectedPrivilegesToPurchase?: Array<string>;
-    //     };
-    // }
 }

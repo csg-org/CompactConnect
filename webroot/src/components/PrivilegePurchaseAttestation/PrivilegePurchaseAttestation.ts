@@ -23,6 +23,7 @@ import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
+import { AcceptedAttestationToSend } from '@models/AcceptedAttestationToSend/AcceptedAttestationToSend.model';
 import { Licensee } from '@/models/Licensee/Licensee.model';
 import { PrivilegeAttestation } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
@@ -242,11 +243,8 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
                 attestationsAccepted: attestationData,
             }));
 
-            this.$store.dispatch('user/setAttestations', attestationData);
-
             if (!this.isFormError) {
                 this.isFormSuccessful = true;
-                this.$store.dispatch('user/setAttestationsAccepted', true);
                 this.endFormLoading();
                 this.$router.push({
                     name: 'PrivilegePurchaseFinalize',
@@ -258,17 +256,17 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
         }
     }
 
-    prepareAttestations(): Array<any> {
+    prepareAttestations(): Array<AcceptedAttestationToSend> {
         const radioAttestations = this.attestationRecords.filter((attestation) => {
             const radioAttestationIds = [
                 this.formData.investigations.value,
             ];
 
             return radioAttestationIds.includes(attestation.id);
-        }).map((attestation) => ({
+        }).map((attestation) => (new AcceptedAttestationToSend({
             attestationId: attestation.id,
             version: attestation.version,
-        }));
+        })));
         const checkboxAttestations = this.attestationRecords.filter((attestation) => {
             const checkboxAttestationIds: Array<string | null | undefined> = [
                 'discipline-no-current-encumbrance-attestation',
@@ -281,10 +279,10 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
             }
 
             return checkboxAttestationIds.includes(attestation.id);
-        }).map((attestation) => ({
+        }).map((attestation) => (new AcceptedAttestationToSend({
             attestationId: attestation.id,
             version: attestation.version,
-        }));
+        })));
         const attestations = radioAttestations.concat(checkboxAttestations);
 
         return attestations;

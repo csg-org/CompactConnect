@@ -25,7 +25,7 @@ export interface State {
     isLoadingPrivilegePurchaseOptions: boolean;
     refreshTokenTimeoutId: number | null;
     currentCompact: Compact | null;
-    purchase: PurchaseFlowState; // @TODO: Migration to this prop, including typing, will be in #302.
+    purchase: PurchaseFlowState;
     error: any | null;
 }
 

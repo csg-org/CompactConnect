@@ -25,6 +25,7 @@ import { License, LicenseStatus } from '@/models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
+import { AcceptedAttestationToSend } from '@models/AcceptedAttestationToSend/AcceptedAttestationToSend.model';
 import { PrivilegeAttestation } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { State } from '@/models/State/State.model';
@@ -372,10 +373,10 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
     }
 
     prepareAttestations(): Array<any> {
-        return this.attestationRecords.map((attestation) => ({
+        return this.attestationRecords.map((attestation) => (new AcceptedAttestationToSend({
             attestationId: attestation.id,
             version: attestation.version,
-        }));
+        })));
     }
 
     handleBackClicked() {

@@ -31,9 +31,6 @@ export enum MutationTypes {
     GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST = '[User] Get Privilege Purchase Information Request',
     GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS = '[User] Get Privilege Purchase Information Success',
     GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE = '[User] Get Privilege Purchase Information Failure',
-    SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE = '[User] Save Selected Privilege Purchases To Store',
-    SET_ATTESTATIONS_ACCEPTED = '[User] Set Attestations Accepted',
-    SET_ATTESTATIONS = '[User] Set Attestations',
     POST_PRIVILEGE_PURCHASE_REQUEST = '[User] Post Privilege Purchase Request',
     POST_PRIVILEGE_PURCHASE_SUCCESS = '[User] Post Privilege Purchase Success',
     POST_PRIVILEGE_PURCHASE_FAILURE = '[User] Post Privilege Purchase Failure',
@@ -133,25 +130,18 @@ export default {
         state.isLoadingPrivilegePurchaseOptions = false;
         state.error = error;
     },
-    [MutationTypes.SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE]: (
-        state: any,
-        privilegePurchaseChoices: Array<string>
-    ) => {
-        state.selectedPrivilegesToPurchase = privilegePurchaseChoices;
-    },
+    // [MutationTypes.SET_ATTESTATIONS]: (state: any, attestations) => {
+    //     const { purchase } = state;
 
-    [MutationTypes.SET_ATTESTATIONS]: (state: any, attestations) => {
-        const { purchase } = state;
+    //     if (!purchase.attestations) {
+    //         purchase.attestations = [];
+    //     }
 
-        if (!purchase.attestations) {
-            purchase.attestations = [];
-        }
-
-        purchase.attestations = [
-            ...purchase.attestations,
-            ...attestations,
-        ];
-    },
+    //     purchase.attestations = [
+    //         ...purchase.attestations,
+    //         ...attestations,
+    //     ];
+    // },
     [MutationTypes.POST_PRIVILEGE_PURCHASE_REQUEST]: (state: any) => {
         state.isLoadingPrivilegePurchaseOptions = true;
         state.error = null;
@@ -191,7 +181,6 @@ export default {
         state.error = error;
     },
     [MutationTypes.CLEAN_PURCHASE_FLOW_STATE]: (state: any, flowStepNum: number) => {
-        console.log('cleaning');
         state.purchase.steps = state.purchase.steps.filter((step) => (step.stepNum < flowStepNum));
     },
     [MutationTypes.SAVE_PURCHASE_FLOW_STEP]: (state: any, flowStep: PurchaseFlowStep) => {
@@ -199,6 +188,5 @@ export default {
             ...state.purchase.steps,
             flowStep
         ];
-    },
-
+    }
 };
