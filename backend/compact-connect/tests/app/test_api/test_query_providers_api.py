@@ -1,5 +1,6 @@
 from aws_cdk.assertions import Capture, Template
 from aws_cdk.aws_apigateway import CfnMethod, CfnModel, CfnResource
+from aws_cdk.aws_cloudwatch import CfnAlarm
 from aws_cdk.aws_lambda import CfnFunction
 
 from tests.app.test_api import TestApi
@@ -231,5 +232,43 @@ class TestQueryProvidersApi(TestApi):
         self.compare_snapshot(
             response_model['Schema'],
             'GET_PROVIDER_SSN_RESPONSE_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+    def test_synth_generates_get_provider_ssn_alarm(self):
+        """Test that the GET /providers/{providerId}/ssn alarm is configured correctly."""
+        api_stack = self.app.sandbox_stage.api_stack
+        api_stack_template = Template.from_stack(api_stack)
+
+        # Ensure the anomaly detection alarm is created
+        alarms = api_stack_template.find_resources(CfnAlarm.CFN_RESOURCE_TYPE_NAME)
+        alarm = TestApi.get_resource_properties_by_logical_id(
+            api_stack.get_logical_id(api_stack.api.v1_api.query_providers.ssn_anomaly_detection_alarm),
+            alarms,
+        )
+
+        # The alarm actions ref change depending on sandbox vs pipeline configuration, so we'll just
+        # make sure there is one action and remove it from the comparison
+        actions = alarm.pop('AlarmActions', [])
+        self.assertEqual(len(actions), 1)
+
+        self.compare_snapshot(
+            alarm,
+            'GET_PROVIDER_SSN_ANOMALY_DETECTION_ALARM_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+        # Ensure the max alarm is created
+        alarm = TestApi.get_resource_properties_by_logical_id(
+            api_stack.get_logical_id(api_stack.api.v1_api.query_providers.max_ssn_reads_alarm.node.default_child),
+            alarms,
+        )
+
+        actions = alarm.pop('AlarmActions', [])
+        self.assertEqual(len(actions), 1)
+
+        self.compare_snapshot(
+            alarm,
+            'GET_PROVIDER_SSN_MAX_READS_ALARM_SCHEMA',
             overwrite_snapshot=False,
         )

@@ -1,7 +1,7 @@
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from cc_common.config import config, logger
+from cc_common.config import config, logger, metrics
 from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
 from cc_common.exceptions import CCAccessDeniedException, CCInvalidRequestException
 from cc_common.utils import (
@@ -139,6 +139,7 @@ def get_provider_ssn(event: dict, context: LambdaContext):  # noqa: ARG001 unuse
     provider_id = event['pathParameters']['providerId']
 
     with logger.append_context_keys(compact=compact, provider_id=provider_id):
+        logger.info('Processing provider SSN request')
         provider_information = get_provider_information(compact=compact, provider_id=provider_id)
 
         # Inspect the caller's scopes to determine if they have readSSN permission for this provider
@@ -147,11 +148,14 @@ def get_provider_ssn(event: dict, context: LambdaContext):  # noqa: ARG001 unuse
             provider_information=provider_information,
             scopes=get_event_scopes(event),
         ):
+            metrics.add_metric(name='unauthorized-ssn-access', value=1, unit='Count')
+            logger.warning('Unauthorized SSN access attempt')
             raise CCAccessDeniedException('User does not have readSSN permission for this provider')
 
         # Query the provider's SSN from the database
         ssn = config.data_client.get_ssn_by_provider_id(compact=compact, provider_id=provider_id)
 
+        metrics.add_metric(name='read-ssn', value=1, unit='Count')
         # Return the SSN to the caller
         return {
             'ssn': ssn,

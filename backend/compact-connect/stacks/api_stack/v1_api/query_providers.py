@@ -4,6 +4,14 @@ import os
 
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodResponse, Resource
+from aws_cdk.aws_cloudwatch import (
+    Alarm,
+    CfnAlarm,
+    ComparisonOperator,
+    Metric,
+    TreatMissingData,
+)
+from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
@@ -239,6 +247,54 @@ class QueryProviders:
             authorization_scopes=method_options.authorization_scopes,
         )
 
+        # Create a metric
+        metric = Metric(
+            namespace='compact-connect', metric_name='read-ssn', statistic='SampleCount', period=Duration.hours(1)
+        )
+
+        # We'll monitor longer access patterns to detect anomalies, over time
+        # The L2 construct, Alarm, doesn't yet support Anomaly Detection as a configuration
+        # so we're using the L1 construct, CfnAlarm
+        self.ssn_anomaly_detection_alarm = CfnAlarm(
+            self.api,
+            'ReadSSNAnomalyAlarm',
+            alarm_description=f'{self.api.node.path} read-ssn anomaly detection',
+            comparison_operator='GreaterThanUpperThreshold',
+            evaluation_periods=1,
+            treat_missing_data='notBreaching',
+            actions_enabled=True,
+            alarm_actions=[self.api.alarm_topic.node.default_child.ref],
+            metrics=[
+                CfnAlarm.MetricDataQueryProperty(id='ad1', expression='ANOMALY_DETECTION_BAND(m1, 2)'),
+                CfnAlarm.MetricDataQueryProperty(
+                    id='m1',
+                    metric_stat=CfnAlarm.MetricStatProperty(
+                        metric=CfnAlarm.MetricProperty(
+                            metric_name='read-ssn',
+                            namespace='compact-connect',
+                            dimensions=[CfnAlarm.DimensionProperty(name='service', value='common')],
+                        ),
+                        period=3600,
+                        stat='SampleCount',
+                    ),
+                ),
+            ],
+            threshold_metric_id='ad1',
+        )
+
+        # We'll also set a flat maximum access rate of 5 reads per hour to alarm on
+        self.max_ssn_reads_alarm = Alarm(
+            self.api,
+            'MaxSSNReadsAlarm',
+            metric=metric,
+            threshold=5,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=(f'{self.api.node.path} max ssn reads alarm'),
+        )
+        self.max_ssn_reads_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
+
     def _get_provider_ssn_handler(
         self,
         data_encryption_key: IKey,
@@ -247,7 +303,6 @@ class QueryProviders:
         lambda_environment: dict,
     ) -> PythonFunction:
         """Create and configure the Lambda handler for retrieving a provider's SSN."""
-        stack = Stack.of(self.resource)
         self.get_provider_ssn_handler = PythonFunction(
             self.resource,
             'GetProviderSSNHandler',
@@ -255,24 +310,15 @@ class QueryProviders:
             lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'providers.py'),
             handler='get_provider_ssn',
+            role=ssn_table.api_query_role,
             environment=lambda_environment,
             alarm_topic=self.api.alarm_topic,
         )
         # The lambda needs to read providers from the provider table and the SSN from the ssn table
-        ssn_table.key.grant_decrypt(self.get_provider_ssn_handler)
-        ssn_table.grant_read_data(self.get_provider_ssn_handler)
+        # Through, ssn table access is granted via resource policies on the table and key
+        # ssn_table.key.grant_decrypt(self.get_provider_ssn_handler)
+        # ssn_table.grant_read_data(self.get_provider_ssn_handler)
         data_encryption_key.grant_decrypt(self.get_provider_ssn_handler)
         provider_data_table.grant_read_data(self.get_provider_ssn_handler)
 
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{self.get_provider_ssn_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
-                    'and is scoped to the required tables and encryption key.',
-                },
-            ],
-        )
         return self.get_provider_ssn_handler

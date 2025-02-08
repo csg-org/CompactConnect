@@ -1,0 +1,11 @@
+{
+  "AlarmDescription": "Sandbox/APIStack/LicenseApi max ssn reads alarm",
+  "ComparisonOperator": "GreaterThanThreshold",
+  "EvaluationPeriods": 1,
+  "MetricName": "read-ssn",
+  "Namespace": "compact-connect",
+  "Period": 3600,
+  "Statistic": "SampleCount",
+  "Threshold": 5,
+  "TreatMissingData": "notBreaching"
+}
