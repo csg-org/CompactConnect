@@ -6,9 +6,9 @@
 //
 
 import { Component, Vue, Watch } from 'vue-facing-decorator';
+import PrivilegePurchaseAttestation from '@components/PrivilegePurchaseAttestation/PrivilegePurchaseAttestation.vue';
 import PrivilegePurchaseInformationConfirmation from '@components/PrivilegePurchaseInformationConfirmation/PrivilegePurchaseInformationConfirmation.vue';
 import PrivilegePurchaseSelect from '@components/PrivilegePurchaseSelect/PrivilegePurchaseSelect.vue';
-import PrivilegePurchaseAttestation from '@components/PrivilegePurchaseAttestation/PrivilegePurchaseAttestation.vue';
 import PrivilegePurchaseFinalize from '@components/PrivilegePurchaseFinalize/PrivilegePurchaseFinalize.vue';
 import PrivilegePurchaseSuccessful from '@components/PrivilegePurchaseSuccessful/PrivilegePurchaseSuccessful.vue';
 import { Compact } from '@models/Compact/Compact.model';
@@ -108,18 +108,11 @@ export default class PrivilegePurchase extends Vue {
     // Methods
     //
     handlePurchaseFlowState() {
-        console.log('flowStateBefore', this.userStore.purchase);
-
         const { $store, $router, currentFlowStep } = this;
 
         const nextStepNeeded = $store.getters['user/getNextNeededPurchaseFlowStep']();
 
-        console.log('nextStepNeeded', nextStepNeeded);
-        console.log('currentFlowStep', currentFlowStep);
-
         if (nextStepNeeded < currentFlowStep || currentFlowStep === -1) {
-            console.log('?');
-
             $router.push({
                 name: this.flowOrder[nextStepNeeded],
                 params: { compact: this.currentCompactType }
@@ -127,8 +120,6 @@ export default class PrivilegePurchase extends Vue {
         } else {
             $store.dispatch('user/cleanPurchaseFlowState', currentFlowStep);
         }
-
-        console.log('flowStateAfter', this.userStore.purchase);
     }
 
     //

@@ -95,7 +95,7 @@ const routes: Array<RouteConfig> = [
     {
         path: '/:compact/Privileges',
         name: 'PrivilegePurchase',
-        component: () => import(/* webpackChunkName: "transaction" */ '@pages/PrivilegePurchase/PrivilegePurchase.vue'),
+        component: () => import(/* webpackChunkName: "privilegePurchase" */ '@pages/PrivilegePurchase/PrivilegePurchase.vue'),
         beforeEnter: guards.authGuard,
         meta: { requiresAuth: true, licenseeAccess: true },
         children: [

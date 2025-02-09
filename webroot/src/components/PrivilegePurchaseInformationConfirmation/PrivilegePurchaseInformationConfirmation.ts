@@ -14,10 +14,10 @@ import {
 import { reactive } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
-import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
-import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
+import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
+import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import { Address } from '@models/Address/Address.model';
 import { Compact } from '@models/Compact/Compact.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
@@ -25,11 +25,11 @@ import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { PrivilegeAttestation } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 import { AcceptedAttestationToSend } from '@models/AcceptedAttestationToSend/AcceptedAttestationToSend.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
-import { dataApi } from '@network/data.api';
-import Joi from 'joi';
 import { License } from '@/models/License/License.model';
 import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
+import { dataApi } from '@network/data.api';
+import Joi from 'joi';
 
 @Component({
     name: 'PrivilegePurchaseInformationConfirmation',

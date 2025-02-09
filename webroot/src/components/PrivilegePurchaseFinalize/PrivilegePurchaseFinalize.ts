@@ -331,7 +331,6 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     }
 
     get isSubmitEnabled(): boolean {
-        console.log('this.isFormValid', this.isFormValid);
         return this.isFormValid && this.formData.noRefunds.value && !this.isFormLoading;
     }
 
@@ -493,8 +492,6 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
 
             this.endFormLoading();
 
-            console.log('purchaseServerEvent', purchaseServerEvent);
-
             if (purchaseServerEvent?.message === 'Successfully processed charge') {
                 this.$store.dispatch('user/saveFlowStep', new PurchaseFlowStep({
                     stepNum: this.flowStep
@@ -505,12 +502,10 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
                     params: { compact: this.currentCompactType }
                 });
             } else if (purchaseServerEvent?.message) {
-                console.log('err');
                 this.isFormError = true;
                 this.formErrorMessage = purchaseServerEvent?.message;
             }
         } else {
-            console.log('err2');
             this.isFormError = true;
             this.formErrorMessage = this.formValidationErrorMessage;
         }
