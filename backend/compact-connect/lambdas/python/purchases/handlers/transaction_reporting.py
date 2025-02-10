@@ -410,7 +410,7 @@ def _generate_compact_summary_report(
         writer.writerow([f'State Fees (UNKNOWN ({jurisdiction}))', f'${unknown_jurisdiction_fees[jurisdiction]:.2f}'])
 
     # Write compact fees
-    writer.writerow(['Compact Fees', f'${compact_fees:.2f}'])
+    writer.writerow(['Administrative Fees', f'${compact_fees:.2f}'])
 
     # Write transaction fees if applicable
     if transaction_fees > 0 or (hasattr(compact_config, 'transactionFeeConfiguration') and
@@ -436,23 +436,30 @@ def _generate_compact_transaction_report(transactions: list[dict], providers: di
             'Transaction Settlement Date',
             'State',
             'State Fee',
-            'Compact Fee',
+            'Administrative Fee',
+            'Collected Transaction Fee',
             'Transaction Id',
         ]
     )
 
     if not transactions:
-        writer.writerow(['No transactions for this period'] + [''] * 7)
+        writer.writerow(['No transactions for this period'] + [''] * 8)
         return output.getvalue()
 
     for transaction in transactions:
         provider = providers.get(transaction['licenseeId'], {})
         transaction_date = datetime.fromisoformat(transaction['batch']['settlementTimeUTC']).strftime('%m-%d-%Y')
         compact_fee_item = next(item for item in transaction['lineItems'] if item['itemId'].endswith('-compact-fee'))
+        
+        # Get transaction fee if it exists
+        transaction_fee_item = next(
+            (item for item in transaction['lineItems'] if item['itemId'] == 'credit-card-transaction-fee'),
+            None
+        )
 
         # Write a row for each state privilege in the transaction
         for item in transaction['lineItems']:
-            if item['itemId'].endswith('-compact-fee'):
+            if item['itemId'].endswith('-compact-fee') or item['itemId'] == 'credit-card-transaction-fee':
                 continue
 
             # Extract state from itemId (format: compact-state)
@@ -467,6 +474,7 @@ def _generate_compact_transaction_report(transactions: list[dict], providers: di
                     state,
                     item['unitPrice'],
                     compact_fee_item['unitPrice'],
+                    transaction_fee_item['unitPrice'] if transaction_fee_item else '0',
                     transaction['transactionId'],
                 ]
             )
