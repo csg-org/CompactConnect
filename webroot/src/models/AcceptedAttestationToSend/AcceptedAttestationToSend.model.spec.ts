@@ -23,7 +23,7 @@ describe('AcceptedAttestationToSend model', () => {
     });
     it('should create a AcceptedAttestationToSend with specific values', () => {
         const data = {
-            attestationId: 'attest-attaestation',
+            attestationId: 'attest-attestation',
             version: '1'
         };
         const acceptedAttestationToSend = new AcceptedAttestationToSend(data);

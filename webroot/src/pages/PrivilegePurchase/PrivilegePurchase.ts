@@ -109,7 +109,6 @@ export default class PrivilegePurchase extends Vue {
     //
     handlePurchaseFlowState() {
         const { $store, $router, currentFlowStep } = this;
-
         const nextStepNeeded = $store.getters['user/getNextNeededPurchaseFlowStep']();
 
         if (nextStepNeeded < currentFlowStep || currentFlowStep === -1) {

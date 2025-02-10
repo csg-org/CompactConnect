@@ -17,6 +17,11 @@
                     <div class="select-privileges-title">
                         {{selectPrivilegesTitleText}}
                     </div>
+                    <MockPopulate
+                        :isEnabled="isMockPopulateEnabled"
+                        @selected="mockPopulate"
+                        class="mock-populate"
+                    />
                     <div class="lists-container">
                         <ul class="state-select-list">
                             <li

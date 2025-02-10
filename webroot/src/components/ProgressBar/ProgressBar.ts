@@ -17,22 +17,6 @@ import {
 })
 class ProgressBar extends Vue {
     @Prop({ required: true }) progressPercent?: boolean;
-
-    //
-    // Data
-    //
-
-    //
-    // Lifecycle
-    //
-
-    //
-    // Computed
-    //
-
-    //
-    // Methods
-    //
 }
 
 export default toNative(ProgressBar);

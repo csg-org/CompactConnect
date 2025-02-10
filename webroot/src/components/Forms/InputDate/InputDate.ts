@@ -54,22 +54,6 @@ class InputDate extends mixins(MixinInput) {
     }
     @Prop({ default: false }) isTime24?: boolean; // eslint-disable-line lines-between-class-members
     @Prop({ default: false }) isLoading?: boolean;
-
-    //
-    // Data
-    //
-
-    //
-    // Lifecycle
-    //
-
-    //
-    // Computed
-    //
-
-    //
-    // Methods
-    //
 }
 
 export default toNative(InputDate);

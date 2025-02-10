@@ -38,8 +38,6 @@ export const state: State = {
     isLoadingPrivilegePurchaseOptions: false,
     refreshTokenTimeoutId: null,
     currentCompact: null,
-    purchase: new PurchaseFlowState({
-        steps: []
-    }),
+    purchase: new PurchaseFlowState({}),
     error: null,
 };

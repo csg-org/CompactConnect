@@ -18,6 +18,7 @@ import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
+import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { Address } from '@models/Address/Address.model';
 import { Compact } from '@models/Compact/Compact.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
@@ -38,7 +39,8 @@ import Joi from 'joi';
         InputButton,
         InputCheckbox,
         LoadingSpinner,
-        ProgressBar
+        ProgressBar,
+        MockPopulate
     }
 })
 export default class PrivilegePurchaseInformationConfirmation extends mixins(MixinForm) {
@@ -149,6 +151,10 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
         return this.user?.compactConnectEmail || '';
     }
 
+    get isMockPopulateEnabled(): boolean {
+        return Boolean(this.$envConfig.isDevelopment);
+    }
+
     //
     // Methods
     //
@@ -245,6 +251,13 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
                 params: { compact: this.currentCompactType }
             });
         }
+    }
+
+    async mockPopulate(): Promise<void> {
+        this.formData.address.value = true;
+        this.formData.homeState.value = true;
+
+        this.validateAll({ asTouched: true });
     }
 
     //

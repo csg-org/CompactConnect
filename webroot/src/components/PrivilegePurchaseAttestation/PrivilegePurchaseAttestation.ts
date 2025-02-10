@@ -293,7 +293,11 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
         this.formData.disciplineCurrent.value = true;
         this.formData.disciplinePrior.value = true;
         this.formData.trueInformation.value = true;
-        this.formData.militaryAffiliation.value = true;
+
+        if (this.formData.militaryAffiliation) {
+            this.formData.militaryAffiliation.value = true;
+        }
+
         this.validateAll({ asTouched: true });
     }
 

@@ -17,6 +17,7 @@
                     <LoadingSpinner v-if="!userStore.isLoadingAccount" />
                 </div>
                 <div v-else>
+                    <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                     <div class="personal-info-title">
                         {{$t('licensing.personalInfoTitle')}}
                     </div>
