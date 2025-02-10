@@ -13,9 +13,8 @@ def update_privileges_missing_attestations(table_name: str, dry_run: bool = Fals
     Scans the provider table for privilege records missing the attestations field
     and adds an empty attestations list to them.
 
-    Args:
-        table_name: The name of the DynamoDB table to update
-        dry_run: If True, only print what would be updated without making changes
+    :param table_name: The name of the DynamoDB table to update
+    :param dry_run: If True, only print what would be updated without making changes
     """
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table(table_name)
