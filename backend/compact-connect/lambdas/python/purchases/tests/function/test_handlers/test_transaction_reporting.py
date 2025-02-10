@@ -22,6 +22,7 @@ MOCK_SETTLEMENT_TIME_LOCAL = '2024-01-01T09:00:00'
 # Mock compact config values
 MOCK_COMPACT_FEE = '10.50'
 MOCK_JURISDICTION_FEE = '100'
+MOCK_TRANSACTION_FEE = '3.00'
 
 # these are used to generate jurisdiction data in the DB
 OHIO_JURISDICTION = {'postalAbbreviation': 'oh', 'jurisdictionName': 'ohio', 'sk': 'aslp#JURISDICTION#oh'}
@@ -40,6 +41,7 @@ def _generate_mock_transaction(
     transaction_settlement_time_utc: datetime,
     transaction_id: str = MOCK_TRANSACTION_ID,
     batch_id: str = MOCK_BATCH_ID,
+    include_licensee_transaction_fees: bool = False
 ) -> dict:
     """
     Generate a mock transaction with privileges for the specified jurisdictions.
@@ -77,6 +79,19 @@ def _generate_mock_transaction(
             'unitPrice': MOCK_COMPACT_FEE,
         }
     )
+
+    # adding licensee transaction fees if the flag is set
+    if include_licensee_transaction_fees:
+        line_items.append(
+            {
+                'description': 'Credit card transaction fee',
+                'itemId': 'credit-card-transaction-fee',
+                'name': 'Credit Card Transaction Fee',
+                'quantity': str(len(jurisdictions)),
+                'taxable': 'False',
+                'unitPrice': MOCK_TRANSACTION_FEE,
+            }
+        )
 
     return {
         'batch': {
@@ -141,6 +156,7 @@ class TestGenerateTransactionReports(TstFunction):
         transaction_settlement_time_utc: datetime,
         transaction_id: str = MOCK_TRANSACTION_ID,
         batch_id: str = MOCK_BATCH_ID,
+        include_licensee_transaction_fees: bool = False
     ) -> dict:
         """
         Add a mock transaction to the DB with privileges for the specified jurisdictions.
@@ -160,6 +176,7 @@ class TestGenerateTransactionReports(TstFunction):
             transaction_settlement_time_utc,
             transaction_id,
             batch_id,
+            include_licensee_transaction_fees
         )
         self._transaction_history_table.put_item(Item=transaction)
         return transaction
@@ -192,7 +209,7 @@ class TestGenerateTransactionReports(TstFunction):
 
         _set_default_lambda_client_behavior(mock_lambda_client)
 
-        self._add_compact_configuration_data()
+        self._add_compact_configuration_data([OHIO_JURISDICTION])
 
         # Set up mocked S3 bucket
 
@@ -273,7 +290,12 @@ class TestGenerateTransactionReports(TstFunction):
             with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
-                    'Total Transactions,0\nTotal Compact Fees,$0.00\nState Fees (Ohio),$0.00\n', summary_content
+                    'Privileges purchased for Ohio,0\n'
+                    'State Fees (Ohio),$0.00\n'
+                    'Compact Fees,$0.00\n'
+                    ',\n'
+                    'Total Processed Amount,$0.00\n',
+                    summary_content,
                 )
 
             # Check transaction detail
@@ -409,10 +431,13 @@ class TestGenerateTransactionReports(TstFunction):
             with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
-                    'Total Transactions,2\n'
-                    'Total Compact Fees,$21.00\n'
+                    'Privileges purchased for Kentucky,1\n'
                     'State Fees (Kentucky),$100.00\n'
-                    'State Fees (Ohio),$100.00\n',
+                    'Privileges purchased for Ohio,1\n'
+                    'State Fees (Ohio),$100.00\n'
+                    'Compact Fees,$21.00\n' # $10.50 x 2 privileges
+                    ',\n'
+                    'Total Processed Amount,$221.00\n',
                     summary_content,
                 )
 
@@ -549,11 +574,15 @@ class TestGenerateTransactionReports(TstFunction):
             with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
-                    'Total Transactions,1\n'
-                    'Total Compact Fees,$31.50\n'  # $10.50 x 3 privileges
+                    'Privileges purchased for Kentucky,1\n'
                     'State Fees (Kentucky),$100.00\n'
+                    'Privileges purchased for Nebraska,1\n'
                     'State Fees (Nebraska),$100.00\n'
-                    'State Fees (Ohio),$100.00\n',
+                    'Privileges purchased for Ohio,1\n'
+                    'State Fees (Ohio),$100.00\n'
+                    'Compact Fees,$31.50\n' # $10.50 x 3 privileges
+                    ',\n'
+                    'Total Processed Amount,$331.50\n',
                     summary_content,
                 )
 
@@ -647,10 +676,13 @@ class TestGenerateTransactionReports(TstFunction):
             with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
-                    'Total Transactions,600\n'
-                    'Total Compact Fees,$6300.00\n'  # $10.50 x 600
-                    'State Fees (Kentucky),$30000.00\n'  # $100 x 300
-                    'State Fees (Ohio),$30000.00\n',  # $100 x 300
+                    'Privileges purchased for Kentucky,300\n'
+                    'State Fees (Kentucky),$30000.00\n'
+                    'Privileges purchased for Ohio,300\n'
+                    'State Fees (Ohio),$30000.00\n'
+                    'Compact Fees,$6300.00\n'
+                    ',\n'
+                    'Total Processed Amount,$66300.00\n',
                     summary_content,
                 )
 
@@ -785,11 +817,15 @@ class TestGenerateTransactionReports(TstFunction):
                 summary_content = f.read().decode('utf-8')
                 # Verify compact summary includes unknown jurisdiction
                 self.assertEqual(
-                    'Total Transactions,1\n'
-                    'Total Compact Fees,$31.50\n'  # $10.50 x 3 privileges
+                    'Privileges purchased for Kentucky,1\n'
                     'State Fees (Kentucky),$100.00\n'
+                    'Privileges purchased for Ohio,1\n'
                     'State Fees (Ohio),$100.00\n'
-                    'State Fees (UNKNOWN (xx)),$100.00\n',
+                    'Privileges purchased for UNKNOWN (xx),1\n'
+                    'State Fees (UNKNOWN (xx)),$100.00\n'
+                    'Compact Fees,$31.50\n'  # $10.50 x 3 privileges
+                    ',\n'
+                    'Total Processed Amount,$331.50\n',
                     summary_content,
                 )
 
@@ -907,11 +943,15 @@ class TestGenerateTransactionReports(TstFunction):
             with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
-                    'Total Transactions,2\n'
-                    'Total Compact Fees,$21.00\n'  # $10.50 x 2 privileges
+                    'Privileges purchased for Kentucky,1\n'
                     'State Fees (Kentucky),$100.00\n'
+                    'Privileges purchased for Nebraska,0\n'
                     'State Fees (Nebraska),$0.00\n'
-                    'State Fees (Ohio),$100.00\n',
+                    'Privileges purchased for Ohio,1\n'
+                    'State Fees (Ohio),$100.00\n'
+                    'Compact Fees,$21.00\n' # $10.50 x 2 privileges
+                    ',\n'
+                    'Total Processed Amount,$221.00\n',
                     summary_content,
                 )
 
@@ -1025,10 +1065,14 @@ class TestGenerateTransactionReports(TstFunction):
             with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
                 summary_content = f.read().decode('utf-8')
                 self.assertEqual(
-                    'Total Transactions,3\n'
-                    'Total Compact Fees,$31.50\n'  # $10.50 x 2 privileges
+                    'Privileges purchased for Kentucky,1\n'
                     'State Fees (Kentucky),$100.00\n'
+                    'Privileges purchased for Nebraska,1\n'
                     'State Fees (Nebraska),$100.00\n'
-                    'State Fees (Ohio),$100.00\n',
+                    'Privileges purchased for Ohio,1\n'
+                    'State Fees (Ohio),$100.00\n'
+                    'Compact Fees,$31.50\n' # $10.50 x 3 privileges
+                    ',\n'
+                    'Total Processed Amount,$331.50\n',
                     summary_content,
                 )
