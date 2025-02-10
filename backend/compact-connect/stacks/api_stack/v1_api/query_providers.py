@@ -67,8 +67,6 @@ class QueryProviders:
         )
         self._add_get_provider_ssn(
             method_options=ssn_method_options,
-            data_encryption_key=data_encryption_key,
-            provider_data_table=provider_data_table,
             ssn_table=ssn_table,
             lambda_environment=lambda_environment,
         )
@@ -216,15 +214,11 @@ class QueryProviders:
     def _add_get_provider_ssn(
         self,
         method_options: MethodOptions,
-        data_encryption_key: IKey,
-        provider_data_table: ProviderTable,
         ssn_table: SSNTable,
         lambda_environment: dict,
     ):
         """Add GET /providers/{providerId}/ssn endpoint to retrieve a provider's SSN."""
         handler = self._get_provider_ssn_handler(
-            data_encryption_key=data_encryption_key,
-            provider_data_table=provider_data_table,
             ssn_table=ssn_table,
             lambda_environment=lambda_environment,
         )
@@ -301,8 +295,6 @@ class QueryProviders:
 
     def _get_provider_ssn_handler(
         self,
-        data_encryption_key: IKey,
-        provider_data_table: ProviderTable,
         ssn_table: SSNTable,
         lambda_environment: dict,
     ) -> PythonFunction:
@@ -319,10 +311,7 @@ class QueryProviders:
             alarm_topic=self.api.alarm_topic,
         )
         # The lambda needs to read providers from the provider table and the SSN from the ssn table
-        # Through, ssn table access is granted via resource policies on the table and key
-        # ssn_table.key.grant_decrypt(self.get_provider_ssn_handler)
-        # ssn_table.grant_read_data(self.get_provider_ssn_handler)
-        data_encryption_key.grant_decrypt(self.get_provider_ssn_handler)
-        provider_data_table.grant_read_data(self.get_provider_ssn_handler)
+        # Though, ssn table access is granted via resource policies on the table and key so `.grant()`
+        # calls are not needed here.
 
         return self.get_provider_ssn_handler
