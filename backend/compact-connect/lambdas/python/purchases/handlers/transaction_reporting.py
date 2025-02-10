@@ -96,10 +96,10 @@ def _store_compact_reports_in_s3(
     :param bucket_name: S3 bucket name
     :return: Dictionary of file types to their S3 paths
     """
-    date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+    date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
     base_path = (
-        f'compact/{compact}/reports/compact-transactions/reporting-cycle/{reporting_cycle}/'
-        f'{end_time.strftime("%Y/%m/%d")}'
+        f"compact/{compact}/reports/compact-transactions/reporting-cycle/{reporting_cycle}/"
+        f"{end_time.strftime('%Y/%m/%d')}"
     )
 
     # Define paths for all report files
@@ -141,10 +141,10 @@ def _store_jurisdiction_reports_in_s3(
     :param bucket_name: S3 bucket name
     :return: Dictionary of file types to their S3 paths
     """
-    date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+    date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
     base_path = (
-        f'compact/{compact}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/'
-        f'reporting-cycle/{reporting_cycle}/{end_time.strftime("%Y/%m/%d")}'
+        f"compact/{compact}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
+        f"reporting-cycle/{reporting_cycle}/{end_time.strftime('%Y/%m/%d')}"
     )
 
     # Define paths for all report files
@@ -347,53 +347,79 @@ def _generate_compact_summary_report(
     """Generate the compact financial summary report CSV."""
     # Initialize variables
     compact_fees = 0
+    transaction_fees = 0
     configured_jurisdictions = _get_jurisdiction_postal_abbreviations(jurisdiction_configs)
     jurisdiction_fees: dict[str, Decimal] = {j['postalAbbreviation'].lower(): Decimal(0) for j in jurisdiction_configs}
-    unknown_jurisdictions = set()
+    jurisdiction_privileges: dict[str, int] = {j['postalAbbreviation'].lower(): 0 for j in jurisdiction_configs}
+    unknown_jurisdiction_fees: dict[str, Decimal]= {}
+    unknown_jurisdictions_privileges: dict[str, int] = {}
+    total_processed_amount = 0
 
     # Single pass through transactions to calculate all fees
     for transaction in transactions:
         for item in transaction['lineItems']:
             # sometimes authorize.net has returned this quantity field as '1.0'
             # so we need to account for this by first casting to a float, then an int
-            fee = Decimal(item['unitPrice']) * int(float(item['quantity']))
+            quantity = int(float(item['quantity']))
+            fee = Decimal(item['unitPrice']) * quantity
 
             if item['itemId'].endswith('-compact-fee'):
                 compact_fees += fee
+            elif item['itemId'] == 'credit-card-transaction-fee':
+                transaction_fees += fee
             else:
                 jurisdiction = item['itemId'].split('-')[1]
-                if jurisdiction not in configured_jurisdictions:
-                    unknown_jurisdictions.add(jurisdiction)
-                    if jurisdiction not in jurisdiction_fees:
-                        jurisdiction_fees[jurisdiction] = fee
-                        continue
+                if jurisdiction in configured_jurisdictions:
+                    # Add fee to jurisdiction and increment privilege count
+                    jurisdiction_fees[jurisdiction] += fee
+                    jurisdiction_privileges[jurisdiction] += quantity
+                else:
+                    # jurisdiction does not match with our known jurisdictions, add it to the report
+                    unknown_jurisdictions_privileges[jurisdiction] = unknown_jurisdictions_privileges.get(jurisdiction,
+                                                                                                          0) + quantity
+                    unknown_jurisdiction_fees[jurisdiction] = unknown_jurisdiction_fees.get(jurisdiction, 0) + fee
 
-                # Add fee to jurisdiction
-                jurisdiction_fees[jurisdiction] += fee
+            total_processed_amount += fee
 
-    if unknown_jurisdictions:
+    if unknown_jurisdictions_privileges:
         logger.error(
             'Unknown jurisdictions found in transactions.',
-            jurisdictions=list(unknown_jurisdictions),
+            jurisdictions=unknown_jurisdictions_privileges.keys(),
             compact=compact_config.compact_abbr,
         )
         # we can still generate the reports, but we need to add this so an exception is thrown after sending the reports
         lambda_error_messages.append(
-            f'Unknown jurisdictions found in transactions. Jurisdictions: {unknown_jurisdictions}'
+            f'Unknown jurisdictions found in transactions. Jurisdictions: {unknown_jurisdictions_privileges.keys()}'
         )
 
     # Generate CSV
     output = StringIO()
     writer = csv.writer(output, lineterminator='\n', dialect='excel')
-    writer.writerow(['Total Transactions', len(transactions)])
-    writer.writerow(['Total Compact Fees', f'${compact_fees:.2f}'])
 
+    # Write jurisdiction fees and privileges
     for jurisdiction in jurisdiction_configs:
         postal = jurisdiction['postalAbbreviation'].lower()
         fee_value = jurisdiction_fees.get(postal, 0)
+        privilege_count = jurisdiction_privileges.get(postal, 0)
+        writer.writerow([f'Privileges purchased for {jurisdiction["jurisdictionName"].capitalize()}', privilege_count])
         writer.writerow([f'State Fees ({jurisdiction["jurisdictionName"].capitalize()})', f'${fee_value:.2f}'])
-    for jurisdiction in unknown_jurisdictions:
-        writer.writerow([f'State Fees (UNKNOWN ({jurisdiction}))', f'${jurisdiction_fees[jurisdiction]:.2f}'])
+
+    # Write unknown jurisdiction fees if any
+    for jurisdiction in unknown_jurisdictions_privileges.keys():
+        writer.writerow([f'Privileges purchased for UNKNOWN ({jurisdiction})', unknown_jurisdictions_privileges[jurisdiction]])
+        writer.writerow([f'State Fees (UNKNOWN ({jurisdiction}))', f'${unknown_jurisdiction_fees[jurisdiction]:.2f}'])
+
+    # Write compact fees
+    writer.writerow(['Compact Fees', f'${compact_fees:.2f}'])
+
+    # Write transaction fees if applicable
+    if transaction_fees > 0 or (hasattr(compact_config, 'transactionFeeConfiguration') and
+                               getattr(compact_config.transactionFeeConfiguration, 'licenseeCharges', {}).get('active')):
+        writer.writerow(['Credit Card Transaction Fees Collected From Licensee', f'${transaction_fees:.2f}'])
+
+    # Add blank line before total
+    writer.writerow(['', ''])
+    writer.writerow(['Total Processed Amount', f'${total_processed_amount:.2f}'])
 
     return output.getvalue()
 
