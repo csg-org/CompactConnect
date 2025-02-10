@@ -270,8 +270,8 @@ class QueryProviders:
                     id='m1',
                     metric_stat=CfnAlarm.MetricStatProperty(
                         metric=CfnAlarm.MetricProperty(
-                            metric_name='read-ssn',
-                            namespace='compact-connect',
+                            metric_name=metric.metric_name,
+                            namespace=metric.namespace,
                             dimensions=[CfnAlarm.DimensionProperty(name='service', value='common')],
                         ),
                         period=3600,
