@@ -480,7 +480,7 @@ class ApiModel:
             description='Post purchase privileges request model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['selectedJurisdictions', 'orderInformation'],
+                required=['selectedJurisdictions', 'orderInformation', 'attestations'],
                 properties={
                     'selectedJurisdictions': JsonSchema(
                         type=JsonSchemaType.ARRAY,
