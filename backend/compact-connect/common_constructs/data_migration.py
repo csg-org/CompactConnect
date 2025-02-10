@@ -23,6 +23,16 @@ class DataMigration(Construct):
         role: IRole = None,
         custom_resource_properties: dict = None,
     ):
+        """
+        This construct is used to run a data migration.
+        It will create a lambda function and a provider that will run the migration.
+
+        :param migration_dir: The directory containing the migration code. Name the directory after the associated
+        GitHub issue that requires the migration.
+        :param lambda_environment: The environment variables for the lambda function.
+        :param role: The IAM role to use for the lambda function, with the necessary permissions.
+        :param custom_resource_properties: The properties for the custom resource.
+        """
         super().__init__(scope, construct_id)
         self.migration_function = PythonFunction(
             scope,

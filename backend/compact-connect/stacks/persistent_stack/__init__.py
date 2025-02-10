@@ -204,7 +204,7 @@ class PersistentStack(AppStack):
         )
 
         self.ssn_table = SSNTable(self, 'SSNTable', removal_policy=removal_policy)
-        # Run migration 392 to add a GSI pk field to the SSN records
+        # Run migration 392 (GH issue number) to add a GSI pk field to the SSN records
         DataMigration(
             self,
             '392SSNMigration',

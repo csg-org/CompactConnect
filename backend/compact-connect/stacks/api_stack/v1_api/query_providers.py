@@ -183,7 +183,7 @@ class QueryProviders:
             self.resource,
             'QueryProvidersHandler',
             description='Query providers handler',
-            # We will not associate with this role, once we remove SSN queries
+            # TODO: We will not associate with this role, once we remove SSN queries  # noqa: FIX002
             # (https://github.com/csg-org/CompactConnect/issues/391)
             role=ssn_table.api_query_role,
             lambda_dir='provider-data-v1',

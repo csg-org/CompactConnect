@@ -2,6 +2,7 @@ import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger, metrics
+from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
 from cc_common.exceptions import CCAccessDeniedException, CCInvalidRequestException
 from cc_common.utils import (
@@ -16,7 +17,7 @@ from . import get_provider_information
 
 
 @api_handler
-@authorize_compact(action='readGeneral')
+@authorize_compact(action=CCPermissionsAction.READ_GENERAL)
 def query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Query providers data
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
@@ -105,7 +106,7 @@ def query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused
 
 
 @api_handler
-@authorize_compact(action='readGeneral')
+@authorize_compact(action=CCPermissionsAction.READ_GENERAL)
 def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Return one provider's data
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
@@ -128,7 +129,7 @@ def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-ar
 
 
 @api_handler
-@authorize_compact(action='readSSN')
+@authorize_compact(action=CCPermissionsAction.READ_SSN)
 def get_provider_ssn(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """
     Return one provider's SSN
@@ -150,7 +151,9 @@ def get_provider_ssn(event: dict, context: LambdaContext):  # noqa: ARG001 unuse
         ):
             metrics.add_metric(name='unauthorized-ssn-access', value=1, unit='Count')
             logger.warning('Unauthorized SSN access attempt')
-            raise CCAccessDeniedException('User does not have readSSN permission for this provider')
+            raise CCAccessDeniedException(
+                f'User does not have {CCPermissionsAction.READ_SSN} permission for this provider'
+            )
 
         # Query the provider's SSN from the database
         ssn = config.data_client.get_ssn_by_provider_id(compact=compact, provider_id=provider_id)

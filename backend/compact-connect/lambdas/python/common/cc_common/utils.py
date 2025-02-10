@@ -15,6 +15,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 
 from cc_common.config import config, logger, metrics
+from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
 from cc_common.exceptions import (
     CCAccessDeniedException,
@@ -421,13 +422,19 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
 
     # Collect compact-wide permission changes
     for action, value in compact_changes.get('actions', {}).items():
-        if action == 'admin' and f'{path_compact}/{path_compact}.admin' not in scopes:
+        if (
+            action == CCPermissionsAction.ADMIN
+            and f'{path_compact}/{path_compact}.{CCPermissionsAction.ADMIN}' not in scopes
+        ):
             raise CCAccessDeniedException('Only compact admins can affect compact-level admin permissions')
-        if action == 'readPrivate' and f'{path_compact}/{path_compact}.admin' not in scopes:
+        if (
+            action == CCPermissionsAction.READ_PRIVATE
+            and f'{path_compact}/{path_compact}.{CCPermissionsAction.ADMIN}' not in scopes
+        ):
             raise CCAccessDeniedException('Only compact admins can affect compact-level access to private information')
 
         # dropping the read action as this is now implicitly granted to all users
-        if action == 'read':
+        if action == CCPermissionsAction.READ:
             logger.info('Dropping "read" action as this is implicitly granted to all users')
             continue
         # Any admin in the compact can affect read permissions, so no read-specific check is necessary here
@@ -438,7 +445,10 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
 
     # Collect jurisdiction-specific changes
     for jurisdiction, jurisdiction_changes in compact_changes.get('jurisdictions', {}).items():
-        if not {f'{path_compact}/{path_compact}.admin', f'{path_compact}/{jurisdiction}.admin'}.intersection(scopes):
+        if not {
+            f'{path_compact}/{path_compact}.{CCPermissionsAction.ADMIN}',
+            f'{path_compact}/{jurisdiction}.{CCPermissionsAction.ADMIN}',
+        }.intersection(scopes):
             raise CCAccessDeniedException(
                 f'Only {path_compact} or {path_compact}/{jurisdiction} admins can affect {path_compact}/{jurisdiction} '
                 'permissions',
@@ -446,7 +456,7 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
 
         for action, value in jurisdiction_changes.get('actions', {}).items():
             # dropping the read action as this is now implicitly granted to all users
-            if action == 'read':
+            if action == CCPermissionsAction.READ:
                 logger.info('Dropping "read" action as this is implicitly granted to all users')
                 continue
 
@@ -472,13 +482,16 @@ def get_sub_from_user_attributes(attributes: list):
 
 def _user_has_read_private_access_for_provider(compact: str, provider_information: dict, scopes: set[str]) -> bool:
     return _user_has_permission_for_action_on_user(
-        action='readPrivate', compact=compact, provider_information=provider_information, scopes=scopes
+        action=CCPermissionsAction.READ_PRIVATE,
+        compact=compact,
+        provider_information=provider_information,
+        scopes=scopes,
     )
 
 
 def user_has_read_ssn_access_for_provider(compact: str, provider_information: dict, scopes: set[str]) -> bool:
     return _user_has_permission_for_action_on_user(
-        action='readSSN', compact=compact, provider_information=provider_information, scopes=scopes
+        action=CCPermissionsAction.READ_SSN, compact=compact, provider_information=provider_information, scopes=scopes
     )
 
 
