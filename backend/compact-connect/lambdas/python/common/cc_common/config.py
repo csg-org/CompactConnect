@@ -227,6 +227,10 @@ class _Config:
         return TransactionClient(self)
 
     @property
+    def transaction_reports_bucket_name(self):
+        return os.environ['TRANSACTION_REPORTS_BUCKET_NAME']
+
+    @property
     def transaction_history_table_name(self):
         return os.environ['TRANSACTION_HISTORY_TABLE_NAME']
 

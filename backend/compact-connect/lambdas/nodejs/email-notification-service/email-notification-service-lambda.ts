@@ -2,6 +2,7 @@ import type { LambdaInterface } from '@aws-lambda-powertools/commons/lib/esm/typ
 import { Logger } from '@aws-lambda-powertools/logger';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { SESClient } from '@aws-sdk/client-ses';
+import { S3Client } from '@aws-sdk/client-s3';
 import { Context } from 'aws-lambda';
 
 import { EnvironmentVariablesService } from '../lib/environment-variables-service';
@@ -16,6 +17,7 @@ const logger = new Logger({ logLevel: environmentVariables.getLogLevel() });
 interface LambdaProperties {
     dynamoDBClient: DynamoDBClient;
     sesClient: SESClient;
+    s3Client: S3Client;
 }
 
 export class Lambda implements LambdaInterface {
@@ -35,6 +37,7 @@ export class Lambda implements LambdaInterface {
         this.emailService = new EmailService({
             logger: logger,
             sesClient: props.sesClient,
+            s3Client: props.s3Client,
             compactConfigurationClient: compactConfigurationClient,
             jurisdictionClient: jurisdictionClient
         });
@@ -71,27 +74,31 @@ export class Lambda implements LambdaInterface {
             );
             break;
         case 'CompactTransactionReporting':
-            if (!event.templateVariables?.compactFinancialSummaryReportCSV ||
-                !event.templateVariables?.compactTransactionReportCSV) {
+            if (!event.templateVariables?.reportS3Path) {
                 throw new Error('Missing required template variables for CompactTransactionReporting template');
             }
             await this.emailService.sendCompactTransactionReportEmail(
                 event.compact,
-                event.templateVariables.compactFinancialSummaryReportCSV,
-                event.templateVariables.compactTransactionReportCSV
+                event.templateVariables.reportS3Path,
+                event.templateVariables.reportingCycle,
+                event.templateVariables.startDate,
+                event.templateVariables.endDate
             );
             break;
         case 'JurisdictionTransactionReporting':
             if (!event.jurisdiction) {
                 throw new Error('Missing required jurisdiction field for JurisdictionTransactionReporting template');
             }
-            if (!event.templateVariables?.jurisdictionTransactionReportCSV) {
+            if (!event.templateVariables?.reportS3Path) {
                 throw new Error('Missing required template variables for JurisdictionTransactionReporting template');
             }
             await this.emailService.sendJurisdictionTransactionReportEmail(
                 event.compact,
                 event.jurisdiction,
-                event.templateVariables.jurisdictionTransactionReportCSV
+                event.templateVariables.reportS3Path,
+                event.templateVariables.reportingCycle,
+                event.templateVariables.startDate,
+                event.templateVariables.endDate
             );
             break;
         default:

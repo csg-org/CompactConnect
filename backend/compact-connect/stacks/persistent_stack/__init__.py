@@ -28,6 +28,7 @@ from stacks.persistent_stack.rate_limiting_table import RateLimitingTable
 from stacks.persistent_stack.ssn_table import SSNTable
 from stacks.persistent_stack.staff_users import StaffUsers
 from stacks.persistent_stack.transaction_history_table import TransactionHistoryTable
+from stacks.persistent_stack.transaction_reports_bucket import TransactionReportsBucket
 from stacks.persistent_stack.user_email_notifications import UserEmailNotifications
 
 
@@ -183,6 +184,14 @@ class PersistentStack(AppStack):
             event_bus=self.data_event_bus,
         )
 
+        self.transaction_reports_bucket = TransactionReportsBucket(
+            self,
+            'TransactionReportsBucket',
+            access_logs_bucket=self.access_logs_bucket,
+            encryption_key=self.shared_encryption_key,
+            removal_policy=removal_policy,
+        )
+
         self.rate_limiting_table = RateLimitingTable(
             self,
             'RateLimitingTable',
@@ -264,6 +273,7 @@ class PersistentStack(AppStack):
             environment={
                 'FROM_ADDRESS': from_address,
                 'COMPACT_CONFIGURATION_TABLE_NAME': self.compact_configuration_table.table_name,
+                'TRANSACTION_REPORTS_BUCKET_NAME': self.transaction_reports_bucket.bucket_name,
                 'UI_BASE_PATH_URL': self._get_ui_base_path_url(),
                 'ENVIRONMENT_NAME': environment_name,
                 **self.common_env_vars,
@@ -272,6 +282,8 @@ class PersistentStack(AppStack):
 
         # Grant permissions to read compact configurations
         self.compact_configuration_table.grant_read_data(self.email_notification_service_lambda)
+        # Grant permissions to get report files for emailing reports
+        self.transaction_reports_bucket.grant_read(self.email_notification_service_lambda)
         # if there is no domain name, we can't set up SES permissions
         # in this case the lambda will perform a no-op when invoked.
         if self.hosted_zone:
@@ -285,7 +297,8 @@ class PersistentStack(AppStack):
                     'id': 'AwsSolutions-IAM5',
                     'reason': """
                               This policy contains wild-carded actions and resources but they are scoped to the
-                              specific actions, Table, and Email Identity that this lambda specifically needs access to.
+                              specific actions, reporting Bucket, Table, and Email Identity that this lambda
+                              specifically needs access to.
                               """,
                 },
             ],
