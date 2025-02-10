@@ -249,7 +249,11 @@ class QueryProviders:
 
         # Create a metric
         metric = Metric(
-            namespace='compact-connect', metric_name='read-ssn', statistic='SampleCount', period=Duration.hours(1)
+            namespace='compact-connect',
+            metric_name='read-ssn',
+            statistic='SampleCount',
+            period=Duration.hours(1),
+            dimensions_map={'service': 'common'},
         )
 
         # We'll monitor longer access patterns to detect anomalies, over time
