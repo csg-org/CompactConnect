@@ -32,8 +32,8 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
     current_batch_id = event.get('currentBatchId')
     processed_batch_ids = event.get('processedBatchIds', [])
 
-    # Calculate time range for the last 24 hours
-    end_time = config.current_standard_datetime
+    # This lambda is triggered at noon UTC-4, so we calculate the time range for the last 24 hours
+    end_time = config.current_standard_datetime.replace(hour=16, minute=0, second=0, microsecond=0)
     start_time = end_time - timedelta(days=1)
 
     # Format timestamps for API call

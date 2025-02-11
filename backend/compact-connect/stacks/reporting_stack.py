@@ -143,6 +143,7 @@ class ReportingStack(AppStack):
             memory_size=3008,
             environment={
                 'TRANSACTION_HISTORY_TABLE_NAME': persistent_stack.transaction_history_table.table_name,
+                'TRANSACTION_REPORTS_BUCKET_NAME': persistent_stack.transaction_reports_bucket.bucket_name,
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
                 'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
                 'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,  # noqa: E501 line-too-long
@@ -155,6 +156,7 @@ class ReportingStack(AppStack):
         persistent_stack.provider_table.grant_read_data(self.transaction_reporter)
         persistent_stack.compact_configuration_table.grant_read_data(self.transaction_reporter)
         persistent_stack.email_notification_service_lambda.grant_invoke(self.transaction_reporter)
+        persistent_stack.transaction_reports_bucket.grant_read_write(self.transaction_reporter)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self,
@@ -164,7 +166,8 @@ class ReportingStack(AppStack):
                     'id': 'AwsSolutions-IAM5',
                     'reason': """
                             This policy contains wild-carded actions and resources but they are scoped to the
-                            specific actions, KMS key, and Tables that this lambda specifically needs access to.
+                            specific actions, KMS key, reporting bucket, and Tables that this lambda specifically
+                            needs access to.
                             """,
                 },
             ],
@@ -175,11 +178,26 @@ class ReportingStack(AppStack):
             Rule(
                 self,
                 f'{compact.capitalize()}-WeeklyTransactionReportRule',
-                schedule=Schedule.cron(week_day='7', hour='1', minute='0', month='*', year='*'),
+                # Send weekly reports every Friday at 10:00 PM UTC
+                schedule=Schedule.cron(week_day='FRI', hour='22', minute='0', month='*', year='*'),
                 targets=[
                     LambdaFunction(
                         handler=self.transaction_reporter,
-                        event=RuleTargetInput.from_object({'compact': compact.lower()}),
+                        event=RuleTargetInput.from_object({'compact': compact.lower(), 'reportingCycle': 'weekly'}),
+                    )
+                ],
+            )
+
+            # Monthly reports run every month on the first day of the month shortly after midnight UTC
+            # This helps ensure that our time range is the full month
+            Rule(
+                self,
+                f'{compact.capitalize()}-MonthlyTransactionReportRule',
+                schedule=Schedule.cron(day='1', hour='0', minute='5', month='*', year='*'),
+                targets=[
+                    LambdaFunction(
+                        handler=self.transaction_reporter,
+                        event=RuleTargetInput.from_object({'compact': compact.lower(), 'reportingCycle': 'monthly'}),
                     )
                 ],
             )

@@ -99,6 +99,13 @@
             - Prod: `4mnd3u2rp30ssgnm7dk81jcqsc`
         - _Local_ :arrow_heading_down:
             - `15mh24ea4af3of8jcnv8h2ic10`
+    - **`VUE_APP_RECAPTCHA_KEY`**
+        - _Server_ :arrow_heading_up:
+            - Dev(JCC-Test): `6Le-3bgqAAAAAILDVUKkRnAF9SSzb8o9uv5lY7Ih`
+            - Test(CSG-Test): `6LcWQMkqAAAAAL_Wkh6Ik_HSqSqNqROzOyPCrvNC`
+            - Prod: `6LcEQckqAAAAAJUQDEO1KsoeH17-EH5h2UfrwdyK`
+        - _Local_ :arrow_heading_down:
+            - `6Le-3bgqAAAAAILDVUKkRnAF9SSzb8o9uv5lY7Ih`
     - **`VUE_APP_MOCK_API`** :arrow_heading_down:
         - Only used for local development
         - `true` if mock API should be used
@@ -176,7 +183,7 @@ We've created a CORS testing tool to make quick work of verifying whether CORS h
     - https://cli.vuejs.org/guide/html-and-static-assets.html#static-assets-handling
 
 ### Server API Docs
-- TODO
+- [OpenAPI spec](https://github.com/csg-org/CompactConnect/blob/main/backend/compact-connect/docs/api-specification/latest-oas30.json)
 
 ---
 ## Tests
@@ -237,17 +244,19 @@ Note that testing the **built** app locally will require a running web server; f
     - Cognito has no way to totally log a user out except for visiting the hosted logout url in the browser
         - Using the token revocation endpoint, the user can invalidate their reresh token, but the http only cookie is not removed so if
         they logged in within the last hour they are not totally logged out
-
 - **Two user pools with their own hosted login pages:**
     - If a user is logged in to one user pool, they can still log in to the second as they are not aware of each other
     - The downstream effect of this point is that the app needs to handle users being logged in to both user pools in an expected and secure way:
         - When a user logs out they must be logged out from all user pools they are logged into
         - When a user logs in to the second user pool, the app must treat them as only logged into the second user pool
-
 - **How the app handles this situation:**
     - Firstly, the user being logged into both pools is very unlikely as there is not natural way to do this within the app, they would need to manually visit the
     second hosted login page after logging in normally to the first
     - When the user logs in as to the second user pool we record that the app should treat them as the second user type and save the initial access token
         - When the user logs out we check the existence of the access tokens to see which user pools we need to log out, and then chain logout redirects
         to visit all necessary logout pages
+- **Registration**
+    - Licensee users have the ability to self-register an account, provided matching data can be found in the state data.
+    - The registration form utilizes recaptcha (Google recaptcha v3)
+    - The registration form utilizes honeypot fields, which are initialized in the component code separately from the actual form fields.
 ---

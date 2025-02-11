@@ -53,7 +53,6 @@ class TransactionClient:
         """
         # Calculate the month keys we need to query based on the epoch timestamps
         start_date = datetime.fromtimestamp(start_epoch, tz=UTC)
-        end_date = datetime.fromtimestamp(end_epoch, tz=UTC)
 
         # Build query parameters
         query_params = {
@@ -65,14 +64,21 @@ class TransactionClient:
 
         # Generate list of months to query
         current_date = start_date.replace(day=1)
+        current_epoch = current_date.timestamp()
         months_to_query = []
-        while current_date <= end_date:
+        # here we check if the end epoch is greater than the current epoch
+        # if it is, we add the current month to the list of months to query
+        # we then move to the first day of the next month
+        # we repeat this process until the end epoch is less than the current epoch
+        while end_epoch > current_epoch:
             months_to_query.append(current_date.strftime('%Y-%m'))
             # Move to first day of next month
             if current_date.month == 12:
                 current_date = current_date.replace(year=current_date.year + 1, month=1)
             else:
                 current_date = current_date.replace(month=current_date.month + 1)
+
+            current_epoch = current_date.timestamp()
 
         # Query each month in the range
         for month in months_to_query:
@@ -111,7 +117,7 @@ class TransactionClient:
             start_sk = f'COMPACT#{compact}#TIME#{start_epoch}'
             end_sk = f'COMPACT#{compact}#TIME#{end_epoch}'
             response = self.config.transaction_history_table.query(
-                KeyConditionExpression=(Key('pk').eq(pk) & Key('sk').gte(start_sk) & Key('sk').lt(end_sk)),
+                KeyConditionExpression=Key('pk').eq(pk) & Key('sk').between(start_sk, end_sk),
                 **query_params,
             )
 

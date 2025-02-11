@@ -37,12 +37,14 @@ class TstFunction(TstLambdas):
         self.create_compact_configuration_table()
         self.create_provider_table()
         self.create_users_table()
+        self.create_transaction_history_table()
 
         # Adding a waiter allows for testing against an actual AWS account, if needed
         waiter = self._compact_configuration_table.meta.client.get_waiter('table_exists')
         waiter.wait(TableName=self._compact_configuration_table.name)
         waiter.wait(TableName=self._provider_table.name)
         waiter.wait(TableName=self._users_table.name)
+        waiter.wait(TableName=self._transaction_history_table.name)
 
         # Create a new Cognito user pool
         cognito_client = boto3.client('cognito-idp')
@@ -51,6 +53,15 @@ class TstFunction(TstLambdas):
             PoolName=user_pool_name,
             AliasAttributes=['email'],
             UsernameAttributes=['email'],
+            Policies={
+                'PasswordPolicy': {
+                    'MinimumLength': 12,
+                    'RequireUppercase': False,
+                    'RequireLowercase': False,
+                    'RequireNumbers': False,
+                    'RequireSymbols': False,
+                },
+            },
         )
         os.environ['USER_POOL_ID'] = user_pool_response['UserPool']['Id']
         self._user_pool_id = user_pool_response['UserPool']['Id']
@@ -122,15 +133,29 @@ class TstFunction(TstLambdas):
             ],
         )
 
+    def create_transaction_history_table(self):
+        self._transaction_history_table = boto3.resource('dynamodb').create_table(
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['TRANSACTION_HISTORY_TABLE_NAME'],
+            BillingMode='PAY_PER_REQUEST',
+        )
+
     def delete_resources(self):
         self._compact_configuration_table.delete()
         self._provider_table.delete()
         self._users_table.delete()
+        self._transaction_history_table.delete()
 
         waiter = self._users_table.meta.client.get_waiter('table_not_exists')
         waiter.wait(TableName=self._compact_configuration_table.name)
         waiter.wait(TableName=self._provider_table.name)
         waiter.wait(TableName=self._users_table.name)
+        waiter = self._transaction_history_table.meta.client.get_waiter('table_not_exists')
+        waiter.wait(TableName=self._transaction_history_table.name)
 
         # Delete the Cognito user pool
         cognito_client = boto3.client('cognito-idp')
@@ -260,7 +285,7 @@ class TstFunction(TstLambdas):
         user_data = self.config.cognito_client.admin_create_user(
             UserPoolId=self.config.user_pool_id,
             Username=email,
-            UserAttributes=[{'Name': 'email', 'Value': email}],
+            UserAttributes=[{'Name': 'email', 'Value': email}, {'Name': 'email_verified', 'Value': 'True'}],
             DesiredDeliveryMediums=['EMAIL'],
         )
         return get_sub_from_user_attributes(user_data['User']['Attributes'])

@@ -72,9 +72,13 @@ const buildCspHeaders = (environment) => {
     ].join(' ');
     const cspScriptSrc = [
         '\'self\'',
+        'https://www.google.com/recaptcha/',
+        'https://www.gstatic.com/recaptcha/',
     ].join(' ');
     const cspScriptSrcElem = [
         '\'self\'',
+        'https://www.google.com/recaptcha/',
+        'https://www.gstatic.com/recaptcha/',
     ].join(' ');
     const cspScriptSrcAttr = [
         '\'self\'',
@@ -85,6 +89,7 @@ const buildCspHeaders = (environment) => {
     const cspStyleSrc = [
         '\'self\'',
         'https://fonts.googleapis.com',
+        'https://www.gstatic.com/recaptcha/',
     ].join(' ');
     const cspStyleSrcElem = [
         '\'self\'',
@@ -101,6 +106,7 @@ const buildCspHeaders = (environment) => {
         '\'self\'',
         'data:',
         dataApiUrl,
+        'https://www.gstatic.com/recaptcha/',
     ].join(' ');
     const cspMediaSrc = [
         '\'self\'',
@@ -108,6 +114,8 @@ const buildCspHeaders = (environment) => {
     ].join(' ');
     const cspFrameSrc = [
         '\'self\'',
+        'https://www.google.com/recaptcha/',
+        'https://recaptcha.google.com/recaptcha/',
     ].join(' ');
     const cspFrameAncestorsSrc = [
         '\'none\'',
@@ -125,6 +133,7 @@ const buildCspHeaders = (environment) => {
         cognitoStaffUrl,
         cognitoProviderUrl,
         cognitoIdpUrl,
+        'https://www.google.com/recaptcha/',
     ].join(' ');
 
     return `${[

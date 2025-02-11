@@ -53,14 +53,14 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
-        in_data['sk'] = f'{in_data['compact']}#PROVIDER#license/{in_data['jurisdiction']}#'
+        in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
+        in_data['sk'] = f'{in_data["compact"]}#PROVIDER#license/{in_data["jurisdiction"]}#'
         return in_data
 
     @pre_dump
     def generate_license_gsi_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        in_data['licenseGSIPK'] = f'C#{in_data['compact'].lower()}#J#{in_data['jurisdiction'].lower()}'
-        in_data['licenseGSISK'] = f'FN#{quote(in_data['familyName'].lower())}#GN#{quote(in_data['givenName'].lower())}'
+        in_data['licenseGSIPK'] = f'C#{in_data["compact"].lower()}#J#{in_data["jurisdiction"].lower()}'
+        in_data['licenseGSISK'] = f'FN#{quote(in_data["familyName"].lower())}#GN#{quote(in_data["givenName"].lower())}'
         return in_data
 
     @pre_dump
@@ -143,13 +143,13 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         the most sensitive field in the record. More to the point, we need to be sure that this internal field is never
         served out via API.
         """
-        in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
+        in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
         # This needs to include a POSIX timestamp (seconds) and a hash of the changes
         # to the record. We'll use the current time and the hash of the updatedValues
         # field for this.
         change_hash = self.hash_changes(in_data)
         in_data['sk'] = (
-            f'{in_data['compact']}#PROVIDER#license/{in_data['jurisdiction']}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'
+            f'{in_data["compact"]}#PROVIDER#license/{in_data["jurisdiction"]}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'
         )
         return in_data
 
@@ -157,7 +157,7 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
         license_types = config.license_types_for_compact(data['compact'])
         if data['previous']['licenseType'] not in license_types:
-            raise ValidationError({'previous.licenseType': [f'Must be one of: {', '.join(license_types)}.']})
+            raise ValidationError({'previous.licenseType': [f'Must be one of: {", ".join(license_types)}.']})
         # We have to check for existence here to allow for the updatedValues partial case
         if data['updatedValues'].get('licenseType') and data['updatedValues']['licenseType'] not in license_types:
-            raise ValidationError({'updatedValues.licenseType': [f'Must be one of: {', '.join(license_types)}.']})
+            raise ValidationError({'updatedValues.licenseType': [f'Must be one of: {", ".join(license_types)}.']})

@@ -89,6 +89,31 @@ describe('Use Store Mutations', () => {
         expect(state.isLoggedIn).to.equal(false);
         expect(state.error).to.equal(null);
     });
+    it('should successfully create licensee account request', () => {
+        const state = {};
+
+        mutations[MutationTypes.CREATE_LICENSEE_ACCOUNT_REQUEST](state);
+
+        expect(state.isLoadingAccount).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully create licensee account failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.CREATE_LICENSEE_ACCOUNT_FAILURE](state, error);
+
+        expect(state.isLoadingAccount).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully create licensee account success', () => {
+        const state = {};
+
+        mutations[MutationTypes.CREATE_LICENSEE_ACCOUNT_SUCCESS](state);
+
+        expect(state.isLoadingAccount).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
     it('should successfully get account request', () => {
         const state = {};
 
@@ -361,6 +386,35 @@ describe('User Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.LOGOUT_FAILURE, error]);
+    });
+    it('should successfully create licensee account request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const payload = {};
+
+        await actions.createLicenseeAccountRequest({ commit, dispatch }, payload);
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_LICENSEE_ACCOUNT_REQUEST]);
+        expect(dispatch.calledOnce, 'dispatch').to.equal(true);
+    });
+    it('should successfully create licensee account success', () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+
+        actions.createLicenseeAccountSuccess({ commit, dispatch });
+
+        expect(commit.calledOnce, 'commit').to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_LICENSEE_ACCOUNT_SUCCESS]);
+    });
+    it('should successfully create licensee account failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.createLicenseeAccountFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.CREATE_LICENSEE_ACCOUNT_FAILURE, error]);
     });
     it('should successfully start staff account request', async () => {
         const commit = sinon.spy();

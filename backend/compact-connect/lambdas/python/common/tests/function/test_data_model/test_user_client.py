@@ -1,5 +1,7 @@
 import json
-from uuid import UUID
+from datetime import UTC, datetime
+from unittest.mock import patch
+from uuid import UUID, uuid4
 
 from moto import mock_aws
 
@@ -8,6 +10,12 @@ from .. import TstFunction
 
 @mock_aws
 class TestClient(TstFunction):
+    def _get_email_from_user_attributes(self, user_data: dict) -> str:
+        for attribute in user_data['UserAttributes']:
+            if attribute['Name'] == 'email':
+                return attribute['Value']
+        raise ValueError('No email found in user attributes')
+
     def test_get_user_in_compact(self):
         user_id = self._load_user_data()
 
@@ -382,3 +390,91 @@ class TestClient(TstFunction):
         # This user isn't in the DB, so it should raise an exception
         with self.assertRaises(CCNotFoundException):
             client.get_user_in_compact(compact='aslp', user_id='123')
+
+    def test_reinvite_new_user(self):
+        user_id = self._create_compact_staff_user(compacts=['aslp'])
+
+        from cc_common.data_model.user_client import UserClient
+
+        # Check the status of our new user in Cognito
+        user_data = self.config.cognito_client.admin_get_user(
+            UserPoolId=self.config.user_pool_id,
+            Username=user_id,
+        )
+        self.assertEqual('FORCE_CHANGE_PASSWORD', user_data['UserStatus'])
+
+        client = UserClient(self.config)
+
+        client.reinvite_user(email=self._get_email_from_user_attributes(user_data))
+
+        # Check the status of our new user in Cognito
+        user_data = self.config.cognito_client.admin_get_user(
+            UserPoolId=self.config.user_pool_id,
+            Username=user_id,
+        )
+        self.assertEqual('FORCE_CHANGE_PASSWORD', user_data['UserStatus'])
+
+    def test_reinvite_existing_user(self):
+        user_id = self._create_compact_staff_user(compacts=['aslp'])
+
+        from cc_common.data_model.user_client import UserClient
+
+        # Force the user to CONFIRMED status in Cognito
+        self.config.cognito_client.admin_set_user_password(
+            UserPoolId=self.config.user_pool_id,
+            Username=user_id,
+            # This is not a real user, not even in a sandbox, so hard-coding a 'password' is not an issue
+            Password='!@#$%^&*()asaAAAW;oiawfo;uihaohwa103',  # noqa: S106
+            Permanent=True,
+        )
+        # Check the status of our new user in Cognito
+        user_data = self.config.cognito_client.admin_get_user(
+            UserPoolId=self.config.user_pool_id,
+            Username=user_id,
+        )
+        self.assertEqual('CONFIRMED', user_data['UserStatus'])
+
+        client = UserClient(self.config)
+
+        client.reinvite_user(email=self._get_email_from_user_attributes(user_data))
+
+        # Check the status of our new user in Cognito
+        user_data = self.config.cognito_client.admin_get_user(
+            UserPoolId=self.config.user_pool_id,
+            Username=user_id,
+        )
+        self.assertEqual('FORCE_CHANGE_PASSWORD', user_data['UserStatus'])
+
+    @patch('cc_common.config._Config.cognito_client')
+    def test_reinvite_existing_user_unexpected_status(self, mock_cognito_client):
+        from cc_common.data_model.user_client import UserClient
+        from cc_common.exceptions import CCInternalException
+
+        # Set up our mock client to return a user with UNCONFIRMED status, which is unexpected
+        user_id = str(uuid4())
+        mock_cognito_client.admin_get_user.return_value = {
+            'Username': user_id,
+            'UserAttributes': [
+                {'Name': 'email', 'Value': 'new_user@example.org'},
+                {'Name': 'email_verified', 'Value': 'True'},
+                {'Name': 'sub', 'Value': user_id},
+            ],
+            'UserCreateDate': datetime(2015, 1, 1, tzinfo=UTC),
+            'UserLastModifiedDate': datetime(2015, 1, 1, tzinfo=UTC),
+            'Enabled': True,
+            'UserStatus': 'UNCONFIRMED',
+        }
+
+        client = UserClient(self.config)
+
+        with self.assertRaises(CCInternalException):
+            client.reinvite_user(email='new_user@example.org')
+
+    def test_reinvite_user_not_found(self):
+        from cc_common.data_model.user_client import UserClient
+        from cc_common.exceptions import CCNotFoundException
+
+        client = UserClient(self.config)
+
+        with self.assertRaises(CCNotFoundException):
+            client.reinvite_user(email='does-not-exist@example.com')

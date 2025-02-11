@@ -54,6 +54,18 @@ class InputDate extends mixins(MixinInput) {
     }
     @Prop({ default: false }) isTime24?: boolean; // eslint-disable-line lines-between-class-members
     @Prop({ default: false }) isLoading?: boolean;
+
+    //
+    // Methods
+    //
+    input(): void {
+        const { formInput } = this;
+
+        if (formInput?.value === null) {
+            formInput.value = '';
+            formInput.validate();
+        }
+    }
 }
 
 export default toNative(InputDate);

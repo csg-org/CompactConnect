@@ -1,5 +1,4 @@
 import json
-import os
 from datetime import date
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -125,35 +124,30 @@ def _validate_attestations(compact: str, attestations: list[dict], has_active_mi
     # Get all latest attestations for this compact
     latest_attestations = config.compact_configuration_client.get_attestations_by_locale(compact=compact)
 
-    # TODO: We were asked not to enforce attestations until the frontend is updated # noqa: FIX002
-    #       to pass them in the request body. For now, we will simply check whatever
-    #       attestation is passed in to make sure it is the latest version. This conditional
-    #       should be removed once the frontend is updated to pass in all required attestations.
-    if os.environ.get('ENFORCE_ATTESTATIONS') == 'true':
-        # Build list of required attestations
-        required_ids = REQUIRED_ATTESTATION_IDS.copy()
-        if has_active_military_affiliation:
-            required_ids.append(MILITARY_ATTESTATION_ID)
+    # Build list of required attestations
+    required_ids = REQUIRED_ATTESTATION_IDS.copy()
+    if has_active_military_affiliation:
+        required_ids.append(MILITARY_ATTESTATION_ID)
 
-        # Validate investigation attestations - exactly one must be provided
-        investigation_attestations = [a for a in attestations if a['attestationId'] in INVESTIGATION_ATTESTATION_IDS]
-        if len(investigation_attestations) != 1:
-            raise CCInvalidRequestException(
-                'Exactly one investigation attestation must be provided '
-                f'(either {INVESTIGATION_ATTESTATION_IDS[0]} or {INVESTIGATION_ATTESTATION_IDS[1]})'
-            )
-        required_ids.append(investigation_attestations[0]['attestationId'])
+    # Validate investigation attestations - exactly one must be provided
+    investigation_attestations = [a for a in attestations if a['attestationId'] in INVESTIGATION_ATTESTATION_IDS]
+    if len(investigation_attestations) != 1:
+        raise CCInvalidRequestException(
+            'Exactly one investigation attestation must be provided '
+            f'(either {INVESTIGATION_ATTESTATION_IDS[0]} or {INVESTIGATION_ATTESTATION_IDS[1]})'
+        )
+    required_ids.append(investigation_attestations[0]['attestationId'])
 
-        # Check that all required attestations are present
-        provided_ids = {a['attestationId'] for a in attestations}
-        missing_ids = set(required_ids) - provided_ids
-        if missing_ids:
-            raise CCInvalidRequestException(f'Missing required attestations: {", ".join(missing_ids)}')
+    # Check that all required attestations are present
+    provided_ids = {a['attestationId'] for a in attestations}
+    missing_ids = set(required_ids) - provided_ids
+    if missing_ids:
+        raise CCInvalidRequestException(f'Missing required attestations: {", ".join(missing_ids)}')
 
-        # Check for any invalid attestation IDs
-        invalid_ids = provided_ids - set(required_ids)
-        if invalid_ids:
-            raise CCInvalidRequestException(f'Invalid attestations provided: {", ".join(invalid_ids)}')
+    # Check for any invalid attestation IDs
+    invalid_ids = provided_ids - set(required_ids)
+    if invalid_ids:
+        raise CCInvalidRequestException(f'Invalid attestations provided: {", ".join(invalid_ids)}')
 
     # Verify all provided attestations are the latest version
     for attestation in attestations:
@@ -255,7 +249,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     license_jurisdiction = home_state_license_record['jurisdiction']
     if license_jurisdiction.lower() in selected_jurisdictions_postal_abbreviations:
         raise CCInvalidRequestException(
-            f"Selected privilege jurisdiction '{license_jurisdiction}'" f' matches license jurisdiction'
+            f"Selected privilege jurisdiction '{license_jurisdiction}' matches license jurisdiction"
         )
 
     existing_privileges = [record for record in user_provider_data['items'] if record['type'] == 'privilege']
@@ -279,7 +273,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     user_active_military = _determine_military_affiliation_status(user_provider_data['items'])
 
     # Validate attestations are the latest versions before proceeding with the purchase
-    _validate_attestations(compact_name, body['attestations'], user_active_military)
+    _validate_attestations(compact_name, body.get('attestations', []), user_active_military)
 
     purchase_client = PurchaseClient()
     transaction_response = None
@@ -301,6 +295,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             compact_transaction_id=transaction_response['transactionId'],
             provider_record=provider_record,
             existing_privileges=existing_privileges,
+            license_type=home_state_license_record['licenseType'],
             attestations=body['attestations'],
         )
 
