@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow import Schema, post_dump, pre_dump, pre_load
+from marshmallow import Schema, post_dump, post_load, pre_dump, pre_load
 from marshmallow.fields import UUID, Date, DateTime, List, Nested, String
 
 from cc_common.config import config
@@ -48,11 +48,17 @@ class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
     attestations = List(Nested(AttestationVersionRecordSchema()), required=True, allow_none=False)
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
+    compactTransactionIdGSIPK = String(required=True, allow_none=False)
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
         in_data['sk'] = f'{in_data["compact"]}#PROVIDER#privilege/{in_data["jurisdiction"]}#'
+        return in_data
+
+    @pre_dump
+    def generate_compact_transaction_gsi_field(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        in_data['compactTransactionIdGSIPK'] = f'COMPACT#{in_data["compact"]}#TX#{in_data["compactTransactionId"]}#'
         return in_data
 
     @pre_load
@@ -66,6 +72,13 @@ class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
         in_data['dateOfRenewal'] = ensure_value_is_datetime(in_data.get('dateOfRenewal', in_data['dateOfIssuance']))
         in_data['dateOfIssuance'] = ensure_value_is_datetime(in_data['dateOfIssuance'])
 
+        return in_data
+
+    @post_load
+    def drop_compact_transaction_id_gsi_field(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        """Drop the db-specific license GSI fields before returning loaded data"""
+        # only drop the field if it's present, else continue on
+        in_data.pop('compactTransactionIdGSIPK', None)
         return in_data
 
 
@@ -82,8 +95,8 @@ class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfUpdate = DateTime(required=True, allow_none=False)
     privilegeId = String(required=True, allow_none=False)
-    compactTransactionId = String(required=False, allow_none=False)
-    attestations = List(Nested(AttestationVersionRecordSchema()), required=False, allow_none=False)
+    compactTransactionId = String(required=True, allow_none=False)
+    attestations = List(Nested(AttestationVersionRecordSchema()), required=True, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('privilegeUpdate')
@@ -101,9 +114,11 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     providerId = UUID(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
+    compactTransactionIdGSIPK = String(required=True, allow_none=False)
     previous = Nested(PrivilegeUpdatePreviousRecordSchema, required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(PrivilegeUpdatePreviousRecordSchema(partial=True), required=True, allow_none=False)
+
 
     @post_dump  # Must be _post_ dump so we have values that are more easily hashed
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
@@ -115,4 +130,23 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         in_data['sk'] = (
             f'{in_data["compact"]}#PROVIDER#privilege/{in_data["jurisdiction"]}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'
         )
+        return in_data
+
+    @pre_dump
+    def generate_compact_transaction_gsi_field(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        """
+        In order for us to be able to look up privilege records by transaction, we need each update record
+        to track a top level compact transaction id GSI field. We use the value of the previous record, since
+        that is always required to include the compactTransactionId field, and will allow us to query
+        back to the first privilege record.
+        """
+        in_data['compactTransactionIdGSIPK'] = \
+            f'COMPACT#{in_data["compact"]}#TX#{in_data["previous"]["compactTransactionId"]}#'
+        return in_data
+
+    @post_load
+    def drop_compact_transaction_id_gsi_field(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
+        """Drop the db-specific license GSI fields before returning loaded data"""
+        # only drop the field if it's present, else continue on
+        in_data.pop('compactTransactionIdGSIPK', None)
         return in_data

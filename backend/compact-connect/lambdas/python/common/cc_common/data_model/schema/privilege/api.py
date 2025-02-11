@@ -5,6 +5,20 @@ from marshmallow.fields import List, Nested, Raw, String
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.fields import ActiveInactive, Compact, Jurisdiction, UpdateType
 
+class AttestationVersionResponseSchema(Schema):
+    """
+    This schema is intended to be used by any api response in the system which needs to track which attestations have
+    been accepted by a user (i.e. when purchasing privileges).
+
+    This schema is intended to be used as a nested field in other schemas.
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    attestationId = String(required=True, allow_none=False)
+    version = String(required=True, allow_none=False)
+
 
 class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     """
@@ -19,7 +33,8 @@ class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     dateOfRenewal = Raw(required=True, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
     privilegeId = String(required=True, allow_none=False)
-    compactTransactionId = String(required=False, allow_none=False)
+    compactTransactionId = String(required=True, allow_none=False)
+    attestations = List(Nested(AttestationVersionResponseSchema()), required=False, allow_none=False)
 
 
 class PrivilegeUpdateGeneralResponseSchema(ForgivingSchema):
@@ -39,21 +54,6 @@ class PrivilegeUpdateGeneralResponseSchema(ForgivingSchema):
     previous = Nested(PrivilegeUpdatePreviousGeneralResponseSchema(), required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(PrivilegeUpdatePreviousGeneralResponseSchema(partial=True), required=True, allow_none=False)
-
-
-class AttestationVersionResponseSchema(Schema):
-    """
-    This schema is intended to be used by any api response in the system which needs to track which attestations have
-    been accepted by a user (i.e. when purchasing privileges).
-
-    This schema is intended to be used as a nested field in other schemas.
-
-    Serialization direction:
-    Python -> load() -> API
-    """
-
-    attestationId = String(required=True, allow_none=False)
-    version = String(required=True, allow_none=False)
 
 
 class PrivilegeGeneralResponseSchema(ForgivingSchema):

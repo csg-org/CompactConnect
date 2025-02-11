@@ -57,6 +57,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
             environment={
                 'TRANSACTION_HISTORY_TABLE_NAME': persistent_stack.transaction_history_table.table_name,
                 'ENVIRONMENT_NAME': environment_name,
+                'COMPACT_TRANSACTION_ID_GSI_NAME': persistent_stack.provider_table.compact_transaction_gsi_name,
                 **stack.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
@@ -64,6 +65,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
             memory_size=512,
         )
         persistent_stack.transaction_history_table.grant_write_data(self.transaction_processor_handler)
+        persistent_stack.provider_table.grant_read_data(self.transaction_processor_handler)
         persistent_stack.shared_encryption_key.grant_encrypt(self.transaction_processor_handler)
         # grant access to the compact specific secrets manager secrets following this namespace pattern
         # compact-connect/env/{environment_name}/compact/{compact_abbr}/credentials/payment-processor
@@ -88,7 +90,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
                     'id': 'AwsSolutions-IAM5',
                     'reason': """
                             This policy contains wild-carded actions and resources but they are scoped to the
-                            specific actions, KMS key, and Table that this lambda needs access to.
+                            specific actions, KMS key, and tables that this lambda needs access to.
                             """,
                 },
             ],
