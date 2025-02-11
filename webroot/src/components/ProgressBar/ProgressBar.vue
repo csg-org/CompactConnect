@@ -8,7 +8,7 @@
 <template>
     <div class="progress-bar">
         <div class="finished-portion" :style="{ width: progressPercent + '%'}" />
-        <div class="unifinished-portion" />
+        <div class="unifinished-portion" :style="{ width: remainingPercent + '%'}"/>
     </div>
 </template>
 

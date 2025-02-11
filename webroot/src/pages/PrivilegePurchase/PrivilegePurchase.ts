@@ -11,6 +11,7 @@ import PrivilegePurchaseInformationConfirmation from '@components/PrivilegePurch
 import PrivilegePurchaseSelect from '@components/PrivilegePurchaseSelect/PrivilegePurchaseSelect.vue';
 import PrivilegePurchaseFinalize from '@components/PrivilegePurchaseFinalize/PrivilegePurchaseFinalize.vue';
 import PrivilegePurchaseSuccessful from '@components/PrivilegePurchaseSuccessful/PrivilegePurchaseSuccessful.vue';
+import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import { Compact } from '@models/Compact/Compact.model';
 
 @Component({
@@ -20,7 +21,8 @@ import { Compact } from '@models/Compact/Compact.model';
         PrivilegePurchaseSelect,
         PrivilegePurchaseAttestation,
         PrivilegePurchaseFinalize,
-        PrivilegePurchaseSuccessful
+        PrivilegePurchaseSuccessful,
+        ProgressBar
     }
 })
 export default class PrivilegePurchase extends Vue {

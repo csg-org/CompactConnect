@@ -9,7 +9,7 @@
     <div class="privilege-purchase-attestation-container">
         <form class="privilege-purchase-attestation-form" @submit.prevent="handleSubmit">
             <div class="privilege-purchase-attestation-form-container">
-                <ProgressBar :progressPercent="progressPercent" />
+                <slot name="progress-bar"></slot>
                 <div class="inner-container">
                     <h1 class="form-title">{{ $t('licensing.attestations') }}</h1>
                     <div v-if="!areFormInputsSet" class="loading-container">

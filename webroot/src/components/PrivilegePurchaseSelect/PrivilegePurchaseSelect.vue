@@ -7,79 +7,79 @@
 
 <template>
     <div>
-        <transition name="fade">
-            <LoadingSpinner v-show="isLoading"></LoadingSpinner>
-        </transition>
         <div class="select-privileges-container">
             <form class="privilege-form" @submit.prevent="handleSubmit">
                 <div class="select-privileges-core-container">
-                    <ProgressBar :progressPercent="progressPercent" />
+                    <slot name="progress-bar"></slot>
                     <div class="select-privileges-title">
                         {{selectPrivilegesTitleText}}
                     </div>
-                    <MockPopulate
-                        :isEnabled="isMockPopulateEnabled"
-                        @selected="mockPopulate"
-                        class="mock-populate"
-                    />
-                    <div class="lists-container">
-                        <ul class="state-select-list">
-                            <li
-                                v-for="state in stateCheckList"
-                                :key="state.label"
-                                class="state-unit"
+                    <LoadingSpinner v-if="isLoading"></LoadingSpinner>
+                    <div v-else>
+                        <MockPopulate
+                            :isEnabled="isMockPopulateEnabled"
+                            @selected="mockPopulate"
+                            class="mock-populate"
+                        />
+                        <div class="lists-container">
+                            <ul class="state-select-list">
+                                <li
+                                    v-for="state in stateCheckList"
+                                    :key="state.label"
+                                    class="state-unit"
 
-                            >
-                                <div v-if="checkIfStateSelectIsDisabled(state)" class="state-select-unit">
-                                    <div class="disabled-state-overlay" />
-                                    <InputCheckbox
-                                        :formInput="state"
-                                    />
-                                </div>
-                                <div
-                                    v-else
-                                    class="state-select-unit"
-                                    :class="{ selected: state.value }"
                                 >
+                                    <div v-if="checkIfStateSelectIsDisabled(state)" class="state-select-unit">
+                                        <div class="disabled-state-overlay" />
+                                        <InputCheckbox
+                                            :formInput="state"
+                                        />
+                                    </div>
                                     <div
-                                        @click.prevent="toggleStateSelected(state)"
-                                        @keyup.enter="toggleStateSelected(state)"
-                                        tabindex="0"
-                                        class="enabled-state-overlay"
-                                    />
-                                    <InputCheckbox
-                                        :formInput="state"
-                                    />
-                                </div>
-                                <Transition name="fade">
-                                    <SelectedStatePurchaseInformation
-                                        v-if="isPhone && findStatePurchaseInformation(state)"
-                                        class="selected-state-block"
-                                        :selectedStatePurchaseData="findStatePurchaseInformation(state)"
-                                        :jurisprudenceCheckInput="formData.jurisprudenceConfirmations[state.id]"
-                                        :scopeOfPracticeCheckInput="formData.scopeOfPracticeConfirmations[state.id]"
-                                        :scopeAttestation="scopeAttestation"
-                                        :jurisprudenceAttestation="jurisprudenceAttestation"
-                                        @exOutState="deselectState"
-                                    />
-                                </Transition>
-                            </li>
-                        </ul>
-                        <TransitionGroup tag="ul" name="list" v-if="!isPhone" class="selected-state-list">
-                            <SelectedStatePurchaseInformation
-                                v-for="(state) in selectedStatePurchaseDataList"
-                                :key="state.jurisdiction.abbrev"
-                                class="selected-state-block"
-                                :selectedStatePurchaseData="state"
-                                :jurisprudenceCheckInput="formData
-                                    .jurisprudenceConfirmations[state.jurisdiction.abbrev]"
-                                :scopeOfPracticeCheckInput="formData
-                                    .scopeOfPracticeConfirmations[state.jurisdiction.abbrev]"
-                                :scopeAttestation="scopeAttestation"
-                                :jurisprudenceAttestation="jurisprudenceAttestation"
-                                @exOutState="deselectState"
-                            />
-                        </TransitionGroup>
+                                        v-else
+                                        class="state-select-unit"
+                                        :class="{ selected: state.value }"
+                                    >
+                                        <div
+                                            @click.prevent="toggleStateSelected(state)"
+                                            @keyup.enter="toggleStateSelected(state)"
+                                            tabindex="0"
+                                            class="enabled-state-overlay"
+                                        />
+                                        <InputCheckbox
+                                            :formInput="state"
+                                        />
+                                    </div>
+                                    <Transition name="fade">
+                                        <SelectedStatePurchaseInformation
+                                            v-if="isPhone && findStatePurchaseInformation(state)"
+                                            class="selected-state-block"
+                                            :selectedStatePurchaseData="findStatePurchaseInformation(state)"
+                                            :jurisprudenceCheckInput="formData.jurisprudenceConfirmations[state.id]"
+                                            :scopeOfPracticeCheckInput="formData.scopeOfPracticeConfirmations[state.id]"
+                                            :scopeAttestation="scopeAttestation"
+                                            :jurisprudenceAttestation="jurisprudenceAttestation"
+                                            @exOutState="deselectState"
+                                        />
+                                    </Transition>
+                                </li>
+                            </ul>
+                            <TransitionGroup tag="ul" name="list" v-if="!isPhone" class="selected-state-list">
+                                <SelectedStatePurchaseInformation
+                                    v-for="(state) in selectedStatePurchaseDataList"
+                                    :key="state.jurisdiction.abbrev"
+                                    class="selected-state-block"
+                                    :selectedStatePurchaseData="state"
+                                    :jurisprudenceCheckInput="formData
+                                        .jurisprudenceConfirmations[state.jurisdiction.abbrev]"
+                                    :scopeOfPracticeCheckInput="formData
+                                        .scopeOfPracticeConfirmations[state.jurisdiction.abbrev]"
+                                    :scopeAttestation="scopeAttestation"
+                                    :jurisprudenceAttestation="jurisprudenceAttestation"
+                                    @exOutState="deselectState"
+                                />
+                            </TransitionGroup>
+                        </div>
                     </div>
                 </div>
                 <div class="button-row">

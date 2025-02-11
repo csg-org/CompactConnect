@@ -73,6 +73,20 @@
                 flex-direction: row;
             }
 
+            .progress-bar-container {
+                @media @tabletWidth {
+                    position: absolute;
+                    z-index: 1;
+                    width: 62rem;
+                }
+
+                @media @desktopWidth {
+                    position: absolute;
+                    z-index: 1;
+                    width: 80rem;
+                }
+            }
+
             .cost-breakdown-container {
                 display: flex;
                 flex-direction: column;

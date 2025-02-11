@@ -18,7 +18,6 @@ import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
-import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
@@ -39,14 +38,12 @@ import { dataApi } from '@network/data.api';
         InputSubmit,
         InputButton,
         SelectedStatePurchaseInformation,
-        ProgressBar,
         LoadingSpinner,
         MockPopulate
     }
 })
 export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
     @Prop({ default: 0 }) flowStep!: number;
-    @Prop({ default: 0 }) progressPercent!: number;
 
     //
     // Data

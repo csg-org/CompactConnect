@@ -17,7 +17,6 @@ import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
-import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { Address } from '@models/Address/Address.model';
 import { Compact } from '@models/Compact/Compact.model';
@@ -39,13 +38,11 @@ import Joi from 'joi';
         InputButton,
         InputCheckbox,
         LoadingSpinner,
-        ProgressBar,
         MockPopulate
     }
 })
 export default class PrivilegePurchaseInformationConfirmation extends mixins(MixinForm) {
     @Prop({ default: 0 }) flowStep!: number;
-    @Prop({ default: 0 }) progressPercent!: number;
 
     //
     // Data

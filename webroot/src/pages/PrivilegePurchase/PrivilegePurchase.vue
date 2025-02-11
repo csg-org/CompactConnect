@@ -10,28 +10,44 @@
         <PrivilegePurchaseInformationConfirmation
             v-if="isConfirmInfoRoute"
             :flowStep="currentFlowStep"
-            :progressPercent="progressPercent"
-        />
+        >
+            <template v-slot:progress-bar>
+                <ProgressBar :progressPercent="progressPercent" />
+            </template>
+        </PrivilegePurchaseInformationConfirmation>
         <PrivilegePurchaseSelect
             v-if="isSelectPrivilegesRoute"
             :flowStep="currentFlowStep"
             :progressPercent="progressPercent"
-        />
+        >
+            <template v-slot:progress-bar>
+                <ProgressBar :progressPercent="progressPercent" />
+            </template>
+        </PrivilegePurchaseSelect>
         <PrivilegePurchaseAttestation
             v-if="isAttestationRoute"
             :flowStep="currentFlowStep"
-            :progressPercent="progressPercent"
-        />
+        >
+            <template v-slot:progress-bar>
+                <ProgressBar :progressPercent="progressPercent" />
+            </template>
+        </PrivilegePurchaseAttestation>
         <PrivilegePurchaseFinalize
             v-if="isFinalizeRoute"
             :flowStep="currentFlowStep"
-            :progressPercent="progressPercent"
-        />
+        >
+            <template v-slot:progress-bar>
+                <ProgressBar :progressPercent="progressPercent" />
+            </template>
+        </PrivilegePurchaseFinalize>
         <PrivilegePurchaseSuccessful
             v-if="isPurchaseSuccessfulRoute"
             :flowStep="currentFlowStep"
-            :progressPercent="progressPercent"
-        />
+        >
+            <template v-slot:progress-bar>
+                <ProgressBar :progressPercent="progressPercent" />
+            </template>
+        </PrivilegePurchaseSuccessful>
     </div>
 </template>
 

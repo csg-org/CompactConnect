@@ -8,7 +8,7 @@
 <template>
     <div class="purchase-success-container">
         <div class="purchase-success-core">
-            <ProgressBar :progressPercent="progressPercent" />
+            <slot name="progress-bar"></slot>
             <div class="purchase-success-title">
                 {{purchaseSuccessfulTitle}}
             </div>

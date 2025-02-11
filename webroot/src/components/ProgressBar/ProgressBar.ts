@@ -16,7 +16,15 @@ import {
     name: 'ProgressBar',
 })
 class ProgressBar extends Vue {
-    @Prop({ required: true }) progressPercent?: boolean;
+    @Prop({ default: 0 }) progressPercent?: number;
+
+    //
+    // Computed
+    //
+
+    get remainingPercent(): number {
+        return 100 - (this.progressPercent || 0);
+    }
 }
 
 export default toNative(ProgressBar);
