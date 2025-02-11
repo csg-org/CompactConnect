@@ -21,7 +21,6 @@ class ProgressBar extends Vue {
     //
     // Computed
     //
-
     get remainingPercent(): number {
         return 100 - (this.progressPercent || 0);
     }
