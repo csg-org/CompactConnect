@@ -134,7 +134,6 @@ class TransactionClient:
             if line_item.get('itemId').lower() == item_id.lower():
                 line_item['privilegeId'] = privilege_id
 
-
     def add_privilege_ids_to_transactions(self, compact: str, transactions: list[dict]) -> list[dict]:
         """
         Add privilege IDs to transaction line items based on the jurisdiction they were purchased for.
@@ -153,7 +152,6 @@ class TransactionClient:
                     jurisdiction = item_id.split('-')[1].lower()
                     jurisdictions_to_process.add(jurisdiction)
 
-
             # Query for privilege records using the GSI
             gsi_pk = f'COMPACT#{compact}#TX#{transaction["transactionId"]}#'
             response = self.config.provider_table.query(
@@ -165,8 +163,9 @@ class TransactionClient:
             for jurisdiction in jurisdictions_to_process:
                 item_id = f'priv:{compact}-{jurisdiction}'
                 # find the first privilege record for the jurisdiction
-                matching_privilege = next((item for item in response.get('Items', [])
-                                           if item['jurisdiction'].lower() == jurisdiction), None)
+                matching_privilege = next(
+                    (item for item in response.get('Items', []) if item['jurisdiction'].lower() == jurisdiction), None
+                )
                 if matching_privilege:
                     record_type = matching_privilege['type']
                     privilege_id = None
@@ -177,24 +176,19 @@ class TransactionClient:
 
                     # Find and update the matching line item
                     self._set_privilege_id_in_line_item(
-                        line_items=line_items,
-                        item_id=item_id,
-                        privilege_id=privilege_id
+                        line_items=line_items, item_id=item_id, privilege_id=privilege_id
                     )
                 else:
-                    logger.error('No matching jurisdiction privilege record found for transaction. '
-                                 'Cannot determine privilege id for this transaction',
-                                 compact=compact,
-                                 transactionId=transaction["transactionId"],
-                                 jurisdiction=jurisdiction,
-                                 provider_id=transaction['licenseeId'],
-                                 matching_privilege_records=response.get('Items', [])
-                                 )
-                    # we set the privilege id to UNKNOWN, so that it will be visible in the report
-                    self._set_privilege_id_in_line_item(
-                        line_items=line_items,
-                        item_id=item_id,
-                        privilege_id='UNKNOWN'
+                    logger.error(
+                        'No matching jurisdiction privilege record found for transaction. '
+                        'Cannot determine privilege id for this transaction',
+                        compact=compact,
+                        transactionId=transaction['transactionId'],
+                        jurisdiction=jurisdiction,
+                        provider_id=transaction['licenseeId'],
+                        matching_privilege_records=response.get('Items', []),
                     )
+                    # we set the privilege id to UNKNOWN, so that it will be visible in the report
+                    self._set_privilege_id_in_line_item(line_items=line_items, item_id=item_id, privilege_id='UNKNOWN')
 
         return transactions

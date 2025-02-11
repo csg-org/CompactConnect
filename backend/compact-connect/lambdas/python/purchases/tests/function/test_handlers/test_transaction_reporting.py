@@ -41,7 +41,7 @@ def _generate_mock_transaction(
     transaction_settlement_time_utc: datetime,
     transaction_id: str = MOCK_TRANSACTION_ID,
     batch_id: str = MOCK_BATCH_ID,
-    include_licensee_transaction_fees: bool = False
+    include_licensee_transaction_fees: bool = False,
 ) -> dict:
     """
     Generate a mock transaction with privileges for the specified jurisdictions.
@@ -156,7 +156,7 @@ class TestGenerateTransactionReports(TstFunction):
         transaction_settlement_time_utc: datetime,
         transaction_id: str = MOCK_TRANSACTION_ID,
         batch_id: str = MOCK_BATCH_ID,
-        include_licensee_transaction_fees: bool = False
+        include_licensee_transaction_fees: bool = False,
     ) -> dict:
         """
         Add a mock transaction to the DB with privileges for the specified jurisdictions.
@@ -176,7 +176,7 @@ class TestGenerateTransactionReports(TstFunction):
             transaction_settlement_time_utc,
             transaction_id,
             batch_id,
-            include_licensee_transaction_fees
+            include_licensee_transaction_fees,
         )
         self._transaction_history_table.put_item(Item=transaction)
         return transaction
@@ -435,7 +435,7 @@ class TestGenerateTransactionReports(TstFunction):
                     'State Fees (Kentucky),$100.00\n'
                     'Privileges purchased for Ohio,1\n'
                     'State Fees (Ohio),$100.00\n'
-                    'Administrative Fees,$21.00\n' # $10.50 x 2 privileges
+                    'Administrative Fees,$21.00\n'  # $10.50 x 2 privileges
                     ',\n'
                     'Total Processed Amount,$221.00\n',
                     summary_content,
@@ -580,7 +580,7 @@ class TestGenerateTransactionReports(TstFunction):
                     'State Fees (Nebraska),$100.00\n'
                     'Privileges purchased for Ohio,1\n'
                     'State Fees (Ohio),$100.00\n'
-                    'Administrative Fees,$31.50\n' # $10.50 x 3 privileges
+                    'Administrative Fees,$31.50\n'  # $10.50 x 3 privileges
                     ',\n'
                     'Total Processed Amount,$331.50\n',
                     summary_content,
@@ -949,7 +949,7 @@ class TestGenerateTransactionReports(TstFunction):
                     'State Fees (Nebraska),$0.00\n'
                     'Privileges purchased for Ohio,1\n'
                     'State Fees (Ohio),$100.00\n'
-                    'Administrative Fees,$21.00\n' # $10.50 x 2 privileges
+                    'Administrative Fees,$21.00\n'  # $10.50 x 2 privileges
                     ',\n'
                     'Total Processed Amount,$221.00\n',
                     summary_content,
@@ -1071,7 +1071,7 @@ class TestGenerateTransactionReports(TstFunction):
                     'State Fees (Nebraska),$100.00\n'
                     'Privileges purchased for Ohio,1\n'
                     'State Fees (Ohio),$100.00\n'
-                    'Administrative Fees,$31.50\n' # $10.50 x 3 privileges
+                    'Administrative Fees,$31.50\n'  # $10.50 x 3 privileges
                     ',\n'
                     'Total Processed Amount,$331.50\n',
                     summary_content,
@@ -1097,7 +1097,7 @@ class TestGenerateTransactionReports(TstFunction):
             licensee_id=mock_user['providerId'],
             month_iso_string='2025-03',
             transaction_settlement_time_utc=datetime.fromisoformat('2025-03-30T12:00:00+00:00'),
-            include_licensee_transaction_fees=True
+            include_licensee_transaction_fees=True,
         )
 
         # Calculate expected date range
@@ -1105,7 +1105,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
         # the start time should be 7 days ago at 10:00 PM UTC
         start_time = end_time - timedelta(days=7)
-        date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
+        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
@@ -1118,9 +1118,9 @@ class TestGenerateTransactionReports(TstFunction):
         self.assertEqual('RequestResponse', compact_call['InvocationType'])
 
         expected_compact_path = (
-            f"compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/"
-            f"{end_time.strftime('%Y/%m/%d')}/"
-            f"{TEST_COMPACT}-{date_range}-report.zip"
+            f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
+            f'{end_time.strftime("%Y/%m/%d")}/'
+            f'{TEST_COMPACT}-{date_range}-report.zip'
         )
 
         # Verify S3 stored files
@@ -1140,13 +1140,13 @@ class TestGenerateTransactionReports(TstFunction):
                     'State Fees (Nebraska),$100.00\n'
                     'Privileges purchased for Ohio,1\n'
                     'State Fees (Ohio),$100.00\n'
-                    'Administrative Fees,$31.50\n' # $10.50 x 3 privileges
-                    'Credit Card Transaction Fees Collected From Licensee,$9.00\n' # $3.00 x 3 privileges
+                    'Administrative Fees,$31.50\n'  # $10.50 x 3 privileges
+                    'Credit Card Transaction Fees Collected From Licensee,$9.00\n'  # $3.00 x 3 privileges
                     ',\n'
                     'Total Processed Amount,$340.50\n',
                     summary_content,
                 )
-        
+
             # Check transaction detail
             with zip_file.open(f'{TEST_COMPACT}-transaction-detail-{date_range}.csv') as f:
                 detail_content = f.read().decode('utf-8')

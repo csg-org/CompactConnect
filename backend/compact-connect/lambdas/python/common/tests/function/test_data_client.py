@@ -320,7 +320,7 @@ class TestDataClient(TstFunction):
                         'dateOfRenewal': '2024-11-08T23:59:59+00:00',
                         'dateOfExpiration': '2025-10-31',
                         'compactTransactionId': 'test_transaction_id',
-                        'privilegeId': 'AUD-KY-1'
+                        'privilegeId': 'AUD-KY-1',
                     },
                 },
             ],

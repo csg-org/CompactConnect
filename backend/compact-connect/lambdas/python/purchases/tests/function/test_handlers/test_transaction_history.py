@@ -70,7 +70,13 @@ def _generate_mock_transaction(transaction_id=MOCK_TRANSACTION_ID, jurisdictions
 class TestProcessSettledTransactions(TstFunction):
     """Test the process_settled_transactions Lambda function."""
 
-    def _add_mock_privilege_to_database(self, licensee_id=MOCK_LICENSEE_ID, privilege_id=MOCK_PRIVILEGE_ID, transaction_id=MOCK_TRANSACTION_ID, jurisdiction='oh'):
+    def _add_mock_privilege_to_database(
+        self,
+        licensee_id=MOCK_LICENSEE_ID,
+        privilege_id=MOCK_PRIVILEGE_ID,
+        transaction_id=MOCK_TRANSACTION_ID,
+        jurisdiction='oh',
+    ):
         from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
 
         privilege_schema = PrivilegeRecordSchema()
@@ -87,11 +93,17 @@ class TestProcessSettledTransactions(TstFunction):
                     'compactTransactionId': transaction_id,
                 }
             )
-            
+
             serialized_record = privilege_schema.dump(loaded_record)
             self._provider_table.put_item(Item=serialized_record)
 
-    def _add_mock_privilege_update_to_database(self, licensee_id=MOCK_LICENSEE_ID, privilege_id=MOCK_PRIVILEGE_ID, transaction_id=MOCK_TRANSACTION_ID, jurisdiction='oh'):
+    def _add_mock_privilege_update_to_database(
+        self,
+        licensee_id=MOCK_LICENSEE_ID,
+        privilege_id=MOCK_PRIVILEGE_ID,
+        transaction_id=MOCK_TRANSACTION_ID,
+        jurisdiction='oh',
+    ):
         from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
 
         privilege_update_schema = PrivilegeUpdateRecordSchema()
@@ -113,7 +125,7 @@ class TestProcessSettledTransactions(TstFunction):
                     'providerId': licensee_id,
                 }
             )
-            
+
             schema = PrivilegeUpdateRecordSchema()
             serialized_record = schema.dump(loaded_record)
             self._provider_table.put_item(Item=serialized_record)
@@ -134,8 +146,7 @@ class TestProcessSettledTransactions(TstFunction):
             'processedBatchIds': MOCK_PROCESSED_BATCH_IDS,
         }
 
-    def _when_purchase_client_returns_transactions(self, mock_purchase_client_constructor,
-                                                   transactions=None):
+    def _when_purchase_client_returns_transactions(self, mock_purchase_client_constructor, transactions=None):
         if transactions is None:
             transactions = [_generate_mock_transaction()]
 
@@ -248,7 +259,7 @@ class TestProcessSettledTransactions(TstFunction):
                             'quantity': '1',
                             'taxable': False,
                             'unitPrice': '100.00',
-                            'privilegeId': MOCK_PRIVILEGE_ID
+                            'privilegeId': MOCK_PRIVILEGE_ID,
                         }
                     ],
                     'pk': f'COMPACT#{TEST_COMPACT}#TRANSACTIONS#MONTH#2024-01',
@@ -314,7 +325,9 @@ class TestProcessSettledTransactions(TstFunction):
         )
 
     @patch('handlers.transaction_history.PurchaseClient')
-    def test_transaction_with_unknown_privilege_id_in_dynamodb_if_privilege_not_found(self, mock_purchase_client_constructor):
+    def test_transaction_with_unknown_privilege_id_in_dynamodb_if_privilege_not_found(
+        self, mock_purchase_client_constructor
+    ):
         """Test that transactions are stored in DynamoDB."""
         from handlers.transaction_history import process_settled_transactions
 
@@ -350,16 +363,24 @@ class TestProcessSettledTransactions(TstFunction):
             transactions=[
                 _generate_mock_transaction(transaction_id=transaction_id_one, jurisdictions=['ky']),
                 _generate_mock_transaction(transaction_id=transaction_id_two, jurisdictions=['oh', 'ky', 'ne']),
-            ])
+            ],
+        )
         privilege_id_ne = 'privilege-id-ne-1'
         privilege_id_ky = 'privilege-id-ky-2'
         privilege_id_oh = 'privilege-id-oh-1'
         privilege_update_privilege_id = 'privilege-update-privilege-id-1'
-        self._add_mock_privilege_to_database(privilege_id=privilege_id_oh, transaction_id=transaction_id_two, jurisdiction='oh')
-        self._add_mock_privilege_to_database(privilege_id=privilege_id_ne, transaction_id=transaction_id_two, jurisdiction='ne')
-        self._add_mock_privilege_to_database(privilege_id=privilege_id_ky, transaction_id=transaction_id_two, jurisdiction='ky')
-        self._add_mock_privilege_update_to_database(privilege_id=privilege_update_privilege_id,
-                                                    transaction_id=transaction_id_one, jurisdiction='ky')
+        self._add_mock_privilege_to_database(
+            privilege_id=privilege_id_oh, transaction_id=transaction_id_two, jurisdiction='oh'
+        )
+        self._add_mock_privilege_to_database(
+            privilege_id=privilege_id_ne, transaction_id=transaction_id_two, jurisdiction='ne'
+        )
+        self._add_mock_privilege_to_database(
+            privilege_id=privilege_id_ky, transaction_id=transaction_id_two, jurisdiction='ky'
+        )
+        self._add_mock_privilege_update_to_database(
+            privilege_id=privilege_update_privilege_id, transaction_id=transaction_id_one, jurisdiction='ky'
+        )
 
         event = self._when_testing_non_paginated_event()
 
@@ -372,42 +393,50 @@ class TestProcessSettledTransactions(TstFunction):
         )
 
         self.assertEqual(
-            [{'description': 'Compact Privilege for oh',
-              'itemId': 'priv:aslp-oh',
-              'name': 'OH Compact Privilege',
-              'privilegeId': privilege_id_oh,
-              'quantity': '1',
-              'taxable': False,
-              'unitPrice': '100.00'},
-             {'description': 'Compact Privilege for ky',
-              'itemId': 'priv:aslp-ky',
-              'name': 'KY Compact Privilege',
-              'privilegeId': privilege_id_ky,
-              'quantity': '1',
-              'taxable': False,
-              'unitPrice': '100.00'},
-             {'description': 'Compact Privilege for ne',
-              'itemId': 'priv:aslp-ne',
-              'name': 'NE Compact Privilege',
-              'privilegeId': privilege_id_ne,
-              'quantity': '1',
-              'taxable': False,
-              'unitPrice': '100.00'}],
+            [
+                {
+                    'description': 'Compact Privilege for oh',
+                    'itemId': 'priv:aslp-oh',
+                    'name': 'OH Compact Privilege',
+                    'privilegeId': privilege_id_oh,
+                    'quantity': '1',
+                    'taxable': False,
+                    'unitPrice': '100.00',
+                },
+                {
+                    'description': 'Compact Privilege for ky',
+                    'itemId': 'priv:aslp-ky',
+                    'name': 'KY Compact Privilege',
+                    'privilegeId': privilege_id_ky,
+                    'quantity': '1',
+                    'taxable': False,
+                    'unitPrice': '100.00',
+                },
+                {
+                    'description': 'Compact Privilege for ne',
+                    'itemId': 'priv:aslp-ne',
+                    'name': 'NE Compact Privilege',
+                    'privilegeId': privilege_id_ne,
+                    'quantity': '1',
+                    'taxable': False,
+                    'unitPrice': '100.00',
+                },
+            ],
             stored_transactions['Items'][0]['lineItems'],
         )
 
         # now check that the privilege id from the privilege update record was mapped as expected
         self.assertEqual(
-             [
-                 {
+            [
+                {
                     'description': 'Compact Privilege for ky',
                     'itemId': 'priv:aslp-ky',
-                      'name': 'KY Compact Privilege',
-                      'privilegeId': privilege_update_privilege_id,
-                      'quantity': '1',
-                      'taxable': False,
-                      'unitPrice': '100.00'
-                 }
-             ],
+                    'name': 'KY Compact Privilege',
+                    'privilegeId': privilege_update_privilege_id,
+                    'quantity': '1',
+                    'taxable': False,
+                    'unitPrice': '100.00',
+                }
+            ],
             stored_transactions['Items'][1]['lineItems'],
         )

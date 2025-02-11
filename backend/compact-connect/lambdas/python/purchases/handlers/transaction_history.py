@@ -59,13 +59,9 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
             # first we must add the associated privilege ids to each transaction so we can show the association in our
             # reports
             transactions_with_privilege_ids = config.transaction_client.add_privilege_ids_to_transactions(
-                compact=compact,
-                transactions=transaction_response['transactions']
+                compact=compact, transactions=transaction_response['transactions']
             )
-            config.transaction_client.store_transactions(
-                compact=compact,
-                transactions=transactions_with_privilege_ids
-            )
+            config.transaction_client.store_transactions(compact=compact, transactions=transactions_with_privilege_ids)
 
         # Return appropriate response based on whether there are more transactions to process
         response = {

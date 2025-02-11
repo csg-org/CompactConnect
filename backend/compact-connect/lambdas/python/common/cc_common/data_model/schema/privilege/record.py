@@ -119,7 +119,6 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(PrivilegeUpdatePreviousRecordSchema(partial=True), required=True, allow_none=False)
 
-
     @post_dump  # Must be _post_ dump so we have values that are more easily hashed
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
@@ -140,8 +139,9 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         that is always required to include the compactTransactionId field, and will allow us to query
         back to the first privilege record.
         """
-        in_data['compactTransactionIdGSIPK'] = \
+        in_data['compactTransactionIdGSIPK'] = (
             f'COMPACT#{in_data["compact"]}#TX#{in_data["previous"]["compactTransactionId"]}#'
+        )
         return in_data
 
     @post_load

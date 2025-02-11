@@ -1,5 +1,6 @@
 from datetime import datetime
 from unittest.mock import MagicMock
+
 from boto3.dynamodb.conditions import Key
 
 from tests import TstLambdas
