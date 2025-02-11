@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from unittest.mock import ANY, MagicMock, patch
 
@@ -18,15 +19,21 @@ MOCK_SUBMIT_TIME_UTC = '2024-01-01T12:00:00.000Z'
 MOCK_SETTLEMENT_TIME_UTC = '2024-01-01T13:00:00.000Z'
 MOCK_SETTLEMENT_TIME_LOCAL = '2024-01-01T09:00:00'
 
+# Test Privilege data
+MOCK_PRIVILEGE_ID = 'mock-privilege-id'
+
 # Test Pagination values
 MOCK_LAST_PROCESSED_TRANSACTION_ID = 'mock_last_processed_transaction_id'
 MOCK_CURRENT_BATCH_ID = 'mock_current_batch_id'
 MOCK_PROCESSED_BATCH_IDS = ['mock_processed_batch_id']
 
 
-def _generate_mock_transaction():
-    return {
-        'transactionId': MOCK_TRANSACTION_ID,
+def _generate_mock_transaction(transaction_id=MOCK_TRANSACTION_ID, jurisdictions=None):
+    if jurisdictions is None:
+        jurisdictions = ['oh']
+
+    transaction = {
+        'transactionId': transaction_id,
         'submitTimeUTC': MOCK_SUBMIT_TIME_UTC,
         'transactionType': 'authCaptureTransaction',
         'transactionStatus': 'settledSuccessfully',
@@ -39,24 +46,77 @@ def _generate_mock_transaction():
             'settlementTimeLocal': MOCK_SETTLEMENT_TIME_LOCAL,
             'settlementState': 'settledSuccessfully',
         },
-        'lineItems': [
+        'lineItems': [],
+        'compact': TEST_COMPACT,
+        'transactionProcessor': 'authorize.net',
+    }
+
+    for jurisdiction in jurisdictions:
+        transaction['lineItems'].append(
             {
-                'itemId': 'aslp-oh',
-                'name': 'Ohio Compact Privilege',
-                'description': 'Compact Privilege for Ohio',
+                'itemId': f'priv:{TEST_COMPACT}-{jurisdiction}',
+                'name': f'{jurisdiction.upper()} Compact Privilege',
+                'description': f'Compact Privilege for {jurisdiction}',
                 'quantity': '1',
                 'unitPrice': '100.00',
                 'taxable': False,
             }
-        ],
-        'compact': TEST_COMPACT,
-        'transactionProcessor': 'authorize.net',
-    }
+        )
+
+    return transaction
 
 
 @mock_aws
 class TestProcessSettledTransactions(TstFunction):
     """Test the process_settled_transactions Lambda function."""
+
+    def _add_mock_privilege_to_database(self, licensee_id=MOCK_LICENSEE_ID, privilege_id=MOCK_PRIVILEGE_ID, transaction_id=MOCK_TRANSACTION_ID, jurisdiction='oh'):
+        from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
+
+        privilege_schema = PrivilegeRecordSchema()
+
+        with open('../common/tests/resources/dynamo/privilege.json') as f:
+            record = json.load(f)
+            loaded_record = privilege_schema.load(record)
+            loaded_record.update(
+                {
+                    'privilegeId': privilege_id,
+                    'providerId': licensee_id,
+                    'compact': TEST_COMPACT,
+                    'jurisdiction': jurisdiction,
+                    'compactTransactionId': transaction_id,
+                }
+            )
+            
+            serialized_record = privilege_schema.dump(loaded_record)
+            self._provider_table.put_item(Item=serialized_record)
+
+    def _add_mock_privilege_update_to_database(self, licensee_id=MOCK_LICENSEE_ID, privilege_id=MOCK_PRIVILEGE_ID, transaction_id=MOCK_TRANSACTION_ID, jurisdiction='oh'):
+        from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
+
+        privilege_update_schema = PrivilegeUpdateRecordSchema()
+
+        with open('../common/tests/resources/dynamo/privilege-update.json') as f:
+            record = json.load(f)
+            loaded_record = privilege_update_schema.load(record)
+            loaded_record['previous'].update(
+                {
+                    'privilegeId': privilege_id,
+                    'compactTransactionId': transaction_id,
+                }
+            )
+            loaded_record.update(
+                {
+                    'compact': TEST_COMPACT,
+                    'jurisdiction': jurisdiction,
+                    'compactTransactionId': transaction_id,
+                    'providerId': licensee_id,
+                }
+            )
+            
+            schema = PrivilegeUpdateRecordSchema()
+            serialized_record = schema.dump(loaded_record)
+            self._provider_table.put_item(Item=serialized_record)
 
     def _when_testing_non_paginated_event(self, test_compact=TEST_COMPACT):
         return {
@@ -74,7 +134,8 @@ class TestProcessSettledTransactions(TstFunction):
             'processedBatchIds': MOCK_PROCESSED_BATCH_IDS,
         }
 
-    def _when_purchase_client_returns_transactions(self, mock_purchase_client_constructor, transactions=None):
+    def _when_purchase_client_returns_transactions(self, mock_purchase_client_constructor,
+                                                   transactions=None):
         if transactions is None:
             transactions = [_generate_mock_transaction()]
 
@@ -110,7 +171,11 @@ class TestProcessSettledTransactions(TstFunction):
         """Test successful processing of settled transactions."""
         from handlers.transaction_history import process_settled_transactions
 
+        # in this test, there is one transaction, and one privilege. These should map together using the default
+        # transaction id and privilege id
         self._when_purchase_client_returns_transactions(mock_purchase_client_constructor)
+        self._add_mock_privilege_to_database()
+
         event = self._when_testing_non_paginated_event()
         resp = process_settled_transactions(event, self.mock_context)
 
@@ -126,6 +191,8 @@ class TestProcessSettledTransactions(TstFunction):
         mock_purchase_client = self._when_purchase_client_returns_paginated_transactions(
             mock_purchase_client_constructor
         )
+        self._add_mock_privilege_to_database()
+
         event = self._when_testing_paginated_event()
 
         process_settled_transactions(event, self.mock_context)
@@ -146,7 +213,11 @@ class TestProcessSettledTransactions(TstFunction):
         """Test that transactions are stored in DynamoDB."""
         from handlers.transaction_history import process_settled_transactions
 
+        # in this test, there is one transaction, and one privilege. These should map together using the default
+        # transaction id and privilege id
         self._when_purchase_client_returns_transactions(mock_purchase_client_constructor)
+        self._add_mock_privilege_to_database()
+
         event = self._when_testing_non_paginated_event()
 
         process_settled_transactions(event, self.mock_context)
@@ -171,12 +242,13 @@ class TestProcessSettledTransactions(TstFunction):
                     'licenseeId': MOCK_LICENSEE_ID,
                     'lineItems': [
                         {
-                            'description': 'Compact Privilege for Ohio',
-                            'itemId': 'aslp-oh',
-                            'name': 'Ohio Compact Privilege',
+                            'description': 'Compact Privilege for oh',
+                            'itemId': 'priv:aslp-oh',
+                            'name': 'OH Compact Privilege',
                             'quantity': '1',
                             'taxable': False,
                             'unitPrice': '100.00',
+                            'privilegeId': MOCK_PRIVILEGE_ID
                         }
                     ],
                     'pk': f'COMPACT#{TEST_COMPACT}#TRANSACTIONS#MONTH#2024-01',
@@ -239,4 +311,103 @@ class TestProcessSettledTransactions(TstFunction):
                 'batchFailureErrorMessage': f'Settlement error in batch {MOCK_BATCH_ID}',
             },
             resp,
+        )
+
+    @patch('handlers.transaction_history.PurchaseClient')
+    def test_transaction_with_unknown_privilege_id_in_dynamodb_if_privilege_not_found(self, mock_purchase_client_constructor):
+        """Test that transactions are stored in DynamoDB."""
+        from handlers.transaction_history import process_settled_transactions
+
+        # in this test, there is one transaction, but no matching privilege. These should cause the system to set the
+        # privilege id as UNKNOWN
+        self._when_purchase_client_returns_transactions(mock_purchase_client_constructor)
+
+        event = self._when_testing_non_paginated_event()
+
+        process_settled_transactions(event, self.mock_context)
+
+        # Verify transactions were stored in DynamoDB
+        stored_transactions = self.config.transaction_history_table.query(
+            KeyConditionExpression='pk = :pk',
+            ExpressionAttributeValues={':pk': f'COMPACT#{TEST_COMPACT}#TRANSACTIONS#MONTH#2024-01'},
+        )
+        self.assertEqual('UNKNOWN', stored_transactions['Items'][0]['lineItems'][0]['privilegeId'])
+
+    @patch('handlers.transaction_history.PurchaseClient')
+    def test_process_settled_transactions_maps_privilege_ids_to_line_items(self, mock_purchase_client_constructor):
+        """Test that transactions are stored in DynamoDB."""
+        from handlers.transaction_history import process_settled_transactions
+
+        # In this test, we simulate a user purchasing a privilege for ky,
+        # then making another purchase for oh, ky, and ne.
+        # There are two transactions, three privilege records, and one privilege update record for ky.
+        # The privilege update record should map the first privilege id to the first transaction
+        # The three privilege records should map their privilege ids to the next transaction
+        transaction_id_one = '987654'
+        transaction_id_two = '456789'
+        self._when_purchase_client_returns_transactions(
+            mock_purchase_client_constructor,
+            transactions=[
+                _generate_mock_transaction(transaction_id=transaction_id_one, jurisdictions=['ky']),
+                _generate_mock_transaction(transaction_id=transaction_id_two, jurisdictions=['oh', 'ky', 'ne']),
+            ])
+        privilege_id_ne = 'privilege-id-ne-1'
+        privilege_id_ky = 'privilege-id-ky-2'
+        privilege_id_oh = 'privilege-id-oh-1'
+        privilege_update_privilege_id = 'privilege-update-privilege-id-1'
+        self._add_mock_privilege_to_database(privilege_id=privilege_id_oh, transaction_id=transaction_id_two, jurisdiction='oh')
+        self._add_mock_privilege_to_database(privilege_id=privilege_id_ne, transaction_id=transaction_id_two, jurisdiction='ne')
+        self._add_mock_privilege_to_database(privilege_id=privilege_id_ky, transaction_id=transaction_id_two, jurisdiction='ky')
+        self._add_mock_privilege_update_to_database(privilege_id=privilege_update_privilege_id,
+                                                    transaction_id=transaction_id_one, jurisdiction='ky')
+
+        event = self._when_testing_non_paginated_event()
+
+        process_settled_transactions(event, self.mock_context)
+
+        # Verify transactions were stored in DynamoDB
+        stored_transactions = self.config.transaction_history_table.query(
+            KeyConditionExpression='pk = :pk',
+            ExpressionAttributeValues={':pk': f'COMPACT#{TEST_COMPACT}#TRANSACTIONS#MONTH#2024-01'},
+        )
+
+        self.assertEqual(
+            [{'description': 'Compact Privilege for oh',
+              'itemId': 'priv:aslp-oh',
+              'name': 'OH Compact Privilege',
+              'privilegeId': privilege_id_oh,
+              'quantity': '1',
+              'taxable': False,
+              'unitPrice': '100.00'},
+             {'description': 'Compact Privilege for ky',
+              'itemId': 'priv:aslp-ky',
+              'name': 'KY Compact Privilege',
+              'privilegeId': privilege_id_ky,
+              'quantity': '1',
+              'taxable': False,
+              'unitPrice': '100.00'},
+             {'description': 'Compact Privilege for ne',
+              'itemId': 'priv:aslp-ne',
+              'name': 'NE Compact Privilege',
+              'privilegeId': privilege_id_ne,
+              'quantity': '1',
+              'taxable': False,
+              'unitPrice': '100.00'}],
+            stored_transactions['Items'][0]['lineItems'],
+        )
+
+        # now check that the privilege id from the privilege update record was mapped as expected
+        self.assertEqual(
+             [
+                 {
+                    'description': 'Compact Privilege for ky',
+                    'itemId': 'priv:aslp-ky',
+                      'name': 'KY Compact Privilege',
+                      'privilegeId': privilege_update_privilege_id,
+                      'quantity': '1',
+                      'taxable': False,
+                      'unitPrice': '100.00'
+                 }
+             ],
+            stored_transactions['Items'][1]['lineItems'],
         )

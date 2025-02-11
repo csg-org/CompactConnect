@@ -58,7 +58,7 @@ def _generate_mock_transaction(
     line_items = [
         {
             'description': f'Compact Privilege for {jurisdiction.upper()}',
-            'itemId': f'{TEST_COMPACT}-{jurisdiction}',
+            'itemId': f'priv:{TEST_COMPACT}-{jurisdiction}',
             'name': f'{jurisdiction.upper()} Compact Privilege',
             # setting this as '1.0' to simulate behavior we've seen returned from authorize.net
             'quantity': '1.0',

@@ -367,8 +367,8 @@ def _generate_compact_summary_report(
                 compact_fees += fee
             elif item['itemId'] == 'credit-card-transaction-fee':
                 transaction_fees += fee
-            else:
-                jurisdiction = item['itemId'].split('-')[1]
+            elif item['itemId'].startswith('priv:'):
+                jurisdiction = item['itemId'].split('-')[1].lower()
                 if jurisdiction in configured_jurisdictions:
                     # Add fee to jurisdiction and increment privilege count
                     jurisdiction_fees[jurisdiction] += fee
@@ -459,25 +459,23 @@ def _generate_compact_transaction_report(transactions: list[dict], providers: di
 
         # Write a row for each state privilege in the transaction
         for item in transaction['lineItems']:
-            if item['itemId'].endswith('-compact-fee') or item['itemId'] == 'credit-card-transaction-fee':
-                continue
+            if item['itemId'].startswith('priv:'):
+                # Extract jurisdiction from itemId (format: priv:compact-jurisdiction)
+                state = item['itemId'].split('-')[1].upper()
 
-            # Extract state from itemId (format: compact-state)
-            state = item['itemId'].split('-')[1].upper()
-
-            writer.writerow(
-                [
-                    provider.get('givenName', 'UNKNOWN'),
-                    provider.get('familyName', 'UNKNOWN'),
-                    transaction['licenseeId'],
-                    transaction_date,
-                    state,
-                    item['unitPrice'],
-                    compact_fee_item['unitPrice'],
-                    transaction_fee_item['unitPrice'] if transaction_fee_item else '0',
-                    transaction['transactionId'],
-                ]
-            )
+                writer.writerow(
+                    [
+                        provider.get('givenName', 'UNKNOWN'),
+                        provider.get('familyName', 'UNKNOWN'),
+                        transaction['licenseeId'],
+                        transaction_date,
+                        state,
+                        item['unitPrice'],
+                        compact_fee_item['unitPrice'],
+                        transaction_fee_item['unitPrice'] if transaction_fee_item else '0',
+                        transaction['transactionId'],
+                    ]
+                )
 
     return output.getvalue()
 
@@ -493,12 +491,10 @@ def _generate_jurisdiction_reports(
     # Group transactions by jurisdiction
     for transaction in transactions:
         for item in transaction['lineItems']:
-            if item['itemId'].endswith('-compact-fee'):
-                continue
-
-            state = item['itemId'].split('-')[1]
-            if state in jurisdiction_transactions:
-                jurisdiction_transactions[state].append((transaction, item))
+            if item['itemId'].startswith('priv:'):
+                state = item['itemId'].split('-')[1].lower()
+                if state in jurisdiction_transactions:
+                    jurisdiction_transactions[state].append((transaction, item))
 
     # Generate report for each jurisdiction
     reports = {}

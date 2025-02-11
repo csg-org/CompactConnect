@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 
 from boto3.dynamodb.conditions import Key
 
-from cc_common.config import _Config
+from cc_common.config import _Config, logger
 
 AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
 
@@ -128,3 +128,73 @@ class TransactionClient:
                 break
 
         return all_matching_transactions
+
+    def _set_privilege_id_in_line_item(self, line_items: list[dict], item_id: str, privilege_id: str):
+        for line_item in line_items:
+            if line_item.get('itemId').lower() == item_id.lower():
+                line_item['privilegeId'] = privilege_id
+
+
+    def add_privilege_ids_to_transactions(self, compact: str, transactions: list[dict]) -> list[dict]:
+        """
+        Add privilege IDs to transaction line items based on the jurisdiction they were purchased for.
+
+        :param compact: The compact name
+        :param transactions: List of transaction records to process
+        :return: Modified list of transactions with privilege IDs added to line items
+        """
+        for transaction in transactions:
+            line_items = transaction['lineItems']
+            # Extract jurisdictions from line items with format priv:{compact}-{jurisdiction}
+            jurisdictions_to_process = set()
+            for line_item in line_items:
+                item_id = line_item['itemId']
+                if item_id.startswith('priv:'):
+                    jurisdiction = item_id.split('-')[1].lower()
+                    jurisdictions_to_process.add(jurisdiction)
+
+
+            # Query for privilege records using the GSI
+            gsi_pk = f'COMPACT#{compact}#TX#{transaction["transactionId"]}#'
+            response = self.config.provider_table.query(
+                IndexName=self.config.compact_transaction_id_gsi_name,
+                KeyConditionExpression=Key('compactTransactionIdGSIPK').eq(gsi_pk),
+            )
+
+            # Process each privilege record
+            for jurisdiction in jurisdictions_to_process:
+                item_id = f'priv:{compact}-{jurisdiction}'
+                # find the first privilege record for the jurisdiction
+                matching_privilege = next((item for item in response.get('Items', [])
+                                           if item['jurisdiction'].lower() == jurisdiction), None)
+                if matching_privilege:
+                    record_type = matching_privilege['type']
+                    privilege_id = None
+                    if record_type == 'privilege':
+                        privilege_id = matching_privilege['privilegeId']
+                    elif record_type == 'privilegeUpdate':
+                        privilege_id = matching_privilege['previous']['privilegeId']
+
+                    # Find and update the matching line item
+                    self._set_privilege_id_in_line_item(
+                        line_items=line_items,
+                        item_id=item_id,
+                        privilege_id=privilege_id
+                    )
+                else:
+                    logger.error('No matching jurisdiction privilege record found for transaction. '
+                                 'Cannot determine privilege id for this transaction',
+                                 compact=compact,
+                                 transactionId=transaction["transactionId"],
+                                 jurisdiction=jurisdiction,
+                                 provider_id=transaction['licenseeId'],
+                                 matching_privilege_records=response.get('Items', [])
+                                 )
+                    # we set the privilege id to UNKNOWN, so that it will be visible in the report
+                    self._set_privilege_id_in_line_item(
+                        line_items=line_items,
+                        item_id=item_id,
+                        privilege_id='UNKNOWN'
+                    )
+
+        return transactions

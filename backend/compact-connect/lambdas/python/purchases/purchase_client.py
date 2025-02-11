@@ -308,7 +308,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         for jurisdiction in selected_jurisdictions:
             jurisdiction_name_title_case = jurisdiction.jurisdiction_name.title()
             privilege_line_item = apicontractsv1.lineItemType()
-            privilege_line_item.itemId = f'{compact_configuration.compact_abbr}-{jurisdiction.postal_abbreviation}'
+            privilege_line_item.itemId = f'priv:{compact_configuration.compact_abbr}-{jurisdiction.postal_abbreviation}'
             privilege_line_item.name = f'{jurisdiction_name_title_case} Compact Privilege'
             privilege_line_item.quantity = '1'
             privilege_line_item.unitPrice = _calculate_jurisdiction_fee(jurisdiction, user_active_military)
@@ -868,7 +868,7 @@ class PurchaseClient:
         """
         Validate the provided payment credentials and store them in secrets manager.
 
-        :param compact_abbr: The name of the compact
+        :param compact_abbr: The abbreviation of the compact
         :param credentials: The payment processor credentials
         :return: A response indicating the credentials were validated and stored successfully
         :raises CCInvalidRequestException: If the credentials are invalid
