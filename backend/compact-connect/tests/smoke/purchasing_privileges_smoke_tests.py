@@ -203,7 +203,7 @@ def test_purchasing_privilege():
             raise SmokeTestFailureException('Attestation version in privilege record does not match')
         if attestation['version'] != attestations_from_system[0]['version']:
             raise SmokeTestFailureException(
-                f'Attestation {attestation['attestationId']} version in privilege record '
+                f'Attestation {attestation["attestationId"]} version in privilege record '
                 f'does not match latest version in system'
             )
 

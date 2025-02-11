@@ -60,7 +60,7 @@ class TestPostPaymentProcessorCredentials(TstFunction):
         mock_purchase_client_constructor.return_value = mock_purchase_client
         mock_purchase_client.validate_and_store_credentials.side_effect = CCInvalidRequestException(
             # actual error code and error message from the authorize.net client
-            'Failed to verify credentials. Error code: E00124, Error message: ' 'The provided access token is invalid'
+            'Failed to verify credentials. Error code: E00124, Error message: The provided access token is invalid'
         )
 
         return mock_purchase_client

@@ -5,6 +5,7 @@ from marshmallow.fields import List, Nested, Raw, String
 from cc_common.data_model.schema.base_record import ForgivingSchema
 from cc_common.data_model.schema.fields import ActiveInactive, Compact, Jurisdiction, UpdateType
 
+
 class AttestationVersionResponseSchema(Schema):
     """
     This schema is intended to be used by any api response in the system which needs to track which attestations have

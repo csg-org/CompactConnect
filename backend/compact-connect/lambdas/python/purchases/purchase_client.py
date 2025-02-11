@@ -51,7 +51,7 @@ def _calculate_jurisdiction_fee(jurisdiction: Jurisdiction, user_active_military
             total_jurisdiction_fee = jurisdiction.jurisdiction_fee - jurisdiction.military_discount.discount_amount
         else:
             raise ValueError(
-                'Unsupported military discount type: ' f'{jurisdiction.military_discount.discount_type.value}'
+                f'Unsupported military discount type: {jurisdiction.military_discount.discount_type.value}'
             )
     else:
         total_jurisdiction_fee = jurisdiction.jurisdiction_fee
@@ -346,8 +346,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         customer_address.firstName = order_information['billing']['firstName']
         customer_address.lastName = order_information['billing']['lastName']
         customer_address.address = (
-            f"{order_information['billing']['streetAddress']}"
-            f" {order_information['billing'].get('streetAddress2', '')}"
+            f'{order_information["billing"]["streetAddress"]} {order_information["billing"].get("streetAddress2", "")}'
         ).strip()
         customer_address.state = order_information['billing']['state']
         customer_address.zip = order_information['billing']['zip']

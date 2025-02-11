@@ -97,14 +97,14 @@ class TstFunction(TstLambdas):
                     'Projection': {
                         'ProjectionType': 'INCLUDE',
                         'NonKeyAttributes': [
-                           'privilegeId',
-                           'updatedValues',
-                           'previous',
-                           'jurisdiction',
-                           'type',
-                           'compactTransactionId'
-                         ]
-                        },
+                            'privilegeId',
+                            'updatedValues',
+                            'previous',
+                            'jurisdiction',
+                            'type',
+                            'compactTransactionId',
+                        ],
+                    },
                 },
             ],
         )
