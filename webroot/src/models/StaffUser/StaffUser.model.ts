@@ -291,7 +291,7 @@ export class StaffUserSerializer {
             compactConnectEmail: json.attributes?.email,
             userType: AuthTypes.STAFF,
             permissions: [],
-            accountStatus: json.status || 'active', // Temp 'active' fallback until server responses include this field, per team discussion
+            accountStatus: (json.status === 'inactive') ? 'pending' : json.status, // Server status of 'inactive' means 'has not accepted invite'
             serverPage: (fetchConfig && fetchConfig.pageNum) ? fetchConfig.pageNum : 0,
         };
 
