@@ -1,5 +1,6 @@
 from datetime import datetime
 from unittest.mock import MagicMock
+from boto3.dynamodb.conditions import Key
 
 from tests import TstLambdas
 
@@ -77,3 +78,48 @@ class TestTransactionClient(TstLambdas):
 
         # Verify the batch writer was called twice
         self.assertEqual(self.mock_batch_writer.put_item.call_count, 2)
+
+    def test_add_privilege_ids_to_transactions(self):
+        # Mock the provider table query response
+        self.mock_config.provider_table = MagicMock()
+        self.mock_config.compact_transaction_id_gsi_name = 'compactTransactionIdGSI'
+        self.mock_config.provider_table.query.return_value = {
+            'Items': [
+                {
+                    'type': 'privilege',
+                    'jurisdiction': 'CA',
+                    'privilegeId': 'priv-123',
+                },
+                {
+                    'type': 'privilegeUpdate',
+                    'jurisdiction': 'NY',
+                    'previous': {'privilegeId': 'priv-456'},
+                },
+            ]
+        }
+
+        # Test data
+        test_transactions = [
+            {
+                'transactionId': 'tx123',
+                'lineItems': [
+                    {'itemId': 'priv:aslp-CA', 'unitPrice': 100},
+                    {'itemId': 'priv:aslp-NY', 'unitPrice': 200},
+                    {'itemId': 'credit-card-transaction-fee', 'unitPrice': 50},
+                ],
+            }
+        ]
+
+        # Call the method
+        result = self.client.add_privilege_ids_to_transactions('aslp', test_transactions)
+
+        # Verify the GSI query was called with correct parameters
+        self.mock_config.provider_table.query.assert_called_once_with(
+            IndexName='compactTransactionIdGSI',
+            KeyConditionExpression=Key('compactTransactionIdGSIPK').eq('COMPACT#aslp#TX#tx123#'),
+        )
+
+        # Verify privilege IDs were added to correct line items
+        self.assertEqual(result[0]['lineItems'][0]['privilegeId'], 'priv-123')  # CA line item
+        self.assertEqual(result[0]['lineItems'][1]['privilegeId'], 'priv-456')  # NY line item
+        self.assertNotIn('privilegeId', result[0]['lineItems'][2])  # other item

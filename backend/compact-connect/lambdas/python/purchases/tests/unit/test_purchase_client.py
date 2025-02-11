@@ -302,7 +302,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         # we check every line item of the object to ensure that the correct values are being set
         self.assertEqual(2, len(api_contract_v1_obj.transactionRequest.lineItems.lineItem))
         # first line item is the jurisdiction fee
-        self.assertEqual('aslp-oh', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
+        self.assertEqual('priv:aslp-oh', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
         self.assertEqual('Ohio Compact Privilege', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].name)
         self.assertEqual(100.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].unitPrice)
         self.assertEqual(1, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].quantity)
@@ -445,7 +445,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         # we check every line item of the object to ensure that the correct values are being set
         self.assertEqual(2, len(api_contract_v1_obj.transactionRequest.lineItems.lineItem))
         # verify jurisdiction fee line item with military discount
-        self.assertEqual('aslp-oh', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
+        self.assertEqual('priv:aslp-oh', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
         self.assertEqual('Ohio Compact Privilege', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].name)
         self.assertEqual(75.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].unitPrice)
         self.assertEqual(1, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].quantity)
