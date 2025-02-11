@@ -10,10 +10,9 @@
         <div class="select-privileges-container">
             <form class="privilege-form" @submit.prevent="handleSubmit">
                 <div class="select-privileges-core-container">
-                    <slot name="progress-bar"></slot>
-                    <div class="select-privileges-title">
+                    <h1 class="select-privileges-title">
                         {{selectPrivilegesTitleText}}
-                    </div>
+                    </h1>
                     <LoadingSpinner v-if="isLoading"></LoadingSpinner>
                     <div v-else>
                         <MockPopulate

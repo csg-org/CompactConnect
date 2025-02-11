@@ -4,32 +4,37 @@
 //
 //  Created by InspiringApps on 1/31/2025.
 //
-// .purchase-flow-container {
-//     display: flex;
-//     flex-direction: column;
-//     align-items: center;
-//     padding: 2rem 2rem 12rem 2rem;
+.purchase-flow-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 2rem 12rem 2rem;
 
-//     @media @tabletWidth {
-//         padding: 2rem;
-//     }
+    @media @tabletWidth {
+        padding: 2rem;
+    }
 
-//     .progress-bar {
-//         z-index: 1;
-//         margin-bottom: -10px;
-//         padding-right: 2rem;
-//         padding-left: 2rem;
+    .step {
+        width: 100%;
 
-//         @media @tabletWidth {
-//             width: 72rem;
-//             padding-right: 3rem;
-//             padding-left: 3rem;
-//         }
+        @media @tabletWidth {
+            width: unset;
+        }
+    }
 
-//         @media @desktopWidth {
-//             width: 90rem;
-//             padding-right: 4rem;
-//             padding-left: 4rem;
-//         }
-//     }
-// }
+    .progress-bar {
+        position: absolute;
+        z-index: 1;
+        padding: 0 4rem;
+
+        @media @tabletWidth {
+            width: 72rem;
+            padding: 0 2rem;
+        }
+
+        @media @desktopWidth {
+            width: 90rem;
+            padding: 0 2rem;
+        }
+    }
+}

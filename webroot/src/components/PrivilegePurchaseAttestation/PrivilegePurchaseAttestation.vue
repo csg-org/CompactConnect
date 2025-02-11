@@ -9,27 +9,24 @@
     <div class="privilege-purchase-attestation-container">
         <form class="privilege-purchase-attestation-form" @submit.prevent="handleSubmit">
             <div class="privilege-purchase-attestation-form-container">
-                <slot name="progress-bar"></slot>
-                <div class="inner-container">
-                    <h1 class="form-title">{{ $t('licensing.attestations') }}</h1>
-                    <div v-if="!areFormInputsSet" class="loading-container">
-                        <LoadingSpinner v-if="!userStore.isLoadingAccount" />
+                <h1 class="form-title">{{ $t('licensing.attestations') }}</h1>
+                <div v-if="!areFormInputsSet" class="loading-container">
+                    <LoadingSpinner v-if="!userStore.isLoadingAccount" />
+                </div>
+                <div v-else>
+                    <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
+                    <InputRadioGroup :formInput="formData.investigations" />
+                    <div class="form-section-title">{{ $t('licensing.discipline') }} *</div>
+                    <InputCheckbox :formInput="formData.disciplineCurrent" />
+                    <InputCheckbox :formInput="formData.disciplinePrior" />
+                    <div class="form-section-title form-section-gap">
+                        {{ $t('licensing.provisionOfInformation') }} *
                     </div>
-                    <div v-else>
-                        <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
-                        <InputRadioGroup :formInput="formData.investigations" />
-                        <div class="form-section-title">{{ $t('licensing.discipline') }} *</div>
-                        <InputCheckbox :formInput="formData.disciplineCurrent" />
-                        <InputCheckbox :formInput="formData.disciplinePrior" />
-                        <div class="form-section-title form-section-gap">
-                            {{ $t('licensing.provisionOfInformation') }} *
-                        </div>
-                        <InputCheckbox :formInput="formData.trueInformation" />
-                        <div v-if="isMilitaryAffiliated" class="form-section-title form-section-gap">
-                            {{ $t('licensing.militaryAffiliation') }} *
-                        </div>
-                        <InputCheckbox v-if="isMilitaryAffiliated" :formInput="formData.militaryAffiliation" />
+                    <InputCheckbox :formInput="formData.trueInformation" />
+                    <div v-if="isMilitaryAffiliated" class="form-section-title form-section-gap">
+                        {{ $t('licensing.militaryAffiliation') }} *
                     </div>
+                    <InputCheckbox v-if="isMilitaryAffiliated" :formInput="formData.militaryAffiliation" />
                 </div>
             </div>
             <div v-if="areFormInputsSet" class="button-row">

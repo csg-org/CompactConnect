@@ -5,11 +5,6 @@
 //  Created by InspiringApps on 10/28/2024.
 //
 .finalize-privilege-purchase-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem;
-
     .form-error-message {
         padding: 2rem;
         color: @midRed;
@@ -97,14 +92,10 @@
                 background-color: @darkBlue;
 
                 @media @tabletWidth {
-                    width: 30rem;
+                    width: 34rem;
                     margin-top: unset;
-                    padding: 8rem 2rem;
+                    padding: 8rem 4rem;
                     border-radius: 0 20px 20px 0;
-                }
-
-                @media @desktopWidth {
-                    margin-top: 8rem;
                 }
 
                 .no-refunds-checkbox {
@@ -181,14 +172,13 @@
                 background-color: @white;
 
                 @media @tabletWidth {
-                    width: 36rem;
-                    margin-top: unset;
+                    width: 38rem;
+                    padding: 0 4rem 4rem 4rem;
                     border-radius: 20px 0 0 20px;
                 }
 
                 @media @desktopWidth {
-                    width: 54rem;
-                    margin-top: 8rem;
+                    width: 56rem;
                 }
 
                 .finalize-purchase-title-row {
@@ -196,7 +186,7 @@
                     flex-direction: row;
                     align-items: center;
                     justify-content: space-between;
-                    margin-top: 2rem;
+                    margin-top: 4rem;
                     margin-bottom: 2rem;
 
                     :deep(.collapse-caret-button) {
@@ -205,10 +195,6 @@
                             height: 1.4rem;
                             stroke: @primaryColor;
                         }
-                    }
-
-                    .finalize-purchase-title {
-                        font-size: @fontSizeExtraLarge;
                     }
                 }
 

@@ -6,48 +6,33 @@
 -->
 
 <template>
-    <div>
+    <div class="purchase-flow-container">
+        <ProgressBar :progressPercent="progressPercent" />
         <PrivilegePurchaseInformationConfirmation
             v-if="isConfirmInfoRoute"
             :flowStep="currentFlowStep"
-        >
-            <template v-slot:progress-bar>
-                <ProgressBar :progressPercent="progressPercent" />
-            </template>
-        </PrivilegePurchaseInformationConfirmation>
+            class="step"
+        />
         <PrivilegePurchaseSelect
             v-if="isSelectPrivilegesRoute"
             :flowStep="currentFlowStep"
-            :progressPercent="progressPercent"
-        >
-            <template v-slot:progress-bar>
-                <ProgressBar :progressPercent="progressPercent" />
-            </template>
-        </PrivilegePurchaseSelect>
+            class="step"
+        />
         <PrivilegePurchaseAttestation
             v-if="isAttestationRoute"
             :flowStep="currentFlowStep"
-        >
-            <template v-slot:progress-bar>
-                <ProgressBar :progressPercent="progressPercent" />
-            </template>
-        </PrivilegePurchaseAttestation>
+            class="step"
+        />
         <PrivilegePurchaseFinalize
             v-if="isFinalizeRoute"
             :flowStep="currentFlowStep"
-        >
-            <template v-slot:progress-bar>
-                <ProgressBar :progressPercent="progressPercent" />
-            </template>
-        </PrivilegePurchaseFinalize>
+            class="step"
+        />
         <PrivilegePurchaseSuccessful
             v-if="isPurchaseSuccessfulRoute"
             :flowStep="currentFlowStep"
-        >
-            <template v-slot:progress-bar>
-                <ProgressBar :progressPercent="progressPercent" />
-            </template>
-        </PrivilegePurchaseSuccessful>
+            class="step"
+        />
     </div>
 </template>
 

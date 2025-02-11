@@ -8,10 +8,9 @@
 <template>
     <div class="purchase-success-container">
         <div class="purchase-success-core">
-            <slot name="progress-bar"></slot>
-            <div class="purchase-success-title">
+            <h1 class="purchase-success-title">
                 {{purchaseSuccessfulTitle}}
-            </div>
+            </h1>
             <div class="purchase-success-content">
                 {{purchaseSuccessfulMessage}}
             </div>

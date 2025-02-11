@@ -5,11 +5,6 @@
 //  Created by InspiringApps on 11/5/2024.
 //
 .purchase-success-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 4rem;
-
     .button-row {
         display: flex;
         flex-direction: row;
@@ -17,26 +12,33 @@
         padding: 2rem 0;
 
         @media @desktopWidth {
-            width: 70rem;
+            width: 72rem;
+        }
+
+        @media @desktopWidth {
+            width: 90rem;
         }
     }
 
     .purchase-success-core {
-        padding: 0 2rem 2rem 2rem;
+        padding: 2rem 2rem 2rem 2rem;
         border-radius: 20px;
         background-color: @white;
 
+        @media @tabletWidth {
+            width: 72rem;
+        }
+
         @media @desktopWidth {
-            width: 70rem;
+            width: 90rem;
         }
 
         .purchase-success-title {
             margin-top: 2rem;
-            font-size: @fontSizeLarger;
+            font-weight: @fontWeightBold;
         }
 
         .purchase-success-content {
-            max-width: 50rem;
             padding: 2rem 0;
         }
     }

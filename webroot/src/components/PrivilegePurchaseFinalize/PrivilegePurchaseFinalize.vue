@@ -10,11 +10,8 @@
         <form class="complete-purchase-form" @submit.prevent="handleSubmit">
             <div class="finalize-purchase-container">
                 <div class="finalize-purchase-core-container">
-                    <div class="progress-bar-container">
-                        <slot name="progress-bar"></slot>
-                    </div>
                     <div class="finalize-purchase-title-row">
-                        <div class="finalize-purchase-title">{{paymentTitleText}}</div>
+                        <h1 class="finalize-purchase-title">{{paymentTitleText}}</h1>
                         <CollapseCaretButton v-if="isPhone" @toggleCollapse="togglePaymentCollapsed" />
                     </div>
                     <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
