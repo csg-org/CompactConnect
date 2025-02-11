@@ -35,7 +35,7 @@ class DataMigration(Construct):
         """
         super().__init__(scope, construct_id)
         self.migration_function = PythonFunction(
-            scope,
+            self,
             'MigrationFunction',
             index=os.path.join(migration_dir, 'main.py'),
             lambda_dir='migration',
@@ -45,13 +45,13 @@ class DataMigration(Construct):
             timeout=Duration.minutes(15),
         )
         self.provider = Provider(
-            scope,
+            self,
             'Provider',
             on_event_handler=self.migration_function,
             log_retention=RetentionDays.ONE_DAY,
         )
         NagSuppressions.add_resource_suppressions_by_path(
-            Stack.of(scope),
+            Stack.of(self),
             f'{self.provider.node.path}/framework-onEvent/Resource',
             [
                 {
@@ -75,7 +75,7 @@ class DataMigration(Construct):
         )
 
         NagSuppressions.add_resource_suppressions_by_path(
-            Stack.of(scope),
+            Stack.of(self),
             path=f'{self.provider.node.path}/framework-onEvent/ServiceRole/DefaultPolicy/Resource',
             suppressions=[
                 {
@@ -87,7 +87,7 @@ class DataMigration(Construct):
         )
 
         NagSuppressions.add_resource_suppressions_by_path(
-            Stack.of(scope),
+            Stack.of(self),
             path=f'{self.provider.node.path}/framework-onEvent/ServiceRole/Resource',
             suppressions=[
                 {
@@ -101,7 +101,7 @@ class DataMigration(Construct):
         )
 
         self.custom_resource = CustomResource(
-            scope,
+            self,
             'CustomResource',
             resource_type='Custom::DataMigration',
             service_token=self.provider.service_token,
