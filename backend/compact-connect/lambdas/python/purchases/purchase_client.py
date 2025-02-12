@@ -943,7 +943,7 @@ class PurchaseClient:
             processed_batch_ids=processed_batch_ids,
         )
 
-        # Add compact to each transaction
+        # Add compact to each transaction for serialization
         for transaction in response['transactions']:
             transaction['compact'] = compact
 

@@ -59,7 +59,7 @@ def _generate_mock_transaction(transaction_id=MOCK_TRANSACTION_ID, jurisdictions
                 'description': f'Compact Privilege for {jurisdiction}',
                 'quantity': '1',
                 'unitPrice': '100.00',
-                'taxable': False,
+                'taxable': str(False),
             }
         )
 
@@ -240,6 +240,9 @@ class TestProcessSettledTransactions(TstFunction):
         )
 
         expected_epoch_timestamp = int(datetime.fromisoformat(MOCK_SETTLEMENT_TIME_UTC).timestamp())
+        # remove dynamic dateOfUpdate timestamp
+        del stored_transactions['Items'][0]['dateOfUpdate']
+
         self.assertEqual(
             [
                 {
@@ -257,7 +260,7 @@ class TestProcessSettledTransactions(TstFunction):
                             'itemId': 'priv:aslp-oh',
                             'name': 'OH Compact Privilege',
                             'quantity': '1',
-                            'taxable': False,
+                            'taxable': 'False',
                             'unitPrice': '100.00',
                             'privilegeId': MOCK_PRIVILEGE_ID,
                         }
@@ -272,6 +275,7 @@ class TestProcessSettledTransactions(TstFunction):
                     'transactionStatus': 'settledSuccessfully',
                     'transactionType': 'authCaptureTransaction',
                     'transactionProcessor': 'authorize.net',
+                    'type': 'transaction',
                 }
             ],
             stored_transactions['Items'],
@@ -400,7 +404,7 @@ class TestProcessSettledTransactions(TstFunction):
                     'name': 'OH Compact Privilege',
                     'privilegeId': privilege_id_oh,
                     'quantity': '1',
-                    'taxable': False,
+                    'taxable': 'False',
                     'unitPrice': '100.00',
                 },
                 {
@@ -409,7 +413,7 @@ class TestProcessSettledTransactions(TstFunction):
                     'name': 'KY Compact Privilege',
                     'privilegeId': privilege_id_ky,
                     'quantity': '1',
-                    'taxable': False,
+                    'taxable': 'False',
                     'unitPrice': '100.00',
                 },
                 {
@@ -418,7 +422,7 @@ class TestProcessSettledTransactions(TstFunction):
                     'name': 'NE Compact Privilege',
                     'privilegeId': privilege_id_ne,
                     'quantity': '1',
-                    'taxable': False,
+                    'taxable': 'False',
                     'unitPrice': '100.00',
                 },
             ],
@@ -434,7 +438,7 @@ class TestProcessSettledTransactions(TstFunction):
                     'name': 'KY Compact Privilege',
                     'privilegeId': privilege_update_privilege_id,
                     'quantity': '1',
-                    'taxable': False,
+                    'taxable': 'False',
                     'unitPrice': '100.00',
                 }
             ],
