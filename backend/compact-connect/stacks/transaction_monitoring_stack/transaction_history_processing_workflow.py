@@ -195,7 +195,8 @@ class TransactionHistoryProcessingWorkflow(Construct):
         )
 
         # By default, the authorize.net accounts batch settlements at 4:00pm Pacific Time.
-        # This daily collector runs an hour later (5pm PST, which is 1am UTC) to collect all settled transaction for the last 24 hours.
+        # This daily collector runs an hour later (5pm PST, which is 1am UTC) to collect
+        # all settled transaction for the last 24 hours.
         Rule(
             self,
             f'{compact}-DailyTransactionProcessingRule',
