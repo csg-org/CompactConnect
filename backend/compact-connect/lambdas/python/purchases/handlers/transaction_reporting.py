@@ -444,11 +444,12 @@ def _generate_compact_transaction_report(transactions: list[dict], providers: di
             'Administrative Fee',
             'Collected Transaction Fee',
             'Transaction Id',
+            'Privilege Id',
         ]
     )
 
     if not transactions:
-        writer.writerow(['No transactions for this period'] + [''] * 8)
+        writer.writerow(['No transactions for this period'] + [''] * 9)
         return output.getvalue()
 
     for transaction in transactions:
@@ -464,7 +465,7 @@ def _generate_compact_transaction_report(transactions: list[dict], providers: di
         # Write a row for each state privilege in the transaction
         for item in transaction['lineItems']:
             if item['itemId'].startswith('priv:'):
-                # Extract jurisdiction from itemId (format: priv:compact-jurisdiction)
+                # Extract jurisdiction from itemId (format: priv:{compact}-{jurisdiction})
                 state = item['itemId'].split('-')[1].upper()
 
                 writer.writerow(
@@ -478,6 +479,7 @@ def _generate_compact_transaction_report(transactions: list[dict], providers: di
                         compact_fee_item['unitPrice'],
                         transaction_fee_item['unitPrice'] if transaction_fee_item else '0',
                         transaction['transactionId'],
+                        item.get('privilegeId', 'UNKNOWN'),
                     ]
                 )
 
@@ -516,14 +518,15 @@ def _generate_jurisdiction_reports(
                 'State',
                 'Compact Fee',
                 'Transaction Id',
+                'Privilege Id',
             ]
         )
 
         if not trans_items:
-            writer.writerow(['No transactions for this period'] + [''] * 7)
-            writer.writerow([''] * 8)
-            writer.writerow(['Privileges Purchased', 'Total State Amount'] + [''] * 6)
-            writer.writerow(['0', '$0.00'] + [''] * 6)
+            writer.writerow(['No transactions for this period'] + [''] * 8)
+            writer.writerow([''] * 9)
+            writer.writerow(['Privileges Purchased', 'Total State Amount'] + [''] * 7)
+            writer.writerow(['0', '$0.00'] + [''] * 7)
             reports[jurisdiction] = output.getvalue()
             continue
 
@@ -546,6 +549,7 @@ def _generate_jurisdiction_reports(
                     jurisdiction.upper(),
                     compact_fee_item['unitPrice'],
                     transaction['transactionId'],
+                    item.get('privilegeId', 'UNKNOWN'),
                 ]
             )
 
@@ -555,9 +559,9 @@ def _generate_jurisdiction_reports(
             total_amount += float(item['unitPrice']) * int(float(item['quantity']))
 
         # Add summary rows
-        writer.writerow([''] * 8)
-        writer.writerow(['Privileges Purchased', 'Total State Amount'] + [''] * 6)
-        writer.writerow([int(total_privileges), f'${total_amount:.2f}'] + [''] * 6)
+        writer.writerow([''] * 9)
+        writer.writerow(['Privileges Purchased', 'Total State Amount'] + [''] * 7)
+        writer.writerow([int(total_privileges), f'${total_amount:.2f}'] + [''] * 7)
 
         reports[jurisdiction] = output.getvalue()
 
