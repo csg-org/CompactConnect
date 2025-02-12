@@ -611,6 +611,5 @@ class TestDataClient(TstFunction):
             }
         )
 
-        # We didn't create the provider this time, so this won't exist
         with self.assertRaises(CCInternalException):
             client.get_ssn_by_provider_id(compact='aslp', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
