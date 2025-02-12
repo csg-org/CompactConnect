@@ -32,8 +32,10 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
     current_batch_id = event.get('currentBatchId')
     processed_batch_ids = event.get('processedBatchIds', [])
 
-    # This lambda is triggered at noon UTC-4, so we calculate the time range for the last 24 hours
-    end_time = config.current_standard_datetime.replace(hour=16, minute=0, second=0, microsecond=0)
+    # By default, the authorize.net accounts batch settlements at 4:00pm Pacific Time.
+    # This daily collector runs an hour later (5pm PST, which is 1am UTC) to collect
+    # all settled transaction for the last 24 hours.
+    end_time = config.current_standard_datetime.replace(hour=1, minute=0, second=0, microsecond=0)
     start_time = end_time - timedelta(days=1)
 
     # Format timestamps for API call

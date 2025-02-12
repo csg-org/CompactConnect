@@ -194,11 +194,12 @@ class TransactionHistoryProcessingWorkflow(Construct):
             ],
         )
 
-        # Create EventBridge rule to trigger state machine daily at noon UTC-4
+        # By default, the authorize.net accounts batch settlements at 4:00pm Pacific Time.
+        # This daily collector runs an hour later (5pm PST, which is 1am UTC) to collect all settled transaction for the last 24 hours.
         Rule(
             self,
             f'{compact}-DailyTransactionProcessingRule',
-            schedule=Schedule.cron(week_day='*', hour='16', minute='0', month='*', year='*'),
+            schedule=Schedule.cron(week_day='*', hour='1', minute='0', month='*', year='*'),
             targets=[SfnStateMachine(state_machine)],
         )
 
