@@ -70,18 +70,51 @@ class TstFunction(TstLambdas):
         cognito_client = boto3.client('cognito-idp')
         cognito_client.delete_user_pool(UserPoolId=self._user_pool_id)
 
-    def _load_user_data(self) -> str:
+    def _load_user_data(self, second_jurisdiction: str = None) -> str:
         with open('../common/tests/resources/dynamo/user.json') as f:
             # This item is saved in its serialized form, so we have to deserialize it first
             item = TypeDeserializer().deserialize({'M': json.load(f)})
+
+        # Add write permissions to a second jurisdiction
+        if second_jurisdiction:
+            item['permissions']['jurisdictions'][second_jurisdiction] = {'write'}
 
         logger.info('Loading user: %s', item)
         self._table.put_item(Item=item)
         return item['userId']
 
+    def _create_compact_board_user(self, compact: str, jurisdiction: str):
+        """Create a board-staff style user for the provided compact and jurisdiction."""
+        from cc_common.data_model.schema.common import StaffUserStatus
+        from cc_common.data_model.schema.user.record import UserRecordSchema
+
+        schema = UserRecordSchema()
+
+        email = self.faker.unique.email()
+        sub = self._create_cognito_user(email=email)
+
+        logger.info('Writing compact %s/%s permissions for %s', compact, jurisdiction, email)
+        self._table.put_item(
+            Item=schema.dump(
+                {
+                    'userId': sub,
+                    'compact': compact,
+                    'status': StaffUserStatus.INACTIVE.value,
+                    'attributes': {
+                        'email': email,
+                        'familyName': self.faker.unique.last_name(),
+                        'givenName': self.faker.unique.first_name(),
+                    },
+                    'permissions': self._create_write_permissions(jurisdiction),
+                },
+            ),
+        )
+        return sub
+
     def _create_compact_staff_user(self, compacts: list[str]):
         """Create a compact-staff style user for each jurisdiction in the provided compact."""
-        from cc_common.data_model.schema.user import UserRecordSchema
+        from cc_common.data_model.schema.common import StaffUserStatus
+        from cc_common.data_model.schema.user.record import UserRecordSchema
 
         schema = UserRecordSchema()
 
@@ -94,6 +127,7 @@ class TstFunction(TstLambdas):
                     {
                         'userId': sub,
                         'compact': compact,
+                        'status': StaffUserStatus.INACTIVE.value,
                         'attributes': {
                             'email': email,
                             'familyName': self.faker.unique.last_name(),
@@ -107,7 +141,8 @@ class TstFunction(TstLambdas):
 
     def _create_board_staff_users(self, compacts: list[str]):
         """Create a board-staff style user for each jurisdiction in the provided compact."""
-        from cc_common.data_model.schema.user import UserRecordSchema
+        from cc_common.data_model.schema.common import StaffUserStatus
+        from cc_common.data_model.schema.user.record import UserRecordSchema
 
         schema = UserRecordSchema()
 
@@ -121,6 +156,7 @@ class TstFunction(TstLambdas):
                         {
                             'userId': sub,
                             'compact': compact,
+                            'status': StaffUserStatus.INACTIVE.value,
                             'attributes': {
                                 'email': email,
                                 'familyName': self.faker.unique.last_name(),
@@ -144,4 +180,4 @@ class TstFunction(TstLambdas):
 
     @staticmethod
     def _create_write_permissions(jurisdiction: str):
-        return {'actions': {'read'}, 'jurisdictions': {jurisdiction: {'write'}}}
+        return {'actions': {'readPrivate'}, 'jurisdictions': {jurisdiction: {'write'}}}

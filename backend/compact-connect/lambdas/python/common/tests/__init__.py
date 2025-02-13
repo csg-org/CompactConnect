@@ -13,11 +13,14 @@ class TstLambdas(TestCase):
             {
                 # Set to 'true' to enable debug logging
                 'DEBUG': 'false',
+                'ALLOWED_ORIGINS': '["https://example.org", "http://localhost:1234"]',
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'BULK_BUCKET_NAME': 'cc-license-data-bulk-bucket',
                 'EVENT_BUS_NAME': 'license-data-events',
                 'PROVIDER_TABLE_NAME': 'provider-table',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
+                'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': 'email-notification-service',
+                'TRANSACTION_HISTORY_TABLE_NAME': 'transaction-history-table',
                 'ENVIRONMENT_NAME': 'test',
                 'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
                 'FAM_GIV_INDEX_NAME': 'famGiv',
@@ -27,7 +30,12 @@ class TstLambdas(TestCase):
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',
                 'LICENSE_TYPES': json.dumps(
-                    {'aslp': ['audiologist', 'speech-language pathologist', 'speech and language pathologist']},
+                    {
+                        'aslp': [
+                            {'name': 'audiologist', 'abbreviation': 'aud'},
+                            {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
+                        ]
+                    },
                 ),
             },
         )

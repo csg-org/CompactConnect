@@ -1,9 +1,12 @@
 import * as crypto from 'crypto';
+import * as nodemailer from 'nodemailer';
 
 import { Logger } from '@aws-lambda-powertools/logger';
-import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
+import { SendEmailCommand, SendRawEmailCommand, SESClient } from '@aws-sdk/client-ses';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { renderToStaticMarkup, TReaderDocument } from '@usewaypoint/email-builder';
 import { CompactConfigurationClient } from './compact-configuration-client';
+import { JurisdictionClient } from './jurisdiction-client';
 import { EnvironmentVariablesService } from './environment-variables-service';
 import { IIngestFailureEventRecord, IValidationErrorEventRecord } from './models';
 import { RecipientType } from './models/email-notification-service-event';
@@ -19,7 +22,9 @@ interface IIngestEvents {
 interface EmailServiceProperties {
     logger: Logger;
     sesClient: SESClient;
+    s3Client: S3Client;
     compactConfigurationClient: CompactConfigurationClient;
+    jurisdictionClient: JurisdictionClient;
 }
 
 const getEmailImageBaseUrl = () => {
@@ -34,7 +39,9 @@ const getEmailImageBaseUrl = () => {
 export class EmailService {
     private readonly logger: Logger;
     private readonly sesClient: SESClient;
+    private readonly s3Client: S3Client;
     private readonly compactConfigurationClient: CompactConfigurationClient;
+    private readonly jurisdictionClient: JurisdictionClient;
     private readonly emailTemplate: TReaderDocument = {
         'root': {
             'type': 'EmailLayout',
@@ -51,7 +58,9 @@ export class EmailService {
     public constructor(props: EmailServiceProperties) {
         this.logger = props.logger;
         this.sesClient = props.sesClient;
+        this.s3Client = props.s3Client;
         this.compactConfigurationClient = props.compactConfigurationClient;
+        this.jurisdictionClient = props.jurisdictionClient;
     }
 
     private async sendEmail({ htmlContent, subject, recipients, errorMessage }:
@@ -85,6 +94,47 @@ export class EmailService {
         }
     }
 
+    private async sendEmailWithAttachments({ 
+        htmlContent, 
+        subject, 
+        recipients, 
+        errorMessage,
+        attachments
+    }: {
+        htmlContent: string;
+        subject: string;
+        recipients: string[];
+        errorMessage: string;
+        attachments: { filename: string; content: string | Buffer; contentType: string; }[];
+    }) {
+        try {
+            // Create a nodemailer transport that generates raw MIME messages
+            const transport = nodemailer.createTransport({
+                SES: { ses: this.sesClient, aws: { SendRawEmailCommand }}
+            });
+
+            // Create the email message
+            const message = {
+                from: `Compact Connect <${environmentVariableService.getFromAddress()}>`,
+                to: recipients,
+                subject: subject,
+                html: htmlContent,
+                attachments: attachments.map((attachment) => ({
+                    filename: attachment.filename,
+                    content: attachment.content,
+                    contentType: attachment.contentType
+                }))
+            };
+
+            // Send the email
+            const result = await transport.sendMail(message);
+
+            return result.messageId;
+        } catch (error) {
+            this.logger.error(errorMessage, { error: error });
+            throw error;
+        }
+    }
 
     public async sendReportEmail(events: IIngestEvents, compact: string, jurisdiction: string, recipients: string[]) {
         this.logger.info('Sending report email', { recipients: recipients });
@@ -200,6 +250,8 @@ export class EmailService {
         switch (recipientType) {
         case 'COMPACT_OPERATIONS_TEAM':
             return compactConfig.compactOperationsTeamEmails;
+        case 'COMPACT_SUMMARY_REPORT':
+            return compactConfig.compactSummaryReportNotificationEmails;
         default:
             throw new Error(`Unsupported recipient type for compact configuration: ${recipientType}`);
         }
@@ -209,6 +261,7 @@ export class EmailService {
         recipientType: RecipientType,
         specificEmails?: string[]
     ): Promise<void> {
+        this.logger.info('Sending transaction batch settlement failure email', { compact: compact });
         const recipients = await this.getRecipients(compact, recipientType, specificEmails);
 
         if (recipients.length === 0) {
@@ -715,7 +768,7 @@ export class EmailService {
                     }
                 },
                 'props': {
-                    'text': '© 2024 CompactConnect'
+                    'text': '© 2025 CompactConnect'
                 }
             }
         };
@@ -766,6 +819,7 @@ export class EmailService {
                 },
                 'style': {
                     'textAlign': 'center',
+                    'color': '#242424',
                     'padding': {
                         'top': 28,
                         'bottom': 12,
@@ -795,6 +849,7 @@ export class EmailService {
                 'style': {
                     'fontSize': 16,
                     'fontWeight': 'normal',
+                    'color': '#A3A3A3',
                     'padding': {
                         'top': 24,
                         'bottom': 24,
@@ -809,5 +864,149 @@ export class EmailService {
         };
 
         report['root']['data']['childrenIds'].push(blockId);
+    }
+
+    /**
+     * Inserts a body text block into the email that can be formatted using markdown.
+     *
+     * @param report The report object to insert the block into.
+     * @param bodyText The text to insert into the block.
+     */
+    private insertMarkdownBody(report: TReaderDocument, bodyText: string) {
+        const blockId = `block-markdown-body`;
+
+        report[blockId] = {
+            'type': 'Text',
+            'data': {
+                'style': {
+                    'fontSize': 16,
+                    'fontWeight': 'normal',
+                    'textAlign': 'left',
+                    'color': '#A3A3A3',
+                    'padding': {
+                        'top': 24,
+                        'bottom': 24,
+                        'right': 40,
+                        'left': 40
+                    }
+                },
+                'props': {
+                    'markdown': true,
+                    'text': bodyText
+                }
+            }
+        };
+
+        report['root']['data']['childrenIds'].push(blockId);
+    }
+
+    public async sendCompactTransactionReportEmail(
+        compact: string,
+        reportS3Path: string,
+        reportingCycle: string,
+        startDate: string,
+        endDate: string
+    ): Promise<void> {
+        this.logger.info('Sending compact transaction report email', { compact: compact });
+        const recipients = await this.getRecipients(compact, 'COMPACT_SUMMARY_REPORT');
+        
+        if (recipients.length === 0) {
+            throw new Error(`No recipients found for compact ${compact} with recipient type COMPACT_SUMMARY_REPORT`);
+        }
+
+        // Get the report zip file from S3        
+        const reportZipResponse = await this.s3Client.send(new GetObjectCommand({
+            Bucket: environmentVariableService.getTransactionReportsBucketName(),
+            Key: reportS3Path
+        }));
+
+        if (!reportZipResponse.Body) {
+            throw new Error(`Failed to retrieve report from S3: ${reportS3Path}`);
+        }
+
+        const reportZipBuffer = Buffer.from(await reportZipResponse.Body.transformToByteArray());
+
+        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        const subject = `${reportingCycle === 'weekly' ? 'Weekly' : 'Monthly'} Report for Compact ${compact.toUpperCase()}`;
+        const bodyText = `Please find attached the ${reportingCycle} settled transaction reports for the compact for the period ${startDate} to ${endDate}:\n\n` +
+            '- Financial Summary Report - A summary of all settled transactions and fees\n' +
+            '- Transaction Detail Report - A detailed list of all settled transactions';
+
+        this.insertHeader(report, subject);
+        this.insertMarkdownBody(report, bodyText);
+        this.insertFooter(report);
+
+        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        
+        await this.sendEmailWithAttachments({ 
+            htmlContent, 
+            subject, 
+            recipients, 
+            errorMessage: 'Unable to send compact transaction report email',
+            attachments: [
+                {
+                    filename: `${compact}-settled-transaction-report.zip`,
+                    content: reportZipBuffer,
+                    contentType: 'application/zip'
+                }
+            ]
+        });
+    }
+
+    public async sendJurisdictionTransactionReportEmail(
+        compact: string,
+        jurisdiction: string,
+        reportS3Path: string,
+        reportingCycle: string,
+        startDate: string,
+        endDate: string
+    ): Promise<void> {
+        this.logger.info('Sending jurisdiction transaction report email', { 
+            compact: compact,
+            jurisdiction: jurisdiction 
+        });
+
+        const jurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, jurisdiction);
+        const recipients = jurisdictionConfig.jurisdictionSummaryReportNotificationEmails;
+
+        if (recipients.length === 0) {
+            throw new Error(`No recipients found for jurisdiction ${jurisdiction} in compact ${compact}`);
+        }
+
+        // Get the report zip file from S3        
+        const reportZipResponse = await this.s3Client.send(new GetObjectCommand({
+            Bucket: environmentVariableService.getTransactionReportsBucketName(),
+            Key: reportS3Path
+        }));
+
+        if (!reportZipResponse.Body) {
+            throw new Error(`Failed to retrieve report from S3: ${reportS3Path}`);
+        }
+
+        const reportZipBuffer = Buffer.from(await reportZipResponse.Body.transformToByteArray());
+
+        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        const subject = `${jurisdictionConfig.jurisdictionName} ${reportingCycle === 'weekly' ? 'Weekly' : 'Monthly'} Report for Compact ${compact.toUpperCase()}`;
+        const bodyText = `Please find attached the ${reportingCycle} settled transaction report for your jurisdiction for the period ${startDate} to ${endDate}.`;
+
+        this.insertHeader(report, subject);
+        this.insertBody(report, bodyText);
+        this.insertFooter(report);
+
+        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+        
+        await this.sendEmailWithAttachments({ 
+            htmlContent, 
+            subject, 
+            recipients, 
+            errorMessage: 'Unable to send jurisdiction transaction report email',
+            attachments: [
+                {
+                    filename: `${jurisdiction}-settled-transaction-report.zip`,
+                    content: reportZipBuffer,
+                    contentType: 'application/zip'
+                }
+            ]
+        });
     }
 }

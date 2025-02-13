@@ -38,6 +38,7 @@ class TstFunction(TstLambdas):
         self._bucket = boto3.resource('s3').create_bucket(Bucket=os.environ['BULK_BUCKET_NAME'])
         self.create_provider_table()
         self.create_ssn_table()
+        self.create_rate_limiting_table()
 
         boto3.client('events').create_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
@@ -48,6 +49,8 @@ class TstFunction(TstLambdas):
                 {'AttributeName': 'sk', 'AttributeType': 'S'},
                 {'AttributeName': 'providerFamGivMid', 'AttributeType': 'S'},
                 {'AttributeName': 'providerDateOfUpdate', 'AttributeType': 'S'},
+                {'AttributeName': 'licenseGSIPK', 'AttributeType': 'S'},
+                {'AttributeName': 'licenseGSISK', 'AttributeType': 'S'},
             ],
             TableName=os.environ['PROVIDER_TABLE_NAME'],
             KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
@@ -66,6 +69,14 @@ class TstFunction(TstLambdas):
                     'KeySchema': [
                         {'AttributeName': 'sk', 'KeyType': 'HASH'},
                         {'AttributeName': 'providerDateOfUpdate', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+                {
+                    'IndexName': os.environ['LICENSE_GSI_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'licenseGSIPK', 'KeyType': 'HASH'},
+                        {'AttributeName': 'licenseGSISK', 'KeyType': 'RANGE'},
                     ],
                     'Projection': {'ProjectionType': 'ALL'},
                 },
@@ -93,11 +104,23 @@ class TstFunction(TstLambdas):
             ],
         )
 
+    def create_rate_limiting_table(self):
+        self._rate_limiting_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['RATE_LIMITING_TABLE_NAME'],
+            KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
+            BillingMode='PAY_PER_REQUEST',
+        )
+
     def delete_resources(self):
         self._bucket.objects.delete()
         self._bucket.delete()
         self._provider_table.delete()
         self._ssn_table.delete()
+        self._rate_limiting_table.delete()
         boto3.client('events').delete_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
     def _load_provider_data(self):
@@ -127,6 +150,7 @@ class TstFunction(TstLambdas):
         :param home: The jurisdiction for the license
         :param privilege: The jurisdiction for the privilege
         :param start_serial: Starting number for last portion of the provider's SSN
+        :param names: A list of tuples, each containing a family name and given name
         """
         from cc_common.data_model.data_client import DataClient
         from handlers.ingest import ingest_license_message
@@ -182,6 +206,7 @@ class TstFunction(TstLambdas):
                 license_expiration_date=date(2050, 6, 6),
                 compact_transaction_id='1234567890',
                 existing_privileges=[],
+                license_type='speech-language pathologist',
                 # This attestation id/version pair is defined in the 'privilege.json' file under the
                 # common/tests/resources/dynamo directory
                 attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],

@@ -7,6 +7,21 @@ from .. import TstFunction
 
 @mock_aws
 class TestIngest(TstFunction):
+    @staticmethod
+    def _set_provider_data_to_empty_values(expected_provider: dict) -> dict:
+        # The canned response resource assumes that the provider will be given a privilege, military affiliation,
+        # home state selection, and one license renewal. We didn't do any of that here, so we'll reset that data
+        expected_provider['privilegeJurisdictions'] = []
+        expected_provider['privileges'] = []
+        expected_provider['militaryAffiliations'] = []
+        del expected_provider['homeJurisdictionSelection']
+
+        # in these test cases, the provider user has not registered in the system, so these values will not be
+        # present
+        del expected_provider['compactConnectRegisteredEmailAddress']
+        del expected_provider['cognitoSub']
+        return expected_provider
+
     def _with_ingested_license(self, omit_email: bool = False) -> str:
         from handlers.ingest import ingest_license_message
 
@@ -78,11 +93,8 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
 
-        # The canned response resource assumes that the provider will be given a privilege, military affiliation, and
-        # one license renewal. We didn't do any of that here, so we'll reset that data
-        expected_provider['privilegeJurisdictions'] = []
-        expected_provider['privileges'] = []
-        expected_provider['militaryAffiliations'] = []
+        # Reset the expected data to match the canned response
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
         for license_data in expected_provider['licenses']:
             license_data['history'] = []
 
@@ -144,7 +156,7 @@ class TestIngest(TstFunction):
         # But the second license should now be listed
         self.assertEqual(2, len(licenses))
 
-    def test_newer_active_license(self):
+    def test_newer_active_license_and_provider_has_not_registered_in_system(self):
         from handlers.ingest import ingest_license_message
 
         # The test resource provider has a license in oh
@@ -154,8 +166,55 @@ class TestIngest(TstFunction):
 
         with open('../common/tests/resources/ingest/message.json') as f:
             message = json.load(f)
-        # Imagine that this provider was just licensed in ky.
-        # What happens if ky uploads that new license?
+        # Imagine that this provider was just licensed in ky, but has not registered with the system (ie has not
+        # picked a home state).
+        # If ky uploads that new active license with a later issuance date, it should be selected as the licensee
+        message['detail']['dateOfIssuance'] = '2024-08-01'
+        message['detail']['familyName'] = 'Newname'
+        message['detail']['jurisdiction'] = 'ky'
+        message['detail']['status'] = 'active'
+        # remove the home state selection for the provider which was added by the TstFunction test setup
+        self.config.provider_table.delete_item(
+            Key={
+                'pk': f'aslp#PROVIDER#{provider_id}',
+                'sk': 'aslp#PROVIDER#home-jurisdiction#',
+            }
+        )
+
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+
+        resp = ingest_license_message(event, self.mock_context)
+
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        provider_data = self._get_provider_via_api(provider_id)
+
+        # The new name and jurisdiction should be reflected in the provider data
+        self.assertEqual('Newname', provider_data['familyName'])
+        self.assertEqual('ky', provider_data['licenseJurisdiction'])
+
+        # And the second license should now be listed
+        self.assertEqual(2, len(provider_data['licenses']))
+
+    def test_newer_active_license_and_provider_is_registered_in_system(self):
+        """
+        The test setup creates a provider with a home state selection of 'oh'.
+        This test checks that a new active license in a different jurisdiction does not override the home state
+        selection.
+        """
+        from handlers.ingest import ingest_license_message
+
+        # The test resource provider has a license in oh
+        self._load_provider_data()
+        with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
+            provider_id = json.load(f)['providerId']
+
+        with open('../common/tests/resources/ingest/message.json') as f:
+            message = json.load(f)
+        # Imagine that this provider was just licensed in ky, and has registered with the system with a home state
+        # selection of 'oh'.
+        # If ky uploads that new active license with a later issuance date, it should NOT be set as provider's
+        # license since it conflicts with their selected home state.
         message['detail']['dateOfIssuance'] = '2024-08-01'
         message['detail']['familyName'] = 'Newname'
         message['detail']['jurisdiction'] = 'ky'
@@ -169,9 +228,9 @@ class TestIngest(TstFunction):
 
         provider_data = self._get_provider_via_api(provider_id)
 
-        # The new name and jurisdiction should be reflected in the provider data
-        self.assertEqual('Newname', provider_data['familyName'])
-        self.assertEqual('ky', provider_data['licenseJurisdiction'])
+        # The old name and jurisdiction should be reflected in the provider data
+        self.assertEqual('Guðmundsdóttir', provider_data['familyName'])
+        self.assertEqual('oh', provider_data['licenseJurisdiction'])
 
         # And the second license should now be listed
         self.assertEqual(2, len(provider_data['licenses']))
@@ -199,18 +258,13 @@ class TestIngest(TstFunction):
         # these should be calculated as inactive at record load time
         expected_provider['status'] = 'inactive'
         expected_provider['licenses'][0]['status'] = 'inactive'
-
-        # NOTE: when we are supporting privilege applications officially, they should also be set inactive. That will
-        # be captured in the relevant feature work - this is just to help us remember, since it's pretty important.
-        # expected_provider['privileges'][0]['status'] = 'inactive'
+        # ensure the privilege record is also set to inactive
+        expected_provider['privileges'][0]['status'] = 'inactive'
 
         provider_data = self._get_provider_via_api(provider_id)
 
-        # The canned response resource assumes that the provider will be given a privilege, military affiliation, and
-        # one license renewal. We didn't do any of that here, so we'll reset that data
-        expected_provider['privilegeJurisdictions'] = []
-        expected_provider['privileges'] = []
-        expected_provider['militaryAffiliations'] = []
+        # Reset the expected data to match the canned response
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
         for license_data in expected_provider['licenses']:
             # We uploaded a 'deactivation' by just switching 'status' to 'inactive', so this change
             # should show up in the license history
@@ -224,6 +278,7 @@ class TestIngest(TstFunction):
                     'previous': {
                         'ssn': '123-12-1234',
                         'npi': '0608337260',
+                        'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
@@ -286,11 +341,9 @@ class TestIngest(TstFunction):
 
         provider_data = self._get_provider_via_api(provider_id)
 
-        # The canned response resource assumes that the provider will be given a privilege, military affiliation, and
-        # one license renewal. We didn't do any of that here, so we'll reset that data
-        expected_provider['privilegeJurisdictions'] = []
-        expected_provider['privileges'] = []
-        expected_provider['militaryAffiliations'] = []
+        # Reset the expected data to match the canned response
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
+
         for license_data in expected_provider['licenses']:
             # We uploaded a 'renewal' by just updating the dateOfRenewal and dateOfExpiration
             # This should show up in the license history
@@ -304,6 +357,7 @@ class TestIngest(TstFunction):
                     'previous': {
                         'ssn': '123-12-1234',
                         'npi': '0608337260',
+                        'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
@@ -368,11 +422,9 @@ class TestIngest(TstFunction):
 
         provider_data = self._get_provider_via_api(provider_id)
 
-        # The canned response resource assumes that the provider will be given a privilege, military affiliation, and
-        # one license renewal. We didn't do any of that here, so we'll reset that data
-        expected_provider['privilegeJurisdictions'] = []
-        expected_provider['privileges'] = []
-        expected_provider['militaryAffiliations'] = []
+        # Reset the expected data to match the canned response
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
+
         for license_data in expected_provider['licenses']:
             # We uploaded a 'name change' by just updating the familyName
             # This should show up in the license history
@@ -386,6 +438,7 @@ class TestIngest(TstFunction):
                     'previous': {
                         'ssn': '123-12-1234',
                         'npi': '0608337260',
+                        'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
@@ -444,11 +497,8 @@ class TestIngest(TstFunction):
         # The license status and provider should remain unchanged
         provider_data = self._get_provider_via_api(provider_id)
 
-        # The canned response resource assumes that the provider will be given a privilege, military affiliation, and
-        # one license renewal. We didn't do any of that here, so we'll reset that data
-        expected_provider['privilegeJurisdictions'] = []
-        expected_provider['privileges'] = []
-        expected_provider['militaryAffiliations'] = []
+        # Reset the expected data to match the canned response
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
         for license_data in expected_provider['licenses']:
             # No changes should show up in the license history
             license_data['history'] = []
@@ -490,11 +540,8 @@ class TestIngest(TstFunction):
         # The license status and provider should immediately reflect the removal of the email
         provider_data = self._get_provider_via_api(provider_id)
 
-        # The canned response resource assumes that the provider will be given a privilege, military affiliation, and
-        # one license renewal. We didn't do any of that here, so we'll reset that data
-        expected_provider['privilegeJurisdictions'] = []
-        expected_provider['privileges'] = []
-        expected_provider['militaryAffiliations'] = []
+        # Reset the expected data to match the canned response
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
 
         # Removing the field we just removed from the license
         del expected_provider['emailAddress']
@@ -513,6 +560,7 @@ class TestIngest(TstFunction):
                     'previous': {
                         'ssn': '123-12-1234',
                         'npi': '0608337260',
+                        'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
@@ -571,11 +619,8 @@ class TestIngest(TstFunction):
         # The license status and provider should immediately reflect the new email
         provider_data = self._get_provider_via_api(provider_id)
 
-        # The canned response resource assumes that the provider will be given a privilege, military affiliation, and
-        # one license renewal. We didn't do any of that here, so we'll reset that data
-        expected_provider['privilegeJurisdictions'] = []
-        expected_provider['privileges'] = []
-        expected_provider['militaryAffiliations'] = []
+        # Reset the expected data to match the canned response
+        expected_provider = self._set_provider_data_to_empty_values(expected_provider)
 
         for license_data in expected_provider['licenses']:
             # We added an emailAddress. This should show up in the license history
@@ -589,6 +634,7 @@ class TestIngest(TstFunction):
                     'previous': {
                         'ssn': '123-12-1234',
                         'npi': '0608337260',
+                        'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
@@ -608,7 +654,7 @@ class TestIngest(TstFunction):
                     },
                     'updatedValues': {
                         'emailAddress': 'björk@example.com',
-                    }
+                    },
                 }
             ]
 

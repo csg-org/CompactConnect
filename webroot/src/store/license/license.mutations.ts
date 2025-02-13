@@ -65,7 +65,7 @@ export default {
         if (licensee.id) { // Don't put objects with NULL IDs in the store
             if (state.model && state.model.length) {
                 const licenseeToUpdateIndex = state.model
-                    .findIndex((p: any) => Number(p.id) === Number(licensee.id));
+                    .findIndex((p: any) => p.id === licensee.id);
 
                 if (licenseeToUpdateIndex !== -1) {
                     state.model.splice(licenseeToUpdateIndex, 1, licensee);

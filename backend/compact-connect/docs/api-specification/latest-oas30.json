@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-01-15T17:49:42Z"
+    "version": "2025-02-05T21:10:07Z"
   },
   "servers": [
     {
@@ -10,107 +10,6 @@
     }
   ],
   "paths": {
-    "/v1/compacts": {
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/compacts/{compact}": {
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/compacts/{compact}/attestations": {
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
     "/v1/compacts/{compact}/attestations/{attestationId}": {
       "get": {
         "parameters": [
@@ -156,86 +55,6 @@
             "SandboxAPIStackLicenseApiProviderUsersPoolAuthorizerEB7523BA": []
           }
         ]
-      },
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "attestationId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/compacts/{compact}/credentials": {
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/compacts/{compact}/credentials/payment-processor": {
@@ -289,123 +108,6 @@
             ]
           }
         ]
-      },
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/compacts/{compact}/jurisdictions": {
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/compacts/{compact}/jurisdictions/{jurisdiction}": {
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "jurisdiction",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses": {
@@ -467,49 +169,6 @@
             ]
           }
         ]
-      },
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "jurisdiction",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/compacts/{compact}/jurisdictions/{jurisdiction}/licenses/bulk-upload": {
@@ -561,86 +220,6 @@
             ]
           }
         ]
-      },
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "jurisdiction",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/compacts/{compact}/providers": {
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/compacts/{compact}/providers/query": {
@@ -694,41 +273,6 @@
             ]
           }
         ]
-      },
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/compacts/{compact}/providers/{providerId}": {
@@ -780,49 +324,6 @@
             ]
           }
         ]
-      },
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "providerId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/compacts/{compact}/staff-users": {
@@ -915,41 +416,6 @@
             ]
           }
         ]
-      },
-      "options": {
-        "parameters": [
-          {
-            "name": "compact",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/compacts/{compact}/staff-users/{userId}": {
@@ -973,6 +439,16 @@
           }
         ],
         "responses": {
+          "404": {
+            "description": "404 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
+                }
+              }
+            }
+          },
           "200": {
             "description": "200 response",
             "headers": {
@@ -1001,7 +477,7 @@
           }
         ]
       },
-      "options": {
+      "delete": {
         "parameters": [
           {
             "name": "compact",
@@ -1021,28 +497,36 @@
           }
         ],
         "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
+          "404": {
+            "description": "404 response",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
                 }
               }
-            },
-            "content": {}
+            }
+          },
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+              "aslp/admin",
+              "octp/admin",
+              "coun/admin"
+            ]
+          }
+        ]
       },
       "patch": {
         "parameters": [
@@ -1074,6 +558,16 @@
           "required": true
         },
         "responses": {
+          "404": {
+            "description": "404 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
+                }
+              }
+            }
+          },
           "200": {
             "description": "200 response",
             "headers": {
@@ -1103,31 +597,57 @@
         ]
       }
     },
-    "/v1/provider-users": {
-      "options": {
+    "/v1/compacts/{compact}/staff-users/{userId}/reinvite": {
+      "post": {
+        "parameters": [
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
+          "404": {
+            "description": "404 response",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
                 }
               }
-            },
-            "content": {}
+            }
+          },
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
+                }
+              }
+            }
           }
-        }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+              "aslp/admin",
+              "octp/admin",
+              "coun/admin"
+            ]
+          }
+        ]
       }
     },
     "/v1/provider-users/me": {
@@ -1159,31 +679,6 @@
             "SandboxAPIStackLicenseApiProviderUsersPoolAuthorizerEB7523BA": []
           }
         ]
-      },
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/provider-users/me/military-affiliation": {
@@ -1226,31 +721,6 @@
           }
         ]
       },
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      },
       "patch": {
         "parameters": [
           {
@@ -1291,29 +761,28 @@
         ]
       }
     },
-    "/v1/purchases": {
-      "options": {
+    "/v1/provider-users/registration": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SandboLicenUEBOJMrsNHnm"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
                 "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
                 }
               }
-            },
-            "content": {}
+            }
           }
         }
       }
@@ -1357,31 +826,6 @@
             "SandboxAPIStackLicenseApiProviderUsersPoolAuthorizerEB7523BA": []
           }
         ]
-      },
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/purchases/privileges/options": {
@@ -1413,63 +857,21 @@
             "SandboxAPIStackLicenseApiProviderUsersPoolAuthorizerEB7523BA": []
           }
         ]
-      },
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      }
-    },
-    "/v1/staff-users": {
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
       }
     },
     "/v1/staff-users/me": {
       "get": {
         "responses": {
+          "404": {
+            "description": "404 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
+                }
+              }
+            }
+          },
           "200": {
             "description": "200 response",
             "headers": {
@@ -1496,31 +898,6 @@
           }
         ]
       },
-      "options": {
-        "responses": {
-          "204": {
-            "description": "204 response",
-            "headers": {
-              "Access-Control-Allow-Origin": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Methods": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "Access-Control-Allow-Headers": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            },
-            "content": {}
-          }
-        }
-      },
       "patch": {
         "requestBody": {
           "content": {
@@ -1533,6 +910,16 @@
           "required": true
         },
         "responses": {
+          "404": {
+            "description": "404 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
+                }
+              }
+            }
+          },
           "200": {
             "description": "200 response",
             "headers": {
@@ -1744,6 +1131,123 @@
           }
         }
       },
+      "SandboLicenUEBOJMrsNHnm": {
+        "required": [
+          "compact",
+          "dob",
+          "email",
+          "familyName",
+          "givenName",
+          "jurisdiction",
+          "licenseType",
+          "partialSocial",
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "licenseType": {
+            "maxLength": 500,
+            "type": "string",
+            "description": "Type of license"
+          },
+          "compact": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Compact name"
+          },
+          "dob": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string",
+            "description": "Date of birth in YYYY-MM-DD format"
+          },
+          "givenName": {
+            "maxLength": 200,
+            "type": "string",
+            "description": "Provider's given name"
+          },
+          "familyName": {
+            "maxLength": 200,
+            "type": "string",
+            "description": "Provider's family name"
+          },
+          "jurisdiction": {
+            "maxLength": 2,
+            "minLength": 2,
+            "type": "string",
+            "description": "Two-letter jurisdiction code",
+            "enum": [
+              "al",
+              "ak",
+              "az",
+              "ar",
+              "ca",
+              "co",
+              "ct",
+              "de",
+              "dc",
+              "fl",
+              "ga",
+              "hi",
+              "id",
+              "il",
+              "in",
+              "ia",
+              "ks",
+              "ky",
+              "la",
+              "me",
+              "md",
+              "ma",
+              "mi",
+              "mn",
+              "ms",
+              "mo",
+              "mt",
+              "ne",
+              "nv",
+              "nh",
+              "nj",
+              "nm",
+              "ny",
+              "nc",
+              "nd",
+              "oh",
+              "ok",
+              "or",
+              "pa",
+              "pr",
+              "ri",
+              "sc",
+              "sd",
+              "tn",
+              "tx",
+              "ut",
+              "vt",
+              "va",
+              "vi",
+              "wa",
+              "wv",
+              "wi",
+              "wy"
+            ]
+          },
+          "partialSocial": {
+            "maxLength": 4,
+            "minLength": 4,
+            "type": "string",
+            "description": "Last 4 digits of SSN"
+          },
+          "email": {
+            "maxLength": 100,
+            "type": "string",
+            "description": "Provider's email address"
+          },
+          "token": {
+            "type": "string",
+            "description": "ReCAPTCHA token"
+          }
+        }
+      },
       "SandboLicenk4wMidJp4tSI": {
         "required": [
           "pagination"
@@ -1892,6 +1396,72 @@
                   "minLength": 1,
                   "type": "string"
                 },
+                "homeAddressStreet1": {
+                  "maxLength": 100,
+                  "minLength": 2,
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "provider"
+                  ]
+                },
+                "ssn": {
+                  "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$",
+                  "type": "string"
+                },
+                "licenseType": {
+                  "type": "string",
+                  "enum": [
+                    "audiologist",
+                    "speech-language pathologist",
+                    "occupational therapist",
+                    "occupational therapy assistant",
+                    "licensed professional counselor"
+                  ]
+                },
+                "cognitoSub": {
+                  "type": "string"
+                },
+                "dateOfExpiration": {
+                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "homeAddressState": {
+                  "maxLength": 100,
+                  "minLength": 2,
+                  "type": "string"
+                },
+                "providerId": {
+                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                  "type": "string"
+                },
+                "familyName": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "homeAddressCity": {
+                  "maxLength": 100,
+                  "minLength": 2,
+                  "type": "string"
+                },
+                "licenseNumber": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "birthMonthDay": {
+                  "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "compactConnectRegisteredEmailAddress": {
+                  "type": "string",
+                  "format": "email"
+                },
                 "npi": {
                   "pattern": "^[0-9]{10}$",
                   "type": "string"
@@ -1904,11 +1474,6 @@
                 "givenName": {
                   "maxLength": 100,
                   "minLength": 1,
-                  "type": "string"
-                },
-                "homeAddressStreet1": {
-                  "maxLength": 100,
-                  "minLength": 2,
                   "type": "string"
                 },
                 "militaryWaiver": {
@@ -1980,63 +1545,10 @@
                     ]
                   }
                 },
-                "type": {
-                  "type": "string",
-                  "enum": [
-                    "provider"
-                  ]
-                },
-                "ssn": {
-                  "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$",
-                  "type": "string"
-                },
-                "licenseType": {
-                  "type": "string",
-                  "enum": [
-                    "audiologist",
-                    "speech-language pathologist",
-                    "speech and language pathologist",
-                    "occupational therapist",
-                    "occupational therapy assistant",
-                    "licensed professional counselor",
-                    "licensed mental health counselor",
-                    "licensed clinical mental health counselor",
-                    "licensed professional clinical counselor"
-                  ]
-                },
-                "dateOfExpiration": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                  "type": "string",
-                  "format": "date"
-                },
-                "homeAddressState": {
-                  "maxLength": 100,
-                  "minLength": 2,
-                  "type": "string"
-                },
-                "providerId": {
-                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                  "type": "string"
-                },
-                "familyName": {
-                  "maxLength": 100,
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "homeAddressCity": {
-                  "maxLength": 100,
-                  "minLength": 2,
-                  "type": "string"
-                },
                 "middleName": {
                   "maxLength": 100,
                   "minLength": 1,
                   "type": "string"
-                },
-                "birthMonthDay": {
-                  "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                  "type": "string",
-                  "format": "date"
                 },
                 "dateOfUpdate": {
                   "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
@@ -2084,6 +1596,7 @@
               "required": [
                 "attributes",
                 "permissions",
+                "status",
                 "userId"
               ],
               "type": "object",
@@ -2162,6 +1675,13 @@
                 },
                 "userId": {
                   "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "active",
+                    "inactive"
+                  ]
                 }
               },
               "additionalProperties": false
@@ -2172,7 +1692,6 @@
       },
       "SandboLicendmj7qfw2x1tR": {
         "required": [
-          "attestations",
           "orderInformation",
           "selectedJurisdictions"
         ],
@@ -2367,6 +1886,7 @@
         "required": [
           "attributes",
           "permissions",
+          "status",
           "userId"
         ],
         "type": "object",
@@ -2445,6 +1965,13 @@
           },
           "userId": {
             "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive"
+            ]
           }
         },
         "additionalProperties": false
@@ -2532,13 +2059,9 @@
               "enum": [
                 "audiologist",
                 "speech-language pathologist",
-                "speech and language pathologist",
                 "occupational therapist",
                 "occupational therapy assistant",
-                "licensed professional counselor",
-                "licensed mental health counselor",
-                "licensed clinical mental health counselor",
-                "licensed professional clinical counselor"
+                "licensed professional counselor"
               ]
             },
             "dateOfExpiration": {
@@ -2564,6 +2087,11 @@
             "homeAddressCity": {
               "maxLength": 100,
               "minLength": 2,
+              "type": "string"
+            },
+            "licenseNumber": {
+              "maxLength": 100,
+              "minLength": 1,
               "type": "string"
             },
             "middleName": {
@@ -3003,6 +2531,9 @@
               "attestation"
             ]
           },
+          "locale": {
+            "type": "string"
+          },
           "version": {
             "type": "string"
           },
@@ -3052,9 +2583,11 @@
           "homeAddressPostalCode",
           "homeAddressState",
           "homeAddressStreet1",
+          "homeJurisdictionSelection",
           "licenseJurisdiction",
           "licenseType",
           "licenses",
+          "militaryAffiliations",
           "privilegeJurisdictions",
           "privileges",
           "providerId",
@@ -3069,7 +2602,15 @@
             "items": {
               "type": "object",
               "properties": {
-                "licenseJurisdiction": {
+                "compact": {
+                  "type": "string",
+                  "enum": [
+                    "aslp",
+                    "octp",
+                    "coun"
+                  ]
+                },
+                "jurisdiction": {
                   "type": "string",
                   "enum": [
                     "al",
@@ -3127,28 +2668,38 @@
                     "wy"
                   ]
                 },
-                "dateOfExpiration": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                  "type": "string",
-                  "format": "date"
-                },
-                "compact": {
-                  "type": "string",
-                  "enum": [
-                    "aslp",
-                    "octp",
-                    "coun"
-                  ]
-                },
-                "providerId": {
-                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                  "type": "string"
+                "attestations": {
+                  "type": "array",
+                  "items": {
+                    "required": [
+                      "attestationId",
+                      "version"
+                    ],
+                    "type": "object",
+                    "properties": {
+                      "attestationId": {
+                        "maxLength": 100,
+                        "type": "string"
+                      },
+                      "version": {
+                        "maxLength": 100,
+                        "type": "string"
+                      }
+                    }
+                  }
                 },
                 "history": {
                   "type": "array",
                   "items": {
                     "type": "object",
                     "properties": {
+                      "removedValues": {
+                        "type": "array",
+                        "description": "List of field names that were present in the previous record but removed in the update",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
                       "compact": {
                         "type": "string",
                         "enum": [
@@ -3160,7 +2711,32 @@
                       "previous": {
                         "type": "object",
                         "properties": {
-                          "licenseJurisdiction": {
+                          "dateOfExpiration": {
+                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "compact": {
+                            "type": "string",
+                            "enum": [
+                              "aslp",
+                              "octp",
+                              "coun"
+                            ]
+                          },
+                          "privilegeId": {
+                            "type": "string"
+                          },
+                          "providerId": {
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                            "type": "string"
+                          },
+                          "dateOfRenewal": {
+                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "jurisdiction": {
                             "type": "string",
                             "enum": [
                               "al",
@@ -3218,28 +2794,34 @@
                               "wy"
                             ]
                           },
-                          "dateOfExpiration": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "compact": {
-                            "type": "string",
-                            "enum": [
-                              "aslp",
-                              "octp",
-                              "coun"
-                            ]
-                          },
-                          "providerId": {
-                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                            "type": "string"
+                          "attestations": {
+                            "type": "array",
+                            "items": {
+                              "required": [
+                                "attestationId",
+                                "version"
+                              ],
+                              "type": "object",
+                              "properties": {
+                                "attestationId": {
+                                  "maxLength": 100,
+                                  "type": "string"
+                                },
+                                "version": {
+                                  "maxLength": 100,
+                                  "type": "string"
+                                }
+                              }
+                            }
                           },
                           "type": {
                             "type": "string",
                             "enum": [
                               "privilege"
                             ]
+                          },
+                          "compactTransactionId": {
+                            "type": "string"
                           },
                           "dateOfIssuance": {
                             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
@@ -3321,7 +2903,32 @@
                       "updatedValues": {
                         "type": "object",
                         "properties": {
-                          "licenseJurisdiction": {
+                          "dateOfExpiration": {
+                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "compact": {
+                            "type": "string",
+                            "enum": [
+                              "aslp",
+                              "octp",
+                              "coun"
+                            ]
+                          },
+                          "privilegeId": {
+                            "type": "string"
+                          },
+                          "providerId": {
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                            "type": "string"
+                          },
+                          "dateOfRenewal": {
+                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "jurisdiction": {
                             "type": "string",
                             "enum": [
                               "al",
@@ -3379,28 +2986,34 @@
                               "wy"
                             ]
                           },
-                          "dateOfExpiration": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                            "type": "string",
-                            "format": "date"
-                          },
-                          "compact": {
-                            "type": "string",
-                            "enum": [
-                              "aslp",
-                              "octp",
-                              "coun"
-                            ]
-                          },
-                          "providerId": {
-                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                            "type": "string"
+                          "attestations": {
+                            "type": "array",
+                            "items": {
+                              "required": [
+                                "attestationId",
+                                "version"
+                              ],
+                              "type": "object",
+                              "properties": {
+                                "attestationId": {
+                                  "maxLength": 100,
+                                  "type": "string"
+                                },
+                                "version": {
+                                  "maxLength": 100,
+                                  "type": "string"
+                                }
+                              }
+                            }
                           },
                           "type": {
                             "type": "string",
                             "enum": [
                               "privilege"
                             ]
+                          },
+                          "compactTransactionId": {
+                            "type": "string"
                           },
                           "dateOfIssuance": {
                             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
@@ -3449,7 +3062,27 @@
                     "privilege"
                   ]
                 },
+                "compactTransactionId": {
+                  "type": "string"
+                },
                 "dateOfIssuance": {
+                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "dateOfExpiration": {
+                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "privilegeId": {
+                  "type": "string"
+                },
+                "providerId": {
+                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                  "type": "string"
+                },
+                "dateOfRenewal": {
                   "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                   "type": "string",
                   "format": "date"
@@ -3540,6 +3173,163 @@
             "minLength": 1,
             "type": "string"
           },
+          "homeAddressStreet1": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "provider"
+            ]
+          },
+          "ssn": {
+            "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$",
+            "type": "string"
+          },
+          "licenseType": {
+            "type": "string",
+            "enum": [
+              "audiologist",
+              "speech-language pathologist",
+              "occupational therapist",
+              "occupational therapy assistant",
+              "licensed professional counselor"
+            ]
+          },
+          "cognitoSub": {
+            "type": "string"
+          },
+          "dateOfExpiration": {
+            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "type": "string",
+            "format": "date"
+          },
+          "homeAddressState": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "providerId": {
+            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+            "type": "string"
+          },
+          "homeJurisdictionSelection": {
+            "type": "object",
+            "properties": {
+              "dateOfSelection": {
+                "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                "type": "string",
+                "format": "date"
+              },
+              "compact": {
+                "type": "string",
+                "enum": [
+                  "aslp",
+                  "octp",
+                  "coun"
+                ]
+              },
+              "providerId": {
+                "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                "type": "string"
+              },
+              "jurisdiction": {
+                "type": "string",
+                "enum": [
+                  "al",
+                  "ak",
+                  "az",
+                  "ar",
+                  "ca",
+                  "co",
+                  "ct",
+                  "de",
+                  "dc",
+                  "fl",
+                  "ga",
+                  "hi",
+                  "id",
+                  "il",
+                  "in",
+                  "ia",
+                  "ks",
+                  "ky",
+                  "la",
+                  "me",
+                  "md",
+                  "ma",
+                  "mi",
+                  "mn",
+                  "ms",
+                  "mo",
+                  "mt",
+                  "ne",
+                  "nv",
+                  "nh",
+                  "nj",
+                  "nm",
+                  "ny",
+                  "nc",
+                  "nd",
+                  "oh",
+                  "ok",
+                  "or",
+                  "pa",
+                  "pr",
+                  "ri",
+                  "sc",
+                  "sd",
+                  "tn",
+                  "tx",
+                  "ut",
+                  "vt",
+                  "va",
+                  "vi",
+                  "wa",
+                  "wv",
+                  "wi",
+                  "wy"
+                ]
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "homeJurisdictionSelection"
+                ]
+              },
+              "dateOfUpdate": {
+                "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                "type": "string",
+                "format": "date"
+              }
+            }
+          },
+          "familyName": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "homeAddressCity": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "licenseNumber": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "birthMonthDay": {
+            "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "type": "string",
+            "format": "date"
+          },
+          "compactConnectRegisteredEmailAddress": {
+            "type": "string",
+            "format": "email"
+          },
           "npi": {
             "pattern": "^[0-9]{10}$",
             "type": "string"
@@ -3552,11 +3342,6 @@
           "givenName": {
             "maxLength": 100,
             "minLength": 1,
-            "type": "string"
-          },
-          "homeAddressStreet1": {
-            "maxLength": 100,
-            "minLength": 2,
             "type": "string"
           },
           "militaryWaiver": {
@@ -3627,30 +3412,6 @@
                 "wy"
               ]
             }
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "provider"
-            ]
-          },
-          "ssn": {
-            "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$",
-            "type": "string"
-          },
-          "licenseType": {
-            "type": "string",
-            "enum": [
-              "audiologist",
-              "speech-language pathologist",
-              "speech and language pathologist",
-              "occupational therapist",
-              "occupational therapy assistant",
-              "licensed professional counselor",
-              "licensed mental health counselor",
-              "licensed clinical mental health counselor",
-              "licensed professional clinical counselor"
-            ]
           },
           "licenses": {
             "type": "array",
@@ -3760,6 +3521,13 @@
                   "items": {
                     "type": "object",
                     "properties": {
+                      "removedValues": {
+                        "type": "array",
+                        "description": "List of field names that were present in the previous record but removed in the update",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
                       "compact": {
                         "type": "string",
                         "enum": [
@@ -3817,13 +3585,9 @@
                             "enum": [
                               "audiologist",
                               "speech-language pathologist",
-                              "speech and language pathologist",
                               "occupational therapist",
                               "occupational therapy assistant",
-                              "licensed professional counselor",
-                              "licensed mental health counselor",
-                              "licensed clinical mental health counselor",
-                              "licensed professional clinical counselor"
+                              "licensed professional counselor"
                             ]
                           },
                           "dateOfExpiration": {
@@ -3849,6 +3613,11 @@
                           "homeAddressCity": {
                             "maxLength": 100,
                             "minLength": 2,
+                            "type": "string"
+                          },
+                          "licenseNumber": {
+                            "maxLength": 100,
+                            "minLength": 1,
                             "type": "string"
                           },
                           "middleName": {
@@ -3972,13 +3741,9 @@
                             "enum": [
                               "audiologist",
                               "speech-language pathologist",
-                              "speech and language pathologist",
                               "occupational therapist",
                               "occupational therapy assistant",
-                              "licensed professional counselor",
-                              "licensed mental health counselor",
-                              "licensed clinical mental health counselor",
-                              "licensed professional clinical counselor"
+                              "licensed professional counselor"
                             ]
                           },
                           "dateOfExpiration": {
@@ -4004,6 +3769,11 @@
                           "homeAddressCity": {
                             "maxLength": 100,
                             "minLength": 2,
+                            "type": "string"
+                          },
+                          "licenseNumber": {
+                            "maxLength": 100,
+                            "minLength": 1,
                             "type": "string"
                           },
                           "middleName": {
@@ -4062,13 +3832,9 @@
                   "enum": [
                     "audiologist",
                     "speech-language pathologist",
-                    "speech and language pathologist",
                     "occupational therapist",
                     "occupational therapy assistant",
-                    "licensed professional counselor",
-                    "licensed mental health counselor",
-                    "licensed clinical mental health counselor",
-                    "licensed professional clinical counselor"
+                    "licensed professional counselor"
                   ]
                 },
                 "dateOfExpiration": {
@@ -4100,6 +3866,11 @@
                   "minLength": 2,
                   "type": "string"
                 },
+                "licenseNumber": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
                 "middleName": {
                   "maxLength": 100,
                   "minLength": 1,
@@ -4120,39 +3891,76 @@
               }
             }
           },
-          "dateOfExpiration": {
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-            "type": "string",
-            "format": "date"
-          },
-          "homeAddressState": {
-            "maxLength": 100,
-            "minLength": 2,
-            "type": "string"
-          },
-          "providerId": {
-            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-            "type": "string"
-          },
-          "familyName": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
-          "homeAddressCity": {
-            "maxLength": 100,
-            "minLength": 2,
-            "type": "string"
+          "militaryAffiliations": {
+            "type": "array",
+            "items": {
+              "required": [
+                "affiliationType",
+                "compact",
+                "dateOfUpdate",
+                "dateOfUpload",
+                "fileNames",
+                "providerId",
+                "status",
+                "type"
+              ],
+              "type": "object",
+              "properties": {
+                "dateOfUpload": {
+                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "compact": {
+                  "type": "string",
+                  "enum": [
+                    "aslp",
+                    "octp",
+                    "coun"
+                  ]
+                },
+                "providerId": {
+                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                  "type": "string"
+                },
+                "affiliationType": {
+                  "type": "string",
+                  "enum": [
+                    "militaryMember",
+                    "militaryMemberSpouse"
+                  ]
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "militaryAffiliation"
+                  ]
+                },
+                "dateOfUpdate": {
+                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "fileNames": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "active",
+                    "inactive"
+                  ]
+                }
+              }
+            }
           },
           "middleName": {
             "maxLength": 100,
             "minLength": 1,
             "type": "string"
-          },
-          "birthMonthDay": {
-            "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-            "type": "string",
-            "format": "date"
           },
           "dateOfUpdate": {
             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",

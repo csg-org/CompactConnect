@@ -96,7 +96,40 @@ class _Config:
 
     @property
     def license_types(self):
-        return json.loads(os.environ['LICENSE_TYPES'])
+        """
+        Reshapes the new LICENSE_TYPES format into the previous format for backward compatibility.
+        The new format is:
+        {
+            "aslp": [
+                {"abbreviation": "aud", "name": "audiologist"},
+                {"abbreviation": "slp", "name": "speech-language pathologist"}
+            ]
+        }
+        The returned format is:
+        {
+            "aslp": ["audiologist", "speech-language pathologist"]
+        }
+        """
+        raw_license_types = json.loads(os.environ['LICENSE_TYPES'])
+        return {compact: [lt['name'] for lt in license_types] for compact, license_types in raw_license_types.items()}
+
+    @property
+    def license_type_abbreviations(self):
+        """
+        Creates a lookup dictionary for license type abbreviations based on compact and full name.
+        Returns a structure like:
+        {
+            "aslp": {
+                "audiologist": "aud",
+                "speech-language pathologist": "slp"
+            }
+        }
+        """
+        raw_license_types = json.loads(os.environ['LICENSE_TYPES'])
+        return {
+            compact: {lt['name']: lt['abbreviation'] for lt in license_types}
+            for compact, license_types in raw_license_types.items()
+        }
 
     def license_types_for_compact(self, compact):
         return self.license_types[compact]
@@ -118,6 +151,10 @@ class _Config:
         return os.environ['PROV_DATE_OF_UPDATE_INDEX_NAME']
 
     @property
+    def license_gsi_name(self):
+        return os.environ['LICENSE_GSI_NAME']
+
+    @property
     def ssn_inverted_index_name(self):
         return os.environ['SSN_INVERTED_INDEX_NAME']
 
@@ -132,6 +169,10 @@ class _Config:
     @property
     def user_pool_id(self):
         return os.environ['USER_POOL_ID']
+
+    @property
+    def provider_user_pool_id(self):
+        return os.environ['PROVIDER_USER_POOL_ID']
 
     @property
     def users_table_name(self):
@@ -186,12 +227,36 @@ class _Config:
         return TransactionClient(self)
 
     @property
+    def transaction_reports_bucket_name(self):
+        return os.environ['TRANSACTION_REPORTS_BUCKET_NAME']
+
+    @property
     def transaction_history_table_name(self):
         return os.environ['TRANSACTION_HISTORY_TABLE_NAME']
 
     @property
     def transaction_history_table(self):
         return boto3.resource('dynamodb').Table(self.transaction_history_table_name)
+
+    @property
+    def rate_limiting_table_name(self):
+        return os.environ['RATE_LIMITING_TABLE_NAME']
+
+    @property
+    def rate_limiting_table(self):
+        return boto3.resource('dynamodb').Table(self.rate_limiting_table_name)
+
+    @cached_property
+    def allowed_origins(self):
+        return json.loads(os.environ['ALLOWED_ORIGINS'])
+
+    @cached_property
+    def lambda_client(self):
+        return boto3.client('lambda')
+
+    @property
+    def email_notification_service_lambda_name(self):
+        return os.environ['EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME']
 
 
 config = _Config()

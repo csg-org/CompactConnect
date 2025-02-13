@@ -31,6 +31,7 @@ class ProviderTable(Table):
         )
         self.provider_fam_giv_mid_index_name = 'providerFamGivMid'
         self.provider_date_of_update_index_name = 'providerDateOfUpdate'
+        self.license_gsi_name = 'licenseGSI'
 
         self.add_global_secondary_index(
             index_name=self.provider_fam_giv_mid_index_name,
@@ -42,6 +43,12 @@ class ProviderTable(Table):
             index_name=self.provider_date_of_update_index_name,
             partition_key=Attribute(name='sk', type=AttributeType.STRING),
             sort_key=Attribute(name='providerDateOfUpdate', type=AttributeType.STRING),
+            projection_type=ProjectionType.ALL,
+        )
+        self.add_global_secondary_index(
+            index_name=self.license_gsi_name,
+            partition_key=Attribute(name='licenseGSIPK', type=AttributeType.STRING),
+            sort_key=Attribute(name='licenseGSISK', type=AttributeType.STRING),
             projection_type=ProjectionType.ALL,
         )
         NagSuppressions.add_resource_suppressions(

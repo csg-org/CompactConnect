@@ -13,7 +13,8 @@ import {
     responseError
 } from '@network/licenseApi/interceptors';
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
-import { Licensee, LicenseeSerializer } from '@models/Licensee/Licensee.model';
+import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
+import { PrivilegeAttestation, PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 
 export interface RequestParamsInterfaceLocal {
     compact?: string;
@@ -169,6 +170,19 @@ export class LicenseDataApi implements DataApiInterface {
     }
 
     /**
+     * POST Create Licensee Account
+     * @param  {string}        compact A compact type.
+     * @param  {object}        data    The user request data.
+     * @return {Promise<any>}          The server response.
+     */
+    public async createAccount(compact: string, data: object) {
+        const requestData = { ...data, compact };
+        const serverResponse = await this.api.post(`/v1/provider-users/registration`, requestData);
+
+        return serverResponse;
+    }
+
+    /**
      * GET Licensees.
      * @param  {RequestParamsInterfaceLocal} [params={}] The request query parameters config.
      * @return {Promise<object>}                         Response metadata + an array of licensees.
@@ -194,13 +208,19 @@ export class LicenseDataApi implements DataApiInterface {
      */
     public async getLicensee(compact: string, licenseeId: string) {
         const serverResponse: any = await this.api.get(`/v1/compacts/${compact}/providers/${licenseeId}`);
-        let licensee: Licensee | null = null;
 
-        if (serverResponse?.items?.length) {
-            licensee = LicenseeSerializer.fromServer(serverResponse.items[0]);
-        }
+        return LicenseeSerializer.fromServer(serverResponse);
+    }
 
-        const response = { licensee };
+    /**
+     * GET Attestations by ID for a compact.
+     * @param  {string}           compact       The compact string ID (aslp, otcp, coun).
+     * @param  {string}           attestationId The attestationId (from /backend/compact-connect/compact-config/*.yml).
+     * @return {Promise<object>}                A PrivilegeAttestation model instance.
+     */
+    public async getAttestation(compact: string, attestationId: string) {
+        const serverResponse: any = await this.api.get(`/v1/compacts/${compact}/attestations/${attestationId}`);
+        const response: PrivilegeAttestation = PrivilegeAttestationSerializer.fromServer(serverResponse);
 
         return response;
     }

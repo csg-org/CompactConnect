@@ -4,3 +4,13 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/lambdas/python/provider-data-v1/requirements.in
 #
+certifi==2025.1.31
+    # via requests
+charset-normalizer==3.4.1
+    # via requests
+idna==3.10
+    # via requests
+requests==2.32.3
+    # via -r compact-connect/lambdas/python/provider-data-v1/requirements.in
+urllib3==2.3.0
+    # via requests

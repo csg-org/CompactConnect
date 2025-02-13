@@ -15,9 +15,14 @@
                     alt="License Card Logo"
                 />
             </div>
-            <span class="license-title">
-                {{licenseTitle}}
-            </span>
+            <div class="license-heading-text">
+                <div class="license-title">
+                    {{licenseTitle}}
+                </div>
+                <div class="license-number">
+                    {{licenseNumber}}
+                </div>
+            </div>
         </div>
         <div class="license-info-grid">
             <div class="info-item-container">

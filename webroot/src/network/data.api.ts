@@ -60,6 +60,16 @@ export class DataApi {
     //                              LICENSE API
     // ========================================================================
     /**
+     * POST Create Licensee Account.
+     * @param  {string}       compact The compact string ID (aslp, ot, counseling).
+     * @param  {object}       data    The user request data.
+     * @return {Promise<any>}         The server response.
+     */
+    public createLicenseeAccount(compact: string, data: object) {
+        return licenseDataApi.createAccount(compact, data);
+    }
+
+    /**
      * GET Licensees.
      * @param  {object}         [params] The request query parameters config.
      * @return {Promise<Array>}          An array of users server response.
@@ -76,6 +86,16 @@ export class DataApi {
      */
     public getLicensee(compact, licenseeId) {
         return licenseDataApi.getLicensee(compact, licenseeId);
+    }
+
+    /**
+     * GET Attestation by ID.
+     * @param  {string}          compact       A compact type.
+     * @param  {string}          attestationId An attestation ID.
+     * @return {Promise<object>}               A PrivilegeAttestation model instance.
+     */
+    public getAttestation(compact, attestationId) {
+        return licenseDataApi.getAttestation(compact, attestationId);
     }
 
     // ========================================================================

@@ -5,7 +5,7 @@ export class EnvironmentVariablesService {
     private readonly uiBasePathUrlVariable = 'UI_BASE_PATH_URL';
     private readonly fromAddressVariable = 'FROM_ADDRESS';
     private readonly debugVariable = 'DEBUG';
-
+    private readonly transactionReportsBucketNameVariable = 'TRANSACTION_REPORTS_BUCKET_NAME';
 
     public getEnvVar(name: string): string {
         return process.env[name]?.trim() || '';
@@ -33,5 +33,9 @@ export class EnvironmentVariablesService {
 
     public getFromAddress() {
         return this.getEnvVar(this.fromAddressVariable);
+    }
+
+    public getTransactionReportsBucketName() {
+        return this.getEnvVar(this.transactionReportsBucketNameVariable);
     }
 }

@@ -60,12 +60,13 @@ class Stack(CdkStack):
     @cached_property
     def license_types(self):
         """Flattened list of all license types across all compacts"""
-        return [typ for comp in self.node.get_context('license_types').values() for typ in comp]
+        return [typ['name'] for compact in self.node.get_context('license_types').values() for typ in compact]
 
     @cached_property
     def common_env_vars(self):
         return {
             'DEBUG': 'true',
+            'ALLOWED_ORIGINS': json.dumps(self.allowed_origins),
             'COMPACTS': json.dumps(self.node.get_context('compacts')),
             'JURISDICTIONS': json.dumps(self.node.get_context('jurisdictions')),
             'LICENSE_TYPES': json.dumps(self.node.get_context('license_types')),
@@ -98,3 +99,20 @@ class AppStack(Stack):
         if self.hosted_zone is not None:
             return f'app.{self.hosted_zone.zone_name}'
         return None
+
+    @property
+    def allowed_origins(self) -> list[str]:
+        allowed_origins = []
+        if self.hosted_zone is not None:
+            allowed_origins.append(f'https://{self.ui_domain_name}')
+
+        if self.environment_context.get('allow_local_ui', False):
+            local_ui_port = self.environment_context.get('local_ui_port', '3018')
+            allowed_origins.append(f'http://localhost:{local_ui_port}')
+
+        if not allowed_origins:
+            raise ValueError(
+                'This app requires at least one allowed origin for its API CORS configuration. Either provide '
+                "'domain_name' or set 'allow_local_ui' to true in this environment's context."
+            )
+        return allowed_origins

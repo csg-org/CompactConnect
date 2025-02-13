@@ -45,12 +45,14 @@ class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
     # the id of the transaction that was made when the user purchased the privilege
     compactTransactionId = String(required=False, allow_none=False)
     # list of attestations that were accepted when purchasing this privilege
-    attestations = List(Nested(AttestationVersionRecordSchema()), required=False, allow_none=False)
+    attestations = List(Nested(AttestationVersionRecordSchema()), required=True, allow_none=False)
+    # the human-friendly identifier for this privilege
+    privilegeId = String(required=True, allow_none=False)
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
-        in_data['sk'] = f'{in_data['compact']}#PROVIDER#privilege/{in_data['jurisdiction']}#'
+        in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
+        in_data['sk'] = f'{in_data["compact"]}#PROVIDER#privilege/{in_data["jurisdiction"]}#'
         return in_data
 
     @pre_load
@@ -79,6 +81,7 @@ class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
     dateOfRenewal = DateTime(required=True, allow_none=False)
     dateOfExpiration = Date(required=True, allow_none=False)
     dateOfUpdate = DateTime(required=True, allow_none=False)
+    privilegeId = String(required=True, allow_none=False)
     compactTransactionId = String(required=False, allow_none=False)
     attestations = List(Nested(AttestationVersionRecordSchema()), required=False, allow_none=False)
 
@@ -104,12 +107,12 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
 
     @post_dump  # Must be _post_ dump so we have values that are more easily hashed
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        in_data['pk'] = f'{in_data['compact']}#PROVIDER#{in_data['providerId']}'
+        in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
         # This needs to include a POSIX timestamp (seconds) and a hash of the changes
         # to the record. We'll use the current time and the hash of the updatedValues
         # field for this.
         change_hash = self.hash_changes(in_data)
         in_data['sk'] = (
-            f'{in_data['compact']}#PROVIDER#privilege/{in_data['jurisdiction']}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'
+            f'{in_data["compact"]}#PROVIDER#privilege/{in_data["jurisdiction"]}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'
         )
         return in_data

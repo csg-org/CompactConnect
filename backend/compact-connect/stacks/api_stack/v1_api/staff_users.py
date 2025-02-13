@@ -13,7 +13,6 @@ from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
-from common_constructs.stack import Stack
 
 # Importing module level to allow lazy loading for typing
 from stacks import persistent_stack as ps
@@ -34,7 +33,7 @@ class StaffUsers:
     ):
         super().__init__()
 
-        self.stack = Stack.of(admin_resource)
+        self.stack: ps.PersistentStack = ps.PersistentStack.of(admin_resource)
         self.admin_resource = admin_resource
         self.api: cc_api.CCApi = admin_resource.api
         self.api_model = api_model
@@ -55,6 +54,13 @@ class StaffUsers:
         # <base-url>/{userId}
         self._add_get_user(self.user_id_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
         self._add_patch_user(self.user_id_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
+        self._add_delete_user(self.user_id_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack)
+
+        # <base-url>/{userId}/reinvite
+        self.reinvite_resource = self.user_id_resource.add_resource('reinvite')
+        self._add_reinvite_user(
+            self.reinvite_resource, admin_scopes, env_vars=env_vars, persistent_stack=persistent_stack
+        )
 
         self.me_resource = self_resource.add_resource('me')
         # <base-url>/me
@@ -74,7 +80,7 @@ class StaffUsers:
         get_me_handler = self._get_me_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
-            users_table=persistent_stack.staff_users.user_table,
+            user_table=persistent_stack.staff_users.user_table,
         )
 
         # Add the GET method to the me_resource
@@ -88,13 +94,19 @@ class StaffUsers:
                     response_models={'application/json': self.api_model.get_staff_user_me_model},
                     response_parameters={'method.response.header.Access-Control-Allow-Origin': True},
                 ),
+                MethodResponse(
+                    status_code='404',
+                    response_models={
+                        'application/json': self.api_model.message_response_model,
+                    },
+                ),
             ],
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
             authorization_scopes=scopes,
         )
 
-    def _get_me_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable):
+    def _get_me_handler(self, env_vars: dict, data_encryption_key: IKey, user_table: ITable):
         handler = PythonFunction(
             self.stack,
             'GetMeStaffUserHandler',
@@ -104,7 +116,7 @@ class StaffUsers:
             environment=env_vars,
         )
         data_encryption_key.grant_decrypt(handler)
-        users_table.grant_read_data(handler)
+        user_table.grant_read_data(handler)
 
         self.log_groups.append(handler.log_group)
 
@@ -131,7 +143,7 @@ class StaffUsers:
         patch_me_handler = self._patch_me_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
-            users_table=persistent_stack.staff_users.user_table,
+            user_table=persistent_stack.staff_users.user_table,
             user_pool=persistent_stack.staff_users,
         )
 
@@ -147,13 +159,19 @@ class StaffUsers:
                     response_models={'application/json': self.api_model.get_staff_user_me_model},
                     response_parameters={'method.response.header.Access-Control-Allow-Origin': True},
                 ),
+                MethodResponse(
+                    status_code='404',
+                    response_models={
+                        'application/json': self.api_model.message_response_model,
+                    },
+                ),
             ],
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
             authorization_scopes=scopes,
         )
 
-    def _patch_me_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable, user_pool: IUserPool):
+    def _patch_me_handler(self, env_vars: dict, data_encryption_key: IKey, user_table: ITable, user_pool: IUserPool):
         handler = PythonFunction(
             self.stack,
             'PatchMeStaffUserHandler',
@@ -163,7 +181,7 @@ class StaffUsers:
             environment=env_vars,
         )
         data_encryption_key.grant_encrypt_decrypt(handler)
-        users_table.grant_read_write_data(handler)
+        user_table.grant_read_write_data(handler)
         user_pool.grant(handler, 'cognito-idp:AdminUpdateUserAttributes')
 
         self.log_groups.append(handler.log_group)
@@ -191,7 +209,7 @@ class StaffUsers:
         get_users_handler = self._get_users_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
-            users_table=persistent_stack.staff_users.user_table,
+            user_table=persistent_stack.staff_users.user_table,
         )
         # Add the GET method to the users resource
         users_resource.add_method(
@@ -210,7 +228,7 @@ class StaffUsers:
             authorization_scopes=scopes,
         )
 
-    def _get_users_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable):
+    def _get_users_handler(self, env_vars: dict, data_encryption_key: IKey, user_table: ITable):
         handler = PythonFunction(
             self.stack,
             'GetStaffUsersHandler',
@@ -220,7 +238,7 @@ class StaffUsers:
             environment=env_vars,
         )
         data_encryption_key.grant_decrypt(handler)
-        users_table.grant_read_data(handler)
+        user_table.grant_read_data(handler)
 
         self.log_groups.append(handler.log_group)
 
@@ -247,7 +265,7 @@ class StaffUsers:
         get_user_handler = self._get_user_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
-            users_table=persistent_stack.staff_users.user_table,
+            user_table=persistent_stack.staff_users.user_table,
         )
 
         # Add the GET method to the user_id resource
@@ -261,13 +279,19 @@ class StaffUsers:
                     response_models={'application/json': self.api_model.get_staff_user_me_model},
                     response_parameters={'method.response.header.Access-Control-Allow-Origin': True},
                 ),
+                MethodResponse(
+                    status_code='404',
+                    response_models={
+                        'application/json': self.api_model.message_response_model,
+                    },
+                ),
             ],
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
             authorization_scopes=scopes,
         )
 
-    def _get_user_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable):
+    def _get_user_handler(self, env_vars: dict, data_encryption_key: IKey, user_table: ITable):
         handler = PythonFunction(
             self.stack,
             'GetStaffUserHandler',
@@ -277,7 +301,7 @@ class StaffUsers:
             environment=env_vars,
         )
         data_encryption_key.grant_decrypt(handler)
-        users_table.grant_read_data(handler)
+        user_table.grant_read_data(handler)
 
         self.log_groups.append(handler.log_group)
 
@@ -304,7 +328,7 @@ class StaffUsers:
         self.patch_user_handler = self._patch_user_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
-            users_table=persistent_stack.staff_users.user_table,
+            user_table=persistent_stack.staff_users.user_table,
         )
 
         # Add the PATCH method to the me_resource
@@ -319,13 +343,19 @@ class StaffUsers:
                     response_models={'application/json': self.api_model.get_staff_user_me_model},
                     response_parameters={'method.response.header.Access-Control-Allow-Origin': True},
                 ),
+                MethodResponse(
+                    status_code='404',
+                    response_models={
+                        'application/json': self.api_model.message_response_model,
+                    },
+                ),
             ],
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
             authorization_scopes=scopes,
         )
 
-    def _patch_user_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable):
+    def _patch_user_handler(self, env_vars: dict, data_encryption_key: IKey, user_table: ITable):
         handler = PythonFunction(
             self.stack,
             'PatchUserHandler',
@@ -335,9 +365,84 @@ class StaffUsers:
             environment=env_vars,
         )
         data_encryption_key.grant_encrypt_decrypt(handler)
-        users_table.grant_read_write_data(handler)
+        user_table.grant_read_write_data(handler)
 
         self.log_groups.append(handler.log_group)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self.stack,
+            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
+                    'and is scoped to one table and encryption key.',
+                },
+            ],
+        )
+        return handler
+
+    def _add_delete_user(
+        self,
+        user_id_resource: Resource,
+        scopes: list[str],
+        *,
+        env_vars: dict[str, str],
+        persistent_stack: ps.PersistentStack,
+    ) -> None:
+        """Add DELETE method to delete a staff user's record.
+
+        Args:
+            user_id_resource: The API Gateway Resource to add the method to
+            scopes: List of OAuth scopes required for this endpoint
+            env_vars: Environment variables to pass to the Lambda function
+            persistent_stack: Stack containing persistent resources
+        """
+        self.delete_user_handler = self._delete_user_handler(
+            env_vars=env_vars,
+            data_encryption_key=persistent_stack.shared_encryption_key,
+            user_table=persistent_stack.staff_users.user_table,
+        )
+
+        # Add the method to the resource
+        user_id_resource.add_method(
+            'DELETE',
+            LambdaIntegration(self.delete_user_handler),
+            authorization_type=AuthorizationType.COGNITO,
+            authorizer=self.api.staff_users_authorizer,
+            authorization_scopes=scopes,
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={
+                        'application/json': self.api_model.message_response_model,
+                    },
+                ),
+                MethodResponse(
+                    status_code='404',
+                    response_models={
+                        'application/json': self.api_model.message_response_model,
+                    },
+                ),
+            ],
+        )
+
+        # Add the function's log group to the list for retention setting
+        self.log_groups.append(self.delete_user_handler.log_group)
+
+    def _delete_user_handler(self, env_vars: dict, data_encryption_key: IKey, user_table: ITable):
+        handler = PythonFunction(
+            self.stack,
+            'DeleteStaffUserFunction',
+            lambda_dir='staff-users',
+            index=os.path.join('handlers', 'users.py'),
+            handler='delete_user',
+            environment=env_vars,
+        )
+
+        # Grant permissions to the function
+        data_encryption_key.grant_encrypt_decrypt(handler)
+        user_table.grant_read_write_data(handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             self.stack,
@@ -362,7 +467,7 @@ class StaffUsers:
         self.post_user_handler = self._post_user_handler(
             env_vars=env_vars,
             data_encryption_key=persistent_stack.shared_encryption_key,
-            users_table=persistent_stack.staff_users.user_table,
+            user_table=persistent_stack.staff_users.user_table,
             user_pool=persistent_stack.staff_users,
         )
 
@@ -384,7 +489,7 @@ class StaffUsers:
             authorization_scopes=scopes,
         )
 
-    def _post_user_handler(self, env_vars: dict, data_encryption_key: IKey, users_table: ITable, user_pool: IUserPool):
+    def _post_user_handler(self, env_vars: dict, data_encryption_key: IKey, user_table: ITable, user_pool: IUserPool):
         handler = PythonFunction(
             self.stack,
             'PostStaffUserHandler',
@@ -394,7 +499,7 @@ class StaffUsers:
             environment=env_vars,
         )
         data_encryption_key.grant_encrypt_decrypt(handler)
-        users_table.grant_read_write_data(handler)
+        user_table.grant_read_write_data(handler)
         user_pool.grant(
             handler,
             'cognito-idp:AdminCreateUser',
@@ -405,6 +510,82 @@ class StaffUsers:
         )
 
         self.log_groups.append(handler.log_group)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self.stack,
+            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
+                    'and is scoped to one table and encryption key.',
+                },
+            ],
+        )
+        return handler
+
+    def _add_reinvite_user(
+        self,
+        reinvite_resource: Resource,
+        scopes: list[str],
+        env_vars: dict,
+        persistent_stack: ps.PersistentStack,
+    ) -> None:
+        self.reinvite_user_handler = self._reinvite_user_handler(
+            env_vars=env_vars,
+            data_encryption_key=persistent_stack.shared_encryption_key,
+            user_table=persistent_stack.staff_users.user_table,
+            user_pool=persistent_stack.staff_users,
+        )
+
+        # Add the method to the resource
+        reinvite_resource.add_method(
+            'POST',
+            LambdaIntegration(self.reinvite_user_handler),
+            authorization_type=AuthorizationType.COGNITO,
+            authorizer=self.api.staff_users_authorizer,
+            authorization_scopes=scopes,
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={
+                        'application/json': self.api_model.message_response_model,
+                    },
+                ),
+                MethodResponse(
+                    status_code='404',
+                    response_models={
+                        'application/json': self.api_model.message_response_model,
+                    },
+                ),
+            ],
+        )
+
+        # Add the function's log group to the list for retention setting
+        self.log_groups.append(self.reinvite_user_handler.log_group)
+
+    def _reinvite_user_handler(
+        self, env_vars: dict, data_encryption_key: IKey, user_table: ITable, user_pool: IUserPool
+    ):
+        handler = PythonFunction(
+            self.stack,
+            'ReinviteStaffUserFunction',
+            lambda_dir='staff-users',
+            index=os.path.join('handlers', 'users.py'),
+            handler='reinvite_user',
+            environment=env_vars,
+        )
+
+        # Grant permissions to the function
+        data_encryption_key.grant_encrypt_decrypt(handler)
+        user_table.grant_read_write_data(handler)
+        user_pool.grant(
+            handler,
+            'cognito-idp:AdminGetUser',
+            'cognito-idp:AdminResetUserPassword',
+            'cognito-idp:AdminSetUserPassword',
+            'cognito-idp:AdminCreateUser',
+        )
 
         NagSuppressions.add_resource_suppressions_by_path(
             self.stack,

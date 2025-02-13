@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 from app import CompactConnectApp
 from aws_cdk.assertions import Annotations, Match, Template
-from aws_cdk.aws_apigateway import CfnMethod
+from aws_cdk.aws_apigateway import CfnGatewayResponse, CfnMethod
 from aws_cdk.aws_cloudfront import CfnDistribution
 from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolClient
 from aws_cdk.aws_dynamodb import CfnTable
@@ -289,6 +289,76 @@ class TstAppABC(ABC):
                     type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
                     props={'Properties': {'AuthorizationScopes': Match.any_value(), 'AuthorizationType': 'NONE'}},
                 )
+
+            # This is what the auto-generated preflight CORS OPTIONS methods looks like. If we have one match
+            # we probably have a ton, so we'll just check for the presence of one method that looks like this.
+            api_template.has_resource(
+                type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
+                props={
+                    'Properties': {
+                        'HttpMethod': 'OPTIONS',
+                        'Integration': {
+                            'IntegrationResponses': [
+                                {
+                                    'ResponseParameters': {
+                                        'method.response.header.Access-Control-Allow-Headers': (
+                                            "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,"
+                                            "X-Amz-User-Agent,cache-control'"
+                                        ),
+                                        'method.response.header.Access-Control-Allow-Origin': (
+                                            f"'{api_stack.allowed_origins[0]}'"
+                                        ),
+                                        'method.response.header.Vary': "'Origin'",
+                                        'method.response.header.Access-Control-Allow-Methods': (
+                                            "'OPTIONS,GET,PUT,POST,DELETE,PATCH,HEAD'"
+                                        ),
+                                    },
+                                    'StatusCode': '204',
+                                }
+                            ],
+                            'RequestTemplates': {'application/json': '{ statusCode: 200 }'},
+                            'Type': 'MOCK',
+                        },
+                        'MethodResponses': [
+                            {
+                                'ResponseParameters': {
+                                    'method.response.header.Access-Control-Allow-Headers': True,
+                                    'method.response.header.Access-Control-Allow-Origin': True,
+                                    'method.response.header.Vary': True,
+                                    'method.response.header.Access-Control-Allow-Methods': True,
+                                },
+                                'StatusCode': '204',
+                            }
+                        ],
+                        'RestApiId': {'Ref': api_stack.get_logical_id(api_stack.api.node.default_child)},
+                    }
+                },
+            )
+
+        # The GatewayResponses we configure should have a single specific origin, unless we have more than one origin
+        # in which case we should have the catch-all '*' origin.
+        if len(api_stack.allowed_origins) > 1:
+            api_template.has_resource(
+                CfnGatewayResponse.CFN_RESOURCE_TYPE_NAME,
+                props={
+                    'Properties': {
+                        'ResponseParameters': {'gatewayresponse.header.Access-Control-Allow-Origin': "'*'"},
+                        'RestApiId': {'Ref': api_stack.get_logical_id(api_stack.api.node.default_child)},
+                    },
+                },
+            )
+        else:
+            api_template.has_resource(
+                CfnGatewayResponse.CFN_RESOURCE_TYPE_NAME,
+                props={
+                    'Properties': {
+                        'ResponseParameters': {
+                            'gatewayresponse.header.Access-Control-Allow-Origin': f"'{api_stack.allowed_origins[0]}'"
+                        },
+                        'RestApiId': {'Ref': api_stack.get_logical_id(api_stack.api.node.default_child)},
+                    },
+                },
+            )
 
     def _check_no_stack_annotations(self, stack: Stack):
         with self.subTest(f'Security Rules: {stack.stack_name}'):

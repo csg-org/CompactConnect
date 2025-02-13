@@ -8,35 +8,33 @@ boolean-py==4.0
     # via license-expression
 build==1.2.2.post1
     # via pip-tools
-cachecontrol[filecache]==0.14.1
+cachecontrol[filecache]==0.14.2
     # via
     #   cachecontrol
     #   pip-audit
-certifi==2024.12.14
+certifi==2025.1.31
     # via requests
 charset-normalizer==3.4.1
     # via requests
 click==8.1.8
     # via pip-tools
-coverage[toml]==7.6.10
+coverage[toml]==7.6.12
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
-cyclonedx-python-lib==7.6.2
+cyclonedx-python-lib==8.8.0
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
 faker==28.4.1
     # via -r compact-connect/requirements-dev.in
-filelock==3.16.1
+filelock==3.17.0
     # via cachecontrol
-html5lib==1.1
-    # via pip-audit
 idna==3.10
     # via requests
 iniconfig==2.0.0
     # via pytest
-license-expression==30.4.0
+license-expression==30.4.1
     # via cyclonedx-python-lib
 markdown-it-py==3.0.0
     # via rich
@@ -54,17 +52,19 @@ packaging==24.2
     #   pytest
 pip-api==0.0.34
     # via pip-audit
-pip-audit==2.7.3
+pip-audit==2.8.0
     # via -r compact-connect/requirements-dev.in
 pip-requirements-parser==32.0.1
     # via pip-audit
 pip-tools==7.4.1
     # via -r compact-connect/requirements-dev.in
+platformdirs==4.3.6
+    # via pip-audit
 pluggy==1.5.0
     # via pytest
 py-serializable==1.1.2
     # via cyclonedx-python-lib
-pygments==2.19.0
+pygments==2.19.1
     # via rich
 pyparsing==3.2.1
     # via pip-requirements-parser
@@ -86,20 +86,16 @@ requests==2.32.3
     #   pip-audit
 rich==13.9.4
     # via pip-audit
-ruff==0.8.6
+ruff==0.9.6
     # via -r compact-connect/requirements-dev.in
 six==1.17.0
-    # via
-    #   html5lib
-    #   python-dateutil
+    # via python-dateutil
 sortedcontainers==2.4.0
     # via cyclonedx-python-lib
 toml==0.10.2
     # via pip-audit
 urllib3==2.3.0
     # via requests
-webencodings==0.5.1
-    # via html5lib
 wheel==0.45.1
     # via pip-tools
 

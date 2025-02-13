@@ -2,10 +2,12 @@ import type { LambdaInterface } from '@aws-lambda-powertools/commons/lib/esm/typ
 import { Logger } from '@aws-lambda-powertools/logger';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { SESClient } from '@aws-sdk/client-ses';
+import { S3Client } from '@aws-sdk/client-s3';
 import { Context } from 'aws-lambda';
 
 import { EnvironmentVariablesService } from '../lib/environment-variables-service';
 import { CompactConfigurationClient } from '../lib/compact-configuration-client';
+import { JurisdictionClient } from '../lib/jurisdiction-client';
 import { EmailService } from '../lib/email-service';
 import { EmailNotificationEvent, EmailNotificationResponse } from '../lib/models/email-notification-service-event';
 
@@ -15,6 +17,7 @@ const logger = new Logger({ logLevel: environmentVariables.getLogLevel() });
 interface LambdaProperties {
     dynamoDBClient: DynamoDBClient;
     sesClient: SESClient;
+    s3Client: S3Client;
 }
 
 export class Lambda implements LambdaInterface {
@@ -26,10 +29,17 @@ export class Lambda implements LambdaInterface {
             dynamoDBClient: props.dynamoDBClient,
         });
 
+        const jurisdictionClient = new JurisdictionClient({
+            logger: logger,
+            dynamoDBClient: props.dynamoDBClient,
+        });
+
         this.emailService = new EmailService({
             logger: logger,
             sesClient: props.sesClient,
+            s3Client: props.s3Client,
             compactConfigurationClient: compactConfigurationClient,
+            jurisdictionClient: jurisdictionClient
         });
     }
 
@@ -45,7 +55,7 @@ export class Lambda implements LambdaInterface {
      */
     @logger.injectLambdaContext({ resetKeys: true })
     public async handler(event: EmailNotificationEvent, context: Context): Promise<EmailNotificationResponse> {
-        logger.info('Processing event', { event: event });
+        logger.info('Processing event', { template: event.template, compact: event.compact, jurisdiction: event.jurisdiction });
 
         // Check if FROM_ADDRESS is configured
         if (environmentVariables.getFromAddress() === 'NONE') {
@@ -61,6 +71,34 @@ export class Lambda implements LambdaInterface {
                 event.compact,
                 event.recipientType,
                 event.specificEmails
+            );
+            break;
+        case 'CompactTransactionReporting':
+            if (!event.templateVariables?.reportS3Path) {
+                throw new Error('Missing required template variables for CompactTransactionReporting template');
+            }
+            await this.emailService.sendCompactTransactionReportEmail(
+                event.compact,
+                event.templateVariables.reportS3Path,
+                event.templateVariables.reportingCycle,
+                event.templateVariables.startDate,
+                event.templateVariables.endDate
+            );
+            break;
+        case 'JurisdictionTransactionReporting':
+            if (!event.jurisdiction) {
+                throw new Error('Missing required jurisdiction field for JurisdictionTransactionReporting template');
+            }
+            if (!event.templateVariables?.reportS3Path) {
+                throw new Error('Missing required template variables for JurisdictionTransactionReporting template');
+            }
+            await this.emailService.sendJurisdictionTransactionReportEmail(
+                event.compact,
+                event.jurisdiction,
+                event.templateVariables.reportS3Path,
+                event.templateVariables.reportingCycle,
+                event.templateVariables.startDate,
+                event.templateVariables.endDate
             );
             break;
         default:

@@ -82,6 +82,19 @@ class TestTransformations(TstFunction):
         self.assertEqual(expected_provider_id, provider_id)
         provider_record = client.get_provider(compact='aslp', provider_id=provider_id, detail=False)
 
+        # Expected representation of each record in the database
+        with open('../common/tests/resources/dynamo/provider.json') as f:
+            expected_provider = json.load(f)
+
+        # register the provider in the system
+        client.process_registration_values(
+            compact='aslp',
+            provider_id=provider_id,
+            cognito_sub=expected_provider['cognitoSub'],
+            jurisdiction='oh',
+            email_address=expected_provider['compactConnectRegisteredEmailAddress'],
+        )
+
         # Add a privilege to practice in Nebraska
         client.create_provider_privileges(
             compact='aslp',
@@ -92,6 +105,7 @@ class TestTransformations(TstFunction):
             license_expiration_date=date(2025, 4, 4),
             compact_transaction_id='1234567890',
             existing_privileges=[],
+            license_type='speech-language pathologist',
             attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
         )
 
@@ -114,13 +128,10 @@ class TestTransformations(TstFunction):
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
             & Key('sk').begins_with('aslp#PROVIDER'),
         )
-        # One record for each of: provider, license, privilege, militaryAffiliation
-        self.assertEqual(4, len(resp['Items']))
+        # One record for each of: provider, license, privilege, militaryAffiliation, and homeJurisdictionSelection
+        self.assertEqual(5, len(resp['Items']))
         records = {item['type']: item for item in resp['Items']}
 
-        # Expected representation of each record in the database
-        with open('../common/tests/resources/dynamo/provider.json') as f:
-            expected_provider = json.load(f)
         # Convert this to the data type expected from DynamoDB
         expected_provider['privilegeJurisdictions'] = set(expected_provider['privilegeJurisdictions'])
 
@@ -195,6 +206,8 @@ class TestTransformations(TstFunction):
         del provider_data['privileges'][0]['dateOfRenewal']
         del provider_data['militaryAffiliations'][0]['dateOfUpload']
         del provider_data['militaryAffiliations'][0]['dateOfUpdate']
+        del provider_data['homeJurisdictionSelection']['dateOfSelection']
+        del provider_data['homeJurisdictionSelection']['dateOfUpdate']
         del expected_provider['dateOfUpdate']
         del expected_provider['licenses'][0]['dateOfUpdate']
         del expected_provider['privileges'][0]['dateOfUpdate']
@@ -202,6 +215,8 @@ class TestTransformations(TstFunction):
         del expected_provider['privileges'][0]['dateOfRenewal']
         del expected_provider['militaryAffiliations'][0]['dateOfUpload']
         del expected_provider['militaryAffiliations'][0]['dateOfUpdate']
+        del expected_provider['homeJurisdictionSelection']['dateOfUpdate']
+        del expected_provider['homeJurisdictionSelection']['dateOfSelection']
 
         # This lengthy test does not include change records for licenses or privileges, so we'll blank out the
         # sample history from our expected_provider
@@ -209,4 +224,5 @@ class TestTransformations(TstFunction):
         expected_provider['privileges'][0]['history'] = []
 
         # Phew! We've loaded the data all the way in via the ingest chain and back out via the API!
+        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)

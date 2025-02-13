@@ -15,6 +15,7 @@ import { User, InterfaceUserCreate } from '@models/User/User.model';
 // =                       Interface                      =
 // ========================================================
 export interface InterfaceLicenseeUserCreate extends InterfaceUserCreate {
+    stateProvidedEmail?: string | null;
     licensee?: Licensee | null;
 }
 
@@ -22,6 +23,7 @@ export interface InterfaceLicenseeUserCreate extends InterfaceUserCreate {
 // =                        Model                         =
 // ========================================================
 export class LicenseeUser extends User implements InterfaceLicenseeUserCreate {
+    public stateProvidedEmail? = null;
     public licensee? = null;
 
     constructor(data?: InterfaceLicenseeUserCreate) {
@@ -46,7 +48,8 @@ export class LicenseeUserSerializer {
     static fromServer(json: any): LicenseeUser {
         const userData: any = {
             id: json.providerId,
-            email: json.emailAddress,
+            stateProvidedEmail: json.emailAddress,
+            compactConnectEmail: json.compactConnectRegisteredEmailAddress,
             firstName: json.givenName,
             lastName: json.familyName,
             accountStatus: json.status || 'inactive',
@@ -76,7 +79,8 @@ export class LicenseeUserPurchaseSerializer {
                     state: formValues.stateSelect.toUpperCase(),
                     zip: formValues.zip
                 }
-            }
+            },
+            attestations: [] // temp to allow submit with current API validation
         };
 
         return purchaseData;

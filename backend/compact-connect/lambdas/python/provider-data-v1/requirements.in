@@ -1,1 +1,2 @@
 # common requirements are managed in the common-python requirements.in file
+requests>=2.31.0, <3.0.0

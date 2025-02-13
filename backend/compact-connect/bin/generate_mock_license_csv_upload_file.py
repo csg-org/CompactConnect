@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-# Quick script to generate some mock data for test environments
+# Quick script to generate some mock data in a csv file for test environments
+# The csv file must then be uploaded into the system using the bulk upload process.
 #
 # Run from 'backend/compact-connect' like:
-# bin/generate_mock_data.py --count 100 --compact octp --jurisdiction ne
+# bin/generate_mock_license_csv_upload_file.py --count 100 --compact octp --jurisdiction ne
 import json
 import os
 import sys
@@ -38,6 +39,7 @@ schema = LicensePostRequestSchema()
 FIELDS = (
     'ssn',
     'npi',
+    'licenseNumber',
     'licenseType',
     'status',
     'givenName',
@@ -82,9 +84,11 @@ def get_mock_license(i: int, *, compact: str, jurisdiction: str = None) -> dict:
         jurisdiction = faker.state_abbr().lower()
     license_data = {
         #                                                          |Zero padded 4 digit int|
-        'ssn': f'{(i//1_000_000) % 1000:03}-{(i//10_000) % 100:02}-{(i % 10_000):04}',
+        'ssn': f'{(i // 1_000_000) % 1000:03}-{(i // 10_000) % 100:02}-{(i % 10_000):04}',
         # Some have NPI, some don't
         'npi': str(randint(1_000_000_000, 9_999_999_999)) if choice([True, False]) else None,
+        # Some have License number, some don't
+        'licenseNumber': generate_mock_license_number() if choice([True, False]) else None,
         'licenseType': choice(LICENSE_TYPES[compact]),
         'givenName': name_faker.first_name(),
         'middleName': name_faker.first_name(),
@@ -102,6 +106,21 @@ def get_mock_license(i: int, *, compact: str, jurisdiction: str = None) -> dict:
     license_data = _set_address_state(license_data, jurisdiction)
     license_data = _set_dates(license_data)
     return schema.dump(license_data)
+
+
+def generate_mock_license_number() -> str:
+    license_str = ''
+    size = randint(5, 20)
+
+    for _ in range(size):
+        if choice([True, False]):
+            if randint(0, 9) > 2:
+                license_str += chr(randint(ord('A'), ord('Z')))
+            else:
+                license_str += '-'
+        else:
+            license_str += str(randint(0, 9))
+    return license_str
 
 
 def _set_address_state(license_data: dict, jurisdiction: str) -> dict:

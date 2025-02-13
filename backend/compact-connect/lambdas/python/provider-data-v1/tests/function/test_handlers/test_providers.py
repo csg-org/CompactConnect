@@ -102,7 +102,22 @@ class TestQueryProviders(TstFunction):
         from handlers.providers import query_providers
 
         # 20 providers, 10 with licenses in oh, 10 with privileges in oh
-        self._generate_providers(home='ne', privilege='oh', start_serial=9999)
+        # We'll force the first 10 names, to be a set of values we know are challenging characters
+        names = [
+            ('山田', '1'),
+            ('後藤', '2'),
+            ('清水', '3'),
+            ('近藤', '4'),
+            ('Anderson', '5'),
+            ('Bañuelos', '6'),
+            ('de la Fuente', '7'),
+            ('Dennis', '8'),
+            ('Figueroa', '9'),
+            ('Frías', '10'),
+        ]
+        self._generate_providers(home='ne', privilege='oh', start_serial=9999, names=names)
+        # We'll leave the last 10 names to be randomly generated to let the Faker data set come up with some
+        # interesting values, to leave the door open to identify new edge cases.
         self._generate_providers(home='oh', privilege='ne', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
@@ -125,7 +140,7 @@ class TestQueryProviders(TstFunction):
         self.assertEqual({'key': 'familyName', 'direction': 'ascending'}, body['sorting'])
         self.assertIsInstance(body['pagination']['lastKey'], str)
         # Check we're actually sorted
-        family_names = [provider['familyName'] for provider in body['providers']]
+        family_names = [provider['familyName'].lower() for provider in body['providers']]
         self.assertListEqual(sorted(family_names, key=quote), family_names)
 
     def test_query_providers_by_family_name(self):
@@ -215,7 +230,7 @@ class TestQueryProviders(TstFunction):
         self.assertEqual({'key': 'familyName', 'direction': 'ascending'}, body['sorting'])
         self.assertIsNone(body['pagination']['lastKey'])
         # Check we're actually sorted
-        family_names = [provider['familyName'] for provider in body['providers']]
+        family_names = [provider['familyName'].lower() for provider in body['providers']]
         self.assertListEqual(sorted(family_names, key=quote), family_names)
 
     def test_query_providers_invalid_sorting(self):
@@ -248,8 +263,18 @@ class TestGetProvider(TstFunction):
         # The actual sensitive part is the hash at the end of the key
         return sk.split('/')[-1]
 
-    def _when_testing_get_provider_response_based_on_read_access(self, scopes: str, expected_provider: dict):
+    def _when_testing_get_provider_response_based_on_read_access(
+        self, scopes: str, expected_provider: dict, delete_home_jurisdiction_selection: bool = False
+    ):
         self._load_provider_data()
+        if delete_home_jurisdiction_selection:
+            # removing homeJurisdictionSelection to simulate a user that has not registered with the system
+            self.config.provider_table.delete_item(
+                Key={
+                    'pk': 'aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
+                    'sk': 'aslp#PROVIDER#home-jurisdiction#',
+                },
+            )
 
         from handlers.providers import get_provider
 
@@ -265,6 +290,7 @@ class TestGetProvider(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
+        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)
 
         # The sk for a license-update record is sensitive so we'll do an extra, pretty broad, check just to make sure
@@ -294,6 +320,17 @@ class TestGetProvider(TstFunction):
         # test provider has a license in oh and a privilege in ne
         self._when_testing_get_provider_with_read_private_access(
             scopes='openid email aslp/readGeneral aslp/ne.readPrivate'
+        )
+
+    def test_get_provider_does_not_return_home_jurisdiction_selection_if_user_has_not_registered(self):
+        with open('../common/tests/resources/api/provider-detail-response.json') as f:
+            expected_provider = json.load(f)
+            del expected_provider['homeJurisdictionSelection']
+
+        self._when_testing_get_provider_response_based_on_read_access(
+            scopes='openid email aslp/readGeneral aslp/aslp.readPrivate',
+            expected_provider=expected_provider,
+            delete_home_jurisdiction_selection=True,
         )
 
     def test_get_provider_wrong_compact(self):
@@ -335,10 +372,12 @@ class TestGetProvider(TstFunction):
             expected_provider = json.load(f)
             expected_provider.pop('ssn')
             expected_provider.pop('dateOfBirth')
+
             # we do not return the military affiliation document keys if the caller does not have read private scope
             expected_provider['militaryAffiliations'][0].pop('documentKeys')
             # also remove the ssn from the license record
             del expected_provider['licenses'][0]['ssn']
+            del expected_provider['licenses'][0]['ssnLastFour']
             del expected_provider['licenses'][0]['dateOfBirth']
             del expected_provider['licenses'][0]['history'][0]['previous']['ssn']
             del expected_provider['licenses'][0]['history'][0]['previous']['dateOfBirth']

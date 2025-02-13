@@ -13,16 +13,19 @@ class TstLambdas(TestCase):
             {
                 # Set to 'true' to enable debug logging
                 'DEBUG': 'false',
+                'ALLOWED_ORIGINS': '["https://example.org"]',
                 'AWS_DEFAULT_REGION': 'us-east-1',
                 'BULK_BUCKET_NAME': 'cc-license-data-bulk-bucket',
                 'EVENT_BUS_NAME': 'license-data-events',
                 'PROVIDER_TABLE_NAME': 'provider-table',
+                'RATE_LIMITING_TABLE_NAME': 'rate-limiting-table',
                 'SSN_TABLE_NAME': 'ssn-table',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
                 'ENVIRONMENT_NAME': 'test',
                 'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
                 'FAM_GIV_INDEX_NAME': 'famGiv',
-                'USER_POOL_ID': 'us-east-1-12345',
+                'LICENSE_GSI_NAME': 'licenseGSI',
+                'PROVIDER_USER_POOL_ID': 'us-east-1-12345',
                 'USERS_TABLE_NAME': 'provider-table',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'SSN_INVERTED_INDEX_NAME': 'inverted',
@@ -30,7 +33,12 @@ class TstLambdas(TestCase):
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',
                 'LICENSE_TYPES': json.dumps(
-                    {'aslp': ['audiologist', 'speech-language pathologist', 'speech and language pathologist']},
+                    {
+                        'aslp': [
+                            {'name': 'audiologist', 'abbreviation': 'aud'},
+                            {'name': 'speech-language pathologist', 'abbreviation': 'slp'},
+                        ],
+                    },
                 ),
             },
         )

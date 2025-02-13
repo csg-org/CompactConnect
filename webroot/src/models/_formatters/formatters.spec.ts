@@ -18,6 +18,7 @@ import {
     relativeFromNowDisplay,
     dateDiff
 } from '@models/_formatters/date';
+import { formatPhoneNumber, stripPhoneNumber } from '@models/_formatters/phone';
 import moment from 'moment';
 
 describe('Date formatters', () => {
@@ -59,5 +60,20 @@ describe('Date formatters', () => {
         const diff = Math.round(dateDiff(date1, date2, 'days'));
 
         expect(diff).to.equal(5);
+    });
+    it('should return empty string when stripping no input phone number', () => {
+        const stripped = stripPhoneNumber();
+
+        expect(stripped).to.equal('');
+    });
+    it('should return intelligently formatted phone number with lengths between 3 and 10 digits', () => {
+        const formatted = formatPhoneNumber('1234');
+
+        expect(formatted).to.equal('123-4');
+    });
+    it('should return intelligently formatted phone number with lengths less than 3', () => {
+        const formatted = formatPhoneNumber('12');
+
+        expect(formatted).to.equal('12');
     });
 });
