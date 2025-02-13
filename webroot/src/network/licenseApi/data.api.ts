@@ -224,6 +224,19 @@ export class LicenseDataApi implements DataApiInterface {
 
         return response;
     }
+
+    /**
+     * DELETE Privilege for a licensee.
+     * @param  {string}           compact     The compact string ID (aslp, otcp, coun).
+     * @param  {string}           licenseeId  The Licensee ID.
+     * @param  {string}           privilegeId The Licensee Privilege ID.
+     * @return {Promise<object>}              The server response.
+     */
+    public async deletePrivilege(compact: string, licenseeId: string, privilegeId: string) {
+        const serverResponse: any = await this.api.get(`/v1/compacts/${compact}/providers/${licenseeId}/privilege/${privilegeId}`);
+
+        return serverResponse;
+    }
 }
 
 export const licenseDataApi = new LicenseDataApi();

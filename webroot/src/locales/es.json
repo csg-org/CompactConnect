@@ -550,6 +550,10 @@
             "active": "Activo",
             "inactive": "Inactivo"
         },
+        "privilegeActions": "Acciones de privilegio",
+        "deactivate": "Desactivar",
+        "deactivates": "Desactivado",
+        "confirmPrivilegeDeactivate": "¿Está seguro de que desea desactivar este privilegio? No es posible deshacer esta acción.",
         "occupations": [
             {
                 "name": "Audiólogo",

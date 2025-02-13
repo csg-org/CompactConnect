@@ -41,6 +41,7 @@ describe('License model', () => {
         expect(license.id).to.equal(null);
         expect(license.compact).to.equal(null);
         expect(license.isPrivilege).to.equal(false);
+        expect(license.licenseeId).to.equal(null);
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.issueDate).to.equal(null);
         expect(license.renewalDate).to.equal(null);
@@ -65,6 +66,7 @@ describe('License model', () => {
             id: 'test-id',
             compact: new Compact(),
             isPrivilege: true,
+            licenseeId: 'test-licensee-id',
             issueState: new State(),
             isHomeState: true,
             issueDate: 'test-issueDate',
@@ -85,6 +87,7 @@ describe('License model', () => {
         expect(license.id).to.equal(data.id);
         expect(license.compact).to.be.an.instanceof(Compact);
         expect(license.isPrivilege).to.equal(data.isPrivilege);
+        expect(license.licenseeId).to.equal(data.licenseeId);
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.issueDate).to.equal(data.issueDate);
         expect(license.renewalDate).to.equal(data.renewalDate);
@@ -109,6 +112,7 @@ describe('License model', () => {
             id: 'test-id',
             compact: CompactType.ASLP,
             type: 'privilege',
+            providerId: 'test-provider-id',
             jurisdiction: 'al',
             dateOfIssuance: moment().format(serverDateFormat),
             dateOfRenewal: moment().format(serverDateFormat),
@@ -146,6 +150,7 @@ describe('License model', () => {
         expect(license.id).to.equal(data.id);
         expect(license.compact).to.be.an.instanceof(Compact);
         expect(license.isPrivilege).to.equal(true);
+        expect(license.licenseeId).to.equal(data.providerId);
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.mailingAddress).to.be.an.instanceof(Address);
         expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
@@ -175,6 +180,7 @@ describe('License model', () => {
             id: 'test-id',
             compact: CompactType.ASLP,
             type: 'privilege',
+            providerId: 'test-provider-id',
             jurisdiction: 'al',
             dateOfIssuance: moment().format(serverDateFormat),
             dateOfRenewal: moment().format(serverDateFormat),
@@ -212,6 +218,7 @@ describe('License model', () => {
         expect(license.id).to.equal(data.id);
         expect(license.compact).to.be.an.instanceof(Compact);
         expect(license.isPrivilege).to.equal(true);
+        expect(license.licenseeId).to.equal(data.providerId);
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.history.length).to.equal(0);
         expect(license.mailingAddress).to.be.an.instanceof(Address);

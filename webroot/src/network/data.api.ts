@@ -98,6 +98,17 @@ export class DataApi {
         return licenseDataApi.getAttestation(compact, attestationId);
     }
 
+    /**
+     * DELETE Privilege for a licensee.
+     * @param  {string}           compact     The compact string ID (aslp, otcp, coun).
+     * @param  {string}           licenseeId  The Licensee ID.
+     * @param  {string}           privilegeId The Licensee Privilege ID.
+     * @return {Promise<object>}              The server response.
+     */
+    public deletePrivilege(compact, licenseeId, privilegeId) {
+        return licenseDataApi.deletePrivilege(compact, licenseeId, privilegeId);
+    }
+
     // ========================================================================
     //                              USER API
     // ========================================================================

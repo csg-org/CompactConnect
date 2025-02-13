@@ -550,6 +550,10 @@
             "active": "Active",
             "inactive": "Inactive"
         },
+        "privilegeActions": "Privilege actions",
+        "deactivate": "Deactivate",
+        "deactivates": "Deactivated",
+        "confirmPrivilegeDeactivate": "Are you sure you want to deactivate this privilege? This cannot be undone.",
         "occupations": [
             {
                 "name": "Audiologist",
