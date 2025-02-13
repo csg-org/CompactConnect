@@ -6,10 +6,10 @@ def on_event(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argume
     """CloudFormation event handler using the CDK provider framework.
     See: https://docs.aws.amazon.com/cdk/api/v2/python/aws_cdk.custom_resources/README.html
 
-    This lambda migrates the provider data table to remove ssn fields from the schema.
+    This lambda migrates the staff user data table to remove the read action from the compact permissions.
 
-    :param event: The lambda event with the compact configuration in a JSON formatted string.
-    :param context:
+    :param event: The lambda event from the custom resource provider framework.
+    :param context: The lambda context.
     :return: None - no infrastructure resources are created
     """
     logger.info('Entering StaffUser Table migration')
