@@ -93,7 +93,6 @@ def test_purchasing_privilege():
             privilege_pk = f'{compact}#PROVIDER#{provider_id}'
             privilege_sk = (
                 f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}#'
-                f'{datetime.fromisoformat(privilege["dateOfRenewal"]).date().isoformat()}'
             )
             logger.info(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
             dynamodb_table.delete_item(
