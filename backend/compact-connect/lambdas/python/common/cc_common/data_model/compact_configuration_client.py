@@ -1,8 +1,10 @@
 from boto3.dynamodb.conditions import Key
 
 from cc_common.config import _Config, logger
+from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema.attestation import AttestationRecordSchema
 from cc_common.exceptions import CCNotFoundException
+from cc_common.utils import logger_inject_kwargs
 
 
 class CompactConfigurationClient:
@@ -66,3 +68,14 @@ class CompactConfigurationClient:
                 attestations_by_id[attestation_id] = attestation
 
         return attestations_by_id
+
+    @paginated_query
+    @logger_inject_kwargs(logger, 'compact')
+    def get_privilege_purchase_options(self, *, compact: str, dynamo_pagination: dict):
+        logger.info('Getting privilege purchase options for compact')
+
+        return self.config.compact_configuration_table.query(
+            Select='ALL_ATTRIBUTES',
+            KeyConditionExpression=Key('pk').eq(f'{compact}#CONFIGURATION'),
+            **dynamo_pagination,
+        )

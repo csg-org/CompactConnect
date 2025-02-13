@@ -20,10 +20,8 @@ COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME = '/deployment/lambda/layers/commo
 
 
 class PythonFunction(CdkPythonFunction):
-    """Standard Python lambda function that assumes unittest-compatible tests are written in the 'tests' directory.
-
-    On bundling, this function will validate the lambda by temporarily installing dev dependencies in
-    requirements-dev.txt, then executing and removing tests.
+    """
+    Standard Python lambda function.
     """
 
     def __init__(

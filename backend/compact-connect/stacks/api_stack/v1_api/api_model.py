@@ -1192,6 +1192,29 @@ class ApiModel:
         return self.api._v1_get_attestations_response_model
 
     @property
+    def get_provider_ssn_response_model(self) -> Model:
+        """Return the provider SSN response model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_get_provider_ssn_response_model'):
+            return self.api._v1_get_provider_ssn_response_model
+
+        self.api._v1_get_provider_ssn_response_model = self.api.add_model(
+            'V1GetProviderSSNResponseModel',
+            description='Get provider SSN response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=['ssn'],
+                properties={
+                    'ssn': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description="The provider's social security number",
+                        pattern=cc_api.SSN_FORMAT,
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_get_provider_ssn_response_model
+
+    @property
     def provider_registration_request_model(self) -> Model:
         """Return the provider registration request model, which should only be created once per API"""
         if hasattr(self.api, '_v1_provider_registration_request_model'):

@@ -26,6 +26,8 @@ class TstLambdas(TestCase):
                 'FAM_GIV_INDEX_NAME': 'famGiv',
                 'USER_POOL_ID': 'us-east-1-12345',
                 'USERS_TABLE_NAME': 'users-table',
+                'SSN_TABLE_NAME': 'ssn-table',
+                'SSN_INDEX_NAME': 'ssn-index',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',

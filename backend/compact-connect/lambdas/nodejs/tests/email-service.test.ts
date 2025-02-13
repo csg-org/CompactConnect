@@ -345,7 +345,7 @@ describe('Email Service', () => {
     describe('Compact Transaction Report', () => {
         beforeEach(() => {
             mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
-            
+
             // Create a mock stream that implements the required AWS SDK interfaces
             const mockStream = sdkStreamMixin(
                 new Readable({
@@ -379,9 +379,9 @@ describe('Email Service', () => {
 
             // Verify nodemailer transport was created with correct SES config
             expect(nodemailer.createTransport).toHaveBeenCalledWith({
-                SES: { 
-                    ses: expect.any(Object), 
-                    aws: { SendRawEmailCommand } 
+                SES: {
+                    ses: expect.any(Object),
+                    aws: { SendRawEmailCommand }
                 }
             });
 
@@ -458,7 +458,7 @@ describe('Email Service', () => {
         beforeEach(() => {
             mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
             mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
-            
+
             // Create a mock stream that implements the required AWS SDK interfaces
             const mockStream = sdkStreamMixin(
                 new Readable({
@@ -493,9 +493,9 @@ describe('Email Service', () => {
 
             // Verify nodemailer transport was created with correct SES config
             expect(nodemailer.createTransport).toHaveBeenCalledWith({
-                SES: { 
-                    ses: expect.any(Object), 
-                    aws: { SendRawEmailCommand } 
+                SES: {
+                    ses: expect.any(Object),
+                    aws: { SendRawEmailCommand }
                 }
             });
 
