@@ -5,7 +5,11 @@ from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema
-from cc_common.data_model.schema.compact import COMPACT_TYPE, CompactCommissionFeeSchema
+from cc_common.data_model.schema.compact import (
+    COMPACT_TYPE,
+    CompactCommissionFeeSchema,
+    TransactionFeeConfigurationSchema,
+)
 
 
 @BaseRecordSchema.register_schema(COMPACT_TYPE)
@@ -17,6 +21,7 @@ class CompactRecordSchema(BaseRecordSchema):
     # Provided fields
     compactName = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
+    transactionFeeConfiguration = Nested(TransactionFeeConfigurationSchema(), required=False, allow_none=False)
     compactOperationsTeamEmails = List(String(required=True, allow_none=False), required=True, allow_none=False)
     compactAdverseActionsNotificationEmails = List(
         String(required=True, allow_none=False),

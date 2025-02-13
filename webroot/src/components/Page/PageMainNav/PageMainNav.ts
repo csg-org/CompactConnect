@@ -175,7 +175,7 @@ class PageMainNav extends Vue {
                 isExactActive: false,
             },
             {
-                to: 'PrivilegePurchaseInformationConfirmation',
+                to: 'PrivilegePurchase',
                 params: { compact: this.currentCompact?.type },
                 label: computed(() => this.$t('navigation.purchasePrivileges')),
                 iconComponent: markRaw(PurchaseIcon),

@@ -14,6 +14,7 @@ import {
     AuthTypes,
     AUTH_TYPE
 } from '@/app.config';
+import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
 
 export interface State {
     model: StaffUser | LicenseeUser | null;
@@ -24,9 +25,7 @@ export interface State {
     isLoadingPrivilegePurchaseOptions: boolean;
     refreshTokenTimeoutId: number | null;
     currentCompact: Compact | null;
-    selectedPrivilegesToPurchase: Array<string> | null;
-    arePurchaseAttestationsAccepted: boolean;
-    purchase: any; // @TODO: Migration to this prop, including typing, will be in #302.
+    purchase: PurchaseFlowState;
     error: any | null;
 }
 
@@ -37,10 +36,8 @@ export const state: State = {
     isLoggedInAsStaff: Boolean(authStorage.getItem(AUTH_TYPE) === AuthTypes.STAFF),
     isLoadingAccount: false,
     isLoadingPrivilegePurchaseOptions: false,
-    arePurchaseAttestationsAccepted: false,
-    selectedPrivilegesToPurchase: null,
     refreshTokenTimeoutId: null,
     currentCompact: null,
-    purchase: {},
+    purchase: new PurchaseFlowState(),
     error: null,
 };

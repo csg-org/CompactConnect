@@ -62,9 +62,10 @@ export class LicenseeUserSerializer {
 }
 
 export class LicenseeUserPurchaseSerializer {
-    static toServer({ formValues, statesSelected }): any {
+    static toServer({ formValues, statesSelected, attestationsSelected }): any {
         const purchaseData: any = {
             selectedJurisdictions: statesSelected,
+            attestations: attestationsSelected,
             orderInformation: {
                 card: {
                     number: formValues.creditCard.replace(/\s+/g, ''),
@@ -80,7 +81,6 @@ export class LicenseeUserPurchaseSerializer {
                     zip: formValues.zip
                 }
             },
-            attestations: [] // temp to allow submit with current API validation
         };
 
         return purchaseData;

@@ -1,0 +1,15 @@
+{
+  "type": "compact",
+  "compactName": "aslp",
+  "compactCommissionFee": {
+    "feeType": "FLAT_RATE",
+    "feeAmount": 3.50
+  },
+  "transactionFeeConfiguration": {
+    "licenseeCharges": {
+      "active": true,
+      "chargeType": "FLAT_FEE_PER_PRIVILEGE",
+      "chargeAmount": 3.00
+    }
+  }
+}

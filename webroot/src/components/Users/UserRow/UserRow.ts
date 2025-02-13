@@ -7,13 +7,20 @@
 
 import {
     Component,
-    Vue,
+    mixins,
     Prop,
     Watch,
     toNative
 } from 'vue-facing-decorator';
+import { reactive, nextTick } from 'vue';
+import MixinForm from '@components/Forms/_mixins/form.mixin';
 import RightCaretIcon from '@components/Icons/RightCaretIcon/RightCaretIcon.vue';
 import UserRowEdit from '@components/Users/UserRowEdit/UserRowEdit.vue';
+import InputButton from '@components/Forms/InputButton/InputButton.vue';
+import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
+import Modal from '@components/Modal/Modal.vue';
+import { StaffUser } from '@/models/StaffUser/StaffUser.model';
+import { FormInput } from '@/models/FormInput/FormInput.model';
 import { SortDirection } from '@store/sorting/sorting.state';
 
 @Component({
@@ -21,11 +28,14 @@ import { SortDirection } from '@store/sorting/sorting.state';
     components: {
         RightCaretIcon,
         UserRowEdit,
+        InputButton,
+        InputSubmit,
+        Modal,
     },
 })
-class UserRow extends Vue {
+class UserRow extends mixins(MixinForm) {
     @Prop({ required: true }) protected listId!: string;
-    @Prop({ required: true }) item!: any;
+    @Prop({ required: true }) item!: StaffUser;
     @Prop({ default: false }) isHeaderRow?: boolean;
     @Prop({ default: [] }) sortOptions?: Array<any>;
     @Prop({ default: () => null }) sortChange?: (selectedSortOption?: string, ascending?: boolean) => any;
@@ -37,7 +47,19 @@ class UserRow extends Vue {
     lastSortSelectDirection = '';
     isRowExpanded = false;
     isRowActionMenuDisplayed = false;
-    isModalDisplayed = false;
+    isEditUserModalDisplayed = false;
+    isReinviteUserModalDisplayed = false;
+    isDeactivateUserModalDisplayed = false;
+    isReinviteSent = false;
+    isDeactivated = false;
+    modalErrorMessage = '';
+
+    //
+    // Lifecycle
+    //
+    created() {
+        this.initFormInputs();
+    }
 
     //
     // Computed
@@ -86,9 +108,26 @@ class UserRow extends Vue {
         return this.isAccountStatusPending;
     }
 
+    get accountFullName(): string {
+        return this.item?.getFullName() || '';
+    }
+
+    get accountEmail(): string {
+        return this.item?.compactConnectEmail || '';
+    }
+
     //
     // Methods
     //
+    initFormInputs(): void {
+        this.formData = reactive({
+            submitModalContinue: new FormInput({
+                isSubmitInput: true,
+                id: 'submit-modal-continue',
+            }),
+        });
+    }
+
     isSortOptionEnabled(optionName: string): boolean {
         return Boolean(this.isHeaderRow && this.sortOptionNames.includes(optionName));
     }
@@ -178,11 +217,133 @@ class UserRow extends Vue {
     }
 
     toggleEditUserModal(): void {
-        this.isModalDisplayed = !this.isModalDisplayed;
+        this.isEditUserModalDisplayed = !this.isEditUserModalDisplayed;
     }
 
     closeEditUserModal(): void {
-        this.isModalDisplayed = false;
+        this.isEditUserModalDisplayed = false;
+    }
+
+    async toggleReinviteUserModal(): Promise<void> {
+        if (!this.isReinviteSent) {
+            this.resetForm();
+            this.isReinviteUserModalDisplayed = !this.isReinviteUserModalDisplayed;
+            await nextTick();
+            document.getElementById('reinvite-modal-cancel-button')?.focus();
+        }
+    }
+
+    closeReinviteUserModal(): void {
+        this.isReinviteUserModalDisplayed = false;
+    }
+
+    focusTrapReinviteUserModal(event: KeyboardEvent): void {
+        const firstTabIndex = document.getElementById('reinvite-modal-cancel-button');
+        const lastTabIndex = document.getElementById(this.formData.submitModalContinue.id);
+
+        if (event.shiftKey) {
+            // shift + tab to last input
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+                event.preventDefault();
+            }
+        } else if (document.activeElement === lastTabIndex) {
+            // Tab to first input
+            firstTabIndex?.focus();
+            event.preventDefault();
+        }
+    }
+
+    async submitReinviteUser(): Promise<void> {
+        this.startFormLoading();
+        this.modalErrorMessage = '';
+
+        await this.$store.dispatch(`users/reinviteUserRequest`, {
+            compact: this.currentCompactType,
+            userId: this.item.id,
+        }).catch((err) => {
+            this.modalErrorMessage = err?.message || this.$t('common.error');
+            this.isFormError = true;
+        });
+
+        if (!this.isFormError) {
+            this.isFormSuccessful = true;
+            this.isReinviteSent = true;
+            this.isDeactivated = false;
+            this.updateUserStoreStatus('pending');
+            this.closeReinviteUserModal();
+        }
+
+        this.endFormLoading();
+    }
+
+    async toggleDeactivateUserModal(): Promise<void> {
+        if (!this.isDeactivated) {
+            this.resetForm();
+            this.isDeactivateUserModalDisplayed = !this.isDeactivateUserModalDisplayed;
+            await nextTick();
+            document.getElementById('deactivate-modal-cancel-button')?.focus();
+        }
+    }
+
+    closeDeactivateUserModal(): void {
+        this.isDeactivateUserModalDisplayed = false;
+    }
+
+    focusTrapDeactivateUserModal(event: KeyboardEvent): void {
+        const firstTabIndex = document.getElementById('deactivate-modal-cancel-button');
+        const lastTabIndex = document.getElementById(this.formData.submitModalContinue.id);
+
+        if (event.shiftKey) {
+            // shift + tab to last input
+            if (document.activeElement === firstTabIndex) {
+                lastTabIndex?.focus();
+                event.preventDefault();
+            }
+        } else if (document.activeElement === lastTabIndex) {
+            // Tab to first input
+            firstTabIndex?.focus();
+            event.preventDefault();
+        }
+    }
+
+    async submitDeactivateUser(): Promise<void> {
+        this.startFormLoading();
+        this.modalErrorMessage = '';
+
+        await this.$store.dispatch(`users/deleteUserRequest`, {
+            compact: this.currentCompactType,
+            userId: this.item.id,
+        }).catch((err) => {
+            this.modalErrorMessage = err?.message || this.$t('common.error');
+            this.isFormError = true;
+        });
+
+        if (!this.isFormError) {
+            this.isFormSuccessful = true;
+            this.isDeactivated = true;
+            this.isReinviteSent = false;
+            this.updateUserStoreStatus('inactive');
+            this.closeDeactivateUserModal();
+        }
+
+        this.endFormLoading();
+    }
+
+    updateUserStoreStatus(status: string): void {
+        this.$store.dispatch(`users/setStoreUser`, new StaffUser({
+            ...this.item,
+            accountStatus: status,
+        }));
+    }
+
+    resetForm(): void {
+        this.isFormLoading = false;
+        this.isFormSuccessful = false;
+        this.isFormError = false;
+        this.modalErrorMessage = '';
+        this.updateFormSubmitSuccess('');
+        this.updateFormSubmitError('');
     }
 
     //

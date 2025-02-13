@@ -1,0 +1,40 @@
+//
+//  PrivilegePurchase.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 1/31/2025.
+//
+.purchase-flow-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 2rem 12rem 2rem;
+
+    @media @tabletWidth {
+        padding: 2rem;
+    }
+
+    .step {
+        width: 100%;
+
+        @media @tabletWidth {
+            width: unset;
+        }
+    }
+
+    .progress-bar {
+        position: absolute;
+        z-index: 1;
+        padding: 0 4rem;
+
+        @media @tabletWidth {
+            width: 72rem;
+            padding: 0 2rem;
+        }
+
+        @media @desktopWidth {
+            width: 90rem;
+            padding: 0 2rem;
+        }
+    }
+}
