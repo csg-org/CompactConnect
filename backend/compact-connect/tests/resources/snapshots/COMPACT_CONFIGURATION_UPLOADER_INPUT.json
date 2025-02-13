@@ -6,6 +6,13 @@
         "feeType": "FLAT_RATE",
         "feeAmount": 3.5
       },
+      "transactionFeeConfiguration": {
+        "licenseeCharges": {
+          "active": true,
+          "chargeType": "FLAT_FEE_PER_PRIVILEGE",
+          "chargeAmount": 3.0
+        }
+      },
       "compactOperationsTeamEmails": [],
       "compactAdverseActionsNotificationEmails": [],
       "compactSummaryReportNotificationEmails": [],
@@ -100,6 +107,13 @@
       "compactCommissionFee": {
         "feeType": "FLAT_RATE",
         "feeAmount": 3.5
+      },
+      "transactionFeeConfiguration": {
+        "licenseeCharges": {
+          "active": true,
+          "chargeType": "FLAT_FEE_PER_PRIVILEGE",
+          "chargeAmount": 3.0
+        }
       },
       "compactOperationsTeamEmails": [],
       "compactAdverseActionsNotificationEmails": [],
