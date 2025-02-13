@@ -358,6 +358,7 @@ def _generate_compact_summary_report(
     jurisdiction_privileges: dict[str, int] = {j['postalAbbreviation'].lower(): 0 for j in jurisdiction_configs}
     unknown_jurisdiction_fees: dict[str, Decimal] = {}
     unknown_jurisdictions_privileges: dict[str, int] = {}
+    unknown_fees = 0
     total_processed_amount = 0
 
     # Single pass through transactions to calculate all fees
@@ -384,6 +385,21 @@ def _generate_compact_summary_report(
                         unknown_jurisdictions_privileges.get(jurisdiction, 0) + quantity
                     )
                     unknown_jurisdiction_fees[jurisdiction] = unknown_jurisdiction_fees.get(jurisdiction, 0) + fee
+            # This should never happen in production, but our test envs have a legacy transaction line items
+            # that use the pattern {compact}-{jurisdiction postal code}. We check for unknown item ids here to make sure
+            # every possible line item is accounted for in the report
+            else:
+                error_message = 'transaction line item id does not match any known pattern'
+                lambda_error_messages.append(
+                    f'{error_message} - transactionId={transaction["transactionId"]} - itemId={item["itemId"]}'
+                )
+                logger.error(
+                    error_message,
+                    item_id=item['itemId'],
+                    description=item.get('description', ''),
+                    transactionId=transaction['transactionId'],
+                )
+                unknown_fees += fee
 
             total_processed_amount += fee
 
@@ -426,6 +442,11 @@ def _generate_compact_summary_report(
         and getattr(compact_config.transactionFeeConfiguration, 'licenseeCharges', {}).get('active')
     ):
         writer.writerow(['Credit Card Transaction Fees Collected From Licensee', f'${transaction_fees:.2f}'])
+
+    # Reporting unknown line item fees so they can be accounted for towards the total processed amount
+    # we never expect this to show up in prod, but are including it here so nothing slips through the cracks.
+    if unknown_fees > 0:
+        writer.writerow(['Unknown Line Item Fees', f'${unknown_fees:.2f}'])
 
     # Add blank line before total
     writer.writerow(['', ''])

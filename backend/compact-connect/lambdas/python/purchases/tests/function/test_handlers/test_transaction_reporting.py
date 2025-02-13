@@ -55,6 +55,7 @@ def _generate_mock_transaction(
     transaction_id: str = MOCK_TRANSACTION_ID,
     batch_id: str = MOCK_BATCH_ID,
     include_licensee_transaction_fees: bool = False,
+    include_unknown_line_item_fees: bool = False,
 ) -> dict:
     """
     Generate a mock transaction with privileges for the specified jurisdictions.
@@ -65,6 +66,8 @@ def _generate_mock_transaction(
     :param transaction_settlement_time_utc: Settlement time in UTC
     :param transaction_id: Optional transaction ID
     :param batch_id: Optional batch ID
+    :param include_licensee_transaction_fees: Whether to include licensee transaction fees
+    :param include_unknown_line_item_fees: Whether to include unknown line item fees
     :return: Mock transaction record
     """
     # Create line items for each jurisdiction
@@ -104,6 +107,19 @@ def _generate_mock_transaction(
                 'quantity': str(len(jurisdictions)),
                 'taxable': 'False',
                 'unitPrice': MOCK_TRANSACTION_FEE,
+            }
+        )
+
+    # adding unknown line item fees if the flag is set
+    if include_unknown_line_item_fees:
+        line_items.append(
+            {
+                'description': 'Unknown line item fee',
+                'itemId': 'unknown-line-item-fee',
+                'name': 'Unknown Line Item Fee',
+                'quantity': '1.0',
+                'taxable': 'False',
+                'unitPrice': '2.00',
             }
         )
 
@@ -171,6 +187,7 @@ class TestGenerateTransactionReports(TstFunction):
         transaction_id: str = MOCK_TRANSACTION_ID,
         batch_id: str = MOCK_BATCH_ID,
         include_licensee_transaction_fees: bool = False,
+        include_unknown_line_item_fees: bool = False,
     ) -> dict:
         """
         Add a mock transaction to the DB with privileges for the specified jurisdictions.
@@ -191,6 +208,7 @@ class TestGenerateTransactionReports(TstFunction):
             transaction_id,
             batch_id,
             include_licensee_transaction_fees,
+            include_unknown_line_item_fees,
         )
         self._transaction_history_table.put_item(Item=transaction)
         return transaction
@@ -1094,7 +1112,7 @@ class TestGenerateTransactionReports(TstFunction):
     # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
     @patch('handlers.transaction_reporting.config.lambda_client')
-    def test_generate_report_with_licensee_transaction(self, mock_lambda_client):
+    def test_generate_report_with_licensee_transaction_fees(self, mock_lambda_client):
         """Test processing of transactions with multiple privileges in a single transaction."""
         from handlers.transaction_reporting import generate_transaction_reports
 
@@ -1172,3 +1190,85 @@ class TestGenerateTransactionReports(TstFunction):
                         f'{mock_user["givenName"]},{mock_user["familyName"]},{mock_user["providerId"]},03-30-2025,{state},100,10.50,3.00,{MOCK_TRANSACTION_ID},{MOCK_PRIVILEGE_ID_MAPPING[state.lower()]},{TEST_TRANSACTION_STATUS}'
                     )
                 self.assertEqual('\n'.join(expected_lines) + '\n', detail_content)
+
+    # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
+    @patch('handlers.transaction_reporting.config.lambda_client')
+    def test_generate_report_accounts_for_unknown_line_item_fees(self, mock_lambda_client):
+        """Test processing of transactions with multiple privileges in a single transaction."""
+        from handlers.transaction_reporting import generate_transaction_reports
+
+        _set_default_lambda_client_behavior(mock_lambda_client)
+
+        self._add_compact_configuration_data(
+            jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION, NEBRASKA_JURISDICTION]
+        )
+
+        mock_user = self._add_mock_provider_to_db('12345', 'John', 'Doe')
+        # Create a transaction with in which the licensee is charged transaction fees
+        self._add_mock_transaction_to_db(
+            jurisdictions=['oh', 'ky', 'ne'],
+            licensee_id=mock_user['providerId'],
+            month_iso_string='2025-03',
+            transaction_settlement_time_utc=datetime.fromisoformat('2025-03-30T12:00:00+00:00'),
+            include_licensee_transaction_fees=True,
+            include_unknown_line_item_fees=True,
+        )
+
+        # Calculate expected date range
+        # the end time should be Friday at 10:00 PM UTC
+        end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
+        # the start time should be 7 days ago at 10:00 PM UTC
+        start_time = end_time - timedelta(days=7)
+        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+
+        with self.assertRaises(CCInternalException) as exc_info:
+            generate_transaction_reports(generate_mock_event(), self.mock_context)
+
+        # check that the error message contains the expected line item id
+        self.assertEqual(
+            'One or more errors occurred while generating reports. '
+            "Errors: ['transaction line item id does not match any known pattern "
+            f'- transactionId={MOCK_TRANSACTION_ID} '
+            "- itemId=unknown-line-item-fee']",
+            exc_info.exception.message,
+        )
+
+        # Verify email notifications
+        calls_args = mock_lambda_client.invoke.call_args_list
+
+        # Check compact report email
+        compact_call = calls_args[0][1]
+        self.assertEqual(self.config.email_notification_service_lambda_name, compact_call['FunctionName'])
+        self.assertEqual('RequestResponse', compact_call['InvocationType'])
+
+        expected_compact_path = (
+            f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
+            f'{end_time.strftime("%Y/%m/%d")}/'
+            f'{TEST_COMPACT}-{date_range}-report.zip'
+        )
+
+        # Verify S3 stored files
+        # Check compact reports
+        compact_zip_obj = self.config.s3_client.get_object(
+            Bucket=self.config.transaction_reports_bucket_name, Key=expected_compact_path
+        )
+
+        with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
+            # Check financial summary
+            with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
+                summary_content = f.read().decode('utf-8')
+                self.assertEqual(
+                    'Privileges purchased for Kentucky,1\n'
+                    'State Fees (Kentucky),$100.00\n'
+                    'Privileges purchased for Nebraska,1\n'
+                    'State Fees (Nebraska),$100.00\n'
+                    'Privileges purchased for Ohio,1\n'
+                    'State Fees (Ohio),$100.00\n'
+                    'Administrative Fees,$31.50\n'  # $10.50 x 3 privileges
+                    'Credit Card Transaction Fees Collected From Licensee,$9.00\n'  # $3.00 x 3 privileges
+                    'Unknown Line Item Fees,$2.00\n'
+                    ',\n'
+                    'Total Processed Amount,$342.50\n',
+                    summary_content,
+                )
