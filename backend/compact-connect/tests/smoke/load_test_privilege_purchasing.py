@@ -1,11 +1,11 @@
+# ruff: noqa: BLE001 allowing broad exception catching for load testing script
 #!/usr/bin/env python3
-from faker import Faker
-import time
 import random
-from typing import List
+import time
 
 import requests
 from config import config, logger
+from faker import Faker
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
@@ -29,17 +29,18 @@ AMEX_CARD_NUMBER = '370000000000002'
 # List of valid test card numbers from Authorize.net documentation
 # https://developer.authorize.net/hello_world/testing_guide.html
 TEST_CARD_NUMBERS = [
-    '4007000000027',     # Visa
-    '4012888818888',     # Visa
+    '4007000000027',  # Visa
+    '4012888818888',  # Visa
     '4111111111111111',  # Visa
     '5424000000000015',  # Mastercard
     '2223000010309703',  # Mastercard
     '2223000010309711',  # Mastercard
-    AMEX_CARD_NUMBER,   # American Express
+    AMEX_CARD_NUMBER,  # American Express
     '6011000000000012',  # Discover
     '3088000000000017',  # JCB
     # '38000000000006',    # Diners Club/ Carte Blanche
 ]
+
 
 def delete_existing_privileges():
     """Delete all existing privileges for the current user."""
@@ -51,7 +52,7 @@ def delete_existing_privileges():
     provider_id = provider_data.get('providerId')
     compact = provider_data.get('compact')
     dynamodb_table = config.provider_user_dynamodb_table
-    
+
     for privilege in privileges:
         privilege_pk = f'{compact}#PROVIDER#{provider_id}'
         privilege_sk = f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}#'
@@ -65,7 +66,8 @@ def delete_existing_privileges():
     # give dynamodb time to propagate
     time.sleep(0.5)
 
-def get_required_attestations(provider_data: dict) -> List[dict]:
+
+def get_required_attestations(provider_data: dict) -> list[dict]:
     """Get the latest version of required attestations."""
     required_attestation_ids = [
         'jurisprudence-confirmation',
@@ -77,16 +79,16 @@ def get_required_attestations(provider_data: dict) -> List[dict]:
         'provision-of-true-information-attestation',
         'not-under-investigation-attestation',
     ]
-    
+
     military_records = [
         record for record in provider_data.get('militaryAffiliations', []) if record['status'] == 'active'
     ]
     if military_records:
         required_attestation_ids.append('military-affiliation-confirmation-attestation')
-    
+
     compact = provider_data.get('compact')
     attestations = []
-    
+
     for attestation_id in required_attestation_ids:
         get_attestation_response = requests.get(
             url=f'{config.api_base_url}/v1/compacts/{compact}/attestations/{attestation_id}',
@@ -100,10 +102,11 @@ def get_required_attestations(provider_data: dict) -> List[dict]:
 
         attestation = get_attestation_response.json()
         attestations.append({'attestationId': attestation_id, 'version': attestation['version']})
-    
+
     return attestations
 
-def purchase_privilege(jurisdiction: str, card_number: str, attestations: List[dict]) -> str:
+
+def purchase_privilege(jurisdiction: str, card_number: str, attestations: list[dict]) -> str:
     """Purchase a privilege for the given jurisdiction using the specified card number."""
     post_body = {
         'orderInformation': {
@@ -111,7 +114,8 @@ def purchase_privilege(jurisdiction: str, card_number: str, attestations: List[d
                 'number': card_number,
                 # this needs to be a random 3-digit number for everything but American Express,
                 # which is 4 digits
-                'cvv': str(random.randint(100, 999)) if card_number != AMEX_CARD_NUMBER
+                'cvv': str(random.randint(100, 999))
+                if card_number != AMEX_CARD_NUMBER
                 else str(random.randint(1000, 9999)),
                 'expiration': '2050-12',
             },
@@ -142,6 +146,7 @@ def purchase_privilege(jurisdiction: str, card_number: str, attestations: List[d
     logger.info(f'Successfully purchased privilege for {jurisdiction} with transaction ID: {transaction_id}')
     return transaction_id
 
+
 def run_load_test(num_iterations: int):
     """Run the load test for the specified number of iterations."""
     logger.info(f'Starting load test with {num_iterations} iterations')
@@ -149,47 +154,48 @@ def run_load_test(num_iterations: int):
     # Get provider data and attestations
     provider_data = call_provider_users_me_endpoint()
     attestations = get_required_attestations(provider_data)
-    
+
     for iteration in range(num_iterations):
         logger.info(f'Starting iteration {iteration + 1} of {num_iterations}')
-        
+
         try:
             # Delete existing privileges
             delete_existing_privileges()
-            
+
             # Use different card numbers for each jurisdiction
             card_index = iteration % len(TEST_CARD_NUMBERS)
             ne_card = TEST_CARD_NUMBERS[card_index]
             oh_card = TEST_CARD_NUMBERS[(card_index + 1) % len(TEST_CARD_NUMBERS)]
             ky_card = TEST_CARD_NUMBERS[(card_index + 2) % len(TEST_CARD_NUMBERS)]
-            
+
             # Purchase privileges for each jurisdiction
             jurisdictions = [
                 ('ne', ne_card),
                 ('oh', oh_card),
                 ('ky', ky_card),
             ]
-            
+
             for jurisdiction, card in jurisdictions:
                 try:
                     purchase_privilege(jurisdiction, card, attestations)
                 except Exception as e:
                     logger.error(f'Failed to purchase privilege for {jurisdiction} with card {card}: {str(e)}')
                     continue
-            
+
             logger.info(f'Successfully completed iteration {iteration + 1}')
             # add slight delay between iterations for dynamodb to propagate
             time.sleep(0.5)
-            
+
         except Exception as e:
             logger.error(f'Failed iteration {iteration + 1}: {str(e)}')
             continue
 
+
 if __name__ == '__main__':
     import argparse
-    
+
     parser = argparse.ArgumentParser(description='Run load tests for privilege purchasing')
     parser.add_argument('iterations', type=int, help='Number of iterations to run')
     args = parser.parse_args()
-    
+
     run_load_test(args.iterations)
