@@ -6,6 +6,7 @@
         "back": "Back",
         "continue": "Continue",
         "next": "Next",
+        "confirm": "Confirm",
         "cancel": "Cancel",
         "close": "Close",
         "skip": "Skip",
@@ -651,7 +652,14 @@
         "editPermissions": "Edit permissions",
         "editUserPermissions": "Edit user permissions",
         "addState": "Add state / jurisdiction",
-        "inviteNewUser": "Invite new user"
+        "inviteNewUser": "Invite new user",
+        "resendInvite": "Resend invite",
+        "reinviteSent": "Reinvite sent!",
+        "deactivate": "Deactivate",
+        "deactivated": "Deactivated",
+        "confirmUserReinviteTitle": "Are you sure you want to resend the invitation to {name}?",
+        "confirmUserReinviteSubtext": "An email will be sent to {email} and the user will be forced to set a new password.",
+        "confirmUserDeactivate": "Are you sure you want to deactivate {name} from this compact? This cannot be undone."
     },
     "recaptcha": {
         "googleDesc": "This site is protected by reCAPTCHA and the Google",

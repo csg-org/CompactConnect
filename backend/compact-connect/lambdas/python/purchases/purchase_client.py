@@ -1,6 +1,7 @@
 import json
 import logging
 from abc import ABC, abstractmethod
+from decimal import Decimal
 
 from authorizenet import apicontractsv1
 from authorizenet.apicontrollers import (
@@ -12,7 +13,7 @@ from authorizenet.apicontrollers import (
 )
 from authorizenet.constants import constants
 from cc_common.config import config, logger
-from cc_common.data_model.schema.compact import Compact, CompactFeeType
+from cc_common.data_model.schema.compact import Compact, CompactFeeType, TransactionFeeChargeType
 from cc_common.data_model.schema.jurisdiction import Jurisdiction, JurisdictionMilitaryDiscountType
 from cc_common.exceptions import (
     CCFailedTransactionException,
@@ -41,7 +42,7 @@ class IgnoreContentNondeterminismFilter(logging.Filter):
 logging.getLogger('authorizenet.sdk').addFilter(IgnoreContentNondeterminismFilter())
 
 
-def _calculate_jurisdiction_fee(jurisdiction: Jurisdiction, user_active_military: bool) -> float:
+def _calculate_jurisdiction_fee(jurisdiction: Jurisdiction, user_active_military: bool) -> Decimal:
     """
     Calculate the total cost of a single jurisdiction privilege
     """
@@ -58,7 +59,7 @@ def _calculate_jurisdiction_fee(jurisdiction: Jurisdiction, user_active_military
     return total_jurisdiction_fee
 
 
-def _calculate_total_compact_fee(compact: Compact, selected_jurisdictions: list[Jurisdiction]) -> float:
+def _calculate_total_compact_fee(compact: Compact, selected_jurisdictions: list[Jurisdiction]) -> Decimal:
     """
     Calculate the total compact fee for all selected jurisdictions
 
@@ -68,8 +69,34 @@ def _calculate_total_compact_fee(compact: Compact, selected_jurisdictions: list[
     return _calculate_compact_fee_for_single_jurisdiction(compact) * len(selected_jurisdictions)
 
 
-def _calculate_compact_fee_for_single_jurisdiction(compact: Compact) -> float:
-    total_compact_fee = 0.0
+def _compact_is_charging_licensee_for_transaction_fees(compact: Compact) -> bool:
+    return (
+        compact.transaction_fee_configuration is not None
+        and compact.transaction_fee_configuration.licensee_charges is not None
+        and compact.transaction_fee_configuration.licensee_charges.active
+    )
+
+
+def _calculate_transaction_fee(compact: Compact, num_privileges: int) -> Decimal:
+    """
+    Calculate the transaction fee based on the compact's licensee charges configuration.
+    Returns 0 if licensee charges are not configured or not active.
+    """
+    if _compact_is_charging_licensee_for_transaction_fees(compact):
+        if (
+            compact.transaction_fee_configuration.licensee_charges.charge_type
+            == TransactionFeeChargeType.FLAT_FEE_PER_PRIVILEGE
+        ):
+            return compact.transaction_fee_configuration.licensee_charges.charge_amount * Decimal(num_privileges)
+        raise ValueError(
+            f'Unsupported transaction fee charge type: '
+            f'{compact.transaction_fee_configuration.licensee_charges.charge_type.value}'
+        )
+    return Decimal(0)
+
+
+def _calculate_compact_fee_for_single_jurisdiction(compact: Compact) -> Decimal:
+    total_compact_fee = Decimal(0)
     if compact.compact_commission_fee.fee_type == CompactFeeType.FLAT_RATE:
         total_compact_fee += compact.compact_commission_fee.fee_amount
     else:
@@ -80,17 +107,18 @@ def _calculate_compact_fee_for_single_jurisdiction(compact: Compact) -> float:
 
 def _get_total_privilege_cost(
     compact: Compact, selected_jurisdictions: list[Jurisdiction], user_active_military: bool
-) -> float:
+) -> Decimal:
     """
     Calculate the total cost of all privileges.
 
-    This cost includes the jurisdiction fee for each jurisdiction, as well as the compact fee.
+    This cost includes the jurisdiction fee for each jurisdiction, the compact fee, and any transaction fees.
     """
-    total_cost = 0.0
+    total_cost = Decimal(0.0)
     for jurisdiction in selected_jurisdictions:
         total_cost += _calculate_jurisdiction_fee(jurisdiction, user_active_military)
 
     total_cost += _calculate_total_compact_fee(compact, selected_jurisdictions)
+    total_cost += _calculate_transaction_fee(compact, len(selected_jurisdictions))
 
     return total_cost
 
@@ -301,6 +329,17 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         compact_fee_line_item.quantity = len(selected_jurisdictions)
         compact_fee_line_item.unitPrice = _calculate_compact_fee_for_single_jurisdiction(compact_configuration)
         line_items.lineItem.append(compact_fee_line_item)
+
+        # Add the transaction fee line item if licensee charges are configured and active
+        if _compact_is_charging_licensee_for_transaction_fees(compact_configuration):
+            transaction_fee_line_item = apicontractsv1.lineItemType()
+            transaction_fee_line_item.itemId = 'credit-card-transaction-fee'
+            transaction_fee_line_item.name = 'Credit Card Transaction Fee'
+            transaction_fee_line_item.description = 'Transaction fee for credit card processing'
+            transaction_fee_line_item.quantity = len(selected_jurisdictions)
+            # determine the unit price by calculating for a single privilege
+            transaction_fee_line_item.unitPrice = _calculate_transaction_fee(compact_configuration, 1)
+            line_items.lineItem.append(transaction_fee_line_item)
 
         # Set the customer's Bill To address
         customer_address = apicontractsv1.customerAddressType()

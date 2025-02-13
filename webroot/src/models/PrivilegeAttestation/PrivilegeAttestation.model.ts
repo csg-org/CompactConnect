@@ -89,11 +89,4 @@ export class PrivilegeAttestationSerializer {
 
         return new PrivilegeAttestation(privilegeAttestationData);
     }
-
-    static toServer(privilegeAttestation: PrivilegeAttestation): any {
-        return {
-            attestationId: privilegeAttestation.id,
-            version: privilegeAttestation.version,
-        };
-    }
 }

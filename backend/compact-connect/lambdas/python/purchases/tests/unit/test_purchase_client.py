@@ -20,7 +20,7 @@ MOCK_TRANSACTION_ID = '123456'
 
 MOCK_LICENSEE_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
 
-EXPECTED_TOTAL_FEE_AMOUNT = 150.50
+MOCK_LICENSEE_TRANSACTION_FEE_AMOUNT = 5
 
 # Test constants for transaction history tests
 MOCK_BATCH_ID = '12345'
@@ -81,7 +81,7 @@ def _generate_default_order_information():
     }
 
 
-def _generate_aslp_compact_configuration():
+def _generate_aslp_compact_configuration(include_licensee_charges: bool = False):
     from cc_common.data_model.schema.compact import Compact
 
     with open('../common/tests/resources/dynamo/compact.json') as f:
@@ -89,22 +89,40 @@ def _generate_aslp_compact_configuration():
         compact = json.load(f)
         # DynamoDB loads this as a Decimal
         compact['compactCommissionFee']['feeAmount'] = Decimal(50.50)
-
+        # the compact.json file includes licensee charges by default,
+        # so we need to set this to False if we don't want them
+        if not include_licensee_charges:
+            compact['transactionFeeConfiguration']['licenseeCharges']['active'] = False
+        # setting the fee amount explicitly here to make calculation easy to check
+        compact['transactionFeeConfiguration']['licenseeCharges']['chargeAmount'] = Decimal(
+            MOCK_LICENSEE_TRANSACTION_FEE_AMOUNT
+        )
         return Compact(compact)
 
 
-def _generate_selected_jurisdictions():
+def _generate_selected_jurisdictions(jurisdiction_items: list[dict] = None):
     from cc_common.data_model.schema.jurisdiction import Jurisdiction
 
-    with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
-        jurisdiction = json.load(f)
-        jurisdiction['jurisdictionFee'] = Decimal(100.00)
-        # set military discount to fixed amount for tests
-        jurisdiction['militaryDiscount']['discountAmount'] = Decimal(25.00)
-        jurisdiction['militaryDiscount']['active'] = True
-        jurisdiction['militaryDiscount']['discountType'] = 'FLAT_RATE'
+    if jurisdiction_items is None:
+        jurisdiction_items = [
+            {'postalCode': 'oh', 'jurisdictionName': 'ohio', 'jurisdictionFee': 100.00},
+        ]
 
-        return [Jurisdiction(jurisdiction)]
+    jurisdiction_configurations = []
+
+    for jurisdiction_test_item in jurisdiction_items:
+        with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
+            jurisdiction = json.load(f)
+            jurisdiction['jurisdictionFee'] = Decimal(jurisdiction_test_item['jurisdictionFee'])
+            # set military discount to fixed amount for tests
+            jurisdiction['militaryDiscount']['discountAmount'] = Decimal(25.00)
+            jurisdiction['militaryDiscount']['active'] = True
+            jurisdiction['militaryDiscount']['discountType'] = 'FLAT_RATE'
+            jurisdiction['postalAbbreviation'] = jurisdiction_test_item['postalCode']
+            jurisdiction['jurisdictionName'] = jurisdiction_test_item['jurisdictionName']
+            jurisdiction_configurations.append(Jurisdiction(jurisdiction))
+
+    return jurisdiction_configurations
 
 
 class TestAuthorizeDotNetPurchaseClient(TstLambdas):
@@ -241,7 +259,8 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         self.assertEqual('2035-10', api_contract_v1_obj.transactionRequest.payment.creditCard.expirationDate)
         self.assertEqual('125', api_contract_v1_obj.transactionRequest.payment.creditCard.cardCode)
         # transaction billing fields
-        self.assertEqual(EXPECTED_TOTAL_FEE_AMOUNT, api_contract_v1_obj.transactionRequest.amount)
+        expected_total_fee_amount = 150.50
+        self.assertEqual(expected_total_fee_amount, api_contract_v1_obj.transactionRequest.amount)
         self.assertEqual('USD', api_contract_v1_obj.transactionRequest.currencyCode)
         self.assertEqual('OH', api_contract_v1_obj.transactionRequest.billTo.state)
         self.assertEqual('12345', api_contract_v1_obj.transactionRequest.billTo.zip)
@@ -302,6 +321,79 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         # ensure the total amount is the sum of the two line items
         self.assertEqual(150.50, api_contract_v1_obj.transactionRequest.amount)
+
+    @patch('purchase_client.createTransactionController')
+    def test_purchase_client_sends_expected_line_items_when_licensee_charges_are_active(
+        self, mock_create_transaction_controller
+    ):
+        from purchase_client import PurchaseClient
+
+        mock_secrets_manager_client = self._generate_mock_secrets_manager_client()
+        self._when_authorize_dot_net_transaction_is_successful(
+            mock_create_transaction_controller=mock_create_transaction_controller
+        )
+
+        test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
+
+        test_jurisdictions = [
+            {'postalCode': 'oh', 'jurisdictionName': 'ohio', 'jurisdictionFee': 50.00},
+            {'postalCode': 'ky', 'jurisdictionName': 'kentucky', 'jurisdictionFee': 200.00},
+        ]
+
+        test_purchase_client.process_charge_for_licensee_privileges(
+            licensee_id=MOCK_LICENSEE_ID,
+            order_information=_generate_default_order_information(),
+            compact_configuration=_generate_aslp_compact_configuration(include_licensee_charges=True),
+            selected_jurisdictions=_generate_selected_jurisdictions(test_jurisdictions),
+            user_active_military=False,
+        )
+
+        call_args = mock_create_transaction_controller.call_args.args
+        api_contract_v1_obj = call_args[0]
+
+        # we check every line item of the object to ensure that the correct values are being set
+        self.assertEqual(4, len(api_contract_v1_obj.transactionRequest.lineItems.lineItem))
+        # first line item is the jurisdiction fee
+        self.assertEqual('aslp-oh', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
+        self.assertEqual('Ohio Compact Privilege', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].name)
+        self.assertEqual(50.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].unitPrice)
+        self.assertEqual(1, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].quantity)
+        self.assertEqual(
+            'Compact Privilege for Ohio', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].description
+        )
+        # the second line item is the jurisdiction fee for kentucky
+        self.assertEqual('aslp-ky', api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].itemId)
+        self.assertEqual(
+            'Kentucky Compact Privilege', api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].name
+        )
+        self.assertEqual(200.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].unitPrice)
+        self.assertEqual(1, api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].quantity)
+        self.assertEqual(
+            'Compact Privilege for Kentucky', api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].description
+        )
+
+        # third line item is the compact fee
+        self.assertEqual('aslp-compact-fee', api_contract_v1_obj.transactionRequest.lineItems.lineItem[2].itemId)
+        self.assertEqual(2, api_contract_v1_obj.transactionRequest.lineItems.lineItem[2].quantity)
+        self.assertEqual(50.50, api_contract_v1_obj.transactionRequest.lineItems.lineItem[2].unitPrice)
+        # fourth line item is the licensee charge
+        self.assertEqual(
+            'credit-card-transaction-fee', api_contract_v1_obj.transactionRequest.lineItems.lineItem[3].itemId
+        )
+        self.assertEqual(2, api_contract_v1_obj.transactionRequest.lineItems.lineItem[3].quantity)
+        self.assertEqual(
+            'Credit Card Transaction Fee', api_contract_v1_obj.transactionRequest.lineItems.lineItem[3].name
+        )
+        self.assertEqual(
+            'Transaction fee for credit card processing',
+            api_contract_v1_obj.transactionRequest.lineItems.lineItem[3].description,
+        )
+        self.assertEqual(
+            MOCK_LICENSEE_TRANSACTION_FEE_AMOUNT, api_contract_v1_obj.transactionRequest.lineItems.lineItem[3].unitPrice
+        )
+
+        # ensure the total amount is the sum of the four line items
+        self.assertEqual(361.00, api_contract_v1_obj.transactionRequest.amount)
 
     @patch('purchase_client.createTransactionController')
     def test_purchase_client_sets_licensee_id_in_order_description(self, mock_create_transaction_controller):

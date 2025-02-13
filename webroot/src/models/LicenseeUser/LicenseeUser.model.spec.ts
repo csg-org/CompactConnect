@@ -11,6 +11,7 @@ import {
     LicenseeUserPurchaseSerializer
 } from '@models/LicenseeUser/LicenseeUser.model';
 import { LicenseeSerializer, Licensee } from '@models/Licensee/Licensee.model';
+import { AcceptedAttestationToSend } from '@models/AcceptedAttestationToSend/AcceptedAttestationToSend.model';
 import i18n from '@/i18n';
 
 import chaiMatchPattern from 'chai-match-pattern';
@@ -252,9 +253,25 @@ describe('User model', () => {
 
         const statesSelected = ['ne', 'ky'];
 
-        const requestData = LicenseeUserPurchaseSerializer.toServer({ statesSelected, formValues });
+        const attestationsSelected = [
+            new AcceptedAttestationToSend({
+                attestationId: 'id',
+                version: '1'
+            }),
+            new AcceptedAttestationToSend({
+                attestationId: 'id-2',
+                version: '1'
+            })
+        ];
+
+        const requestData = LicenseeUserPurchaseSerializer.toServer({
+            statesSelected,
+            formValues,
+            attestationsSelected
+        });
 
         expect(requestData.selectedJurisdictions).to.matchPattern(['ne', 'ky']);
+        expect(requestData.attestations).to.matchPattern(attestationsSelected);
         expect(requestData.orderInformation.card.number).to.equal(formValues.creditCard.replace(/\s+/g, ''));
         expect(requestData.orderInformation.card.expiration).to.equal(`20${formValues.expYear}-${formValues.expMonth}`);
         expect(requestData.orderInformation.card.cvv).to.equal(formValues.cvv);
@@ -264,5 +281,6 @@ describe('User model', () => {
         expect(requestData.orderInformation.billing.streetAddress2).to.equal(formValues.streetAddress2);
         expect(requestData.orderInformation.billing.state).to.equal(formValues.stateSelect.toUpperCase());
         expect(requestData.orderInformation.billing.zip).to.equal(formValues.zip);
+        expect(requestData.attestations.length).to.equal(2);
     });
 });

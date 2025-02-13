@@ -1,0 +1,22 @@
+//
+//  ProgressBar.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 2/3/2025.
+//
+.progress-bar {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+
+    .finished-portion {
+        height: 10px;
+        background-color: @primaryColor;
+        transition: width 1s ease-in-out;
+    }
+
+    .unifinished-portion {
+        height: 10px;
+        background-color: @white;
+    }
+}
