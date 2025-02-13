@@ -169,6 +169,11 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     """
     Generate transaction reports for a compact and its jurisdictions.
 
+    For compacts, we generate a financial summary report and a transaction detail report.
+    For jurisdictions, we generate a transaction detail report.
+
+    Reports are stored in compressed zip files in S3. We send the zip files in email reports.
+
     :param event: Event containing the compact name and reporting cycle
     :param context: Lambda context
     :return: Success message
