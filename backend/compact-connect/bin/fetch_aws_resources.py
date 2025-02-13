@@ -6,14 +6,14 @@ To display in human-readable format:
     python fetch_aws_resources.py
 
 To output in .env format:
-    python fetch_aws_resources.py --as-frontend-env
+    python fetch_aws_resources.py --as-env
 
 The CLI must also be configured with AWS credentials that have appropriate access to Cognito and DynamoDB
 """
 
 import argparse
 
-import boto3
+import boto3.session
 
 # Initialize AWS clients
 cognito_client = boto3.client('cognito-idp')
@@ -150,16 +150,22 @@ def print_human_readable(api_gateway_url, provider_details, staff_details):
 
 def print_env_format(api_gateway_url, provider_details, staff_details):
     """Prints data in .env format"""
+    login_url = provider_details.get('login_url', 'N/A').removesuffix('/login')
+    staff_client_id = staff_details.get('client_id', 'N/A')
+    provider_client_id = provider_details.get('client_id', 'N/A')
+    staff_table = staff_details.get('dynamodb_table', 'N/A')
+    provider_table = provider_details.get('dynamodb_table', 'N/A')
+
     print(f'VUE_APP_API_STATE_ROOT={api_gateway_url}')
     print(f'VUE_APP_API_LICENSE_ROOT={api_gateway_url}')
     print(f'VUE_APP_API_USER_ROOT={api_gateway_url}')
     print(f'VUE_APP_COGNITO_REGION={aws_region}')
-    print(f'VUE_APP_COGNITO_AUTH_DOMAIN_STAFF={staff_details.get("login_url", "N/A")}')
-    print(f'VUE_APP_COGNITO_CLIENT_ID_STAFF={staff_details.get("client_id", "N/A")}')
-    print(f'VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE={provider_details.get("login_url", "N/A")}')
-    print(f'VUE_APP_COGNITO_CLIENT_ID_LICENSEE={provider_details.get("client_id", "N/A")}')
-    print(f'VUE_APP_DYNAMO_TABLE_PROVIDER={provider_details.get("dynamodb_table", "N/A")}')
-    print(f'VUE_APP_DYNAMO_TABLE_STAFF={staff_details.get("dynamodb_table", "N/A")}')
+    print(f'VUE_APP_COGNITO_AUTH_DOMAIN_STAFF={login_url}')
+    print(f'VUE_APP_COGNITO_CLIENT_ID_STAFF={staff_client_id}')
+    print(f'VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE={login_url}')
+    print(f'VUE_APP_COGNITO_CLIENT_ID_LICENSEE={provider_client_id}')
+    print(f'VUE_APP_DYNAMO_TABLE_PROVIDER={provider_table}')
+    print(f'VUE_APP_DYNAMO_TABLE_STAFF={staff_table}')
 
 
 if __name__ == '__main__':
