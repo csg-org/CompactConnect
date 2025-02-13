@@ -53,8 +53,8 @@ class TransactionRecordSchema(BaseRecordSchema):
     responseCode = String(required=True, allow_none=False)
     settleAmount = String(required=True, allow_none=False)  # String for consistent decimal handling
     submitTimeUTC = String(required=True, allow_none=False)
-    transactionStatus = String(required=True, allow_none=False, validate=OneOf(['settledSuccessfully']))
-    transactionType = String(required=True, allow_none=False, validate=OneOf(['authCaptureTransaction']))
+    transactionStatus = String(required=True, allow_none=False)
+    transactionType = String(required=True, allow_none=False)
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):
