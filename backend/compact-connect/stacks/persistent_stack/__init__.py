@@ -202,6 +202,29 @@ class PersistentStack(AppStack):
         self.provider_table = ProviderTable(
             self, 'ProviderTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
         )
+        # Run migration 391 (GH issue number) to remove ssn fields from the provider data table
+        migration_391 = DataMigration(
+            self,
+            '391ProviderDataMigration',
+            migration_dir='391_reduced_ssn',
+            lambda_environment={
+                **self.common_env_vars,
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
+            },
+        )
+        self.provider_table.grant_read_write_data(migration_391)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{migration_391.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': """This policy contains wild-carded actions and resources but they are scoped to the
+                              specific actions, Table, and KMS Key that this lambda specifically needs access to.
+                              """,
+                },
+            ],
+        )
 
         self.ssn_table = SSNTable(self, 'SSNTable', removal_policy=removal_policy)
         # Run migration 392 (GH issue number) to add a GSI pk field to the SSN records

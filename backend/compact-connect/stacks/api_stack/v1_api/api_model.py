@@ -296,9 +296,7 @@ class ApiModel:
                         properties={
                             'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
                             'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                            # TODO keeping 'read' action for backwards compatibility  # noqa: FIX002
-                            #  this should be removed after the frontend is updated
-                            'read': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                            'readSSN': JsonSchema(type=JsonSchemaType.BOOLEAN),
                         },
                     ),
                     'jurisdictions': JsonSchema(
@@ -313,6 +311,7 @@ class ApiModel:
                                         'write': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                         'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                         'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                                        'readSSN': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                     },
                                 ),
                             },

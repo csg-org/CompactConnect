@@ -15,7 +15,6 @@ from cc_common.data_model.schema.fields import (
     Jurisdiction,
     NationalProviderIdentifier,
     Set,
-    SocialSecurityNumber,
 )
 
 
@@ -28,8 +27,8 @@ class ProviderPrivateSchema(ForgivingSchema):
 
     compact = Compact(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
-    ssn = SocialSecurityNumber(required=True, allow_none=False)
     licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    ssnLastFour = String(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseType = String(required=True, allow_none=False)
     jurisdictionStatus = ActiveInactive(required=True, allow_none=False)

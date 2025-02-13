@@ -27,19 +27,9 @@ def query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused
 
     body = json.loads(event['body'])
     query = body.get('query', {})
-    # Query one SSN
-    provider_id = None
     if 'providerId' in query.keys():
         provider_id = query['providerId']
         query = {'providerId': provider_id}
-    # TODO: we will remove support for SSN queries with  #  noqa: FIX002
-    # https://github.com/csg-org/CompactConnect/issues/391
-    elif 'ssn' in query.keys():
-        ssn = query['ssn']
-        provider_id = config.data_client.get_provider_id(compact=compact, ssn=ssn)
-        query = {'ssn': ssn}
-        logger.info('Found provider id by SSN', provider_id=provider_id)
-    if provider_id is not None:
         resp = config.data_client.get_provider(
             compact=compact,
             provider_id=provider_id,
@@ -95,10 +85,10 @@ def query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused
                 # This shouldn't happen unless our api validation gets misconfigured
                 raise CCInvalidRequestException(f"Invalid sort key: '{sorting_key}'")
     # Convert generic field to more specific one for this API and sanitize data
-    pre_sanitized_providers = resp.pop('items', [])
+    unsanitized_providers = resp.pop('items', [])
     # for the query endpoint, we only return generally available data, regardless of the caller's scopes
     general_schema = ProviderGeneralResponseSchema()
-    sanitized_providers = [general_schema.dump(provider) for provider in pre_sanitized_providers]
+    sanitized_providers = [general_schema.load(provider) for provider in unsanitized_providers]
 
     resp['providers'] = sanitized_providers
 
