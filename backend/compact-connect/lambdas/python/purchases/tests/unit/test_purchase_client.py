@@ -100,17 +100,17 @@ def _generate_aslp_compact_configuration(include_licensee_charges: bool = False)
         return Compact(compact)
 
 
-def _generate_selected_jurisdictions(jursidction_items: list[dict] = None):
+def _generate_selected_jurisdictions(jurisdiction_items: list[dict] = None):
     from cc_common.data_model.schema.jurisdiction import Jurisdiction
 
-    if jursidction_items is None:
-        jursidction_items = [
+    if jurisdiction_items is None:
+        jurisdiction_items = [
             {'postalCode': 'oh', 'jurisdictionName': 'ohio', 'jurisdictionFee': 100.00},
         ]
 
     jurisdiction_configurations = []
 
-    for jurisdiction_test_item in jursidction_items:
+    for jurisdiction_test_item in jurisdiction_items:
         with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
             jurisdiction = json.load(f)
             jurisdiction['jurisdictionFee'] = Decimal(jurisdiction_test_item['jurisdictionFee'])
