@@ -1,5 +1,6 @@
 # ruff: noqa: N801, N815, ARG002 invalid-name unused-kwargs
 from collections import UserDict
+from decimal import Decimal
 
 from cc_common.data_model.schema.common import CCEnum
 
@@ -25,8 +26,8 @@ class JurisdictionMilitaryDiscount(UserDict):
         return JurisdictionMilitaryDiscountType.from_str(self['discountType'])
 
     @property
-    def discount_amount(self) -> float:
-        return float(self['discountAmount'])
+    def discount_amount(self) -> Decimal:
+        return self['discountAmount']
 
 
 class JurisdictionJurisprudenceRequirements(UserDict):
@@ -59,8 +60,8 @@ class Jurisdiction(UserDict):
         return self['compact']
 
     @property
-    def jurisdiction_fee(self) -> float:
-        return float(self['jurisdictionFee'])
+    def jurisdiction_fee(self) -> Decimal:
+        return self['jurisdictionFee']
 
     @property
     def military_discount(self) -> JurisdictionMilitaryDiscount | None:

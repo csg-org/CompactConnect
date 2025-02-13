@@ -175,6 +175,30 @@ export class UserDataApi implements DataApiInterface {
     }
 
     /**
+     * REINVITE User by ID.
+     * @param  {string}          compact A compact type.
+     * @param  {string}          userId  A user ID.
+     * @return {Promise<object>}         The server response.
+     */
+    public async reinviteUser(compact: string, userId: string) {
+        const serverResponse = await this.api.post(`/v1/compacts/${compact}/staff-users/${userId}/reinvite`);
+
+        return serverResponse;
+    }
+
+    /**
+     * DELETE User by ID.
+     * @param  {string}          compact A compact type.
+     * @param  {string}          userId  A user ID.
+     * @return {Promise<object>}         The server response.
+     */
+    public async deleteUser(compact: string, userId: string) {
+        const serverResponse = await this.api.delete(`/v1/compacts/${compact}/staff-users/${userId}`);
+
+        return serverResponse;
+    }
+
+    /**
      * UPDATE Password of authenticated user.
      * @param  {object}          data The request data.
      * @return {Promise<object>}      Axios-formatted response from AWS Cognito.

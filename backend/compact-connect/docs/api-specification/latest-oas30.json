@@ -2,11 +2,11 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-02-07T23:29:44Z"
+    "version": "2025-02-13T17:45:36Z"
   },
   "servers": [
     {
-      "url": "https://api.test.compactconnect.org"
+      "url": "https://api.justin.jcc.iaapi.io"
     }
   ],
   "paths": {
@@ -1743,6 +1743,7 @@
       },
       "SandboLicendmj7qfw2x1tR": {
         "required": [
+          "attestations",
           "orderInformation",
           "selectedJurisdictions"
         ],
@@ -2354,6 +2355,7 @@
                   "required": [
                     "compactCommissionFee",
                     "compactName",
+                    "transactionFeeConfiguration",
                     "type"
                   ],
                   "type": "object",
@@ -2381,6 +2383,39 @@
                       "enum": [
                         "compact"
                       ]
+                    },
+                    "transactionFeeConfiguration": {
+                      "required": [
+                        "licenseeCharges"
+                      ],
+                      "type": "object",
+                      "properties": {
+                        "licenseeCharges": {
+                          "required": [
+                            "active",
+                            "chargeAmount",
+                            "chargeType"
+                          ],
+                          "type": "object",
+                          "properties": {
+                            "chargeType": {
+                              "type": "string",
+                              "description": "The type of transaction fee charge",
+                              "enum": [
+                                "FLAT_FEE_PER_PRIVILEGE"
+                              ]
+                            },
+                            "active": {
+                              "type": "boolean",
+                              "description": "Whether the compact is charging licensees transaction fees"
+                            },
+                            "chargeAmount": {
+                              "type": "number",
+                              "description": "The amount to charge per privilege purchased"
+                            }
+                          }
+                        }
+                      }
                     },
                     "compactName": {
                       "type": "string",

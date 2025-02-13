@@ -119,11 +119,6 @@
             >
                 <span v-if="$matches.phone.only" class="cell-title">{{ $t('account.accountStatus') }}:</span>
                 <span class="account-status">{{ item.accountStatusDisplay() }}</span>
-                <span
-                    v-if="shouldAllowResendInvite"
-                    class="resend-invite"
-                    tabindex="0"
-                >{{ $t('account.resendInvite') }}</span>
                 <span v-if="isSortOptionEnabled('accountStatus')" class="sort-icon" :class="{
                     'is-selected': isSortOptionSelected('accountStatus'),
                     'asc': isSortOptionAscending('accountStatus'),
@@ -146,16 +141,38 @@
                         <ul
                             v-if="isRowActionMenuDisplayed"
                             class="row-menu"
-                            @click="toggleEditUserModal"
-                            @keyup.enter="toggleEditUserModal"
                             v-click-outside="closeRowActionMenu"
                         >
                             <li
+                                v-if="!isDeactivated"
+                                class="row-menu-item"
+                                :class="{ 'disabled': isReinviteSent }"
+                                role="button"
+                                @click="toggleReinviteUserModal"
+                                @keyup.enter="toggleReinviteUserModal"
+                                tabindex="0"
+                            >
+                                {{ (isReinviteSent) ? $t('account.reinviteSent') : $t('account.resendInvite') }}
+                            </li>
+                            <li
+                                v-if="!isDeactivated"
                                 class="row-menu-item"
                                 role="button"
+                                @click="toggleEditUserModal"
+                                @keyup.enter="toggleEditUserModal"
                                 tabindex="0"
                             >
                                 {{ $t('account.editPermissions') }}
+                            </li>
+                            <li
+                                class="row-menu-item"
+                                :class="{ 'disabled': isDeactivated, 'danger': !isDeactivated }"
+                                role="button"
+                                @click="toggleDeactivateUserModal"
+                                @keyup.enter="toggleDeactivateUserModal"
+                                tabindex="0"
+                            >
+                                {{ (isDeactivated) ? $t('account.deactivated') : $t('account.deactivate') }}
                             </li>
                         </ul>
                     </transition>
@@ -188,14 +205,80 @@
             <div class="cell account-status"></div>
             <div class="cell row-actions"></div>
         </div>
-        <transition mode="out-in">
-            <div v-if="isModalDisplayed">
+        <TransitionGroup>
+            <div v-if="isEditUserModalDisplayed">
                 <div class="modal-mask"></div>
                 <div class="edit-user-modal">
                     <UserRowEdit :user="item" @saved="closeEditUserModal" @cancel="closeEditUserModal" />
                 </div>
             </div>
-        </transition>
+            <Modal
+                v-else-if="isReinviteUserModalDisplayed"
+                class="reinvite-user-modal"
+                :title="$t('account.confirmUserReinviteTitle', { name: accountFullName })"
+                :closeOnBackgroundClick="true"
+                :showActions="false"
+                @keydown.tab="focusTrapReinviteUserModal($event)"
+                @keyup.esc="closeReinviteUserModal"
+            >
+                <template v-slot:content>
+                    <div class="modal-content reinvite-modal-content">
+                        {{ $t('account.confirmUserReinviteSubtext', { email: accountEmail }) }}
+                        <form @submit.prevent="submitReinviteUser">
+                            <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
+                            <div class="action-button-row">
+                                <InputButton
+                                    id="reinvite-modal-cancel-button"
+                                    class="cancel-button"
+                                    :label="$t('common.cancel')"
+                                    :isTransparent="true"
+                                    :onClick="closeReinviteUserModal"
+                                />
+                                <InputSubmit
+                                    class="submit-button continue-button"
+                                    :formInput="formData.submitModalContinue"
+                                    :label="(isFormLoading) ? $t('common.loading') : $t('common.continue')"
+                                    :isEnabled="!isFormLoading"
+                                />
+                            </div>
+                        </form>
+                    </div>
+                </template>
+            </Modal>
+            <Modal
+                v-else-if="isDeactivateUserModalDisplayed"
+                class="deactivate-user-modal"
+                :title="accountFullName"
+                :closeOnBackgroundClick="true"
+                :showActions="false"
+                @keydown.tab="focusTrapDeactivateUserModal($event)"
+                @keyup.esc="closeDeactivateUserModal"
+            >
+                <template v-slot:content>
+                    <div class="modal-content deactivate-modal-content">
+                        {{ $t('account.confirmUserDeactivate', { name: accountFullName }) }}
+                        <form @submit.prevent="submitDeactivateUser">
+                            <div v-if="modalErrorMessage" class="modal-error">{{ modalErrorMessage }}</div>
+                            <div class="action-button-row">
+                                <InputButton
+                                    id="deactivate-modal-cancel-button"
+                                    class="cancel-button"
+                                    :label="$t('common.cancel')"
+                                    :isTransparent="true"
+                                    :onClick="closeDeactivateUserModal"
+                                />
+                                <InputSubmit
+                                    class="submit-button continue-button"
+                                    :formInput="formData.submitModalContinue"
+                                    :label="(isFormLoading) ? $t('common.loading') : $t('common.continue')"
+                                    :isEnabled="!isFormLoading"
+                                />
+                            </div>
+                        </form>
+                    </div>
+                </template>
+            </Modal>
+        </TransitionGroup>
     </div>
 </template>
 

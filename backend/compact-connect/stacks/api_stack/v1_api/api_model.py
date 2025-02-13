@@ -480,7 +480,7 @@ class ApiModel:
             description='Post purchase privileges request model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['selectedJurisdictions', 'orderInformation'],
+                required=['selectedJurisdictions', 'orderInformation', 'attestations'],
                 properties={
                     'selectedJurisdictions': JsonSchema(
                         type=JsonSchemaType.ARRAY,
@@ -715,7 +715,7 @@ class ApiModel:
             one_of=[
                 JsonSchema(
                     type=JsonSchemaType.OBJECT,
-                    required=['type', 'compactName', 'compactCommissionFee'],
+                    required=['type', 'compactName', 'compactCommissionFee', 'transactionFeeConfiguration'],
                     properties={
                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['compact']),
                         'compactName': JsonSchema(type=JsonSchemaType.STRING, description='The name of the compact'),
@@ -725,6 +725,31 @@ class ApiModel:
                             properties={
                                 'feeType': JsonSchema(type=JsonSchemaType.STRING, enum=['FLAT_RATE']),
                                 'feeAmount': JsonSchema(type=JsonSchemaType.NUMBER),
+                            },
+                        ),
+                        'transactionFeeConfiguration': JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            required=['licenseeCharges'],
+                            properties={
+                                'licenseeCharges': JsonSchema(
+                                    type=JsonSchemaType.OBJECT,
+                                    required=['active', 'chargeType', 'chargeAmount'],
+                                    properties={
+                                        'active': JsonSchema(
+                                            type=JsonSchemaType.BOOLEAN,
+                                            description='Whether the compact is charging licensees transaction fees',
+                                        ),
+                                        'chargeType': JsonSchema(
+                                            type=JsonSchemaType.STRING,
+                                            enum=['FLAT_FEE_PER_PRIVILEGE'],
+                                            description='The type of transaction fee charge',
+                                        ),
+                                        'chargeAmount': JsonSchema(
+                                            type=JsonSchemaType.NUMBER,
+                                            description='The amount to charge per privilege purchased',
+                                        ),
+                                    },
+                                ),
                             },
                         ),
                     },

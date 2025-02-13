@@ -32,12 +32,46 @@
                   "feeAmount"
                 ],
                 "type": "object"
+              },
+              "transactionFeeConfiguration": {
+                "properties": {
+                  "licenseeCharges": {
+                    "properties": {
+                      "active": {
+                        "description": "Whether the compact is charging licensees transaction fees",
+                        "type": "boolean"
+                      },
+                      "chargeType": {
+                        "description": "The type of transaction fee charge",
+                        "enum": [
+                          "FLAT_FEE_PER_PRIVILEGE"
+                        ],
+                        "type": "string"
+                      },
+                      "chargeAmount": {
+                        "description": "The amount to charge per privilege purchased",
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "active",
+                      "chargeType",
+                      "chargeAmount"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "licenseeCharges"
+                ],
+                "type": "object"
               }
             },
             "required": [
               "type",
               "compactName",
-              "compactCommissionFee"
+              "compactCommissionFee",
+              "transactionFeeConfiguration"
             ],
             "type": "object"
           },
