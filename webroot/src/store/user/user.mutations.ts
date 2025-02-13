@@ -7,6 +7,7 @@
 import { Compact } from '@models/Compact/Compact.model';
 import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { StaffUser } from '@/models/StaffUser/StaffUser.model';
+import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { AuthTypes } from '@/app.config';
 
 export enum MutationTypes {
@@ -33,9 +34,6 @@ export enum MutationTypes {
     GET_PRIVILEGE_PURCHASE_INFORMATION_REQUEST = '[User] Get Privilege Purchase Information Request',
     GET_PRIVILEGE_PURCHASE_INFORMATION_SUCCESS = '[User] Get Privilege Purchase Information Success',
     GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE = '[User] Get Privilege Purchase Information Failure',
-    SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE = '[User] Save Selected Privilege Purchases To Store',
-    SET_ATTESTATIONS_ACCEPTED = '[User] Set Attestations Accepted',
-    SET_ATTESTATIONS = '[User] Set Attestations',
     POST_PRIVILEGE_PURCHASE_REQUEST = '[User] Post Privilege Purchase Request',
     POST_PRIVILEGE_PURCHASE_SUCCESS = '[User] Post Privilege Purchase Success',
     POST_PRIVILEGE_PURCHASE_FAILURE = '[User] Post Privilege Purchase Failure',
@@ -44,7 +42,9 @@ export enum MutationTypes {
     UPLOAD_MILITARY_AFFILIATION_FAILURE = '[User] Post Military Affiliation Failure',
     END_MILITARY_AFFILIATION_REQUEST = '[User] Patch Military Affiliation Request',
     END_MILITARY_AFFILIATION_SUCCESS = '[User] Patch Military Affiliation Success',
-    END_MILITARY_AFFILIATION_FAILURE = '[User] Patch Military Affiliation Failure'
+    END_MILITARY_AFFILIATION_FAILURE = '[User] Patch Military Affiliation Failure',
+    RESET_TO_PURCHASE_FLOW_STEP = '[User] Reset Purchase Flow State to input flow step',
+    SAVE_PURCHASE_FLOW_STEP = '[User] Save a Purchase Flow Step to the Store'
 }
 
 export default {
@@ -145,27 +145,6 @@ export default {
         state.isLoadingPrivilegePurchaseOptions = false;
         state.error = error;
     },
-    [MutationTypes.SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE]: (
-        state: any,
-        privilegePurchaseChoices: Array<string>
-    ) => {
-        state.selectedPrivilegesToPurchase = privilegePurchaseChoices;
-    },
-    [MutationTypes.SET_ATTESTATIONS_ACCEPTED]: (state: any, areAttestationsAccepted: boolean) => {
-        state.arePurchaseAttestationsAccepted = areAttestationsAccepted;
-    },
-    [MutationTypes.SET_ATTESTATIONS]: (state: any, attestations) => {
-        const { purchase } = state;
-
-        if (!purchase.attestations) {
-            purchase.attestations = [];
-        }
-
-        purchase.attestations = [
-            ...purchase.attestations,
-            ...attestations,
-        ];
-    },
     [MutationTypes.POST_PRIVILEGE_PURCHASE_REQUEST]: (state: any) => {
         state.isLoadingPrivilegePurchaseOptions = true;
         state.error = null;
@@ -173,7 +152,6 @@ export default {
     [MutationTypes.POST_PRIVILEGE_PURCHASE_SUCCESS]: (state: any) => {
         state.isLoadingPrivilegePurchaseOptions = false;
         state.selectedPrivilegesToPurchase = null;
-        state.arePurchaseAttestationsAccepted = false;
         state.error = null;
     },
     [MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE]: (state: any, error: Error) => {
@@ -204,4 +182,13 @@ export default {
         state.isLoadingAccount = false;
         state.error = error;
     },
+    [MutationTypes.RESET_TO_PURCHASE_FLOW_STEP]: (state: any, flowStepNum: number) => {
+        state.purchase.steps = state.purchase.steps.filter((step) => (step.stepNum < flowStepNum));
+    },
+    [MutationTypes.SAVE_PURCHASE_FLOW_STEP]: (state: any, flowStep: PurchaseFlowStep) => {
+        state.purchase.steps = [
+            ...state.purchase.steps,
+            flowStep
+        ];
+    }
 };
