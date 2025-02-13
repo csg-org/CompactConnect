@@ -208,7 +208,7 @@ export default class PrivilegePurchaseAttestation extends mixins(MixinForm) {
     }
 
     handleCancelClicked() {
-        this.$store.dispatch('user/cleanPurchaseFlowState', 0);
+        this.$store.dispatch('user/resetToPurchaseFlowStep', 0);
 
         if (this.currentCompactType) {
             this.$router.push({

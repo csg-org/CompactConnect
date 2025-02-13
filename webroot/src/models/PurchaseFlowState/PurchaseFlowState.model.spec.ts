@@ -24,7 +24,7 @@ describe('PurchaseFlowState model', () => {
     });
     it('should create a PurchaseFlowState with specific values', () => {
         const data = {
-            steps: [ new PurchaseFlowStep()]
+            steps: [new PurchaseFlowStep()]
         };
         const purchaseFlowState = new PurchaseFlowState(data);
 

@@ -11,20 +11,10 @@ export default {
     getNextNeededPurchaseFlowStep: (state: any) => () => {
         const storeSteps = state.purchase.steps;
         const hasStep = (index) => (storeSteps.some((step) => (step.stepNum === index)));
-        let isMissingStep = false;
         let nextStep = 0;
-        let i = 0;
 
-        while (i < storeSteps.length && !isMissingStep) {
-            const isStepFound = hasStep(i);
-
-            if (isStepFound) {
-                nextStep = i + 1;
-                i += 1;
-            } else {
-                isMissingStep = true;
-                nextStep = i;
-            }
+        while (hasStep(nextStep)) {
+            nextStep += 1;
         }
 
         return nextStep;

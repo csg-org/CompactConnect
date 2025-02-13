@@ -47,7 +47,7 @@ export default class PrivilegePurchaseSuccessful extends Vue {
     handleFinishClicked() {
         const { $store, $router } = this;
 
-        $store.dispatch('user/cleanPurchaseFlowState', 0);
+        $store.dispatch('user/resetToPurchaseFlowStep', 0);
 
         $store.dispatch('user/getLicenseeAccountRequest');
 

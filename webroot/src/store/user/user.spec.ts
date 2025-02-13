@@ -292,7 +292,7 @@ describe('Use Store Mutations', () => {
         expect(state.isLoadingPrivilegePurchaseOptions).to.equal(false);
         expect(state.error).to.equal(null);
     });
-    it('should successfully clean purchase flow state', () => {
+    it('should successfully reset to purchase flow step', () => {
         const state = {
             purchase: new PurchaseFlowState({
                 steps: [
@@ -306,7 +306,7 @@ describe('Use Store Mutations', () => {
             })
         };
 
-        mutations[MutationTypes.CLEAN_PURCHASE_FLOW_STATE](state, 1);
+        mutations[MutationTypes.RESET_TO_PURCHASE_FLOW_STEP](state, 1);
 
         expect(state.purchase.steps.length).to.equal(1);
     });
@@ -655,14 +655,14 @@ describe('User Store Actions', async () => {
             [MutationTypes.POST_PRIVILEGE_PURCHASE_FAILURE, error]
         );
     });
-    it('should successfully start clean purchase flow state', () => {
+    it('should successfully start reset to purchase flow step', () => {
         const commit = sinon.spy();
 
-        actions.cleanPurchaseFlowState({ commit }, 3);
+        actions.resetToPurchaseFlowStep({ commit }, 3);
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern(
-            [MutationTypes.CLEAN_PURCHASE_FLOW_STATE, 3]
+            [MutationTypes.RESET_TO_PURCHASE_FLOW_STEP, 3]
         );
     });
     it('should successfully start save purchase flow step', () => {

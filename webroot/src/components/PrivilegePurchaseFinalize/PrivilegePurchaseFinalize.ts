@@ -193,7 +193,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         let attestationsAccepted = [];
 
         this.purchaseFlowState.steps?.forEach((step: PurchaseFlowStep) => {
-            if (step.attestationsAccepted && step.attestationsAccepted.length) {
+            if (step.attestationsAccepted) {
                 attestationsAccepted = attestationsAccepted.concat(step.attestationsAccepted);
             }
         });
@@ -205,7 +205,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         let statesSelected = [];
 
         this.purchaseFlowState.steps?.forEach((step: PurchaseFlowStep) => {
-            if (step.selectedPrivilegesToPurchase && step.selectedPrivilegesToPurchase.length) {
+            if (step.selectedPrivilegesToPurchase) {
                 statesSelected = statesSelected.concat(step.selectedPrivilegesToPurchase);
             }
         });
@@ -509,7 +509,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     }
 
     handleCancelClicked(): void {
-        this.$store.dispatch('user/cleanPurchaseFlowState', 0);
+        this.$store.dispatch('user/resetToPurchaseFlowStep', 0);
 
         if (this.currentCompactType) {
             this.$router.push({

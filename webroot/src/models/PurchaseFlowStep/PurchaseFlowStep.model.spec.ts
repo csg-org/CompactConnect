@@ -26,7 +26,7 @@ describe('PurchaseFlowStep model', () => {
     it('should create a PurchaseFlowStep with specific values', () => {
         const data = {
             stepNum: 0,
-            attestationsAccepted: [ new AcceptedAttestationToSend({
+            attestationsAccepted: [new AcceptedAttestationToSend({
                 attestationId: 'attestation-id',
                 version: '1'
             })],

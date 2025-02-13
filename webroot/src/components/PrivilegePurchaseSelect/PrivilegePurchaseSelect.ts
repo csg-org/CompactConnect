@@ -365,7 +365,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
     }
 
     handleCancelClicked() {
-        this.$store.dispatch('user/cleanPurchaseFlowState', 0);
+        this.$store.dispatch('user/resetToPurchaseFlowStep', 0);
 
         if (this.currentCompactType) {
             this.$router.push({
@@ -427,7 +427,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         }
     }
 
-    checkIfStateSelectIsDisabled(state): boolean {
+    isStateSelectDisabled(state): boolean {
         return this.disabledPrivilegeStateChoices.includes(state.id);
     }
 
@@ -449,7 +449,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
 
     async mockPopulate(): Promise<void> {
         this.stateCheckList.forEach((state) => {
-            if (!this.checkIfStateSelectIsDisabled(state)) {
+            if (!this.isStateSelectDisabled(state)) {
                 this.toggleStateSelected(state);
 
                 this.$nextTick(() => {

@@ -343,8 +343,8 @@ export default {
     endMilitaryAffiliationFailure: async ({ commit }, error: Error) => {
         commit(MutationTypes.END_MILITARY_AFFILIATION_FAILURE, error);
     },
-    cleanPurchaseFlowState: ({ commit }, flowStepNum: number) => {
-        commit(MutationTypes.CLEAN_PURCHASE_FLOW_STATE, flowStepNum);
+    resetToPurchaseFlowStep: ({ commit }, flowStepNum: number) => {
+        commit(MutationTypes.RESET_TO_PURCHASE_FLOW_STEP, flowStepNum);
     },
     saveFlowStep: ({ commit }, flowStep: PurchaseFlowStep) => {
         commit(MutationTypes.SAVE_PURCHASE_FLOW_STEP, flowStep);

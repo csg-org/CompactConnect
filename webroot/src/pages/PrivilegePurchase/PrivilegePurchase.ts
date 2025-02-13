@@ -119,7 +119,7 @@ export default class PrivilegePurchase extends Vue {
                 params: { compact: this.currentCompactType }
             });
         } else {
-            $store.dispatch('user/cleanPurchaseFlowState', currentFlowStep);
+            $store.dispatch('user/resetToPurchaseFlowStep', currentFlowStep);
         }
     }
 

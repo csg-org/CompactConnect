@@ -43,7 +43,7 @@ export enum MutationTypes {
     END_MILITARY_AFFILIATION_REQUEST = '[User] Patch Military Affiliation Request',
     END_MILITARY_AFFILIATION_SUCCESS = '[User] Patch Military Affiliation Success',
     END_MILITARY_AFFILIATION_FAILURE = '[User] Patch Military Affiliation Failure',
-    CLEAN_PURCHASE_FLOW_STATE = '[User] Remove stale Purchase Flow State',
+    RESET_TO_PURCHASE_FLOW_STEP = '[User] Reset Purchase Flow State to input flow step',
     SAVE_PURCHASE_FLOW_STEP = '[User] Save a Purchase Flow Step to the Store'
 }
 
@@ -182,7 +182,7 @@ export default {
         state.isLoadingAccount = false;
         state.error = error;
     },
-    [MutationTypes.CLEAN_PURCHASE_FLOW_STATE]: (state: any, flowStepNum: number) => {
+    [MutationTypes.RESET_TO_PURCHASE_FLOW_STEP]: (state: any, flowStepNum: number) => {
         state.purchase.steps = state.purchase.steps.filter((step) => (step.stepNum < flowStepNum));
     },
     [MutationTypes.SAVE_PURCHASE_FLOW_STEP]: (state: any, flowStep: PurchaseFlowStep) => {
