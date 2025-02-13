@@ -29,6 +29,7 @@
             :placeholder="formInput.placeholder"
             :model-type="modelFormat"
             v-model="formInput.value"
+            :text-input="isTextInput"
             :autocomplete="isAutoComplete"
             :disabled="isDisabled"
             :inline="isInline"
