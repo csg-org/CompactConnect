@@ -91,9 +91,7 @@ def test_purchasing_privilege():
         dynamodb_table = config.provider_user_dynamodb_table
         for privilege in original_privileges:
             privilege_pk = f'{compact}#PROVIDER#{provider_id}'
-            privilege_sk = (
-                f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}#'
-            )
+            privilege_sk = f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}#'
             logger.info(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
             dynamodb_table.delete_item(
                 Key={
