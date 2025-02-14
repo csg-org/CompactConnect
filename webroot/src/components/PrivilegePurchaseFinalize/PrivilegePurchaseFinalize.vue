@@ -72,7 +72,7 @@
                 </div>
                 <div class="cost-breakdown-container">
                     <div class="cost-listing-block">
-                        <div class="selection-title">{{selectionText}}</div>
+                        <div class="section-title">{{selectionText}}</div>
                         <ul>
                             <li
                                 v-for="(state) in selectedStatePurchaseDisplayDataList"
@@ -93,6 +93,11 @@
                             <div class="info-row-label">{{compactCommissionFeeText}}</div>
                             <div class="info-row-amount">${{totalCompactCommissionFeeDisplay}}</div>
                         </div>
+                        <div class="section-title">{{feesText}}</div>
+                            <div class="info-row">
+                                <div class="info-row-label">{{creditCardFeesText}}</div>
+                                <div class="info-row-amount">${{creditCardFeesTotal}}</div>
+                            </div>
                         <div class="purchase-total info-row">
                             <div class="info-row-label total">{{totalTitle}}</div>
                             <div class="info-row-amount total">${{totalPurchasePriceDisplay}}</div>

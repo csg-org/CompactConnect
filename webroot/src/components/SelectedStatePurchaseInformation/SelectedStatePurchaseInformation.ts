@@ -103,7 +103,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     }
 
     get commissionFeeText(): string {
-        return this.$t('licensing.commissionFee');
+        return this.$t('licensing.adminFee');
     }
 
     get jurisdictionFeeText(): string {

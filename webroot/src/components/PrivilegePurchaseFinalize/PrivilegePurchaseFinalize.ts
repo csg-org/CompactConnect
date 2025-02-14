@@ -339,6 +339,31 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         return Boolean(this.$envConfig.isDevelopment);
     }
 
+    get feesText(): string {
+        return this.$t('common.fees');
+    }
+
+    get creditCardFeesText(): string {
+        return this.$t('payment.ccTransactionFees');
+    }
+
+    get creditCardFeesPerPrivilege(): number | null {
+        return this.currentCompact?.perPrivilegeTransactionFeeAmount || null;
+    }
+
+    get creditCardFeesTotal(): string {
+        let total = '0';
+        const numPrivileges = this.selectedStatePurchaseDataList?.length;
+
+        if (this.creditCardFeesPerPrivilege && numPrivileges) {
+            const numTotal = numPrivileges * this.creditCardFeesPerPrivilege;
+
+            total = numTotal.toFixed(2);
+        }
+
+        return total;
+    }
+
     //
     // Methods
     //
