@@ -35,7 +35,7 @@ class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     dateOfExpiration = Raw(required=True, allow_none=False)
     privilegeId = String(required=True, allow_none=False)
     compactTransactionId = String(required=True, allow_none=False)
-    attestations = List(Nested(AttestationVersionResponseSchema()), required=False, allow_none=False)
+    attestations = List(Nested(AttestationVersionResponseSchema()), required=True, allow_none=False)
 
 
 class PrivilegeUpdateGeneralResponseSchema(ForgivingSchema):

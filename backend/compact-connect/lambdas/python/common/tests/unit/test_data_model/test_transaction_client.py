@@ -136,7 +136,6 @@ class TestTransactionClient(TstLambdas):
         self.assertEqual(result[0]['lineItems'][1]['privilegeId'], 'priv-456')  # NY line item
         self.assertNotIn('privilegeId', result[0]['lineItems'][2])  # other item
 
-
     def test_add_privilege_ids_to_transactions_performs_check_on_provider_id_for_match(self):
         # Mock the provider table query response
         self.mock_config.provider_table = MagicMock()
@@ -186,5 +185,5 @@ class TestTransactionClient(TstLambdas):
         self.assertEqual(result[0]['lineItems'][0]['privilegeId'], 'priv-123')  # CA line item
         # In this case, the privilege ID is unknown because the provider ID does not match
         # again, this should never happen in practice
-        self.assertEqual(result[0]['lineItems'][1]['privilegeId'], 'UNKNOWN')  
+        self.assertEqual(result[0]['lineItems'][1]['privilegeId'], 'UNKNOWN')
         self.assertNotIn('privilegeId', result[0]['lineItems'][2])  # other item
