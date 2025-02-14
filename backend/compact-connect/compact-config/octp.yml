@@ -1,5 +1,6 @@
 # PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
 compactAbbr: "octp"
+compactName: "Occupational Therapy"
 compactCommissionFee:
     feeType: "FLAT_RATE"
     feeAmount: 3.50

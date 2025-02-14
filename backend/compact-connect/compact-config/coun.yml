@@ -1,5 +1,6 @@
 # PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
 compactAbbr: "coun"
+compactName: "Counseling"
 compactCommissionFee:
     feeType: "FLAT_RATE"
     feeAmount: 3.50
