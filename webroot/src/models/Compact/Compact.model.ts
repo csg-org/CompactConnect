@@ -31,6 +31,8 @@ export interface InterfaceCompactCreate {
     memberStates?: Array<State>;
     privilegePurchaseOptions?: Array <PrivilegePurchaseOption>;
     compactCommissionFee?: number | null;
+    perPrivilegeTransactionFeeAmount?: number | null;
+    isPerPrivilegeTransactionFeeActive?: boolean;
     compactCommissionFeeType?: FeeTypes | null;
 }
 
@@ -45,6 +47,8 @@ export class Compact implements InterfaceCompactCreate {
     public privilegePurchaseOptions? = [];
     public compactCommissionFee? = null;
     public compactCommissionFeeType? = null;
+    public perPrivilegeTransactionFeeAmount? = null;
+    public isPerPrivilegeTransactionFeeActive? = false;
 
     constructor(data?: InterfaceCompactCreate) {
         const cleanDataObject = deleteUndefinedProperties(data);

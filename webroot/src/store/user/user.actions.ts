@@ -261,7 +261,11 @@ export default {
                 ...state.currentCompact,
                 privilegePurchaseOptions: privilegePurchaseData.privilegePurchaseOptions,
                 compactCommissionFee: privilegePurchaseData?.compactCommissionFee?.feeAmount,
-                compactCommissionFeeType: privilegePurchaseData?.compactCommissionFee?.feeType
+                compactCommissionFeeType: privilegePurchaseData?.compactCommissionFee?.feeType,
+                perPrivilegeTransactionFeeAmount:
+                    privilegePurchaseData?.compactCommissionFee?.perPrivilegeTransactionFeeAmount,
+                isPerPrivilegeTransactionFeeActive:
+                    privilegePurchaseData?.compactCommissionFee?.isPerPrivilegeTransactionFeeActive
             });
 
             dispatch('setCurrentCompact', newCompact);
