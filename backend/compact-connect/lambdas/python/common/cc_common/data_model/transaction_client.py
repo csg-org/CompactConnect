@@ -135,6 +135,7 @@ class TransactionClient:
         """
         for transaction in transactions:
             line_items = transaction['lineItems']
+            licensee_id = transaction['licenseeId']
             # Extract jurisdictions from line items with format priv:{compact}-{jurisdiction}
             jurisdictions_to_process = set()
             for line_item in line_items:
@@ -153,9 +154,10 @@ class TransactionClient:
             # Process each privilege record
             for jurisdiction in jurisdictions_to_process:
                 item_id = f'priv:{compact}-{jurisdiction}'
-                # find the first privilege record for the jurisdiction
+                # find the first privilege record for the jurisdiction that matches the provider ID
                 matching_privilege = next(
-                    (item for item in response.get('Items', []) if item['jurisdiction'].lower() == jurisdiction), None
+                    (item for item in response.get('Items', []) 
+                     if item['jurisdiction'].lower() == jurisdiction and item['providerId'] == licensee_id), None
                 )
                 if matching_privilege:
                     record_type = matching_privilege['type']
@@ -176,7 +178,7 @@ class TransactionClient:
                         compact=compact,
                         transactionId=transaction['transactionId'],
                         jurisdiction=jurisdiction,
-                        provider_id=transaction['licenseeId'],
+                        provider_id=licensee_id,
                         matching_privilege_records=response.get('Items', []),
                     )
                     # we set the privilege id to UNKNOWN, so that it will be visible in the report
