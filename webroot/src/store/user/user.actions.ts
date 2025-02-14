@@ -15,6 +15,7 @@ import {
 } from '@/app.config';
 import localStorage from '@store/local.storage';
 import { Compact } from '@models/Compact/Compact.model';
+import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import moment from 'moment';
 import axios from 'axios';
 import { MutationTypes } from './user.mutations';
@@ -277,15 +278,6 @@ export default {
     getPrivilegePurchaseInformationFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.GET_PRIVILEGE_PURCHASE_INFORMATION_FAILURE, error);
     },
-    savePrivilegePurchaseChoicesToStore: ({ commit }, privilegePurchaseChoices: Array<string>) => {
-        commit(MutationTypes.SAVE_SELECTED_PRIVILEGE_PURCHASES_TO_STORE, privilegePurchaseChoices);
-    },
-    setAttestationsAccepted: ({ commit }, areAttestationsAccepted: boolean) => {
-        commit(MutationTypes.SET_ATTESTATIONS_ACCEPTED, areAttestationsAccepted);
-    },
-    setAttestations: ({ commit }, attestations) => {
-        commit(MutationTypes.SET_ATTESTATIONS, attestations);
-    },
     postPrivilegePurchases: ({ commit, dispatch }, privilegePurchases) => {
         commit(MutationTypes.POST_PRIVILEGE_PURCHASE_REQUEST);
         return dataApi.postPrivilegePurchases(privilegePurchases).then((serverResponse) => {
@@ -354,5 +346,11 @@ export default {
     },
     endMilitaryAffiliationFailure: async ({ commit }, error: Error) => {
         commit(MutationTypes.END_MILITARY_AFFILIATION_FAILURE, error);
+    },
+    resetToPurchaseFlowStep: ({ commit }, flowStepNum: number) => {
+        commit(MutationTypes.RESET_TO_PURCHASE_FLOW_STEP, flowStepNum);
+    },
+    saveFlowStep: ({ commit }, flowStep: PurchaseFlowStep) => {
+        commit(MutationTypes.SAVE_PURCHASE_FLOW_STEP, flowStep);
     },
 };

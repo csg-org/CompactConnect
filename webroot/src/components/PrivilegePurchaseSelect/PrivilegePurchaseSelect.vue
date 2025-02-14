@@ -1,0 +1,113 @@
+<!--
+    PrivilegePurchaseSelect.vue
+    CompactConnect
+
+    Created by InspiringApps on 10/15/2024.
+-->
+
+<template>
+    <div>
+        <div class="select-privileges-container">
+            <form class="privilege-form" @submit.prevent="handleSubmit">
+                <div class="select-privileges-core-container">
+                    <h1 class="select-privileges-title">
+                        {{selectPrivilegesTitleText}}
+                    </h1>
+                    <LoadingSpinner v-if="isLoading"></LoadingSpinner>
+                    <div v-else>
+                        <MockPopulate
+                            :isEnabled="isMockPopulateEnabled"
+                            @selected="mockPopulate"
+                            class="mock-populate"
+                        />
+                        <div class="lists-container">
+                            <ul class="state-select-list">
+                                <li
+                                    v-for="state in stateCheckList"
+                                    :key="state.label"
+                                    class="state-unit"
+
+                                >
+                                    <div v-if="isStateSelectDisabled(state)" class="state-select-unit">
+                                        <div class="disabled-state-overlay" />
+                                        <InputCheckbox
+                                            :formInput="state"
+                                        />
+                                    </div>
+                                    <div
+                                        v-else
+                                        class="state-select-unit"
+                                        :class="{ selected: state.value }"
+                                    >
+                                        <div
+                                            @click.prevent="toggleStateSelected(state)"
+                                            @keyup.enter="toggleStateSelected(state)"
+                                            tabindex="0"
+                                            class="enabled-state-overlay"
+                                        />
+                                        <InputCheckbox
+                                            :formInput="state"
+                                        />
+                                    </div>
+                                    <Transition name="fade">
+                                        <SelectedStatePurchaseInformation
+                                            v-if="isPhone && findStatePurchaseInformation(state)"
+                                            class="selected-state-block"
+                                            :selectedStatePurchaseData="findStatePurchaseInformation(state)"
+                                            :jurisprudenceCheckInput="formData.jurisprudenceConfirmations[state.id]"
+                                            :scopeOfPracticeCheckInput="formData.scopeOfPracticeConfirmations[state.id]"
+                                            :scopeAttestation="scopeAttestation"
+                                            :jurisprudenceAttestation="jurisprudenceAttestation"
+                                            @exOutState="deselectState"
+                                        />
+                                    </Transition>
+                                </li>
+                            </ul>
+                            <TransitionGroup tag="ul" name="list" v-if="!isPhone" class="selected-state-list">
+                                <SelectedStatePurchaseInformation
+                                    v-for="(state) in selectedStatePurchaseDataList"
+                                    :key="state.jurisdiction.abbrev"
+                                    class="selected-state-block"
+                                    :selectedStatePurchaseData="state"
+                                    :jurisprudenceCheckInput="formData
+                                        .jurisprudenceConfirmations[state.jurisdiction.abbrev]"
+                                    :scopeOfPracticeCheckInput="formData
+                                        .scopeOfPracticeConfirmations[state.jurisdiction.abbrev]"
+                                    :scopeAttestation="scopeAttestation"
+                                    :jurisprudenceAttestation="jurisprudenceAttestation"
+                                    @exOutState="deselectState"
+                                />
+                            </TransitionGroup>
+                        </div>
+                    </div>
+                </div>
+                <div class="button-row">
+                    <InputButton
+                        :label="cancelText"
+                        :isTextLike="true"
+                        :aria-label="cancelText"
+                        class="icon icon-close-modal"
+                        @click="handleCancelClicked"
+                    />
+                    <div class="right-cell">
+                        <InputButton
+                            :label="backText"
+                            :aria-label="backText"
+                            class="back-button"
+                            :isTransparent="true"
+                            @click="handleBackClicked"
+                        />
+                        <InputSubmit
+                            :formInput="formData.submit"
+                            :label="submitLabel"
+                            :isEnabled="!isFormLoading && isAtLeastOnePrivilegeChosen && areAllAttesationsConfirmed"
+                        />
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</template>
+
+<script lang="ts" src="./PrivilegePurchaseSelect.ts"></script>
+<style scoped lang="less" src="./PrivilegePurchaseSelect.less"></style>

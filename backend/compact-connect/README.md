@@ -84,6 +84,13 @@ unit/functional tests to be incorporated in the development workflow. If you wan
 in the cloud, you can do so by configuring context for your own sandbox AWS account with context variables in
 `cdk.context.json` and running the appropriate `cdk deploy` command.
 
+Once the deployment completes, you may want to run a local frontend. To do so, you must [populate a `.env`
+file](../../webroot/README.md#environment-variables) with data on certain AWS resources (for example, AWS Cognito auth
+domains and client IDs). A quick way to do that is to run `bin/fetch_aws_resources.py --as-env` from the
+`backend/compact-connect` directory and copy/paste the output into `webroot/.env`. To see more data on your deployment
+in human-readable format (for example, DynamoDB table names), run `bin/fetch_aws_resources.py` without any additional
+flags.
+
 ## Tests
 [Back to top](#compact-connect---backend-developer-documentation)
 

@@ -21,6 +21,19 @@ class CCEnum(StrEnum):
         return cls[label]
 
 
+class CCPermissionsAction(StrEnum):
+    """
+    Enum for Compact Connect permissions actions
+    """
+
+    READ = 'read'
+    WRITE = 'write'
+    ADMIN = 'admin'
+    READ_GENERAL = 'readGeneral'
+    READ_PRIVATE = 'readPrivate'
+    READ_SSN = 'readSSN'
+
+
 class S3PresignedPostSchema(Schema):
     """
     Schema for S3 pre-signed post data

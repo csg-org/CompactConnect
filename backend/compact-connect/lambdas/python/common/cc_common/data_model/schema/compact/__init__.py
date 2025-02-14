@@ -2,7 +2,7 @@
 from collections import UserDict
 
 from marshmallow import Schema
-from marshmallow.fields import Decimal, String
+from marshmallow.fields import Boolean, Decimal, Nested, String
 from marshmallow.validate import OneOf
 
 from cc_common.data_model.schema.common import CCEnum
@@ -14,9 +14,27 @@ class CompactFeeType(CCEnum):
     FLAT_RATE = 'FLAT_RATE'
 
 
+class TransactionFeeChargeType(CCEnum):
+    FLAT_FEE_PER_PRIVILEGE = 'FLAT_FEE_PER_PRIVILEGE'
+
+
 class CompactCommissionFeeSchema(Schema):
     feeType = String(required=True, allow_none=False, validate=OneOf([e.value for e in CompactFeeType]))
-    feeAmount = Decimal(required=True, allow_none=False)
+    feeAmount = Decimal(required=True, allow_none=False, places=2)
+
+
+class LicenseeChargesSchema(Schema):
+    """Schema for licensee transaction fee charges configuration"""
+
+    active = Boolean(required=True, allow_none=False)
+    chargeType = String(required=True, allow_none=False, validate=OneOf([e.value for e in TransactionFeeChargeType]))
+    chargeAmount = Decimal(required=True, allow_none=False, places=2)
+
+
+class TransactionFeeConfigurationSchema(Schema):
+    """Schema for the transaction fee configuration"""
+
+    licenseeCharges = Nested(LicenseeChargesSchema(), required=False, allow_none=True)
 
 
 class CompactCommissionFee(UserDict):
@@ -29,8 +47,28 @@ class CompactCommissionFee(UserDict):
         return CompactFeeType.from_str(self['feeType'])
 
     @property
-    def fee_amount(self) -> float:
-        return float(self['feeAmount'])
+    def fee_amount(self) -> Decimal:
+        return self['feeAmount']
+
+
+class LicenseeCharges(UserDict):
+    @property
+    def active(self) -> bool:
+        return self['active']
+
+    @property
+    def charge_type(self) -> TransactionFeeChargeType:
+        return TransactionFeeChargeType.from_str(self['chargeType'])
+
+    @property
+    def charge_amount(self) -> Decimal:
+        return self['chargeAmount']
+
+
+class TransactionFeeConfiguration(UserDict):
+    @property
+    def licensee_charges(self) -> LicenseeCharges:
+        return LicenseeCharges(self['licenseeCharges']) if self.get('licenseeCharges') else None
 
 
 class Compact(UserDict):
@@ -45,6 +83,14 @@ class Compact(UserDict):
     @property
     def compact_commission_fee(self) -> CompactCommissionFee:
         return CompactCommissionFee(self['compactCommissionFee'])
+
+    @property
+    def transaction_fee_configuration(self) -> TransactionFeeConfiguration:
+        return (
+            TransactionFeeConfiguration(self['transactionFeeConfiguration'])
+            if self.get('transactionFeeConfiguration')
+            else None
+        )
 
     @property
     def compact_operations_team_emails(self) -> list[str] | None:

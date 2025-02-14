@@ -70,7 +70,7 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa
     """
     compact = _get_caller_compact_custom_attribute(event)
 
-    options_response = config.data_client.get_privilege_purchase_options(
+    options_response = config.compact_configuration_client.get_privilege_purchase_options(
         compact=compact,
         pagination=event.get('queryStringParameters', {}),
     )
@@ -202,7 +202,9 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     ]
 
     # load the compact information
-    privilege_purchase_options = config.data_client.get_privilege_purchase_options(compact=compact_name)
+    privilege_purchase_options = config.compact_configuration_client.get_privilege_purchase_options(
+        compact=compact_name
+    )
 
     compact_configuration = [item for item in privilege_purchase_options['items'] if item['type'] == COMPACT_TYPE]
     if not compact_configuration:

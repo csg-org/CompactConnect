@@ -50,6 +50,46 @@ class DataClient:
 
         return resp['providerId']
 
+    @logger_inject_kwargs(logger, 'compact')
+    def get_or_create_provider_id(self, *, compact: str, ssn: str) -> str:
+        provider_id = str(uuid4())
+        # This is an 'ask forgiveness' approach to provider id assignment:
+        # Try to create a new provider, conditional on it not already existing
+        try:
+            self.config.ssn_table.put_item(
+                Item=self.ssn_index_record_schema.dump(
+                    {
+                        'compact': compact,
+                        'ssn': ssn,
+                        'providerId': provider_id,
+                    }
+                ),
+                ConditionExpression=Attr('pk').not_exists(),
+                ReturnValuesOnConditionCheckFailure='ALL_OLD',
+            )
+            logger.info('Creating new provider', provider_id=provider_id)
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                # The provider already exists, so grab their providerId
+                provider_id = TypeDeserializer().deserialize(e.response['Item']['providerId'])
+                logger.info('Found existing provider', provider_id=provider_id)
+            else:
+                raise
+        return provider_id
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id')
+    def get_ssn_by_provider_id(self, *, compact: str, provider_id: str) -> str:
+        logger.info('Getting ssn by provider id', compact=compact, provider_id=provider_id)
+        resp = self.config.ssn_table.query(
+            KeyConditionExpression=Key('providerIdGSIpk').eq(f'{compact}#PROVIDER#{provider_id}'),
+            IndexName=self.config.ssn_index_name,
+        )['Items']
+        if len(resp) == 0:
+            raise CCNotFoundException('Provider not found')
+        if len(resp) != 1:
+            raise CCInternalException(f'Expected 1 SSN index record, got {len(resp)}')
+        return resp[0]['ssn']
+
     @logger_inject_kwargs(logger, 'compact', 'provider_id')
     def get_provider_home_jurisdiction_selection(self, *, compact: str, provider_id: str) -> dict | None:
         """Get the home jurisdiction selection record for a provider.
@@ -117,33 +157,6 @@ class DataClient:
             raise CCInternalException('Multiple matching license records found')
 
         return matching_records[0] if matching_records else None
-
-    @logger_inject_kwargs(logger, 'compact')
-    def get_or_create_provider_id(self, *, compact: str, ssn: str) -> str:
-        provider_id = str(uuid4())
-        # This is an 'ask forgiveness' approach to provider id assignment:
-        # Try to create a new provider, conditional on it not already existing
-        try:
-            self.config.ssn_table.put_item(
-                Item={
-                    'pk': f'{compact}#SSN#{ssn}',
-                    'sk': f'{compact}#SSN#{ssn}',
-                    'compact': compact,
-                    'ssn': ssn,
-                    'providerId': provider_id,
-                },
-                ConditionExpression=Attr('pk').not_exists(),
-                ReturnValuesOnConditionCheckFailure='ALL_OLD',
-            )
-            logger.info('Creating new provider', provider_id=provider_id)
-        except ClientError as e:
-            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
-                # The provider already exists, so grab their providerId
-                provider_id = TypeDeserializer().deserialize(e.response['Item']['providerId'])
-                logger.info('Found existing provider', provider_id=provider_id)
-            else:
-                raise
-        return provider_id
 
     @paginated_query
     @logger_inject_kwargs(logger, 'compact', 'provider_id')
@@ -241,17 +254,6 @@ class DataClient:
             KeyConditionExpression=Key('sk').eq(f'{compact}#PROVIDER'),
             ScanIndexForward=scan_forward,
             **({'FilterExpression': filter_expression} if filter_expression is not None else {}),
-            **dynamo_pagination,
-        )
-
-    @paginated_query
-    @logger_inject_kwargs(logger, 'compact')
-    def get_privilege_purchase_options(self, *, compact: str, dynamo_pagination: dict):
-        logger.info('Getting privilege purchase options for compact')
-
-        return self.config.compact_configuration_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(f'{compact}#CONFIGURATION'),
             **dynamo_pagination,
         )
 

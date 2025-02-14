@@ -94,10 +94,10 @@ export class EmailService {
         }
     }
 
-    private async sendEmailWithAttachments({ 
-        htmlContent, 
-        subject, 
-        recipients, 
+    private async sendEmailWithAttachments({
+        htmlContent,
+        subject,
+        recipients,
         errorMessage,
         attachments
     }: {
@@ -909,12 +909,12 @@ export class EmailService {
     ): Promise<void> {
         this.logger.info('Sending compact transaction report email', { compact: compact });
         const recipients = await this.getRecipients(compact, 'COMPACT_SUMMARY_REPORT');
-        
+
         if (recipients.length === 0) {
             throw new Error(`No recipients found for compact ${compact} with recipient type COMPACT_SUMMARY_REPORT`);
         }
 
-        // Get the report zip file from S3        
+        // Get the report zip file from S3
         const reportZipResponse = await this.s3Client.send(new GetObjectCommand({
             Bucket: environmentVariableService.getTransactionReportsBucketName(),
             Key: reportS3Path
@@ -937,11 +937,11 @@ export class EmailService {
         this.insertFooter(report);
 
         const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
-        
-        await this.sendEmailWithAttachments({ 
-            htmlContent, 
-            subject, 
-            recipients, 
+
+        await this.sendEmailWithAttachments({
+            htmlContent,
+            subject,
+            recipients,
             errorMessage: 'Unable to send compact transaction report email',
             attachments: [
                 {
@@ -961,9 +961,9 @@ export class EmailService {
         startDate: string,
         endDate: string
     ): Promise<void> {
-        this.logger.info('Sending jurisdiction transaction report email', { 
+        this.logger.info('Sending jurisdiction transaction report email', {
             compact: compact,
-            jurisdiction: jurisdiction 
+            jurisdiction: jurisdiction
         });
 
         const jurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, jurisdiction);
@@ -973,7 +973,7 @@ export class EmailService {
             throw new Error(`No recipients found for jurisdiction ${jurisdiction} in compact ${compact}`);
         }
 
-        // Get the report zip file from S3        
+        // Get the report zip file from S3
         const reportZipResponse = await this.s3Client.send(new GetObjectCommand({
             Bucket: environmentVariableService.getTransactionReportsBucketName(),
             Key: reportS3Path
@@ -994,11 +994,11 @@ export class EmailService {
         this.insertFooter(report);
 
         const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
-        
-        await this.sendEmailWithAttachments({ 
-            htmlContent, 
-            subject, 
-            recipients, 
+
+        await this.sendEmailWithAttachments({
+            htmlContent,
+            subject,
+            recipients,
             errorMessage: 'Unable to send jurisdiction transaction report email',
             attachments: [
                 {

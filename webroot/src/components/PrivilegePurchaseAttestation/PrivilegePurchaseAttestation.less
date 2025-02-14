@@ -1,0 +1,105 @@
+//
+//  PrivilegePurchaseAttestation.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 11/4/2024.
+//
+.privilege-purchase-attestation-container {
+    .loading-container {
+        width: 100%;
+        height: 400px;
+    }
+
+    .privilege-purchase-attestation-form {
+        width: 100%;
+
+        .privilege-purchase-attestation-form-container {
+            width: 100%;
+            padding: 4rem 4rem 4rem 4rem;
+            border-radius: 12px;
+            background-color: @white;
+
+            @media @tabletWidth {
+                width: 72rem;
+            }
+
+            @media @desktopWidth {
+                width: 90rem;
+            }
+        }
+
+        .form-title {
+            margin-bottom: 2.4rem;
+        }
+
+        .form-section-title {
+            font-weight: @fontWeightBold;
+            font-size: @h3FontSize;
+        }
+
+        .form-section-gap {
+            margin-top: 2.4rem;
+        }
+
+        &:deep(.checkbox-container) {
+            .checkbox-wrapper {
+                padding-left: 30px;
+            }
+
+            .input-label {
+                font-weight: @fontWeightLight;
+            }
+
+            input[type="checkbox"]:checked + .checkbox-replacement::after {
+                background-color: @primaryColor;
+            }
+        }
+
+        &:deep(.radio-group-container .input-label) {
+            font-size: @h3FontSize;
+        }
+
+        .button-row {
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-top: 2rem;
+
+            @media @tabletWidth {
+                flex-direction: row;
+                align-items: flex-end;
+                justify-content: space-between;
+            }
+
+            :deep(.input-container) {
+                margin-bottom: 1rem;
+
+                @media @tabletWidth {
+                    margin-bottom: unset;
+                }
+            }
+
+            .right-cell {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+
+                @media @tabletWidth {
+                    align-items: flex-end;
+                    justify-content: space-between;
+                }
+
+                .back {
+                    margin-right: 1rem;
+                }
+            }
+        }
+    }
+
+    .mock-populate {
+        display: inline-block;
+    }
+}

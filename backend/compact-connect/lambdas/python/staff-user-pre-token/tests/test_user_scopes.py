@@ -20,14 +20,23 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'pk': f'USER#{self._user_sub}',
                 'sk': 'COMPACT#aslp',
                 'compact': 'aslp',
-                'permissions': {'actions': {'read', 'admin', 'readPrivate'}, 'jurisdictions': {}},
+                'permissions': {'actions': {'read', 'admin', 'readPrivate', 'readSSN'}, 'jurisdictions': {}},
             }
         )
 
         user_data = UserData(self._user_sub)
 
         self.assertEqual(
-            {'profile', 'aslp/readGeneral', 'aslp/admin', 'aslp/aslp.admin', 'aslp/aslp.readPrivate'}, user_data.scopes
+            {
+                'profile',
+                'aslp/admin',
+                'aslp/readGeneral',
+                'aslp/readSSN',
+                'aslp/aslp.admin',
+                'aslp/aslp.readPrivate',
+                'aslp/aslp.readSSN',
+            },
+            user_data.scopes,
         )
 
     def test_board_ed_user(self):
@@ -39,7 +48,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'pk': f'USER#{self._user_sub}',
                 'sk': 'COMPACT#aslp',
                 'compact': 'aslp',
-                'permissions': {'jurisdictions': {'al': {'write', 'admin', 'readPrivate'}}},
+                'permissions': {'jurisdictions': {'al': {'write', 'admin', 'readPrivate', 'readSSN'}}},
             }
         )
 
@@ -49,11 +58,13 @@ class TestGetUserScopesFromDB(TstLambdas):
             {
                 'profile',
                 'aslp/readGeneral',
+                'aslp/readSSN',
                 'aslp/admin',
                 'aslp/write',
                 'aslp/al.admin',
                 'aslp/al.write',
                 'aslp/al.readPrivate',
+                'aslp/al.readSSN',
             },
             user_data.scopes,
         )
