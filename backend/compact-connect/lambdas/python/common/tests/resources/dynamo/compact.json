@@ -3,6 +3,7 @@
   "sk": "aslp#CONFIGURATION",
   "type": "compact",
   "compactAbbr": "aslp",
+  "compactName": "Audio and Speech Language Pathology",
   "compactCommissionFee": {
     "feeType": "FLAT_RATE",
     "feeAmount": 3.50

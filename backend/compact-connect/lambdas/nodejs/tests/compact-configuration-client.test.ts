@@ -15,6 +15,7 @@ const SAMPLE_COMPACT_CONFIGURATION = {
         }
     },
     'compactAbbr': { S: 'aslp' },
+    'compactName': { S: 'Audio and Speech Language Pathology' },
     'compactOperationsTeamEmails': { L: [{ S: 'operations@example.com' }]},
     'compactSummaryReportNotificationEmails': { L: [{ S: 'summary@example.com' }]},
     'dateOfUpdate': { S: '2024-12-10T19:27:28+00:00' },
@@ -74,6 +75,7 @@ describe('CompactConfigurationClient', () => {
                 feeType: 'FLAT_RATE'
             },
             compactAbbr: 'aslp',
+            compactName: 'Audio and Speech Language Pathology',
             compactOperationsTeamEmails: ['operations@example.com'],
             compactSummaryReportNotificationEmails: ['summary@example.com'],
             dateOfUpdate: '2024-12-10T19:27:28+00:00',

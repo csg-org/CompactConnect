@@ -21,6 +21,7 @@ class CompactOptionsResponseSchema(ForgivingSchema):
     """Used to enforce which fields are returned in compact objects for the GET /purchase/privileges/options endpoint"""
 
     compactAbbr = String(required=True, allow_none=False, validate=OneOf(config.compacts))
+    compactName = String(required=True, allow_none=False)
     compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
     transactionFeeConfiguration = Nested(TransactionFeeConfigurationResponseSchema(), required=True, allow_none=False)
     type = String(required=True, allow_none=False, validate=OneOf([COMPACT_TYPE]))

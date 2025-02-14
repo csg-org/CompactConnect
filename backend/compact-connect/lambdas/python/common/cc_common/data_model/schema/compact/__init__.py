@@ -81,6 +81,10 @@ class Compact(UserDict):
         return self['compactAbbr']
 
     @property
+    def compact_name(self) -> str:
+        return self['compactName']
+
+    @property
     def compact_commission_fee(self) -> CompactCommissionFee:
         return CompactCommissionFee(self['compactCommissionFee'])
 
