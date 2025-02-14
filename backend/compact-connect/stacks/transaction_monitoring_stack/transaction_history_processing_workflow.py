@@ -66,7 +66,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
         persistent_stack.transaction_history_table.grant_write_data(self.transaction_processor_handler)
         persistent_stack.shared_encryption_key.grant_encrypt(self.transaction_processor_handler)
         # grant access to the compact specific secrets manager secrets following this namespace pattern
-        # compact-connect/env/{environment_name}/compact/{compact_name}/credentials/payment-processor
+        # compact-connect/env/{environment_name}/compact/{compact_abbr}/credentials/payment-processor
         self.transaction_processor_handler.add_to_role_policy(
             PolicyStatement(
                 effect=Effect.ALLOW,
@@ -232,7 +232,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
         """
         Generate the secret arn for the payment processor credentials.
         The secret arn follows this pattern:
-        compact-connect/env/{environment_name}/compact/{compact_name}/credentials/payment-processor
+        compact-connect/env/{environment_name}/compact/{compact_abbr}/credentials/payment-processor
 
         This is used to scope the permissions granted to the lambda specifically for the secret it needs to access.
         """

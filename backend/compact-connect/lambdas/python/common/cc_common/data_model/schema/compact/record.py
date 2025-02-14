@@ -19,7 +19,7 @@ class CompactRecordSchema(BaseRecordSchema):
     _record_type = COMPACT_TYPE
 
     # Provided fields
-    compactName = String(required=True, allow_none=False, validate=OneOf(config.compacts))
+    compactAbbr = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
     transactionFeeConfiguration = Nested(TransactionFeeConfigurationSchema(), required=False, allow_none=False)
     compactOperationsTeamEmails = List(String(required=True, allow_none=False), required=True, allow_none=False)
@@ -41,6 +41,6 @@ class CompactRecordSchema(BaseRecordSchema):
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         # the pk and sk are the same for the root compact record
-        in_data['pk'] = f'{in_data['compactName']}#CONFIGURATION'
-        in_data['sk'] = f'{in_data['compactName']}#CONFIGURATION'
+        in_data['pk'] = f'{in_data["compactAbbr"]}#CONFIGURATION'
+        in_data['sk'] = f'{in_data["compactAbbr"]}#CONFIGURATION'
         return in_data

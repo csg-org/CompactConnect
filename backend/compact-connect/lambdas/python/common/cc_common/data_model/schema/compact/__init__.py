@@ -77,8 +77,8 @@ class Compact(UserDict):
     """
 
     @property
-    def compact_name(self) -> str:
-        return self['compactName']
+    def compact_abbr(self) -> str:
+        return self['compactAbbr']
 
     @property
     def compact_commission_fee(self) -> CompactCommissionFee:

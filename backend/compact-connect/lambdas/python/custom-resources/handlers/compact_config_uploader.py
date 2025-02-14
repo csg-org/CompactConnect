@@ -60,11 +60,11 @@ def _upload_attestation_configuration(compact_configuration: dict) -> None:
     """
     attestation_record_schema = AttestationRecordSchema()
     for compact in compact_configuration['compacts']:
-        compact_name = compact['compactName']
+        compact_abbr = compact['compactAbbr']
 
-        logger.info('Loading attestations', compact=compact_name)
+        logger.info('Loading attestations', compact=compact_abbr)
         for attestation in compact['attestations']:
-            attestation['compact'] = compact_name
+            attestation['compact'] = compact_abbr
             attestation['type'] = 'attestation'
             # set the dateCreated to the current date
             attestation['dateCreated'] = config.current_standard_datetime.isoformat()
@@ -72,7 +72,7 @@ def _upload_attestation_configuration(compact_configuration: dict) -> None:
             # Try to get the latest version of this attestation
             try:
                 latest_attestation = config.compact_configuration_client.get_attestation(
-                    compact=compact_name,
+                    compact=compact_abbr,
                     attestation_id=attestation['attestationId'],
                     locale=attestation['locale'],
                 )
@@ -121,8 +121,8 @@ def _upload_compact_root_configuration(compact_configuration: dict) -> None:
     """
     schema = CompactRecordSchema()
     for compact in compact_configuration['compacts']:
-        compact_name = compact['compactName']
-        logger.info('Loading active compact', compact=compact_name)
+        compact_abbr = compact['compactAbbr']
+        logger.info('Loading active compact', compact=compact_abbr)
         compact['type'] = 'compact'
         # remove the activeEnvironments field as it's an implementation detail
         compact.pop('activeEnvironments')
@@ -139,15 +139,15 @@ def _upload_jurisdiction_configuration(compact_configuration: dict) -> None:
     :param compact_configuration: The compact configuration
     """
     jurisdiction_schema = JurisdictionRecordSchema()
-    for compact_name, jurisdictions in compact_configuration['jurisdictions'].items():
+    for compact_abbr, jurisdictions in compact_configuration['jurisdictions'].items():
         for jurisdiction in jurisdictions:
             jurisdiction_postal_abbreviation = jurisdiction['postalAbbreviation']
             logger.info(
                 'Loading active jurisdiction',
-                compact=compact_name,
+                compact=compact_abbr,
                 jurisdiction=jurisdiction_postal_abbreviation,
             )
-            jurisdiction['compact'] = compact_name
+            jurisdiction['compact'] = compact_abbr
             # remove the activeEnvironments field as it's an implementation detail
             jurisdiction.pop('activeEnvironments')
 

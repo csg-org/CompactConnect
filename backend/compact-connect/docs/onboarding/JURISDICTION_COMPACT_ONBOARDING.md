@@ -165,7 +165,7 @@ In addition to the jurisdiction configuration files, if a new compact is being a
 file must be added to the root of the `compact-config` directory. If it is not present for an associated directory of
 the same name, the deployment will fail. The compact file includes the following information (all fields are required):
 ```
-compactName: "<compact name>"
+compactAbbr: "<compact abbreviation>"
 compactCommissionFee:
     feeType: "FLAT_RATE"                            # Currently only "FLAT_RATE" type is supported.
     feeAmount: <number>                             # This value will be added to the jurisdiciton fee.

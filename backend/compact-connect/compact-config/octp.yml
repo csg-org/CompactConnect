@@ -1,5 +1,5 @@
 # PLACEHOLDER DATA, NOT FINAL CONFIGURATION.
-compactName: "octp"
+compactAbbr: "octp"
 compactCommissionFee:
     feeType: "FLAT_RATE"
     feeAmount: 3.50

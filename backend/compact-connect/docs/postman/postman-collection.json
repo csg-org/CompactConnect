@@ -2362,7 +2362,7 @@
 														}
 													],
 													"cookie": [],
-													"body": "{\n  \"items\": [\n    {\n      \"compactCommissionFee\": {\n        \"feeAmount\": \"<number>\",\n        \"feeType\": \"FLAT_RATE\"\n      },\n      \"compactName\": \"<string>\",\n      \"type\": \"compact\"\n    },\n    {\n      \"compactCommissionFee\": {\n        \"feeAmount\": \"<number>\",\n        \"feeType\": \"FLAT_RATE\"\n      },\n      \"compactName\": \"<string>\",\n      \"type\": \"compact\"\n    }\n  ],\n  \"pagination\": {\n    \"prevLastKey\": {},\n    \"lastKey\": {},\n    \"pageSize\": \"<integer>\"\n  }\n}"
+													"body": "{\n  \"items\": [\n    {\n      \"compactCommissionFee\": {\n        \"feeAmount\": \"<number>\",\n        \"feeType\": \"FLAT_RATE\"\n      },\n      \"compactAbbr\": \"<string>\",\n      \"type\": \"compact\"\n    },\n    {\n      \"compactCommissionFee\": {\n        \"feeAmount\": \"<number>\",\n        \"feeType\": \"FLAT_RATE\"\n      },\n      \"compactAbbr\": \"<string>\",\n      \"type\": \"compact\"\n    }\n  ],\n  \"pagination\": {\n    \"prevLastKey\": {},\n    \"lastKey\": {},\n    \"pageSize\": \"<integer>\"\n  }\n}"
 												}
 											]
 										}

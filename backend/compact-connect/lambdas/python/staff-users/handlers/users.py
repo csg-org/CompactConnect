@@ -153,7 +153,7 @@ def delete_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-arg
         # If they have permissions elsewhere, we return an error
         if disallowed_jurisdictions:
             raise CCAccessDeniedException(
-                f'User has permissions in other jurisdictions ({', '.join(disallowed_jurisdictions)}). Those must be'
+                f'User has permissions in other jurisdictions ({", ".join(disallowed_jurisdictions)}). Those must be'
                 'removed first or a compact admin must perform this operation.'
             )
 
