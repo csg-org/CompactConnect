@@ -25,7 +25,7 @@ class TransactionBatchSchema(StrictSchema):
     """Schema for batch information within a transaction."""
 
     batchId = String(required=True, allow_none=False)
-    settlementState = String(required=True, allow_none=False, validate=OneOf(['settledSuccessfully']))
+    settlementState = String(required=True, allow_none=False)
     settlementTimeLocal = String(required=True, allow_none=False)
     settlementTimeUTC = String(required=True, allow_none=False)
 
