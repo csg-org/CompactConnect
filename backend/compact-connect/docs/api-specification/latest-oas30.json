@@ -2366,7 +2366,7 @@
                 {
                   "required": [
                     "compactCommissionFee",
-                    "compactName",
+                    "compactAbbr",
                     "transactionFeeConfiguration",
                     "type"
                   ],
@@ -2429,7 +2429,7 @@
                         }
                       }
                     },
-                    "compactName": {
+                    "compactAbbr": {
                       "type": "string",
                       "description": "The name of the compact"
                     }

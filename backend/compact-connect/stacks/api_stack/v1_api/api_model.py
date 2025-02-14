@@ -714,10 +714,12 @@ class ApiModel:
             one_of=[
                 JsonSchema(
                     type=JsonSchemaType.OBJECT,
-                    required=['type', 'compactName', 'compactCommissionFee', 'transactionFeeConfiguration'],
+                    required=['type', 'compactAbbr', 'compactCommissionFee', 'transactionFeeConfiguration'],
                     properties={
                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['compact']),
-                        'compactName': JsonSchema(type=JsonSchemaType.STRING, description='The name of the compact'),
+                        'compactAbbr': JsonSchema(
+                            type=JsonSchemaType.STRING, description='The abbreviation of the compact'
+                        ),
                         'compactCommissionFee': JsonSchema(
                             type=JsonSchemaType.OBJECT,
                             required=['feeType', 'feeAmount'],

@@ -1,7 +1,7 @@
 {
   "compacts": [
     {
-      "compactName": "aslp",
+      "compactAbbr": "aslp",
       "compactCommissionFee": {
         "feeType": "FLAT_RATE",
         "feeAmount": 3.5
@@ -103,7 +103,7 @@
       ]
     },
     {
-      "compactName": "octp",
+      "compactAbbr": "octp",
       "compactCommissionFee": {
         "feeType": "FLAT_RATE",
         "feeAmount": 3.5

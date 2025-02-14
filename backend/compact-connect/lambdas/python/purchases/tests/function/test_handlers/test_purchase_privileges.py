@@ -167,7 +167,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(
             json.loads(event['body'])['orderInformation'], purchase_client_call_kwargs['order_information']
         )
-        self.assertEqual(TEST_COMPACT, purchase_client_call_kwargs['compact_configuration'].compact_name)
+        self.assertEqual(TEST_COMPACT, purchase_client_call_kwargs['compact_configuration'].compact_abbr)
         self.assertEqual(
             ['ky'],
             [
@@ -492,7 +492,7 @@ class TestPostPurchasePrivileges(TstFunction):
 
         # verify that the transaction was voided
         mock_purchase_client.void_privilege_purchase_transaction.assert_called_once_with(
-            compact_name=TEST_COMPACT, order_information={'transactionId': MOCK_TRANSACTION_ID}
+            compact_abbr=TEST_COMPACT, order_information={'transactionId': MOCK_TRANSACTION_ID}
         )
 
     @patch('handlers.privileges.PurchaseClient')

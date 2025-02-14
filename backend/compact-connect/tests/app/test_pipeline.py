@@ -213,10 +213,10 @@ class TestPipeline(TstAppABC, TestCase):
         This ensures the snapshot comparison is consistent.
         """
         compact_configuration_input['compacts'] = sorted(
-            compact_configuration_input['compacts'], key=lambda compact: compact['compactName']
+            compact_configuration_input['compacts'], key=lambda compact: compact['compactAbbr']
         )
-        for compact_name, jurisdictions in compact_configuration_input['jurisdictions'].items():
-            compact_configuration_input['jurisdictions'][compact_name] = sorted(
+        for compact_abbr, jurisdictions in compact_configuration_input['jurisdictions'].items():
+            compact_configuration_input['jurisdictions'][compact_abbr] = sorted(
                 jurisdictions, key=lambda jurisdiction: jurisdiction['postalAbbreviation']
             )
 

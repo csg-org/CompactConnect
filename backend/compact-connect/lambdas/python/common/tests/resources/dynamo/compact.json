@@ -2,7 +2,7 @@
   "pk": "aslp#CONFIGURATION",
   "sk": "aslp#CONFIGURATION",
   "type": "compact",
-  "compactName": "aslp",
+  "compactAbbr": "aslp",
   "compactCommissionFee": {
     "feeType": "FLAT_RATE",
     "feeAmount": 3.50

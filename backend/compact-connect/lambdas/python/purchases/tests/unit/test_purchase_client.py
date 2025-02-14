@@ -511,7 +511,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
         result = test_purchase_client.void_privilege_purchase_transaction(
-            compact_name='aslp',
+            compact_abbr='aslp',
             order_information={'transactionId': MOCK_TRANSACTION_ID},
         )
 
@@ -542,7 +542,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         with self.assertRaises(CCInternalException):
             test_purchase_client.void_privilege_purchase_transaction(
-                compact_name='aslp',
+                compact_abbr='aslp',
                 order_information={'transactionId': MOCK_TRANSACTION_ID},
             )
 
@@ -561,7 +561,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         with self.assertRaises(CCFailedTransactionException):
             test_purchase_client.void_privilege_purchase_transaction(
-                compact_name='aslp',
+                compact_abbr='aslp',
                 order_information={'transactionId': MOCK_TRANSACTION_ID},
             )
 
@@ -604,7 +604,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
         result = test_purchase_client.validate_and_store_credentials(
-            compact_name='aslp', credentials=self._generate_test_credentials_object()
+            compact_abbr='aslp', credentials=self._generate_test_credentials_object()
         )
 
         self.assertEqual({'message': 'Successfully verified credentials'}, result)
@@ -627,7 +627,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         test_purchase_client = PurchaseClient(secrets_manager_client=mock_secrets_manager_client)
 
         result = test_purchase_client.validate_and_store_credentials(
-            compact_name='octp', credentials=self._generate_test_credentials_object()
+            compact_abbr='octp', credentials=self._generate_test_credentials_object()
         )
 
         self.assertEqual({'message': 'Successfully verified credentials'}, result)
@@ -657,7 +657,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         # In this case, the 'aslp' compact has an existing secret in place
         # so if a compact admin uploads new credentials, the existing secret should be updated
         result = test_purchase_client.validate_and_store_credentials(
-            compact_name='aslp', credentials=self._generate_test_credentials_object()
+            compact_abbr='aslp', credentials=self._generate_test_credentials_object()
         )
 
         self.assertEqual({'message': 'Successfully verified credentials'}, result)
@@ -686,7 +686,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         with self.assertRaises(CCInvalidRequestException):
             test_purchase_client.validate_and_store_credentials(
-                compact_name='aslp',
+                compact_abbr='aslp',
                 credentials={
                     'processor': 'stripe',
                     'apiLoginId': 'mock_login_id',
@@ -707,7 +707,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
 
         with self.assertRaises(CCInvalidRequestException) as context:
             test_purchase_client.validate_and_store_credentials(
-                compact_name='aslp', credentials=self._generate_test_credentials_object()
+                compact_abbr='aslp', credentials=self._generate_test_credentials_object()
             )
 
         self.assertIn('Failed to verify credentials', str(context.exception.message))
