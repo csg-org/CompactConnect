@@ -2,6 +2,7 @@
   "compacts": [
     {
       "compactAbbr": "aslp",
+      "compactName": "Audio and Speech Language Pathology",
       "compactCommissionFee": {
         "feeType": "FLAT_RATE",
         "feeAmount": 3.5
@@ -104,6 +105,7 @@
     },
     {
       "compactAbbr": "octp",
+      "compactName": "Occupational Therapy",
       "compactCommissionFee": {
         "feeType": "FLAT_RATE",
         "feeAmount": 3.5

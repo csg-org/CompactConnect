@@ -27,6 +27,7 @@ const SAMPLE_COMPACT_CONFIG = {
         feeType: 'FLAT_RATE'
     },
     compactAbbr: 'aslp',
+    compactName: 'Audio and Speech Language Pathology',
     compactOperationsTeamEmails: ['operations@example.com'],
     compactSummaryReportNotificationEmails: ['summary@example.com'],
     dateOfUpdate: '2024-12-10T19:27:28+00:00',
