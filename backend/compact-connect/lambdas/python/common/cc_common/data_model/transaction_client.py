@@ -156,8 +156,12 @@ class TransactionClient:
                 item_id = f'priv:{compact}-{jurisdiction}'
                 # find the first privilege record for the jurisdiction that matches the provider ID
                 matching_privilege = next(
-                    (item for item in response.get('Items', []) 
-                     if item['jurisdiction'].lower() == jurisdiction and item['providerId'] == licensee_id), None
+                    (
+                        item
+                        for item in response.get('Items', [])
+                        if item['jurisdiction'].lower() == jurisdiction and item['providerId'] == licensee_id
+                    ),
+                    None,
                 )
                 if matching_privilege:
                     record_type = matching_privilege['type']
