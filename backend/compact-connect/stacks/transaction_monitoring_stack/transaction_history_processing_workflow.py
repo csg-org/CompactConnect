@@ -62,8 +62,9 @@ class TransactionHistoryProcessingWorkflow(Construct):
                 **stack.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
-            # required as this lambda is bundled with the authorize.net SDK which is large
-            memory_size=512,
+            # Setting this memory size higher than others because it can potentially pull in a lot of data from
+            # DynamoDB and authorize.net, and we want to ensure it has enough memory to handle that.
+            memory_size=3008,
         )
         persistent_stack.transaction_history_table.grant_write_data(self.transaction_processor_handler)
         persistent_stack.provider_table.grant_read_data(self.transaction_processor_handler)

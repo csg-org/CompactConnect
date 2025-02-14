@@ -65,6 +65,7 @@ class ProviderTable(Table):
                 'jurisdiction',
                 'type',
                 'compactTransactionId',
+                'providerId',
             ],
         )
         NagSuppressions.add_resource_suppressions(

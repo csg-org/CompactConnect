@@ -103,6 +103,7 @@ class TstFunction(TstLambdas):
                             'jurisdiction',
                             'type',
                             'compactTransactionId',
+                            'providerId',
                         ],
                     },
                 },
