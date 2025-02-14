@@ -43,6 +43,9 @@ class DataMigration(Construct):
             role=role,
             environment=lambda_environment,
             timeout=Duration.minutes(15),
+            # These are one-time migration scripts, so it is cost-effective to increase their memory size
+            # so they complete their process sooner
+            memory_size=3008,
         )
         self.provider = Provider(
             self,
