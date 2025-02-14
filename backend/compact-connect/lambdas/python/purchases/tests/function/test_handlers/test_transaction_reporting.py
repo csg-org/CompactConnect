@@ -348,11 +348,11 @@ class TestGenerateTransactionReports(TstFunction):
             with zip_file.open(f'oh-transaction-detail-{date_range}.csv') as f:
                 ohio_content = f.read().decode('utf-8')
                 self.assertEqual(
-                    'First Name,Last Name,Licensee Id,Transaction Settlement Date UTC,State Fee,State,Compact Fee,Transaction Id,Privilege Id,Transaction Status\n'
-                    'No transactions for this period,,,,,,,,,\n'
-                    ',,,,,,,,,\n'
-                    'Privileges Purchased,Total State Amount,,,,,,,,\n'
-                    '0,$0.00,,,,,,,,\n',
+                    'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State Fee,State,Transaction Id,Privilege Id,Transaction Status\n'
+                    'No transactions for this period,,,,,,,,\n'
+                    ',,,,,,,,\n'
+                    'Privileges Purchased,Total State Amount,,,,,,,\n'
+                    '0,$0.00,,,,,,,\n',
                     ohio_content,
                 )
 
@@ -499,11 +499,11 @@ class TestGenerateTransactionReports(TstFunction):
                     content = f.read().decode('utf-8')
                     transaction_date = '03-30-2025' if jurisdiction == 'oh' else '04-01-2025'
                     self.assertEqual(
-                        'First Name,Last Name,Licensee Id,Transaction Settlement Date UTC,State Fee,State,Compact Fee,Transaction Id,Privilege Id,Transaction Status\n'
-                        f'{user["givenName"]},{user["familyName"]},{user["providerId"]},{transaction_date},100,{jurisdiction.upper()},10.50,{MOCK_TRANSACTION_ID},{MOCK_PRIVILEGE_ID_MAPPING[jurisdiction]},{TEST_TRANSACTION_STATUS}\n'
-                        ',,,,,,,,,\n'
-                        'Privileges Purchased,Total State Amount,,,,,,,,\n'
-                        '1,$100.00,,,,,,,,\n',
+                        'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State Fee,State,Transaction Id,Privilege Id,Transaction Status\n'
+                        f'{user["givenName"]},{user["familyName"]},{user["providerId"]},{transaction_date},100,{jurisdiction.upper()},{MOCK_TRANSACTION_ID},{MOCK_PRIVILEGE_ID_MAPPING[jurisdiction]},{TEST_TRANSACTION_STATUS}\n'
+                        ',,,,,,,,\n'
+                        'Privileges Purchased,Total State Amount,,,,,,,\n'
+                        '1,$100.00,,,,,,,\n',
                         content,
                     )
 
@@ -645,11 +645,11 @@ class TestGenerateTransactionReports(TstFunction):
                 with zip_file.open(f'{jurisdiction}-transaction-detail-{date_range}.csv') as f:
                     content = f.read().decode('utf-8')
                     self.assertEqual(
-                        'First Name,Last Name,Licensee Id,Transaction Settlement Date UTC,State Fee,State,Compact Fee,Transaction Id,Privilege Id,Transaction Status\n'
-                        f'{mock_user["givenName"]},{mock_user["familyName"]},{mock_user["providerId"]},03-30-2025,100,{jurisdiction.upper()},10.50,{MOCK_TRANSACTION_ID},{MOCK_PRIVILEGE_ID_MAPPING[jurisdiction]},{TEST_TRANSACTION_STATUS}\n'
-                        ',,,,,,,,,\n'
-                        'Privileges Purchased,Total State Amount,,,,,,,,\n'
-                        '1,$100.00,,,,,,,,\n',
+                        'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State Fee,State,Transaction Id,Privilege Id,Transaction Status\n'
+                        f'{mock_user["givenName"]},{mock_user["familyName"]},{mock_user["providerId"]},03-30-2025,100,{jurisdiction.upper()},{MOCK_TRANSACTION_ID},{MOCK_PRIVILEGE_ID_MAPPING[jurisdiction]},{TEST_TRANSACTION_STATUS}\n'
+                        ',,,,,,,,\n'
+                        'Privileges Purchased,Total State Amount,,,,,,,\n'
+                        '1,$100.00,,,,,,,\n',
                         content,
                     )
 
@@ -761,7 +761,7 @@ class TestGenerateTransactionReports(TstFunction):
 
                     # Verify header
                     self.assertEqual(
-                        'First Name,Last Name,Licensee Id,Transaction Settlement Date UTC,State Fee,State,Compact Fee,Transaction Id,Privilege Id,Transaction Status',
+                        'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State Fee,State,Transaction Id,Privilege Id,Transaction Status',
                         content[0],
                     )
 
@@ -769,8 +769,8 @@ class TestGenerateTransactionReports(TstFunction):
                     expected_csv_line_count = 305
                     self.assertEqual(expected_csv_line_count, len(content))
                     # Verify summary totals
-                    self.assertEqual('Privileges Purchased,Total State Amount,,,,,,,,', content[-3])
-                    self.assertEqual('300,$30000.00,,,,,,,,', content[-2])
+                    self.assertEqual('Privileges Purchased,Total State Amount,,,,,,,', content[-3])
+                    self.assertEqual('300,$30000.00,,,,,,,', content[-2])
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
     def test_generate_report_raises_error_when_compact_not_found(self):

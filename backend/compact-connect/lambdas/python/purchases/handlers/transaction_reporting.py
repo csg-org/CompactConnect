@@ -536,13 +536,12 @@ def _generate_jurisdiction_reports(
         output = StringIO()
         writer = csv.writer(output, lineterminator='\n', dialect='excel')
         column_headers = [
-            'First Name',
-            'Last Name',
+            'Licensee First Name',
+            'Licensee Last Name',
             'Licensee Id',
             'Transaction Settlement Date UTC',
             'State Fee',
             'State',
-            'Compact Fee',
             'Transaction Id',
             'Privilege Id',
             'Transaction Status',
@@ -564,8 +563,6 @@ def _generate_jurisdiction_reports(
             provider = providers.get(transaction['licenseeId'], {})
             transaction_date = datetime.fromisoformat(transaction['batch']['settlementTimeUTC']).strftime('%m-%d-%Y')
 
-            compact_fee_item = next(i for i in transaction['lineItems'] if i['itemId'].endswith('-compact-fee'))
-
             writer.writerow(
                 [
                     provider.get('givenName', 'UNKNOWN'),
@@ -574,7 +571,6 @@ def _generate_jurisdiction_reports(
                     transaction_date,
                     item['unitPrice'],
                     jurisdiction.upper(),
-                    compact_fee_item['unitPrice'],
                     transaction['transactionId'],
                     item.get('privilegeId', 'UNKNOWN'),
                     transaction['transactionStatus'],
