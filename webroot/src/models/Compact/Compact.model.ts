@@ -61,9 +61,9 @@ export class Compact implements InterfaceCompactCreate {
     public name(): string {
         const compacts = this.$tm('compacts') || [];
         const compact = compacts.find((translate) => translate.key === this.type);
-        const compactAbbr = compact?.abbrev || '';
+        const compactName = compact?.name || '';
 
-        return compactAbbr;
+        return compactName;
     }
 
     public abbrev(): string {
