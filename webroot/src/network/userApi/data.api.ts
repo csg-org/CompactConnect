@@ -261,8 +261,6 @@ export class UserDataApi implements DataApiInterface {
         const serverResponse: any = await this.api.get(`/v1/purchases/privileges/options`);
         const { items } = serverResponse;
 
-        console.log('items', items);
-
         const privilegePurchaseOptions = items.filter((serverItem) => (serverItem.type === 'jurisdiction')).map((serverPurchaseOption) => (PrivilegePurchaseOptionSerializer.fromServer(serverPurchaseOption)));
 
         const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => ({

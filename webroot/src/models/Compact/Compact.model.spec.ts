@@ -36,6 +36,8 @@ describe('Compact model', () => {
         expect(compact.compactCommissionFee).to.equal(null);
         expect(compact.compactCommissionFeeType).to.equal(null);
         expect(compact.memberStates).to.be.an('array').that.is.empty;
+        expect(compact.perPrivilegeTransactionFeeAmount).to.equal(null);
+        expect(compact.isPerPrivilegeTransactionFeeActive).to.equal(false);
 
         // Test methods
         expect(compact.name()).to.equal('');
@@ -48,7 +50,9 @@ describe('Compact model', () => {
             memberStates: [new State()],
             privilegePurchaseOptions: [new PrivilegePurchaseOption()],
             compactCommissionFee: 10,
-            compactCommissionFeeType: FeeTypes.FLAT_RATE
+            compactCommissionFeeType: FeeTypes.FLAT_RATE,
+            perPrivilegeTransactionFeeAmount: 2,
+            isPerPrivilegeTransactionFeeActive: true
 
         };
         const compact = new Compact(data);
@@ -63,6 +67,8 @@ describe('Compact model', () => {
         expect(compact.privilegePurchaseOptions[0]).to.be.an.instanceof(PrivilegePurchaseOption);
         expect(compact.compactCommissionFee).to.equal(data.compactCommissionFee);
         expect(compact.compactCommissionFeeType).to.equal(data.compactCommissionFeeType);
+        expect(compact.perPrivilegeTransactionFeeAmount).to.equal(data.perPrivilegeTransactionFeeAmount);
+        expect(compact.isPerPrivilegeTransactionFeeActive).to.equal(data.isPerPrivilegeTransactionFeeActive);
 
         // Test methods
         expect(compact.name()).to.equal('Audio and Speech Language Pathology');

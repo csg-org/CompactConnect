@@ -136,6 +136,15 @@
                 }
 
                 .cost-listing-block {
+                    .cost-section {
+                        padding-bottom: 1rem;
+
+                        .section-title {
+                            margin: 1rem 0;
+                            font-weight: @fontWeightBold;
+                        }
+                    }
+
                     .info-row {
                         display: flex;
                         flex-direction: row;
@@ -144,6 +153,7 @@
 
                         &.purchase-total {
                             margin: 2rem 0;
+                            font-weight: @fontWeightBold;
                             font-size: @fontSizeLarge;
                         }
 
@@ -158,11 +168,6 @@
                                 margin-left: unset;
                             }
                         }
-                    }
-
-                    .section-title {
-                        margin: 1rem 0;
-                        font-weight: @fontWeightBold;
                     }
                 }
             }

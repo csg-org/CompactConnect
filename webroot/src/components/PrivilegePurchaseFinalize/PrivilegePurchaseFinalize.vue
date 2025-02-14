@@ -72,32 +72,38 @@
                 </div>
                 <div class="cost-breakdown-container">
                     <div class="cost-listing-block">
-                        <div class="section-title">{{selectionText}}</div>
-                        <ul>
-                            <li
-                                v-for="(state) in selectedStatePurchaseDisplayDataList"
-                                :key="state.jurisdiction.abbrev"
-                                class="selected-state-block"
-                            >
-                                <div class="info-row">
-                                    <div class="info-row-label">{{state.stateFeeText}}</div>
-                                    <div class="info-row-amount">${{state.stateFeeDisplay}}</div>
-                                </div>
-                                <div v-if="state.isMilitaryDiscountActive" class="info-row">
-                                    <div class="info-row-label">{{state.stateMilitaryPurchaseText}}</div>
-                                    <div class="info-row-amount">-${{state.stateMilitaryDiscountAmountDisplay}}</div>
-                                </div>
-                            </li>
-                        </ul>
-                        <div class="compact-commission-fee info-row">
-                            <div class="info-row-label">{{compactCommissionFeeText}}</div>
-                            <div class="info-row-amount">${{totalCompactCommissionFeeDisplay}}</div>
-                        </div>
-                        <div class="section-title">{{feesText}}</div>
-                            <div class="info-row">
-                                <div class="info-row-label">{{creditCardFeesText}}</div>
-                                <div class="info-row-amount">${{creditCardFeesTotal}}</div>
+                        <div class="cost-section">
+                            <div class="section-title">{{selectionText}}</div>
+                            <ul>
+                                <li
+                                    v-for="(state) in selectedStatePurchaseDisplayDataList"
+                                    :key="state.jurisdiction.abbrev"
+                                    class="selected-state-block"
+                                >
+                                    <div class="info-row">
+                                        <div class="info-row-label">{{state.stateFeeText}}</div>
+                                        <div class="info-row-amount">${{state.stateFeeDisplay}}</div>
+                                    </div>
+                                    <div v-if="state.isMilitaryDiscountActive" class="info-row">
+                                        <div class="info-row-label">{{state.stateMilitaryPurchaseText}}</div>
+                                        <div class="info-row-amount">
+                                            -${{state.stateMilitaryDiscountAmountDisplay}}
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                            <div class="compact-commission-fee info-row">
+                                <div class="info-row-label">{{compactCommissionFeeText}}</div>
+                                <div class="info-row-amount">${{totalCompactCommissionFeeDisplay}}</div>
                             </div>
+                        </div>
+                        <div v-if="isPerPrivilegeTransactionFeeActive" class="cost-section">
+                            <div class="section-title">{{feesText}}</div>
+                                <div class="info-row">
+                                    <div class="info-row-label">{{creditCardFeesText}}</div>
+                                    <div class="info-row-amount">${{creditCardFeesTotalDisplay}}</div>
+                                </div>
+                        </div>
                         <div class="purchase-total info-row">
                             <div class="info-row-label total">{{totalTitle}}</div>
                             <div class="info-row-amount total">${{totalPurchasePriceDisplay}}</div>

@@ -6,6 +6,7 @@
 //
 
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
+import { FeeTypes } from '@/app.config';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
@@ -204,7 +205,13 @@ export class DataApi {
             const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => ({
                 compactType: serverFeeObject?.compactName,
                 feeType: serverFeeObject?.compactCommissionFee?.feeType,
-                feeAmount: serverFeeObject?.compactCommissionFee?.feeAmount
+                feeAmount: serverFeeObject?.compactCommissionFee?.feeAmount,
+                perPrivilegeTransactionFeeAmount:
+                    serverFeeObject?.transactionFeeConfiguration?.licenseeCharges?.chargeAmount,
+                isPerPrivilegeTransactionFeeActive:
+                    serverFeeObject?.transactionFeeConfiguration?.licenseeCharges?.active
+                    && serverFeeObject?.transactionFeeConfiguration?.licenseeCharges?.chargeType
+                    === FeeTypes.FLAT_FEE_PER_PRIVILEGE
             }))[0];
 
             return { privilegePurchaseOptions, compactCommissionFee };

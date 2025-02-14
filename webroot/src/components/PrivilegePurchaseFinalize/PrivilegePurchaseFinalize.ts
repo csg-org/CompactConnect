@@ -85,6 +85,10 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         return this.currentCompact?.type || null;
     }
 
+    get isPerPrivilegeTransactionFeeActive(): boolean {
+        return this.currentCompact?.isPerPrivilegeTransactionFeeActive || false;
+    }
+
     get currentCompactCommissionFee(): number | null {
         return this.currentCompact?.compactCommissionFee || null;
     }
@@ -288,7 +292,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     }
 
     get totalPurchasePrice(): number {
-        let total = this.totalCompactCommissionFee;
+        let total = this.totalCompactCommissionFee + this.creditCardFeesTotal;
 
         this.selectedStatePurchaseDataList.forEach((stateSelected) => {
             if (stateSelected?.fee) {
@@ -351,17 +355,19 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         return this.currentCompact?.perPrivilegeTransactionFeeAmount || null;
     }
 
-    get creditCardFeesTotal(): string {
-        let total = '0';
+    get creditCardFeesTotal(): number {
+        let total = 0;
         const numPrivileges = this.selectedStatePurchaseDataList?.length;
 
-        if (this.creditCardFeesPerPrivilege && numPrivileges) {
-            const numTotal = numPrivileges * this.creditCardFeesPerPrivilege;
-
-            total = numTotal.toFixed(2);
+        if (this.creditCardFeesPerPrivilege && numPrivileges && this.isPerPrivilegeTransactionFeeActive) {
+            total = numPrivileges * this.creditCardFeesPerPrivilege;
         }
 
         return total;
+    }
+
+    get creditCardFeesTotalDisplay(): string {
+        return this.creditCardFeesTotal.toFixed(2);
     }
 
     //
