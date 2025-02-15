@@ -550,31 +550,49 @@
             "active": "Active",
             "inactive": "Inactive"
         },
+        "license_types": {
+            "aslp": [
+              {"name": "audiologist", "abbreviation": "aud"},
+              {"name": "speech-language pathologist", "abbreviation": "slp"}
+            ],
+            "octp": [
+              {"name": "occupational therapist", "abbreviation": "ot"},
+              {"name": "occupational therapy assistant", "abbreviation": "ota"}
+            ],
+            "coun": [
+              {"name": "licensed professional counselor", "abbreviation": "lpc"}
+            ]
+          },
         "occupations": [
             {
                 "name": "Audiologist",
                 "key": "audiologist",
-                "compactKey": "aslp"
+                "compactKey": "aslp",
+                "abbrev": "aud"
             },
             {
                 "name": "Speech-Language Pathologist",
                 "key": "speech-language pathologist",
-                "compactKey": "aslp"
+                "compactKey": "aslp",
+                "abbrev": "slp"
             },
             {
                 "name": "Occupational Therapist",
                 "key": "occupational therapist",
-                "compactKey": "octp"
+                "compactKey": "octp",
+                "abbrev": "ot"
             },
             {
                 "name": "Occupational Therapy Assistant",
                 "key": "occupational therapy assistant",
-                "compactKey": "octp"
+                "compactKey": "octp",
+                "abbrev": "ota"
             },
             {
                 "name": "Licensed Professional Counselor",
                 "key": "licensed professional counselor",
-                "compactKey": "coun"
+                "compactKey": "coun",
+                "abbrev": "lpc"
             }
         ],
         "privilegePurchaseTitle": "Privilege purchase",

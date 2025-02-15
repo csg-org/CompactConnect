@@ -554,27 +554,32 @@
             {
                 "name": "Audiólogo",
                 "key": "audiologist",
-                "compactKey": "aslp"
+                "compactKey": "aslp",
+                "abbrev": "aud"
             },
             {
                 "name": "Patólogo del habla y lenguaje",
                 "key": "speech-language pathologist",
-                "compactKey": "aslp"
+                "compactKey": "aslp",
+                "abbrev": "slp"
             },
             {
                 "name": "Terapeuta ocupacional",
                 "key": "occupational therapist",
-                "compactKey": "octp"
+                "compactKey": "octp",
+                "abbrev": "ot"
             },
             {
-                "name": "Occupational Therapy Assistant",
+                "name": "Asistente de terapia Oocupacional",
                 "key": "occupational therapy assistant",
-                "compactKey": "octp"
+                "compactKey": "octp",
+                "abbrev": "ota"
             },
             {
-                "name": "Asistente de terapia ocupacional",
+                "name": "Consejero profesional con licencia",
                 "key": "licensed professional counselor",
-                "compactKey": "coun"
+                "compactKey": "coun",
+                "abbrev": "lpc"
             }
         ],
         "privilegePurchaseTitle": "Compra privada",
