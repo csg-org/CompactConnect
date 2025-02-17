@@ -519,7 +519,6 @@ class TestIngest(TstFunction):
         self.assertEqual(expected_provider, provider_data)
 
     def test_existing_provider_removed_email(self):
-        self.maxDiff = None
         from handlers.ingest import ingest_license_message
 
         provider_id = self._with_ingested_license()
@@ -600,7 +599,6 @@ class TestIngest(TstFunction):
         self.assertEqual(expected_provider, provider_data)
 
     def test_existing_provider_added_email(self):
-        self.maxDiff = None
         from handlers.ingest import ingest_license_message
 
         provider_id = self._with_ingested_license(omit_email=True)

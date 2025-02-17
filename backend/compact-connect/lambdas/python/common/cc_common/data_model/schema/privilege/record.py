@@ -1,11 +1,13 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
+from datetime import date, datetime
+
 from marshmallow import Schema, post_dump, pre_dump, pre_load
 from marshmallow.fields import UUID, Date, DateTime, List, Nested, String
 
 from cc_common.config import config
-from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema, ForgivingSchema
+from cc_common.data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 from cc_common.data_model.schema.common import ChangeHashMixin, ensure_value_is_datetime
-from cc_common.data_model.schema.fields import Compact, Jurisdiction, UpdateType
+from cc_common.data_model.schema.fields import ActiveInactive, Compact, Jurisdiction, UpdateType
 
 
 class AttestationVersionRecordSchema(Schema):
@@ -24,7 +26,7 @@ class AttestationVersionRecordSchema(Schema):
 
 
 @BaseRecordSchema.register_schema('privilege')
-class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
+class PrivilegeRecordSchema(BaseRecordSchema):
     """
     Schema for privilege records in the license data table
 
@@ -48,6 +50,13 @@ class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
     attestations = List(Nested(AttestationVersionRecordSchema()), required=True, allow_none=False)
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
+    # the persisted status of the privilege, which can be manually set to inactive
+    persistedStatus = ActiveInactive(required=True, allow_none=False)
+
+    # This field is the actual status referenced by the system, which is determined by the expiration date
+    # in addition to the persistedStatus. This should never be written to the DB. It is calculated
+    # whenever the record is loaded.
+    status = ActiveInactive(required=True, allow_none=False)
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
@@ -68,6 +77,27 @@ class PrivilegeRecordSchema(CalculatedStatusRecordSchema):
 
         return in_data
 
+    @pre_dump
+    def remove_status_field_if_present(self, in_data, **kwargs):
+        """Remove the status field before dumping to the database"""
+        in_data.pop('status', None)
+        return in_data
+
+    @pre_load
+    def _calculate_status(self, in_data, **kwargs):
+        """Determine the status of the record based on the expiration date and persistedStatus"""
+        in_data['status'] = (
+            'active'
+            if (
+                in_data.get('persistedStatus', 'active') == 'active'
+                and date.fromisoformat(in_data['dateOfExpiration'])
+                > datetime.now(tz=config.expiration_date_resolution_timezone).date()
+            )
+            else 'inactive'
+        )
+
+        return in_data
+
 
 class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
     """
@@ -84,6 +114,7 @@ class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
     privilegeId = String(required=True, allow_none=False)
     compactTransactionId = String(required=False, allow_none=False)
     attestations = List(Nested(AttestationVersionRecordSchema()), required=False, allow_none=False)
+    persistedStatus = ActiveInactive(required=False, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('privilegeUpdate')
