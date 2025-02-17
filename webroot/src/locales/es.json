@@ -501,6 +501,8 @@
         "recentPrivilegesTitle": "Privilegios recientes",
         "pastPrivilegesTitle": "Privilegios pasados",
         "licenseDetails": "Detalles de la licencia",
+        "license#": "Licencia #",
+        "privilege#": "Privilegio #",
         "licenseExpired": "Licencia caducada",
         "driversLicense": "Licencia de conducir #",
         "militaryAffilitionDocs": "documentos de afiliación militar",

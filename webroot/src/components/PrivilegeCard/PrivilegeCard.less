@@ -12,22 +12,21 @@
     .privilege-title-row {
         display: flex;
         flex-direction: row;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
-        padding: 2rem 2rem 1rem 2rem;
+        padding: 1rem 2rem 1rem 2rem;
         border-top-left-radius: 2rem;
         border-top-right-radius: 2rem;
         color: @white;
         background-color: @primaryColor;
 
         .privilege-title {
+            font-weight: @fontWeightBold;
             font-size: @fontSizeLarge;
         }
 
         .privilege-status {
-            &.expired {
-                font-style: italic;
-            }
+            font-size: @fontSizeMedium;
         }
     }
 
@@ -55,6 +54,10 @@
             }
         }
     }
+}
+
+.bold {
+    font-weight: @fontWeightBold;
 }
 
 .italics {

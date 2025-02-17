@@ -46,6 +46,7 @@ export interface InterfaceLicense {
     expireDate?: string | null;
     npi?: string | null;
     licenseNumber?: string | null;
+    privilegeId?: string | null;
     occupation?: LicenseOccupation | null,
     history?: Array<LicenseHistoryItem>,
     statusState?: LicenseStatus,
@@ -66,6 +67,7 @@ export class License implements InterfaceLicense {
     public renewalDate? = null;
     public npi? = null;
     public licenseNumber? = null;
+    public privilegeId? = null;
     public expireDate? = null;
     public occupation? = null;
     public history? = [];
@@ -112,6 +114,14 @@ export class License implements InterfaceLicense {
 
         return occupationName;
     }
+
+    public occupationAbbreviation(): string {
+        const occupations = this.$tm('licensing.occupations') || [];
+        const occupation = occupations.find((translate) => translate.key === this.occupation);
+        const occupationAbbrev = occupation?.abbrev || '';
+
+        return occupationAbbrev;
+    }
 }
 
 // ========================================================
@@ -134,6 +144,7 @@ export class LicenseSerializer {
             issueDate: json.dateOfIssuance,
             npi: json.npi,
             licenseNumber: json.licenseNumber,
+            privilegeId: json.privilegeId,
             renewalDate: json.dateOfRenewal,
             expireDate: json.dateOfExpiration,
             occupation: json.licenseType,

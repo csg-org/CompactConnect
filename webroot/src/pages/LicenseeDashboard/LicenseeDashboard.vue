@@ -47,6 +47,7 @@
             >
                 <LicenseCard
                     :license="license"
+                    :shouldIncludeLogo="true"
                 />
                 <div v-if="!isLicenseActive(license)" class="license-expired-message">
                     {{licenseExpiredMessage}}

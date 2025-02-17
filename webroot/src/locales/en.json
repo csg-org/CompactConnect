@@ -507,6 +507,8 @@
         "birthMonthDay": "Birth month-day",
         "pastPrivilegesTitle": "Past privileges",
         "licenseDetails": "License details",
+        "license#": "License #",
+        "privilege#": "Privilege #",
         "driversLicense": "Drivers License #",
         "militaryAffilitionDocs": "military affiliation documents",
         "personalInformation": "Personal information",
@@ -550,19 +552,6 @@
             "active": "Active",
             "inactive": "Inactive"
         },
-        "license_types": {
-            "aslp": [
-              {"name": "audiologist", "abbreviation": "aud"},
-              {"name": "speech-language pathologist", "abbreviation": "slp"}
-            ],
-            "octp": [
-              {"name": "occupational therapist", "abbreviation": "ot"},
-              {"name": "occupational therapy assistant", "abbreviation": "ota"}
-            ],
-            "coun": [
-              {"name": "licensed professional counselor", "abbreviation": "lpc"}
-            ]
-          },
         "occupations": [
             {
                 "name": "Audiologist",

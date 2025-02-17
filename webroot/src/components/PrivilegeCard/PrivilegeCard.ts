@@ -89,6 +89,10 @@ class PrivilegeCard extends Vue {
 
         return isPastDate;
     }
+
+    get privilegeId(): string {
+        return this.privilege?.privilegeId || '';
+    }
 }
 
 export default toNative(PrivilegeCard);
