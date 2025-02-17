@@ -6,12 +6,12 @@
 //
 
 import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
-import { FeeTypes } from '@/app.config';
 import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
+import { CompactFeeConfigSerializer } from '@/models/CompactFeeConfig/CompactFeeConfig.model';
 import {
     userData,
     staffAccount,
@@ -201,18 +201,7 @@ export class DataApi {
         return this.wait(500).then(() => {
             const { items } = privilegePurchaseOptionsResponse;
             const privilegePurchaseOptions = items.filter((serverItem) => (serverItem.type === 'jurisdiction')).map((serverPurchaseOption) => (PrivilegePurchaseOptionSerializer.fromServer(serverPurchaseOption)));
-
-            const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => ({
-                compactType: serverFeeObject?.compactName,
-                feeType: serverFeeObject?.compactCommissionFee?.feeType,
-                feeAmount: serverFeeObject?.compactCommissionFee?.feeAmount,
-                perPrivilegeTransactionFeeAmount:
-                    serverFeeObject?.transactionFeeConfiguration?.licenseeCharges?.chargeAmount,
-                isPerPrivilegeTransactionFeeActive:
-                    serverFeeObject?.transactionFeeConfiguration?.licenseeCharges?.active
-                    && serverFeeObject?.transactionFeeConfiguration?.licenseeCharges?.chargeType
-                    === FeeTypes.FLAT_FEE_PER_PRIVILEGE
-            }))[0];
+            const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => (CompactFeeConfigSerializer.fromServer(serverFeeObject)))[0];
 
             return { privilegePurchaseOptions, compactCommissionFee };
         });

@@ -10,6 +10,7 @@ import { expect } from 'chai';
 import { Compact, CompactSerializer, CompactType } from '@models/Compact/Compact.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { State } from '@models/State/State.model';
+import { CompactFeeConfig } from '@models/CompactFeeConfig/CompactFeeConfig.model';
 import i18n from '@/i18n';
 
 describe('Compact model', () => {
@@ -33,11 +34,8 @@ describe('Compact model', () => {
         expect(compact.id).to.equal(null);
         expect(compact.type).to.equal(null);
         expect(compact.privilegePurchaseOptions).to.be.an('array').that.is.empty;
-        expect(compact.compactCommissionFee).to.equal(null);
-        expect(compact.compactCommissionFeeType).to.equal(null);
+        expect(compact.fees).to.be.an.instanceof(CompactFeeConfig);
         expect(compact.memberStates).to.be.an('array').that.is.empty;
-        expect(compact.perPrivilegeTransactionFeeAmount).to.equal(null);
-        expect(compact.isPerPrivilegeTransactionFeeActive).to.equal(false);
 
         // Test methods
         expect(compact.name()).to.equal('');
@@ -48,12 +46,12 @@ describe('Compact model', () => {
             id: 'test-id',
             type: CompactType.ASLP,
             memberStates: [new State()],
+            fees: new CompactFeeConfig(),
             privilegePurchaseOptions: [new PrivilegePurchaseOption()],
             compactCommissionFee: 10,
             compactCommissionFeeType: FeeTypes.FLAT_RATE,
             perPrivilegeTransactionFeeAmount: 2,
             isPerPrivilegeTransactionFeeActive: true
-
         };
         const compact = new Compact(data);
 
@@ -65,10 +63,7 @@ describe('Compact model', () => {
         expect(compact.memberStates[0]).to.be.an.instanceof(State);
         expect(compact.privilegePurchaseOptions).to.be.an('array').with.length(1);
         expect(compact.privilegePurchaseOptions[0]).to.be.an.instanceof(PrivilegePurchaseOption);
-        expect(compact.compactCommissionFee).to.equal(data.compactCommissionFee);
-        expect(compact.compactCommissionFeeType).to.equal(data.compactCommissionFeeType);
-        expect(compact.perPrivilegeTransactionFeeAmount).to.equal(data.perPrivilegeTransactionFeeAmount);
-        expect(compact.isPerPrivilegeTransactionFeeActive).to.equal(data.isPerPrivilegeTransactionFeeActive);
+        expect(compact.fees).to.be.an.instanceof(CompactFeeConfig);
 
         // Test methods
         expect(compact.name()).to.equal('Audio and Speech Language Pathology');

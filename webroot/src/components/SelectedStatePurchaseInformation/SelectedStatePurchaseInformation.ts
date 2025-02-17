@@ -147,7 +147,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     }
 
     get currentCompactCommissionFee(): number | null {
-        return this.currentCompact?.compactCommissionFee || null;
+        return this.currentCompact?.fees?.compactCommissionFee || null;
     }
 
     get currentCompactCommissionFeeDisplay(): string {
