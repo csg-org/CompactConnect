@@ -10,7 +10,7 @@ import { FeeTypes } from '@/app.config';
 import { CompactFeeConfig, CompactFeeConfigSerializer } from '@models/CompactFeeConfig/CompactFeeConfig.model';
 
 describe('CompactFeeConfig model', () => {
-    it('should create a Compact with default values', () => {
+    it('should create a CompactFeeConfig with default values', () => {
         const compactFeeConfiguration = new CompactFeeConfig();
 
         // Test field values
@@ -21,7 +21,7 @@ describe('CompactFeeConfig model', () => {
         expect(compactFeeConfiguration.perPrivilegeTransactionFeeAmount).to.equal(0);
         expect(compactFeeConfiguration.isPerPrivilegeTransactionFeeActive).to.equal(false);
     });
-    it('should create a Compact with specific values', () => {
+    it('should create a CompactFeeConfig with specific values', () => {
         const data = {
             compactType: 'aslp',
             compactCommissionFee: 10,
@@ -40,7 +40,7 @@ describe('CompactFeeConfig model', () => {
         expect(compactFeeConfiguration.perPrivilegeTransactionFeeAmount).to.equal(3);
         expect(compactFeeConfiguration.isPerPrivilegeTransactionFeeActive).to.equal(true);
     });
-    it('should create a Compact with specific values through serializer (happy path)', () => {
+    it('should create a CompactFeeConfig with specific values through serializer', () => {
         const data = {
             compactName: 'aslp',
             compactCommissionFee: {
