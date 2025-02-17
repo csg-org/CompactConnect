@@ -32,9 +32,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'aslp/admin',
                 'aslp/readGeneral',
                 'aslp/readSSN',
-                'aslp/aslp.admin',
-                'aslp/aslp.readPrivate',
-                'aslp/aslp.readSSN',
+                'aslp/readPrivate',
             },
             user_data.scopes,
         )
@@ -58,13 +56,10 @@ class TestGetUserScopesFromDB(TstLambdas):
             {
                 'profile',
                 'aslp/readGeneral',
-                'aslp/readSSN',
-                'aslp/admin',
-                'aslp/write',
-                'aslp/al.admin',
-                'aslp/al.write',
-                'aslp/al.readPrivate',
-                'aslp/al.readSSN',
+                'al/aslp.admin',
+                'al/aslp.write',
+                'al/aslp.readPrivate',
+                'al/aslp.readSSN',
             },
             user_data.scopes,
         )
@@ -100,15 +95,11 @@ class TestGetUserScopesFromDB(TstLambdas):
             {
                 'profile',
                 'aslp/readGeneral',
-                'aslp/admin',
-                'aslp/write',
-                'aslp/al.admin',
-                'aslp/al.write',
+                'al/aslp.admin',
+                'al/aslp.write',
                 'octp/readGeneral',
-                'octp/admin',
-                'octp/write',
-                'octp/al.admin',
-                'octp/al.write',
+                'al/octp.admin',
+                'al/octp.write',
             },
             user_data.scopes,
         )
@@ -132,7 +123,7 @@ class TestGetUserScopesFromDB(TstLambdas):
 
         user_data = UserData(self._user_sub)
 
-        self.assertEqual({'profile', 'aslp/readGeneral', 'aslp/write', 'aslp/al.write'}, user_data.scopes)
+        self.assertEqual({'profile', 'aslp/readGeneral', 'al/aslp.write'}, user_data.scopes)
 
     def test_missing_user(self):
         from user_data import UserData

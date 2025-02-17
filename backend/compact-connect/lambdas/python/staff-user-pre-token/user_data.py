@@ -63,17 +63,13 @@ class UserData:
         self.scopes.add(f'{compact_name}/{CCPermissionsAction.READ_GENERAL}')
 
         if CCPermissionsAction.READ_PRIVATE in compact_actions:
-            # This action only has one level of authz, since there is no external scope for it
-            self.scopes.add(f'{compact_name}/{compact_name}.{CCPermissionsAction.READ_PRIVATE}')
+            self.scopes.add(f'{compact_name}/{CCPermissionsAction.READ_PRIVATE}')
 
         if CCPermissionsAction.READ_SSN in compact_actions:
             self.scopes.add(f'{compact_name}/{CCPermissionsAction.READ_SSN}')
-            self.scopes.add(f'{compact_name}/{compact_name}.{CCPermissionsAction.READ_SSN}')
 
         if CCPermissionsAction.ADMIN in compact_actions:
-            # Two levels of authz for admin
             self.scopes.add(f'{compact_name}/{CCPermissionsAction.ADMIN}')
-            self.scopes.add(f'{compact_name}/{compact_name}.{CCPermissionsAction.ADMIN}')
 
         # Ensure included jurisdictions are limited to supported values
         jurisdictions = compact_permissions['jurisdictions']
@@ -96,13 +92,7 @@ class UserData:
         }
         if disallowed_actions:
             raise ValueError(
-                f'User {compact_name}/{jurisdiction_name} permissions include disallowed actions: {disallowed_actions}',
+                f'User {jurisdiction_name}/{compact_name} permissions include disallowed actions: {disallowed_actions}',
             )
         for action in jurisdiction_actions:
-            self.scopes.add(f'{compact_name}/{jurisdiction_name}.{action}')
-
-            # Grant coarse-grain scope, which provides access to the API itself
-            # Since `readGeneral` is implicitly granted to all users, we do not
-            # need to grant a coarse-grain scope for the `readPrivate` action.
-            if action != CCPermissionsAction.READ_PRIVATE:
-                self.scopes.add(f'{compact_name}/{action}')
+            self.scopes.add(f'{jurisdiction_name}/{compact_name}.{action}')
