@@ -58,18 +58,17 @@ class TestPipeline(TstAppABC, TestCase):
         for ui_stack in (self.app.pipeline_stack.test_stage.ui_stack, self.app.pipeline_stack.prod_stage.ui_stack):
             self._inspect_ui_stack(ui_stack)
 
-    def test_synth_generates_resource_servers_with_expected_scopes_for_staff_users(self):
+    def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users(self):
         persistent_stack = self.app.pipeline_stack.test_stage.persistent_stack
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         # Get the resource servers created in the persistent stack
-        resource_servers = persistent_stack.staff_users.resource_servers
+        resource_servers = persistent_stack.staff_users.compact_resource_servers
         # We must confirm that these scopes are being explicitly created for each compact
         # which are absolutely critical for the system to function as expected.
         self.assertEqual(self.context['compacts'], list(resource_servers.keys()))
 
         for compact, resource_server in resource_servers.items():
-            # for this test, we just get the 'aslp' compact resource server
             resource_server_properties = self.get_resource_properties_by_logical_id(
                 persistent_stack.get_logical_id(resource_server.node.default_child),
                 persistent_stack_template.find_resources(CfnUserPoolResourceServer.CFN_RESOURCE_TYPE_NAME),
@@ -80,6 +79,30 @@ class TestPipeline(TstAppABC, TestCase):
                 [scope['ScopeName'] for scope in resource_server_properties['Scopes']],
                 msg=f'Expected scopes for compact {compact} not found',
             )
+
+    def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users(self):
+        persistent_stack = self.app.pipeline_stack.test_stage.persistent_stack
+        persistent_stack_template = Template.from_stack(persistent_stack)
+
+        # Get the jurisdiction resource servers created in the persistent stack
+        resource_servers = persistent_stack.staff_users.jurisdiction_resource_servers
+        # We must confirm that these scopes are being explicitly created for each active jurisdiction
+        # which are absolutely critical for the system to function as expected.
+        # If a new jurisdiction is made active within the system, this test will need to be updated
+        jurisdiction_resource_server_config = []
+        for _jurisdiction, resource_server in resource_servers.items():
+            resource_server_properties = self.get_resource_properties_by_logical_id(
+                persistent_stack.get_logical_id(resource_server.node.default_child),
+                persistent_stack_template.find_resources(CfnUserPoolResourceServer.CFN_RESOURCE_TYPE_NAME),
+            )
+            # remove dynamic user pool id
+            del resource_server_properties['UserPoolId']
+            jurisdiction_resource_server_config.append(resource_server_properties)
+
+        self.compare_snapshot(jurisdiction_resource_server_config,
+                              "JURISDICTION_RESOURCE_SERVER_CONFIGURATION",
+                              overwrite_snapshot=False,
+        )
 
     def test_cognito_using_recommended_security_in_prod(self):
         stack = self.app.pipeline_stack.prod_stage.persistent_stack
