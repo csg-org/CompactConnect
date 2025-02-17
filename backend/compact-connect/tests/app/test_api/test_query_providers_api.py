@@ -272,3 +272,107 @@ class TestQueryProvidersApi(TestApi):
             'GET_PROVIDER_SSN_MAX_READS_ALARM_SCHEMA',
             overwrite_snapshot=False,
         )
+
+    def test_synth_generates_deactivate_privilege_endpoint(self):
+        """Test that the POST /providers/{providerId}/privileges/jurisdiction/{jurisdiction}
+        /licenseType/{licenseType}/deactivate endpoint is configured correctly."""
+        api_stack = self.app.sandbox_stage.api_stack
+        api_stack_template = Template.from_stack(api_stack)
+
+        # Ensure the lambda is created with expected code path
+        deactivate_handler = TestApi.get_resource_properties_by_logical_id(
+            api_stack.get_logical_id(
+                api_stack.api.v1_api.query_providers.deactivate_privilege_handler.node.default_child
+            ),
+            api_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+        )
+
+        self.assertEqual(deactivate_handler['Handler'], 'handlers.privileges.deactivate_privilege')
+
+        # Ensure the POST method is configured correctly
+        api_stack_template.has_resource_properties(
+            type=CfnMethod.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'HttpMethod': 'POST',
+                'AuthorizerId': {
+                    'Ref': api_stack.get_logical_id(api_stack.api.staff_users_authorizer.node.default_child),
+                },
+                'Integration': TestApi.generate_expected_integration_object(
+                    api_stack.get_logical_id(
+                        api_stack.api.v1_api.query_providers.deactivate_privilege_handler.node.default_child,
+                    ),
+                ),
+                'MethodResponses': [
+                    {
+                        'ResponseModels': {
+                            'application/json': {
+                                'Ref': api_stack.get_logical_id(
+                                    api_stack.api.v1_api.api_model.message_response_model.node.default_child
+                                )
+                            }
+                        },
+                        'StatusCode': '200',
+                    },
+                ],
+            },
+        )
+
+        # Verify the resource path is created correctly by checking each level
+        provider_resource = api_stack.api.v1_api.query_providers.provider_resource.node.default_child
+        privileges_logical_id = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={'Properties': {
+                'ParentId': {'Ref': api_stack.get_logical_id(provider_resource)},
+                'PathPart': 'privileges',
+            }},
+        )
+        self.assertEqual(len(privileges_logical_id), 1)
+        privileges_logical_id = next(key for key in privileges_logical_id.keys())
+
+        jurisdiction_logical_id = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={'Properties': {
+                'ParentId': {'Ref': privileges_logical_id},
+                'PathPart': 'jurisdiction',
+            }},
+        )
+        self.assertEqual(len(jurisdiction_logical_id), 1)
+        jurisdiction_logical_id = next(key for key in jurisdiction_logical_id.keys())
+
+        jurisdiction_param_logical_id = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={'Properties': {
+                'ParentId': {'Ref': jurisdiction_logical_id},
+                'PathPart': '{jurisdiction}',
+            }},
+        )
+        self.assertEqual(len(jurisdiction_param_logical_id), 1)
+        jurisdiction_param_logical_id = next(key for key in jurisdiction_param_logical_id.keys())
+
+        license_type_logical_id = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={'Properties': {
+                'ParentId': {'Ref': jurisdiction_param_logical_id},
+                'PathPart': 'licenseType',
+            }},
+        )
+        self.assertEqual(len(license_type_logical_id), 1)
+        license_type_logical_id = next(key for key in license_type_logical_id.keys())
+
+        license_type_param_logical_id = api_stack_template.find_resources(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={'Properties': {
+                'ParentId': {'Ref': license_type_logical_id},
+                'PathPart': '{licenseType}',
+            }},
+        )
+        self.assertEqual(len(license_type_param_logical_id), 1)
+        license_type_param_logical_id = next(key for key in license_type_param_logical_id.keys())
+
+        api_stack_template.has_resource_properties(
+            type=CfnResource.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'ParentId': {'Ref': license_type_param_logical_id},
+                'PathPart': 'deactivate',
+            }
+        )
