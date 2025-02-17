@@ -11,7 +11,7 @@
             <div v-if="shouldIncludeLogo" class="license-icon-container">
                 <LicenseIcon fill="black" />
             </div>
-            <div class="license-title">
+            <div class="license-title" :class="{'left-marg': shouldIncludeLogo}">
                 {{licenseTitleDisplay}}
             </div>
         </div>

@@ -41,11 +41,7 @@
                         class="tag"
                     >
                         <div class="tag-icon-container">
-                            <img
-                                class="tag-icon"
-                                src="@assets/icons/ico-license.svg"
-                                :alt="$t('licensing.licenseIcon')"
-                            />
+                            <LicenseIcon fill="white" />
                         </div>
                         <div class="tag-text">
                             {{ license.issueState.name() }}

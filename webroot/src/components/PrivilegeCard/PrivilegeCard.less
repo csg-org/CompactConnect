@@ -21,6 +21,7 @@
         background-color: @primaryColor;
 
         .privilege-title {
+            margin-bottom: 0.2rem;
             font-weight: @fontWeightBold;
             font-size: @fontSizeLarge;
         }
@@ -35,7 +36,7 @@
         grid-template-columns: 1fr 1fr;
         padding: 1rem 2rem;
         column-gap: 4rem;
-        row-gap: 3rem;
+        row-gap: 2rem;
 
         .info-item-container {
             &.discipline-item {
@@ -49,8 +50,10 @@
             }
 
             .info-item {
+                max-width: 11.2rem;
                 font-size: 1.4rem;
                 line-height: 2.1rem;
+                word-wrap: break-word;
             }
         }
     }
