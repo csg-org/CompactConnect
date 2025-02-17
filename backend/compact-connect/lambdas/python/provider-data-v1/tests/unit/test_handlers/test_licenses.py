@@ -20,7 +20,7 @@ class TestPostLicenses(TstLambdas):
             event = json.load(f)
 
         # The user has scopes for oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write aslp/oh.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.write'
 
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
 
@@ -71,7 +71,7 @@ class TestPostLicenses(TstLambdas):
             event = json.load(f)
 
         # The user has scopes for oh, not ne
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write aslp/oh.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.write'
 
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'ne'}
 
@@ -106,7 +106,7 @@ class TestPostLicenses(TstLambdas):
             event = json.load(f)
 
         # The user has scopes for oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write aslp/oh.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.write'
 
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
 

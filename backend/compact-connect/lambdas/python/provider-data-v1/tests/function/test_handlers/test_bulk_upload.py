@@ -15,7 +15,7 @@ class TestBulkUpload(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff aslp/oh.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email stuff oh/aslp.write'
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
         resp = bulk_upload_url_handler(event, self.mock_context)
 

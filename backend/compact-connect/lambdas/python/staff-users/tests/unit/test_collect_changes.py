@@ -27,7 +27,7 @@ class TestCollectChanges(TstLambdas):
 
         resp = collect_and_authorize_changes(
             path_compact='aslp',
-            scopes={'openid', 'email', 'aslp/admin', 'aslp/oh.admin'},
+            scopes={'openid', 'email', 'oh/aslp.admin'},
             compact_changes={'jurisdictions': {'oh': {'actions': {'admin': True, 'write': False}}}},
         )
         self.assertEqual(
@@ -47,7 +47,7 @@ class TestCollectChanges(TstLambdas):
         with self.assertRaises(CCAccessDeniedException):
             collect_and_authorize_changes(
                 path_compact='aslp',
-                scopes={'openid', 'email', 'aslp/admin', 'aslp/oh.admin'},
+                scopes={'openid', 'email', 'oh/aslp.admin'},
                 compact_changes={'jurisdictions': {'ne': {'actions': {'admin': True, 'write': False}}}},
             )
 
@@ -58,7 +58,7 @@ class TestCollectChanges(TstLambdas):
         with self.assertRaises(CCAccessDeniedException):
             collect_and_authorize_changes(
                 path_compact='aslp',
-                scopes={'openid', 'email', 'aslp/admin', 'aslp/oh.admin'},
+                scopes={'openid', 'email', 'oh/aslp.admin'},
                 compact_changes={'actions': {'admin': True}, 'jurisdictions': {}},
             )
 
@@ -88,7 +88,7 @@ class TestCollectChanges(TstLambdas):
 
         resp = collect_and_authorize_changes(
             path_compact='aslp',
-            scopes={'openid', 'email', 'aslp/admin', 'aslp/oh.admin'},
+            scopes={'openid', 'email', 'oh/aslp.admin'},
             compact_changes={'jurisdictions': {'oh': {'actions': {'admin': True}}}},
         )
         self.assertEqual(

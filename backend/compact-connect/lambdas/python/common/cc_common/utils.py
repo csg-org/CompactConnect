@@ -191,7 +191,11 @@ class logger_inject_kwargs:  # noqa: N801 invalid-name
 
 
 class authorize_compact:  # noqa: N801 invalid-name
-    """Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/readGeneral)"""
+    """Authorize endpoint by matching path parameter compact to the expected scope
+
+    This wrapper checks if the caller has the permission at either the compact or jurisdiction level for the compact
+    (i.e. aslp/write or oh/aslp.write).
+    """
 
     def __init__(self, action: str):
         super().__init__()
@@ -214,11 +218,13 @@ class authorize_compact:  # noqa: N801 invalid-name
                 logger.error('Unauthorized access attempt!', exc_info=e)
                 raise CCUnauthorizedException('Unauthorized access attempt!') from e
 
-            required_scope = f'{resource_value}/{self.action}'
-            if required_scope not in scopes:
-                logger.warning('Forbidden access attempt!')
-                raise CCAccessDeniedException('Forbidden access attempt!')
-            return fn(event, context)
+            compact_level_required_scope = f'{resource_value}/{self.action}'
+            jurisdiction_level_required_scope = f'{resource_value}.{self.action}'
+            for scope in scopes:
+                if compact_level_required_scope == scope or jurisdiction_level_required_scope in scope:
+                    return fn(event, context)
+            logger.warning('Forbidden access attempt!')
+            raise CCAccessDeniedException('Forbidden access attempt!')
 
         return authorized
 
@@ -400,15 +406,9 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
 
     # Collect compact-wide permission changes
     for action, value in compact_changes.get('actions', {}).items():
-        if (
-            action == CCPermissionsAction.ADMIN
-            and f'{path_compact}/{CCPermissionsAction.ADMIN}' not in scopes
-        ):
+        if action == CCPermissionsAction.ADMIN and f'{path_compact}/{CCPermissionsAction.ADMIN}' not in scopes:
             raise CCAccessDeniedException('Only compact admins can affect compact-level admin permissions')
-        if (
-            action == CCPermissionsAction.READ_PRIVATE
-            and f'{path_compact}/{CCPermissionsAction.ADMIN}' not in scopes
-        ):
+        if action == CCPermissionsAction.READ_PRIVATE and f'{path_compact}/{CCPermissionsAction.ADMIN}' not in scopes:
             raise CCAccessDeniedException('Only compact admins can affect compact-level access to private information')
 
         # dropping the read action as this is now implicitly granted to all users
