@@ -380,7 +380,7 @@ class TstAppABC(ABC):
         if stage.persistent_stack.hosted_zone:
             self._check_no_stack_annotations(stage.reporting_stack)
 
-    def compare_snapshot(self, actual: Mapping, snapshot_name: str, overwrite_snapshot: bool = False):
+    def compare_snapshot(self, actual: Mapping|list, snapshot_name: str, overwrite_snapshot: bool = False):
         """
         Compare the actual dictionary to the snapshot with the given name.
         If overwrite_snapshot is True, overwrite the snapshot with the actual data.
