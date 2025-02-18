@@ -167,7 +167,7 @@ the same name, the deployment will fail. The compact file includes the following
 unless otherwise specified):
 ```
 compactAbbr: "<compact abbreviation ie aslp>"
-compactName: "<compact name ie Audio and Speech Language Pathology>"
+compactName: "<compact name ie Audiology and Speech Language Pathology>"
 compactCommissionFee:
     feeType: "FLAT_RATE"                            # Currently only "FLAT_RATE" type is supported.
     feeAmount: <number>                             # This value will be added to the jurisdiciton fee.
