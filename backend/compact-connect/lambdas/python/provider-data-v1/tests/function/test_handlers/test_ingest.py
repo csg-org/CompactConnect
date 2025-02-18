@@ -1,4 +1,6 @@
 import json
+from datetime import datetime
+from unittest.mock import patch
 
 from moto import mock_aws
 
@@ -235,7 +237,10 @@ class TestIngest(TstFunction):
         # And the second license should now be listed
         self.assertEqual(2, len(provider_data['licenses']))
 
-    def test_existing_provider_deactivation(self):
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    @patch('handlers.ingest.EventBatchWriter', autospec=True)
+    def test_existing_provider_deactivation(self, mock_event_writer):
+
         from handlers.ingest import ingest_license_message
 
         provider_id = self._with_ingested_license()
@@ -315,6 +320,26 @@ class TestIngest(TstFunction):
                 del hist['previous']['dateOfUpdate']
 
         self.assertEqual(expected_provider, provider_data)
+        # Assert that an event was sent for the deactivation
+        mock_event_writer.return_value.__enter__.return_value.put_event.assert_called_once()
+        call_kwargs = mock_event_writer.return_value.__enter__.return_value.put_event.call_args.kwargs
+        self.assertEqual(
+            call_kwargs,
+            {
+                'Entry': {
+                    'Source': 'org.compactconnect.provider-data',
+                    'DetailType': 'license.deactivation',
+                    'Detail': json.dumps(
+                        {
+                            'eventTime': '2024-11-08T23:59:59+00:00',
+                            'compact': 'aslp',
+                            'jurisdiction': 'oh',
+                            'providerId': provider_id,
+                        }
+                    ),
+                }
+            }
+        )
 
     def test_existing_provider_renewal(self):
         from handlers.ingest import ingest_license_message

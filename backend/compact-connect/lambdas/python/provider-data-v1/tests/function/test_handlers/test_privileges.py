@@ -57,7 +57,6 @@ class TestDeactivatePrivilege(TstFunction):
 
         body = json.loads(resp['body'])
 
-        self.maxDiff = None
         self.assertEqual(expected_provider, body)
 
     def _request_deactivation_with_scopes(self, scopes: str):
@@ -80,7 +79,8 @@ class TestDeactivatePrivilege(TstFunction):
         return deactivate_privilege(event, self.mock_context)
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
-    def test_compact_admin_can_deactivate_privilege(self):
+    @patch('handlers.privileges.EventBatchWriter', autospec=True)
+    def test_compact_admin_can_deactivate_privilege(self, mock_event_writer):
         """
         If a compact admin has admin permission in the compact, they can deactivate a privilege
         """
@@ -91,8 +91,26 @@ class TestDeactivatePrivilege(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         self.assertEqual({'message': 'OK'}, json.loads(resp['body']))
 
-        self.maxDiff = None
         self._assert_the_privilege_was_deactivated()
+        mock_event_writer.return_value.__enter__.return_value.put_event.assert_called_once()
+        call_kwargs = mock_event_writer.return_value.__enter__.return_value.put_event.call_args.kwargs
+        self.assertEqual(
+            call_kwargs,
+            {
+                'Entry': {
+                    'Source': 'org.compactconnect.provider-data',
+                    'DetailType': 'privilege.deactivation',
+                    'Detail': json.dumps(
+                        {
+                            'eventTime': '2024-11-08T23:59:59+00:00',
+                            'compact': 'aslp',
+                            'jurisdiction': 'ne',
+                            'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+                        }
+                    ),
+                }
+            }
+        )
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_board_admin_can_deactivate_privilege(self):

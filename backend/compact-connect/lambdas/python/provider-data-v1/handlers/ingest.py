@@ -1,3 +1,4 @@
+import json
 from collections.abc import Iterable
 
 from boto3.dynamodb.types import TypeSerializer
@@ -8,6 +9,7 @@ from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
 from cc_common.exceptions import CCNotFoundException
 from cc_common.utils import sqs_handler
+from event_batch_writer import EventBatchWriter
 
 license_schema = LicenseIngestSchema()
 license_update_schema = LicenseUpdateRecordSchema()
@@ -26,97 +28,117 @@ def ingest_license_message(message: dict):
     compact = license_post['compact']
     jurisdiction = license_post['jurisdiction']
 
-    provider_id = config.data_client.get_or_create_provider_id(compact=compact, ssn=license_post['ssn'])
-    logger.info('Ingesting license data', provider_id=provider_id, compact=compact, jurisdiction=jurisdiction)
+    with logger.append_context_keys(compact=compact, jurisdiction=jurisdiction):
+        provider_id = config.data_client.get_or_create_provider_id(compact=compact, ssn=license_post['ssn'])
+        with logger.append_context_keys(provider_id=provider_id):
+            logger.info('Ingesting license data')
 
-    # Start preparing our db transactions
-    dynamo_transactions = [
-        # Put the posted license
-        {
-            'Put': {
-                'TableName': config.provider_table_name,
-                # We'll use the schema/serializer to populate index fields for us
-                'Item': TypeSerializer().serialize(
-                    LicenseRecordSchema().dump(
-                        {'providerId': provider_id, 'compact': compact, 'jurisdiction': jurisdiction, **license_post},
-                    ),
-                )['M'],
-            },
-        },
-    ]
+            # Start preparing our db transactions and events
+            data_events = []
+            dynamo_transactions = [
+                # Put the posted license
+                {
+                    'Put': {
+                        'TableName': config.provider_table_name,
+                        # We'll use the schema/serializer to populate index fields for us
+                        'Item': TypeSerializer().serialize(
+                            LicenseRecordSchema().dump(
+                                {
+                                    'providerId': provider_id,
+                                    'compact': compact,
+                                    'jurisdiction': jurisdiction,
+                                    **license_post,
+                                },
+                            ),
+                        )['M'],
+                    },
+                },
+            ]
 
-    try:
-        provider_data = config.data_client.get_provider(
-            compact=compact,
-            provider_id=provider_id,
-            detail=True,
-            consistent_read=True,
-        )
-        # Get all privilege jurisdictions, directly from privilege records
-        privilege_jurisdictions = {
-            record['jurisdiction']
-            for record in provider_data['items']
-            if record['type'] == 'privilege' and record['status'] == 'active'
-        }
-        # Get all the existing license records, by jurisdiction, to find the best data for the provider
-        licenses = {record['jurisdiction']: record for record in provider_data['items'] if record['type'] == 'license'}
-    except CCNotFoundException:
-        privilege_jurisdictions = set()
-        licenses = {}
+            try:
+                provider_data = config.data_client.get_provider(
+                    compact=compact,
+                    provider_id=provider_id,
+                    detail=True,
+                    consistent_read=True,
+                )
+                # Get all privilege jurisdictions, directly from privilege records
+                privilege_jurisdictions = {
+                    record['jurisdiction']
+                    for record in provider_data['items']
+                    if record['type'] == 'privilege' and record['status'] == 'active'
+                }
+                # Get all the existing license records, by jurisdiction, to find the best data for the provider
+                licenses = {
+                    record['jurisdiction']: record for record in provider_data['items'] if record['type'] == 'license'
+                }
+            except CCNotFoundException:
+                privilege_jurisdictions = set()
+                licenses = {}
 
-    # Which license do we use for provider data?
-    # If at least one active: last issued active license
-    # If all inactive: last issued inactive license
-    # Set (or replace) the posted license for its jurisdiction
-    existing_license = licenses.get(license_post['jurisdiction'])
-    if existing_license is not None:
-        _process_license_update(
-            existing_license=existing_license,
-            new_license=license_post,
-            dynamo_transactions=dynamo_transactions,
-        )
-    licenses[license_post['jurisdiction']] = license_post
+            # Which license do we use for provider data?
+            # If at least one active: last issued active license
+            # If all inactive: last issued inactive license
+            # Set (or replace) the posted license for its jurisdiction
+            existing_license = licenses.get(license_post['jurisdiction'])
 
-    # First try to find the home state license
-    best_license = config.data_client.find_home_state_license(
-        compact=compact, provider_id=provider_id, licenses=list(licenses.values())
-    )
-    # If no home state selection exists yet, fall back to finding the best license based on status and date
-    if best_license is None:
-        best_license = _find_best_license(licenses.values())
+            if existing_license is not None:
+                _process_license_update(
+                    existing_license=existing_license,
+                    new_license=license_post,
+                    dynamo_transactions=dynamo_transactions,
+                    data_events=data_events,
+                )
+            licenses[license_post['jurisdiction']] = license_post
 
-    if best_license is license_post:
-        logger.info('Updating provider data', provider_id=provider_id, compact=compact, jurisdiction=jurisdiction)
+            # First try to find the home state license
+            best_license = config.data_client.find_home_state_license(
+                compact=compact, provider_id=provider_id, licenses=list(licenses.values())
+            )
+            # If no home state selection exists yet, fall back to finding the best license based on status and date
+            if best_license is None:
+                best_license = _find_best_license(licenses.values())
 
-        provider_record = _populate_provider_record(
-            provider_id=provider_id,
-            license_post=license_post,
-            privilege_jurisdictions=privilege_jurisdictions,
-        )
-        # Update our provider data
-        dynamo_transactions.append({'Put': {'TableName': config.provider_table_name, 'Item': provider_record}})
+            if best_license is license_post:
+                logger.info('Updating provider data')
 
-    # Write the records together as a transaction that succeeds or fails as one, to ensure consistency
-    config.dynamodb_client.transact_write_items(TransactItems=dynamo_transactions)
+                provider_record = _populate_provider_record(
+                    provider_id=provider_id,
+                    license_post=license_post,
+                    privilege_jurisdictions=privilege_jurisdictions,
+                )
+                # Update our provider data
+                dynamo_transactions.append(
+                    {
+                        'Put': {
+                            'TableName': config.provider_table_name,
+                            'Item': TypeSerializer().serialize(provider_record)['M'],
+                        }
+                    }
+                )
+
+            # Write the records together as a transaction that succeeds or fails as one, to ensure consistency
+            config.dynamodb_client.transact_write_items(TransactItems=dynamo_transactions)
+            # We'll save our events until after the transaction is written, to ensure consistency
+            with EventBatchWriter(config.events_client) as event_writer:
+                for event in data_events:
+                    event_writer.put_event(Entry=event)
 
 
 def _populate_provider_record(*, provider_id: str, license_post: dict, privilege_jurisdictions: set) -> dict:
-    dynamodb_serializer = TypeSerializer()
-    return dynamodb_serializer.serialize(
-        ProviderRecordSchema().dump(
-            {
-                'providerId': provider_id,
-                'compact': license_post['compact'],
-                'licenseJurisdiction': license_post['jurisdiction'],
-                # We can't put an empty string set to DynamoDB, so we'll only add the field if it is not empty
-                **({'privilegeJurisdictions': privilege_jurisdictions} if privilege_jurisdictions else {}),
-                **license_post,
-            },
-        ),
-    )['M']
+    return ProviderRecordSchema().dump(
+        {
+            'providerId': provider_id,
+            'compact': license_post['compact'],
+            'licenseJurisdiction': license_post['jurisdiction'],
+            # We can't put an empty string set to DynamoDB, so we'll only add the field if it is not empty
+            **({'privilegeJurisdictions': privilege_jurisdictions} if privilege_jurisdictions else {}),
+            **license_post,
+        }
+    )
 
 
-def _process_license_update(*, existing_license: dict, new_license: dict, dynamo_transactions: list):
+def _process_license_update(*, existing_license: dict, new_license: dict, dynamo_transactions: list, data_events: list):
     """
     Examine the differences between existing_license and new_license, categorize the change, and add
     a licenseUpdate record to the transaction if appropriate.
@@ -140,11 +162,31 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
     }
     if not updated_values and not removed_values:
         return
+
     # Categorize the update
     update_record = _populate_update_record(
         existing_license=existing_license, updated_values=updated_values, removed_values=removed_values
     )
-    dynamo_transactions.append({'Put': {'TableName': config.provider_table_name, 'Item': update_record}})
+    # We'll fire off events for updates of particular importance
+    if update_record['updateType'] == UpdateCategory.DEACTIVATION:
+        data_events.append(
+            {
+                'Source': 'org.compactconnect.provider-data',
+                'DetailType': 'license.deactivation',
+                'Detail': json.dumps(
+                    {
+                        'eventTime': config.current_standard_datetime.isoformat(),
+                        'compact': existing_license['compact'],
+                        'jurisdiction': existing_license['jurisdiction'],
+                        'providerId': str(existing_license['providerId']),
+                    }
+                ),
+            }
+        )
+
+    dynamo_transactions.append(
+        {'Put': {'TableName': config.provider_table_name, 'Item': TypeSerializer().serialize(update_record)['M']}}
+    )
 
 
 def _populate_update_record(*, existing_license: dict, updated_values: dict, removed_values: dict) -> dict:
@@ -173,22 +215,19 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
     if update_type is None:
         update_type = UpdateCategory.OTHER
 
-    dynamodb_serializer = TypeSerializer()
-    return dynamodb_serializer.serialize(
-        license_update_schema.dump(
-            {
-                'type': 'licenseUpdate',
-                'updateType': update_type,
-                'providerId': existing_license['providerId'],
-                'compact': existing_license['compact'],
-                'jurisdiction': existing_license['jurisdiction'],
-                'previous': existing_license,
-                'updatedValues': updated_values,
-                # We'll only include the removed values field if there are some
-                **({'removedValues': sorted(removed_values)} if removed_values else {}),
-            }
-        )
-    )['M']
+    return license_update_schema.dump(
+        {
+            'type': 'licenseUpdate',
+            'updateType': update_type,
+            'providerId': existing_license['providerId'],
+            'compact': existing_license['compact'],
+            'jurisdiction': existing_license['jurisdiction'],
+            'previous': existing_license,
+            'updatedValues': updated_values,
+            # We'll only include the removed values field if there are some
+            **({'removedValues': sorted(removed_values)} if removed_values else {}),
+        }
+    )
 
 
 def _find_best_license(all_licenses: Iterable) -> dict:
