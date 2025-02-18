@@ -1,5 +1,6 @@
 from boto3.dynamodb.conditions import Key
 from cc_common.config import config, logger
+from cc_common.data_model.schema.common import CCPermissionsAction
 
 
 class UserData:
@@ -49,21 +50,30 @@ class UserData:
         # Ensure included actions are limited to supported values
         # Note we are keeping in the 'read' permission for backwards compatibility
         # Though we are not using it in the codebase
-        disallowed_actions = compact_actions - {'read', 'admin', 'readPrivate'}
+        disallowed_actions = compact_actions - {
+            CCPermissionsAction.READ,
+            CCPermissionsAction.ADMIN,
+            CCPermissionsAction.READ_PRIVATE,
+            CCPermissionsAction.READ_SSN,
+        }
         if disallowed_actions:
             raise ValueError(f'User {compact_name} permissions include disallowed actions: {disallowed_actions}')
 
         # readGeneral is always added an implicit permission granted to all staff users at the compact level
-        self.scopes.add(f'{compact_name}/readGeneral')
+        self.scopes.add(f'{compact_name}/{CCPermissionsAction.READ_GENERAL}')
 
-        if 'readPrivate' in compact_actions:
+        if CCPermissionsAction.READ_PRIVATE in compact_actions:
             # This action only has one level of authz, since there is no external scope for it
-            self.scopes.add(f'{compact_name}/{compact_name}.readPrivate')
+            self.scopes.add(f'{compact_name}/{compact_name}.{CCPermissionsAction.READ_PRIVATE}')
 
-        if 'admin' in compact_actions:
+        if CCPermissionsAction.READ_SSN in compact_actions:
+            self.scopes.add(f'{compact_name}/{CCPermissionsAction.READ_SSN}')
+            self.scopes.add(f'{compact_name}/{compact_name}.{CCPermissionsAction.READ_SSN}')
+
+        if CCPermissionsAction.ADMIN in compact_actions:
             # Two levels of authz for admin
-            self.scopes.add(f'{compact_name}/admin')
-            self.scopes.add(f'{compact_name}/{compact_name}.admin')
+            self.scopes.add(f'{compact_name}/{CCPermissionsAction.ADMIN}')
+            self.scopes.add(f'{compact_name}/{compact_name}.{CCPermissionsAction.ADMIN}')
 
         # Ensure included jurisdictions are limited to supported values
         jurisdictions = compact_permissions['jurisdictions']
@@ -78,7 +88,12 @@ class UserData:
 
     def _process_jurisdiction_permissions(self, compact_name, jurisdiction_name, jurisdiction_actions):
         # Ensure included actions are limited to supported values
-        disallowed_actions = jurisdiction_actions - {'write', 'admin', 'readPrivate'}
+        disallowed_actions = jurisdiction_actions - {
+            CCPermissionsAction.WRITE,
+            CCPermissionsAction.ADMIN,
+            CCPermissionsAction.READ_PRIVATE,
+            CCPermissionsAction.READ_SSN,
+        }
         if disallowed_actions:
             raise ValueError(
                 f'User {compact_name}/{jurisdiction_name} permissions include disallowed actions: {disallowed_actions}',
@@ -89,5 +104,5 @@ class UserData:
             # Grant coarse-grain scope, which provides access to the API itself
             # Since `readGeneral` is implicitly granted to all users, we do not
             # need to grant a coarse-grain scope for the `readPrivate` action.
-            if action != 'readPrivate':
+            if action != CCPermissionsAction.READ_PRIVATE:
                 self.scopes.add(f'{compact_name}/{action}')

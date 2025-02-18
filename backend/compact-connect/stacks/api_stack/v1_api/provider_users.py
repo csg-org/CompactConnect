@@ -230,6 +230,7 @@ class ProviderUsers:
         registration_successes = Metric(
             namespace='compact-connect',
             metric_name='registration-attempt',
+            dimensions_map={'service': 'common'},
             statistic=Stats.SAMPLE_COUNT,
             period=Duration.minutes(5),
         )
@@ -241,6 +242,7 @@ class ProviderUsers:
         registration_attempts = Metric(
             namespace='compact-connect',
             metric_name='registration-attempt',
+            dimensions_map={'service': 'common'},
             statistic=Stats.SUM,
             period=Duration.minutes(5),
         )
@@ -278,6 +280,7 @@ class ProviderUsers:
         daily_registration_successes = Metric(
             namespace='compact-connect',
             metric_name='registration-attempt',
+            dimensions_map={'service': 'common'},
             statistic=Stats.SAMPLE_COUNT,
             period=Duration.days(1),
         )
@@ -289,6 +292,7 @@ class ProviderUsers:
         daily_registration_attempts = Metric(
             namespace='compact-connect',
             metric_name='registration-attempt',
+            dimensions_map={'service': 'common'},
             statistic=Stats.SUM,
             period=Duration.days(1),
         )

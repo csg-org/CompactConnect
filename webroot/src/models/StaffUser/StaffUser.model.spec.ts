@@ -271,6 +271,16 @@ describe('Staff User model', () => {
         expect(user.statesDisplay()).to.equal('Colorado');
         expect(user.accountStatusDisplay()).to.equal('Active');
     });
+    it('should create a Staff User with specific values through staff serializer (server-inactive -> pending)', () => {
+        const data = {
+            status: 'inactive',
+        };
+        const user = StaffUserSerializer.fromServer(data, { pageNum: 1 });
+
+        expect(user).to.be.an.instanceof(StaffUser);
+        expect(user.accountStatus).to.equal('pending');
+        expect(user.accountStatusDisplay()).to.equal('Pending');
+    });
     it('should prepare a Staff User for server request through serializer', () => {
         const data = {
             permissions: [

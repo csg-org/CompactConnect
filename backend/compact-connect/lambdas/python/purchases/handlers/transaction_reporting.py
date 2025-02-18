@@ -184,6 +184,7 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     # Initialize clients
     data_client = config.data_client
     transaction_client = config.transaction_client
+    compact_configuration_client = config.compact_configuration_client
 
     # Get the S3 bucket name
     bucket_name = config.transaction_reports_bucket_name
@@ -201,7 +202,7 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     )
 
     # Get compact configuration and jurisdictions
-    compact_configuration_options = data_client.get_privilege_purchase_options(compact=compact)
+    compact_configuration_options = compact_configuration_client.get_privilege_purchase_options(compact=compact)
 
     compact_configuration = next(
         (Compact(item) for item in compact_configuration_options['items'] if item['type'] == COMPACT_TYPE), None
