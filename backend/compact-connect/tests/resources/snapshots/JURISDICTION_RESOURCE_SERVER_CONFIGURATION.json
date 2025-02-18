@@ -8,10 +8,6 @@
         "ScopeName": "aslp.admin"
       },
       {
-        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
-        "ScopeName": "aslp.write"
-      },
-      {
         "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
         "ScopeName": "aslp.readPrivate"
       },
@@ -20,12 +16,12 @@
         "ScopeName": "aslp.readSSN"
       },
       {
-        "ScopeDescription": "Admin access for the octp compact within the jurisdiction",
-        "ScopeName": "octp.admin"
+        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.write"
       },
       {
-        "ScopeDescription": "Write access for the octp compact within the jurisdiction",
-        "ScopeName": "octp.write"
+        "ScopeDescription": "Admin access for the octp compact within the jurisdiction",
+        "ScopeName": "octp.admin"
       },
       {
         "ScopeDescription": "Read access for SSNs in the octp compact within the jurisdiction",
@@ -34,6 +30,10 @@
       {
         "ScopeDescription": "Read access for SSNs in the octp compact within the jurisdiction",
         "ScopeName": "octp.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the octp compact within the jurisdiction",
+        "ScopeName": "octp.write"
       }
     ]
   },
@@ -46,10 +46,6 @@
         "ScopeName": "aslp.admin"
       },
       {
-        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
-        "ScopeName": "aslp.write"
-      },
-      {
         "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
         "ScopeName": "aslp.readPrivate"
       },
@@ -58,12 +54,12 @@
         "ScopeName": "aslp.readSSN"
       },
       {
-        "ScopeDescription": "Admin access for the octp compact within the jurisdiction",
-        "ScopeName": "octp.admin"
+        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.write"
       },
       {
-        "ScopeDescription": "Write access for the octp compact within the jurisdiction",
-        "ScopeName": "octp.write"
+        "ScopeDescription": "Admin access for the octp compact within the jurisdiction",
+        "ScopeName": "octp.admin"
       },
       {
         "ScopeDescription": "Read access for SSNs in the octp compact within the jurisdiction",
@@ -72,6 +68,10 @@
       {
         "ScopeDescription": "Read access for SSNs in the octp compact within the jurisdiction",
         "ScopeName": "octp.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the octp compact within the jurisdiction",
+        "ScopeName": "octp.write"
       }
     ]
   },
@@ -84,10 +84,6 @@
         "ScopeName": "aslp.admin"
       },
       {
-        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
-        "ScopeName": "aslp.write"
-      },
-      {
         "ScopeDescription": "Read access for SSNs in the aslp compact within the jurisdiction",
         "ScopeName": "aslp.readPrivate"
       },
@@ -96,12 +92,12 @@
         "ScopeName": "aslp.readSSN"
       },
       {
-        "ScopeDescription": "Admin access for the octp compact within the jurisdiction",
-        "ScopeName": "octp.admin"
+        "ScopeDescription": "Write access for the aslp compact within the jurisdiction",
+        "ScopeName": "aslp.write"
       },
       {
-        "ScopeDescription": "Write access for the octp compact within the jurisdiction",
-        "ScopeName": "octp.write"
+        "ScopeDescription": "Admin access for the octp compact within the jurisdiction",
+        "ScopeName": "octp.admin"
       },
       {
         "ScopeDescription": "Read access for SSNs in the octp compact within the jurisdiction",
@@ -110,6 +106,10 @@
       {
         "ScopeDescription": "Read access for SSNs in the octp compact within the jurisdiction",
         "ScopeName": "octp.readSSN"
+      },
+      {
+        "ScopeDescription": "Write access for the octp compact within the jurisdiction",
+        "ScopeName": "octp.write"
       }
     ]
   }

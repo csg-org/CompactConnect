@@ -99,8 +99,11 @@ class TestPipeline(TstAppABC, TestCase):
             del resource_server_properties['UserPoolId']
             jurisdiction_resource_server_config.append(resource_server_properties)
 
-        # sort the list by jurisdiction for consistency
+        # sort the resource server list by jurisdiction for consistency
         jurisdiction_resource_server_config.sort(key=lambda jurisdiction: jurisdiction['Identifier'])
+        # sort the scopes within the resource server by name for consistency
+        for resource_server in jurisdiction_resource_server_config:
+            resource_server['Scopes'].sort(key=lambda scope: scope['ScopeName'])
         self.compare_snapshot(jurisdiction_resource_server_config,
                               "JURISDICTION_RESOURCE_SERVER_CONFIGURATION",
                               overwrite_snapshot=False,
