@@ -73,7 +73,7 @@ class TestPipeline(TstAppABC, TestCase):
                 persistent_stack.get_logical_id(resource_server.node.default_child),
                 persistent_stack_template.find_resources(CfnUserPoolResourceServer.CFN_RESOURCE_TYPE_NAME),
             )
-            # Ensure the resource servers are created with the expected scopes
+            # Ensure the compact resource servers are created with the expected scopes
             self.assertEqual(
                 ['admin', 'write', 'readGeneral', 'readSSN'],
                 [scope['ScopeName'] for scope in resource_server_properties['Scopes']],
