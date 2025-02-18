@@ -31,7 +31,7 @@ class TestPostPaymentProcessorCredentials(TstFunction):
             event = json.load(f)
             event['pathParameters'] = {'compact': TEST_COMPACT}
             # user is a compact admin with admin scoped permissions
-            event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/aslp.admin'
+            event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
             event['body'] = _generate_test_request_body()
 
         return event
@@ -41,7 +41,7 @@ class TestPostPaymentProcessorCredentials(TstFunction):
             event = json.load(f)
             event['pathParameters'] = {'compact': TEST_COMPACT}
             # user is an admin with jurisdiction scoped permissions
-            event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/oh.admin'
+            event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
             event['body'] = _generate_test_request_body()
 
         return event
@@ -60,7 +60,7 @@ class TestPostPaymentProcessorCredentials(TstFunction):
         mock_purchase_client_constructor.return_value = mock_purchase_client
         mock_purchase_client.validate_and_store_credentials.side_effect = CCInvalidRequestException(
             # actual error code and error message from the authorize.net client
-            'Failed to verify credentials. Error code: E00124, Error message: ' 'The provided access token is invalid'
+            'Failed to verify credentials. Error code: E00124, Error message: The provided access token is invalid'
         )
 
         return mock_purchase_client

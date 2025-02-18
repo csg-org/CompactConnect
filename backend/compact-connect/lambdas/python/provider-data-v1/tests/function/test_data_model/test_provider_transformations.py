@@ -39,7 +39,7 @@ class TestTransformations(TstFunction):
         # Compact and jurisdiction are provided via path parameters
         event['pathParameters'] = {'compact': 'aslp', 'jurisdiction': 'oh'}
         # Authorize ourselves to write the license
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write aslp/oh.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.write'
 
         from handlers.licenses import post_licenses
 
@@ -179,7 +179,7 @@ class TestTransformations(TstFunction):
             event = json.load(f)
 
         event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/aslp.readPrivate'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readPrivate'
 
         resp = get_provider(event, self.mock_context)
 
