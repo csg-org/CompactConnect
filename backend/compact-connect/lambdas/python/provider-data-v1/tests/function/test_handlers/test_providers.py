@@ -344,7 +344,6 @@ class TestGetProvider(TstFunction):
 
             # we do not return the military affiliation document keys if the caller does not have read private scope
             expected_provider['militaryAffiliations'][0].pop('documentKeys')
-            # also remove the ssn from the license record
             del expected_provider['licenses'][0]['ssnLastFour']
             del expected_provider['licenses'][0]['dateOfBirth']
             del expected_provider['licenses'][0]['history'][0]['previous']['ssnLastFour']
