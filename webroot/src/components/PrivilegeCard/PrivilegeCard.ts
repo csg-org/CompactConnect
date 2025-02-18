@@ -16,7 +16,9 @@ import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import Modal from '@components/Modal/Modal.vue';
 import { License, LicenseStatus } from '@/models/License/License.model';
+import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@/models/State/State.model';
+import { StaffUser, CompactPermission } from '@models/StaffUser/StaffUser.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
 import moment from 'moment';
 
@@ -52,8 +54,41 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.$store.state.user;
     }
 
+    get currentUser(): StaffUser {
+        return this.userStore.model;
+    }
+
+    get currentCompact(): Compact | null {
+        return this.userStore.currentCompact;
+    }
+
     get currentCompactType() {
-        return this.userStore.currentCompact?.type;
+        return this.currentCompact?.type;
+    }
+
+    get currentUserCompactPermission(): CompactPermission | null {
+        const currentPermissions = this.currentUser?.permissions;
+        const compactPermission = currentPermissions?.find((currentPermission: CompactPermission) =>
+            currentPermission.compact.type === this.currentCompact?.type) || null;
+
+        return compactPermission;
+    }
+
+    get isCurrentUserCompactAdmin(): boolean {
+        return this.currentUserCompactPermission?.isAdmin || false;
+    }
+
+    get isCurrentUserPrivilegeStateAdmin(): boolean {
+        const { currentUserCompactPermission } = this;
+        const statePermission = currentUserCompactPermission?.states?.find((permission) =>
+            this.state?.abbrev === permission.state?.abbrev);
+        const hasStatePermission = statePermission?.isAdmin || false;
+
+        return hasStatePermission;
+    }
+
+    get isCurrentUserPrivilegeAdmin(): boolean {
+        return this.isCurrentUserCompactAdmin || this.isCurrentUserPrivilegeStateAdmin;
     }
 
     get statusDisplay(): string {
