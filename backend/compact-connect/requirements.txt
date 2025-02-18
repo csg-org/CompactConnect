@@ -25,7 +25,7 @@ aws-cdk-lib==2.178.2
     #   cdk-nag
 cattrs==24.1.2
     # via jsii
-cdk-nag==2.35.16
+cdk-nag==2.35.17
     # via -r compact-connect/requirements.in
 constructs==10.4.2
     # via
