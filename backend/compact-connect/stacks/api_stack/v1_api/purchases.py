@@ -112,7 +112,7 @@ class Purchases:
         provider_data_table.grant_read_write_data(handler)
 
         # grant access to secrets manager secrets following this namespace pattern
-        # compact-connect/env/{environment_name}/compact/{compact_name}/credentials/payment-processor
+        # compact-connect/env/{environment_name}/compact/{compact_abbr}/credentials/payment-processor
         handler.add_to_role_policy(
             PolicyStatement(
                 effect=Effect.ALLOW,

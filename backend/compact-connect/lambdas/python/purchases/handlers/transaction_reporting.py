@@ -96,10 +96,10 @@ def _store_compact_reports_in_s3(
     :param bucket_name: S3 bucket name
     :return: Dictionary of file types to their S3 paths
     """
-    date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
+    date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
     base_path = (
-        f"compact/{compact}/reports/compact-transactions/reporting-cycle/{reporting_cycle}/"
-        f"{end_time.strftime('%Y/%m/%d')}"
+        f'compact/{compact}/reports/compact-transactions/reporting-cycle/{reporting_cycle}/'
+        f'{end_time.strftime("%Y/%m/%d")}'
     )
 
     # Define paths for all report files
@@ -141,10 +141,10 @@ def _store_jurisdiction_reports_in_s3(
     :param bucket_name: S3 bucket name
     :return: Dictionary of file types to their S3 paths
     """
-    date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
+    date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
     base_path = (
-        f"compact/{compact}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
-        f"reporting-cycle/{reporting_cycle}/{end_time.strftime('%Y/%m/%d')}"
+        f'compact/{compact}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/'
+        f'reporting-cycle/{reporting_cycle}/{end_time.strftime("%Y/%m/%d")}'
     )
 
     # Define paths for all report files
@@ -375,7 +375,7 @@ def _generate_compact_summary_report(
         logger.error(
             'Unknown jurisdictions found in transactions.',
             jurisdictions=list(unknown_jurisdictions),
-            compact=compact_config.compact_name,
+            compact=compact_config.compact_abbr,
         )
         # we can still generate the reports, but we need to add this so an exception is thrown after sending the reports
         lambda_error_messages.append(

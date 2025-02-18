@@ -95,7 +95,7 @@ class Credentials:
         )
 
         # grant handler access to post secrets for supported compacts
-        # compact-connect/env/{environment_name}/compact/{compact_name}/credentials/payment-processor
+        # compact-connect/env/{environment_name}/compact/{compact_abbr}/credentials/payment-processor
         handler.add_to_role_policy(
             PolicyStatement(
                 effect=Effect.ALLOW,

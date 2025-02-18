@@ -11,8 +11,12 @@
                 ],
                 "type": "string"
               },
+              "compactAbbr": {
+                "description": "The abbreviation of the compact",
+                "type": "string"
+              },
               "compactName": {
-                "description": "The name of the compact",
+                "description": "The full name of the compact",
                 "type": "string"
               },
               "compactCommissionFee": {
@@ -69,6 +73,7 @@
             },
             "required": [
               "type",
+              "compactAbbr",
               "compactName",
               "compactCommissionFee",
               "transactionFeeConfiguration"

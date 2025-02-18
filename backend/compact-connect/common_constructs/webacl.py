@@ -69,7 +69,7 @@ class WebACL(Resource):
             # Regional ACLs need a log group in the matching region
             if scope == WebACLScope.CLOUDFRONT and not stack.region == 'us-east-1':
                 raise RuntimeError(
-                    'CLOUDFRONT scoped WebACLs must be in the "us-east-1" region to have' ' logging enabled'
+                    'CLOUDFRONT scoped WebACLs must be in the "us-east-1" region to have logging enabled'
                 )
 
             self.log_group = LogGroup(
