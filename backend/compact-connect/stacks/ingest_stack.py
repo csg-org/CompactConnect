@@ -41,6 +41,8 @@ class IngestStack(AppStack):
             alarm_topic=persistent_stack.alarm_topic,
         )
         persistent_stack.provider_table.grant_read_write_data(ingest_handler)
+        persistent_stack.data_event_bus.grant_put_events_to(ingest_handler)
+
         NagSuppressions.add_resource_suppressions_by_path(
             Stack.of(ingest_handler.role),
             f'{ingest_handler.role.node.path}/DefaultPolicy/Resource',

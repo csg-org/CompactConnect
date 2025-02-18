@@ -105,7 +105,9 @@ class V1Api:
         self.query_providers = QueryProviders(
             resource=providers_resource,
             method_options=read_auth_method_options,
+            admin_method_options=admin_auth_method_options,
             ssn_method_options=read_ssn_auth_method_options,
+            event_bus=persistent_stack.data_event_bus,
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
             ssn_table=persistent_stack.ssn_table,

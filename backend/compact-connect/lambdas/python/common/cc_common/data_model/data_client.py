@@ -307,6 +307,7 @@ class DataClient:
             'compactTransactionId': compact_transaction_id,
             'attestations': attestations,
             'privilegeId': privilege_id,
+            'persistedStatus': 'active',
         }
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'compact_transaction_id')
@@ -889,3 +890,93 @@ class DataClient:
             # The user has not registered with the system and set a home jurisdiction
             logger.info('No home jurisdiction selection found. Cannot determine home state license')
             return None
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction')
+    def deactivate_privilege(self, *, compact: str, provider_id: str, jurisdiction: str) -> None:
+        """
+        Deactivate a privilege by setting its persistedStatus to inactive.
+        This will create a history record and update the provider record.
+
+        :param str compact: The compact name
+        :param str provider_id: The provider ID
+        :param str jurisdiction: The jurisdiction postal abbreviation
+        :raises CCNotFoundException: If the privilege record is not found
+        """
+        # Get the privilege record
+        privilege_records = self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
+            & Key('sk').eq(f'{compact}#PROVIDER#privilege/{jurisdiction}#'),
+        )['Items']
+
+        # Find the main privilege record (not history records)
+        privilege_record_schema = PrivilegeRecordSchema()
+        privilege_record = next(
+            (privilege_record_schema.load(record) for record in privilege_records if record['type'] == 'privilege'),
+            None,
+        )
+
+        if privilege_record is None:
+            raise CCNotFoundException(f'Privilege not found for jurisdiction {jurisdiction}')
+
+        # If already inactive, do nothing
+        if privilege_record.get('persistedStatus', 'active') == 'inactive':
+            return
+
+        # Create the update record
+        # Use the schema to generate the update record with proper pk/sk
+        privilege_update_record = PrivilegeUpdateRecordSchema().dump(
+            {
+                'type': 'privilegeUpdate',
+                'updateType': 'deactivation',
+                'providerId': provider_id,
+                'compact': compact,
+                'jurisdiction': jurisdiction,
+                'dateOfUpdate': self.config.current_standard_datetime.isoformat(),
+                'previous': {
+                    # We're relying on the schema to trim out unneeded fields
+                    **privilege_record,
+                },
+                'updatedValues': {
+                    'persistedStatus': 'inactive',
+                },
+            }
+        )
+
+        # Update the privilege record and create history record
+        self.config.dynamodb_client.transact_write_items(
+            TransactItems=[
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table.name,
+                        'Key': {
+                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                            'sk': {'S': f'{compact}#PROVIDER#privilege/{jurisdiction}#'},
+                        },
+                        'UpdateExpression': 'SET persistedStatus = :status, dateOfUpdate = :dateOfUpdate',
+                        'ExpressionAttributeValues': {
+                            ':status': {'S': 'inactive'},
+                            ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                        },
+                    },
+                },
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table.name,
+                        'Item': TypeSerializer().serialize(privilege_update_record)['M'],
+                    },
+                },
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table.name,
+                        'Key': {
+                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                            'sk': {'S': f'{compact}#PROVIDER'},
+                        },
+                        'UpdateExpression': 'DELETE privilegeJurisdictions :jurisdiction',
+                        'ExpressionAttributeValues': {
+                            ':jurisdiction': {'SS': [jurisdiction]},
+                        },
+                    },
+                },
+            ],
+        )
