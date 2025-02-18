@@ -255,8 +255,6 @@ export class Licensee implements InterfaceLicensee {
 // ========================================================
 export class LicenseeSerializer {
     static fromServer(json: any): Licensee {
-        console.log('json', json);
-
         const licenseeData: any = {
             id: json.providerId,
             npi: json.npi,

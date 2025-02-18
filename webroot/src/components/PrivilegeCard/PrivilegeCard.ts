@@ -11,6 +11,7 @@ import {
     Prop
 } from 'vue-facing-decorator';
 import { License, LicenseStatus } from '@/models/License/License.model';
+import { Licensee } from '@/models/Licensee/Licensee.model';
 import { State } from '@/models/State/State.model';
 import moment from 'moment';
 
@@ -19,6 +20,7 @@ import moment from 'moment';
 })
 class PrivilegeCard extends Vue {
     @Prop({ required: true }) privilege?: License;
+    @Prop({ required: true }) licensee?: Licensee;
 
     //
     // Computed
@@ -88,6 +90,12 @@ class PrivilegeCard extends Vue {
         }
 
         return isPastDate;
+    }
+
+    get occupationAbbrev(): string {
+        const bestHomeStateLicense = this.licensee?.bestHomeStateLicense() || new License();
+
+        return bestHomeStateLicense?.occupationAbbreviation().toUpperCase();
     }
 
     get privilegeId(): string {

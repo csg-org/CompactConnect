@@ -13,7 +13,7 @@
                     {{stateContent}}
                 </div>
                 <div class="occupation-abbrev">
-                    OTA
+                    {{occupationAbbrev}}
                 </div>
             </div>
             <div class="privilege-status" :class="{ 'italics': !isActive, 'bold': isActive }">
