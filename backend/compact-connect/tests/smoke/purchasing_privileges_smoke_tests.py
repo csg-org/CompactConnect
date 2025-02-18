@@ -37,6 +37,7 @@ def test_purchase_privilege_options():
     # Verify compact data matches expected values
     expected_compact_data = {
         'type': 'compact',
+        'compactName': 'Audiology and Speech Language Pathology',
         'compactAbbr': 'aslp',
         'compactCommissionFee': {'feeType': 'FLAT_RATE', 'feeAmount': 3.50},
         'transactionFeeConfiguration': {
