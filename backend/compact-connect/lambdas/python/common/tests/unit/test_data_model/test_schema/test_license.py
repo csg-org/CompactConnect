@@ -60,7 +60,7 @@ class TestLicenseSchema(TstLambdas):
 
         with open('tests/resources/dynamo/license.json') as f:
             license_data = json.load(f)
-        license_data.pop('ssn')
+        license_data.pop('ssnLastFour')
 
         with self.assertRaises(ValidationError):
             LicenseRecordSchema().load(license_data)
@@ -81,13 +81,20 @@ class TestLicenseSchema(TstLambdas):
         provider_id = expected_license_record['providerId']
 
         license_record = LicenseRecordSchema().dump(
-            {'compact': 'aslp', 'jurisdiction': 'co', 'providerId': UUID(provider_id), **license_data},
+            {
+                'compact': 'aslp',
+                'jurisdiction': 'co',
+                'providerId': UUID(provider_id),
+                'ssnLastFour': '1234',
+                **license_data,
+            },
         )
 
         # These are dynamic and so won't match
         del expected_license_record['dateOfUpdate']
         del license_record['dateOfUpdate']
 
+        self.maxDiff = None
         self.assertEqual(expected_license_record, license_record)
 
     def test_license_record_schema_sets_status_to_inactive_if_license_expired(self):

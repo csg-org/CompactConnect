@@ -276,7 +276,7 @@ class TestIngest(TstFunction):
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
                     'previous': {
-                        'ssn': '123-12-1234',
+                        'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
@@ -355,7 +355,7 @@ class TestIngest(TstFunction):
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
                     'previous': {
-                        'ssn': '123-12-1234',
+                        'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
@@ -436,7 +436,7 @@ class TestIngest(TstFunction):
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
                     'previous': {
-                        'ssn': '123-12-1234',
+                        'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
@@ -519,7 +519,6 @@ class TestIngest(TstFunction):
         self.assertEqual(expected_provider, provider_data)
 
     def test_existing_provider_removed_email(self):
-        self.maxDiff = None
         from handlers.ingest import ingest_license_message
 
         provider_id = self._with_ingested_license()
@@ -558,7 +557,7 @@ class TestIngest(TstFunction):
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
                     'previous': {
-                        'ssn': '123-12-1234',
+                        'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
@@ -600,7 +599,6 @@ class TestIngest(TstFunction):
         self.assertEqual(expected_provider, provider_data)
 
     def test_existing_provider_added_email(self):
-        self.maxDiff = None
         from handlers.ingest import ingest_license_message
 
         provider_id = self._with_ingested_license(omit_email=True)
@@ -632,7 +630,7 @@ class TestIngest(TstFunction):
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
                     'previous': {
-                        'ssn': '123-12-1234',
+                        'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
