@@ -267,7 +267,7 @@ This ensures that providers always see and accept the most current version of re
 ## Transaction History Reporting
 [Back to top](#backend-design)
 
-![Transaction History Reporting Diagram](./transaction-history-reporting-diagram.pdf)
+![Transaction History Reporting Diagram](/backend/compact-connect/docs/design/transaction-history-reporting-diagram.pdf)
 
 When a provider purchases privileges in a compact, the purchase is recorded in the compact's payment processor (currently we only support Authorize.net). There is at least a 24 hour delay before the transaction is settled. The transaction history reporting system is designed to track and report on all **succesfully settled** transactions in the system.
 
