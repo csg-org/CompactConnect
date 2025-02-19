@@ -55,7 +55,7 @@ class ProviderTable(Table):
         self.add_global_secondary_index(
             index_name=self.compact_transaction_gsi_name,
             partition_key=Attribute(name='compactTransactionIdGSIPK', type=AttributeType.STRING),
-            # in this case, we only need to include the privilegeId, updatedValues, type, and jurisdiction
+            # in this case, we only need to include a subset of the total object
             # since this GSI is used to map compactTransactionIds to privileges
             projection_type=ProjectionType.INCLUDE,
             non_key_attributes=[

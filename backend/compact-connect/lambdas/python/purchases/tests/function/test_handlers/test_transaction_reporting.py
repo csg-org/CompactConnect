@@ -1123,7 +1123,7 @@ class TestGenerateTransactionReports(TstFunction):
         )
 
         mock_user = self._add_mock_provider_to_db('12345', 'John', 'Doe')
-        # Create a transaction with in which the licensee is charged transaction fees
+        # Create a transaction in which the licensee is charged transaction fees
         self._add_mock_transaction_to_db(
             jurisdictions=['oh', 'ky', 'ne'],
             licensee_id=mock_user['providerId'],

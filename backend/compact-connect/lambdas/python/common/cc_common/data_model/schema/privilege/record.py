@@ -135,9 +135,9 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     def generate_compact_transaction_gsi_field(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         """
         In order for us to be able to look up privilege records by transaction, we need each update record
-        to track a top level compact transaction id GSI field. We use the value of the previous record, since
-        that is always required to include the compactTransactionId field, and will allow us to query
-        back to the first privilege record.
+        to track a top level compact transaction id GSI field. We use the value of the compactTransactionId nested in
+        the previous field, since that is guaranteed to include the compactTransactionId field, and by using the
+        previous field, we can trace back to the transaction id for every privilege update record.
         """
         in_data['compactTransactionIdGSIPK'] = (
             f'COMPACT#{in_data["compact"]}#TX#{in_data["previous"]["compactTransactionId"]}#'
