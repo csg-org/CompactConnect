@@ -345,6 +345,14 @@ export const licensees = {
     lastKey: 'abc',
     providers: [
         {
+            homeJurisdictionSelection: {
+                dateOfSelection: '2025-02-19',
+                compact: 'aslp',
+                providerId: '1',
+                jurisdiction: 'co',
+                type: 'homeJurisdictionSelection',
+                dateOfUpdate: '2025-02-19'
+            },
             privileges: [
                 {
                     licenseJurisdiction: 'al',
@@ -603,6 +611,14 @@ export const licensees = {
             status: 'active'
         },
         {
+            homeJurisdictionSelection: {
+                dateOfSelection: '2025-02-19',
+                compact: 'aslp',
+                providerId: '2',
+                jurisdiction: 'co',
+                type: 'homeJurisdictionSelection',
+                dateOfUpdate: '2025-02-19'
+            },
             privileges: [
                 {
                     licenseJurisdiction: 'al',
@@ -667,6 +683,14 @@ export const licensees = {
             status: 'inactive'
         },
         {
+            homeJurisdictionSelection: {
+                dateOfSelection: '2025-02-19',
+                compact: 'aslp',
+                providerId: '3',
+                jurisdiction: 'co',
+                type: 'homeJurisdictionSelection',
+                dateOfUpdate: '2025-02-19'
+            },
             privileges: [
                 {
                     licenseJurisdiction: 'al',
@@ -731,6 +755,14 @@ export const licensees = {
             status: 'active'
         },
         {
+            homeJurisdictionSelection: {
+                dateOfSelection: '2025-02-19',
+                compact: 'aslp',
+                providerId: '4',
+                jurisdiction: 'co',
+                type: 'homeJurisdictionSelection',
+                dateOfUpdate: '2025-02-19'
+            },
             privileges: [
                 {
                     licenseJurisdiction: 'al',

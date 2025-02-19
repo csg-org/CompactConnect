@@ -16,6 +16,7 @@ import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import Modal from '@components/Modal/Modal.vue';
 import { License, LicenseStatus } from '@/models/License/License.model';
+import { Licensee } from '@/models/Licensee/Licensee.model';
 import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@/models/State/State.model';
 import { StaffUser, CompactPermission } from '@models/StaffUser/StaffUser.model';
@@ -31,7 +32,8 @@ import moment from 'moment';
     }
 })
 class PrivilegeCard extends mixins(MixinForm) {
-    @Prop({ required: true }) privilege?: License;
+    @Prop({ required: true }) privilege!: License;
+    @Prop({ required: true }) licensee!: Licensee;
 
     //
     // Data
@@ -113,6 +115,10 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.privilege?.issueState || null;
     }
 
+    get stateAbbrev(): string {
+        return this.state?.abbrev || '';
+    }
+
     get stateContent(): string {
         return this.state?.name() || '';
     }
@@ -156,6 +162,14 @@ class PrivilegeCard extends mixins(MixinForm) {
         }
 
         return isPastDate;
+    }
+
+    get licenseeId(): string {
+        return this.privilege?.licenseeId || '';
+    }
+
+    get bestHomeStateLicense(): License {
+        return this.licensee?.bestHomeStateLicense() || new License();
     }
 
     //
@@ -212,13 +226,19 @@ class PrivilegeCard extends mixins(MixinForm) {
         this.startFormLoading();
         this.modalErrorMessage = '';
 
-        const compactType = this.currentCompactType;
-        const { licenseeId, id: privilegeId } = this.privilege || {};
+        const {
+            currentCompactType: compactType,
+            licenseeId,
+            stateAbbrev,
+            bestHomeStateLicense,
+        } = this;
+        const licenseType = bestHomeStateLicense.occupation;
 
         await this.$store.dispatch(`users/deletePrivilegeRequest`, {
             compact: compactType,
             licenseeId,
-            privilegeId,
+            privilegeState: stateAbbrev,
+            licenseType
         }).catch((err) => {
             this.modalErrorMessage = err?.message || this.$t('common.error');
             this.isFormError = true;

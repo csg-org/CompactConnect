@@ -125,9 +125,14 @@ export default {
         commit(MutationTypes.DELETE_USER_FAILURE, error);
     },
     // DELETE USER PRIVILEGE
-    deletePrivilegeRequest: async ({ commit, dispatch }, { compact, licenseeId, privilegeId }: any) => {
+    deletePrivilegeRequest: async ({ commit, dispatch }, {
+        compact,
+        licenseeId,
+        privilegeState,
+        licenseType
+    }: any) => {
         commit(MutationTypes.DELETE_PRIVILEGE_REQUEST);
-        return dataApi.deletePrivilege(compact, licenseeId, privilegeId).then(async (response) => {
+        return dataApi.deletePrivilege(compact, licenseeId, privilegeState, licenseType).then(async (response) => {
             dispatch('deletePrivilegeSuccess');
 
             return response;
