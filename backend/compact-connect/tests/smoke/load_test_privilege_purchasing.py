@@ -15,7 +15,9 @@ from smoke_common import (
 # Load-Testing Script for populating authorize.net with transactions
 # This is a bit of a hack, because in order to purchase so many
 # privileges with a single user we have to delete the records from
-# the DB right after completing the transactions.
+# the DB right after completing the transactions (the system does not allow you to purchase
+# a privilege for the same jurisdiction twice in a row unless the home state license is updated)
+
 # If you intend to run this script against a authorize.net sandbox account
 # You will likely want to turn off the 'Hourly Velocity Filter', 'Suspicious Transaction Filter'
 # and the 'Transaction IP Velocity Filter', which you can do through the Account Settings under the
@@ -38,7 +40,6 @@ TEST_CARD_NUMBERS = [
     AMEX_CARD_NUMBER,  # American Express
     '6011000000000012',  # Discover
     '3088000000000017',  # JCB
-    # '38000000000006',    # Diners Club/ Carte Blanche
 ]
 
 
