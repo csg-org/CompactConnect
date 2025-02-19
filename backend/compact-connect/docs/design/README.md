@@ -8,6 +8,7 @@ Look here for continued documentation of the back-end design, as it progresses.
 - **[User Architecture](#user-architecture)**
 - **[Data Model](#data-model)**
 - **[Attestations](#attestations)**
+- **[Transaction History Reporting](#transaction-history-reporting)**
 
 ## Compacts and Jurisdictions
 
@@ -262,3 +263,88 @@ When purchasing privileges, providers must accept all required attestations. The
 4. Returns a 400 error if any attestation is invalid or outdated
 
 This ensures that providers always see and accept the most current version of required attestations, and we maintain an audit trail of which attestation versions were accepted for each privilege purchase.
+
+## Transaction History Reporting
+[Back to top](#backend-design)
+
+![Transaction History Reporting Diagram](./transaction-history-reporting-diagram.pdf)
+
+When a provider purchases privileges in a compact, the purchase is recorded in the compact's payment processor (currently we only support Authorize.net). There is at least a 24 hour delay before the transaction is settled. The transaction history reporting system is designed to track and report on all **succesfully settled** transactions in the system.
+
+### Transaction Processing Overview
+
+The system processes transactions through multiple stages:
+
+1. **Initial Purchase**
+   - Provider initiates a purchase for one or more privileges
+   - System creates an `authCaptureTransaction` in Authorize.net with line items for:
+     - Each jurisdiction privilege
+     - Compact administrative fees
+     - Transaction fees (if configured)
+   - Transaction details include provider ID in the order description for tracking
+
+2. **Settlement Process**
+   - By default, Authorize.net batches settlements daily at 4:00 PM Pacific Time (this can be changed by the Authorize.net account owners)
+   - Each batch contains transactions since the last batch was settled
+   - Batches can be in one of several states:
+     - Settled: Successfully processed
+     - Settlement Error: Failed to settle (triggers alerts) see [Batch Settlement Failure Handling](#batch-settlement-failure-handling)
+
+3. **Transaction Collection**
+   - A Step Function workflow runs daily at 5:00 PM Pacific Time (1:00 AM UTC)
+   - The workflow:
+     - Queries Authorize.net for settled batches in the last 24 hours
+     - Processes transactions in groups of up to 500 (to avoid lambda timeouts)
+     - Fetches the associated privilege id of the privilege that was purchased for that transaction 
+      and injects it into the data that is stored in the Transaction History DynamoDB Table
+     - Handles pagination across multiple batches
+     - Sends email alerts if settlement errors are detected
+
+4. **Reporting**
+   - System generates two types of reports:
+     - **Compact Reports**:
+       - Financial summary showing total amount of fees collected
+       - Detailed transaction listing
+     - **Jurisdiction Reports**:
+       - Transaction details for privileges purchased in their jurisdiction
+   - Reports are generated:
+     - Weekly (Fridays at 10:00 PM UTC)
+     - Monthly (1st day of each month at 8:00 AM UTC)
+   - Reports are:
+     - Stored in S3 as compressed ZIP files
+     - Emailed to appropriate compact/jurisdiction contacts
+
+### Data Storage
+
+Transactions are stored in DynamoDB with the following key structure:
+```
+PK: COMPACT#{compact}#TRANSACTIONS#MONTH#{YYYY-MM}
+SK: COMPACT#{compact}#TIME#{batch settled time epoch_timestamp}#BATCH#{batch_id}#TX#{transaction_id}
+```
+
+This structure enables:
+- Efficient querying of transactions by compact and time period
+- Monthly partitioning for performance
+
+### Monitoring and Alerts
+
+The system includes several monitoring mechanisms:
+- CloudWatch alarms for workflow failures
+- Alerts for batch settlement errors
+- Duration monitoring for long-running processes
+- Error tracking for transaction processing issues
+
+This design ensures reliable transaction processing and reporting while maintaining a complete audit trail of all successfully settled financial transactions within the system.
+
+### Batch Settlement Failure Handling
+If a batch fails to settle for whatever reason, Authorize.net will return the batch with a status of `Settlement Error`. From their [documentation about possible transaction statuses](https://support.authorize.net/knowledgebase/Knowledgearticle/?code=000001360), a settlement error can result from one of the following:
+ > - Entire Batch with Settlement Error: If all transactions in the batch show a "Settlement Error" status, it may indicate that the batch initially failed. If the batch was not reset or made viewable within 30 days of the failure, further action cannot be taken. If funding is missing for this batch, please contact your Merchant Service Provider (MSP) to explore possible solutions or reprocess the transactions from that batch.
+ > - Partial Batch with Settlement Error: If one or more (but not all) transactions in the batch show a "Settlement Error" status, there might be a configuration issue (likely related to accepted card types) where the processor authorized the transactions but rejected them at settlement. In this case, please ask your MSP to investigate the issue with the processor.
+
+When a batch fails to settle, we send an email to the compact's support contacts alerting them to reach out to their MSP to investigate the issue. After the issue is resolved, Authorize.net can be instructed to reprocess the batch. Per Authorize.net [support documentation](https://community.developer.cybersource.com/t5/Integration-and-Testing/What-happens-to-a-batch-having-a-settlementState-of/td-p/58993):
+
+> A failed batch needs to be reset and this means that the merchant will need to contact Authorize.Net to request for a batch reset. It is important to note that batches over 30 days old cannot be reset. When resetting a batch, merchant needs to confirm first with their MSP (Merchant Service Provider) that the batch was not funded, and the error that failed the batch has been fixed, before submitting a ticket for the batch to be reset.
+
+> Resetting a batch doesn't really modify the batch, what it does, is it takes the transactions from the batch and puts them back into unsetttled so they settle with the next batch. Those transactions that were in the failed batch will still have the original submit date.
+
+For this reason, we use the batch settlement time as the timestamp for the transaction records we store in the transaction history table. This ensures that any transactions that are in a batch which fails to settle will eventually be processed and stored in the transaction history table.

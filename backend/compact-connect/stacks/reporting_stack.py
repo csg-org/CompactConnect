@@ -188,12 +188,13 @@ class ReportingStack(AppStack):
                 ],
             )
 
-            # Monthly reports run every month on the first day of the month shortly after midnight UTC
+            # Monthly reports run every month on the first day of the month several hours after the
+            # daily transaction collection process has run.
             # This helps ensure that our time range is the full month
             Rule(
                 self,
                 f'{compact.capitalize()}-MonthlyTransactionReportRule',
-                schedule=Schedule.cron(day='1', hour='0', minute='5', month='*', year='*'),
+                schedule=Schedule.cron(day='1', hour='8', minute='0', month='*', year='*'),
                 targets=[
                     LambdaFunction(
                         handler=self.transaction_reporter,
