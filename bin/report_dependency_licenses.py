@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+"""
+Script to search this project for Python and NodeJS dependencies, identify their licenses, and write the results to a
+CSV file.
+
+Note: Some dependencies don't make finding their license information very easy (shame, Python devs!), so this script does its best
+to mine PyPi and GitHub for license data. It does not find all licenses. The resulting CSV will have some NOASSERTION licenses,
+which will need manual search and entry.
+
+This script is intended to be run from the root of the project.
+"""
 
 from __future__ import annotations
 
@@ -40,8 +50,31 @@ class Dependency(ABC):
         self.version = version
         self.language = language
         self.location: set[str] = {location}
-        self.license: str | None = None
+        self.package_url: str | None = None
+
+        self._licensee = None
         self.repo_url: str | None = None
+
+    @property
+    def license(self) -> str | None:
+        return self._license
+
+    @license.setter
+    def license(self, value: str | None):
+        """
+        Perform some data consistency corrections as the value is set
+        """
+        # We'll stick with the SPDX license short identifiers.
+        if isinstance(value, str):
+            if value.lower() == 'mit license':
+                value = 'MIT'
+            if value.lower() in ('apache license 2.0', 'apache 2.0'):
+                value = 'Apache-2.0'
+            if value.lower() == 'unknown':
+                value = None
+        elif value is not None:
+            raise ValueError(f'License must be a string or None: {value}')
+        self._license = value
 
     @classmethod
     @abstractmethod
@@ -83,6 +116,7 @@ class Dependency(ABC):
 class NodeJSDependency(Dependency):
     def __init__(self, name: str, version: str, location: str):
         super().__init__(name, version, location, 'NodeJS')
+        self.package_url = f'https://www.npmjs.com/package/{name}'
 
     @classmethod
     def load_dependencies(cls, file_path: str) -> list[Dependency]:
@@ -143,6 +177,7 @@ class NodeJSDependency(Dependency):
 class PythonDependency(Dependency):
     def __init__(self, name: str, version: str, location: str):
         super().__init__(name, version, location, 'Python')
+        self.package_url = f'https://pypi.org/project/{name}'
 
     @classmethod
     def load_dependencies(cls, file_path: str) -> list[Dependency]:
@@ -174,34 +209,28 @@ class PythonDependency(Dependency):
         logger.info('Getting license information for Python package %s', self.name)
         result = subprocess.run(['pip', 'show', self.name], capture_output=True, text=True)  # noqa: S607 S603
 
-        license_name = None
-        repo_url = None
-
         if result.returncode != 0:
             logger.error('Error getting license for Python package %s: %s', self.name, result.stderr)
             raise RuntimeError(f'Error getting license for Python package {self.name}: {result.stderr}')
 
         # Extract license from pip show output
         license_match = re.search(r'License: (.+)', result.stdout)
-        license_name = license_match.group(1) if license_match else None
+        self.license = license_match.group(1) if license_match else None
 
         # Try to get the home page as a potential license URL
         home_page_match = re.search(r'Home-page: (.+)', result.stdout)
-        repo_url = home_page_match.group(1) if home_page_match else None
+        self.repo_url = home_page_match.group(1) if home_page_match else None
 
         # A bunch of pip packages don't include their license in pip metadata, so we'll go mining for that info
         # via PyPi and GitHub
 
         # If we don't get a license and url from pip metadata, we'll go mining for it on PyPI
-        if not license_name or not repo_url:
-            repo_url, license_name = self._get_pypi_info()
+        if not self.license or not self.repo_url:
+            self.repo_url, self.license = self._get_pypi_info()
 
         # If we still don't have a license, we'll go mining for it on GitHub
-        if not license_name:
-            license_name = self._get_github_license(repo_url)
-
-        self.license = license_name
-        self.repo_url = repo_url
+        if not self.license:
+            self.license = self._get_github_license(self.repo_url)
 
     def _get_pypi_info(self) -> tuple[str, str | None]:
         """Get package information from PyPI when pip metadata is insufficient."""
@@ -290,7 +319,6 @@ def deduplicate_dependencies(deps: Iterable[Dependency]) -> Iterable[Dependency]
             # If the existing version is 'latest', prefer the specific version
             if existing.version == 'latest' and dep.version != 'latest':
                 unique_deps[key] = dep
-            # If both have specific versions, keep the first one found
             existing.location |= dep.location
 
     return unique_deps.values()
@@ -332,8 +360,10 @@ def main():
     logger.info('Writing results to CSV')
     with open('dependency_licenses.csv', 'w', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['Package Name', 'Version', 'Language', 'License', 'URL', 'Location'])
+        writer.writerow(['Package Name', 'Version', 'Language', 'License', 'Package URL', 'Repo URL', 'Location'])
 
+        # an Unknown license should never appear here, since we raise an exception if we don't find a license, but
+        # we'll add a value that's easy to check for in case of a bug.
         for dep in sorted(unique_deps, key=lambda x: (x.language, x.license or 'Unknown', x.name.lower(), x.version)):
             writer.writerow(
                 [
@@ -341,6 +371,7 @@ def main():
                     dep.version,
                     dep.language,
                     dep.license or 'Unknown',
+                    dep.package_url or 'N/A',
                     dep.repo_url or 'N/A',
                     ':'.join(dep.location),
                 ]
