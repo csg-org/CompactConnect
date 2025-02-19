@@ -397,7 +397,9 @@ class TestProcessSettledTransactions(TstFunction):
         )
 
     @patch('handlers.transaction_history.PurchaseClient')
-    def test_process_settled_transactions_maps_privilege_ids_from_privilege_records(self, mock_purchase_client_constructor):
+    def test_process_settled_transactions_maps_privilege_ids_from_privilege_records(
+        self, mock_purchase_client_constructor
+    ):
         """Test that privilege ids from privilege records are mapped to transaction line items."""
         from handlers.transaction_history import process_settled_transactions
 
