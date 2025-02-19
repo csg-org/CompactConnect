@@ -39,7 +39,7 @@ def update_privileges_missing_attestations(table_name: str, dry_run: bool = Fals
             for item in items:
                 # Check if attestations field is missing
                 if 'attestations' not in item:
-                    print(f"{'Would update' if dry_run else 'Updating'} record with pk={item['pk']}, sk={item['sk']}")
+                    print(f'{"Would update" if dry_run else "Updating"} record with pk={item["pk"]}, sk={item["sk"]}')
 
                     if not dry_run:
                         # Update the item with an empty attestations list
@@ -53,7 +53,7 @@ def update_privileges_missing_attestations(table_name: str, dry_run: bool = Fals
             start_key = response.get('LastEvaluatedKey')
             done = start_key is None
 
-        print(f"{'Would have updated' if dry_run else 'Successfully updated'} {updated_count} privilege records")
+        print(f'{"Would have updated" if dry_run else "Successfully updated"} {updated_count} privilege records')
 
     except Exception as e:
         print(f'Error updating privileges: {str(e)}')
@@ -69,5 +69,5 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    print(f"Starting migration on table: {args.table_name} {'(DRY RUN)' if args.dry_run else ''}")
+    print(f'Starting migration on table: {args.table_name} {"(DRY RUN)" if args.dry_run else ""}')
     update_privileges_missing_attestations(args.table_name, args.dry_run)

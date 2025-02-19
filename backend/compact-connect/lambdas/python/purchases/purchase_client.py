@@ -51,7 +51,7 @@ def _calculate_jurisdiction_fee(jurisdiction: Jurisdiction, user_active_military
             total_jurisdiction_fee = jurisdiction.jurisdiction_fee - jurisdiction.military_discount.discount_amount
         else:
             raise ValueError(
-                'Unsupported military discount type: ' f'{jurisdiction.military_discount.discount_type.value}'
+                f'Unsupported military discount type: {jurisdiction.military_discount.discount_type.value}'
             )
     else:
         total_jurisdiction_fee = jurisdiction.jurisdiction_fee
@@ -308,7 +308,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         for jurisdiction in selected_jurisdictions:
             jurisdiction_name_title_case = jurisdiction.jurisdiction_name.title()
             privilege_line_item = apicontractsv1.lineItemType()
-            privilege_line_item.itemId = f'{compact_configuration.compact_name}-{jurisdiction.postal_abbreviation}'
+            privilege_line_item.itemId = f'priv:{compact_configuration.compact_name}-{jurisdiction.postal_abbreviation}'
             privilege_line_item.name = f'{jurisdiction_name_title_case} Compact Privilege'
             privilege_line_item.quantity = '1'
             privilege_line_item.unitPrice = _calculate_jurisdiction_fee(jurisdiction, user_active_military)
@@ -346,8 +346,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         customer_address.firstName = order_information['billing']['firstName']
         customer_address.lastName = order_information['billing']['lastName']
         customer_address.address = (
-            f"{order_information['billing']['streetAddress']}"
-            f" {order_information['billing'].get('streetAddress2', '')}"
+            f'{order_information["billing"]["streetAddress"]} {order_information["billing"].get("streetAddress2", "")}'
         ).strip()
         customer_address.state = order_information['billing']['state']
         customer_address.zip = order_information['billing']['zip']
@@ -944,7 +943,7 @@ class PurchaseClient:
             processed_batch_ids=processed_batch_ids,
         )
 
-        # Add compact to each transaction
+        # Add compact to each transaction for serialization
         for transaction in response['transactions']:
             transaction['compact'] = compact
 

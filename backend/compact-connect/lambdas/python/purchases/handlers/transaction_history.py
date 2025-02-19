@@ -32,8 +32,10 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
     current_batch_id = event.get('currentBatchId')
     processed_batch_ids = event.get('processedBatchIds', [])
 
-    # This lambda is triggered at noon UTC-4, so we calculate the time range for the last 24 hours
-    end_time = config.current_standard_datetime.replace(hour=16, minute=0, second=0, microsecond=0)
+    # By default, the authorize.net accounts batch settlements at 4:00pm Pacific Time.
+    # This daily collector runs an hour later (5pm PST, which is 1am UTC) to collect
+    # all settled transaction for the last 24 hours.
+    end_time = config.current_standard_datetime.replace(hour=1, minute=0, second=0, microsecond=0)
     start_time = end_time - timedelta(days=1)
 
     # Format timestamps for API call
@@ -56,7 +58,12 @@ def process_settled_transactions(event: dict, context: LambdaContext) -> dict:  
 
         # Store transactions in DynamoDB
         if transaction_response['transactions']:
-            config.transaction_client.store_transactions(compact, transaction_response['transactions'])
+            # first we must add the associated privilege ids to each transaction so we can show the association in our
+            # reports
+            transactions_with_privilege_ids = config.transaction_client.add_privilege_ids_to_transactions(
+                compact=compact, transactions=transaction_response['transactions']
+            )
+            config.transaction_client.store_transactions(transactions=transactions_with_privilege_ids)
 
         # Return appropriate response based on whether there are more transactions to process
         response = {

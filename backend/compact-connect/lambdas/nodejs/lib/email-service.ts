@@ -945,7 +945,7 @@ export class EmailService {
             errorMessage: 'Unable to send compact transaction report email',
             attachments: [
                 {
-                    filename: `${compact}-settled-transaction-report.zip`,
+                    filename: `${compact}-settled-transaction-report-${startDate}--${endDate}.zip`,
                     content: reportZipBuffer,
                     contentType: 'application/zip'
                 }
@@ -1002,7 +1002,7 @@ export class EmailService {
             errorMessage: 'Unable to send jurisdiction transaction report email',
             attachments: [
                 {
-                    filename: `${jurisdiction}-settled-transaction-report.zip`,
+                    filename: `${jurisdiction}-settled-transaction-report-${startDate}--${endDate}.zip`,
                     content: reportZipBuffer,
                     contentType: 'application/zip'
                 }
