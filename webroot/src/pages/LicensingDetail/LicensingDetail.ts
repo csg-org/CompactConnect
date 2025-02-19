@@ -12,6 +12,7 @@ import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
 import MilitaryDocumentRow from '@components/MilitaryDocumentRow/MilitaryDocumentRow.vue';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
+import LicenseIcon from '@components/Icons/LicenseIcon/LicenseIcon.vue';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { License, LicenseStatus } from '@models/License/License.model';
 import { MilitaryAffiliation } from '@/models/MilitaryAffiliation/MilitaryAffiliation.model';
@@ -24,7 +25,8 @@ import { MilitaryAffiliation } from '@/models/MilitaryAffiliation/MilitaryAffili
         PrivilegeCard,
         CollapseCaretButton,
         ListContainer,
-        MilitaryDocumentRow
+        MilitaryDocumentRow,
+        LicenseIcon
     }
 })
 export default class LicensingDetail extends Vue {

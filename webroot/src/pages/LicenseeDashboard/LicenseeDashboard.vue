@@ -47,6 +47,7 @@
             >
                 <LicenseCard
                     :license="license"
+                    :shouldIncludeLogo="true"
                 />
                 <div v-if="!isLicenseActive(license)" class="license-expired-message">
                     {{licenseExpiredMessage}}
@@ -76,6 +77,7 @@
                     v-for="(privilege, index) in licenseePrivileges"
                     :key="index"
                     :privilege="privilege"
+                    :licensee="licensee"
                     class="no-touch-item"
                 />
             </div>
@@ -103,6 +105,7 @@
                     v-for="(privilege, index) in pastPrivilegeList"
                     :key="index"
                     :privilege="privilege"
+                    :licensee="licensee"
                     class="no-touch-item"
                 />
             </div>
