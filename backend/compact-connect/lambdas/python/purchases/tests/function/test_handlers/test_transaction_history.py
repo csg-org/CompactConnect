@@ -359,16 +359,26 @@ class TestProcessSettledTransactions(TstFunction):
 
         # In this test, we simulate a user having purchased a privilege for ky previously
         # and then purchasing it again before the first transaction settled (highly unlikely, but not impossible)
-        # The privilege update record should map its privilege id to the transaction
-        transaction_id = '987654'
+        # The privilege update record should map its privilege id to the original transaction
+        # and the latest privilege record should map to the latest transaction
+        original_transaction_id = '987654'
+        latest_transaction_id = '876543'
         self._when_purchase_client_returns_transactions(
             mock_purchase_client_constructor,
-            transactions=[_generate_mock_transaction(transaction_id=transaction_id, jurisdictions=['ky'])],
+            transactions=[
+                _generate_mock_transaction(transaction_id=latest_transaction_id, jurisdictions=['ky']),
+                _generate_mock_transaction(transaction_id=original_transaction_id, jurisdictions=['ky']),
+            ],
         )
 
-        privilege_update_privilege_id = 'test-privilege-id-from-update-record'
+        original_transaction_privilege_id = 'test-privilege-id-from-original-transaction'
         self._add_mock_privilege_update_to_database(
-            privilege_id=privilege_update_privilege_id, transaction_id=transaction_id, jurisdiction='ky'
+            privilege_id=original_transaction_privilege_id, transaction_id=original_transaction_id, jurisdiction='ky'
+        )
+
+        latest_transaction_privilege_id = 'test-privilege-id-from-latest-transaction'
+        self._add_mock_privilege_to_database(
+            privilege_id=latest_transaction_privilege_id, transaction_id=latest_transaction_id, jurisdiction='ky'
         )
 
         event = self._when_testing_non_paginated_event()
@@ -381,19 +391,36 @@ class TestProcessSettledTransactions(TstFunction):
             ExpressionAttributeValues={':pk': f'COMPACT#{TEST_COMPACT}#TRANSACTIONS#MONTH#2024-01'},
         )
 
+        self.assertEqual(latest_transaction_id, stored_transactions['Items'][0]['transactionId'])
         self.assertEqual(
             [
                 {
                     'description': 'Compact Privilege for ky',
                     'itemId': 'priv:aslp-ky',
                     'name': 'KY Compact Privilege',
-                    'privilegeId': privilege_update_privilege_id,
+                    'privilegeId': latest_transaction_privilege_id,
                     'quantity': '1',
                     'taxable': 'False',
                     'unitPrice': '100.00',
-                }
+                },
             ],
             stored_transactions['Items'][0]['lineItems'],
+        )
+
+        self.assertEqual(original_transaction_id, stored_transactions['Items'][1]['transactionId'])
+        self.assertEqual(
+            [
+                {
+                    'description': 'Compact Privilege for ky',
+                    'itemId': 'priv:aslp-ky',
+                    'name': 'KY Compact Privilege',
+                    'privilegeId': original_transaction_privilege_id,
+                    'quantity': '1',
+                    'taxable': 'False',
+                    'unitPrice': '100.00',
+                },
+            ],
+            stored_transactions['Items'][1]['lineItems'],
         )
 
     @patch('handlers.transaction_history.PurchaseClient')
