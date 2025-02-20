@@ -10,6 +10,33 @@
     @spacingTablet: 4.8rem;
     @spacingDesktop: 12rem;
 
+    .title-row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+
+        .title-info {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+
+            .title-text {
+                padding-left: 1rem;
+                font-size: @fontSizeLarger;
+            }
+        }
+
+        :deep(.collapse-caret-button) {
+            svg {
+                width: 2.4rem;
+                height: 1.4rem;
+                stroke: @black;
+            }
+        }
+    }
+
     .licensee-header {
         display: flex;
         flex-direction: column;
@@ -84,8 +111,8 @@
                         }
                     }
 
-                    .tag-icon {
-                        width: 100%;
+                    :deep(path) {
+                        fill: @white;
                     }
                 }
             }
@@ -268,32 +295,5 @@
 
     .no-touch-item {
         margin: 1rem;
-    }
-
-    .title-row {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 1rem;
-
-        .title-info {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-
-            .title-text {
-                padding-left: 1rem;
-                font-size: @fontSizeLarger;
-            }
-        }
-
-        :deep(.collapse-caret-button) {
-            svg {
-                width: 2.4rem;
-                height: 1.4rem;
-                stroke: @black;
-            }
-        }
     }
 }

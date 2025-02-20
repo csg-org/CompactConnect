@@ -9,7 +9,7 @@
     <div class="license-card-container">
         <div class="license-title-row">
             <div v-if="shouldIncludeLogo" class="license-icon-container">
-                <LicenseIcon fill="black" />
+                <LicenseIcon />
             </div>
             <div class="license-title" :class="{'left-marg': shouldIncludeLogo}">
                 {{licenseTitleDisplay}}

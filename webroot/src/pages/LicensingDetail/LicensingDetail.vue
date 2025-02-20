@@ -41,7 +41,7 @@
                         class="tag"
                     >
                         <div class="tag-icon-container">
-                            <LicenseIcon fill="white" />
+                            <LicenseIcon />
                         </div>
                         <div class="tag-text">
                             {{ license.issueState.name() }}

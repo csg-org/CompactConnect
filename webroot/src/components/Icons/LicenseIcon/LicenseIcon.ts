@@ -8,16 +8,13 @@
 import {
     Component,
     Vue,
-    toNative,
-    Prop
+    toNative
 } from 'vue-facing-decorator';
 
 @Component({
     name: 'LicenseIcon',
 })
-class LicenseIcon extends Vue {
-   @Prop({ default: 'black' }) fill?: string;
-}
+class LicenseIcon extends Vue {}
 
 export default toNative(LicenseIcon);
 
