@@ -51,7 +51,10 @@ class ApiModel:
                     'query': JsonSchema(
                         type=JsonSchemaType.OBJECT,
                         description='The query parameters',
+                        additional_properties=False,
                         properties={
+                            # TODO: Remove this once we remove SSN queries from the UI (they will be  # noqa: FIX002
+                            # ignored in the meantime)
                             'ssn': JsonSchema(
                                 type=JsonSchemaType.STRING,
                                 description='Social security number to look up',
@@ -66,6 +69,17 @@ class ApiModel:
                                 type=JsonSchemaType.STRING,
                                 description='Filter for providers with privilege/license in a jurisdiction',
                                 enum=self.api.node.get_context('jurisdictions'),
+                            ),
+                            'givenName': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                max_length=100,
+                                description='Filter for providers with a given name (familyName is required if'
+                                ' givenName is provided)',
+                            ),
+                            'familyName': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                max_length=100,
+                                description='Filter for providers with a family name',
                             ),
                         },
                     ),

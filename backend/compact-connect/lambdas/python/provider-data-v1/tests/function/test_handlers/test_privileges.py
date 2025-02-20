@@ -108,6 +108,7 @@ class TestDeactivatePrivilege(TstFunction):
                             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                         }
                     ),
+                    'EventBusName': 'license-data-events',
                 }
             }
         )

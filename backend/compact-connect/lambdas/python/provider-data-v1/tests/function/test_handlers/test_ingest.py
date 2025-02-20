@@ -337,6 +337,7 @@ class TestIngest(TstFunction):
                             'providerId': provider_id,
                         }
                     ),
+                    'EventBusName': 'license-data-events',
                 }
             }
         )

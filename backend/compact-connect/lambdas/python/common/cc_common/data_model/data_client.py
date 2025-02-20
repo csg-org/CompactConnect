@@ -943,6 +943,7 @@ class DataClient:
         )
 
         # Update the privilege record and create history record
+        logger.info('Deactivating privilege')
         self.config.dynamodb_client.transact_write_items(
             TransactItems=[
                 {

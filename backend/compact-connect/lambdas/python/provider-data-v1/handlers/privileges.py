@@ -56,6 +56,7 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
                             'providerId': provider_id,
                         }
                     ),
+                    'EventBusName': config.event_bus_name,
                 }
             )
 

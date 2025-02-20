@@ -185,6 +185,7 @@ def _process_license_update(*, existing_license: dict, new_license: dict, dynamo
                         'providerId': str(existing_license['providerId']),
                     }
                 ),
+                'EventBusName': config.event_bus_name,
             }
         )
 
@@ -214,10 +215,13 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
             and updated_values['dateOfRenewal'] > original_values['dateOfRenewal']
         ):
             update_type = UpdateCategory.RENEWAL
+            logger.info('License renewal detected')
     elif updated_values == {'jurisdictionStatus': ProviderEligibilityStatus.INACTIVE.value}:
         update_type = UpdateCategory.DEACTIVATION
+        logger.info('License deactivation detected')
     if update_type is None:
         update_type = UpdateCategory.OTHER
+        logger.info('License update detected')
 
     return license_update_schema.dump(
         {

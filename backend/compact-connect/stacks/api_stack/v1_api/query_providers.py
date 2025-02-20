@@ -52,6 +52,7 @@ class QueryProviders:
             'PROV_DATE_OF_UPDATE_INDEX_NAME': provider_data_table.provider_date_of_update_index_name,
             'SSN_TABLE_NAME': ssn_table.table_name,
             'SSN_INDEX_NAME': ssn_table.ssn_index_name,
+            'EVENT_BUS_NAME': event_bus.event_bus_name,
             **stack.common_env_vars,
         }
 
