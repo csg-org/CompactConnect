@@ -18,8 +18,8 @@ MOCK_BATCH_ID = '67890'
 MOCK_SUBMIT_TIME_UTC = '2024-01-01T12:00:00.000Z'
 MOCK_SETTLEMENT_TIME_UTC = '2024-01-01T13:00:00.000Z'
 MOCK_SETTLEMENT_TIME_LOCAL = '2024-01-01T09:00:00'
-TEST_TRANSACTION_STATUS = 'settledSuccessfully'
-
+TEST_TRANSACTION_SUCCESSFUL_STATUS = 'settledSuccessfully'
+TEST_TRANSACTION_ERROR_STATUS = 'settlementError'
 # Mock compact config values
 MOCK_COMPACT_FEE = '10.50'
 MOCK_JURISDICTION_FEE = '100'
@@ -56,6 +56,7 @@ def _generate_mock_transaction(
     batch_id: str = MOCK_BATCH_ID,
     include_licensee_transaction_fees: bool = False,
     include_unknown_line_item_fees: bool = False,
+    transaction_status: str = TEST_TRANSACTION_SUCCESSFUL_STATUS,
 ) -> dict:
     """
     Generate a mock transaction with privileges for the specified jurisdictions.
@@ -142,7 +143,7 @@ def _generate_mock_transaction(
         f'TX#{transaction_id}',
         'submitTimeUTC': MOCK_SUBMIT_TIME_UTC,
         'transactionId': transaction_id,
-        'transactionStatus': TEST_TRANSACTION_STATUS,
+        'transactionStatus': transaction_status,
         'transactionType': 'authCaptureTransaction',
         'transactionProcessor': 'authorize.net',
     }
@@ -188,6 +189,7 @@ class TestGenerateTransactionReports(TstFunction):
         batch_id: str = MOCK_BATCH_ID,
         include_licensee_transaction_fees: bool = False,
         include_unknown_line_item_fees: bool = False,
+        transaction_status: str = TEST_TRANSACTION_SUCCESSFUL_STATUS,
     ) -> dict:
         """
         Add a mock transaction to the DB with privileges for the specified jurisdictions.
@@ -209,6 +211,7 @@ class TestGenerateTransactionReports(TstFunction):
             batch_id,
             include_licensee_transaction_fees,
             include_unknown_line_item_fees,
+            transaction_status,
         )
         self._transaction_history_table.put_item(Item=transaction)
         return transaction
@@ -478,8 +481,8 @@ class TestGenerateTransactionReports(TstFunction):
                 detail_content = f.read().decode('utf-8')
                 self.assertEqual(
                     f'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State,State Fee,Administrative Fee,Collected Transaction Fee,Transaction Id,Privilege Id,Transaction Status\n'
-                    f'{mock_user_1["givenName"]},{mock_user_1["familyName"]},{mock_user_1["providerId"]},03-30-2025,OH,100,10.50,0,{MOCK_TRANSACTION_ID},{MOCK_OHIO_PRIVILEGE_ID},{TEST_TRANSACTION_STATUS}\n'
-                    f'{mock_user_2["givenName"]},{mock_user_2["familyName"]},{mock_user_2["providerId"]},04-01-2025,KY,100,10.50,0,{MOCK_TRANSACTION_ID},{MOCK_KENTUCKY_PRIVILEGE_ID},{TEST_TRANSACTION_STATUS}\n',
+                    f'{mock_user_1["givenName"]},{mock_user_1["familyName"]},{mock_user_1["providerId"]},03-30-2025,OH,100,10.50,0,{MOCK_TRANSACTION_ID},{MOCK_OHIO_PRIVILEGE_ID},{TEST_TRANSACTION_SUCCESSFUL_STATUS}\n'
+                    f'{mock_user_2["givenName"]},{mock_user_2["familyName"]},{mock_user_2["providerId"]},04-01-2025,KY,100,10.50,0,{MOCK_TRANSACTION_ID},{MOCK_KENTUCKY_PRIVILEGE_ID},{TEST_TRANSACTION_SUCCESSFUL_STATUS}\n',
                     detail_content,
                 )
 
@@ -500,7 +503,7 @@ class TestGenerateTransactionReports(TstFunction):
                     transaction_date = '03-30-2025' if jurisdiction == 'oh' else '04-01-2025'
                     self.assertEqual(
                         'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State Fee,State,Transaction Id,Privilege Id,Transaction Status\n'
-                        f'{user["givenName"]},{user["familyName"]},{user["providerId"]},{transaction_date},100,{jurisdiction.upper()},{MOCK_TRANSACTION_ID},{MOCK_PRIVILEGE_ID_MAPPING[jurisdiction]},{TEST_TRANSACTION_STATUS}\n'
+                        f'{user["givenName"]},{user["familyName"]},{user["providerId"]},{transaction_date},100,{jurisdiction.upper()},{MOCK_TRANSACTION_ID},{MOCK_PRIVILEGE_ID_MAPPING[jurisdiction]},{TEST_TRANSACTION_SUCCESSFUL_STATUS}\n'
                         ',,,,,,,,\n'
                         'Privileges Purchased,Total State Amount,,,,,,,\n'
                         '1,$100.00,,,,,,,\n',
@@ -626,7 +629,7 @@ class TestGenerateTransactionReports(TstFunction):
                 ]
                 for state in ['OH', 'KY', 'NE']:
                     expected_lines.append(
-                        f'{mock_user["givenName"]},{mock_user["familyName"]},{mock_user["providerId"]},03-30-2025,{state},100,10.50,0,{MOCK_TRANSACTION_ID},{MOCK_PRIVILEGE_ID_MAPPING[state.lower()]},{TEST_TRANSACTION_STATUS}'
+                        f'{mock_user["givenName"]},{mock_user["familyName"]},{mock_user["providerId"]},03-30-2025,{state},100,10.50,0,{MOCK_TRANSACTION_ID},{MOCK_PRIVILEGE_ID_MAPPING[state.lower()]},{TEST_TRANSACTION_SUCCESSFUL_STATUS}'
                     )
                 self.assertEqual('\n'.join(expected_lines) + '\n', detail_content)
 
@@ -646,7 +649,7 @@ class TestGenerateTransactionReports(TstFunction):
                     content = f.read().decode('utf-8')
                     self.assertEqual(
                         'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State Fee,State,Transaction Id,Privilege Id,Transaction Status\n'
-                        f'{mock_user["givenName"]},{mock_user["familyName"]},{mock_user["providerId"]},03-30-2025,100,{jurisdiction.upper()},{MOCK_TRANSACTION_ID},{MOCK_PRIVILEGE_ID_MAPPING[jurisdiction]},{TEST_TRANSACTION_STATUS}\n'
+                        f'{mock_user["givenName"]},{mock_user["familyName"]},{mock_user["providerId"]},03-30-2025,100,{jurisdiction.upper()},{MOCK_TRANSACTION_ID},{MOCK_PRIVILEGE_ID_MAPPING[jurisdiction]},{TEST_TRANSACTION_SUCCESSFUL_STATUS}\n'
                         ',,,,,,,,\n'
                         'Privileges Purchased,Total State Amount,,,,,,,\n'
                         '1,$100.00,,,,,,,\n',
@@ -1187,7 +1190,7 @@ class TestGenerateTransactionReports(TstFunction):
                 ]
                 for state in ['OH', 'KY', 'NE']:
                     expected_lines.append(
-                        f'{mock_user["givenName"]},{mock_user["familyName"]},{mock_user["providerId"]},03-30-2025,{state},100,10.50,3.00,{MOCK_TRANSACTION_ID},{MOCK_PRIVILEGE_ID_MAPPING[state.lower()]},{TEST_TRANSACTION_STATUS}'
+                        f'{mock_user["givenName"]},{mock_user["familyName"]},{mock_user["providerId"]},03-30-2025,{state},100,10.50,3.00,{MOCK_TRANSACTION_ID},{MOCK_PRIVILEGE_ID_MAPPING[state.lower()]},{TEST_TRANSACTION_SUCCESSFUL_STATUS}'
                     )
                 self.assertEqual('\n'.join(expected_lines) + '\n', detail_content)
 
@@ -1271,4 +1274,78 @@ class TestGenerateTransactionReports(TstFunction):
                     ',\n'
                     'Total Processed Amount,$342.50\n',
                     summary_content,
+                )
+
+    # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
+    @patch('handlers.transaction_reporting.config.lambda_client')
+    def test_generate_report_does_not_include_transactions_with_settlement_errors(self, mock_lambda_client):
+        """Test that transactions with settlement errors are not included in the report."""
+        from handlers.transaction_reporting import generate_transaction_reports
+
+        _set_default_lambda_client_behavior(mock_lambda_client)
+
+        self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
+
+        mock_user = self._add_mock_provider_to_db('12345', 'John', 'Doe')
+        # Create a transaction with a privilege which failed settlement
+        self._add_mock_transaction_to_db(
+            jurisdictions=['oh'],
+            licensee_id=mock_user['providerId'],
+            month_iso_string='2025-03',
+            transaction_settlement_time_utc=datetime.fromisoformat('2025-04-01T22:00:01+00:00'),
+            transaction_status=TEST_TRANSACTION_ERROR_STATUS,
+        )
+
+        # Create a transaction with a privilege which is successfully settled
+        self._add_mock_transaction_to_db(
+            jurisdictions=['ky'],
+            licensee_id=mock_user['providerId'],
+            month_iso_string='2025-03',
+            transaction_settlement_time_utc=datetime.fromisoformat('2025-04-01T22:00:00+00:00'),
+            transaction_status=TEST_TRANSACTION_SUCCESSFUL_STATUS,
+        )
+
+        generate_transaction_reports(generate_mock_event(), self.mock_context)
+
+        # Calculate expected date range
+        # the end time should be Friday at 10:00 PM UTC
+        end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
+        # the start time should be 7 days ago at 10:00 PM UTC
+        start_time = end_time - timedelta(days=7)
+        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+        expected_compact_path = (
+            f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
+            f'{end_time.strftime("%Y/%m/%d")}/'
+            f'{TEST_COMPACT}-{date_range}-report.zip'
+        )
+
+        # Verify S3 stored files
+        # Check compact reports
+        compact_zip_obj = self.config.s3_client.get_object(
+            Bucket=self.config.transaction_reports_bucket_name, Key=expected_compact_path
+        )
+
+        with ZipFile(BytesIO(compact_zip_obj['Body'].read())) as zip_file:
+            # Check financial summary, which in this case should only include the successful transaction
+            with zip_file.open(f'{TEST_COMPACT}-financial-summary-{date_range}.csv') as f:
+                summary_content = f.read().decode('utf-8')
+                self.assertEqual(
+                    'Privileges purchased for Kentucky,1\n'
+                    'State Fees (Kentucky),$100.00\n'
+                    'Privileges purchased for Ohio,0\n'
+                    'State Fees (Ohio),$0.00\n'
+                    'Administrative Fees,$10.50\n'
+                    ',\n'
+                    'Total Processed Amount,$110.50\n',
+                    summary_content,
+                )
+
+            # Check transaction detail, which in this case should only include the successful transaction
+            with zip_file.open(f'{TEST_COMPACT}-transaction-detail-{date_range}.csv') as f:
+                detail_content = f.read().decode('utf-8')
+                self.assertEqual(
+                    'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State,State Fee,Administrative Fee,Collected Transaction Fee,Transaction Id,Privilege Id,Transaction Status\n'
+                    f'{mock_user["givenName"]},{mock_user["familyName"]},{mock_user["providerId"]},04-01-2025,KY,100,10.50,0,{MOCK_TRANSACTION_ID},{MOCK_PRIVILEGE_ID_MAPPING["ky"]},{TEST_TRANSACTION_SUCCESSFUL_STATUS}\n',
+                    detail_content,
                 )

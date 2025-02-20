@@ -13,6 +13,8 @@ from cc_common.data_model.schema.compact import COMPACT_TYPE, Compact
 from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE
 from cc_common.exceptions import CCInternalException, CCNotFoundException
 
+SETTLEMENT_ERROR_STATE = 'settlementError'
+
 
 def _get_display_date_range(reporting_cycle: str) -> tuple[datetime, datetime]:
     """Get the display date range for reports.
@@ -205,6 +207,14 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     transactions = transaction_client.get_transactions_in_range(
         compact=compact, start_epoch=start_epoch, end_epoch=end_epoch
     )
+
+    # For now, we only report on transactions that have been successfully settled, so we filter out any transactions
+    # that have a settlement error. This is because in the case of a settlement error, no money was transferred for that
+    # transaction, and the transaction will be reprocessed in a future batch by Authorize.net after the account owners
+    # have worked with their MSP to resolve the issue that caused the settlement error.
+    # See https://community.developer.cybersource.com/t5/Integration-and-Testing/What-happens-to-a-batch-having-a-settlementState-of/td-p/58993
+    # for more information on how settlement errors are reprocessed.
+    transactions = [t for t in transactions if t.get('transactionStatus') != SETTLEMENT_ERROR_STATE]
 
     # Get compact configuration and jurisdictions
     compact_configuration_options = compact_configuration_client.get_privilege_purchase_options(compact=compact)

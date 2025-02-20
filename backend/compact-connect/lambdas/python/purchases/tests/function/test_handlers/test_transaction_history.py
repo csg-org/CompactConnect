@@ -28,7 +28,12 @@ MOCK_CURRENT_BATCH_ID = 'mock_current_batch_id'
 MOCK_PROCESSED_BATCH_IDS = ['mock_processed_batch_id']
 
 
-def _generate_mock_transaction(transaction_id=MOCK_TRANSACTION_ID, jurisdictions=None):
+def _generate_mock_transaction(
+    transaction_id=MOCK_TRANSACTION_ID,
+    jurisdictions=None,
+    transaction_status='settledSuccessfully',
+    batch_settlement_state='settledSuccessfully',
+):
     if jurisdictions is None:
         jurisdictions = ['oh']
 
@@ -36,7 +41,7 @@ def _generate_mock_transaction(transaction_id=MOCK_TRANSACTION_ID, jurisdictions
         'transactionId': transaction_id,
         'submitTimeUTC': MOCK_SUBMIT_TIME_UTC,
         'transactionType': 'authCaptureTransaction',
-        'transactionStatus': 'settledSuccessfully',
+        'transactionStatus': transaction_status,
         'responseCode': '1',
         'settleAmount': '100.00',
         'licenseeId': MOCK_LICENSEE_ID,
@@ -44,7 +49,7 @@ def _generate_mock_transaction(transaction_id=MOCK_TRANSACTION_ID, jurisdictions
             'batchId': MOCK_BATCH_ID,
             'settlementTimeUTC': MOCK_SETTLEMENT_TIME_UTC,
             'settlementTimeLocal': MOCK_SETTLEMENT_TIME_LOCAL,
-            'settlementState': 'settledSuccessfully',
+            'settlementState': batch_settlement_state,
         },
         'lineItems': [],
         'compact': TEST_COMPACT,
@@ -305,27 +310,115 @@ class TestProcessSettledTransactions(TstFunction):
         )
 
     @patch('handlers.transaction_history.PurchaseClient')
-    def test_process_settled_transactions_returns_batch_failure_status(self, mock_purchase_client_constructor):
+    def test_process_settled_transactions_returns_batch_failure_status_after_processing_all_transaction(
+        self, mock_purchase_client_constructor
+    ):
         """Test that method returns BATCH_FAILURE status when a batch settlement error is encountered."""
-        from cc_common.exceptions import TransactionBatchSettlementFailureException
         from handlers.transaction_history import process_settled_transactions
+
+        mock_first_iteration_successful_transaction_id = '12346'
+        mock_first_iteration_failed_transaction_id = '56789'
+        mock_second_iteration_failed_transaction_id = '45678'
 
         mock_purchase_client = MagicMock()
         mock_purchase_client_constructor.return_value = mock_purchase_client
-        mock_purchase_client.get_settled_transactions.side_effect = TransactionBatchSettlementFailureException(
-            f'Settlement error in batch {MOCK_BATCH_ID}'
-        )
+        # in this test, we simulate a partial batch settlement error in the first iteration
+        # and a full batch settlement error in the second iteration
+        # the system should return an IN_PROGRESS status in the first iteration
+        # and a BATCH_FAILURE status in the second iteration
+        mock_purchase_client.get_settled_transactions.side_effect = [
+            # first iteration response
+            {
+                'settlementErrorTransactionIds': [mock_first_iteration_failed_transaction_id],
+                'transactions': [
+                    # one successful transaction, one settlement error
+                    _generate_mock_transaction(
+                        transaction_id=mock_first_iteration_successful_transaction_id,
+                        transaction_status='settledSuccessfully',
+                        batch_settlement_state='settlementError',
+                    ),
+                    _generate_mock_transaction(
+                        transaction_id=mock_first_iteration_failed_transaction_id,
+                        transaction_status='settlementError',
+                        batch_settlement_state='settlementError',
+                    ),
+                ],
+                'lastProcessedTransactionId': mock_first_iteration_failed_transaction_id,
+                'currentBatchId': MOCK_BATCH_ID,
+                'processedBatchIds': [],
+            },
+            # second iteration response
+            {
+                'settlementErrorTransactionIds': [mock_second_iteration_failed_transaction_id],
+                'transactions': [
+                    _generate_mock_transaction(
+                        transaction_id=mock_second_iteration_failed_transaction_id,
+                        transaction_status='settlementError',
+                        batch_settlement_state='settlementError',
+                    ),
+                ],
+                'processedBatchIds': [MOCK_BATCH_ID],
+            },
+        ]
 
         event = self._when_testing_non_paginated_event()
-        resp = process_settled_transactions(event, self.mock_context)
+        first_resp = process_settled_transactions(event, self.mock_context)
+
+        self.assertEqual(
+            {
+                'status': 'IN_PROGRESS',
+                'compact': TEST_COMPACT,
+                'currentBatchId': MOCK_BATCH_ID,
+                'lastProcessedTransactionId': mock_first_iteration_failed_transaction_id,
+                'processedBatchIds': [],
+                'batchFailureErrorMessage': json.dumps(
+                    {
+                        'message': 'Settlement errors detected in one or more transactions.',
+                        'failedTransactionIds': [mock_first_iteration_failed_transaction_id],
+                    }
+                ),
+            },
+            first_resp,
+        )
+
+        # in the second iteration, we simulate a full batch settlement error
+        # the system should return a BATCH_FAILURE status since the system is done processing all transactions
+        event = first_resp
+        second_resp = process_settled_transactions(event, self.mock_context)
 
         self.assertEqual(
             {
                 'status': 'BATCH_FAILURE',
                 'compact': TEST_COMPACT,
-                'batchFailureErrorMessage': f'Settlement error in batch {MOCK_BATCH_ID}',
+                'processedBatchIds': [MOCK_BATCH_ID],
+                'batchFailureErrorMessage': json.dumps(
+                    {
+                        'message': 'Settlement errors detected in one or more transactions.',
+                        'failedTransactionIds': [
+                            mock_first_iteration_failed_transaction_id,
+                            mock_second_iteration_failed_transaction_id,
+                        ],
+                    }
+                ),
             },
-            resp,
+            second_resp,
+        )
+
+        # assert that all transactions were stored in the database with their transaction statuses
+        stored_transactions = self.config.transaction_history_table.query(
+            KeyConditionExpression='pk = :pk',
+            ExpressionAttributeValues={':pk': f'COMPACT#{TEST_COMPACT}#TRANSACTIONS#MONTH#2024-01'},
+        )
+        self.assertEqual(
+            {
+                mock_first_iteration_successful_transaction_id: 'settledSuccessfully',
+                mock_first_iteration_failed_transaction_id: 'settlementError',
+                mock_second_iteration_failed_transaction_id: 'settlementError',
+            },
+            {
+                transaction['transactionId']: transaction['transactionStatus']
+                for transaction in stored_transactions['Items']
+            },
         )
 
     @patch('handlers.transaction_history.PurchaseClient')
