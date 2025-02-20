@@ -19,7 +19,8 @@ export enum AuthTypes {
 // =       Fee Types       =
 // =========================
 export enum FeeTypes {
-    FLAT_RATE = 'FLAT_RATE'
+    FLAT_RATE = 'FLAT_RATE',
+    FLAT_FEE_PER_PRIVILEGE = 'FLAT_FEE_PER_PRIVILEGE'
 }
 
 // ====================

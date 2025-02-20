@@ -59,7 +59,6 @@ class QueryProviders:
             method_options=method_options,
             data_encryption_key=data_encryption_key,
             provider_data_table=provider_data_table,
-            ssn_table=ssn_table,
             lambda_environment=lambda_environment,
         )
         self._add_get_provider(
@@ -116,7 +115,6 @@ class QueryProviders:
         method_options: MethodOptions,
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
-        ssn_table: SSNTable,
         lambda_environment: dict,
     ):
         query_resource = self.resource.add_resource('query')
@@ -124,7 +122,6 @@ class QueryProviders:
         handler = self._query_providers_handler(
             data_encryption_key=data_encryption_key,
             provider_data_table=provider_data_table,
-            ssn_table=ssn_table,
             lambda_environment=lambda_environment,
         )
         self.api.log_groups.append(handler.log_group)
@@ -183,16 +180,12 @@ class QueryProviders:
         self,
         data_encryption_key: IKey,
         provider_data_table: ProviderTable,
-        ssn_table: SSNTable,
         lambda_environment: dict,
     ) -> PythonFunction:
         self.query_providers_handler = PythonFunction(
             self.resource,
             'QueryProvidersHandler',
             description='Query providers handler',
-            # TODO: We will not associate with this role, once we remove SSN queries  # noqa: FIX002
-            # (https://github.com/csg-org/CompactConnect/issues/391)
-            role=ssn_table.api_query_role,
             lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'providers.py'),
             handler='query_providers',

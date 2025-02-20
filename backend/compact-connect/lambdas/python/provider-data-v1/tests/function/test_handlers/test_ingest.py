@@ -281,7 +281,7 @@ class TestIngest(TstFunction):
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
                     'previous': {
-                        'ssn': '123-12-1234',
+                        'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
@@ -380,7 +380,7 @@ class TestIngest(TstFunction):
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
                     'previous': {
-                        'ssn': '123-12-1234',
+                        'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
@@ -461,7 +461,7 @@ class TestIngest(TstFunction):
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
                     'previous': {
-                        'ssn': '123-12-1234',
+                        'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
@@ -582,7 +582,7 @@ class TestIngest(TstFunction):
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
                     'previous': {
-                        'ssn': '123-12-1234',
+                        'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',
@@ -655,7 +655,7 @@ class TestIngest(TstFunction):
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
                     'previous': {
-                        'ssn': '123-12-1234',
+                        'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
                         'licenseType': 'speech-language pathologist',

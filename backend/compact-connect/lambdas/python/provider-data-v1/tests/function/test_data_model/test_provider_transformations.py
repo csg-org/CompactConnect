@@ -224,5 +224,4 @@ class TestTransformations(TstFunction):
         expected_provider['privileges'][0]['history'] = []
 
         # Phew! We've loaded the data all the way in via the ingest chain and back out via the API!
-        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)

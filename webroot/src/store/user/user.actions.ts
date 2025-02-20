@@ -261,8 +261,7 @@ export default {
             const newCompact = new Compact({
                 ...state.currentCompact,
                 privilegePurchaseOptions: privilegePurchaseData.privilegePurchaseOptions,
-                compactCommissionFee: privilegePurchaseData?.compactCommissionFee?.feeAmount,
-                compactCommissionFeeType: privilegePurchaseData?.compactCommissionFee?.feeType
+                fees: privilegePurchaseData.compactCommissionFee
             });
 
             dispatch('setCurrentCompact', newCompact);

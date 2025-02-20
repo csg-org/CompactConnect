@@ -120,6 +120,13 @@ export const privilegePurchaseOptionsResponse = {
                 feeType: 'FLAT_RATE',
                 feeAmount: 3.5
             },
+            transactionFeeConfiguration: {
+                licenseeCharges: {
+                    active: true,
+                    chargeType: 'FLAT_FEE_PER_PRIVILEGE',
+                    chargeAmount: 2
+                }
+            },
             type: 'compact'
         },
         {

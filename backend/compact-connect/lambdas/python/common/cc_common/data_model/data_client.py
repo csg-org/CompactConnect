@@ -903,23 +903,23 @@ class DataClient:
         :raises CCNotFoundException: If the privilege record is not found
         """
         # Get the privilege record
-        privilege_records = self.config.provider_table.query(
-            KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
-            & Key('sk').eq(f'{compact}#PROVIDER#privilege/{jurisdiction}#'),
-        )['Items']
+        try:
+            privilege_record = self.config.provider_table.get_item(
+                Key={
+                    'pk': f'{compact}#PROVIDER#{provider_id}',
+                    'sk': f'{compact}#PROVIDER#privilege/{jurisdiction}#',
+                },
+            )['Item']
+        except KeyError as e:
+            raise CCNotFoundException(f'Privilege not found for jurisdiction {jurisdiction}') from e
 
         # Find the main privilege record (not history records)
         privilege_record_schema = PrivilegeRecordSchema()
-        privilege_record = next(
-            (privilege_record_schema.load(record) for record in privilege_records if record['type'] == 'privilege'),
-            None,
-        )
-
-        if privilege_record is None:
-            raise CCNotFoundException(f'Privilege not found for jurisdiction {jurisdiction}')
+        privilege_record = privilege_record_schema.load(privilege_record)
 
         # If already inactive, do nothing
         if privilege_record.get('persistedStatus', 'active') == 'inactive':
+            logger.info('Provider already inactive. Doing nothing.')
             return
 
         # Create the update record
