@@ -107,7 +107,7 @@ describe('License model', () => {
         expect(license.expireDateDisplay()).to.equal('Invalid date');
         expect(license.isExpired()).to.equal(false);
         expect(license.occupationName()).to.equal('Audiologist');
-        expect(license.occupationAbbreviation()).to.equal('aud');
+        expect(license.occupationAbbreviation()).to.equal('AUD');
     });
     it('should create a License with specific values through serializer', () => {
         const data = {
@@ -176,7 +176,7 @@ describe('License model', () => {
         );
         expect(license.isExpired()).to.equal(true);
         expect(license.occupationName()).to.equal('Audiologist');
-        expect(license.occupationAbbreviation()).to.equal('aud');
+        expect(license.occupationAbbreviation()).to.equal('AUD');
     });
     it('should create a License with specific values through serializer and not populate history when change is not renewal', () => {
         const data = {
@@ -245,6 +245,6 @@ describe('License model', () => {
         );
         expect(license.isExpired()).to.equal(true);
         expect(license.occupationName()).to.equal('Audiologist');
-        expect(license.occupationAbbreviation()).to.equal('aud');
+        expect(license.occupationAbbreviation()).to.equal('AUD');
     });
 });

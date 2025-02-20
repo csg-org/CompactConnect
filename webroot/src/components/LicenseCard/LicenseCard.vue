@@ -33,7 +33,7 @@
                 <div class="info-item" :class="{ 'error': isPastExiprationDate }">{{expiresContent}}</div>
             </div>
             <div class="info-item-container">
-                <div class="info-item-title">{{$t('licensing.license#')}}</div>
+                <div class="info-item-title">{{$t('licensing.licenseNumSymbol')}}</div>
                 <div class="info-item">{{licenseNumber}}</div>
             </div>
             <div class="info-item-container">

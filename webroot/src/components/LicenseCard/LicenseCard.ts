@@ -100,7 +100,7 @@ class LicenseCard extends Vue {
     }
 
     get occupationDisplay(): string {
-        return this.license?.occupationAbbreviation().toUpperCase() || '';
+        return this.license?.occupationAbbreviation() || '';
     }
 }
 

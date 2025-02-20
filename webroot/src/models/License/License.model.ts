@@ -119,8 +119,9 @@ export class License implements InterfaceLicense {
         const occupations = this.$tm('licensing.occupations') || [];
         const occupation = occupations.find((translate) => translate.key === this.occupation);
         const occupationAbbrev = occupation?.abbrev || '';
+        const upperCaseAbbrev = occupationAbbrev.toUpperCase();
 
-        return occupationAbbrev;
+        return upperCaseAbbrev;
     }
 }
 

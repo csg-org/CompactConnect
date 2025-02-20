@@ -95,7 +95,7 @@ class PrivilegeCard extends Vue {
     get occupationAbbrev(): string {
         const bestHomeStateLicense = this.licensee?.bestHomeStateLicense() || new License();
 
-        return bestHomeStateLicense?.occupationAbbreviation().toUpperCase();
+        return bestHomeStateLicense?.occupationAbbreviation();
     }
 
     get privilegeId(): string {
