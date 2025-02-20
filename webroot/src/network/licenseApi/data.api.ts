@@ -234,7 +234,7 @@ export class LicenseDataApi implements DataApiInterface {
      * @return {Promise<object>}                 The server response.
      */
     public async deletePrivilege(compact: string, licenseeId: string, privilegeState: string, licenseType: string) {
-        const serverResponse: any = await this.api.get(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}`);
+        const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/deactivate`, {});
 
         return serverResponse;
     }
