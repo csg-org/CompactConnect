@@ -2,11 +2,11 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-02-20T16:59:17Z"
+    "version": "2025-02-20T21:12:29Z"
   },
   "servers": [
     {
-      "url": "https://api.justin.jcc.iaapi.io"
+      "url": "https://api.test.compactconnect.org"
     }
   ],
   "paths": {
@@ -2900,11 +2900,6 @@
                       "previous": {
                         "type": "object",
                         "properties": {
-                          "dateOfExpiration": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                            "type": "string",
-                            "format": "date"
-                          },
                           "compact": {
                             "type": "string",
                             "enum": [
@@ -2912,18 +2907,6 @@
                               "octp",
                               "coun"
                             ]
-                          },
-                          "privilegeId": {
-                            "type": "string"
-                          },
-                          "providerId": {
-                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                            "type": "string"
-                          },
-                          "dateOfRenewal": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                            "type": "string",
-                            "format": "date"
                           },
                           "jurisdiction": {
                             "type": "string",
@@ -3013,6 +2996,30 @@
                             "type": "string"
                           },
                           "dateOfIssuance": {
+                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "persistedStatus": {
+                            "type": "string",
+                            "enum": [
+                              "active",
+                              "inactive"
+                            ]
+                          },
+                          "dateOfExpiration": {
+                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "privilegeId": {
+                            "type": "string"
+                          },
+                          "providerId": {
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                            "type": "string"
+                          },
+                          "dateOfRenewal": {
                             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                             "type": "string",
                             "format": "date"
@@ -3092,11 +3099,6 @@
                       "updatedValues": {
                         "type": "object",
                         "properties": {
-                          "dateOfExpiration": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                            "type": "string",
-                            "format": "date"
-                          },
                           "compact": {
                             "type": "string",
                             "enum": [
@@ -3104,18 +3106,6 @@
                               "octp",
                               "coun"
                             ]
-                          },
-                          "privilegeId": {
-                            "type": "string"
-                          },
-                          "providerId": {
-                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                            "type": "string"
-                          },
-                          "dateOfRenewal": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                            "type": "string",
-                            "format": "date"
                           },
                           "jurisdiction": {
                             "type": "string",
@@ -3209,6 +3199,30 @@
                             "type": "string",
                             "format": "date"
                           },
+                          "persistedStatus": {
+                            "type": "string",
+                            "enum": [
+                              "active",
+                              "inactive"
+                            ]
+                          },
+                          "dateOfExpiration": {
+                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "privilegeId": {
+                            "type": "string"
+                          },
+                          "providerId": {
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                            "type": "string"
+                          },
+                          "dateOfRenewal": {
+                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "type": "string",
+                            "format": "date"
+                          },
                           "dateOfUpdate": {
                             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                             "type": "string",
@@ -3258,6 +3272,13 @@
                   "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                   "type": "string",
                   "format": "date"
+                },
+                "persistedStatus": {
+                  "type": "string",
+                  "enum": [
+                    "active",
+                    "inactive"
+                  ]
                 },
                 "dateOfExpiration": {
                   "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",

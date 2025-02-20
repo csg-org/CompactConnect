@@ -1118,6 +1118,7 @@ class ApiModel:
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'compactTransactionId': JsonSchema(type=JsonSchemaType.STRING),
             'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
+            'persistedStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'attestations': JsonSchema(
                 type=JsonSchemaType.ARRAY,
