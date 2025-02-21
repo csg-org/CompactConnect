@@ -155,5 +155,6 @@ class TestDeactivatePrivilege(TstFunction):
         """
         If a privilege is not found, the response should be a 404
         """
+        # Note lack of self._load_provider_data() here - we're _not_ loading the provider in this case
         resp = self._request_deactivation_with_scopes('openid email aslp/admin aslp/ne.admin')
         self.assertEqual(404, resp['statusCode'])

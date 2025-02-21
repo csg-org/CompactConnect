@@ -946,6 +946,7 @@ class DataClient:
         logger.info('Deactivating privilege')
         self.config.dynamodb_client.transact_write_items(
             TransactItems=[
+                # Set the privilege record's persistedStatus to inactive and update the dateOfUpdate
                 {
                     'Update': {
                         'TableName': self.config.provider_table.name,
@@ -960,12 +961,14 @@ class DataClient:
                         },
                     },
                 },
+                # Create a history record, reflecting this change
                 {
                     'Put': {
                         'TableName': self.config.provider_table.name,
                         'Item': TypeSerializer().serialize(privilege_update_record)['M'],
                     },
                 },
+                # Delete the deactivated privilege jurisdiction from the provider record
                 {
                     'Update': {
                         'TableName': self.config.provider_table.name,

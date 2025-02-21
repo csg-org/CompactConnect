@@ -791,14 +791,14 @@ class TestDataClient(TstFunction):
             jurisdiction='ne',
         )
 
-        # Verify that the privilege record was updated
+        # Verify that the privilege record was unchanged
         new_privilege = self._provider_table.query(
             KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
             & Key('sk').begins_with('aslp#PROVIDER#privilege/ne#'),
         )['Items']
         self.assertEqual([original_privilege, original_history], new_privilege)
 
-        # The deactivation should still ensure that 'ne' is removed from privilegeJurisdictions
+        # 'ne' should still be removed from privilegeJurisdictions
         provider = self._provider_table.get_item(
             Key={'pk': f'aslp#PROVIDER#{provider_id}', 'sk': 'aslp#PROVIDER'},
         )['Item']
