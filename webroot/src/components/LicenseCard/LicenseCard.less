@@ -6,8 +6,7 @@
 //
 .license-card-container {
     width: 30rem;
-    height: 20rem;
-    padding: 2.5rem 2rem 2rem 2rem;
+    padding: 2rem 2rem 1.6rem 2rem;
     border-radius: 2rem;
     color: #2d2d2d;
     background-color: @lightBlue;
@@ -15,38 +14,47 @@
     .license-title-row {
         display: flex;
         flex-direction: row;
-        align-items: center;
+        align-items: flex-start;
 
-        .license-heading-text {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            padding-left: 1rem;
+        .license-title {
+            font-weight: @fontWeightBold;
+        }
+    }
 
-            .license-title {
-                font-size: @fontSizeLarge;
-            }
+    .license-icon-container {
+        width: 3rem;
 
-            .license-number {
-                font-size: @fontSizeSmall;
-            }
+        .license-logo {
+            width: 100%;
         }
 
-        .license-logo-container {
-            width: 3rem;
+        :deep(path) {
+            fill: @black;
+        }
+    }
 
-            .license-logo {
-                width: 100%;
-            }
+    .license-heading-text {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        margin-top: 0.4rem;
+
+        .state-title {
+            font-weight: @fontWeightBold;
+            font-size: @fontSizeLarge;
+        }
+
+        .occupation-abbrev {
+            font-size: @fontSizeSmall;
         }
     }
 
     .license-info-grid {
         display: grid;
-        grid-template-columns: 1fr 2fr;
+        grid-template-columns: 1fr 1fr;
         margin-top: 1rem;
-        column-gap: 6rem;
-        row-gap: 3rem;
+        column-gap: 4rem;
+        row-gap: 1.6rem;
 
         .info-item-container {
             .info-item-title {
@@ -56,8 +64,10 @@
             }
 
             .info-item {
+                max-width: 11.2rem;
                 font-size: 1.4rem;
                 line-height: 2.1rem;
+                word-wrap: break-word;
             }
         }
     }
@@ -77,6 +87,14 @@
     font-style: italic;
 }
 
+.bold {
+    font-weight: @fontWeightBold;
+}
+
 .error {
     color: @midRed;
+}
+
+.left-marg {
+    margin-left: 1rem;
 }

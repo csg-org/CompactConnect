@@ -19,7 +19,6 @@ from cc_common.exceptions import (
     CCFailedTransactionException,
     CCInternalException,
     CCInvalidRequestException,
-    TransactionBatchSettlementFailureException,
 )
 
 AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
@@ -308,7 +307,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         for jurisdiction in selected_jurisdictions:
             jurisdiction_name_title_case = jurisdiction.jurisdiction_name.title()
             privilege_line_item = apicontractsv1.lineItemType()
-            privilege_line_item.itemId = f'{compact_configuration.compact_abbr}-{jurisdiction.postal_abbreviation}'
+            privilege_line_item.itemId = f'priv:{compact_configuration.compact_abbr}-{jurisdiction.postal_abbreviation}'
             privilege_line_item.name = f'{jurisdiction_name_title_case} Compact Privilege'
             privilege_line_item.quantity = '1'
             privilege_line_item.unitPrice = _calculate_jurisdiction_fee(jurisdiction, user_active_military)
@@ -514,11 +513,10 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
             logger.info('Found settled batches', batch_ids=batch_ids)
             for batch in batch_response.batchList.batch:
                 if batch.settlementState == 'settlementError':
-                    logger.info(
-                        'Settlement error found in batch. Raising exception to send error email.',
+                    logger.warning(
+                        'Settlement error found in batch.',
                         batch_id=batch.batchId,
                     )
-                    raise TransactionBatchSettlementFailureException(f'Settlement error found in batch {batch.batchId}')
 
         return batch_response
 
@@ -640,6 +638,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         found_last_processed = last_processed_transaction_id is None
         processed_batch_ids = processed_batch_ids or []
         found_current_batch = current_batch_id is None
+        settlement_error_transaction_ids = []
 
         if hasattr(batch_response, 'batchList'):
             for batch in batch_response.batchList.batch:
@@ -689,6 +688,16 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                                 transaction_id=str(transaction.transId),
                             )
                             tx = details_response.transaction
+
+                            # Check if this transaction has a settlement error
+                            if str(tx.transactionStatus) == 'settlementError':
+                                settlement_error_transaction_ids.append(str(transaction.transId))
+                                logger.warning(
+                                    'Transaction was not in settledSuccessfully state',
+                                    batch_id=batch_id,
+                                    transaction_id=str(transaction.transId),
+                                    transaction_status=str(tx.transactionStatus),
+                                )
 
                             licensee_id = None
                             if hasattr(tx, 'order') and tx.order.description:
@@ -755,7 +764,11 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                 logger.info('Finished processing batch', batch_id=batch_id)
                 processed_batch_ids.append(batch_id)
 
-        response = {'transactions': transactions, 'processedBatchIds': processed_batch_ids}
+        response = {
+            'transactions': transactions,
+            'processedBatchIds': processed_batch_ids,
+            'settlementErrorTransactionIds': settlement_error_transaction_ids,
+        }
 
         if last_transaction_id and last_batch_id:
             response['lastProcessedTransactionId'] = last_transaction_id
@@ -868,7 +881,7 @@ class PurchaseClient:
         """
         Validate the provided payment credentials and store them in secrets manager.
 
-        :param compact_abbr: The name of the compact
+        :param compact_abbr: The abbreviation of the compact
         :param credentials: The payment processor credentials
         :return: A response indicating the credentials were validated and stored successfully
         :raises CCInvalidRequestException: If the credentials are invalid
@@ -943,7 +956,7 @@ class PurchaseClient:
             processed_batch_ids=processed_batch_ids,
         )
 
-        # Add compact to each transaction
+        # Add compact to each transaction for serialization
         for transaction in response['transactions']:
             transaction['compact'] = compact
 

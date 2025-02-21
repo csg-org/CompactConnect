@@ -41,11 +41,7 @@
                         class="tag"
                     >
                         <div class="tag-icon-container">
-                            <img
-                                class="tag-icon"
-                                src="@assets/icons/ico-license.svg"
-                                :alt="$t('licensing.licenseIcon')"
-                            />
+                            <LicenseIcon />
                         </div>
                         <div class="tag-text">
                             {{ license.issueState.name() }}
@@ -211,6 +207,7 @@
                         v-for="(privilege, index) in licenseePrivileges"
                         :key="index"
                         :privilege="privilege"
+                        :licensee="licensee"
                         class="no-touch-item"
                     />
                 </div>
@@ -238,6 +235,7 @@
                         v-for="(privilege, index) in pastPrivilegeList"
                         :key="index"
                         :privilege="privilege"
+                        :licensee="licensee"
                         class="no-touch-item"
                     />
                 </div>

@@ -56,14 +56,18 @@ class TransactionHistoryProcessingWorkflow(Construct):
             timeout=Duration.minutes(15),
             environment={
                 'TRANSACTION_HISTORY_TABLE_NAME': persistent_stack.transaction_history_table.table_name,
+                'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
                 'ENVIRONMENT_NAME': environment_name,
+                'COMPACT_TRANSACTION_ID_GSI_NAME': persistent_stack.provider_table.compact_transaction_gsi_name,
                 **stack.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
-            # required as this lambda is bundled with the authorize.net SDK which is large
-            memory_size=512,
+            # Setting this memory size higher than others because it can potentially pull in a lot of data from
+            # DynamoDB and authorize.net, and we want to ensure it has enough memory to handle that.
+            memory_size=3008,
         )
         persistent_stack.transaction_history_table.grant_write_data(self.transaction_processor_handler)
+        persistent_stack.provider_table.grant_read_data(self.transaction_processor_handler)
         persistent_stack.shared_encryption_key.grant_encrypt(self.transaction_processor_handler)
         # grant access to the compact specific secrets manager secrets following this namespace pattern
         # compact-connect/env/{environment_name}/compact/{compact_abbr}/credentials/payment-processor
@@ -88,7 +92,7 @@ class TransactionHistoryProcessingWorkflow(Construct):
                     'id': 'AwsSolutions-IAM5',
                     'reason': """
                             This policy contains wild-carded actions and resources but they are scoped to the
-                            specific actions, KMS key, and Table that this lambda needs access to.
+                            specific actions, KMS key, and tables that this lambda needs access to.
                             """,
                 },
             ],
@@ -192,11 +196,13 @@ class TransactionHistoryProcessingWorkflow(Construct):
             ],
         )
 
-        # Create EventBridge rule to trigger state machine daily at noon UTC-4
+        # By default, the authorize.net accounts batch settlements at 4:00pm Pacific Time.
+        # This daily collector runs an hour later (5pm PST, which is 1am UTC) to collect
+        # all settled transaction for the last 24 hours.
         Rule(
             self,
             f'{compact}-DailyTransactionProcessingRule',
-            schedule=Schedule.cron(week_day='*', hour='16', minute='0', month='*', year='*'),
+            schedule=Schedule.cron(week_day='*', hour='1', minute='0', month='*', year='*'),
             targets=[SfnStateMachine(state_machine)],
         )
 

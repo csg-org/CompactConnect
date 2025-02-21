@@ -394,7 +394,7 @@ describe('Email Service', () => {
                 html: expect.stringContaining('Please find attached the weekly settled transaction reports for the compact for the period 2024-03-01 to 2024-03-07'),
                 attachments: [
                     {
-                        filename: 'aslp-settled-transaction-report.zip',
+                        filename: 'aslp-settled-transaction-report-2024-03-01--2024-03-07.zip',
                         content: expect.any(Buffer),
                         contentType: 'application/zip'
                     }
@@ -508,7 +508,7 @@ describe('Email Service', () => {
                 html: expect.stringContaining('Please find attached the weekly settled transaction report for your jurisdiction for the period 2024-03-01 to 2024-03-07'),
                 attachments: [
                     {
-                        filename: 'oh-settled-transaction-report.zip',
+                        filename: 'oh-settled-transaction-report-2024-03-01--2024-03-07.zip',
                         content: expect.any(Buffer),
                         contentType: 'application/zip'
                     }
