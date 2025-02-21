@@ -157,11 +157,11 @@ class CompactConfigurationUpload(Construct):
 
         # Read all jurisdiction configuration YAML files from each active compact directory
         for compact in uploader_input['compacts']:
-            compact_name = compact['compactName']
-            uploader_input['jurisdictions'][compact_name] = []
-            for jurisdiction_config_file in os.listdir(os.path.join('compact-config', compact['compactName'])):
+            compact_abbr = compact['compactAbbr']
+            uploader_input['jurisdictions'][compact_abbr] = []
+            for jurisdiction_config_file in os.listdir(os.path.join('compact-config', compact_abbr)):
                 if jurisdiction_config_file.endswith('.yml'):
-                    with open(os.path.join('compact-config', compact_name, jurisdiction_config_file)) as f:
+                    with open(os.path.join('compact-config', compact_abbr, jurisdiction_config_file)) as f:
                         # convert YAML to JSON
                         formatted_jurisdiction = yaml.safe_load(f)
                         # only include the jurisdiction configuration if it is active in the environment
@@ -173,7 +173,7 @@ class CompactConfigurationUpload(Construct):
                                 formatted_jurisdiction, environment_context
                             )
                             self._validate_jurisdiction_configuration(formatted_jurisdiction)
-                            uploader_input['jurisdictions'][compact_name].append(formatted_jurisdiction)
+                            uploader_input['jurisdictions'][compact_abbr].append(formatted_jurisdiction)
 
         return json.dumps(uploader_input)
 

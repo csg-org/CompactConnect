@@ -37,7 +37,8 @@ def test_purchase_privilege_options():
     # Verify compact data matches expected values
     expected_compact_data = {
         'type': 'compact',
-        'compactName': 'aslp',
+        'compactName': 'Audiology and Speech Language Pathology',
+        'compactAbbr': 'aslp',
         'compactCommissionFee': {'feeType': 'FLAT_RATE', 'feeAmount': 3.50},
         'transactionFeeConfiguration': {
             'licenseeCharges': {'active': True, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE', 'chargeAmount': 3.00}
@@ -90,10 +91,7 @@ def test_purchasing_privilege():
         dynamodb_table = config.provider_user_dynamodb_table
         for privilege in original_privileges:
             privilege_pk = f'{compact}#PROVIDER#{provider_id}'
-            privilege_sk = (
-                f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}#'
-                f'{datetime.fromisoformat(privilege["dateOfRenewal"]).date().isoformat()}'
-            )
+            privilege_sk = f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}#'
             logger.info(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
             dynamodb_table.delete_item(
                 Key={
@@ -203,7 +201,7 @@ def test_purchasing_privilege():
             raise SmokeTestFailureException('Attestation version in privilege record does not match')
         if attestation['version'] != attestations_from_system[0]['version']:
             raise SmokeTestFailureException(
-                f'Attestation {attestation['attestationId']} version in privilege record '
+                f'Attestation {attestation["attestationId"]} version in privilege record '
                 f'does not match latest version in system'
             )
 

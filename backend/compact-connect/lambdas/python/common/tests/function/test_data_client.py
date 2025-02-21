@@ -203,6 +203,7 @@ class TestDataClient(TstFunction):
                 'dateOfExpiration': '2024-10-31',
                 'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                 'compactTransactionId': 'test_transaction_id',
+                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#test_transaction_id#',
                 'attestations': self.sample_privilege_attestations,
                 'privilegeId': 'AUD-CA-124',
             },
@@ -245,6 +246,7 @@ class TestDataClient(TstFunction):
             'dateOfExpiration': '2024-10-31',
             'dateOfUpdate': '2023-11-08T23:59:59+00:00',
             'compactTransactionId': '1234567890',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
             'attestations': self.sample_privilege_attestations,
             'privilegeId': 'AUD-KY-1',
         }
@@ -291,6 +293,7 @@ class TestDataClient(TstFunction):
                     'dateOfExpiration': '2025-10-31',
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'compactTransactionId': 'test_transaction_id',
+                    'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#test_transaction_id#',
                     'attestations': self.sample_privilege_attestations,
                     # Should remain the same, since we're renewing the same privilege
                     'privilegeId': 'AUD-KY-1',
@@ -298,11 +301,12 @@ class TestDataClient(TstFunction):
                 # A new history record
                 {
                     'pk': 'aslp#PROVIDER#test_provider_id',
-                    'sk': 'aslp#PROVIDER#privilege/ky#UPDATE#1731110399/11903e4261b10d1a7c806b51522913d1',
+                    'sk': 'aslp#PROVIDER#privilege/ky#UPDATE#1731110399/dec844e72850ff74c8b7f9bea4b7543a',
                     'type': 'privilegeUpdate',
                     'updateType': 'renewal',
                     'providerId': 'test_provider_id',
                     'compact': 'aslp',
+                    'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
                     'jurisdiction': 'ky',
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'previous': {
@@ -316,9 +320,11 @@ class TestDataClient(TstFunction):
                         'privilegeId': 'AUD-KY-1',
                     },
                     'updatedValues': {
+                        'attestations': self.sample_privilege_attestations,
                         'dateOfRenewal': '2024-11-08T23:59:59+00:00',
                         'dateOfExpiration': '2025-10-31',
                         'compactTransactionId': 'test_transaction_id',
+                        'privilegeId': 'AUD-KY-1',
                     },
                 },
             ],
@@ -638,6 +644,7 @@ class TestDataClient(TstFunction):
             'dateOfExpiration': '2024-10-31',
             'dateOfUpdate': '2023-11-08T23:59:59+00:00',
             'compactTransactionId': '1234567890',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
             'attestations': self.sample_privilege_attestations,
             'privilegeId': 'AUD-NE-1',
         }
@@ -674,6 +681,7 @@ class TestDataClient(TstFunction):
                     'dateOfExpiration': '2024-10-31',
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'compactTransactionId': '1234567890',
+                    'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
                     'attestations': self.sample_privilege_attestations,
                     'privilegeId': 'AUD-NE-1',
                 },
@@ -685,6 +693,7 @@ class TestDataClient(TstFunction):
                     'updateType': 'deactivation',
                     'providerId': provider_id,
                     'compact': 'aslp',
+                    'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
                     'jurisdiction': 'ne',
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'previous': {
@@ -753,6 +762,7 @@ class TestDataClient(TstFunction):
             'dateOfExpiration': '2024-10-31',
             'dateOfUpdate': '2023-11-08T23:59:59+00:00',
             'compactTransactionId': '1234567890',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
             'attestations': self.sample_privilege_attestations,
             'privilegeId': 'AUD-NE-1',
         }
@@ -765,6 +775,7 @@ class TestDataClient(TstFunction):
             'updateType': 'renewal',
             'providerId': provider_id,
             'compact': 'aslp',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
             'jurisdiction': 'ne',
             'dateOfUpdate': '2024-11-08T23:59:59+00:00',
             'previous': {

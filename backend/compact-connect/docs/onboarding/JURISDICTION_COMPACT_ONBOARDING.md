@@ -163,9 +163,11 @@ characters in place of spaces.
 ## Add Global Compact Configuration File to the System
 In addition to the jurisdiction configuration files, if a new compact is being added, a global compact configuration
 file must be added to the root of the `compact-config` directory. If it is not present for an associated directory of
-the same name, the deployment will fail. The compact file includes the following information (all fields are required):
+the same name, the deployment will fail. The compact file includes the following information (all fields are required
+unless otherwise specified):
 ```
-compactName: "<compact name>"
+compactAbbr: "<compact abbreviation ie aslp>"
+compactName: "<compact name ie Audiology and Speech Language Pathology>"
 compactCommissionFee:
     feeType: "FLAT_RATE"                            # Currently only "FLAT_RATE" type is supported.
     feeAmount: <number>                             # This value will be added to the jurisdiciton fee.

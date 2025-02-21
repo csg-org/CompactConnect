@@ -47,6 +47,7 @@ describe('License model', () => {
         expect(license.expireDate).to.equal(null);
         expect(license.npi).to.equal(null);
         expect(license.licenseNumber).to.equal(null);
+        expect(license.privilegeId).to.equal(null);
         expect(license.mailingAddress).to.be.an.instanceof(Address);
         expect(license.occupation).to.equal(null);
         expect(license.history).to.matchPattern([]);
@@ -59,6 +60,7 @@ describe('License model', () => {
         expect(license.expireDateDisplay()).to.equal('');
         expect(license.isExpired()).to.equal(false);
         expect(license.occupationName()).to.equal('');
+        expect(license.occupationAbbreviation()).to.equal('');
     });
     it('should create a License with specific values', () => {
         const data = {
@@ -71,6 +73,7 @@ describe('License model', () => {
             renewalDate: 'test-renewalDate',
             expireDate: 'test-expireDate',
             licenseNumber: 'test-license-number',
+            privilegeId: 'privilegeId',
             mailingAddress: new Address(),
             npi: 'test-npi',
             occupation: LicenseOccupation.AUDIOLOGIST,
@@ -92,6 +95,7 @@ describe('License model', () => {
         expect(license.mailingAddress).to.be.an.instanceof(Address);
         expect(license.npi).to.equal(data.npi);
         expect(license.licenseNumber).to.equal(data.licenseNumber);
+        expect(license.privilegeId).to.equal(data.privilegeId);
         expect(license.occupation).to.equal(data.occupation);
         expect(license.statusState).to.equal(data.statusState);
         expect(license.statusCompact).to.equal(data.statusCompact);
@@ -103,6 +107,7 @@ describe('License model', () => {
         expect(license.expireDateDisplay()).to.equal('Invalid date');
         expect(license.isExpired()).to.equal(false);
         expect(license.occupationName()).to.equal('Audiologist');
+        expect(license.occupationAbbreviation()).to.equal('AUD');
     });
     it('should create a License with specific values through serializer', () => {
         const data = {
@@ -115,6 +120,7 @@ describe('License model', () => {
             dateOfExpiration: moment().subtract(1, 'day').format(serverDateFormat),
             npi: 'npi',
             licenseNumber: 'licenseNumber',
+            privilegeId: 'privilegeId',
             homeAddressStreet1: 'test-street1',
             homeAddressStreet2: 'test-street2',
             homeAddressCity: 'test-city',
@@ -155,6 +161,7 @@ describe('License model', () => {
         expect(license.expireDate).to.equal(data.dateOfExpiration);
         expect(license.occupation).to.equal(data.licenseType);
         expect(license.statusState).to.equal(data.status);
+        expect(license.privilegeId).to.equal(data.privilegeId);
         expect(license.statusCompact).to.equal(data.status);
 
         // Test methods
@@ -169,6 +176,7 @@ describe('License model', () => {
         );
         expect(license.isExpired()).to.equal(true);
         expect(license.occupationName()).to.equal('Audiologist');
+        expect(license.occupationAbbreviation()).to.equal('AUD');
     });
     it('should create a License with specific values through serializer and not populate history when change is not renewal', () => {
         const data = {
@@ -237,5 +245,6 @@ describe('License model', () => {
         );
         expect(license.isExpired()).to.equal(true);
         expect(license.occupationName()).to.equal('Audiologist');
+        expect(license.occupationAbbreviation()).to.equal('AUD');
     });
 });

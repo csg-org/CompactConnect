@@ -387,6 +387,8 @@ class DataClient:
                             'dateOfRenewal': privilege_record['dateOfRenewal'],
                             'dateOfExpiration': privilege_record['dateOfExpiration'],
                             'compactTransactionId': compact_transaction_id,
+                            'privilegeId': privilege_record['privilegeId'],
+                            'attestations': attestations,
                         },
                     }
                     privilege_update_records.append(update_record)
