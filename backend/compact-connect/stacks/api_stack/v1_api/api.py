@@ -43,8 +43,7 @@ class V1Api:
             read_ssn_scopes.append(f'{compact}/readSSN')
 
             _active_compact_jurisdictions = persistent_stack.get_list_of_active_jurisdictions_for_compact_environment(
-                compact=compact,
-                environment_name=self.api.environment_name
+                compact=compact, environment_name=self.api.environment_name
             )
 
             # We also include the jurisdiction level compact scopes for all jurisdictions active within the compact

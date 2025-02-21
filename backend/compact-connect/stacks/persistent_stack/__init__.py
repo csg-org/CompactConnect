@@ -465,8 +465,9 @@ class PersistentStack(AppStack):
 
         return active_compacts
 
-    def get_list_of_active_jurisdictions_for_compact_environment(self,
-                                                                 compact: str, environment_name: str) -> list[str]:
+    def get_list_of_active_jurisdictions_for_compact_environment(
+        self, compact: str, environment_name: str
+    ) -> list[str]:
         """
         Get the list of jurisdiction postal codes which are active within a compact and environment.
 

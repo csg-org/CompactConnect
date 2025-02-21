@@ -104,9 +104,10 @@ class TestPipeline(TstAppABC, TestCase):
         # sort the scopes within the resource server by name for consistency
         for resource_server in jurisdiction_resource_server_config:
             resource_server['Scopes'].sort(key=lambda scope: scope['ScopeName'])
-        self.compare_snapshot(jurisdiction_resource_server_config,
-                              "JURISDICTION_RESOURCE_SERVER_CONFIGURATION",
-                              overwrite_snapshot=False,
+        self.compare_snapshot(
+            jurisdiction_resource_server_config,
+            'JURISDICTION_RESOURCE_SERVER_CONFIGURATION',
+            overwrite_snapshot=False,
         )
 
     def test_cognito_using_recommended_security_in_prod(self):

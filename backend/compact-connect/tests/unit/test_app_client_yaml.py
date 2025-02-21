@@ -36,8 +36,7 @@ def get_list_of_configured_jurisdictions_for_compact(compact: str) -> list[str]:
     Get the list of jurisdiction postal codes which are active within a compact.
 
     Currently, all configuration for compacts and jurisdictions is hardcoded in the compact-config directory.
-    This reads the YAML configuration files and returns the list of jurisdiction postal codes that are marked as
-    active for the environment.
+    This reads the YAML configuration files and returns the list of jurisdiction postal codes.
     """
 
     jurisdictions = []

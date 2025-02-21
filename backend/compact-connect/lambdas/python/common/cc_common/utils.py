@@ -189,6 +189,7 @@ class logger_inject_kwargs:  # noqa: N801 invalid-name
 
         return wrapped
 
+
 class authorize_compact_level_only_action:  # noqa: N801 invalid-name
     """Authorize endpoint by matching path parameter compact to the expected scope limited to compact level
     (i.e. aslp/write).

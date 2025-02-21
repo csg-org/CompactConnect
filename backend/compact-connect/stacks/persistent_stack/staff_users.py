@@ -97,18 +97,18 @@ class StaffUsers(UserPool):
                 scope_description=f'Admin access for the {compact} compact within the jurisdiction',
             ),
             ResourceServerScope(
-                    scope_name=f'{compact}.write',
-                    scope_description=f'Write access for the {compact} compact within the jurisdiction',
-                ),
+                scope_name=f'{compact}.write',
+                scope_description=f'Write access for the {compact} compact within the jurisdiction',
+            ),
             ResourceServerScope(
-                    scope_name=f'{compact}.readPrivate',
-                    scope_description=f'Read access for SSNs in the {compact} compact within the jurisdiction',
-                ),
+                scope_name=f'{compact}.readPrivate',
+                scope_description=f'Read access for SSNs in the {compact} compact within the jurisdiction',
+            ),
             ResourceServerScope(
-                    scope_name=f'{compact}.readSSN',
-                    scope_description=f'Read access for SSNs in the {compact} compact within the jurisdiction',
-                )
-            ]
+                scope_name=f'{compact}.readSSN',
+                scope_description=f'Read access for SSNs in the {compact} compact within the jurisdiction',
+            ),
+        ]
 
     def _add_resource_servers(self, stack: ps.PersistentStack, environment_name: str):
         """Add scopes for all compact/jurisdictions"""
@@ -155,13 +155,13 @@ class StaffUsers(UserPool):
             # we define the jurisdiction level scopes, which will be used by every
             # jurisdiction that is active for the compact/environment.
             active_jurisdictions_for_compact = stack.get_list_of_active_jurisdictions_for_compact_environment(
-                compact=compact,
-                environment_name=environment_name
+                compact=compact, environment_name=environment_name
             )
             for jurisdiction in active_jurisdictions_for_compact:
                 if _jurisdiction_compact_scope_mapping.get(jurisdiction) is None:
                     _jurisdiction_compact_scope_mapping[jurisdiction] = (
-                        self._generate_resource_server_scopes_list_for_compact(compact))
+                        self._generate_resource_server_scopes_list_for_compact(compact)
+                    )
                 else:
                     _jurisdiction_compact_scope_mapping[jurisdiction].extend(
                         self._generate_resource_server_scopes_list_for_compact(compact)
