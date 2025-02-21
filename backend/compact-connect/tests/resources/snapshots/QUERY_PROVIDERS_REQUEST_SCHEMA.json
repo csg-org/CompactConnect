@@ -2,6 +2,7 @@
   "additionalProperties": false,
   "properties": {
     "query": {
+      "additionalProperties": false,
       "description": "The query parameters",
       "properties": {
         "ssn": {
@@ -71,6 +72,16 @@
             "wi",
             "wy"
           ],
+          "type": "string"
+        },
+        "givenName": {
+          "description": "Filter for providers with a given name (familyName is required if givenName is provided)",
+          "maxLength": 100,
+          "type": "string"
+        },
+        "familyName": {
+          "description": "Filter for providers with a family name",
+          "maxLength": 100,
           "type": "string"
         }
       },

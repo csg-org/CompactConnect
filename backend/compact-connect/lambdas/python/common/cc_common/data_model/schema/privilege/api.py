@@ -29,13 +29,15 @@ class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     Python -> load() -> API
     """
 
-    dateOfUpdate = Raw(required=True, allow_none=False)
+    # list of attestations that were accepted when purchasing this privilege
+    attestations = List(Nested(AttestationVersionResponseSchema()), required=False, allow_none=False)
+    compactTransactionId = String(required=False, allow_none=False)
+    dateOfExpiration = Raw(required=True, allow_none=False)
     dateOfIssuance = Raw(required=True, allow_none=False)
     dateOfRenewal = Raw(required=True, allow_none=False)
-    dateOfExpiration = Raw(required=True, allow_none=False)
+    dateOfUpdate = Raw(required=True, allow_none=False)
+    persistedStatus = ActiveInactive(required=True, allow_none=False)
     privilegeId = String(required=True, allow_none=False)
-    compactTransactionId = String(required=True, allow_none=False)
-    attestations = List(Nested(AttestationVersionResponseSchema()), required=True, allow_none=False)
 
 
 class PrivilegeUpdateGeneralResponseSchema(ForgivingSchema):
@@ -69,15 +71,16 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     providerId = Raw(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
-    dateOfIssuance = Raw(required=True, allow_none=False)
-    dateOfRenewal = Raw(required=True, allow_none=False)
-    dateOfExpiration = Raw(required=True, allow_none=False)
-    dateOfUpdate = Raw(required=True, allow_none=False)
+    # list of attestations that were accepted when purchasing this privilege
+    attestations = List(Nested(AttestationVersionResponseSchema()), required=False, allow_none=False)
     # the id of the transaction that was made when the user purchased the privilege
     compactTransactionId = String(required=False, allow_none=False)
+    dateOfExpiration = Raw(required=True, allow_none=False)
+    dateOfIssuance = Raw(required=True, allow_none=False)
+    dateOfRenewal = Raw(required=True, allow_none=False)
+    dateOfUpdate = Raw(required=True, allow_none=False)
+    history = List(Nested(PrivilegeUpdateGeneralResponseSchema, required=False, allow_none=False))
+    persistedStatus = ActiveInactive(required=True, allow_none=False)
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
-    history = List(Nested(PrivilegeUpdateGeneralResponseSchema, required=False, allow_none=False))
-    # list of attestations that were accepted when purchasing this privilege
-    attestations = List(Nested(AttestationVersionResponseSchema()), required=False, allow_none=False)

@@ -308,7 +308,7 @@ The system processes transactions through multiple stages:
      - **Jurisdiction Reports**:
        - Transaction details for privileges purchased in their jurisdiction
 
-    
+
 All of these reports are sent out weekly (Fridays at 10:00 PM UTC) and monthly (1st day of each month at 8:00 AM UTC).
 
 ### Data Storage

@@ -227,6 +227,30 @@ class PersistentStack(AppStack):
             ],
         )
 
+        # Run migration 563 (GH issue number) to add persistedStatus field to privilege records
+        migration_563 = DataMigration(
+            self,
+            '563PrivilegePersistedStatusMigration',
+            migration_dir='563_privilege_persisted_status',
+            lambda_environment={
+                **self.common_env_vars,
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
+            },
+        )
+        self.provider_table.grant_read_write_data(migration_563)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{migration_563.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': """This policy contains wild-carded actions and resources but they are scoped to the
+                              specific actions, Table, and KMS Key that this lambda specifically needs access to.
+                              """,
+                },
+            ],
+        )
+
         self.ssn_table = SSNTable(self, 'SSNTable', removal_policy=removal_policy)
 
         self.data_event_table = DataEventTable(
