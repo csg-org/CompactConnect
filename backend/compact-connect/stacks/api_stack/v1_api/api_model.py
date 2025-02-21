@@ -296,9 +296,7 @@ class ApiModel:
                         properties={
                             'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
                             'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                            # TODO keeping 'read' action for backwards compatibility  # noqa: FIX002
-                            #  this should be removed after the frontend is updated
-                            'read': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                            'readSSN': JsonSchema(type=JsonSchemaType.BOOLEAN),
                         },
                     ),
                     'jurisdictions': JsonSchema(
@@ -313,6 +311,7 @@ class ApiModel:
                                         'write': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                         'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                         'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                                        'readSSN': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                     },
                                 ),
                             },
@@ -715,10 +714,21 @@ class ApiModel:
             one_of=[
                 JsonSchema(
                     type=JsonSchemaType.OBJECT,
-                    required=['type', 'compactName', 'compactCommissionFee', 'transactionFeeConfiguration'],
+                    required=[
+                        'type',
+                        'compactAbbr',
+                        'compactName',
+                        'compactCommissionFee',
+                        'transactionFeeConfiguration',
+                    ],
                     properties={
                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['compact']),
-                        'compactName': JsonSchema(type=JsonSchemaType.STRING, description='The name of the compact'),
+                        'compactAbbr': JsonSchema(
+                            type=JsonSchemaType.STRING, description='The abbreviation of the compact'
+                        ),
+                        'compactName': JsonSchema(
+                            type=JsonSchemaType.STRING, description='The full name of the compact'
+                        ),
                         'compactCommissionFee': JsonSchema(
                             type=JsonSchemaType.OBJECT,
                             required=['feeType', 'feeAmount'],

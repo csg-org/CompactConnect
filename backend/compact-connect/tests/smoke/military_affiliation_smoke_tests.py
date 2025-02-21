@@ -97,11 +97,11 @@ def test_military_affiliation_upload():
     )
     if not matching_military_affiliation:
         raise SmokeTestFailureException(
-            f'No military affiliation record found for today. ' f'Military affiliations: ({military_affiliations})'
+            f'No military affiliation record found for today. Military affiliations: ({military_affiliations})'
         )
     if matching_military_affiliation['status'] != 'active':
         raise SmokeTestFailureException(
-            f'Military affiliation record is not active. ' f'Status: {matching_military_affiliation["status"]}'
+            f'Military affiliation record is not active. Status: {matching_military_affiliation["status"]}'
         )
 
     print(f'Successfully added military affiliation record: {matching_military_affiliation}')

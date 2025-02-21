@@ -115,10 +115,17 @@ export const uploadRequestData = {
 export const privilegePurchaseOptionsResponse = {
     items: [
         {
-            compactName: 'aslp',
+            compactAbbr: 'aslp',
             compactCommissionFee: {
                 feeType: 'FLAT_RATE',
                 feeAmount: 3.5
+            },
+            transactionFeeConfiguration: {
+                licenseeCharges: {
+                    active: true,
+                    chargeType: 'FLAT_FEE_PER_PRIVILEGE',
+                    chargeAmount: 2
+                }
             },
             type: 'compact'
         },

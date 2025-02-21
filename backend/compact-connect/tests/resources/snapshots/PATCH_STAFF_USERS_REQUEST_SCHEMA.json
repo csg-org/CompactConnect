@@ -13,7 +13,7 @@
               "admin": {
                 "type": "boolean"
               },
-              "read": {
+              "readSSN": {
                 "type": "boolean"
               }
             },
@@ -32,6 +32,9 @@
                       "type": "boolean"
                     },
                     "readPrivate": {
+                      "type": "boolean"
+                    },
+                    "readSSN": {
                       "type": "boolean"
                     }
                   },

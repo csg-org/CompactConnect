@@ -18,7 +18,6 @@ from cc_common.data_model.schema.fields import (
     ITUTE164PhoneNumber,
     Jurisdiction,
     NationalProviderIdentifier,
-    SocialSecurityNumber,
     UpdateType,
 )
 from cc_common.data_model.schema.license import LicenseCommonSchema
@@ -35,21 +34,14 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
 
     _record_type = 'license'
 
-    ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
-    # partial SSN for matching license records when users register
-    # TODO - this will become required once we update all provider and license records to   # noqa: FIX002
-    #  replace full ssn with partial ssn
-    ssnLastFour = String(required=False, allow_none=False)
+    ssnLastFour = String(required=True, allow_none=False)
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
     jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
-    # GSI fields for license matching during registration
-    # TODO - these are currently set as not required so as not to break our existing data # noqa: FIX002
-    #  Once our data has been migrated to including this GSI, we should make these fields required
-    licenseGSIPK = String(required=False, allow_none=False)
-    licenseGSISK = String(required=False, allow_none=False)
+    licenseGSIPK = String(required=True, allow_none=False)
+    licenseGSISK = String(required=True, allow_none=False)
 
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
@@ -61,13 +53,6 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
     def generate_license_gsi_fields(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['licenseGSIPK'] = f'C#{in_data["compact"].lower()}#J#{in_data["jurisdiction"].lower()}'
         in_data['licenseGSISK'] = f'FN#{quote(in_data["familyName"].lower())}#GN#{quote(in_data["givenName"].lower())}'
-        return in_data
-
-    @pre_dump
-    def set_ssn_last_four(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
-        # TODO - this will be removed once we complete the work to remove the full ssn field  # noqa: FIX002
-        # Add last four of SSN for matching
-        in_data['ssnLastFour'] = in_data['ssn'][-4:]
         return in_data
 
     @post_load
@@ -87,9 +72,9 @@ class LicenseUpdateRecordPreviousSchema(StrictSchema):
     DB -> load() -> Python
     """
 
-    ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    ssnLastFour = String(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))

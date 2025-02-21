@@ -19,7 +19,6 @@ from cc_common.exceptions import (
     CCFailedTransactionException,
     CCInternalException,
     CCInvalidRequestException,
-    TransactionBatchSettlementFailureException,
 )
 
 AUTHORIZE_DOT_NET_CLIENT_TYPE = 'authorize.net'
@@ -51,7 +50,7 @@ def _calculate_jurisdiction_fee(jurisdiction: Jurisdiction, user_active_military
             total_jurisdiction_fee = jurisdiction.jurisdiction_fee - jurisdiction.military_discount.discount_amount
         else:
             raise ValueError(
-                'Unsupported military discount type: ' f'{jurisdiction.military_discount.discount_type.value}'
+                f'Unsupported military discount type: {jurisdiction.military_discount.discount_type.value}'
             )
     else:
         total_jurisdiction_fee = jurisdiction.jurisdiction_fee
@@ -308,7 +307,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         for jurisdiction in selected_jurisdictions:
             jurisdiction_name_title_case = jurisdiction.jurisdiction_name.title()
             privilege_line_item = apicontractsv1.lineItemType()
-            privilege_line_item.itemId = f'{compact_configuration.compact_name}-{jurisdiction.postal_abbreviation}'
+            privilege_line_item.itemId = f'priv:{compact_configuration.compact_abbr}-{jurisdiction.postal_abbreviation}'
             privilege_line_item.name = f'{jurisdiction_name_title_case} Compact Privilege'
             privilege_line_item.quantity = '1'
             privilege_line_item.unitPrice = _calculate_jurisdiction_fee(jurisdiction, user_active_military)
@@ -323,8 +322,8 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
 
         # Add the compact fee to the line items
         compact_fee_line_item = apicontractsv1.lineItemType()
-        compact_fee_line_item.itemId = f'{compact_configuration.compact_name}-compact-fee'
-        compact_fee_line_item.name = f'{compact_configuration.compact_name.upper()} Compact Fee'
+        compact_fee_line_item.itemId = f'{compact_configuration.compact_abbr}-compact-fee'
+        compact_fee_line_item.name = f'{compact_configuration.compact_abbr.upper()} Compact Fee'
         compact_fee_line_item.description = 'Compact fee applied for each privilege purchased'
         compact_fee_line_item.quantity = len(selected_jurisdictions)
         compact_fee_line_item.unitPrice = _calculate_compact_fee_for_single_jurisdiction(compact_configuration)
@@ -346,8 +345,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         customer_address.firstName = order_information['billing']['firstName']
         customer_address.lastName = order_information['billing']['lastName']
         customer_address.address = (
-            f"{order_information['billing']['streetAddress']}"
-            f" {order_information['billing'].get('streetAddress2', '')}"
+            f'{order_information["billing"]["streetAddress"]} {order_information["billing"].get("streetAddress2", "")}'
         ).strip()
         customer_address.state = order_information['billing']['state']
         customer_address.zip = order_information['billing']['zip']
@@ -515,11 +513,10 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
             logger.info('Found settled batches', batch_ids=batch_ids)
             for batch in batch_response.batchList.batch:
                 if batch.settlementState == 'settlementError':
-                    logger.info(
-                        'Settlement error found in batch. Raising exception to send error email.',
+                    logger.warning(
+                        'Settlement error found in batch.',
                         batch_id=batch.batchId,
                     )
-                    raise TransactionBatchSettlementFailureException(f'Settlement error found in batch {batch.batchId}')
 
         return batch_response
 
@@ -641,6 +638,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         found_last_processed = last_processed_transaction_id is None
         processed_batch_ids = processed_batch_ids or []
         found_current_batch = current_batch_id is None
+        settlement_error_transaction_ids = []
 
         if hasattr(batch_response, 'batchList'):
             for batch in batch_response.batchList.batch:
@@ -690,6 +688,16 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                                 transaction_id=str(transaction.transId),
                             )
                             tx = details_response.transaction
+
+                            # Check if this transaction has a settlement error
+                            if str(tx.transactionStatus) == 'settlementError':
+                                settlement_error_transaction_ids.append(str(transaction.transId))
+                                logger.warning(
+                                    'Transaction was not in settledSuccessfully state',
+                                    batch_id=batch_id,
+                                    transaction_id=str(transaction.transId),
+                                    transaction_status=str(tx.transactionStatus),
+                                )
 
                             licensee_id = None
                             if hasattr(tx, 'order') and tx.order.description:
@@ -756,7 +764,11 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
                 logger.info('Finished processing batch', batch_id=batch_id)
                 processed_batch_ids.append(batch_id)
 
-        response = {'transactions': transactions, 'processedBatchIds': processed_batch_ids}
+        response = {
+            'transactions': transactions,
+            'processedBatchIds': processed_batch_ids,
+            'settlementErrorTransactionIds': settlement_error_transaction_ids,
+        }
 
         if last_transaction_id and last_batch_id:
             response['lastProcessedTransactionId'] = last_transaction_id
@@ -806,15 +818,15 @@ class PurchaseClient:
         # this will be initialized when a transaction is processed
         self.payment_processor_client = None
 
-    def _get_payment_processor_secret_name_for_compact(self, compact_name: str) -> str:
-        return f'compact-connect/env/{config.environment_name}/compact/{compact_name}/credentials/payment-processor'
+    def _get_payment_processor_secret_name_for_compact(self, compact_abbr: str) -> str:
+        return f'compact-connect/env/{config.environment_name}/compact/{compact_abbr}/credentials/payment-processor'
 
-    def _get_compact_payment_processor_client(self, compact_name: str) -> PaymentProcessorClient:
+    def _get_compact_payment_processor_client(self, compact_abbr: str) -> PaymentProcessorClient:
         """
         Get the payment processor credentials for a compact
         """
-        secret_name = self._get_payment_processor_secret_name_for_compact(compact_name)
-        logger.info('Getting payment processor credentials for compact', compact_name=compact_name)
+        secret_name = self._get_payment_processor_secret_name_for_compact(compact_abbr)
+        logger.info('Getting payment processor credentials for compact', compact_abbr=compact_abbr)
         secret = self.secrets_manager_client.get_secret_value(SecretId=secret_name)
 
         return PaymentProcessorClientFactory.create_payment_processor_client(json.loads(secret['SecretString']))
@@ -839,7 +851,7 @@ class PurchaseClient:
         if not self.payment_processor_client:
             # get the credentials from secrets_manager for the compact
             self.payment_processor_client: PaymentProcessorClient = self._get_compact_payment_processor_client(
-                compact_configuration.compact_name
+                compact_configuration.compact_abbr
             )
 
         return self.payment_processor_client.process_charge_on_credit_card_for_privilege_purchase(
@@ -850,26 +862,26 @@ class PurchaseClient:
             user_active_military=user_active_military,
         )
 
-    def void_privilege_purchase_transaction(self, compact_name: str, order_information: dict) -> dict:
+    def void_privilege_purchase_transaction(self, compact_abbr: str, order_information: dict) -> dict:
         """
         Void a charge on an unsettled credit card.
 
-        :param compact_name: The name of the compact
+        :param compact_abbr: The name of the compact
         :param order_information: A dictionary containing the order information (billing, card, etc.)
         """
         if not self.payment_processor_client:
             # get the credentials from secrets_manager for the compact
             self.payment_processor_client: PaymentProcessorClient = self._get_compact_payment_processor_client(
-                compact_name
+                compact_abbr
             )
 
         return self.payment_processor_client.void_unsettled_charge_on_credit_card(order_information=order_information)
 
-    def validate_and_store_credentials(self, compact_name: str, credentials: dict) -> dict:
+    def validate_and_store_credentials(self, compact_abbr: str, credentials: dict) -> dict:
         """
         Validate the provided payment credentials and store them in secrets manager.
 
-        :param compact_name: The name of the compact
+        :param compact_abbr: The abbreviation of the compact
         :param credentials: The payment processor credentials
         :return: A response indicating the credentials were validated and stored successfully
         :raises CCInvalidRequestException: If the credentials are invalid
@@ -891,20 +903,20 @@ class PurchaseClient:
         # first check to see if secret already exists
         try:
             self.secrets_manager_client.describe_secret(
-                SecretId=self._get_payment_processor_secret_name_for_compact(compact_name)
+                SecretId=self._get_payment_processor_secret_name_for_compact(compact_abbr)
             )
 
             # secret exists, update its value to whatever the admin sent us
-            logger.info('Existing secret found, updating secret for compact', compact_name=compact_name)
+            logger.info('Existing secret found, updating secret for compact', compact_abbr=compact_abbr)
             self.secrets_manager_client.put_secret_value(
-                SecretId=self._get_payment_processor_secret_name_for_compact(compact_name),
+                SecretId=self._get_payment_processor_secret_name_for_compact(compact_abbr),
                 SecretString=json.dumps(secret_value),
             )
         except self.secrets_manager_client.exceptions.ResourceNotFoundException:
             # secret does not exist, so we can create it
-            logger.info('Existing secret not found, creating new secret for compact', compact_name=compact_name)
+            logger.info('Existing secret not found, creating new secret for compact', compact_abbr=compact_abbr)
             self.secrets_manager_client.create_secret(
-                Name=self._get_payment_processor_secret_name_for_compact(compact_name),
+                Name=self._get_payment_processor_secret_name_for_compact(compact_abbr),
                 SecretString=json.dumps(secret_value),
             )
 
@@ -944,7 +956,7 @@ class PurchaseClient:
             processed_batch_ids=processed_batch_ids,
         )
 
-        # Add compact to each transaction
+        # Add compact to each transaction for serialization
         for transaction in response['transactions']:
             transaction['compact'] = compact
 

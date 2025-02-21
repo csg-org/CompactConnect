@@ -164,12 +164,20 @@ class PrivilegeCard extends mixins(MixinForm) {
         return isPastDate;
     }
 
+    get privilegeId(): string {
+        return this.privilege?.privilegeId || '';
+    }
+
     get licenseeId(): string {
         return this.privilege?.licenseeId || '';
     }
 
     get bestHomeStateLicense(): License {
         return this.licensee?.bestHomeStateLicense() || new License();
+    }
+
+    get occupationAbbrev(): string {
+        return this.bestHomeStateLicense?.occupationAbbreviation();
     }
 
     //

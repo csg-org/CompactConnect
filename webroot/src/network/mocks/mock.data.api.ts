@@ -11,6 +11,7 @@ import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model'
 import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
+import { CompactFeeConfigSerializer } from '@/models/CompactFeeConfig/CompactFeeConfig.model';
 import {
     userData,
     staffAccount,
@@ -207,12 +208,7 @@ export class DataApi {
         return this.wait(500).then(() => {
             const { items } = privilegePurchaseOptionsResponse;
             const privilegePurchaseOptions = items.filter((serverItem) => (serverItem.type === 'jurisdiction')).map((serverPurchaseOption) => (PrivilegePurchaseOptionSerializer.fromServer(serverPurchaseOption)));
-
-            const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => ({
-                compactType: serverFeeObject?.compactName,
-                feeType: serverFeeObject?.compactCommissionFee?.feeType,
-                feeAmount: serverFeeObject?.compactCommissionFee?.feeAmount
-            }))[0];
+            const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => (CompactFeeConfigSerializer.fromServer(serverFeeObject)))[0];
 
             return { privilegePurchaseOptions, compactCommissionFee };
         });

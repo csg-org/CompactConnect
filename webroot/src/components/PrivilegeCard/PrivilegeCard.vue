@@ -8,8 +8,13 @@
 <template>
     <div class="privilege-card-container">
         <div class="privilege-title-row" :class="{ 'has-actions': isCurrentUserPrivilegeAdmin }">
-            <span class="privilege-title">{{stateContent}}</span>
-            <div class="privilege-status" :class="{ 'italics': !isActive }">{{statusDisplay}}</div>
+            <div class="privilege-title-section">
+                <div class="privilege-title">{{stateContent}}</div>
+                <div class="occupation-abbrev">{{occupationAbbrev}}</div>
+            </div>
+            <div class="privilege-status" :class="{ 'italics': !isActive, 'bold': isActive }">
+                {{statusDisplay}}
+            </div>
             <div v-if="isCurrentUserPrivilegeAdmin" class="privilege-actions">
                 <div
                     class="privilege-actions-menu-toggle"
@@ -49,6 +54,10 @@
            <div class="info-item-container">
                 <div class="info-item-title">{{expiresTitle}}</div>
                 <div class="info-item" :class="{ 'error': isPastExiprationDate }">{{expiresContent}}</div>
+            </div>
+            <div class="info-item-container">
+                <div class="info-item-title">{{$t('licensing.privilegeNumSymbol')}}</div>
+                <div class="info-item" >{{privilegeId}}</div>
             </div>
             <div class="info-item-container discipline-item">
                 <div class="info-item-title">{{disciplineTitle}}</div>

@@ -286,7 +286,7 @@ class CCApi(RestApi):
         """
         For each supported compact in the system, return the secret arn for the payment processor credentials.
         The secret arn follows this pattern:
-        compact-connect/env/{environment_name}/compact/{compact_name}/credentials/payment-processor
+        compact-connect/env/{environment_name}/compact/{compact_abbr}/credentials/payment-processor
 
 
         This is used to scope the permissions granted to the lambda to only the secrets it needs to access.

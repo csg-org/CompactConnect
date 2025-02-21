@@ -105,6 +105,7 @@ class PersistentStack(AppStack):
         self.data_event_bus = EventBus(self, 'DataEventBus')
 
         self._add_data_resources(removal_policy=removal_policy)
+        self._add_migrations()
 
         self.compact_configuration_upload = CompactConfigurationUpload(
             self,
@@ -202,19 +203,31 @@ class PersistentStack(AppStack):
         self.provider_table = ProviderTable(
             self, 'ProviderTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
         )
-
-        self.ssn_table = SSNTable(self, 'SSNTable', removal_policy=removal_policy)
-        # Run migration 392 (GH issue number) to add a GSI pk field to the SSN records
-        DataMigration(
+        # Run migration 391 (GH issue number) to remove ssn fields from the provider data table
+        migration_391 = DataMigration(
             self,
-            '392SSNMigration',
-            migration_dir='392_ssn',
+            '391ProviderDataMigration',
+            migration_dir='391_reduced_ssn',
             lambda_environment={
                 **self.common_env_vars,
-                'SSN_TABLE_NAME': self.ssn_table.table_name,
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
             },
-            role=self.ssn_table.ingest_role,
         )
+        self.provider_table.grant_read_write_data(migration_391)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{migration_391.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': """This policy contains wild-carded actions and resources but they are scoped to the
+                              specific actions, Table, and KMS Key that this lambda specifically needs access to.
+                              """,
+                },
+            ],
+        )
+
+        self.ssn_table = SSNTable(self, 'SSNTable', removal_policy=removal_policy)
 
         self.data_event_table = DataEventTable(
             scope=self,
@@ -247,6 +260,47 @@ class PersistentStack(AppStack):
             encryption_key=self.shared_encryption_key,
             provider_table=self.provider_table,
             removal_policy=removal_policy,
+        )
+
+    def _add_migrations(self):
+        """
+        Whenever a change is introduced that requires a schema migration (ie a new GSI or removing a deprecated field)
+        there should be an associated migration script that is run as part of the deployment. These are short-lived
+        custom resources that should be removed from the CDK app once the migration has been run in all environments.
+        """
+        # # Run migration 392 (GH issue number) to add a GSI pk field to the SSN records
+        DataMigration(
+            self,
+            '392SSNMigration',
+            migration_dir='392_ssn',
+            lambda_environment={
+                **self.common_env_vars,
+                'SSN_TABLE_NAME': self.ssn_table.table_name,
+            },
+            role=self.ssn_table.ingest_role,
+        )
+        # Run migration 492 (GH issue number) to add compact transaction id GSI pk to privilege records
+        migration_492 = DataMigration(
+            self,
+            '492CompactTransactionIdGSIMigration',
+            migration_dir='492_transaction_id',
+            lambda_environment={
+                **self.common_env_vars,
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
+            },
+        )
+        self.provider_table.grant_read_write_data(migration_492)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{migration_492.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': """This policy contains wild-carded actions and resources but they are scoped to the
+                            specific actions, Table, and KMS Key that this lambda specifically needs access to.
+                            """,
+                },
+            ],
         )
 
     def _create_email_notification_service(self, environment_name: str) -> None:

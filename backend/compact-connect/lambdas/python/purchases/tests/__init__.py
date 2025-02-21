@@ -25,6 +25,7 @@ class TstLambdas(TestCase):
                 'PROVIDER_TABLE_NAME': 'provider-table',
                 'PROV_FAM_GIV_MID_INDEX_NAME': 'providerFamGivMid',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
+                'COMPACT_TRANSACTION_ID_GSI_NAME': 'compactTransactionIdGSI',
                 'LICENSE_TYPES': json.dumps(
                     {
                         'aslp': [
