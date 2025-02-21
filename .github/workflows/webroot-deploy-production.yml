@@ -7,7 +7,8 @@ on:
   # Triggers the workflow on pushes to trunk branches involving changes to web frontend files
   push:
     branches:
-      - main
+      # - main // @TODO
+      - frontend/prod-deploy-pipeline
     paths:
       - webroot/**
 
@@ -18,7 +19,7 @@ on:
 jobs:
   WebrootDeploy:
     # Only run this workflow in certian repos
-    if: github.repository == 'csg-org/CompactConnect'
+    # if: github.repository == 'csg-org/CompactConnect' // @TODO
 
     # Runner OS
     runs-on: ubuntu-latest
@@ -139,7 +140,8 @@ jobs:
         uses: slackapi/slack-github-action@v1.26.0
         # https://github.com/slackapi/slack-github-action?tab=readme-ov-file#technique-2-slack-app
         with:
-          channel-id: 'z_jcc_and_inspiringapps'
+          # channel-id: 'z_jcc_and_inspiringapps' // @TODO
+          channel-id: 'app-test'
           # https://app.slack.com/block-kit-builder
           payload: |
             {
