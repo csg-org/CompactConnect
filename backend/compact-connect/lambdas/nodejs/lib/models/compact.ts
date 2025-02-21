@@ -8,6 +8,7 @@ export interface Compact {
     sk: string;
     compactAdverseActionsNotificationEmails: string[];
     compactCommissionFee: CompactCommissionFee;
+    compactAbbr: string;
     compactName: string;
     compactOperationsTeamEmails: string[];
     compactSummaryReportNotificationEmails: string[];

@@ -201,7 +201,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
         # the start time should be 7 days ago at 10:00 PM UTC
         start_time = end_time - timedelta(days=7)
-        date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
+        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
 
         # Generate the reports
         generate_transaction_reports(generate_mock_event(), self.mock_context)
@@ -216,9 +216,9 @@ class TestGenerateTransactionReports(TstFunction):
 
         compact_payload = json.loads(compact_call['Payload'])
         expected_compact_path = (
-            f"compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/"
-            f"{end_time.strftime('%Y/%m/%d')}/"
-            f"{TEST_COMPACT}-{date_range}-report.zip"
+            f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
+            f'{end_time.strftime("%Y/%m/%d")}/'
+            f'{TEST_COMPACT}-{date_range}-report.zip'
         )
         self.assertEqual(
             {
@@ -242,9 +242,9 @@ class TestGenerateTransactionReports(TstFunction):
 
         ohio_payload = json.loads(ohio_call['Payload'])
         expected_ohio_path = (
-            f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/oh/"
-            f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
-            f"oh-{date_range}-report.zip"
+            f'compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/oh/'
+            f'reporting-cycle/weekly/{end_time.strftime("%Y/%m/%d")}/'
+            f'oh-{date_range}-report.zip'
         )
         self.assertEqual(
             {
@@ -337,7 +337,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
         # the start time should be 7 days ago at 10:00 PM UTC
         start_time = end_time - timedelta(days=7)
-        date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
+        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
@@ -350,9 +350,9 @@ class TestGenerateTransactionReports(TstFunction):
         self.assertEqual('RequestResponse', compact_call['InvocationType'])
 
         expected_compact_path = (
-            f"compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/"
-            f"{end_time.strftime('%Y/%m/%d')}/"
-            f"{TEST_COMPACT}-{date_range}-report.zip"
+            f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
+            f'{end_time.strftime("%Y/%m/%d")}/'
+            f'{TEST_COMPACT}-{date_range}-report.zip'
         )
         compact_payload = json.loads(compact_call['Payload'])
         self.assertEqual(
@@ -377,9 +377,9 @@ class TestGenerateTransactionReports(TstFunction):
             self.assertEqual('RequestResponse', jurisdiction_call['InvocationType'])
 
             expected_jurisdiction_path = (
-                f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
-                f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
-                f"{jurisdiction}-{date_range}-report.zip"
+                f'compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/'
+                f'reporting-cycle/weekly/{end_time.strftime("%Y/%m/%d")}/'
+                f'{jurisdiction}-{date_range}-report.zip'
             )
             jurisdiction_payload = json.loads(jurisdiction_call['Payload'])
             self.assertEqual(
@@ -431,9 +431,9 @@ class TestGenerateTransactionReports(TstFunction):
             jurisdiction_zip_obj = self.config.s3_client.get_object(
                 Bucket=self.config.transaction_reports_bucket_name,
                 Key=(
-                    f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
-                    f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
-                    f"{jurisdiction}-{date_range}-report.zip"
+                    f'compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/'
+                    f'reporting-cycle/weekly/{end_time.strftime("%Y/%m/%d")}/'
+                    f'{jurisdiction}-{date_range}-report.zip'
                 ),
             )
 
@@ -477,7 +477,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
         # the start time should be 7 days ago at 10:00 PM UTC
         start_time = end_time - timedelta(days=7)
-        date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
+        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
@@ -490,9 +490,9 @@ class TestGenerateTransactionReports(TstFunction):
         self.assertEqual('RequestResponse', compact_call['InvocationType'])
 
         expected_compact_path = (
-            f"compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/"
-            f"{end_time.strftime('%Y/%m/%d')}/"
-            f"{TEST_COMPACT}-{date_range}-report.zip"
+            f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
+            f'{end_time.strftime("%Y/%m/%d")}/'
+            f'{TEST_COMPACT}-{date_range}-report.zip'
         )
         compact_payload = json.loads(compact_call['Payload'])
         self.assertEqual(
@@ -517,9 +517,9 @@ class TestGenerateTransactionReports(TstFunction):
             self.assertEqual('RequestResponse', jurisdiction_call['InvocationType'])
 
             expected_jurisdiction_path = (
-                f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
-                f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
-                f"{jurisdiction}-{date_range}-report.zip"
+                f'compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/'
+                f'reporting-cycle/weekly/{end_time.strftime("%Y/%m/%d")}/'
+                f'{jurisdiction}-{date_range}-report.zip'
             )
             jurisdiction_payload = json.loads(jurisdiction_call['Payload'])
             self.assertEqual(
@@ -574,9 +574,9 @@ class TestGenerateTransactionReports(TstFunction):
             jurisdiction_zip_obj = self.config.s3_client.get_object(
                 Bucket=self.config.transaction_reports_bucket_name,
                 Key=(
-                    f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
-                    f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
-                    f"{jurisdiction}-{date_range}-report.zip"
+                    f'compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/'
+                    f'reporting-cycle/weekly/{end_time.strftime("%Y/%m/%d")}/'
+                    f'{jurisdiction}-{date_range}-report.zip'
                 ),
             )
 
@@ -627,7 +627,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
         # the start time should be 7 days ago at 10:00 PM UTC
         start_time = end_time - timedelta(days=7)
-        date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
+        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
@@ -636,9 +636,9 @@ class TestGenerateTransactionReports(TstFunction):
         compact_zip_obj = self.config.s3_client.get_object(
             Bucket=self.config.transaction_reports_bucket_name,
             Key=(
-                f"compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/"
-                f"{end_time.strftime('%Y/%m/%d')}/"
-                f"{TEST_COMPACT}-{date_range}-report.zip"
+                f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
+                f'{end_time.strftime("%Y/%m/%d")}/'
+                f'{TEST_COMPACT}-{date_range}-report.zip'
             ),
         )
 
@@ -685,9 +685,9 @@ class TestGenerateTransactionReports(TstFunction):
             jurisdiction_zip_obj = self.config.s3_client.get_object(
                 Bucket=self.config.transaction_reports_bucket_name,
                 Key=(
-                    f"compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/"
-                    f"reporting-cycle/weekly/{end_time.strftime('%Y/%m/%d')}/"
-                    f"{jurisdiction}-{date_range}-report.zip"
+                    f'compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/'
+                    f'reporting-cycle/weekly/{end_time.strftime("%Y/%m/%d")}/'
+                    f'{jurisdiction}-{date_range}-report.zip'
                 ),
             )
 
@@ -750,7 +750,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_time = datetime.fromisoformat('2025-04-05T22:00:00+00:00')
         # the start time should be 7 days ago at 10:00 PM UTC
         start_time = end_time - timedelta(days=7)
-        date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
+        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
 
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
 
@@ -773,9 +773,9 @@ class TestGenerateTransactionReports(TstFunction):
         compact_zip_obj = self.config.s3_client.get_object(
             Bucket=self.config.transaction_reports_bucket_name,
             Key=(
-                f"compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/"
-                f"{end_time.strftime('%Y/%m/%d')}/"
-                f"{TEST_COMPACT}-{date_range}-report.zip"
+                f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
+                f'{end_time.strftime("%Y/%m/%d")}/'
+                f'{TEST_COMPACT}-{date_range}-report.zip'
             ),
         )
 
@@ -981,7 +981,7 @@ class TestGenerateTransactionReports(TstFunction):
         end_time = datetime.fromisoformat('2025-03-08T22:00:00+00:00')
         # the start time should be 7 days ago at 10:00 PM UTC
         start_time = end_time - timedelta(days=7)
-        date_range = f"{start_time.strftime('%Y-%m-%d')}--{end_time.strftime('%Y-%m-%d')}"
+        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
 
         generate_transaction_reports(generate_mock_event(reporting_cycle='weekly'), self.mock_context)
 
@@ -994,9 +994,9 @@ class TestGenerateTransactionReports(TstFunction):
         self.assertEqual('RequestResponse', compact_call['InvocationType'])
 
         expected_compact_path = (
-            f"compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/"
-            f"{end_time.strftime('%Y/%m/%d')}/"
-            f"{TEST_COMPACT}-{date_range}-report.zip"
+            f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
+            f'{end_time.strftime("%Y/%m/%d")}/'
+            f'{TEST_COMPACT}-{date_range}-report.zip'
         )
         compact_payload = json.loads(compact_call['Payload'])
         self.assertEqual(
