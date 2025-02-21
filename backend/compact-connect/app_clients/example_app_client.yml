@@ -1,0 +1,11 @@
+# PLACEHOLDER EXAMPLE FILE
+clientName: "example-csg-app-client-v1"
+description: "Example CSG App Client for Automated License Data Management"
+createdDate: "2025-02-21"
+ownerContact: "csg.it.support@example.com"
+clientId: "6g34example89j"
+scopes:
+  - "aslp/readGeneral"
+  - "octp/readGeneral"
+  - "ky/aslp.write"
+  - "ky/octp.write"

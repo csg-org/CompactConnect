@@ -11,6 +11,7 @@ from aws_cdk.aws_cognito import (
     StandardAttributes,
     UserPoolEmail,
     UserPoolOperation,
+    UserPoolResourceServer,
 )
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
@@ -138,7 +139,7 @@ class StaffUsers(UserPool):
 
         active_compacts = stack.get_list_of_active_compacts_for_environment(environment_name)
         self.compact_resource_servers = {}
-        self.jurisdiction_resource_servers = {}
+        self.jurisdiction_resource_servers: dict[str, UserPoolResourceServer] = {}
         _jurisdiction_compact_scope_mapping: dict[str, list] = {}
         for compact in active_compacts:
             self.compact_resource_servers[compact] = self.add_resource_server(
