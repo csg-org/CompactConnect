@@ -269,7 +269,7 @@ This ensures that providers always see and accept the most current version of re
 
 ![Transaction History Reporting Diagram](/backend/compact-connect/docs/design/transaction-history-reporting-diagram.pdf)
 
-When a provider purchases privileges in a compact, the purchase is recorded in the compact's payment processor (currently we only support Authorize.net). There is at least a 24 hour delay before the transaction is settled. The transaction history reporting system is designed to track and report on all **succesfully settled** transactions in the system.
+When a provider purchases privileges in a compact, the purchase is recorded in the compact's payment processor (currently we only support Authorize.net). There is at least a 24 hour delay before the transaction is settled. The transaction history reporting system is designed to track and report on all settled transactions in the system.
 
 ### Transaction Processing Overview
 
@@ -288,34 +288,31 @@ The system processes transactions through multiple stages:
    - Each batch contains transactions since the last batch was settled
    - Batches can be in one of several states:
      - Settled: Successfully processed
-     - Settlement Error: Failed to settle (triggers alerts) see [Batch Settlement Failure Handling](#batch-settlement-failure-handling)
+     - Settlement Error: Failed to settle (triggers email notification to compact support contacts) see [Batch Settlement Failure Handling](#batch-settlement-failure-handling)
 
 3. **Transaction Collection**
    - A Step Function workflow runs daily at 5:00 PM Pacific Time (1:00 AM UTC)
    - The workflow:
-     - Queries Authorize.net for settled batches in the last 24 hours
+     - Queries Authorize.net for all batches in the last 24 hours
      - Processes transactions in groups of up to 500 (to avoid lambda timeouts)
-     - Fetches the associated privilege id of the privilege that was purchased for that transaction 
-      and injects it into the data that is stored in the Transaction History DynamoDB Table
+     - Retrieves the associated privilege id from CompactConnect's provider data DynamoDB Table for the privilege that was purchased for each transaction and injects it into the data that is stored in the Transaction History DynamoDB Table.
      - Handles pagination across multiple batches
      - Sends email alerts if settlement errors are detected
 
 4. **Reporting**
-   - System generates two types of reports:
+
+   The System generates two types of reports:
      - **Compact Reports**:
        - Financial summary showing total amount of fees collected
        - Detailed transaction listing
      - **Jurisdiction Reports**:
        - Transaction details for privileges purchased in their jurisdiction
-   - Reports are generated:
-     - Weekly (Fridays at 10:00 PM UTC)
-     - Monthly (1st day of each month at 8:00 AM UTC)
-   - Reports are:
-     - Stored in S3 as compressed ZIP files
-     - Emailed to appropriate compact/jurisdiction contacts
+
+    
+All of these reports are sent out weekly (Fridays at 10:00 PM UTC) and monthly (1st day of each month at 8:00 AM UTC).
 
 ### Data Storage
-
+#### Transaction History
 Transactions are stored in DynamoDB with the following key structure:
 ```
 PK: COMPACT#{compact}#TRANSACTIONS#MONTH#{YYYY-MM}
@@ -325,6 +322,14 @@ SK: COMPACT#{compact}#TIME#{batch settled time epoch_timestamp}#BATCH#{batch_id}
 This structure enables:
 - Efficient querying of transactions by compact and time period
 - Monthly partitioning for performance
+
+#### Report Files
+Reports are stored in the Transaction Reports S3 bucket as compressed ZIP files under the following path:
+```
+compact/{compact}/reports/{compact-transactions|jurisdiction-transactions}/reporting-cycle/{monthly|weekly}/{YYYY}/{MM}/{DD}/{file-name}.zip
+```
+The date in the path corresponds to the date that the report was generated.
+
 
 ### Monitoring and Alerts
 
