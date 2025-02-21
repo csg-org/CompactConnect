@@ -10,7 +10,7 @@ Before creating a new app client, ensure you have:
 - Jurisdiction requirements documented
 - Contact information for the consuming team
 - Approval for requested scopes
-- Update access to the app client registry
+- Update access to the Staff Users user pool for the needed AWS accounts
 
 ### 2. Update Registry
 Add a new app client yaml file to `/app_clients` following the schema of the example app client.
@@ -24,10 +24,10 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
 
    The following scopes are available at the compact level:
    ```
-   {compact}/write
    {compact}/admin
    {compact}/readGeneral
    {compact}/readSSN
+   {compact}/write
    ```
 
 ##### **Jurisdiction-Level Scopes:**
@@ -48,18 +48,19 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
    ```
    aws cognito-idp create-user-pool-client --user-pool-id '<staff users's user pool id>' \
    --client-name '<name of client you set in the yaml file, it should include a version suffix for rotation, e.g. "example-ky-app-client-v1">'\
-   --explicit-auth-flows 'ALLOW_REFRESH_TOKEN_AUTH' \
    --prevent-user-existence-errors ENABLED \
    --generate-secret \
-   --token-validity-units AccessToken='minutes',RefreshToken='days' \
+   --token-validity-units AccessToken='minutes'\
    --access-token-validity 15 \
-   --refresh-token-validity 1 \
    --allowed-o-auth-flows-user-pool-client \
    --allowed-o-auth-flows 'client_credentials' \
    --allowed-o-auth-scopes '<compact>/readGeneral' '<jurisdiction>/<compact>.write'
    ```
 
-   It may be useful to commit the cli command to the yaml file as a comment, so that it can be used to create the app client in the future when credentials need to be rotated. See [Rotating App Client Credentials](#rotating-app-client-credentials) for more information.
+   It is important to note that generated access tokens will expire after 15 minutes, so the consuming team will need to have application logic to generate a new access token before it expires (this time can be adjusted according to the needs of the consuming team by updating the access token validity in the cli command).
+
+   If the consuming team plans to use both the test and production environments, you will need to create two separate app clients, one for each environment in their respective AWS accounts.
+
 
 ### 4. **Send Credentials to Consuming Team**
    - The client_id and client_secret will be needed by the consuming team to authenticate with the API. This information is returned in the response of the cli command.
@@ -72,7 +73,18 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
         }
    }
    ```
-   These credentials should be securely transmitted to the consuming team via a encrypted channel.
+
+   These credentials should be securely transmitted to the consuming team via a encrypted channel. You will also need to provide them with the user pool domain for the Staff Users user pool, which can be determined using the following cli command.
+   ```
+   aws cognito-idp describe-user-pool --user-pool-id '<user pool id>' --query 'UserPool.Domain' --output text
+   ```
+
+   If the team has questions about generating access tokens, refer them to Amazon's [documentation](https://docs.aws.amazon.com/cognito/latest/developerguide/token-endpoint.html). You can also give them the following curl example for generating an access token (Instruct them to replace the `<user pool domain>`, `<client id>`, `<client secret>` with the values you send them. The `<jurisdiction>` and `<compact>` scope values should be the jurisdiction postal code and compact abbreviation they are requesting access to such as `ky` for Kentucky and `aslp` for the ASLP compact).
+   ```
+    curl --location --request POST 'https://<user pool domain>.auth.us-east-1.amazoncognito.com/oauth2/token?grant_type=client_credentials&client_id=<client id>&client_secret=<client secret>&scope=<jurisdiction>%2F<compact>.write' \
+    --header 'Content-Type: application/x-www-form-urlencoded' \
+    --header 'Accept: application/json'
+   ```
 
 
 ## Rotating App Client Credentials
@@ -84,9 +96,8 @@ Unfortunately, AWS Cognito does not support rotating app client credentials for 
 - Update yaml file with new clientId, clientName, and createdDate
 
 ### 2. Migration
-- Provide new credentials to consuming team
-- Allow parallel operation during migration
-- Consuming team will need to confirm that the new credentials are working as expected
+- Provide new client id and client secret to consuming team
+- Consuming team will need to confirm that the new credentials are deployed in their systems, the old app client is not in use, and their systems are working as expected.
 
 ### 3. Cleanup
 - Delete old app client from Cognito using the following cli command:
