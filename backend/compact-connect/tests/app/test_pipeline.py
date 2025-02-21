@@ -66,7 +66,7 @@ class TestPipeline(TstAppABC, TestCase):
         resource_servers = persistent_stack.staff_users.compact_resource_servers
         # We must confirm that these scopes are being explicitly created for each compact
         # which are absolutely critical for the system to function as expected.
-        self.assertEqual(self.context['compacts'], list(resource_servers.keys()))
+        self.assertEqual(sorted(self.context['compacts']), sorted(list(resource_servers.keys())))
 
         for compact, resource_server in resource_servers.items():
             resource_server_properties = self.get_resource_properties_by_logical_id(

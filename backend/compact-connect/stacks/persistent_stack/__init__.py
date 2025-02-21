@@ -461,7 +461,7 @@ class PersistentStack(AppStack):
                         environment_name,
                         formatted_compact['activeEnvironments'],
                     ):
-                        active_compacts.append(formatted_compact['compactName'])
+                        active_compacts.append(formatted_compact['compactAbbr'])
 
         return active_compacts
 
