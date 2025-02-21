@@ -509,6 +509,8 @@
         "birthMonthDay": "Birth month-day",
         "pastPrivilegesTitle": "Past privileges",
         "licenseDetails": "License details",
+        "licenseNumSymbol": "License #",
+        "privilegeNumSymbol": "Privilege #",
         "driversLicense": "Drivers License #",
         "militaryAffilitionDocs": "military affiliation documents",
         "personalInformation": "Personal information",
@@ -556,27 +558,32 @@
             {
                 "name": "Audiologist",
                 "key": "audiologist",
-                "compactKey": "aslp"
+                "compactKey": "aslp",
+                "abbrev": "aud"
             },
             {
                 "name": "Speech-Language Pathologist",
                 "key": "speech-language pathologist",
-                "compactKey": "aslp"
+                "compactKey": "aslp",
+                "abbrev": "slp"
             },
             {
                 "name": "Occupational Therapist",
                 "key": "occupational therapist",
-                "compactKey": "octp"
+                "compactKey": "octp",
+                "abbrev": "ot"
             },
             {
                 "name": "Occupational Therapy Assistant",
                 "key": "occupational therapy assistant",
-                "compactKey": "octp"
+                "compactKey": "octp",
+                "abbrev": "ota"
             },
             {
                 "name": "Licensed Professional Counselor",
                 "key": "licensed professional counselor",
-                "compactKey": "coun"
+                "compactKey": "coun",
+                "abbrev": "lpc"
             }
         ],
         "privilegePurchaseTitle": "Privilege purchase",
