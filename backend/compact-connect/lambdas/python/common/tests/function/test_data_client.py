@@ -197,6 +197,7 @@ class TestDataClient(TstFunction):
                 'providerId': 'test_provider_id',
                 'compact': 'aslp',
                 'jurisdiction': 'ca',
+                'persistedStatus': 'active',
                 'dateOfIssuance': '2024-11-08T23:59:59+00:00',
                 'dateOfRenewal': '2024-11-08T23:59:59+00:00',
                 'dateOfExpiration': '2024-10-31',
@@ -239,6 +240,7 @@ class TestDataClient(TstFunction):
             'providerId': provider_uuid,
             'compact': 'aslp',
             'jurisdiction': 'ky',
+            'persistedStatus': 'active',
             'dateOfIssuance': '2023-11-08T23:59:59+00:00',
             'dateOfRenewal': '2023-11-08T23:59:59+00:00',
             'dateOfExpiration': '2024-10-31',
@@ -284,6 +286,7 @@ class TestDataClient(TstFunction):
                     'providerId': 'test_provider_id',
                     'compact': 'aslp',
                     'jurisdiction': 'ky',
+                    'persistedStatus': 'active',
                     # Should be updated dates for renewal, expiration, update
                     'dateOfIssuance': '2023-11-08T23:59:59+00:00',
                     'dateOfRenewal': '2024-11-08T23:59:59+00:00',
@@ -298,7 +301,7 @@ class TestDataClient(TstFunction):
                 # A new history record
                 {
                     'pk': 'aslp#PROVIDER#test_provider_id',
-                    'sk': 'aslp#PROVIDER#privilege/ky#UPDATE#1731110399/d6eac0f8c9ed5fbac225f61b33d9bf66',
+                    'sk': 'aslp#PROVIDER#privilege/ky#UPDATE#1731110399/dec844e72850ff74c8b7f9bea4b7543a',
                     'type': 'privilegeUpdate',
                     'updateType': 'renewal',
                     'providerId': 'test_provider_id',
@@ -313,6 +316,7 @@ class TestDataClient(TstFunction):
                         'dateOfUpdate': '2023-11-08T23:59:59+00:00',
                         'compactTransactionId': '1234567890',
                         'attestations': self.sample_privilege_attestations,
+                        'persistedStatus': 'active',
                         'privilegeId': 'AUD-KY-1',
                     },
                     'updatedValues': {
@@ -619,3 +623,194 @@ class TestDataClient(TstFunction):
 
         with self.assertRaises(CCInternalException):
             client.get_ssn_by_provider_id(compact='aslp', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    def test_deactivate_privilege_updates_record(self):
+        from cc_common.data_model.data_client import DataClient
+
+        provider_id = self._load_provider_data()
+
+        # Create the first privilege
+        original_privilege = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': 'aslp#PROVIDER#privilege/ne#',
+            'type': 'privilege',
+            'providerId': provider_id,
+            'compact': 'aslp',
+            'jurisdiction': 'ne',
+            'persistedStatus': 'active',
+            'dateOfIssuance': '2023-11-08T23:59:59+00:00',
+            'dateOfRenewal': '2023-11-08T23:59:59+00:00',
+            'dateOfExpiration': '2024-10-31',
+            'dateOfUpdate': '2023-11-08T23:59:59+00:00',
+            'compactTransactionId': '1234567890',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+            'attestations': self.sample_privilege_attestations,
+            'privilegeId': 'AUD-NE-1',
+        }
+        self._provider_table.put_item(Item=original_privilege)
+
+        test_data_client = DataClient(self.config)
+
+        # Now, deactivate the privilege
+        test_data_client.deactivate_privilege(
+            compact='aslp',
+            provider_id=provider_id,
+            jurisdiction='ne',
+        )
+
+        # Verify that the privilege record was updated
+        new_privilege = self._provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne#'),
+        )['Items']
+        self.maxDiff = None
+        self.assertEqual(
+            [
+                # Primary record
+                {
+                    'pk': f'aslp#PROVIDER#{provider_id}',
+                    'sk': 'aslp#PROVIDER#privilege/ne#',
+                    'type': 'privilege',
+                    'providerId': provider_id,
+                    'compact': 'aslp',
+                    'jurisdiction': 'ne',
+                    'persistedStatus': 'inactive',
+                    'dateOfIssuance': '2023-11-08T23:59:59+00:00',
+                    'dateOfRenewal': '2023-11-08T23:59:59+00:00',
+                    'dateOfExpiration': '2024-10-31',
+                    'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                    'compactTransactionId': '1234567890',
+                    'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+                    'attestations': self.sample_privilege_attestations,
+                    'privilegeId': 'AUD-NE-1',
+                },
+                # A new history record
+                {
+                    'pk': f'aslp#PROVIDER#{provider_id}',
+                    'sk': 'aslp#PROVIDER#privilege/ne#UPDATE#1731110399/dba34d0647b68b3d577f8135ad6ec677',
+                    'type': 'privilegeUpdate',
+                    'updateType': 'deactivation',
+                    'providerId': provider_id,
+                    'compact': 'aslp',
+                    'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+                    'jurisdiction': 'ne',
+                    'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                    'previous': {
+                        'dateOfIssuance': '2023-11-08T23:59:59+00:00',
+                        'dateOfRenewal': '2023-11-08T23:59:59+00:00',
+                        'dateOfExpiration': '2024-10-31',
+                        'dateOfUpdate': '2023-11-08T23:59:59+00:00',
+                        'compactTransactionId': '1234567890',
+                        'attestations': self.sample_privilege_attestations,
+                        'persistedStatus': 'active',
+                        'privilegeId': 'AUD-NE-1',
+                    },
+                    'updatedValues': {
+                        'persistedStatus': 'inactive',
+                    },
+                },
+            ],
+            new_privilege,
+        )
+
+        # The deactivation should still ensure that 'ne' is removed from privilegeJurisdictions
+        provider = self._provider_table.get_item(
+            Key={'pk': f'aslp#PROVIDER#{provider_id}', 'sk': 'aslp#PROVIDER'},
+        )['Item']
+        self.assertEqual(set(), provider.get('privilegeJurisdictions', set()))
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    def test_deactivate_privilege_raises_if_privilege_not_found(self):
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.exceptions import CCNotFoundException
+
+        test_data_client = DataClient(self.config)
+
+        # We haven't created any providers or privileges but we'll try to deactivate a privilege
+        with self.assertRaises(CCNotFoundException):
+            test_data_client.deactivate_privilege(
+                compact='aslp',
+                provider_id='some-provider-id',
+                jurisdiction='ne',
+            )
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    def test_deactivate_privilege_on_inactive_privilege_has_no_effect(self):
+        from cc_common.data_model.data_client import DataClient
+
+        provider_id = self._load_provider_data()
+
+        # Remove 'ne' from privilegeJurisdictions
+        self._provider_table.update_item(
+            Key={'pk': f'aslp#PROVIDER#{provider_id}', 'sk': 'aslp#PROVIDER'},
+            UpdateExpression='DELETE privilegeJurisdictions :jurisdiction',
+            ExpressionAttributeValues={':jurisdiction': {'ne'}},
+        )
+
+        # Create the first privilege
+        original_privilege = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': 'aslp#PROVIDER#privilege/ne#',
+            'type': 'privilege',
+            'providerId': provider_id,
+            'compact': 'aslp',
+            'jurisdiction': 'ne',
+            'persistedStatus': 'inactive',
+            'dateOfIssuance': '2023-11-08T23:59:59+00:00',
+            'dateOfRenewal': '2023-11-08T23:59:59+00:00',
+            'dateOfExpiration': '2024-10-31',
+            'dateOfUpdate': '2023-11-08T23:59:59+00:00',
+            'compactTransactionId': '1234567890',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+            'attestations': self.sample_privilege_attestations,
+            'privilegeId': 'AUD-NE-1',
+        }
+        self._provider_table.put_item(Item=original_privilege)
+        # We'll create it as if it were already deactivated
+        original_history = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': 'aslp#PROVIDER#privilege/ne#UPDATE#1731110399/483bebc6cb3fd6b517f8ce9ad706c518',
+            'type': 'privilegeUpdate',
+            'updateType': 'renewal',
+            'providerId': provider_id,
+            'compact': 'aslp',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+            'jurisdiction': 'ne',
+            'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+            'previous': {
+                'dateOfIssuance': '2023-11-08T23:59:59+00:00',
+                'dateOfRenewal': '2023-11-08T23:59:59+00:00',
+                'dateOfExpiration': '2024-10-31',
+                'dateOfUpdate': '2023-11-08T23:59:59+00:00',
+                'compactTransactionId': '1234567890',
+                'attestations': self.sample_privilege_attestations,
+                'privilegeId': 'AUD-NE-1',
+            },
+            'updatedValues': {
+                'persistedStatus': 'inactive',
+            },
+        }
+        self._provider_table.put_item(Item=original_history)
+
+        test_data_client = DataClient(self.config)
+
+        # Now, deactivate the privilege
+        test_data_client.deactivate_privilege(
+            compact='aslp',
+            provider_id=provider_id,
+            jurisdiction='ne',
+        )
+
+        # Verify that the privilege record was unchanged
+        new_privilege = self._provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne#'),
+        )['Items']
+        self.assertEqual([original_privilege, original_history], new_privilege)
+
+        # 'ne' should still be removed from privilegeJurisdictions
+        provider = self._provider_table.get_item(
+            Key={'pk': f'aslp#PROVIDER#{provider_id}', 'sk': 'aslp#PROVIDER'},
+        )['Item']
+        self.assertEqual(set(), provider.get('privilegeJurisdictions', set()))

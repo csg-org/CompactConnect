@@ -12,6 +12,7 @@ from aws_cdk.aws_cloudwatch import (
     TreatMissingData,
 )
 from aws_cdk.aws_cloudwatch_actions import SnsAction
+from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
@@ -30,7 +31,9 @@ class QueryProviders:
         *,
         resource: Resource,
         method_options: MethodOptions,
+        admin_method_options: MethodOptions,
         ssn_method_options: MethodOptions,
+        event_bus: EventBus,
         data_encryption_key: IKey,
         ssn_table: SSNTable,
         provider_data_table: ProviderTable,
@@ -49,6 +52,7 @@ class QueryProviders:
             'PROV_DATE_OF_UPDATE_INDEX_NAME': provider_data_table.provider_date_of_update_index_name,
             'SSN_TABLE_NAME': ssn_table.table_name,
             'SSN_INDEX_NAME': ssn_table.ssn_index_name,
+            'EVENT_BUS_NAME': event_bus.event_bus_name,
             **stack.common_env_vars,
         }
 
@@ -67,6 +71,12 @@ class QueryProviders:
         self._add_get_provider_ssn(
             method_options=ssn_method_options,
             ssn_table=ssn_table,
+            lambda_environment=lambda_environment,
+        )
+        self._add_deactivate_privilege(
+            method_options=admin_method_options,
+            provider_data_table=provider_data_table,
+            event_bus=event_bus,
             lambda_environment=lambda_environment,
         )
 
@@ -308,3 +318,74 @@ class QueryProviders:
         # calls are not needed here.
 
         return self.get_provider_ssn_handler
+
+    def _add_deactivate_privilege(
+        self,
+        method_options: MethodOptions,
+        event_bus: EventBus,
+        provider_data_table: ProviderTable,
+        lambda_environment: dict,
+    ):
+        """Add POST /providers/{providerId}/privileges/jurisdiction/{jurisdiction}
+        /licenseType/{licenseType}/deactivate endpoint."""
+        handler = self._deactivate_privilege_handler(
+            provider_data_table=provider_data_table,
+            event_bus=event_bus,
+            lambda_environment=lambda_environment,
+        )
+        self.api.log_groups.append(handler.log_group)
+
+        # Create the nested resources for the path
+        privileges_resource = self.provider_resource.add_resource('privileges')
+        jurisdiction_resource = privileges_resource.add_resource('jurisdiction').add_resource('{jurisdiction}')
+        license_type_resource = jurisdiction_resource.add_resource('licenseType').add_resource('{licenseType}')
+        deactivate_resource = license_type_resource.add_resource('deactivate')
+
+        deactivate_resource.add_method(
+            'POST',
+            request_validator=self.api.parameter_body_validator,
+            method_responses=[
+                MethodResponse(
+                    status_code='200',
+                    response_models={'application/json': self.api_model.message_response_model},
+                ),
+            ],
+            integration=LambdaIntegration(handler, timeout=Duration.seconds(29)),
+            request_parameters={'method.request.header.Authorization': True},
+            authorization_type=method_options.authorization_type,
+            authorizer=method_options.authorizer,
+            authorization_scopes=method_options.authorization_scopes,
+        )
+
+    def _deactivate_privilege_handler(
+        self,
+        provider_data_table: ProviderTable,
+        event_bus: EventBus,
+        lambda_environment: dict,
+    ) -> PythonFunction:
+        """Create and configure the Lambda handler for deactivating a provider's privilege."""
+        self.deactivate_privilege_handler = PythonFunction(
+            self.resource,
+            'DeactivatePrivilegeHandler',
+            description='Deactivate provider privilege handler',
+            lambda_dir='provider-data-v1',
+            index=os.path.join('handlers', 'privileges.py'),
+            handler='deactivate_privilege',
+            environment=lambda_environment,
+            alarm_topic=self.api.alarm_topic,
+        )
+        provider_data_table.grant_read_write_data(self.deactivate_privilege_handler)
+        event_bus.grant_put_events_to(self.deactivate_privilege_handler)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            Stack.of(self.deactivate_privilege_handler.role),
+            path=f'{self.deactivate_privilege_handler.role.node.path}/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to read/write '
+                    'and is scoped to one table and event bus.',
+                },
+            ],
+        )
+        return self.deactivate_privilege_handler

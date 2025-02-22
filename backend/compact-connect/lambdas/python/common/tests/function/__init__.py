@@ -203,7 +203,7 @@ class TstFunction(TstLambdas):
             # compact and jurisdiction records go in the compact configuration table
             self._compact_configuration_table.put_item(Item=record)
 
-    def _load_provider_data(self):
+    def _load_provider_data(self) -> str:
         """Use the canned test resources to load a basic provider to the DB"""
         test_resources = glob('../common/tests/resources/dynamo/provider.json')
 
@@ -218,6 +218,7 @@ class TstFunction(TstLambdas):
 
             logger.debug('Loading resource, %s: %s', resource, str(record))
             self._provider_table.put_item(Item=record)
+        return record['providerId']
 
     def _load_license_data(self, status: str = 'active', expiration_date: str = None):
         """Use the canned test resources to load a basic provider to the DB"""
