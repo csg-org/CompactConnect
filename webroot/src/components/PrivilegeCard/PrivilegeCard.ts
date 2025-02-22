@@ -64,8 +64,8 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.userStore.currentCompact;
     }
 
-    get currentCompactType() {
-        return this.currentCompact?.type;
+    get currentCompactType(): string | null {
+        return this.currentCompact?.type || null;
     }
 
     get currentUserCompactPermission(): CompactPermission | null {

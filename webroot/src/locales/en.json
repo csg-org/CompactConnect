@@ -556,7 +556,7 @@
         },
         "privilegeActions": "Privilege actions",
         "deactivate": "Deactivate",
-        "deactivates": "Deactivated",
+        "deactivated": "Deactivated",
         "confirmPrivilegeDeactivate": "Are you sure you want to deactivate this privilege? This cannot be undone.",
         "occupations": [
             {

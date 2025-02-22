@@ -40,7 +40,7 @@
                             @keyup.enter="toggleDeactivatePrivilegeModal"
                             tabindex="0"
                         >
-                            {{ (isActive) ? $t('account.deactivate') : $t('account.deactivated') }}
+                            {{ (isActive) ? $t('licensing.deactivate') : $t('licensing.deactivated') }}
                         </li>
                     </ul>
                 </transition>
