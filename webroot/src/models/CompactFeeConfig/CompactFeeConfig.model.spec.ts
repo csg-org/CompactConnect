@@ -42,7 +42,7 @@ describe('CompactFeeConfig model', () => {
     });
     it('should create a CompactFeeConfig with specific values through serializer', () => {
         const data = {
-            compactName: 'aslp',
+            compactAbbr: 'aslp',
             compactCommissionFee: {
                 feeType: 'FLAT_RATE',
                 feeAmount: 3.5

@@ -715,6 +715,13 @@
                     "privilegeId": {
                       "type": "string"
                     },
+                    "persistedStatus": {
+                      "enum": [
+                        "active",
+                        "inactive"
+                      ],
+                      "type": "string"
+                    },
                     "status": {
                       "enum": [
                         "active",
@@ -847,6 +854,13 @@
                       "type": "string"
                     },
                     "privilegeId": {
+                      "type": "string"
+                    },
+                    "persistedStatus": {
+                      "enum": [
+                        "active",
+                        "inactive"
+                      ],
                       "type": "string"
                     },
                     "status": {
@@ -991,6 +1005,13 @@
             "type": "string"
           },
           "privilegeId": {
+            "type": "string"
+          },
+          "persistedStatus": {
+            "enum": [
+              "active",
+              "inactive"
+            ],
             "type": "string"
           },
           "status": {

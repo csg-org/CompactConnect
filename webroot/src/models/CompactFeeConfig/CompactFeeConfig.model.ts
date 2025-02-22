@@ -12,7 +12,7 @@ import deleteUndefinedProperties from '@models/_helpers';
 // =                       Interface                      =
 // ========================================================
 export interface InterfaceCompactFeeConfigCreate {
-    compactName?: string
+    compactAbbr?: string
     compactCommissionFee?: number;
     compactCommissionFeeType?: FeeTypes | null;
     perPrivilegeTransactionFeeAmount?: number;
@@ -44,11 +44,11 @@ export class CompactFeeConfig implements InterfaceCompactFeeConfigCreate {
 // ========================================================
 export class CompactFeeConfigSerializer {
     static fromServer(json: any): CompactFeeConfig {
-        const { compactName, compactCommissionFee, transactionFeeConfiguration } = json;
+        const { compactAbbr, compactCommissionFee, transactionFeeConfiguration } = json;
         const { licenseeCharges } = transactionFeeConfiguration || {};
 
         const compactFeeConfigData = {
-            compactType: compactName,
+            compactType: compactAbbr,
             compactCommissionFeeType: compactCommissionFee?.feeType,
             compactCommissionFee: compactCommissionFee?.feeAmount,
             perPrivilegeTransactionFeeAmount: licenseeCharges?.chargeAmount,

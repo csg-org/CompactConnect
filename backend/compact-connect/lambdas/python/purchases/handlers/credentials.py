@@ -16,4 +16,4 @@ def post_payment_processor_credentials(event: dict, context: LambdaContext):  # 
     body = json.loads(event['body'])
 
     # this will raise an exception if the credentials are invalid
-    return PurchaseClient().validate_and_store_credentials(compact_name=compact, credentials=body)
+    return PurchaseClient().validate_and_store_credentials(compact_abbr=compact, credentials=body)

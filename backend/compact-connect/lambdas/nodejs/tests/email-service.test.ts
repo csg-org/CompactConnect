@@ -26,7 +26,8 @@ const SAMPLE_COMPACT_CONFIG = {
         feeAmount: 3.5,
         feeType: 'FLAT_RATE'
     },
-    compactName: 'aslp',
+    compactAbbr: 'aslp',
+    compactName: 'Audiology and Speech Language Pathology',
     compactOperationsTeamEmails: ['operations@example.com'],
     compactSummaryReportNotificationEmails: ['summary@example.com'],
     dateOfUpdate: '2024-12-10T19:27:28+00:00',
@@ -393,7 +394,7 @@ describe('Email Service', () => {
                 html: expect.stringContaining('Please find attached the weekly settled transaction reports for the compact for the period 2024-03-01 to 2024-03-07'),
                 attachments: [
                     {
-                        filename: 'aslp-settled-transaction-report.zip',
+                        filename: 'aslp-settled-transaction-report-2024-03-01--2024-03-07.zip',
                         content: expect.any(Buffer),
                         contentType: 'application/zip'
                     }
@@ -507,7 +508,7 @@ describe('Email Service', () => {
                 html: expect.stringContaining('Please find attached the weekly settled transaction report for your jurisdiction for the period 2024-03-01 to 2024-03-07'),
                 attachments: [
                     {
-                        filename: 'oh-settled-transaction-report.zip',
+                        filename: 'oh-settled-transaction-report-2024-03-01--2024-03-07.zip',
                         content: expect.any(Buffer),
                         contentType: 'application/zip'
                     }

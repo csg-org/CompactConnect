@@ -66,7 +66,7 @@ describe('Compact model', () => {
         expect(compact.fees).to.be.an.instanceof(CompactFeeConfig);
 
         // Test methods
-        expect(compact.name()).to.equal('Audio and Speech Language Pathology');
+        expect(compact.name()).to.equal('Audiology and Speech Language Pathology');
         expect(compact.abbrev()).to.equal('ASLP');
     });
     it('should create a Compact with specific values through serializer (happy path)', () => {
@@ -89,7 +89,7 @@ describe('Compact model', () => {
         });
 
         // Test methods
-        expect(compact.name()).to.equal('Audio and Speech Language Pathology');
+        expect(compact.name()).to.equal('Audiology and Speech Language Pathology');
         expect(compact.abbrev()).to.equal('ASLP');
     });
     it('should create a Compact with specific values through serializer (missing compact type)', () => {
