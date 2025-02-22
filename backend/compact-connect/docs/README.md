@@ -25,7 +25,7 @@ Export your license data to a CSV file, formatted as follows:
    - Any optional fields may also be included. Optional fields can be left empty in some rows.
    - Order of columns does not matter.
    - String lengths are enforced - exceeding them will cause validation errors
-   - Enum values must match the allowed values exactly, including spacing and capitalization
+   - Some fields have a set list of allowed values. For those fields, make sure to enter the value exactly, including spacing and capitalization
 
 #### Field Descriptions
 
@@ -43,16 +43,16 @@ The following table describes all available fields for the license CSV file. Req
 | homeAddressPostalCode* | Postal/ZIP code of provider's home address | String (5-7 chars) | 12345 |
 | homeAddressState* | State/province of provider's home address | String (max 100 chars) | IL |
 | homeAddressStreet1* | First line of provider's street address | String (max 100 chars) | 123 Main St |
-| licenseType* | Type of professional license. Types you provide must be associated with the compact you are uploading for. | Enum: `audiologist`, `speech-language pathologist`, `occupational therapist`, `occupational therapy assistant`, `licensed professional counselor` | occupational therapist |
+| licenseType* | Type of professional license. Types you provide must be associated with the compact you are uploading for. | One of: `audiologist`, `speech-language pathologist`, `occupational therapist`, `occupational therapy assistant`, `licensed professional counselor` | occupational therapist |
 | ssn* | Social Security Number | Format: XXX-XX-XXXX | 123-45-6789 |
-| status* | Current status of the licensee. "active" means they will be allowed to purchase privileges that expire on the same day as their license. "inactive" means they are not eligible to purchase privileges. | Enum: `active`, `inactive` | active |
+| status* | Current status of the licensee. "active" means they will be allowed to purchase privileges that expire on the same day as their license. "inactive" means they are not eligible to purchase privileges. | One of: `active`, `inactive` | active |
 | emailAddress | Provider's email address (optional) | Email (max 100 chars) | john.smith@example.com |
 | homeAddressStreet2 | Second line of provider's street address (optional) | String (max 100 chars) | Suite 100 |
 | licenseNumber | License number (optional) | String (max 100 chars) | OT12345 |
 | middleName | Provider's middle name (optional) | String (max 100 chars) | Robert |
-| militaryWaiver | Whether provider has military waiver (optional) | Boolean | true |
+| militaryWaiver | Whether provider has military waiver (optional) | One of: `true`, `false` | true |
 | npi | National Provider Identifier (optional) | 10-digit number | 1234567890 |
-| phoneNumber | Provider's phone number (optional) | [ITU-T E.164 format](https://www.itu.int/rec/T-REC-E.164-201011-I/en) | +12025550123 |
+| phoneNumber | Provider's phone number (optional) | [ITU-T E.164 format](https://www.itu.int/rec/T-REC-E.164-201011-I/en) (must include country code, no spaces or dashes) | +12025550123 |
 | suffix | Provider's name suffix (optional) | String (max 100 chars) | Jr. |
 
 #### Example CSV
