@@ -69,7 +69,6 @@
                 v-if="isDeactivatePrivilegeModalDisplayed"
                 class="deactivate-privilege-modal"
                 :title="stateContent"
-                :closeOnBackgroundClick="true"
                 :showActions="false"
                 @keydown.tab="focusTrapDeactivatePrivilegeModal($event)"
                 @keyup.esc="closeDeactivatePrivilegeModal"
