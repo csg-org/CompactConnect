@@ -38,6 +38,7 @@ export interface InterfaceLicense {
     id?: string | null;
     compact?: Compact | null;
     isPrivilege?: boolean;
+    licenseeId?: string | null;
     issueState?: State,
     isHomeState?: boolean;
     issueDate?: string | null;
@@ -61,6 +62,7 @@ export class License implements InterfaceLicense {
     public id? = null;
     public compact? = null;
     public isPrivilege? = false;
+    public licenseeId? = null;
     public issueState? = new State();
     public issueDate? = null;
     public mailingAddress? = new Address();
@@ -134,6 +136,7 @@ export class LicenseSerializer {
             id: json.id,
             compact: new Compact({ type: json.compact }),
             isPrivilege: Boolean(json.type === 'privilege'),
+            licenseeId: json.providerId,
             mailingAddress: AddressSerializer.fromServer({
                 street1: json.homeAddressStreet1,
                 street2: json.homeAddressStreet2,

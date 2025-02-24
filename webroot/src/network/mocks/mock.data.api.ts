@@ -95,22 +95,18 @@ export class DataApi {
         return this.wait(500).then(() => ({
             prevLastKey: licensees.prevLastKey,
             lastKey: licensees.lastKey,
-            licensees: licensees.items.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
+            licensees: licensees.providers.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
             params,
         }));
     }
 
     // Get Licensee by ID
     public getLicensee(compact, licenseeId) {
-        const serverResponse = licensees.items.find((item) => item.providerId === licenseeId);
+        const serverResponse = licensees.providers.find((item) => item.providerId === licenseeId);
         let response;
 
         if (serverResponse) {
-            response = this.wait(500).then(() => ({
-                licensee: LicenseeSerializer.fromServer(licensees.items[0]),
-                compact,
-                licenseeId,
-            }));
+            response = this.wait(500).then(() => (LicenseeSerializer.fromServer(licensees.providers[0])));
         } else {
             response = this.wait(500).then(() => {
                 throw new Error('not found');
@@ -129,6 +125,17 @@ export class DataApi {
         });
 
         return this.wait(500).then(() => response);
+    }
+
+    // Delete Privilege for a licensee.
+    public deletePrivilege(compact, licenseeId, privilegeState, licenseType) {
+        return this.wait(500).then(() => ({
+            message: 'success',
+            compact,
+            licenseeId,
+            privilegeState,
+            licenseType,
+        }));
     }
 
     // ========================================================================
@@ -188,12 +195,12 @@ export class DataApi {
     // ========================================================================
     // Get Authenticated Licensee User
     public getAuthenticatedLicenseeUser() {
-        return this.wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.items[0]));
+        return this.wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.providers[0]));
     }
 
     // Update Authenticated Licensee User
     public updateAuthenticatedLicenseeUser() {
-        return this.wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.items[0]));
+        return this.wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.providers[0]));
     }
 
     // Get Privilege Purchase Information for Licensee User

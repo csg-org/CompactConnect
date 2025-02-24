@@ -196,6 +196,31 @@ describe('Users Store Mutations', () => {
         expect(state.isLoading).to.equal(false);
         expect(state.error).to.equal(null);
     });
+    it('should successfully delete privilege request', () => {
+        const state = {};
+
+        mutations[MutationTypes.DELETE_PRIVILEGE_REQUEST](state);
+
+        expect(state.isLoading).to.equal(true);
+        expect(state.error).to.equal(null);
+    });
+    it('should successfully delete privilege failure', () => {
+        const state = {};
+        const error = new Error();
+
+        mutations[MutationTypes.DELETE_PRIVILEGE_FAILURE](state, error);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(error);
+    });
+    it('should successfully delete privilege success', () => {
+        const state = {};
+
+        mutations[MutationTypes.DELETE_PRIVILEGE_SUCCESS](state);
+
+        expect(state.isLoading).to.equal(false);
+        expect(state.error).to.equal(null);
+    });
     it('should successfully update user (missing id)', () => {
         const state = {};
         const user = {};
@@ -498,6 +523,39 @@ describe('Users Store Actions', async () => {
 
         expect(commit.calledOnce).to.equal(true);
         expect(commit.firstCall.args).to.matchPattern([MutationTypes.DELETE_USER_SUCCESS]);
+    });
+    it('should successfully start delete-privilege request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const compact = 'aslp';
+        const licenseeId = '1';
+        const privilegeState = 'co';
+        const licenseType = 'test';
+
+        await actions.deletePrivilegeRequest({ commit, dispatch }, {
+            compact, licenseeId, privilegeState, licenseType
+        });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.DELETE_PRIVILEGE_REQUEST]);
+        expect(dispatch.calledOnce).to.equal(true);
+    });
+    it('should successfully start delete-privilege failure', () => {
+        const commit = sinon.spy();
+        const error = new Error();
+
+        actions.deletePrivilegeFailure({ commit }, error);
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.DELETE_PRIVILEGE_FAILURE, error]);
+    });
+    it('should successfully start delete-privilege success', () => {
+        const commit = sinon.spy();
+
+        actions.deletePrivilegeSuccess({ commit });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.DELETE_PRIVILEGE_SUCCESS]);
     });
     it('should successfully set user', () => {
         const commit = sinon.spy();

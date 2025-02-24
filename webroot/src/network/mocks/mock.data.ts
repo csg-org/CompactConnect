@@ -350,8 +350,16 @@ export const privilegePurchaseOptionsResponse = {
 export const licensees = {
     prevLastKey: 'xyz',
     lastKey: 'abc',
-    items: [
+    providers: [
         {
+            homeJurisdictionSelection: {
+                dateOfSelection: '2025-02-19',
+                compact: 'aslp',
+                providerId: '1',
+                jurisdiction: 'co',
+                type: 'homeJurisdictionSelection',
+                dateOfUpdate: '2025-02-19'
+            },
             privileges: [
                 {
                     licenseJurisdiction: 'al',
@@ -610,90 +618,14 @@ export const licensees = {
             status: 'active'
         },
         {
-            privileges: [
-                {
-                    licenseJurisdiction: 'al',
-                    dateOfExpiration: '2024-08-29',
-                    compact: 'aslp',
-                    providerId: '1',
-                    type: 'privilege',
-                    dateOfIssuance: '2023-08-29',
-                    dateOfUpdate: '2024-08-29',
-                    status: 'active'
-                },
-                {
-                    licenseJurisdiction: 'ak',
-                    dateOfExpiration: '2024-08-29',
-                    compact: 'aslp',
-                    providerId: '1',
-                    type: 'privilege',
-                    dateOfIssuance: '2023-08-29',
-                    dateOfUpdate: '2024-08-29',
-                    status: 'active'
-                },
-                {
-                    licenseJurisdiction: 'ar',
-                    dateOfExpiration: '2023-08-29',
-                    compact: 'aslp',
-                    providerId: '1',
-                    type: 'privilege',
-                    dateOfIssuance: '2023-08-29',
-                    dateOfUpdate: '2024-08-29',
-                    status: 'active'
-                }
-            ],
-            licenseJurisdiction: 'co',
-            compact: 'aslp',
-            homeAddressStreet2: '',
-            npi: '6944447281',
-            homeAddressPostalCode: '',
-            givenName: 'Jane',
-            homeAddressStreet1: '1640 Riverside Drive',
-            militaryWaiver: true,
-            dateOfBirth: '1990-08-29',
-            privilegeJurisdictions: [
-                'al'
-            ],
-            type: 'provider',
-            ssn: '085-32-1496',
-            licenseType: 'audiologist',
-            licenses: [
-                {
-                    compact: 'aslp',
-                    homeAddressStreet2: '',
-                    npi: '6944447281',
-                    homeAddressPostalCode: '',
-                    jurisdiction: 'co',
-                    givenName: 'Jane',
-                    homeAddressStreet1: '1640 Riverside Drive',
-                    militaryWaiver: true,
-                    dateOfBirth: '1990-08-29',
-                    type: 'license-home',
-                    dateOfIssuance: '2024-08-29',
-                    ssn: '085-32-1496',
-                    licenseType: 'audiologist',
-                    dateOfExpiration: '2024-08-29',
-                    homeAddressState: 'co',
-                    providerId: '1',
-                    dateOfRenewal: '2024-08-29',
-                    familyName: 'Doe',
-                    homeAddressCity: 'Riverside',
-                    middleName: '',
-                    dateOfUpdate: '2024-08-29',
-                    status: 'active'
-                }
-            ],
-            dateOfExpiration: '2024-08-29',
-            homeAddressState: 'co',
-            providerId: '1',
-            familyName: 'Doe',
-            homeAddressCity: 'Riverside',
-            middleName: '',
-            birthMonthDay: '1990-08-29',
-            dateOfUpdate: '2024-08-29',
-            status: 'active'
-        },
-        {
+            homeJurisdictionSelection: {
+                dateOfSelection: '2025-02-19',
+                compact: 'aslp',
+                providerId: '2',
+                jurisdiction: 'co',
+                type: 'homeJurisdictionSelection',
+                dateOfUpdate: '2025-02-19'
+            },
             privileges: [
                 {
                     licenseJurisdiction: 'al',
@@ -758,6 +690,14 @@ export const licensees = {
             status: 'inactive'
         },
         {
+            homeJurisdictionSelection: {
+                dateOfSelection: '2025-02-19',
+                compact: 'aslp',
+                providerId: '3',
+                jurisdiction: 'co',
+                type: 'homeJurisdictionSelection',
+                dateOfUpdate: '2025-02-19'
+            },
             privileges: [
                 {
                     licenseJurisdiction: 'al',
@@ -818,6 +758,98 @@ export const licensees = {
             homeAddressCity: 'Boulder',
             middleName: '',
             birthMonthDay: '1965-01-01',
+            dateOfUpdate: '2024-08-29',
+            status: 'active'
+        },
+        {
+            homeJurisdictionSelection: {
+                dateOfSelection: '2025-02-19',
+                compact: 'aslp',
+                providerId: '4',
+                jurisdiction: 'co',
+                type: 'homeJurisdictionSelection',
+                dateOfUpdate: '2025-02-19'
+            },
+            privileges: [
+                {
+                    licenseJurisdiction: 'al',
+                    dateOfExpiration: '2024-08-29',
+                    compact: 'aslp',
+                    providerId: '4',
+                    type: 'privilege',
+                    dateOfIssuance: '2023-08-29',
+                    dateOfUpdate: '2024-08-29',
+                    status: 'active'
+                },
+                {
+                    licenseJurisdiction: 'ak',
+                    dateOfExpiration: '2024-08-29',
+                    compact: 'aslp',
+                    providerId: '4',
+                    type: 'privilege',
+                    dateOfIssuance: '2023-08-29',
+                    dateOfUpdate: '2024-08-29',
+                    status: 'active'
+                },
+                {
+                    licenseJurisdiction: 'ar',
+                    dateOfExpiration: '2023-08-29',
+                    compact: 'aslp',
+                    providerId: '4',
+                    type: 'privilege',
+                    dateOfIssuance: '2023-08-29',
+                    dateOfUpdate: '2024-08-29',
+                    status: 'active'
+                }
+            ],
+            licenseJurisdiction: 'co',
+            compact: 'aslp',
+            homeAddressStreet2: '',
+            npi: '6944447281',
+            homeAddressPostalCode: '',
+            givenName: 'Jane',
+            homeAddressStreet1: '1640 Riverside Drive',
+            militaryWaiver: true,
+            dateOfBirth: '1990-08-29',
+            privilegeJurisdictions: [
+                'al'
+            ],
+            type: 'provider',
+            ssn: '085-32-1496',
+            licenseType: 'audiologist',
+            licenses: [
+                {
+                    compact: 'aslp',
+                    homeAddressStreet2: '',
+                    npi: '6944447281',
+                    homeAddressPostalCode: '',
+                    jurisdiction: 'co',
+                    givenName: 'Jane',
+                    homeAddressStreet1: '1640 Riverside Drive',
+                    militaryWaiver: true,
+                    dateOfBirth: '1990-08-29',
+                    type: 'license-home',
+                    dateOfIssuance: '2024-08-29',
+                    ssn: '085-32-1496',
+                    licenseType: 'audiologist',
+                    dateOfExpiration: '2024-08-29',
+                    homeAddressState: 'co',
+                    providerId: '4',
+                    dateOfRenewal: '2024-08-29',
+                    familyName: 'Doe',
+                    homeAddressCity: 'Riverside',
+                    middleName: '',
+                    dateOfUpdate: '2024-08-29',
+                    status: 'active'
+                }
+            ],
+            dateOfExpiration: '2024-08-29',
+            homeAddressState: 'co',
+            providerId: '4',
+            familyName: 'Doe',
+            homeAddressCity: 'Riverside',
+            middleName: '',
+            birthMonthDay: '1990-08-29',
             dateOfUpdate: '2024-08-29',
             status: 'active'
         },

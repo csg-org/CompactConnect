@@ -124,6 +124,29 @@ export default {
     deleteUserFailure: ({ commit }, error: Error) => {
         commit(MutationTypes.DELETE_USER_FAILURE, error);
     },
+    // DELETE USER PRIVILEGE
+    deletePrivilegeRequest: async ({ commit, dispatch }, {
+        compact,
+        licenseeId,
+        privilegeState,
+        licenseType
+    }: any) => {
+        commit(MutationTypes.DELETE_PRIVILEGE_REQUEST);
+        return dataApi.deletePrivilege(compact, licenseeId, privilegeState, licenseType).then(async (response) => {
+            dispatch('deletePrivilegeSuccess');
+
+            return response;
+        }).catch((error) => {
+            dispatch('deletePrivilegeFailure', error);
+            throw error;
+        });
+    },
+    deletePrivilegeSuccess: ({ commit }) => {
+        commit(MutationTypes.DELETE_PRIVILEGE_SUCCESS);
+    },
+    deletePrivilegeFailure: ({ commit }, error: Error) => {
+        commit(MutationTypes.DELETE_PRIVILEGE_FAILURE, error);
+    },
     // SET THE STORE STATE
     setStoreUsersPrevLastKey: ({ commit }, prevLastKey) => {
         commit(MutationTypes.STORE_UPDATE_PREVLASTKEY, prevLastKey);

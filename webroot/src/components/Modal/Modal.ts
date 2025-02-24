@@ -41,6 +41,10 @@ class Modal extends Vue {
         this.$store.dispatch('setModalIsOpen', true);
     }
 
+    beforeUnmount() {
+        this.$store.dispatch('setModalIsOpen', false);
+    }
+
     //
     // Computed
     //
