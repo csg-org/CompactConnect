@@ -22,3 +22,19 @@ class ProviderHomeJurisdictionSelectionGeneralResponseSchema(ForgivingSchema):
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     dateOfSelection = Raw(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
+
+
+class ProviderHomeJurisdictionSelectionPublicResponseSchema(ForgivingSchema):
+    """
+    Schema defining fields available to the public lookup endpoints.
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    type = String(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    providerId = String(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    dateOfSelection = Raw(required=True, allow_none=False)
+    dateOfUpdate = Raw(required=True, allow_none=False)
