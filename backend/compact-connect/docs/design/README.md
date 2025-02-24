@@ -114,51 +114,61 @@ Board ED level staff may be granted the following permissions at a jurisdiction 
 their permissions.
 - `write` - grants access to write data for their particular jurisdiction (ie uploading license information).
 - `readPrivate` - grants access to view all information for any licensee that has either a license or privilege
-within their jurisdiction. 
+within their jurisdiction.
 
 Users granted any of these permissions will also be implicitly granted the `readGeneral` scope for the associated compact,
 which allows them to read any licensee data that is not considered private.
 
 #### Implementation of Scopes
 
-AWS Cognito integrates with API Gateway to provide
-[authorizers](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-integrate-with-cognito.html) on an
-API that can verify the tokens issued by a given User Pool and to protect access based on scopes belonging to
+AWS Cognito integrates with API Gateway to provide [authorizers](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-integrate-with-cognito.html) 
+on an API that can verify the tokens issued by a given User Pool and to protect access based on scopes belonging to
 [Resource Servers](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-define-resource-servers.html)
-associated with that User Pool. In the Staff Users user pool, we represent each compact as its own Resource Server, with
-associated scopes. Unfortunately, because resource servers support only up to 100 scopes each, and we would like to
-control permission to write to or administrate each of more than 50 jurisdictions independently, the combinations would
-require more than 100 scopes per resource server.
+associated with that User Pool.
 
-To design around the 100 scope limit, we will have to split authorization into two layers: coarse- and fine-grained.
-We can rely on the Cognito authorizers to protect our API endpoints based on fewer coarse-grained scopes, then
-protect the more fine-grained access within the API endpoint logic. The Staff User pool resource servers are
-configured with `readGeneral`, `write`, and `admin` scopes. The `readGeneral` scope is implicitly granted to all users in
-the system, and is used to indicate that the user is allowed to read any compact's licensee data that is not considered
-private. The `write` and `admin` scopes, however, indicate only that the user is allowed to write or administrate 
-_something_ in the compact respectively, thus giving them access to the write or administrative API endpoints. We will 
-then rely on the API endpoint logic to refine their access based on the more fine-grained access scopes.
+The Staff Users pool implements authorization using resource servers configured for each jurisdiction and compact. This design allows for efficient management of permissions while staying within AWS Cognito's limits (100 scopes per resource server, 300 resource servers per user pool).
 
-In addition to the `readGeneral` scope, there is a `readPrivate` scope, which can be granted at both compact and 
-jurisdiction levels. This permission indicates the user can read all of a compact's provider data (licenses and privileges),
-so long as the provider has at least one license or privilege within their jurisdiction or the user has compact-wide 
-permissions.
+Each jurisdiction has its own resource server with scopes that control access to that jurisdiction's data across different compacts. For example, the Kentucky (KY) resource server would have scopes like:
 
-To compliment each of the `write` and `admin` scopes, there will be at least one, more specific, scope, 
-to indicate _what_ within the compact they are allowed to write or administrate, respectively. In the case of `write` 
-scopes, a jurisdiction-specific scope will control what jurisdiction they are able to write data for (i.e. `al.write` 
-grants permission to write data for the Alabama jurisdiction). Similarly, `admin` scopes can have a jurisdiction-specific
-scope like `al.admin` and can also have a compact-wide scope like `aslp.admin`, which grants permission for a compact
-executive director to perform the administrative functions for the Audiology and Speech Language Pathology compact.
+```
+ky/aslp.admin
+ky/aslp.write  
+ky/aslp.readPrivate
+ky/aslp.readSSN
+ky/octp.admin
+ky/octp.write
+ky/octp.readPrivate
+ky/octp.readSSN
+```
+
+Each compact also has its own resource server with compact-wide scopes, which are used to control access to data across all jurisdictions within a compact:
+
+```
+aslp/admin
+aslp/readGeneral
+aslp/readPrivate
+aslp/readSSN
+```
+
+The `readGeneral` scope is implicitly granted to all staff users in the system at the compact level, allowing them to read any licensee data that is not considered private within that compact.
+
+This design provides several benefits:
+1. Clear separation of jurisdiction-specific permissions
+2. Room for growth (up to 10 compacts with 10 actions each per jurisdiction)
+3. Support for machine-to-machine app clients that need jurisdiction-specific access
 
 #### Implementation of Permissions
 
-Staff user permissions will be stored in a dedicated DynamoDB table, which will have a single record for each user
-and include a data structure that details that user's particular permissions. Cognito allows for a lambda to be [invoked
+Staff user permissions are stored in a dedicated DynamoDB table, which has a single record for each user
+and includes a data structure that details that user's particular permissions. Cognito allows for a lambda to be [invoked
 just before it issues a token](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-pre-token-generation.html).
-We will use that feature to retrieve the database record for each user, parse the permissions data and translate those
-into scopes, which will be added to the Cognito token. The lambda will generate both the coarse- and fine-grained
-scopes to be added to the token, thus being the single control point for access control on the token-issuing side.
+We use that feature to retrieve the database record for each user, parse the permissions data and translate those
+into scopes, which will be added to the Cognito token. The lambda generates scopes based on both compact-level and 
+jurisdiction-level permissions, ensuring consistent access control at token issuance.
+
+#### Machine-to-machine app clients
+
+See README under the [app_clients](../../app_clients/README.md) directory for more information about how machine-to-machine app clients are configured and used in the system.
 
 ### Licensee Users
 
