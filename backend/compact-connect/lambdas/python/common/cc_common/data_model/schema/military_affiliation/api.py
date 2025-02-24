@@ -8,6 +8,20 @@ from cc_common.data_model.schema.common import S3PresignedPostSchema
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationStatus, MilitaryAffiliationType
 
 
+class PostMilitaryAffiliationResponseSchema(ForgivingSchema):
+    """Schema for POST requests to create a new military affiliation record"""
+
+    fileNames = List(String(required=True, allow_none=False), required=True, allow_none=False)
+    dateOfUpload = Raw(required=True, allow_none=False)
+    dateOfUpdate = Raw(required=True, allow_none=False)
+    status = String(required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationStatus]))
+    affiliationType = String(
+        required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationType])
+    )
+    documentUploadFields = List(
+        Nested(S3PresignedPostSchema(), required=True, allow_none=False), required=True, allow_none=False
+    )
+
 class MilitaryAffiliationGeneralResponseSchema(ForgivingSchema):
     """
     Schema defining fields available to all staff users with only the 'readGeneral' permission.
@@ -28,16 +42,21 @@ class MilitaryAffiliationGeneralResponseSchema(ForgivingSchema):
     status = String(required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationStatus]))
 
 
-class PostMilitaryAffiliationResponseSchema(ForgivingSchema):
-    """Schema for POST requests to create a new military affiliation record"""
+class MilitaryAffiliationPublicResponseSchema(ForgivingSchema):
+    """
+    Schema defining fields available to the public endpoints.
 
-    fileNames = List(String(required=True, allow_none=False), required=True, allow_none=False)
-    dateOfUpload = Raw(required=True, allow_none=False)
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    type = String(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
-    status = String(required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationStatus]))
+    providerId = Raw(required=True, allow_none=False)
+    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     affiliationType = String(
         required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationType])
     )
-    documentUploadFields = List(
-        Nested(S3PresignedPostSchema(), required=True, allow_none=False), required=True, allow_none=False
-    )
+    dateOfUpload = Raw(required=True, allow_none=False)
+    status = String(required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationStatus]))
+

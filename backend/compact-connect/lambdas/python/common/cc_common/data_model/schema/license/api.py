@@ -148,3 +148,74 @@ class LicenseGeneralResponseSchema(ForgivingSchema):
     status = ActiveInactive(required=True, allow_none=False)
     militaryWaiver = Boolean(required=False, allow_none=False)
     history = List(Nested(LicenseUpdateGeneralResponseSchema, required=False, allow_none=False))
+
+
+class LicenseUpdatePreviousPublicResponseSchema(ForgivingSchema):
+    """
+    A snapshot of a previous state of a license object
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseType = String(required=True, allow_none=False)
+    givenName = String(required=True, allow_none=False, validate=Length(1, 100))
+    middleName = String(required=False, allow_none=False, validate=Length(1, 100))
+    familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    suffix = String(required=False, allow_none=False, validate=Length(1, 100))
+    dateOfUpdate = Raw(required=True, allow_none=False)
+    dateOfIssuance = Raw(required=True, allow_none=False)
+    dateOfRenewal = Raw(required=True, allow_none=False)
+    dateOfExpiration = Raw(required=True, allow_none=False)
+    jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
+
+class LicenseUpdatePublicResponseSchema(ForgivingSchema):
+    """
+    Schema for license update history entries in the license object
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    type = String(required=True, allow_none=False)
+    updateType = UpdateType(required=True, allow_none=False)
+    providerId = Raw(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    dateOfUpdate = Raw(required=True, allow_none=False)
+    previous = Nested(LicenseUpdatePreviousPublicResponseSchema(), required=True, allow_none=False)
+    # We'll allow any fields that can show up in the previous field to be here as well, but none are required
+    updatedValues = Nested(LicenseUpdatePreviousPublicResponseSchema(partial=True), required=True, allow_none=False)
+    # List of field names that were present in the previous record but removed in the update
+    removedValues = List(String(), required=False, allow_none=False)
+
+
+class LicensePublicResponseSchema(ForgivingSchema):
+    """
+    License object fields, as seen by staff users with only the 'readGeneral' permission.
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    providerId = Raw(required=True, allow_none=False)
+    type = String(required=True, allow_none=False)
+    dateOfUpdate = Raw(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
+    npi = NationalProviderIdentifier(required=False, allow_none=False)
+    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
+    givenName = String(required=True, allow_none=False, validate=Length(1, 100))
+    middleName = String(required=False, allow_none=False, validate=Length(1, 100))
+    familyName = String(required=True, allow_none=False, validate=Length(1, 100))
+    suffix = String(required=False, allow_none=False, validate=Length(1, 100))
+    dateOfIssuance = Raw(required=True, allow_none=False)
+    dateOfRenewal = Raw(required=True, allow_none=False)
+    dateOfExpiration = Raw(required=True, allow_none=False)
+    status = ActiveInactive(required=True, allow_none=False)
+    militaryWaiver = Boolean(required=False, allow_none=False)
+    history = List(Nested(LicenseUpdatePublicResponseSchema(), required=False, allow_none=False))
