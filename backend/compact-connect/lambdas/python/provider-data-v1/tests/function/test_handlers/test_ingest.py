@@ -240,7 +240,6 @@ class TestIngest(TstFunction):
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     @patch('handlers.ingest.EventBatchWriter', autospec=True)
     def test_existing_provider_deactivation(self, mock_event_writer):
-
         from handlers.ingest import ingest_license_message
 
         provider_id = self._with_ingested_license()
@@ -339,7 +338,7 @@ class TestIngest(TstFunction):
                     ),
                     'EventBusName': 'license-data-events',
                 }
-            }
+            },
         )
 
     def test_existing_provider_renewal(self):

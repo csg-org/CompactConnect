@@ -171,6 +171,7 @@ class LicenseUpdatePreviousPublicResponseSchema(ForgivingSchema):
     dateOfExpiration = Raw(required=True, allow_none=False)
     jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
 
+
 class LicenseUpdatePublicResponseSchema(ForgivingSchema):
     """
     Schema for license update history entries in the license object

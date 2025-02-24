@@ -1338,7 +1338,9 @@ class ApiModel:
                     type=JsonSchemaType.ARRAY,
                     items=JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
                 ),
-                'providerDateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+                'providerDateOfUpdate': JsonSchema(
+                    type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                ),
                 'licenses': JsonSchema(
                     type=JsonSchemaType.ARRAY,
                     items=self._public_license_response_schema,
@@ -1348,27 +1350,31 @@ class ApiModel:
                     items=self._public_privilege_response_schema,
                 ),
                 'homeJurisdictionSelection': JsonSchema(
-            type=JsonSchemaType.OBJECT,
-            required=[
-                'type',
-                'compact',
-                'providerId',
-                'jurisdiction',
-                'dateOfSelection',
-                'dateOfUpdate',
-            ],
-            properties={
-                'type': JsonSchema(type=JsonSchemaType.STRING, enum=['homeJurisdictionSelection']),
-                'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
-                'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
-                'jurisdiction': JsonSchema(
-                    type=JsonSchemaType.STRING,
-                    enum=stack.node.get_context('jurisdictions'),
+                    type=JsonSchemaType.OBJECT,
+                    required=[
+                        'type',
+                        'compact',
+                        'providerId',
+                        'jurisdiction',
+                        'dateOfSelection',
+                        'dateOfUpdate',
+                    ],
+                    properties={
+                        'type': JsonSchema(type=JsonSchemaType.STRING, enum=['homeJurisdictionSelection']),
+                        'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                        'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
+                        'jurisdiction': JsonSchema(
+                            type=JsonSchemaType.STRING,
+                            enum=stack.node.get_context('jurisdictions'),
+                        ),
+                        'dateOfSelection': JsonSchema(
+                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                        ),
+                        'dateOfUpdate': JsonSchema(
+                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
+                        ),
+                    },
                 ),
-                'dateOfSelection': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-                'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-            },
-        ),
             },
         )
 

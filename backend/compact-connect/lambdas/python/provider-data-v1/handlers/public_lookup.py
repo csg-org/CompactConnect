@@ -4,9 +4,8 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.provider.api import ProviderPublicResponseSchema
 from cc_common.exceptions import CCInvalidRequestException
-from cc_common.utils import (
-    api_handler
-)
+from cc_common.utils import api_handler
+
 from . import get_provider_information
 
 
@@ -86,6 +85,7 @@ def public_query_providers(event: dict, context: LambdaContext):  # noqa: ARG001
     resp['providers'] = sanitized_providers
 
     return resp
+
 
 @api_handler
 def public_get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument

@@ -11,11 +11,15 @@ from cc_common.data_model.schema.fields import (
     NationalProviderIdentifier,
     Set,
 )
-from cc_common.data_model.schema.home_jurisdiction.api import ProviderHomeJurisdictionSelectionGeneralResponseSchema, \
-    ProviderHomeJurisdictionSelectionPublicResponseSchema
+from cc_common.data_model.schema.home_jurisdiction.api import (
+    ProviderHomeJurisdictionSelectionGeneralResponseSchema,
+    ProviderHomeJurisdictionSelectionPublicResponseSchema,
+)
 from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema, LicensePublicResponseSchema
-from cc_common.data_model.schema.military_affiliation.api import MilitaryAffiliationGeneralResponseSchema, \
-    MilitaryAffiliationPublicResponseSchema
+from cc_common.data_model.schema.military_affiliation.api import (
+    MilitaryAffiliationGeneralResponseSchema,
+    MilitaryAffiliationPublicResponseSchema,
+)
 from cc_common.data_model.schema.privilege.api import PrivilegeGeneralResponseSchema, PrivilegePublicResponseSchema
 
 
@@ -75,6 +79,7 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     homeJurisdictionSelection = Nested(
         ProviderHomeJurisdictionSelectionGeneralResponseSchema(), required=False, allow_none=False
     )
+
 
 class ProviderPublicResponseSchema(ForgivingSchema):
     """
