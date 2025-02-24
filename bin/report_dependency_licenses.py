@@ -162,7 +162,7 @@ class NodeJSDependency(Dependency):
         if not repo_url:
             repo_url = data.get('homepage', '').split('#')[0]
 
-        # As a last resort, point to npmjs.com https://www.npmjs.com/package/@usewaypoint/email-builder
+        # As a last resort, point to npmjs.com (e.g., https://www.npmjs.com/package/@usewaypoint/email-builder)
         if not repo_url:
             repo_url = f'https://www.npmjs.com/package/{self.name}'
 
