@@ -11,7 +11,7 @@ from . import get_provider_information
 
 
 @api_handler
-def query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+def public_query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Query providers data
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
@@ -88,7 +88,7 @@ def query_providers(event: dict, context: LambdaContext):  # noqa: ARG001 unused
     return resp
 
 @api_handler
-def get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
+def public_get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Return one provider's data
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
