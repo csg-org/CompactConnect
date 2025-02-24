@@ -1067,6 +1067,9 @@ class ApiModel:
             'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+            'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', max_length=100),
+            'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=r'^\+[0-9]{8,15}$'),
+            'suffix': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'militaryWaiver': JsonSchema(
                 type=JsonSchemaType.BOOLEAN,
             ),
