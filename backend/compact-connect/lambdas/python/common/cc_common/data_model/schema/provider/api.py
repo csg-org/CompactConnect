@@ -108,7 +108,6 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     # they do not include a timestamp, so we use the Date field type
     dateOfExpiration = Raw(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
-    militaryWaiver = Boolean(required=False, allow_none=False)
 
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerDateOfUpdate = Raw(required=False, allow_none=False)
@@ -117,7 +116,6 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     # so we check for them here and sanitize them if they are present
     licenses = List(Nested(LicensePublicResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegePublicResponseSchema(), required=False, allow_none=False))
-    militaryAffiliations = List(Nested(MilitaryAffiliationPublicResponseSchema(), required=False, allow_none=False))
     homeJurisdictionSelection = Nested(
         ProviderHomeJurisdictionSelectionPublicResponseSchema(), required=False, allow_none=False
     )
