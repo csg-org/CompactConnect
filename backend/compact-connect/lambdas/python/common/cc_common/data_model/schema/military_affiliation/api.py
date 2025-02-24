@@ -22,6 +22,7 @@ class PostMilitaryAffiliationResponseSchema(ForgivingSchema):
         Nested(S3PresignedPostSchema(), required=True, allow_none=False), required=True, allow_none=False
     )
 
+
 class MilitaryAffiliationGeneralResponseSchema(ForgivingSchema):
     """
     Schema defining fields available to all staff users with only the 'readGeneral' permission.
@@ -40,23 +41,3 @@ class MilitaryAffiliationGeneralResponseSchema(ForgivingSchema):
     )
     dateOfUpload = Raw(required=True, allow_none=False)
     status = String(required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationStatus]))
-
-
-class MilitaryAffiliationPublicResponseSchema(ForgivingSchema):
-    """
-    Schema defining fields available to the public endpoints.
-
-    Serialization direction:
-    Python -> load() -> API
-    """
-
-    type = String(required=True, allow_none=False)
-    dateOfUpdate = Raw(required=True, allow_none=False)
-    providerId = Raw(required=True, allow_none=False)
-    compact = String(required=True, allow_none=False, validate=OneOf(config.compacts))
-    affiliationType = String(
-        required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationType])
-    )
-    dateOfUpload = Raw(required=True, allow_none=False)
-    status = String(required=True, allow_none=False, validate=OneOf([e.value for e in MilitaryAffiliationStatus]))
-

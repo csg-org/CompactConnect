@@ -84,7 +84,9 @@ class V1Api:
         # GET  /v1/public/compacts/{compact}/providers/{providerId}
         self.public_compacts_resource = self.public_resource.add_resource('compacts')
         self.public_compacts_compact_resource = self.public_compacts_resource.add_resource('{compact}')
-        self.public_compacts_compact_providers_resource = self.public_compacts_compact_resource.add_resource('providers')
+        self.public_compacts_compact_providers_resource = self.public_compacts_compact_resource.add_resource(
+            'providers'
+        )
         self.public_lookup_api = PublicLookupApi(
             resource=self.public_compacts_compact_providers_resource,
             persistent_stack=persistent_stack,
