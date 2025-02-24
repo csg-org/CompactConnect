@@ -116,9 +116,6 @@ their permissions.
 - `readPrivate` - grants access to view all information for any licensee that has either a license or privilege
 within their jurisdiction.
 
-Users granted any of these permissions will also be implicitly granted the `readGeneral` scope for the associated compact,
-which allows them to read any licensee data that is not considered private.
-
 #### Implementation of Scopes
 
 AWS Cognito integrates with API Gateway to provide [authorizers](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-integrate-with-cognito.html) 
@@ -141,6 +138,8 @@ ky/octp.readPrivate
 ky/octp.readSSN
 ```
 
+If a user has the `ky/aslp.admin` scope, for example, they will be able to perform any admin action within the Kentucky jurisdiction within the ASLP compact.
+
 Each compact also has its own resource server with compact-wide scopes, which are used to control access to data across all jurisdictions within a compact:
 
 ```
@@ -150,12 +149,12 @@ aslp/readPrivate
 aslp/readSSN
 ```
 
-The `readGeneral` scope is implicitly granted to all staff users in the system at the compact level, allowing them to read any licensee data that is not considered private within that compact.
+If a user has the `aslp/admin` scope, for example, they will be able to perform any admin action for any jurisdiction within the compact.
 
-This design provides several benefits:
-1. Clear separation of jurisdiction-specific permissions
-2. Room for growth (up to 10 compacts with 10 actions each per jurisdiction)
-3. Support for machine-to-machine app clients that need jurisdiction-specific access
+Staff users in a compact will also be implicitly granted the `readGeneral` scope for the associated compact,
+which allows them to read any licensee data that is not considered private.
+
+In addition to the `readGeneral` scope, there is a `readPrivate` scope, which can be granted at both compact and jurisdiction levels. This permission indicates the user can read all of a compact's provider data (licenses and privileges),so long as the provider has at least one license or privilege within their jurisdiction or the user has compact-wide permissions.
 
 #### Implementation of Permissions
 
