@@ -110,7 +110,7 @@ class TestDeactivatePrivilege(TstFunction):
                     ),
                     'EventBusName': 'license-data-events',
                 }
-            }
+            },
         )
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
@@ -156,5 +156,5 @@ class TestDeactivatePrivilege(TstFunction):
         If a privilege is not found, the response should be a 404
         """
         # Note lack of self._load_provider_data() here - we're _not_ loading the provider in this case
-        resp = self._request_deactivation_with_scopes('openid email aslp/admin aslp/ne.admin')
+        resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
         self.assertEqual(404, resp['statusCode'])

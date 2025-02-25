@@ -74,7 +74,7 @@ class TestSanitizeProviderData(TstLambdas):
 
     def test_sanitized_provider_record_returned_if_caller_does_not_have_read_private_permissions_for_jurisdiction(self):
         self.when_testing_general_provider_info_returned(
-            scopes={'openid', 'email', 'aslp/readGeneral', 'aslp/az.readPrivate'}
+            scopes={'openid', 'email', 'aslp/readGeneral', 'az/aslp.readPrivate'}
         )
 
     def test_sanitized_provider_record_returned_if_caller_does_not_have_any_read_private_permissions(self):

@@ -25,7 +25,7 @@ class TestCustomizeScopes(TstLambdas):
                 'status': StaffUserStatus.INACTIVE.value,
                 'permissions': {
                     'jurisdictions': {
-                        # should correspond to the 'aslp/al.write' scope
+                        # should correspond to the 'al/aslp.write' scope
                         'al': {'write'}
                     },
                 },
@@ -60,7 +60,7 @@ class TestCustomizeScopes(TstLambdas):
                     'status': StaffUserStatus.INACTIVE.value,
                     'permissions': {
                         'jurisdictions': {
-                            # should correspond to the 'aslp/write' and 'aslp/al.write' scopes
+                            # should correspond to the 'aslp/write' and 'al/aslp.write' scopes
                             'al': {'write'}
                         },
                     },

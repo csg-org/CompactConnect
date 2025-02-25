@@ -10,9 +10,11 @@ REQUIRED_FIELDS = ['clientName', 'description', 'createdDate', 'ownerContact', '
 VALID_ENVIRONMENTS = {'test', 'prod'}
 SCOPE_ACTIONS = {'readGeneral', 'readSSN', 'readPrivate', 'write', 'admin'}
 
+
 def _configuration_is_active_for_environment(environment_name: str, active_environments: list[str]) -> bool:
     """Check if the compact configuration is active in the given environment."""
     return environment_name in active_environments
+
 
 def get_list_of_configured_compacts() -> list[str]:
     """
@@ -30,6 +32,7 @@ def get_list_of_configured_compacts() -> list[str]:
                 compacts.append(formatted_compact['compactAbbr'])
 
     return compacts
+
 
 def get_list_of_configured_jurisdictions_for_compact(compact: str) -> list[str]:
     """
@@ -95,9 +98,8 @@ class TestAppClientYaml(unittest.TestCase):
                     # ensure ownerContact is an email address
                     # at least one @ and .
                     if not re.match(r'[^@]+@[^@]+\.[^@]+', yaml_content['ownerContact']):
-                        self.fail(f"Invalid ownerContact: {yaml_content['ownerContact']}")
+                        self.fail(f'Invalid ownerContact: {yaml_content["ownerContact"]}')
 
-                # ensure scopes is a list, we don't care about the values
-                # since the
+                # ensure that each scope defined is in the list of possible valid scopes
                 for scope in yaml_content['scopes']:
-                    self.assertIn(scope, self.valid_scopes, f"Invalid scope: {scope}")
+                    self.assertIn(scope, self.valid_scopes, f'Invalid scope: {scope}')

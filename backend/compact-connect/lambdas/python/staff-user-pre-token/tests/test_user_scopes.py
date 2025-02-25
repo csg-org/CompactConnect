@@ -115,7 +115,7 @@ class TestGetUserScopesFromDB(TstLambdas):
                 'compact': 'aslp',
                 'permissions': {
                     'jurisdictions': {
-                        'al': {'write'}  # should correspond to the 'aslp/al.write' scope
+                        'al': {'write'}  # should correspond to the 'al/aslp.write' scope
                     },
                 },
             }

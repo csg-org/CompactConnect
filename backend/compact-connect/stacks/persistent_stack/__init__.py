@@ -482,7 +482,6 @@ class PersistentStack(AppStack):
         for jurisdiction_config_file in os.listdir(os.path.join('compact-config', compact)):
             if jurisdiction_config_file.endswith('.yml'):
                 with open(os.path.join('compact-config', compact, jurisdiction_config_file)) as f:
-                    # convert YAML to JSON
                     formatted_jurisdiction = yaml.safe_load(f)
                     # only include the jurisdiction configuration if it is active in the environment
                     if self._configuration_is_active_for_environment(

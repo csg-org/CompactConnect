@@ -9,7 +9,7 @@ class TestCollectChanges(TstLambdas):
 
         resp = collect_and_authorize_changes(
             path_compact='aslp',
-            scopes={'openid', 'email', 'aslp/admin', 'aslp/aslp.admin'},
+            scopes={'openid', 'email', 'aslp/admin'},
             compact_changes={'actions': {'admin': True, 'readPrivate': False}, 'jurisdictions': {}},
         )
         self.assertEqual(
@@ -67,7 +67,7 @@ class TestCollectChanges(TstLambdas):
 
         resp = collect_and_authorize_changes(
             path_compact='aslp',
-            scopes={'openid', 'email', 'aslp/admin', 'aslp/aslp.admin'},
+            scopes={'openid', 'email', 'aslp/admin'},
             compact_changes={
                 'actions': {'admin': True, 'readPrivate': False},
                 'jurisdictions': {'oh': {'actions': {'admin': True, 'write': False}}},

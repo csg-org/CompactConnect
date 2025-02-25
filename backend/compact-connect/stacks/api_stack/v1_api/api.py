@@ -47,6 +47,8 @@ class V1Api:
             )
 
             # We also include the jurisdiction level compact scopes for all jurisdictions active within the compact
+            # The one exception to this is the readPrivate scope, as this is exclusively checked in the runtime code
+            # to determine what data to return from the query related endpoints
             for jurisdiction in _active_compact_jurisdictions:
                 write_scopes.append(f'{jurisdiction}/{compact}.write')
                 admin_scopes.append(f'{jurisdiction}/{compact}.admin')

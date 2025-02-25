@@ -50,7 +50,7 @@ class TestPostLicenses(TstLambdas):
             event = json.load(f)
 
         # The user has scopes for aslp, not octp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/write aslp/oh.write'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.write'
 
         event['pathParameters'] = {'compact': 'octp', 'jurisdiction': 'oh'}
 

@@ -64,8 +64,8 @@ class TestPipeline(TstAppABC, TestCase):
 
         # Get the resource servers created in the persistent stack
         resource_servers = persistent_stack.staff_users.compact_resource_servers
-        # We must confirm that these scopes are being explicitly created for each compact
-        # which are absolutely critical for the system to function as expected.
+        # We must confirm that these scopes are being explicitly created for each compact marked as active in the
+        # test environment, which are absolutely critical for the system to function as expected.
         self.assertEqual(sorted(self.context['compacts']), sorted(list(resource_servers.keys())))
 
         for compact, resource_server in resource_servers.items():
@@ -104,6 +104,8 @@ class TestPipeline(TstAppABC, TestCase):
         # sort the scopes within the resource server by name for consistency
         for resource_server in jurisdiction_resource_server_config:
             resource_server['Scopes'].sort(key=lambda scope: scope['ScopeName'])
+        # this will only include resource server scopes for compacts/jurisdictions that are marked as active
+        # for the test environment
         self.compare_snapshot(
             jurisdiction_resource_server_config,
             'JURISDICTION_RESOURCE_SERVER_CONFIGURATION',

@@ -113,8 +113,8 @@ Board ED level staff may be granted the following permissions at a jurisdiction 
 - `admin` - grants access to administrative functions for the jurisdiction, such as creating and managing users and 
 their permissions.
 - `write` - grants access to write data for their particular jurisdiction (ie uploading license information).
-- `readPrivate` - grants access to view all information for any licensee that has either a license or privilege
-within their jurisdiction.
+- `readPrivate` - grants access to view all information for any licensee that has either a license or privilege within their jurisdiction (except the full SSN, see `readSSN` permission below. This permission allows viewing the last 4 digits of the SSN).
+- `readSSN` - grants access to view the full SSN for any licensee that has either a license or privilege within their jurisdiction.
 
 #### Implementation of Scopes
 

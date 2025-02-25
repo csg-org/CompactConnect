@@ -59,7 +59,7 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
 
    It is important to note that generated access tokens will expire after 15 minutes, so the consuming team will need to have application logic to generate a new access token before it expires (this time can be adjusted according to the needs of the consuming team by updating the access token validity in the cli command).
 
-   If the consuming team plans to use both the test and production environments, you will need to create two separate app clients, one for each environment in their respective AWS accounts.
+   If the consuming team plans to use both the test and production environments, you will need to create two separate app clients, one in each respective AWS accounts for those environments.
 
 
 ### 4. **Send Credentials to Consuming Team**
