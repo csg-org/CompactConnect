@@ -58,15 +58,15 @@ class TestPipeline(TstAppABC, TestCase):
         for ui_stack in (self.app.pipeline_stack.test_stage.ui_stack, self.app.pipeline_stack.prod_stage.ui_stack):
             self._inspect_ui_stack(ui_stack)
 
-    def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users(self):
-        persistent_stack = self.app.pipeline_stack.test_stage.persistent_stack
+    def _when_testing_compact_resource_servers(self, persistent_stack, environment_name):
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         # Get the resource servers created in the persistent stack
         resource_servers = persistent_stack.staff_users.compact_resource_servers
         # We must confirm that these scopes are being explicitly created for each compact marked as active in the
-        # test environment, which are absolutely critical for the system to function as expected.
-        self.assertEqual(sorted(self.context['compacts']), sorted(list(resource_servers.keys())))
+        # environment, which are absolutely critical for the system to function as expected.
+        self.assertEqual(sorted(persistent_stack.get_list_of_active_compacts_for_environment(environment_name)),
+                         sorted(list(resource_servers.keys())))
 
         for compact, resource_server in resource_servers.items():
             resource_server_properties = self.get_resource_properties_by_logical_id(
@@ -80,8 +80,15 @@ class TestPipeline(TstAppABC, TestCase):
                 msg=f'Expected scopes for compact {compact} not found',
             )
 
-    def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users(self):
+    def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users_test_stage(self):
         persistent_stack = self.app.pipeline_stack.test_stage.persistent_stack
+        self._when_testing_compact_resource_servers(persistent_stack, environment_name='test')
+
+    def test_synth_generates_compact_resource_servers_with_expected_scopes_for_staff_users_prod_stage(self):
+        persistent_stack = self.app.pipeline_stack.prod_stage.persistent_stack
+        self._when_testing_compact_resource_servers(persistent_stack, environment_name='prod')
+
+    def _when_testing_jurisdiction_resource_servers(self, persistent_stack, snapshot_name, overwrite_snapshot):
         persistent_stack_template = Template.from_stack(persistent_stack)
 
         # Get the jurisdiction resource servers created in the persistent stack
@@ -108,8 +115,33 @@ class TestPipeline(TstAppABC, TestCase):
         # for the test environment
         self.compare_snapshot(
             jurisdiction_resource_server_config,
-            'JURISDICTION_RESOURCE_SERVER_CONFIGURATION',
-            overwrite_snapshot=False,
+            snapshot_name,
+            overwrite_snapshot=overwrite_snapshot,
+        )
+
+
+    def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users_test_stage(self):
+        """
+        Test that the jurisdiction resource servers are created with the expected scopes
+        for the staff users in the test environment.
+        """
+        persistent_stack = self.app.pipeline_stack.test_stage.persistent_stack
+        self._when_testing_jurisdiction_resource_servers(
+            persistent_stack=persistent_stack,
+            snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_TEST_ENV',
+            overwrite_snapshot=True
+        )
+
+    def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users_prod_stage(self):
+        """
+        Test that the jurisdiction resource servers are created with the expected scopes
+        for the staff users in the prod environment.
+        """
+        persistent_stack = self.app.pipeline_stack.prod_stage.persistent_stack
+        self._when_testing_jurisdiction_resource_servers(
+            persistent_stack=persistent_stack,
+            snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_PROD_ENV',
+            overwrite_snapshot=True
         )
 
     def test_cognito_using_recommended_security_in_prod(self):
