@@ -59,7 +59,7 @@ class PublicLookupApi:
         self.api.log_groups.append(self.get_provider_handler.log_group)
 
         self.provider_resource = self.resource.add_resource('{providerId}')
-        self.provider_resource.add_method(
+        public_get_provider_method = self.provider_resource.add_method(
             'GET',
             request_validator=self.api.parameter_body_validator,
             method_responses=[
@@ -69,6 +69,22 @@ class PublicLookupApi:
                 ),
             ],
             integration=LambdaIntegration(self.get_provider_handler, timeout=Duration.seconds(29)),
+        )
+
+        # Add suppressions for the public GET endpoint
+        NagSuppressions.add_resource_suppressions(
+            public_get_provider_method,
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-APIG4',
+                    'reason': 'This is a public endpoint that intentionally does not require authorization',
+                },
+                {
+                    'id': 'AwsSolutions-COG4',
+                    'reason': 'This is a public endpoint that intentionally '
+                    'does not use a Cognito user pool authorizer',
+                },
+            ],
         )
 
     def _add_public_query_providers(
@@ -84,7 +100,7 @@ class PublicLookupApi:
         )
         self.api.log_groups.append(handler.log_group)
 
-        query_resource.add_method(
+        public_query_provider_method = query_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
             request_models={'application/json': self.api_model.query_providers_request_model},
@@ -97,6 +113,22 @@ class PublicLookupApi:
             integration=LambdaIntegration(handler, timeout=Duration.seconds(29)),
         )
 
+        # Add suppressions for the public POST endpoint
+        NagSuppressions.add_resource_suppressions(
+            public_query_provider_method,
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-APIG4',
+                    'reason': 'This is a public endpoint that intentionally does not require authorization',
+                },
+                {
+                    'id': 'AwsSolutions-COG4',
+                    'reason': 'This is a public endpoint that intentionally '
+                    'does not use a Cognito user pool authorizer',
+                },
+            ],
+        )
+
     def _get_provider_handler(
         self,
         persistent_stack: ps.PersistentStack,
@@ -105,8 +137,8 @@ class PublicLookupApi:
         stack = Stack.of(self.resource)
         handler = PythonFunction(
             self.resource,
-            'GetProviderHandler',
-            description='Get provider handler',
+            'PublicGetProviderHandler',
+            description='Public Get provider handler',
             lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'public_lookup.py'),
             handler='public_get_provider',
