@@ -16,10 +16,7 @@ from cc_common.data_model.schema.home_jurisdiction.api import (
     ProviderHomeJurisdictionSelectionPublicResponseSchema,
 )
 from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema, LicensePublicResponseSchema
-from cc_common.data_model.schema.military_affiliation.api import (
-    MilitaryAffiliationGeneralResponseSchema,
-    MilitaryAffiliationPublicResponseSchema,
-)
+from cc_common.data_model.schema.military_affiliation.api import MilitaryAffiliationGeneralResponseSchema
 from cc_common.data_model.schema.privilege.api import PrivilegeGeneralResponseSchema, PrivilegePublicResponseSchema
 
 

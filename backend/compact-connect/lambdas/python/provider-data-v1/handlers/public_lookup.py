@@ -105,6 +105,4 @@ def public_get_provider(event: dict, context: LambdaContext):  # noqa: ARG001 un
         provider_information = get_provider_information(compact=compact, provider_id=provider_id)
 
         public_schema = ProviderPublicResponseSchema()
-        sanitized_provider = public_schema.load(provider_information)
-
-        return sanitized_provider
+        return public_schema.load(provider_information)
