@@ -125,7 +125,7 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
     }
 
     get homeStateText(): string {
-        return this.licensee?.homeJurisdiction?.name() || '';
+        return this.licensee?.homeState?.name() || '';
     }
 
     get licenseExpirationDate(): string {

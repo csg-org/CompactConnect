@@ -40,8 +40,8 @@ export interface InterfaceLicensee {
     firstName?: string | null;
     middleName?: string | null;
     lastName?: string | null;
-    address?: Address; // TODO: Deprecated delete in clean up ticket
-    homeJurisdiction?: State;
+    homeJurisdictionLicenseAddress?: Address;
+    homeState?: State;
     dob?: string | null;
     birthMonthDay?: string | null;
     ssn?: string | null;
@@ -68,8 +68,8 @@ export class Licensee implements InterfaceLicensee {
     public firstName? = null;
     public middleName? = null;
     public lastName? = null;
-    public homeJurisdiction? = new State();
-    public address? = new Address(); // TODO: Deprecated delete in clean up ticket
+    public homeState? = new State();
+    public homeJurisdictionLicenseAddress? = new Address();
     public dob? = null;
     public birthMonthDay? = null;
     public ssn? = null;
@@ -185,7 +185,7 @@ export class Licensee implements InterfaceLicensee {
         let stateNames: Array<string> = [];
 
         if (this.privileges?.length) {
-            stateNames = this.privileges.map((privilege: License) => privilege?.issueState?.name() || '');
+            stateNames = this.privileges.filter((privilege: License) => (privilege.statusState === LicenseStatus.ACTIVE)).map((privilege: License) => privilege?.issueState?.name() || '');
         } else {
             stateNames = this.privilegeStates?.map((state: State) => state.name()) || [];
         }
@@ -221,12 +221,16 @@ export class Licensee implements InterfaceLicensee {
         return this.militaryAffiliations?.find((affiliation) => ((affiliation as MilitaryAffiliation).status as any) === 'active') || null;
     }
 
+    public homeStateDisplay(): string {
+        return this.homeState?.name() || '';
+    }
+
     public bestHomeStateLicense(): License {
-        // Return most recently issued active license that matches the user's registered home jurisdiction
+        // Return most recently issued active license that matches the best guess at the user's home jurisdiction
         // If no active license return  most recently issued inactive license that matches the user's registered home jurisdiction
         let bestHomeLicense = new License();
         const homeStateLicenses = this.licenses?.filter((license: License) =>
-            (license.issueState?.abbrev === this.homeJurisdiction?.abbrev)) || [];
+            (license.issueState?.abbrev === this.homeState?.abbrev)) || [];
         const activeHomeStateLicenses = homeStateLicenses.filter((license: License) =>
             (license.statusState === LicenseStatus.ACTIVE));
         const inactiveHomeStateLicenses = homeStateLicenses.filter((license: License) =>
@@ -255,6 +259,8 @@ export class Licensee implements InterfaceLicensee {
 // ========================================================
 export class LicenseeSerializer {
     static fromServer(json: any): Licensee {
+        console.log('Ejson', json);
+
         const licenseeData: any = {
             id: json.providerId,
             npi: json.npi,
@@ -262,14 +268,20 @@ export class LicenseeSerializer {
             firstName: json.givenName,
             middleName: json.middleName,
             lastName: json.familyName,
-            homeJurisdiction: new State({ abbrev: json.homeJurisdictionSelection?.jurisdiction }),
-            address: AddressSerializer.fromServer({
+            // If the user has registered, json.homeJurisdictionSelection will be populated with the user's selected home state
+            // licenselicenseJurisdiction is the server's best guess at their home state. Once #467 is merged we can simply use
+            // json.licenselicenseJurisdiction as this will be updated to match the users' choice once that happens, therefor always
+            // being the best choice for this field. Also json.homeJurisdictionSelection is not available in get all responses
+            homeState: json.homeJurisdictionSelection
+                ? new State({ abbrev: json.homeJurisdictionSelection.jurisdiction })
+                : new State({ abbrev: json.licenseJurisdiction }),
+            homeJurisdictionLicenseAddress: AddressSerializer.fromServer({
                 street1: json.homeAddressStreet1,
                 street2: json.homeAddressStreet2,
                 city: json.homeAddressCity,
                 state: json.homeAddressState,
                 zip: json.homeAddressPostalCode,
-            }), // TODO: Deprecated delete in clean up ticket
+            }),
             dob: json.dateOfBirth,
             birthMonthDay: json.birthMonthDay,
             ssn: json.ssn,

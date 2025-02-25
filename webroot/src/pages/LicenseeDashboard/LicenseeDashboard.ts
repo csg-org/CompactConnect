@@ -75,18 +75,8 @@ export default class LicenseeDashboard extends Vue {
         return name;
     }
 
-    get homeStateList(): Array<State> {
-        const stateList: Array<State> = [];
-
-        this.activeLicenses.forEach((license) => {
-            const { issueState } = license;
-
-            if (issueState) {
-                stateList.push(issueState);
-            }
-        });
-
-        return stateList;
+    get homeState(): State | null {
+        return this.licensee?.homeState || null;
     }
 
     get obtainPrivButtonLabel(): string {
@@ -102,6 +92,8 @@ export default class LicenseeDashboard extends Vue {
     }
 
     get activeLicenses(): Array<License> {
+        console.log('licenseeLicenses', this.licenseeLicenses);
+
         return this.licenseeLicenses.filter((license) => (license.statusState === 'active'));
     }
 

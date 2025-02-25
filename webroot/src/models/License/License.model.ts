@@ -132,6 +132,8 @@ export class License implements InterfaceLicense {
 // ========================================================
 export class LicenseSerializer {
     static fromServer(json: any): License {
+        console.log('Ejson', json);
+
         const licenseData = {
             id: json.id,
             compact: new Compact({ type: json.compact }),

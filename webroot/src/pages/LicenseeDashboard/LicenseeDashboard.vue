@@ -27,18 +27,11 @@
             </div>
         </div>
         <div class="license-section">
-            <div class="home-state-section">
-                <div class="home-state-list">
-                    <HomeStateBlock
-                        v-for="(state, i) in homeStateList"
-                        :key="i"
-                        :state="state"
-                        class="no-touch-item"
-                    />
-                </div>
-                <div v-if="hasMoreThanOneActiveLicense" class="homestate-error-text">
-                    {{twoHomeStateErrorText}}
-                </div>
+            <div v-if="homeState" class="home-state-section">
+                <HomeStateBlock
+                    :state="homeState"
+                    class="no-touch-item"
+                />
             </div>
             <div
                 v-for="(license, index) in licenseeLicenses"

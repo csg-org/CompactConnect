@@ -30,6 +30,10 @@ class LicenseeRow extends Vue {
     lastSortSelectOption = '';
     lastSortSelectDirection = '';
 
+    mounted() {
+        console.log('item', this.item);
+    }
+
     //
     // Computed
     //

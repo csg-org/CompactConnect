@@ -87,10 +87,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="info-item-container">
-                            <div class="info-item-title">{{$t('licensing.driversLicense')}}</div>
-                            <div class="info-item">{{licenseNumber}}</div>
-                        </div>
                         <div v-if="dob" class="info-item-container">
                             <div class="info-item-title">{{$t('common.dateOfBirthShort')}}</div>
                             <div class="info-item">{{dob}}</div>
