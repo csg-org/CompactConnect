@@ -18,7 +18,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   WebrootDeploy:
-    # Only run this workflow in certian repos
+    # Only run this workflow in certain repos
     if: github.repository == 'csg-org/CompactConnect'
 
     # Runner OS
