@@ -2,11 +2,11 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-02-13T17:45:36Z"
+    "version": "2025-02-21T05:12:00Z"
   },
   "servers": [
     {
-      "url": "https://api.justin.jcc.iaapi.io"
+      "url": "https://api.test.compactconnect.org"
     }
   ],
   "paths": {
@@ -321,6 +321,73 @@
               "aslp/readGeneral",
               "octp/readGeneral",
               "coun/readGeneral"
+            ]
+          }
+        ]
+      }
+    },
+    "/v1/compacts/{compact}/providers/{providerId}/privileges/jurisdiction/{jurisdiction}/licenseType/{licenseType}/deactivate": {
+      "post": {
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "compact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "jurisdiction",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "licenseType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SandboLicenyYKFQAIjlFCn"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "SandboxAPIStackLicenseApiStaffPoolsAuthorizerD744D6FB": [
+              "aslp/admin",
+              "octp/admin",
+              "coun/admin"
             ]
           }
         ]
@@ -1102,12 +1169,23 @@
                   "wy"
                 ]
               },
+              "givenName": {
+                "maxLength": 100,
+                "type": "string",
+                "description": "Filter for providers with a given name (familyName is required if givenName is provided)"
+              },
+              "familyName": {
+                "maxLength": 100,
+                "type": "string",
+                "description": "Filter for providers with a family name"
+              },
               "ssn": {
                 "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$",
                 "type": "string",
                 "description": "Social security number to look up"
               }
             },
+            "additionalProperties": false,
             "description": "The query parameters"
           },
           "sorting": {
@@ -2103,6 +2181,11 @@
               "type": "string",
               "format": "date"
             },
+            "suffix": {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
             "dateOfIssuance": {
               "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
               "type": "string",
@@ -2122,10 +2205,19 @@
                 "licensed professional counselor"
               ]
             },
+            "emailAddress": {
+              "maxLength": 100,
+              "type": "string",
+              "format": "email"
+            },
             "dateOfExpiration": {
               "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
               "type": "string",
               "format": "date"
+            },
+            "phoneNumber": {
+              "pattern": "^\\+[0-9]{8,15}$",
+              "type": "string"
             },
             "homeAddressState": {
               "maxLength": 100,
@@ -2822,11 +2914,6 @@
                       "previous": {
                         "type": "object",
                         "properties": {
-                          "dateOfExpiration": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                            "type": "string",
-                            "format": "date"
-                          },
                           "compact": {
                             "type": "string",
                             "enum": [
@@ -2834,18 +2921,6 @@
                               "octp",
                               "coun"
                             ]
-                          },
-                          "privilegeId": {
-                            "type": "string"
-                          },
-                          "providerId": {
-                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                            "type": "string"
-                          },
-                          "dateOfRenewal": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                            "type": "string",
-                            "format": "date"
                           },
                           "jurisdiction": {
                             "type": "string",
@@ -2935,6 +3010,30 @@
                             "type": "string"
                           },
                           "dateOfIssuance": {
+                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "persistedStatus": {
+                            "type": "string",
+                            "enum": [
+                              "active",
+                              "inactive"
+                            ]
+                          },
+                          "dateOfExpiration": {
+                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "privilegeId": {
+                            "type": "string"
+                          },
+                          "providerId": {
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                            "type": "string"
+                          },
+                          "dateOfRenewal": {
                             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                             "type": "string",
                             "format": "date"
@@ -3014,11 +3113,6 @@
                       "updatedValues": {
                         "type": "object",
                         "properties": {
-                          "dateOfExpiration": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                            "type": "string",
-                            "format": "date"
-                          },
                           "compact": {
                             "type": "string",
                             "enum": [
@@ -3026,18 +3120,6 @@
                               "octp",
                               "coun"
                             ]
-                          },
-                          "privilegeId": {
-                            "type": "string"
-                          },
-                          "providerId": {
-                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                            "type": "string"
-                          },
-                          "dateOfRenewal": {
-                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                            "type": "string",
-                            "format": "date"
                           },
                           "jurisdiction": {
                             "type": "string",
@@ -3131,6 +3213,30 @@
                             "type": "string",
                             "format": "date"
                           },
+                          "persistedStatus": {
+                            "type": "string",
+                            "enum": [
+                              "active",
+                              "inactive"
+                            ]
+                          },
+                          "dateOfExpiration": {
+                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "type": "string",
+                            "format": "date"
+                          },
+                          "privilegeId": {
+                            "type": "string"
+                          },
+                          "providerId": {
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                            "type": "string"
+                          },
+                          "dateOfRenewal": {
+                            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                            "type": "string",
+                            "format": "date"
+                          },
                           "dateOfUpdate": {
                             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                             "type": "string",
@@ -3180,6 +3286,13 @@
                   "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                   "type": "string",
                   "format": "date"
+                },
+                "persistedStatus": {
+                  "type": "string",
+                  "enum": [
+                    "active",
+                    "inactive"
+                  ]
                 },
                 "dateOfExpiration": {
                   "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
@@ -3542,15 +3655,6 @@
                   "minLength": 1,
                   "type": "string"
                 },
-                "npi": {
-                  "pattern": "^[0-9]{10}$",
-                  "type": "string"
-                },
-                "homeAddressPostalCode": {
-                  "maxLength": 7,
-                  "minLength": 5,
-                  "type": "string"
-                },
                 "jurisdiction": {
                   "type": "string",
                   "enum": [
@@ -3609,14 +3713,92 @@
                     "wy"
                   ]
                 },
-                "givenName": {
+                "homeAddressStreet1": {
+                  "maxLength": 100,
+                  "minLength": 2,
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "license-home"
+                  ]
+                },
+                "suffix": {
                   "maxLength": 100,
                   "minLength": 1,
                   "type": "string"
                 },
-                "homeAddressStreet1": {
+                "dateOfIssuance": {
+                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "ssn": {
+                  "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$",
+                  "type": "string"
+                },
+                "licenseType": {
+                  "type": "string",
+                  "enum": [
+                    "audiologist",
+                    "speech-language pathologist",
+                    "occupational therapist",
+                    "occupational therapy assistant",
+                    "licensed professional counselor"
+                  ]
+                },
+                "emailAddress": {
+                  "maxLength": 100,
+                  "type": "string",
+                  "format": "email"
+                },
+                "dateOfExpiration": {
+                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "homeAddressState": {
                   "maxLength": 100,
                   "minLength": 2,
+                  "type": "string"
+                },
+                "providerId": {
+                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+                  "type": "string"
+                },
+                "dateOfRenewal": {
+                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+                  "type": "string",
+                  "format": "date"
+                },
+                "familyName": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "homeAddressCity": {
+                  "maxLength": 100,
+                  "minLength": 2,
+                  "type": "string"
+                },
+                "licenseNumber": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "npi": {
+                  "pattern": "^[0-9]{10}$",
+                  "type": "string"
+                },
+                "homeAddressPostalCode": {
+                  "maxLength": 7,
+                  "minLength": 5,
+                  "type": "string"
+                },
+                "givenName": {
+                  "maxLength": 100,
+                  "minLength": 1,
                   "type": "string"
                 },
                 "militaryWaiver": {
@@ -3682,6 +3864,11 @@
                             "type": "string",
                             "format": "date"
                           },
+                          "suffix": {
+                            "maxLength": 100,
+                            "minLength": 1,
+                            "type": "string"
+                          },
                           "dateOfIssuance": {
                             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                             "type": "string",
@@ -3701,10 +3888,19 @@
                               "licensed professional counselor"
                             ]
                           },
+                          "emailAddress": {
+                            "maxLength": 100,
+                            "type": "string",
+                            "format": "email"
+                          },
                           "dateOfExpiration": {
                             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                             "type": "string",
                             "format": "date"
+                          },
+                          "phoneNumber": {
+                            "pattern": "^\\+[0-9]{8,15}$",
+                            "type": "string"
                           },
                           "homeAddressState": {
                             "maxLength": 100,
@@ -3838,6 +4034,11 @@
                             "type": "string",
                             "format": "date"
                           },
+                          "suffix": {
+                            "maxLength": 100,
+                            "minLength": 1,
+                            "type": "string"
+                          },
                           "dateOfIssuance": {
                             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                             "type": "string",
@@ -3857,10 +4058,19 @@
                               "licensed professional counselor"
                             ]
                           },
+                          "emailAddress": {
+                            "maxLength": 100,
+                            "type": "string",
+                            "format": "email"
+                          },
                           "dateOfExpiration": {
                             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                             "type": "string",
                             "format": "date"
+                          },
+                          "phoneNumber": {
+                            "pattern": "^\\+[0-9]{8,15}$",
+                            "type": "string"
                           },
                           "homeAddressState": {
                             "maxLength": 100,
@@ -3923,63 +4133,8 @@
                     }
                   }
                 },
-                "type": {
-                  "type": "string",
-                  "enum": [
-                    "license-home"
-                  ]
-                },
-                "dateOfIssuance": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                  "type": "string",
-                  "format": "date"
-                },
-                "ssn": {
-                  "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$",
-                  "type": "string"
-                },
-                "licenseType": {
-                  "type": "string",
-                  "enum": [
-                    "audiologist",
-                    "speech-language pathologist",
-                    "occupational therapist",
-                    "occupational therapy assistant",
-                    "licensed professional counselor"
-                  ]
-                },
-                "dateOfExpiration": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                  "type": "string",
-                  "format": "date"
-                },
-                "homeAddressState": {
-                  "maxLength": 100,
-                  "minLength": 2,
-                  "type": "string"
-                },
-                "providerId": {
-                  "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
-                  "type": "string"
-                },
-                "dateOfRenewal": {
-                  "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-                  "type": "string",
-                  "format": "date"
-                },
-                "familyName": {
-                  "maxLength": 100,
-                  "minLength": 1,
-                  "type": "string"
-                },
-                "homeAddressCity": {
-                  "maxLength": 100,
-                  "minLength": 2,
-                  "type": "string"
-                },
-                "licenseNumber": {
-                  "maxLength": 100,
-                  "minLength": 1,
+                "phoneNumber": {
+                  "pattern": "^\\+[0-9]{8,15}$",
                   "type": "string"
                 },
                 "middleName": {

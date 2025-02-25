@@ -264,6 +264,20 @@
                       ],
                       "type": "string"
                     },
+                    "emailAddress": {
+                      "format": "email",
+                      "maxLength": 100,
+                      "type": "string"
+                    },
+                    "phoneNumber": {
+                      "pattern": "^\\+[0-9]{8,15}$",
+                      "type": "string"
+                    },
+                    "suffix": {
+                      "maxLength": 100,
+                      "minLength": 1,
+                      "type": "string"
+                    },
                     "militaryWaiver": {
                       "type": "boolean"
                     }
@@ -360,6 +374,20 @@
                         "active",
                         "inactive"
                       ],
+                      "type": "string"
+                    },
+                    "emailAddress": {
+                      "format": "email",
+                      "maxLength": 100,
+                      "type": "string"
+                    },
+                    "phoneNumber": {
+                      "pattern": "^\\+[0-9]{8,15}$",
+                      "type": "string"
+                    },
+                    "suffix": {
+                      "maxLength": 100,
+                      "minLength": 1,
                       "type": "string"
                     },
                     "militaryWaiver": {
@@ -468,6 +496,20 @@
               "active",
               "inactive"
             ],
+            "type": "string"
+          },
+          "emailAddress": {
+            "format": "email",
+            "maxLength": 100,
+            "type": "string"
+          },
+          "phoneNumber": {
+            "pattern": "^\\+[0-9]{8,15}$",
+            "type": "string"
+          },
+          "suffix": {
+            "maxLength": 100,
+            "minLength": 1,
             "type": "string"
           },
           "militaryWaiver": {
@@ -673,6 +715,13 @@
                     "privilegeId": {
                       "type": "string"
                     },
+                    "persistedStatus": {
+                      "enum": [
+                        "active",
+                        "inactive"
+                      ],
+                      "type": "string"
+                    },
                     "status": {
                       "enum": [
                         "active",
@@ -805,6 +854,13 @@
                       "type": "string"
                     },
                     "privilegeId": {
+                      "type": "string"
+                    },
+                    "persistedStatus": {
+                      "enum": [
+                        "active",
+                        "inactive"
+                      ],
                       "type": "string"
                     },
                     "status": {
@@ -949,6 +1005,13 @@
             "type": "string"
           },
           "privilegeId": {
+            "type": "string"
+          },
+          "persistedStatus": {
+            "enum": [
+              "active",
+              "inactive"
+            ],
             "type": "string"
           },
           "status": {
