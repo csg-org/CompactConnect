@@ -218,5 +218,4 @@ class LicensePublicResponseSchema(ForgivingSchema):
     dateOfRenewal = Raw(required=True, allow_none=False)
     dateOfExpiration = Raw(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
-    militaryWaiver = Boolean(required=False, allow_none=False)
     history = List(Nested(LicenseUpdatePublicResponseSchema(), required=False, allow_none=False))
