@@ -9,7 +9,6 @@ from .. import TstFunction
 @mock_aws
 class TestPublicQueryProviders(TstFunction):
     def test_public_query_by_provider_id_returns_public_allowed_fields(self):
-        from cc_common.data_model.schema.provider.api import ProviderPublicResponseSchema
         self._load_provider_data()
 
         from handlers.public_lookup import public_query_providers
@@ -40,7 +39,6 @@ class TestPublicQueryProviders(TstFunction):
             expected_provider.pop('birthMonthDay')
             expected_provider.pop('militaryWaiver')
             expected_provider.pop('compactConnectRegisteredEmailAddress')
-
 
         body = json.loads(resp['body'])
         self.assertEqual(
@@ -264,7 +262,6 @@ class TestPublicGetProvider(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
 
-
         with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
             expected_provider.pop('ssnLastFour')
@@ -309,7 +306,6 @@ class TestPublicGetProvider(TstFunction):
             expected_provider['privileges'][0]['history'][0]['previous'].pop('compactTransactionId')
             expected_provider['privileges'][0]['history'][0]['updatedValues'].pop('compactTransactionId')
 
-
         self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)
 
@@ -318,7 +314,6 @@ class TestPublicGetProvider(TstFunction):
         # key generation in the LicenseUpdateRecordSchema for details.
         sensitive_hash = self._get_sensitive_hash()
         self.assertNotIn(sensitive_hash, resp['body'])
-
 
     def test_public_get_provider_missing_provider_id(self):
         from handlers.public_lookup import public_get_provider
