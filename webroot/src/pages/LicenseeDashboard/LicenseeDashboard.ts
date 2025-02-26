@@ -91,22 +91,8 @@ export default class LicenseeDashboard extends Vue {
         return this.$t('common.welcome');
     }
 
-    get activeLicenses(): Array<License> {
-        console.log('licenseeLicenses', this.licenseeLicenses);
-
-        return this.licenseeLicenses.filter((license) => (license.statusState === 'active'));
-    }
-
-    get hasMoreThanOneActiveLicense(): boolean {
-        return this.activeLicenses.length > 1;
-    }
-
-    get isPrivilegePurchaseDisabled(): boolean {
-        return this.hasMoreThanOneActiveLicense || !this.hasActiveLicense;
-    }
-
-    get hasActiveLicense(): boolean {
-        return this.activeLicenses.length > 0;
+    get isPrivilegePurchaseEnabled(): boolean {
+        return this.licensee?.canPurchasePrivileges() || false;
     }
 
     get twoHomeStateErrorText(): string {

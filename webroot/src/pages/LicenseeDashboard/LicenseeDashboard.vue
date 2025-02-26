@@ -21,7 +21,7 @@
                     :label="obtainPrivButtonLabel"
                     :aria-label="$t('licensing.obtainPrivileges')"
                     class="obtain-priv-btn"
-                    :isEnabled="!isPrivilegePurchaseDisabled"
+                    :isEnabled="isPrivilegePurchaseEnabled"
                     @click="startPrivPurchaseFlow"
                 />
             </div>

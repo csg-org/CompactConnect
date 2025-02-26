@@ -252,6 +252,13 @@ export class Licensee implements InterfaceLicensee {
     public bestHomeStateLicenseMailingAddress(): Address {
         return this.bestHomeStateLicense().mailingAddress || new Address();
     }
+
+    public canPurchasePrivileges(): boolean {
+        // Return true if the user has an active license in their chosen homestate
+        return this.licenses?.some((license: License) =>
+            (license.issueState?.abbrev === this.homeState?.abbrev
+                && license.statusState === LicenseStatus.ACTIVE)) || false;
+    }
 }
 
 // ========================================================
