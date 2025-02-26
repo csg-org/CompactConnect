@@ -649,6 +649,7 @@
             "none": "Ninguno",
             "read": "Lectura",
             "readPrivate": "Leer datos privados",
+            "readSsn": "Leer el SSN",
             "write": "Escritura",
             "admin": "Administración"
         },

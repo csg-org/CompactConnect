@@ -16,6 +16,17 @@ export enum AuthTypes {
 }
 
 // =========================
+// =   Permission Types    =
+// =========================
+export enum Permission {
+    NONE = 'none',
+    READ_PRIVATE = 'readPrivate',
+    READ_SSN = 'readSSN',
+    WRITE = 'write',
+    ADMIN = 'admin',
+}
+
+// =========================
 // =       Fee Types       =
 // =========================
 export enum FeeTypes {

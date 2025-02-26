@@ -65,11 +65,13 @@ describe('Staff User model', () => {
                 {
                     compact: new Compact({ type: CompactType.ASLP }),
                     isReadPrivate: true,
+                    isReadSsn: true,
                     isAdmin: true,
                     states: [
                         {
                             state: new State({ abbrev: 'co' }),
                             isReadPrivate: true,
+                            isReadSsn: true,
                             isWrite: true,
                             isAdmin: true,
                         },
@@ -91,10 +93,12 @@ describe('Staff User model', () => {
             {
                 compact: new Compact({ type: CompactType.ASLP }),
                 isReadPrivate: true,
+                isReadSsn: true,
                 isAdmin: true,
                 states: [
                     {
                         isReadPrivate: true,
+                        isReadSsn: true,
                         isWrite: true,
                         isAdmin: true,
                         '...': '',
@@ -105,10 +109,10 @@ describe('Staff User model', () => {
         expect(user.accountStatus).to.equal(data.accountStatus);
         expect(user.getFullName()).to.equal(`${data.firstName} ${data.lastName}`);
         expect(user.getInitials()).to.equal('FL');
-        expect(user.permissionsShortDisplay()).to.equal('Read Private, Admin');
+        expect(user.permissionsShortDisplay()).to.equal('Read Private, Read SSN, Admin');
         expect(user.permissionsFullDisplay()).to.matchPattern([
-            'ASLP: Read Private, Admin',
-            'Colorado: Read Private, Write, Admin',
+            'ASLP: Read Private, Read SSN, Admin',
+            'Colorado: Read Private, Read SSN, Write, Admin',
         ]);
         expect(user.affiliationDisplay()).to.equal('ASLP');
         expect(user.statesDisplay()).to.equal('Colorado');
@@ -214,12 +218,14 @@ describe('Staff User model', () => {
                 aslp: {
                     actions: {
                         readPrivate: true,
+                        readSSN: true,
                         admin: true,
                     },
                     jurisdictions: {
                         co: {
                             actions: {
                                 readPrivate: true,
+                                readSSN: true,
                                 write: true,
                                 admin: true,
                             },
@@ -246,10 +252,12 @@ describe('Staff User model', () => {
                     '...': '',
                 },
                 isReadPrivate: true,
+                isReadSsn: true,
                 isAdmin: true,
                 states: [
                     {
                         isReadPrivate: true,
+                        isReadSsn: true,
                         isWrite: true,
                         isAdmin: true,
                         '...': '',
@@ -262,10 +270,10 @@ describe('Staff User model', () => {
         expect(user.userType).to.equal(AuthTypes.STAFF);
         expect(user.getFullName()).to.equal(`${data.attributes.givenName} ${data.attributes.familyName}`);
         expect(user.getInitials()).to.equal('FL');
-        expect(user.permissionsShortDisplay()).to.equal('Read Private, Admin');
+        expect(user.permissionsShortDisplay()).to.equal('Read Private, Read SSN, Admin');
         expect(user.permissionsFullDisplay()).to.matchPattern([
-            'ASLP: Read Private, Admin',
-            'Colorado: Read Private, Write, Admin',
+            'ASLP: Read Private, Read SSN, Admin',
+            'Colorado: Read Private, Read SSN, Write, Admin',
         ]);
         expect(user.affiliationDisplay()).to.equal('ASLP');
         expect(user.statesDisplay()).to.equal('Colorado');
@@ -287,11 +295,13 @@ describe('Staff User model', () => {
                 {
                     compact: CompactType.ASLP,
                     isReadPrivate: true,
+                    isReadSsn: true,
                     isAdmin: true,
                     states: [
                         {
                             abbrev: 'co',
                             isReadPrivate: true,
+                            isReadSsn: true,
                             isWrite: true,
                             isAdmin: true,
                         },
@@ -311,12 +321,14 @@ describe('Staff User model', () => {
                 [CompactType.ASLP]: {
                     actions: {
                         readPrivate: true,
+                        readSSN: true,
                         admin: true,
                     },
                     jurisdictions: {
                         co: {
                             actions: {
                                 readPrivate: true,
+                                readSSN: true,
                                 write: true,
                                 admin: true,
                             },
