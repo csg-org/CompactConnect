@@ -50,6 +50,46 @@ class DataClient:
 
         return resp['providerId']
 
+    @logger_inject_kwargs(logger, 'compact')
+    def get_or_create_provider_id(self, *, compact: str, ssn: str) -> str:
+        provider_id = str(uuid4())
+        # This is an 'ask forgiveness' approach to provider id assignment:
+        # Try to create a new provider, conditional on it not already existing
+        try:
+            self.config.ssn_table.put_item(
+                Item=self.ssn_index_record_schema.dump(
+                    {
+                        'compact': compact,
+                        'ssn': ssn,
+                        'providerId': provider_id,
+                    }
+                ),
+                ConditionExpression=Attr('pk').not_exists(),
+                ReturnValuesOnConditionCheckFailure='ALL_OLD',
+            )
+            logger.info('Creating new provider', provider_id=provider_id)
+        except ClientError as e:
+            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
+                # The provider already exists, so grab their providerId
+                provider_id = TypeDeserializer().deserialize(e.response['Item']['providerId'])
+                logger.info('Found existing provider', provider_id=provider_id)
+            else:
+                raise
+        return provider_id
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id')
+    def get_ssn_by_provider_id(self, *, compact: str, provider_id: str) -> str:
+        logger.info('Getting ssn by provider id', compact=compact, provider_id=provider_id)
+        resp = self.config.ssn_table.query(
+            KeyConditionExpression=Key('providerIdGSIpk').eq(f'{compact}#PROVIDER#{provider_id}'),
+            IndexName=self.config.ssn_index_name,
+        )['Items']
+        if len(resp) == 0:
+            raise CCNotFoundException('Provider not found')
+        if len(resp) != 1:
+            raise CCInternalException(f'Expected 1 SSN index record, got {len(resp)}')
+        return resp[0]['ssn']
+
     @logger_inject_kwargs(logger, 'compact', 'provider_id')
     def get_provider_home_jurisdiction_selection(self, *, compact: str, provider_id: str) -> dict | None:
         """Get the home jurisdiction selection record for a provider.
@@ -117,33 +157,6 @@ class DataClient:
             raise CCInternalException('Multiple matching license records found')
 
         return matching_records[0] if matching_records else None
-
-    @logger_inject_kwargs(logger, 'compact')
-    def get_or_create_provider_id(self, *, compact: str, ssn: str) -> str:
-        provider_id = str(uuid4())
-        # This is an 'ask forgiveness' approach to provider id assignment:
-        # Try to create a new provider, conditional on it not already existing
-        try:
-            self.config.ssn_table.put_item(
-                Item={
-                    'pk': f'{compact}#SSN#{ssn}',
-                    'sk': f'{compact}#SSN#{ssn}',
-                    'compact': compact,
-                    'ssn': ssn,
-                    'providerId': provider_id,
-                },
-                ConditionExpression=Attr('pk').not_exists(),
-                ReturnValuesOnConditionCheckFailure='ALL_OLD',
-            )
-            logger.info('Creating new provider', provider_id=provider_id)
-        except ClientError as e:
-            if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
-                # The provider already exists, so grab their providerId
-                provider_id = TypeDeserializer().deserialize(e.response['Item']['providerId'])
-                logger.info('Found existing provider', provider_id=provider_id)
-            else:
-                raise
-        return provider_id
 
     @paginated_query
     @logger_inject_kwargs(logger, 'compact', 'provider_id')
@@ -244,17 +257,6 @@ class DataClient:
             **dynamo_pagination,
         )
 
-    @paginated_query
-    @logger_inject_kwargs(logger, 'compact')
-    def get_privilege_purchase_options(self, *, compact: str, dynamo_pagination: dict):
-        logger.info('Getting privilege purchase options for compact')
-
-        return self.config.compact_configuration_table.query(
-            Select='ALL_ATTRIBUTES',
-            KeyConditionExpression=Key('pk').eq(f'{compact}#CONFIGURATION'),
-            **dynamo_pagination,
-        )
-
     def _generate_privilege_record(
         self,
         compact: str,
@@ -305,6 +307,7 @@ class DataClient:
             'compactTransactionId': compact_transaction_id,
             'attestations': attestations,
             'privilegeId': privilege_id,
+            'persistedStatus': 'active',
         }
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'compact_transaction_id')
@@ -384,6 +387,8 @@ class DataClient:
                             'dateOfRenewal': privilege_record['dateOfRenewal'],
                             'dateOfExpiration': privilege_record['dateOfExpiration'],
                             'compactTransactionId': compact_transaction_id,
+                            'privilegeId': privilege_record['privilegeId'],
+                            'attestations': attestations,
                         },
                     }
                     privilege_update_records.append(update_record)
@@ -887,3 +892,97 @@ class DataClient:
             # The user has not registered with the system and set a home jurisdiction
             logger.info('No home jurisdiction selection found. Cannot determine home state license')
             return None
+
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction')
+    def deactivate_privilege(self, *, compact: str, provider_id: str, jurisdiction: str) -> None:
+        """
+        Deactivate a privilege by setting its persistedStatus to inactive.
+        This will create a history record and update the provider record.
+
+        :param str compact: The compact name
+        :param str provider_id: The provider ID
+        :param str jurisdiction: The jurisdiction postal abbreviation
+        :raises CCNotFoundException: If the privilege record is not found
+        """
+        # Get the privilege record
+        try:
+            privilege_record = self.config.provider_table.get_item(
+                Key={
+                    'pk': f'{compact}#PROVIDER#{provider_id}',
+                    'sk': f'{compact}#PROVIDER#privilege/{jurisdiction}#',
+                },
+            )['Item']
+        except KeyError as e:
+            raise CCNotFoundException(f'Privilege not found for jurisdiction {jurisdiction}') from e
+
+        # Find the main privilege record (not history records)
+        privilege_record_schema = PrivilegeRecordSchema()
+        privilege_record = privilege_record_schema.load(privilege_record)
+
+        # If already inactive, do nothing
+        if privilege_record.get('persistedStatus', 'active') == 'inactive':
+            logger.info('Provider already inactive. Doing nothing.')
+            return
+
+        # Create the update record
+        # Use the schema to generate the update record with proper pk/sk
+        privilege_update_record = PrivilegeUpdateRecordSchema().dump(
+            {
+                'type': 'privilegeUpdate',
+                'updateType': 'deactivation',
+                'providerId': provider_id,
+                'compact': compact,
+                'jurisdiction': jurisdiction,
+                'dateOfUpdate': self.config.current_standard_datetime.isoformat(),
+                'previous': {
+                    # We're relying on the schema to trim out unneeded fields
+                    **privilege_record,
+                },
+                'updatedValues': {
+                    'persistedStatus': 'inactive',
+                },
+            }
+        )
+
+        # Update the privilege record and create history record
+        logger.info('Deactivating privilege')
+        self.config.dynamodb_client.transact_write_items(
+            TransactItems=[
+                # Set the privilege record's persistedStatus to inactive and update the dateOfUpdate
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table.name,
+                        'Key': {
+                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                            'sk': {'S': f'{compact}#PROVIDER#privilege/{jurisdiction}#'},
+                        },
+                        'UpdateExpression': 'SET persistedStatus = :status, dateOfUpdate = :dateOfUpdate',
+                        'ExpressionAttributeValues': {
+                            ':status': {'S': 'inactive'},
+                            ':dateOfUpdate': {'S': self.config.current_standard_datetime.isoformat()},
+                        },
+                    },
+                },
+                # Create a history record, reflecting this change
+                {
+                    'Put': {
+                        'TableName': self.config.provider_table.name,
+                        'Item': TypeSerializer().serialize(privilege_update_record)['M'],
+                    },
+                },
+                # Delete the deactivated privilege jurisdiction from the provider record
+                {
+                    'Update': {
+                        'TableName': self.config.provider_table.name,
+                        'Key': {
+                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
+                            'sk': {'S': f'{compact}#PROVIDER'},
+                        },
+                        'UpdateExpression': 'DELETE privilegeJurisdictions :jurisdiction',
+                        'ExpressionAttributeValues': {
+                            ':jurisdiction': {'SS': [jurisdiction]},
+                        },
+                    },
+                },
+            ],
+        )

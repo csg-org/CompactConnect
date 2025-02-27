@@ -155,8 +155,12 @@ class _Config:
         return os.environ['LICENSE_GSI_NAME']
 
     @property
-    def ssn_inverted_index_name(self):
-        return os.environ['SSN_INVERTED_INDEX_NAME']
+    def compact_transaction_id_gsi_name(self):
+        return os.environ['COMPACT_TRANSACTION_ID_GSI_NAME']
+
+    @property
+    def ssn_index_name(self):
+        return os.environ['SSN_INDEX_NAME']
 
     @property
     def bulk_bucket_name(self):

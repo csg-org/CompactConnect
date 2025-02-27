@@ -127,24 +127,4 @@ describe('PrivilegeAttestation model', () => {
 
         expect(privilegeAttestation.textDisplay()).to.equal('test-text<br>test-text');
     });
-    it('should prepare a PrivilegeAttestation for server request through serializer', () => {
-        const privilegeAttestation = new PrivilegeAttestation({
-            id: 'test-id',
-            dateCreated: '2020-01-01',
-            dateUpdated: '2021-12-31',
-            compact: new Compact(),
-            type: 'test-type',
-            name: 'test-name',
-            text: 'test-text',
-            version: 'test-version',
-            locale: 'test-locale',
-            isRequired: true,
-        });
-        const requestData = PrivilegeAttestationSerializer.toServer(privilegeAttestation);
-
-        expect(requestData).to.matchPattern({
-            attestationId: privilegeAttestation.id,
-            version: privilegeAttestation.version,
-        });
-    });
 });

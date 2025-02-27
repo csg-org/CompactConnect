@@ -5,7 +5,8 @@
 //  Created by InspiringApps on 7/8/2024.
 //
 
-import { expect } from 'chai';
+import chai, { expect } from 'chai';
+import chaiMatchPattern from 'chai-match-pattern';
 import { serverDateFormat, displayDateFormat } from '@/app.config';
 import { CompactType } from '@models/Compact/Compact.model';
 import { Licensee, LicenseeStatus, LicenseeSerializer } from '@models/Licensee/Licensee.model';
@@ -15,6 +16,8 @@ import { MilitaryAffiliation } from '@models/MilitaryAffiliation/MilitaryAffilia
 import { State } from '@models/State/State.model';
 import i18n from '@/i18n';
 import moment from 'moment';
+
+chai.use(chaiMatchPattern);
 
 describe('Licensee model', () => {
     before(() => {
@@ -213,6 +216,23 @@ describe('Licensee model', () => {
             licenses: [
                 {
                     id: 'test-id',
+                    licenseNumber: '3',
+                    compact: CompactType.ASLP,
+                    type: 'license-home',
+                    jurisdiction: 'co',
+                    dateOfIssuance: moment().subtract(1, 'day').format(serverDateFormat),
+                    homeAddressStreet1: 'test-street1',
+                    homeAddressStreet2: 'test-street2',
+                    homeAddressCity: 'test-city',
+                    homeAddressState: 'co',
+                    homeAddressPostalCode: 'test-zip',
+                    renewalDate: moment().format(serverDateFormat),
+                    expireDate: moment().subtract(2, 'day').format(serverDateFormat),
+                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    status: LicenseStatus.ACTIVE,
+                },
+                {
+                    id: 'test-id',
                     licenseNumber: '1',
                     compact: CompactType.ASLP,
                     type: 'license-home',
@@ -225,6 +245,23 @@ describe('Licensee model', () => {
                     homeAddressPostalCode: 'test-zip',
                     renewalDate: moment().format(serverDateFormat),
                     expireDate: moment().subtract(1, 'day').format(serverDateFormat),
+                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    status: LicenseStatus.ACTIVE,
+                },
+                {
+                    id: 'test-id',
+                    licenseNumber: '4',
+                    compact: CompactType.ASLP,
+                    type: 'license-home',
+                    jurisdiction: 'co',
+                    dateOfIssuance: moment().subtract(2, 'day').format(serverDateFormat),
+                    homeAddressStreet1: 'test-street1',
+                    homeAddressStreet2: 'test-street2',
+                    homeAddressCity: 'test-city',
+                    homeAddressState: 'co',
+                    homeAddressPostalCode: 'test-zip',
+                    renewalDate: moment().format(serverDateFormat),
+                    expireDate: moment().subtract(3, 'day').format(serverDateFormat),
                     licenseType: LicenseOccupation.AUDIOLOGIST,
                     status: LicenseStatus.ACTIVE,
                 },
@@ -279,7 +316,7 @@ describe('Licensee model', () => {
         expect(licensee.address).to.be.an.instanceof(Address);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
-        expect(licensee.licenses).to.be.an('array').with.length(2);
+        expect(licensee.licenses).to.be.an('array').with.length(4);
         expect(licensee.licenses[0]).to.be.an.instanceof(License);
         expect(licensee.privilegeStates).to.be.an('array').with.length(1);
         expect(licensee.privilegeStates[0]).to.be.an.instanceof(State);
@@ -317,7 +354,7 @@ describe('Licensee model', () => {
             moment(data.dateOfUpdate, serverDateFormat).format(displayDateFormat)
         );
         expect(licensee.lastUpdatedDisplayRelative()).to.be.a('string').that.is.not.empty;
-        expect(licensee.licenseStatesDisplay()).to.equal('Colorado, Colorado');
+        expect(licensee.licenseStatesDisplay()).to.equal('Colorado, Colorado +');
         expect(licensee.privilegeStatesAllDisplay()).to.equal('Colorado');
         expect(licensee.privilegeStatesDisplay()).to.equal('Colorado');
         expect(licensee.occupationName()).to.equal('Audiologist');
@@ -336,6 +373,14 @@ describe('Licensee model', () => {
             homeAddressState: 'co',
             homeAddressPostalCode: 'test-zip',
             dateOfBirth: moment().format(serverDateFormat),
+            homeJurisdictionSelection: {
+                compact: 'aslp',
+                dateOfSelection: '2025-01-30T18:55:00+00:00',
+                dateOfUpdate: '2025-01-30T18:55:00+00:00',
+                jurisdiction: 'co',
+                providerId: '0a945011-e2a7-4b25-b514-84f4d89b9937',
+                type: 'homeJurisdictionSelection'
+            },
             ssn: '000-00-0000',
             licenseType: LicenseOccupation.AUDIOLOGIST,
             licenseJurisdiction: 'co',
@@ -405,7 +450,7 @@ describe('Licensee model', () => {
                     expireDate: moment().subtract(1, 'day').format(serverDateFormat),
                     licenseType: LicenseOccupation.AUDIOLOGIST,
                     status: LicenseStatus.ACTIVE,
-                },
+                }
             ],
             dateOfUpdate: moment().format(serverDateFormat),
             status: LicenseeStatus.ACTIVE,
@@ -535,6 +580,23 @@ describe('Licensee model', () => {
                     licenseType: LicenseOccupation.AUDIOLOGIST,
                     status: LicenseStatus.INACTIVE,
                 },
+                {
+                    id: 'test-id',
+                    licenseNumber: '3',
+                    compact: CompactType.ASLP,
+                    type: 'license-home',
+                    jurisdiction: 'co',
+                    homeAddressStreet1: 'test-street1',
+                    homeAddressStreet2: 'test-street2',
+                    homeAddressCity: 'test-city',
+                    homeAddressState: 'co',
+                    homeAddressPostalCode: 'test-zip',
+                    dateOfIssuance: moment().subtract(2, 'day').format(serverDateFormat),
+                    renewalDate: moment().format(serverDateFormat),
+                    expireDate: moment().subtract(1, 'day').format(serverDateFormat),
+                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    status: LicenseStatus.INACTIVE,
+                },
             ],
             privilegeJurisdictions: ['co'],
             privileges: [
@@ -569,7 +631,7 @@ describe('Licensee model', () => {
         expect(licensee.address).to.be.an.instanceof(Address);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
-        expect(licensee.licenses).to.be.an('array').with.length(2);
+        expect(licensee.licenses).to.be.an('array').with.length(3);
         expect(licensee.licenses[0]).to.be.an.instanceof(License);
         expect(licensee.privilegeStates).to.be.an('array').with.length(1);
         expect(licensee.privilegeStates[0]).to.be.an.instanceof(State);
@@ -598,7 +660,7 @@ describe('Licensee model', () => {
             moment(data.dateOfUpdate, serverDateFormat).format(displayDateFormat)
         );
         expect(licensee.lastUpdatedDisplayRelative()).to.be.a('string').that.is.not.empty;
-        expect(licensee.licenseStatesDisplay()).to.equal('Colorado, Colorado');
+        expect(licensee.licenseStatesDisplay()).to.equal('Colorado, Colorado +');
         expect(licensee.privilegeStatesAllDisplay()).to.equal('Colorado');
         expect(licensee.privilegeStatesDisplay()).to.equal('Colorado');
         expect(licensee.occupationName()).to.equal('Audiologist');

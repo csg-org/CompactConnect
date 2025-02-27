@@ -22,6 +22,15 @@ export enum MutationTypes {
     UPDATE_USER_REQUEST = '[Users] Update User Request',
     UPDATE_USER_FAILURE = '[Users] Update User Failure',
     UPDATE_USER_SUCCESS = '[Users] Update User Success',
+    REINVITE_USER_REQUEST = '[Users] Reinvite User Request',
+    REINVITE_USER_FAILURE = '[Users] Reinvite User Failure',
+    REINVITE_USER_SUCCESS = '[Users] Reinvite User Success',
+    DELETE_USER_REQUEST = '[Users] Delete User Request',
+    DELETE_USER_FAILURE = '[Users] Delete User Failure',
+    DELETE_USER_SUCCESS = '[Users] Delete User Success',
+    DELETE_PRIVILEGE_REQUEST = '[Users] Delete Privilege Request',
+    DELETE_PRIVILEGE_FAILURE = '[Users] Delete Privilege Failure',
+    DELETE_PRIVILEGE_SUCCESS = '[Users] Delete Privilege Success',
     STORE_UPDATE_USER = '[Users] Updated User in store',
     STORE_REMOVE_USER = '[Users] Remove User from store',
     STORE_RESET_USERS = '[Users] Reset users store',
@@ -85,6 +94,42 @@ export default {
         state.error = error;
     },
     [MutationTypes.UPDATE_USER_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
+    [MutationTypes.REINVITE_USER_REQUEST]: (state: any) => {
+        state.isLoading = false; // State is handled locally for this to avoid triggering unwanted actions
+        state.error = null;
+    },
+    [MutationTypes.REINVITE_USER_FAILURE]: (state: any) => {
+        state.isLoading = false;
+        state.error = null; // State is handled locally for this to avoid triggering unwanted actions
+    },
+    [MutationTypes.REINVITE_USER_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
+    [MutationTypes.DELETE_USER_REQUEST]: (state: any) => {
+        state.isLoading = false; // State is handled locally for this to avoid triggering unwanted actions
+        state.error = null;
+    },
+    [MutationTypes.DELETE_USER_FAILURE]: (state: any) => {
+        state.isLoading = false;
+        state.error = null; // State is handled locally for this to avoid triggering unwanted actions
+    },
+    [MutationTypes.DELETE_USER_SUCCESS]: (state: any) => {
+        state.isLoading = false;
+        state.error = null;
+    },
+    [MutationTypes.DELETE_PRIVILEGE_REQUEST]: (state: any) => {
+        state.isLoading = true;
+        state.error = null;
+    },
+    [MutationTypes.DELETE_PRIVILEGE_FAILURE]: (state: any, error: Error) => {
+        state.isLoading = false;
+        state.error = error;
+    },
+    [MutationTypes.DELETE_PRIVILEGE_SUCCESS]: (state: any) => {
         state.isLoading = false;
         state.error = null;
     },

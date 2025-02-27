@@ -26,7 +26,8 @@ const SAMPLE_COMPACT_CONFIG = {
         feeAmount: 3.5,
         feeType: 'FLAT_RATE'
     },
-    compactName: 'aslp',
+    compactAbbr: 'aslp',
+    compactName: 'Audiology and Speech Language Pathology',
     compactOperationsTeamEmails: ['operations@example.com'],
     compactSummaryReportNotificationEmails: ['summary@example.com'],
     dateOfUpdate: '2024-12-10T19:27:28+00:00',
@@ -345,7 +346,7 @@ describe('Email Service', () => {
     describe('Compact Transaction Report', () => {
         beforeEach(() => {
             mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
-            
+
             // Create a mock stream that implements the required AWS SDK interfaces
             const mockStream = sdkStreamMixin(
                 new Readable({
@@ -379,9 +380,9 @@ describe('Email Service', () => {
 
             // Verify nodemailer transport was created with correct SES config
             expect(nodemailer.createTransport).toHaveBeenCalledWith({
-                SES: { 
-                    ses: expect.any(Object), 
-                    aws: { SendRawEmailCommand } 
+                SES: {
+                    ses: expect.any(Object),
+                    aws: { SendRawEmailCommand }
                 }
             });
 
@@ -393,7 +394,7 @@ describe('Email Service', () => {
                 html: expect.stringContaining('Please find attached the weekly settled transaction reports for the compact for the period 2024-03-01 to 2024-03-07'),
                 attachments: [
                     {
-                        filename: 'aslp-settled-transaction-report.zip',
+                        filename: 'aslp-settled-transaction-report-2024-03-01--2024-03-07.zip',
                         content: expect.any(Buffer),
                         contentType: 'application/zip'
                     }
@@ -458,7 +459,7 @@ describe('Email Service', () => {
         beforeEach(() => {
             mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
             mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
-            
+
             // Create a mock stream that implements the required AWS SDK interfaces
             const mockStream = sdkStreamMixin(
                 new Readable({
@@ -493,9 +494,9 @@ describe('Email Service', () => {
 
             // Verify nodemailer transport was created with correct SES config
             expect(nodemailer.createTransport).toHaveBeenCalledWith({
-                SES: { 
-                    ses: expect.any(Object), 
-                    aws: { SendRawEmailCommand } 
+                SES: {
+                    ses: expect.any(Object),
+                    aws: { SendRawEmailCommand }
                 }
             });
 
@@ -507,7 +508,7 @@ describe('Email Service', () => {
                 html: expect.stringContaining('Please find attached the weekly settled transaction report for your jurisdiction for the period 2024-03-01 to 2024-03-07'),
                 attachments: [
                     {
-                        filename: 'oh-settled-transaction-report.zip',
+                        filename: 'oh-settled-transaction-report-2024-03-01--2024-03-07.zip',
                         content: expect.any(Buffer),
                         contentType: 'application/zip'
                     }

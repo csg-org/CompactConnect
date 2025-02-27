@@ -70,7 +70,7 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa
     """
     compact = _get_caller_compact_custom_attribute(event)
 
-    options_response = config.data_client.get_privilege_purchase_options(
+    options_response = config.compact_configuration_client.get_privilege_purchase_options(
         compact=compact,
         pagination=event.get('queryStringParameters', {}),
     )
@@ -195,18 +195,20 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
     """
-    compact_name = _get_caller_compact_custom_attribute(event)
+    compact_abbr = _get_caller_compact_custom_attribute(event)
     body = json.loads(event['body'])
     selected_jurisdictions_postal_abbreviations = [
         postal_abbreviation.lower() for postal_abbreviation in body['selectedJurisdictions']
     ]
 
     # load the compact information
-    privilege_purchase_options = config.data_client.get_privilege_purchase_options(compact=compact_name)
+    privilege_purchase_options = config.compact_configuration_client.get_privilege_purchase_options(
+        compact=compact_abbr
+    )
 
     compact_configuration = [item for item in privilege_purchase_options['items'] if item['type'] == COMPACT_TYPE]
     if not compact_configuration:
-        message = f"Compact configuration not found for this caller's compact: {compact_name}"
+        message = f"Compact configuration not found for this caller's compact: {compact_abbr}"
         logger.error(message)
         raise CCInternalException(message)
     compact = Compact(compact_configuration[0])
@@ -232,10 +234,10 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
     # get the user's profile information to determine if they are active military
     provider_id = _get_caller_provider_id_custom_attribute(event)
-    user_provider_data = config.data_client.get_provider(compact=compact_name, provider_id=provider_id)
+    user_provider_data = config.data_client.get_provider(compact=compact_abbr, provider_id=provider_id)
     provider_record = next((record for record in user_provider_data['items'] if record['type'] == 'provider'), None)
     home_state_license_record = config.data_client.find_home_state_license(
-        compact=compact_name,
+        compact=compact_abbr,
         provider_id=provider_id,
         licenses=[record for record in user_provider_data['items'] if record['type'] == 'license'],
     )
@@ -273,7 +275,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     user_active_military = _determine_military_affiliation_status(user_provider_data['items'])
 
     # Validate attestations are the latest versions before proceeding with the purchase
-    _validate_attestations(compact_name, body.get('attestations', []), user_active_military)
+    _validate_attestations(compact_abbr, body.get('attestations', []), user_active_military)
 
     purchase_client = PurchaseClient()
     transaction_response = None
@@ -288,7 +290,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
         # transaction was successful, now we create privilege records for the selected jurisdictions
         config.data_client.create_provider_privileges(
-            compact=compact_name,
+            compact=compact_abbr,
             provider_id=provider_id,
             jurisdiction_postal_abbreviations=selected_jurisdictions_postal_abbreviations,
             license_expiration_date=license_expiration_date,
@@ -309,6 +311,6 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         if transaction_response:
             # void the transaction if it was successful
             purchase_client.void_privilege_purchase_transaction(
-                compact_name=compact_name, order_information=transaction_response
+                compact_abbr=compact_abbr, order_information=transaction_response
             )
             raise CCInternalException('Internal Server Error') from e

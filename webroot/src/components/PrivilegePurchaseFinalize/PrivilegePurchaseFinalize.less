@@ -1,0 +1,291 @@
+//
+//  PrivilegePurchaseFinalize.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 10/28/2024.
+//
+.finalize-privilege-purchase-container {
+    .form-error-message {
+        padding: 2rem;
+        color: @midRed;
+    }
+
+    .complete-purchase-form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        max-width: 72rem;
+
+        @media @desktopWidth {
+            max-width: unset;
+        }
+
+        .button-row {
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-top: 2rem;
+
+            @media @tabletWidth {
+                flex-direction: row;
+                align-items: flex-end;
+                justify-content: space-between;
+            }
+
+            :deep(.input-container) {
+                margin-bottom: 1rem;
+
+                @media @tabletWidth {
+                    margin-bottom: unset;
+                }
+            }
+
+            .right-cell {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+
+                @media @tabletWidth {
+                    align-items: flex-end;
+                    justify-content: space-between;
+                }
+
+                .back-button {
+                    margin-right: 1rem;
+                }
+            }
+        }
+
+        .finalize-purchase-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+
+            @media @tabletWidth {
+                flex-direction: row;
+            }
+
+            .progress-bar-container {
+                @media @tabletWidth {
+                    position: absolute;
+                    z-index: 1;
+                    width: 62rem;
+                }
+
+                @media @desktopWidth {
+                    position: absolute;
+                    z-index: 1;
+                    width: 80rem;
+                }
+            }
+
+            .cost-breakdown-container {
+                display: flex;
+                flex-direction: column;
+                margin-top: 1rem;
+                padding: 2rem;
+                border-radius: 20px;
+                color: @white;
+                background-color: @darkBlue;
+
+                @media @tabletWidth {
+                    width: 34rem;
+                    margin-top: unset;
+                    padding: 8rem 4rem;
+                    border-radius: 0 20px 20px 0;
+                }
+
+                .no-refunds-checkbox {
+                    margin-top: auto;
+                }
+
+                :deep(.checkbox-container) {
+                    input {
+                        &:not(:checked) + .checkbox-replacement::before {
+                            border-color: @white;
+                        }
+
+                        &:checked + .checkbox-replacement {
+                            &::before {
+                                border-color: @white;
+                            }
+
+                            &::after {
+                                background-color: @white;
+                            }
+                        }
+
+                        &:focus {
+                            outline: 0;
+                        }
+                    }
+
+                    label {
+                        margin-left: 1rem;
+                        color: @white;
+                        font-weight: @fontWeightLight;
+                        font-size: 1.3rem;
+
+                        @media @tabletWidth {
+                            font-size: 1.5rem;
+                        }
+                    }
+                }
+
+                .cost-listing-block {
+                    .cost-section {
+                        padding-bottom: 1rem;
+
+                        .section-title {
+                            margin: 1rem 0;
+                            font-weight: @fontWeightBold;
+                        }
+                    }
+
+                    .info-row {
+                        display: flex;
+                        flex-direction: row;
+                        justify-content: space-between;
+                        margin: 1rem 0;
+
+                        &.purchase-total {
+                            margin: 2rem 0;
+                            font-weight: @fontWeightBold;
+                            font-size: @fontSizeLarge;
+                        }
+
+                        .info-row-label {
+                            width: 16rem;
+                        }
+
+                        .info-row-amount {
+                            margin-left: auto;
+
+                            @media @desktopWidth {
+                                margin-left: unset;
+                            }
+                        }
+                    }
+                }
+            }
+
+            .finalize-purchase-core-container {
+                padding: 0 2rem 2rem 2rem;
+                border-radius: 20px;
+                background-color: @white;
+
+                @media @tabletWidth {
+                    width: 38rem;
+                    padding: 0 4rem 4rem 4rem;
+                    border-radius: 20px 0 0 20px;
+                }
+
+                @media @desktopWidth {
+                    width: 56rem;
+                }
+
+                .finalize-purchase-title-row {
+                    display: flex;
+                    flex-direction: row;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-top: 4rem;
+                    margin-bottom: 2rem;
+
+                    :deep(.collapse-caret-button) {
+                        svg {
+                            width: 2.4rem;
+                            height: 1.4rem;
+                            stroke: @primaryColor;
+                        }
+                    }
+                }
+
+                .payment-core-form {
+                    .billing-address-section {
+                        .billing-address-title {
+                            margin-top: 4rem;
+                            font-weight: @fontWeightBold;
+                            font-size: @fontSizeLarger;
+                        }
+
+                        .state-zip-line {
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: space-between;
+
+                            .state-select {
+                                margin-bottom: 1.6rem;
+                            }
+
+                            @media @desktopWidth {
+                                flex-direction: row;
+
+                                .state-select {
+                                    margin-bottom: 0;
+                                }
+                            }
+                        }
+                    }
+
+                    .credit-card-section {
+                        .credit-card-title {
+                            font-weight: @fontWeightBold;
+                            font-size: @fontSizeLarger;
+                        }
+
+                        .cc-dets {
+                            display: flex;
+                            flex-direction: row;
+
+                            :deep(.input-container) {
+                                &.no-margin {
+                                    input {
+                                        width: 5rem;
+                                    }
+                                }
+                            }
+
+                            .exp-chunk {
+                                .exp-chunk-title {
+                                    margin-bottom: 0.6rem;
+                                    font-weight: @fontWeightBold;
+                                    font-size: 1.8rem;
+                                }
+
+                                .exp-chunk-input {
+                                    display: flex;
+                                    flex-direction: row;
+                                    align-items: center;
+
+                                    .slash {
+                                        margin: 0 0.6rem;
+                                    }
+
+                                    :deep(.input-container) {
+                                        &.no-margin {
+                                            input {
+                                                width: 3.2rem;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            .cvv-container {
+                                margin-left: 8rem;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    .form-row {
+        margin: 2rem 0;
+    }
+}

@@ -4,11 +4,14 @@
         "yes": "Sí",
         "no": "No",
         "back": "Volver",
+        "next": "Siguiente",
         "continue": "Continuar",
+        "confirm": "Confirmar",
         "cancel": "Cancelar",
         "close": "Cerrar",
         "skip": "Saltear",
         "confirm": "Confirmar",
+        "fees": "Tarifas",
         "choose": "Elige",
         "chooseOne": "Elige uno",
         "select": "Seleccionar",
@@ -17,7 +20,6 @@
         "selectFiles": "Selecciona archivos",
         "replaceFile": "Reemplazar el archivo",
         "replaceFiles": "Reemplazar archivos",
-        "next": "Siguiente",
         "change": "Cambiar",
         "add": "Agregar",
         "remove": "Eliminar",
@@ -43,7 +45,6 @@
         "givenName": "Nombre de pila",
         "middleName": "Segundo nombre",
         "lastName": "Apellido",
-        "givenName": "Apellido",
         "selection": "Selección",
         "dateOfBirth": "Fecha de nacimiento",
         "dateOfBirthShort": "Fecha de nacim.",
@@ -468,6 +469,7 @@
         "cardExpirationMonth": "Mes de vencimiento",
         "cardExpirationYear": "Año de vencimiento",
         "cvv": "CVV",
+        "ccTransactionFees": "Tarifas de transacción con tarjeta de crédito",
         "enterFirstName": "Introduzca el nombre",
         "enterLastName": "Introduzca el apellido",
         "billingAddressTitle": "Dirección de Envio",
@@ -479,7 +481,7 @@
         "expirationDate": "Fecha de vencimiento",
         "continueToPurchase": "Continuar comprando",
         "compactPrivilegeStateFee": "Quota Estatal de Privilegio Compacto",
-        "compactCommissionFee": "Tarifa de Comisión Compacta",
+        "compactCommissionFee": "Tarifa Administrativa",
         "purchaseSuccessful": "Compra exitosa",
         "purchaseSuccessfulMessage": "Tu compra fue exitosa. Sus privilegios aparecerán en su página de perfil dentro de segundos. Si envió documentos incorrectos, el personal compacto se comunicará con usted."
     },
@@ -500,6 +502,8 @@
         "recentPrivilegesTitle": "Privilegios recientes",
         "pastPrivilegesTitle": "Privilegios pasados",
         "licenseDetails": "Detalles de la licencia",
+        "licenseNumSymbol": "Licencia #",
+        "privilegeNumSymbol": "Privilegio #",
         "licenseExpired": "Licencia caducada",
         "driversLicense": "Licencia de conducir #",
         "militaryAffilitionDocs": "documentos de afiliación militar",
@@ -528,7 +532,7 @@
         "iUnderstand": "Yo entiendo",
         "selectPrivileges": "Seleccionar privilegios",
         "jurisprudenceConfirmation": "Confirmación de jurisprudencia",
-        "commissionFee": "Comisión Cuota",
+        "adminFee": "Administración Cuota",
         "jurisdictionFee": "Jurisdicción Cuota",
         "disciplineStatus": "Estado de disciplina",
         "jurisprudenceExplanationText": "Doy fe de haber completado el examen de jurisprudencia requerido.",
@@ -549,31 +553,40 @@
             "active": "Activo",
             "inactive": "Inactivo"
         },
+        "privilegeActions": "Acciones de privilegio",
+        "deactivate": "Desactivar",
+        "deactivated": "Desactivado",
+        "confirmPrivilegeDeactivate": "¿Está seguro de que desea desactivar este privilegio? No es posible deshacer esta acción.",
         "occupations": [
             {
                 "name": "Audiólogo",
                 "key": "audiologist",
-                "compactKey": "aslp"
+                "compactKey": "aslp",
+                "abbrev": "aud"
             },
             {
                 "name": "Patólogo del habla y lenguaje",
                 "key": "speech-language pathologist",
-                "compactKey": "aslp"
+                "compactKey": "aslp",
+                "abbrev": "slp"
             },
             {
                 "name": "Terapeuta ocupacional",
                 "key": "occupational therapist",
-                "compactKey": "octp"
+                "compactKey": "octp",
+                "abbrev": "ot"
             },
             {
-                "name": "Occupational Therapy Assistant",
+                "name": "Asistente de terapia Oocupacional",
                 "key": "occupational therapy assistant",
-                "compactKey": "octp"
+                "compactKey": "octp",
+                "abbrev": "ota"
             },
             {
-                "name": "Asistente de terapia ocupacional",
+                "name": "Consejero profesional con licencia",
                 "key": "licensed professional counselor",
-                "compactKey": "coun"
+                "compactKey": "coun",
+                "abbrev": "lpc"
             }
         ],
         "privilegePurchaseTitle": "Compra privada",
@@ -651,7 +664,14 @@
         "editPermissions": "Editar permisos",
         "editUserPermissions": "Editar permisos de usuario",
         "addState": "Agregar estado / jurisdiccion",
-        "inviteNewUser": "Invitar nuevo usuario"
+        "inviteNewUser": "Invitar nuevo usuario",
+        "resendInvite": "Reenviar invitación",
+        "reinviteSent": "Reinvite enviado!",
+        "deactivate": "Desactivar",
+        "deactivated": "Desactivado",
+        "confirmUserReinviteTitle": "¿Está seguro de que desea volver a enviar la invitación a {name}?",
+        "confirmUserReinviteSubtext": "Se enviará un correo electrónico a {email} y el usuario deberá establecer una nueva contraseña.",
+        "confirmUserDeactivate": "¿Está seguro de que desea desactivar {name} de este acuerdo? No se puede deshacer."
     },
     "recaptcha": {
         "googleDesc": "Este sitio está protegido por reCAPTCHA y se aplican las políticas de privacidad de Google.",

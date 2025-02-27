@@ -140,7 +140,7 @@ class BulkUploadsBucket(Bucket):
         )
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
-            path=f'{stack.node.path}/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/' 'Role/Resource',
+            path=f'{stack.node.path}/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM4',

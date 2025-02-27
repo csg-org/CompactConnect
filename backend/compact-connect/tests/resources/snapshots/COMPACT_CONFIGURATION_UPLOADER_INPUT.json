@@ -1,10 +1,18 @@
 {
   "compacts": [
     {
-      "compactName": "aslp",
+      "compactAbbr": "aslp",
+      "compactName": "Audiology and Speech Language Pathology",
       "compactCommissionFee": {
         "feeType": "FLAT_RATE",
         "feeAmount": 3.5
+      },
+      "transactionFeeConfiguration": {
+        "licenseeCharges": {
+          "active": true,
+          "chargeType": "FLAT_FEE_PER_PRIVILEGE",
+          "chargeAmount": 3.0
+        }
       },
       "compactOperationsTeamEmails": [],
       "compactAdverseActionsNotificationEmails": [],
@@ -96,10 +104,18 @@
       ]
     },
     {
-      "compactName": "octp",
+      "compactAbbr": "octp",
+      "compactName": "Occupational Therapy",
       "compactCommissionFee": {
         "feeType": "FLAT_RATE",
         "feeAmount": 3.5
+      },
+      "transactionFeeConfiguration": {
+        "licenseeCharges": {
+          "active": true,
+          "chargeType": "FLAT_FEE_PER_PRIVILEGE",
+          "chargeAmount": 3.0
+        }
       },
       "compactOperationsTeamEmails": [],
       "compactAdverseActionsNotificationEmails": [],

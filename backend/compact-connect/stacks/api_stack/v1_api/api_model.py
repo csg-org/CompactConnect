@@ -51,7 +51,10 @@ class ApiModel:
                     'query': JsonSchema(
                         type=JsonSchemaType.OBJECT,
                         description='The query parameters',
+                        additional_properties=False,
                         properties={
+                            # TODO: Remove this once we remove SSN queries from the UI (they will be  # noqa: FIX002
+                            # ignored in the meantime)
                             'ssn': JsonSchema(
                                 type=JsonSchemaType.STRING,
                                 description='Social security number to look up',
@@ -66,6 +69,17 @@ class ApiModel:
                                 type=JsonSchemaType.STRING,
                                 description='Filter for providers with privilege/license in a jurisdiction',
                                 enum=self.api.node.get_context('jurisdictions'),
+                            ),
+                            'givenName': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                max_length=100,
+                                description='Filter for providers with a given name (familyName is required if'
+                                ' givenName is provided)',
+                            ),
+                            'familyName': JsonSchema(
+                                type=JsonSchemaType.STRING,
+                                max_length=100,
+                                description='Filter for providers with a family name',
                             ),
                         },
                     ),
@@ -296,9 +310,7 @@ class ApiModel:
                         properties={
                             'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
                             'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
-                            # TODO keeping 'read' action for backwards compatibility  # noqa: FIX002
-                            #  this should be removed after the frontend is updated
-                            'read': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                            'readSSN': JsonSchema(type=JsonSchemaType.BOOLEAN),
                         },
                     ),
                     'jurisdictions': JsonSchema(
@@ -313,6 +325,7 @@ class ApiModel:
                                         'write': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                         'admin': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                         'readPrivate': JsonSchema(type=JsonSchemaType.BOOLEAN),
+                                        'readSSN': JsonSchema(type=JsonSchemaType.BOOLEAN),
                                     },
                                 ),
                             },
@@ -715,16 +728,52 @@ class ApiModel:
             one_of=[
                 JsonSchema(
                     type=JsonSchemaType.OBJECT,
-                    required=['type', 'compactName', 'compactCommissionFee'],
+                    required=[
+                        'type',
+                        'compactAbbr',
+                        'compactName',
+                        'compactCommissionFee',
+                        'transactionFeeConfiguration',
+                    ],
                     properties={
                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['compact']),
-                        'compactName': JsonSchema(type=JsonSchemaType.STRING, description='The name of the compact'),
+                        'compactAbbr': JsonSchema(
+                            type=JsonSchemaType.STRING, description='The abbreviation of the compact'
+                        ),
+                        'compactName': JsonSchema(
+                            type=JsonSchemaType.STRING, description='The full name of the compact'
+                        ),
                         'compactCommissionFee': JsonSchema(
                             type=JsonSchemaType.OBJECT,
                             required=['feeType', 'feeAmount'],
                             properties={
                                 'feeType': JsonSchema(type=JsonSchemaType.STRING, enum=['FLAT_RATE']),
                                 'feeAmount': JsonSchema(type=JsonSchemaType.NUMBER),
+                            },
+                        ),
+                        'transactionFeeConfiguration': JsonSchema(
+                            type=JsonSchemaType.OBJECT,
+                            required=['licenseeCharges'],
+                            properties={
+                                'licenseeCharges': JsonSchema(
+                                    type=JsonSchemaType.OBJECT,
+                                    required=['active', 'chargeType', 'chargeAmount'],
+                                    properties={
+                                        'active': JsonSchema(
+                                            type=JsonSchemaType.BOOLEAN,
+                                            description='Whether the compact is charging licensees transaction fees',
+                                        ),
+                                        'chargeType': JsonSchema(
+                                            type=JsonSchemaType.STRING,
+                                            enum=['FLAT_FEE_PER_PRIVILEGE'],
+                                            description='The type of transaction fee charge',
+                                        ),
+                                        'chargeAmount': JsonSchema(
+                                            type=JsonSchemaType.NUMBER,
+                                            description='The amount to charge per privilege purchased',
+                                        ),
+                                    },
+                                ),
                             },
                         ),
                     },
@@ -1018,6 +1067,9 @@ class ApiModel:
             'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+            'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', max_length=100),
+            'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=r'^\+[0-9]{8,15}$'),
+            'suffix': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'militaryWaiver': JsonSchema(
                 type=JsonSchemaType.BOOLEAN,
             ),
@@ -1080,6 +1132,7 @@ class ApiModel:
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'compactTransactionId': JsonSchema(type=JsonSchemaType.STRING),
             'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
+            'persistedStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'attestations': JsonSchema(
                 type=JsonSchemaType.ARRAY,
@@ -1165,6 +1218,29 @@ class ApiModel:
             ),
         )
         return self.api._v1_get_attestations_response_model
+
+    @property
+    def get_provider_ssn_response_model(self) -> Model:
+        """Return the provider SSN response model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_get_provider_ssn_response_model'):
+            return self.api._v1_get_provider_ssn_response_model
+
+        self.api._v1_get_provider_ssn_response_model = self.api.add_model(
+            'V1GetProviderSSNResponseModel',
+            description='Get provider SSN response model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                required=['ssn'],
+                properties={
+                    'ssn': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description="The provider's social security number",
+                        pattern=cc_api.SSN_FORMAT,
+                    ),
+                },
+            ),
+        )
+        return self.api._v1_get_provider_ssn_response_model
 
     @property
     def provider_registration_request_model(self) -> Model:

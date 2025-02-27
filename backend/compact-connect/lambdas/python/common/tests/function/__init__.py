@@ -36,6 +36,7 @@ class TstFunction(TstLambdas):
     def build_resources(self):
         self.create_compact_configuration_table()
         self.create_provider_table()
+        self.create_ssn_table()
         self.create_users_table()
         self.create_transaction_history_table()
 
@@ -102,6 +103,31 @@ class TstFunction(TstLambdas):
             BillingMode='PAY_PER_REQUEST',
         )
 
+    def create_ssn_table(self):
+        self._ssn_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+                {'AttributeName': 'providerIdGSIpk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['SSN_TABLE_NAME'],
+            KeySchema=[
+                {'AttributeName': 'pk', 'KeyType': 'HASH'},
+                {'AttributeName': 'sk', 'KeyType': 'RANGE'},
+            ],
+            BillingMode='PAY_PER_REQUEST',
+            GlobalSecondaryIndexes=[
+                {
+                    'IndexName': os.environ['SSN_INDEX_NAME'],
+                    'KeySchema': [
+                        {'AttributeName': 'providerIdGSIpk', 'KeyType': 'HASH'},
+                        {'AttributeName': 'sk', 'KeyType': 'RANGE'},
+                    ],
+                    'Projection': {'ProjectionType': 'ALL'},
+                },
+            ],
+        )
+
     def create_provider_table(self):
         self._provider_table = boto3.resource('dynamodb').create_table(
             KeySchema=[{'AttributeName': 'pk', 'KeyType': 'HASH'}, {'AttributeName': 'sk', 'KeyType': 'RANGE'}],
@@ -147,6 +173,7 @@ class TstFunction(TstLambdas):
     def delete_resources(self):
         self._compact_configuration_table.delete()
         self._provider_table.delete()
+        self._ssn_table.delete()
         self._users_table.delete()
         self._transaction_history_table.delete()
 
@@ -154,8 +181,8 @@ class TstFunction(TstLambdas):
         waiter.wait(TableName=self._compact_configuration_table.name)
         waiter.wait(TableName=self._provider_table.name)
         waiter.wait(TableName=self._users_table.name)
-        waiter = self._transaction_history_table.meta.client.get_waiter('table_not_exists')
         waiter.wait(TableName=self._transaction_history_table.name)
+        waiter.wait(TableName=self._ssn_table.name)
 
         # Delete the Cognito user pool
         cognito_client = boto3.client('cognito-idp')
@@ -176,7 +203,7 @@ class TstFunction(TstLambdas):
             # compact and jurisdiction records go in the compact configuration table
             self._compact_configuration_table.put_item(Item=record)
 
-    def _load_provider_data(self):
+    def _load_provider_data(self) -> str:
         """Use the canned test resources to load a basic provider to the DB"""
         test_resources = glob('../common/tests/resources/dynamo/provider.json')
 
@@ -191,6 +218,7 @@ class TstFunction(TstLambdas):
 
             logger.debug('Loading resource, %s: %s', resource, str(record))
             self._provider_table.put_item(Item=record)
+        return record['providerId']
 
     def _load_license_data(self, status: str = 'active', expiration_date: str = None):
         """Use the canned test resources to load a basic provider to the DB"""

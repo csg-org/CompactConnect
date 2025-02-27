@@ -4,9 +4,7 @@
       "Action": [
         "dynamodb:BatchGetItem",
         "dynamodb:BatchWriteItem",
-        "dynamodb:PartiQL*",
-        "dynamodb:Query",
-        "dynamodb:Scan"
+        "dynamodb:PartiQL*"
       ],
       "Condition": {
         "StringNotEquals": {

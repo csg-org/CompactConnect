@@ -38,6 +38,7 @@ export interface InterfaceLicense {
     id?: string | null;
     compact?: Compact | null;
     isPrivilege?: boolean;
+    licenseeId?: string | null;
     issueState?: State,
     isHomeState?: boolean;
     issueDate?: string | null;
@@ -46,6 +47,7 @@ export interface InterfaceLicense {
     expireDate?: string | null;
     npi?: string | null;
     licenseNumber?: string | null;
+    privilegeId?: string | null;
     occupation?: LicenseOccupation | null,
     history?: Array<LicenseHistoryItem>,
     statusState?: LicenseStatus,
@@ -60,12 +62,14 @@ export class License implements InterfaceLicense {
     public id? = null;
     public compact? = null;
     public isPrivilege? = false;
+    public licenseeId? = null;
     public issueState? = new State();
     public issueDate? = null;
     public mailingAddress? = new Address();
     public renewalDate? = null;
     public npi? = null;
     public licenseNumber? = null;
+    public privilegeId? = null;
     public expireDate? = null;
     public occupation? = null;
     public history? = [];
@@ -112,6 +116,15 @@ export class License implements InterfaceLicense {
 
         return occupationName;
     }
+
+    public occupationAbbreviation(): string {
+        const occupations = this.$tm('licensing.occupations') || [];
+        const occupation = occupations.find((translate) => translate.key === this.occupation);
+        const occupationAbbrev = occupation?.abbrev || '';
+        const upperCaseAbbrev = occupationAbbrev.toUpperCase();
+
+        return upperCaseAbbrev;
+    }
 }
 
 // ========================================================
@@ -123,6 +136,7 @@ export class LicenseSerializer {
             id: json.id,
             compact: new Compact({ type: json.compact }),
             isPrivilege: Boolean(json.type === 'privilege'),
+            licenseeId: json.providerId,
             mailingAddress: AddressSerializer.fromServer({
                 street1: json.homeAddressStreet1,
                 street2: json.homeAddressStreet2,
@@ -134,6 +148,7 @@ export class LicenseSerializer {
             issueDate: json.dateOfIssuance,
             npi: json.npi,
             licenseNumber: json.licenseNumber,
+            privilegeId: json.privilegeId,
             renewalDate: json.dateOfRenewal,
             expireDate: json.dateOfExpiration,
             occupation: json.licenseType,

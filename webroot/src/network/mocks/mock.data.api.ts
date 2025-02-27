@@ -11,6 +11,7 @@ import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model'
 import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
+import { CompactFeeConfigSerializer } from '@/models/CompactFeeConfig/CompactFeeConfig.model';
 import {
     userData,
     staffAccount,
@@ -94,22 +95,18 @@ export class DataApi {
         return this.wait(500).then(() => ({
             prevLastKey: licensees.prevLastKey,
             lastKey: licensees.lastKey,
-            licensees: licensees.items.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
+            licensees: licensees.providers.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
             params,
         }));
     }
 
     // Get Licensee by ID
     public getLicensee(compact, licenseeId) {
-        const serverResponse = licensees.items.find((item) => item.providerId === licenseeId);
+        const serverResponse = licensees.providers.find((item) => item.providerId === licenseeId);
         let response;
 
         if (serverResponse) {
-            response = this.wait(500).then(() => ({
-                licensee: LicenseeSerializer.fromServer(licensees.items[0]),
-                compact,
-                licenseeId,
-            }));
+            response = this.wait(500).then(() => (LicenseeSerializer.fromServer(licensees.providers[0])));
         } else {
             response = this.wait(500).then(() => {
                 throw new Error('not found');
@@ -128,6 +125,17 @@ export class DataApi {
         });
 
         return this.wait(500).then(() => response);
+    }
+
+    // Delete Privilege for a licensee.
+    public deletePrivilege(compact, licenseeId, privilegeState, licenseType) {
+        return this.wait(500).then(() => ({
+            message: 'success',
+            compact,
+            licenseeId,
+            privilegeState,
+            licenseType,
+        }));
     }
 
     // ========================================================================
@@ -157,6 +165,16 @@ export class DataApi {
         return this.wait(500).then(() => StaffUserSerializer.fromServer(users.items[0]));
     }
 
+    // Reinvite User by ID
+    public reinviteUser() {
+        return this.wait(500).then(() => ({ message: 'success' }));
+    }
+
+    // Delete User by ID
+    public deleteUser() {
+        return this.wait(500).then(() => ({ message: 'success' }));
+    }
+
     // Update Authenticated user password
     public updateAuthenticatedUserPassword() {
         return this.wait(500).then(() => ({ success: true }));
@@ -177,12 +195,12 @@ export class DataApi {
     // ========================================================================
     // Get Authenticated Licensee User
     public getAuthenticatedLicenseeUser() {
-        return this.wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.items[0]));
+        return this.wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.providers[0]));
     }
 
     // Update Authenticated Licensee User
     public updateAuthenticatedLicenseeUser() {
-        return this.wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.items[0]));
+        return this.wait(500).then(() => LicenseeUserSerializer.fromServer(licensees.providers[0]));
     }
 
     // Get Privilege Purchase Information for Licensee User
@@ -190,12 +208,7 @@ export class DataApi {
         return this.wait(500).then(() => {
             const { items } = privilegePurchaseOptionsResponse;
             const privilegePurchaseOptions = items.filter((serverItem) => (serverItem.type === 'jurisdiction')).map((serverPurchaseOption) => (PrivilegePurchaseOptionSerializer.fromServer(serverPurchaseOption)));
-
-            const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => ({
-                compactType: serverFeeObject?.compactName,
-                feeType: serverFeeObject?.compactCommissionFee?.feeType,
-                feeAmount: serverFeeObject?.compactCommissionFee?.feeAmount
-            }))[0];
+            const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => (CompactFeeConfigSerializer.fromServer(serverFeeObject)))[0];
 
             return { privilegePurchaseOptions, compactCommissionFee };
         });

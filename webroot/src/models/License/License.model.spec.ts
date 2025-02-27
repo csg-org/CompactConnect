@@ -41,12 +41,14 @@ describe('License model', () => {
         expect(license.id).to.equal(null);
         expect(license.compact).to.equal(null);
         expect(license.isPrivilege).to.equal(false);
+        expect(license.licenseeId).to.equal(null);
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.issueDate).to.equal(null);
         expect(license.renewalDate).to.equal(null);
         expect(license.expireDate).to.equal(null);
         expect(license.npi).to.equal(null);
         expect(license.licenseNumber).to.equal(null);
+        expect(license.privilegeId).to.equal(null);
         expect(license.mailingAddress).to.be.an.instanceof(Address);
         expect(license.occupation).to.equal(null);
         expect(license.history).to.matchPattern([]);
@@ -59,18 +61,21 @@ describe('License model', () => {
         expect(license.expireDateDisplay()).to.equal('');
         expect(license.isExpired()).to.equal(false);
         expect(license.occupationName()).to.equal('');
+        expect(license.occupationAbbreviation()).to.equal('');
     });
     it('should create a License with specific values', () => {
         const data = {
             id: 'test-id',
             compact: new Compact(),
             isPrivilege: true,
+            licenseeId: 'test-licensee-id',
             issueState: new State(),
             isHomeState: true,
             issueDate: 'test-issueDate',
             renewalDate: 'test-renewalDate',
             expireDate: 'test-expireDate',
             licenseNumber: 'test-license-number',
+            privilegeId: 'privilegeId',
             mailingAddress: new Address(),
             npi: 'test-npi',
             occupation: LicenseOccupation.AUDIOLOGIST,
@@ -85,6 +90,7 @@ describe('License model', () => {
         expect(license.id).to.equal(data.id);
         expect(license.compact).to.be.an.instanceof(Compact);
         expect(license.isPrivilege).to.equal(data.isPrivilege);
+        expect(license.licenseeId).to.equal(data.licenseeId);
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.issueDate).to.equal(data.issueDate);
         expect(license.renewalDate).to.equal(data.renewalDate);
@@ -92,6 +98,7 @@ describe('License model', () => {
         expect(license.mailingAddress).to.be.an.instanceof(Address);
         expect(license.npi).to.equal(data.npi);
         expect(license.licenseNumber).to.equal(data.licenseNumber);
+        expect(license.privilegeId).to.equal(data.privilegeId);
         expect(license.occupation).to.equal(data.occupation);
         expect(license.statusState).to.equal(data.statusState);
         expect(license.statusCompact).to.equal(data.statusCompact);
@@ -103,18 +110,21 @@ describe('License model', () => {
         expect(license.expireDateDisplay()).to.equal('Invalid date');
         expect(license.isExpired()).to.equal(false);
         expect(license.occupationName()).to.equal('Audiologist');
+        expect(license.occupationAbbreviation()).to.equal('AUD');
     });
     it('should create a License with specific values through serializer', () => {
         const data = {
             id: 'test-id',
             compact: CompactType.ASLP,
             type: 'privilege',
+            providerId: 'test-provider-id',
             jurisdiction: 'al',
             dateOfIssuance: moment().format(serverDateFormat),
             dateOfRenewal: moment().format(serverDateFormat),
             dateOfExpiration: moment().subtract(1, 'day').format(serverDateFormat),
             npi: 'npi',
             licenseNumber: 'licenseNumber',
+            privilegeId: 'privilegeId',
             homeAddressStreet1: 'test-street1',
             homeAddressStreet2: 'test-street2',
             homeAddressCity: 'test-city',
@@ -146,6 +156,7 @@ describe('License model', () => {
         expect(license.id).to.equal(data.id);
         expect(license.compact).to.be.an.instanceof(Compact);
         expect(license.isPrivilege).to.equal(true);
+        expect(license.licenseeId).to.equal(data.providerId);
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.mailingAddress).to.be.an.instanceof(Address);
         expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
@@ -155,6 +166,7 @@ describe('License model', () => {
         expect(license.expireDate).to.equal(data.dateOfExpiration);
         expect(license.occupation).to.equal(data.licenseType);
         expect(license.statusState).to.equal(data.status);
+        expect(license.privilegeId).to.equal(data.privilegeId);
         expect(license.statusCompact).to.equal(data.status);
 
         // Test methods
@@ -169,12 +181,14 @@ describe('License model', () => {
         );
         expect(license.isExpired()).to.equal(true);
         expect(license.occupationName()).to.equal('Audiologist');
+        expect(license.occupationAbbreviation()).to.equal('AUD');
     });
     it('should create a License with specific values through serializer and not populate history when change is not renewal', () => {
         const data = {
             id: 'test-id',
             compact: CompactType.ASLP,
             type: 'privilege',
+            providerId: 'test-provider-id',
             jurisdiction: 'al',
             dateOfIssuance: moment().format(serverDateFormat),
             dateOfRenewal: moment().format(serverDateFormat),
@@ -212,6 +226,7 @@ describe('License model', () => {
         expect(license.id).to.equal(data.id);
         expect(license.compact).to.be.an.instanceof(Compact);
         expect(license.isPrivilege).to.equal(true);
+        expect(license.licenseeId).to.equal(data.providerId);
         expect(license.issueState).to.be.an.instanceof(State);
         expect(license.history.length).to.equal(0);
         expect(license.mailingAddress).to.be.an.instanceof(Address);
@@ -237,5 +252,6 @@ describe('License model', () => {
         );
         expect(license.isExpired()).to.equal(true);
         expect(license.occupationName()).to.equal('Audiologist');
+        expect(license.occupationAbbreviation()).to.equal('AUD');
     });
 });

@@ -34,6 +34,9 @@ class V1Api:
         admin_scopes = [
             f'{resource_server}/admin' for resource_server in persistent_stack.staff_users.resource_servers.keys()
         ]
+        read_ssn_scopes = [
+            f'{resource_server}/readSSN' for resource_server in persistent_stack.staff_users.resource_servers.keys()
+        ]
         read_auth_method_options = MethodOptions(
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
@@ -49,6 +52,12 @@ class V1Api:
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
             authorization_scopes=admin_scopes,
+        )
+
+        read_ssn_auth_method_options = MethodOptions(
+            authorization_type=AuthorizationType.COGNITO,
+            authorizer=self.api.staff_users_authorizer,
+            authorization_scopes=read_ssn_scopes,
         )
 
         # /v1/provider-users
@@ -93,9 +102,12 @@ class V1Api:
         # POST /v1/compacts/{compact}/providers/query
         # GET  /v1/compacts/{compact}/providers/{providerId}
         providers_resource = self.compact_resource.add_resource('providers')
-        QueryProviders(
+        self.query_providers = QueryProviders(
             resource=providers_resource,
             method_options=read_auth_method_options,
+            admin_method_options=admin_auth_method_options,
+            ssn_method_options=read_ssn_auth_method_options,
+            event_bus=persistent_stack.data_event_bus,
             data_encryption_key=persistent_stack.shared_encryption_key,
             provider_data_table=persistent_stack.provider_table,
             ssn_table=persistent_stack.ssn_table,

@@ -1,3 +1,4 @@
+import json
 from datetime import UTC, date, datetime
 from unittest.mock import patch
 from uuid import uuid4
@@ -11,6 +12,150 @@ from tests.function import TstFunction
 @mock_aws
 class TestDataClient(TstFunction):
     sample_privilege_attestations = [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}]
+
+    def test_get_provider_id(self):
+        from cc_common.data_model.data_client import DataClient
+
+        with open('tests/resources/dynamo/provider-ssn.json') as f:
+            record = json.load(f)
+        provider_ssn = record['ssn']
+        expected_provider_id = record['providerId']
+
+        self._ssn_table.put_item(
+            # We'll use the schema/serializer to populate index fields for us
+            Item=record,
+        )
+
+        client = DataClient(self.config)
+
+        resp = client.get_provider_id(compact='aslp', ssn=provider_ssn)
+        # Verify that we're getting the expected provider ID
+        self.assertEqual(expected_provider_id, resp)
+
+    def test_get_provider_id_not_found(self):
+        """Provider ID not found should raise an exception"""
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.exceptions import CCNotFoundException
+
+        client = DataClient(self.config)
+
+        # This SSN isn't in the DB, so it should raise an exception
+        with self.assertRaises(CCNotFoundException):
+            client.get_provider_id(compact='aslp', ssn='321-21-4321')
+
+    def test_get_provider(self):
+        from cc_common.data_model.data_client import DataClient
+
+        provider_id = self._load_provider_data()
+
+        client = DataClient(self.config)
+
+        resp = client.get_provider(
+            compact='aslp',
+            provider_id=provider_id,
+        )
+        self.assertEqual(3, len(resp['items']))
+        # Should be one each of provider, license, privilege
+        self.assertEqual({'provider', 'license', 'privilege'}, {record['type'] for record in resp['items']})
+
+    def test_get_provider_garbage_in_db(self):
+        """Because of the risk of exposing sensitive data to the public if we manage to get corrupted
+        data into our database, we'll specifically validate data coming _out_ of the database
+        and throw an error if it doesn't look as expected.
+        """
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.exceptions import CCInternalException
+
+        provider_id = self._load_provider_data()
+
+        with open('tests/resources/dynamo/license.json') as f:
+            license_record = json.load(f)
+
+        self._provider_table.put_item(
+            Item={
+                # Oh, no! We've somehow put somebody's SSN in the wrong place!
+                'something_unexpected': '123-12-1234',
+                **license_record,
+            },
+        )
+
+        client = DataClient(self.config)
+
+        # This record should not be allowed out via API
+        with self.assertRaises(CCInternalException):
+            client.get_provider(
+                compact='aslp',
+                provider_id=provider_id,
+            )
+
+    def _load_provider_data(self) -> str:
+        with open('tests/resources/dynamo/provider.json') as f:
+            provider_record = json.load(f)
+        provider_id = provider_record['providerId']
+        provider_record['privilegeJurisdictions'] = set(provider_record['privilegeJurisdictions'])
+        self._provider_table.put_item(Item=provider_record)
+
+        with open('tests/resources/dynamo/privilege.json') as f:
+            privilege_record = json.load(f)
+        self._provider_table.put_item(Item=privilege_record)
+
+        with open('tests/resources/dynamo/license.json') as f:
+            license_record = json.load(f)
+        self._provider_table.put_item(Item=license_record)
+
+        with open('tests/resources/dynamo/provider-ssn.json') as f:
+            provider_ssn_record = json.load(f)
+        self._ssn_table.put_item(Item=provider_ssn_record)
+
+        return provider_id
+
+    def _get_military_affiliation_records(self, provider_id: str) -> list[dict]:
+        return self.config.provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('aslp#PROVIDER#military-affiliation#')
+        )['Items']
+
+    def test_complete_military_affiliation_initialization_sets_expected_status(self):
+        from cc_common.data_model.data_client import DataClient
+
+        # Here we are testing an edge case where there are two military affiliation records
+        # both in an initializing state. This could happen in the event of a failed file upload.
+        # We want to ensure that the most recent record is set to active and the older record is
+        # set to inactive.
+        with open('tests/resources/dynamo/military-affiliation.json') as f:
+            military_affiliation_record = json.load(f)
+            military_affiliation_record['status'] = 'initializing'
+
+        military_affiliation_record['sk'] = 'aslp#PROVIDER#military-affiliation#2024-07-08'
+        military_affiliation_record['dateOfUpload'] = '2024-07-08T13:34:59+00:00'
+        self._provider_table.put_item(Item=military_affiliation_record)
+
+        # now add record on following day
+        military_affiliation_record['sk'] = 'aslp#PROVIDER#military-affiliation#2024-07-09'
+        military_affiliation_record['dateOfUpload'] = '2024-07-09T10:34:59+00:00'
+        self._provider_table.put_item(Item=military_affiliation_record)
+
+        provider_id = military_affiliation_record['providerId']
+
+        # assert that two records exist, both in an initializing state
+        military_affiliation_record = self._get_military_affiliation_records(provider_id)
+        self.assertEqual(2, len(military_affiliation_record))
+        self.assertEqual('initializing', military_affiliation_record[0]['status'])
+        self.assertEqual('initializing', military_affiliation_record[1]['status'])
+
+        # now complete the initialization to set the most recent record to active
+        # and the older record to inactive
+        client = DataClient(self.config)
+        client.complete_military_affiliation_initialization(compact='aslp', provider_id=provider_id)
+
+        military_affiliation_record = self._get_military_affiliation_records(provider_id)
+        self.assertEqual(2, len(military_affiliation_record))
+        # This asserts that the records are sorted by dateOfUpload, from oldest to newest
+        oldest_record = military_affiliation_record[0]
+        newest_record = military_affiliation_record[1]
+        self.assertTrue(oldest_record['dateOfUpload'] < newest_record['dateOfUpload'], 'Records are not sorted by date')
+        self.assertEqual('inactive', oldest_record['status'])
+        self.assertEqual('active', newest_record['status'])
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_data_client_created_privilege_record(self):
@@ -52,11 +197,13 @@ class TestDataClient(TstFunction):
                 'providerId': 'test_provider_id',
                 'compact': 'aslp',
                 'jurisdiction': 'ca',
+                'persistedStatus': 'active',
                 'dateOfIssuance': '2024-11-08T23:59:59+00:00',
                 'dateOfRenewal': '2024-11-08T23:59:59+00:00',
                 'dateOfExpiration': '2024-10-31',
                 'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                 'compactTransactionId': 'test_transaction_id',
+                'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#test_transaction_id#',
                 'attestations': self.sample_privilege_attestations,
                 'privilegeId': 'AUD-CA-124',
             },
@@ -93,11 +240,13 @@ class TestDataClient(TstFunction):
             'providerId': provider_uuid,
             'compact': 'aslp',
             'jurisdiction': 'ky',
+            'persistedStatus': 'active',
             'dateOfIssuance': '2023-11-08T23:59:59+00:00',
             'dateOfRenewal': '2023-11-08T23:59:59+00:00',
             'dateOfExpiration': '2024-10-31',
             'dateOfUpdate': '2023-11-08T23:59:59+00:00',
             'compactTransactionId': '1234567890',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
             'attestations': self.sample_privilege_attestations,
             'privilegeId': 'AUD-KY-1',
         }
@@ -137,12 +286,14 @@ class TestDataClient(TstFunction):
                     'providerId': 'test_provider_id',
                     'compact': 'aslp',
                     'jurisdiction': 'ky',
+                    'persistedStatus': 'active',
                     # Should be updated dates for renewal, expiration, update
                     'dateOfIssuance': '2023-11-08T23:59:59+00:00',
                     'dateOfRenewal': '2024-11-08T23:59:59+00:00',
                     'dateOfExpiration': '2025-10-31',
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'compactTransactionId': 'test_transaction_id',
+                    'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#test_transaction_id#',
                     'attestations': self.sample_privilege_attestations,
                     # Should remain the same, since we're renewing the same privilege
                     'privilegeId': 'AUD-KY-1',
@@ -150,11 +301,12 @@ class TestDataClient(TstFunction):
                 # A new history record
                 {
                     'pk': 'aslp#PROVIDER#test_provider_id',
-                    'sk': 'aslp#PROVIDER#privilege/ky#UPDATE#1731110399/483bebc6cb3fd6b517f8ce9ad706c518',
+                    'sk': 'aslp#PROVIDER#privilege/ky#UPDATE#1731110399/dec844e72850ff74c8b7f9bea4b7543a',
                     'type': 'privilegeUpdate',
                     'updateType': 'renewal',
                     'providerId': 'test_provider_id',
                     'compact': 'aslp',
+                    'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
                     'jurisdiction': 'ky',
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'previous': {
@@ -164,12 +316,15 @@ class TestDataClient(TstFunction):
                         'dateOfUpdate': '2023-11-08T23:59:59+00:00',
                         'compactTransactionId': '1234567890',
                         'attestations': self.sample_privilege_attestations,
+                        'persistedStatus': 'active',
                         'privilegeId': 'AUD-KY-1',
                     },
                     'updatedValues': {
+                        'attestations': self.sample_privilege_attestations,
                         'dateOfRenewal': '2024-11-08T23:59:59+00:00',
                         'dateOfExpiration': '2025-10-31',
                         'compactTransactionId': 'test_transaction_id',
+                        'privilegeId': 'AUD-KY-1',
                     },
                 },
             ],
@@ -422,3 +577,240 @@ class TestDataClient(TstFunction):
         self.assertEqual(43, counter_record['privilegeCount'])
         self.assertEqual('privilegeCount', counter_record['type'])
         self.assertEqual('aslp', counter_record['compact'])
+
+    def test_get_ssn_by_provider_id_returns_ssn_if_provider_id_exists(self):
+        """Test that get_ssn_by_provider_id returns the SSN if the provider ID exists"""
+        from cc_common.data_model.data_client import DataClient
+
+        client = DataClient(self.config)
+
+        # Create a provider record with an SSN
+        self._load_provider_data()
+
+        ssn = client.get_ssn_by_provider_id(compact='aslp', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
+        self.assertEqual('123-12-1234', ssn)
+
+    def test_get_ssn_by_provider_id_raises_exception_if_provider_id_does_not_exist(self):
+        """Test that get_ssn_by_provider_id returns the SSN if the provider ID exists"""
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.exceptions import CCNotFoundException
+
+        client = DataClient(self.config)
+
+        # We didn't create the provider this time, so this won't exist
+        with self.assertRaises(CCNotFoundException):
+            client.get_ssn_by_provider_id(compact='aslp', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
+
+    def test_get_ssn_by_provider_id_raises_exception_multiple_records_found(self):
+        """Test that get_ssn_by_provider_id returns the SSN if the provider ID exists"""
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.exceptions import CCInternalException
+
+        client = DataClient(self.config)
+
+        self._load_provider_data()
+        # Put a duplicate record into the table, so this provider id has two SSNs associated with it
+        self.config.ssn_table.put_item(
+            Item={
+                'pk': 'aslp#SSN#123-12-5678',
+                'sk': 'aslp#SSN#123-12-5678',
+                'providerIdGSIpk': 'aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570',
+                'compact': 'aslp',
+                'ssn': '123-12-5678',
+                'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
+            }
+        )
+
+        with self.assertRaises(CCInternalException):
+            client.get_ssn_by_provider_id(compact='aslp', provider_id='89a6377e-c3a5-40e5-bca5-317ec854c570')
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    def test_deactivate_privilege_updates_record(self):
+        from cc_common.data_model.data_client import DataClient
+
+        provider_id = self._load_provider_data()
+
+        # Create the first privilege
+        original_privilege = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': 'aslp#PROVIDER#privilege/ne#',
+            'type': 'privilege',
+            'providerId': provider_id,
+            'compact': 'aslp',
+            'jurisdiction': 'ne',
+            'persistedStatus': 'active',
+            'dateOfIssuance': '2023-11-08T23:59:59+00:00',
+            'dateOfRenewal': '2023-11-08T23:59:59+00:00',
+            'dateOfExpiration': '2024-10-31',
+            'dateOfUpdate': '2023-11-08T23:59:59+00:00',
+            'compactTransactionId': '1234567890',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+            'attestations': self.sample_privilege_attestations,
+            'privilegeId': 'AUD-NE-1',
+        }
+        self._provider_table.put_item(Item=original_privilege)
+
+        test_data_client = DataClient(self.config)
+
+        # Now, deactivate the privilege
+        test_data_client.deactivate_privilege(
+            compact='aslp',
+            provider_id=provider_id,
+            jurisdiction='ne',
+        )
+
+        # Verify that the privilege record was updated
+        new_privilege = self._provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne#'),
+        )['Items']
+        self.maxDiff = None
+        self.assertEqual(
+            [
+                # Primary record
+                {
+                    'pk': f'aslp#PROVIDER#{provider_id}',
+                    'sk': 'aslp#PROVIDER#privilege/ne#',
+                    'type': 'privilege',
+                    'providerId': provider_id,
+                    'compact': 'aslp',
+                    'jurisdiction': 'ne',
+                    'persistedStatus': 'inactive',
+                    'dateOfIssuance': '2023-11-08T23:59:59+00:00',
+                    'dateOfRenewal': '2023-11-08T23:59:59+00:00',
+                    'dateOfExpiration': '2024-10-31',
+                    'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                    'compactTransactionId': '1234567890',
+                    'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+                    'attestations': self.sample_privilege_attestations,
+                    'privilegeId': 'AUD-NE-1',
+                },
+                # A new history record
+                {
+                    'pk': f'aslp#PROVIDER#{provider_id}',
+                    'sk': 'aslp#PROVIDER#privilege/ne#UPDATE#1731110399/dba34d0647b68b3d577f8135ad6ec677',
+                    'type': 'privilegeUpdate',
+                    'updateType': 'deactivation',
+                    'providerId': provider_id,
+                    'compact': 'aslp',
+                    'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+                    'jurisdiction': 'ne',
+                    'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+                    'previous': {
+                        'dateOfIssuance': '2023-11-08T23:59:59+00:00',
+                        'dateOfRenewal': '2023-11-08T23:59:59+00:00',
+                        'dateOfExpiration': '2024-10-31',
+                        'dateOfUpdate': '2023-11-08T23:59:59+00:00',
+                        'compactTransactionId': '1234567890',
+                        'attestations': self.sample_privilege_attestations,
+                        'persistedStatus': 'active',
+                        'privilegeId': 'AUD-NE-1',
+                    },
+                    'updatedValues': {
+                        'persistedStatus': 'inactive',
+                    },
+                },
+            ],
+            new_privilege,
+        )
+
+        # The deactivation should still ensure that 'ne' is removed from privilegeJurisdictions
+        provider = self._provider_table.get_item(
+            Key={'pk': f'aslp#PROVIDER#{provider_id}', 'sk': 'aslp#PROVIDER'},
+        )['Item']
+        self.assertEqual(set(), provider.get('privilegeJurisdictions', set()))
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    def test_deactivate_privilege_raises_if_privilege_not_found(self):
+        from cc_common.data_model.data_client import DataClient
+        from cc_common.exceptions import CCNotFoundException
+
+        test_data_client = DataClient(self.config)
+
+        # We haven't created any providers or privileges but we'll try to deactivate a privilege
+        with self.assertRaises(CCNotFoundException):
+            test_data_client.deactivate_privilege(
+                compact='aslp',
+                provider_id='some-provider-id',
+                jurisdiction='ne',
+            )
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    def test_deactivate_privilege_on_inactive_privilege_has_no_effect(self):
+        from cc_common.data_model.data_client import DataClient
+
+        provider_id = self._load_provider_data()
+
+        # Remove 'ne' from privilegeJurisdictions
+        self._provider_table.update_item(
+            Key={'pk': f'aslp#PROVIDER#{provider_id}', 'sk': 'aslp#PROVIDER'},
+            UpdateExpression='DELETE privilegeJurisdictions :jurisdiction',
+            ExpressionAttributeValues={':jurisdiction': {'ne'}},
+        )
+
+        # Create the first privilege
+        original_privilege = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': 'aslp#PROVIDER#privilege/ne#',
+            'type': 'privilege',
+            'providerId': provider_id,
+            'compact': 'aslp',
+            'jurisdiction': 'ne',
+            'persistedStatus': 'inactive',
+            'dateOfIssuance': '2023-11-08T23:59:59+00:00',
+            'dateOfRenewal': '2023-11-08T23:59:59+00:00',
+            'dateOfExpiration': '2024-10-31',
+            'dateOfUpdate': '2023-11-08T23:59:59+00:00',
+            'compactTransactionId': '1234567890',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+            'attestations': self.sample_privilege_attestations,
+            'privilegeId': 'AUD-NE-1',
+        }
+        self._provider_table.put_item(Item=original_privilege)
+        # We'll create it as if it were already deactivated
+        original_history = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': 'aslp#PROVIDER#privilege/ne#UPDATE#1731110399/483bebc6cb3fd6b517f8ce9ad706c518',
+            'type': 'privilegeUpdate',
+            'updateType': 'renewal',
+            'providerId': provider_id,
+            'compact': 'aslp',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+            'jurisdiction': 'ne',
+            'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+            'previous': {
+                'dateOfIssuance': '2023-11-08T23:59:59+00:00',
+                'dateOfRenewal': '2023-11-08T23:59:59+00:00',
+                'dateOfExpiration': '2024-10-31',
+                'dateOfUpdate': '2023-11-08T23:59:59+00:00',
+                'compactTransactionId': '1234567890',
+                'attestations': self.sample_privilege_attestations,
+                'privilegeId': 'AUD-NE-1',
+            },
+            'updatedValues': {
+                'persistedStatus': 'inactive',
+            },
+        }
+        self._provider_table.put_item(Item=original_history)
+
+        test_data_client = DataClient(self.config)
+
+        # Now, deactivate the privilege
+        test_data_client.deactivate_privilege(
+            compact='aslp',
+            provider_id=provider_id,
+            jurisdiction='ne',
+        )
+
+        # Verify that the privilege record was unchanged
+        new_privilege = self._provider_table.query(
+            KeyConditionExpression=Key('pk').eq(f'aslp#PROVIDER#{provider_id}')
+            & Key('sk').begins_with('aslp#PROVIDER#privilege/ne#'),
+        )['Items']
+        self.assertEqual([original_privilege, original_history], new_privilege)
+
+        # 'ne' should still be removed from privilegeJurisdictions
+        provider = self._provider_table.get_item(
+            Key={'pk': f'aslp#PROVIDER#{provider_id}', 'sk': 'aslp#PROVIDER'},
+        )['Item']
+        self.assertEqual(set(), provider.get('privilegeJurisdictions', set()))

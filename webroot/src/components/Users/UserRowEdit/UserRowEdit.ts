@@ -75,6 +75,10 @@ class UserRowEdit extends mixins(MixinForm) {
         this.initFormInputs();
     }
 
+    mounted() {
+        document.getElementById('cancel-edit-user')?.focus();
+    }
+
     //
     // Computed
     //

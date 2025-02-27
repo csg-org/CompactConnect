@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import json
 import time
 from datetime import UTC, datetime
 
@@ -16,6 +17,65 @@ from smoke_common import (
 # 'smoke_tests_env_example.json' file as a template.
 
 
+def test_purchase_privilege_options():
+    """Test the GET /v1/purchases/privileges/options endpoint."""
+    headers = get_provider_user_auth_headers_cached()
+    response = requests.get(
+        url=f'{config.api_base_url}/v1/purchases/privileges/options',
+        headers=headers,
+        timeout=10,
+    )
+
+    if response.status_code != 200:
+        raise SmokeTestFailureException(f'Failed to get purchase privilege options. Response: {response.json()}')
+
+    response_body = response.json()
+    logger.info('Received purchase privilege options response:', data=response_body)
+
+    compact_data = next((item for item in response_body['items'] if item.get('type') == 'compact'), None)
+
+    # Verify compact data matches expected values
+    expected_compact_data = {
+        'type': 'compact',
+        'compactName': 'Audiology and Speech Language Pathology',
+        'compactAbbr': 'aslp',
+        'compactCommissionFee': {'feeType': 'FLAT_RATE', 'feeAmount': 3.50},
+        'transactionFeeConfiguration': {
+            'licenseeCharges': {'active': True, 'chargeType': 'FLAT_FEE_PER_PRIVILEGE', 'chargeAmount': 3.00}
+        },
+    }
+
+    if compact_data != expected_compact_data:
+        raise SmokeTestFailureException(
+            f'Compact data does not match expected values.\nExpected:\n {json.dumps(expected_compact_data)}\nActual:\n '
+            f'{json.dumps(compact_data)}'
+        )
+
+    # now we verify the ky jurisdiction data
+    # we only verify this one for brevity, since the other jurisdictions are loaded as configured in the yaml files
+    ky_jurisdiction_data = next(
+        (item for item in response_body['items'] if item.get('postalAbbreviation') == 'ky'), None
+    )
+
+    expected_ky_jurisdiction_data = {
+        'type': 'jurisdiction',
+        'jurisdictionName': 'Kentucky',
+        'postalAbbreviation': 'ky',
+        'compact': 'aslp',
+        'jurisdictionFee': 100,
+        'militaryDiscount': {'active': True, 'discountType': 'FLAT_RATE', 'discountAmount': 10},
+        'jurisprudenceRequirements': {'required': True},
+    }
+
+    if ky_jurisdiction_data != expected_ky_jurisdiction_data:
+        raise SmokeTestFailureException(
+            f'KY jurisdiction data does not match expected values.\nExpected:\n '
+            f'{json.dumps(expected_ky_jurisdiction_data)}\nActual:\n {json.dumps(ky_jurisdiction_data)}'
+        )
+
+    logger.info('Successfully verified purchase privilege options')
+
+
 def test_purchasing_privilege():
     # Step 1: Get latest versions of required attestations - GET '/v1/compact/{compact}/attestations/{attestationId}'.
     # Step 2: Purchase a privilege through the POST '/v1/purchases/privileges' endpoint.
@@ -31,10 +91,7 @@ def test_purchasing_privilege():
         dynamodb_table = config.provider_user_dynamodb_table
         for privilege in original_privileges:
             privilege_pk = f'{compact}#PROVIDER#{provider_id}'
-            privilege_sk = (
-                f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}#'
-                f'{datetime.fromisoformat(privilege["dateOfRenewal"]).date().isoformat()}'
-            )
+            privilege_sk = f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}#'
             logger.info(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
             dynamodb_table.delete_item(
                 Key={
@@ -144,7 +201,7 @@ def test_purchasing_privilege():
             raise SmokeTestFailureException('Attestation version in privilege record does not match')
         if attestation['version'] != attestations_from_system[0]['version']:
             raise SmokeTestFailureException(
-                f'Attestation {attestation['attestationId']} version in privilege record '
+                f'Attestation {attestation["attestationId"]} version in privilege record '
                 f'does not match latest version in system'
             )
 
@@ -152,4 +209,5 @@ def test_purchasing_privilege():
 
 
 if __name__ == '__main__':
+    test_purchase_privilege_options()
     test_purchasing_privilege()

@@ -6,10 +6,12 @@
         "back": "Back",
         "continue": "Continue",
         "next": "Next",
+        "confirm": "Confirm",
         "cancel": "Cancel",
         "close": "Close",
         "skip": "Skip",
         "confirm": "Confirm",
+        "fees": "Fees",
         "choose": "Choose",
         "chooseOne": "Choose one",
         "select": "Select",
@@ -431,7 +433,7 @@
     },
     "compacts": [
         {
-            "name": "Audio and Speech Language Pathology",
+            "name": "Audiology and Speech Language Pathology",
             "abbrev": "ASLP",
             "key": "aslp"
         },
@@ -468,6 +470,7 @@
         "cardExpirationMonth": "Expiration month",
         "cardExpirationYear": "Expiration year",
         "cvv": "CVV",
+        "ccTransactionFees": "Credit card transaction fees",
         "enterFirstName": "Enter first name",
         "enterLastName": "Enter last name",
         "billingAddressTitle": "Billing Address",
@@ -479,7 +482,7 @@
         "expirationDate": "Expiration date",
         "continueToPurchase": "Continue to purchase",
         "compactPrivilegeStateFee": "Compact Privilege State Fee",
-        "compactCommissionFee": "Compact Commision Fee",
+        "compactCommissionFee": "Administrative Fee",
         "purchaseSuccessful": "Purchase Successful",
         "purchaseSuccessfulMessage": "Your purchase was successful. Your privileges will appear on your profile page within seconds. If you submitted incorrect documents, you will be contacted by compact staff."
     },
@@ -506,6 +509,8 @@
         "birthMonthDay": "Birth month-day",
         "pastPrivilegesTitle": "Past privileges",
         "licenseDetails": "License details",
+        "licenseNumSymbol": "License #",
+        "privilegeNumSymbol": "Privilege #",
         "driversLicense": "Drivers License #",
         "militaryAffilitionDocs": "military affiliation documents",
         "personalInformation": "Personal information",
@@ -515,7 +520,7 @@
         "ssnLastFour": "Last 4 of SSN",
         "incorrectInfoDisclaimer": "The information on this page was provided by your home state. If the information is incorrect, you must reach out to that state and ask them to correct it. Refer to the compact FAQ page for more information.",
         "deselectState": "Deselect state",
-        "commissionFee": "Commission Fee",
+        "adminFee": "Administration Fee",
         "jurisdictionFee": "Jurisdiction Fee",
         "licenseType": "License type",
         "adverseActions": "Adverse actions",
@@ -549,31 +554,40 @@
             "active": "Active",
             "inactive": "Inactive"
         },
+        "privilegeActions": "Privilege actions",
+        "deactivate": "Deactivate",
+        "deactivated": "Deactivated",
+        "confirmPrivilegeDeactivate": "Are you sure you want to deactivate this privilege? This cannot be undone.",
         "occupations": [
             {
                 "name": "Audiologist",
                 "key": "audiologist",
-                "compactKey": "aslp"
+                "compactKey": "aslp",
+                "abbrev": "aud"
             },
             {
                 "name": "Speech-Language Pathologist",
                 "key": "speech-language pathologist",
-                "compactKey": "aslp"
+                "compactKey": "aslp",
+                "abbrev": "slp"
             },
             {
                 "name": "Occupational Therapist",
                 "key": "occupational therapist",
-                "compactKey": "octp"
+                "compactKey": "octp",
+                "abbrev": "ot"
             },
             {
                 "name": "Occupational Therapy Assistant",
                 "key": "occupational therapy assistant",
-                "compactKey": "octp"
+                "compactKey": "octp",
+                "abbrev": "ota"
             },
             {
                 "name": "Licensed Professional Counselor",
                 "key": "licensed professional counselor",
-                "compactKey": "coun"
+                "compactKey": "coun",
+                "abbrev": "lpc"
             }
         ],
         "privilegePurchaseTitle": "Privilege purchase",
@@ -651,7 +665,14 @@
         "editPermissions": "Edit permissions",
         "editUserPermissions": "Edit user permissions",
         "addState": "Add state / jurisdiction",
-        "inviteNewUser": "Invite new user"
+        "inviteNewUser": "Invite new user",
+        "resendInvite": "Resend invite",
+        "reinviteSent": "Reinvite sent!",
+        "deactivate": "Deactivate",
+        "deactivated": "Deactivated",
+        "confirmUserReinviteTitle": "Are you sure you want to resend the invitation to {name}?",
+        "confirmUserReinviteSubtext": "An email will be sent to {email} and the user will be forced to set a new password.",
+        "confirmUserDeactivate": "Are you sure you want to deactivate {name} from this compact? This cannot be undone."
     },
     "recaptcha": {
         "googleDesc": "This site is protected by reCAPTCHA and the Google",

@@ -1,7 +1,9 @@
 from cc_common.config import config, logger
 from cc_common.exceptions import CCInternalException
+from cc_common.utils import logger_inject_kwargs
 
 
+@logger_inject_kwargs(logger, 'compact', 'provider_id')
 def get_provider_information(compact: str, provider_id: str) -> dict:
     """Common method to get provider information by compact and provider id.
 

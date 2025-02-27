@@ -84,6 +84,13 @@ unit/functional tests to be incorporated in the development workflow. If you wan
 in the cloud, you can do so by configuring context for your own sandbox AWS account with context variables in
 `cdk.context.json` and running the appropriate `cdk deploy` command.
 
+Once the deployment completes, you may want to run a local frontend. To do so, you must [populate a `.env`
+file](../../webroot/README.md#environment-variables) with data on certain AWS resources (for example, AWS Cognito auth
+domains and client IDs). A quick way to do that is to run `bin/fetch_aws_resources.py --as-env` from the
+`backend/compact-connect` directory and copy/paste the output into `webroot/.env`. To see more data on your deployment
+in human-readable format (for example, DynamoDB table names), run `bin/fetch_aws_resources.py` without any additional
+flags.
+
 ## Tests
 [Back to top](#compact-connect---backend-developer-documentation)
 
@@ -105,7 +112,7 @@ Keeping documentation current is an important part of feature development in thi
 1) Export a fresh api specification (OAS 3.0) is exported from API Gateway and used to update [the Open API Specification JSON file](./docs/api-specification/latest-oas30.json).
 2) Run `bin/trim_oas30.py` to organize and trim the API to include only supported API endpoints (and update the script itself, if needed).
 3) If you exported the api specification from somewhere other than the CSG Test environment, be sure to set the `servers[0].url` entry back to the correct base URL for the CSG Test environment.
-4) Update the [Postman Collection and Environment](./docs/postman) as appropriate.
+4) Use `bin/update_postman_collection.py` to update the [Postman Collection and Environment](./docs/postman), based on your new api spec, as appropriate.
 
 ## Google reCAPTCHA Setup
 [Back to top](#compact-connect---backend-developer-documentation)

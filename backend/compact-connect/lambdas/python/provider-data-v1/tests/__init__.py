@@ -28,7 +28,7 @@ class TstLambdas(TestCase):
                 'PROVIDER_USER_POOL_ID': 'us-east-1-12345',
                 'USERS_TABLE_NAME': 'provider-table',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
-                'SSN_INVERTED_INDEX_NAME': 'inverted',
+                'SSN_INDEX_NAME': 'ssnIndex',
                 'PROVIDER_USER_BUCKET_NAME': 'provider-user-bucket',
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',

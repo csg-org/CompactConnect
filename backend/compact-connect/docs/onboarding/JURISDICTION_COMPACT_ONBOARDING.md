@@ -163,12 +163,19 @@ characters in place of spaces.
 ## Add Global Compact Configuration File to the System
 In addition to the jurisdiction configuration files, if a new compact is being added, a global compact configuration
 file must be added to the root of the `compact-config` directory. If it is not present for an associated directory of
-the same name, the deployment will fail. The compact file includes the following information (all fields are required):
+the same name, the deployment will fail. The compact file includes the following information (all fields are required
+unless otherwise specified):
 ```
-compactName: "<compact name>"
+compactAbbr: "<compact abbreviation ie aslp>"
+compactName: "<compact name ie Audiology and Speech Language Pathology>"
 compactCommissionFee:
     feeType: "FLAT_RATE"                            # Currently only "FLAT_RATE" type is supported.
     feeAmount: <number>                             # This value will be added to the jurisdiciton fee.
+transactionFeeConfiguration:                        # Optional: configuration for transaction fees
+    licenseeCharges:                               # Optional: How the compact wants to charge licensees to cover these fees
+        active: true|false                         # Whether the compact is charging licensees for transaction fees
+        chargeType: "FLAT_FEE_PER_PRIVILEGE"       # Currently only supporting FLAT_FEE_PER_PRIVILEGE
+        chargeAmount: <number>                     # The amount to charge per privilege purchased
 compactOperationsTeamEmails: ["<email address>"]
 compactAdverseActionsNotificationEmails: ["<email address>"]
 compactSummaryReportNotificationEmails: ["<email address>"]
@@ -183,6 +190,28 @@ attestations:                                       # Required attestations for 
 ```
 At deploy time, if the environment name matches one of the files in the `activeEnvironments` list, these configuration
 files will be written to the database and accessible by the system.
+
+### Configure Transaction Fee Settings
+Each compact must decide if they want to charge licensees to absorb payment processor transaction fees. This includes the following fields:
+
+1. **Licensee Charges** - Compacts can choose to charge licensees a fee to help cover transaction costs:
+   - `active`: Whether to charge licensees a transaction fee
+   - `chargeType`: Currently only supports "FLAT_FEE_PER_PRIVILEGE"
+   - `chargeAmount`: The fixed amount to charge per privilege purchase
+
+Example configuration:
+```yaml
+transactionFeeConfiguration:
+    licenseeCharges:
+        active: true
+        chargeType: "FLAT_FEE_PER_PRIVILEGE"
+        chargeAmount: 3.00
+```
+
+In this example:
+- The compact charges licensees a flat fee of $3.00 per privilege to help cover transaction fees
+
+Note: The `licenseeCharges` section is optional. If omitted, no transaction fees will be charged to licensees.
 
 ### Configure Compact Attestations
 Each compact must define a set of attestations that providers must accept when purchasing privileges. Attestations are legally binding statements that providers must agree to, and they are versioned to ensure providers always see and accept the most current version. The attestations must be defined in the compact configuration file under the `attestations` field.

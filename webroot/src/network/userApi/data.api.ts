@@ -16,6 +16,7 @@ import { config as envConfig } from '@plugins/EnvConfig/envConfig.plugin';
 import { PrivilegePurchaseOptionSerializer } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
 import { LicenseeUserSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
+import { CompactFeeConfigSerializer } from '@/models/CompactFeeConfig/CompactFeeConfig.model';
 
 export interface RequestParamsInterfaceLocal {
     compact?: string;
@@ -175,6 +176,30 @@ export class UserDataApi implements DataApiInterface {
     }
 
     /**
+     * REINVITE User by ID.
+     * @param  {string}          compact A compact type.
+     * @param  {string}          userId  A user ID.
+     * @return {Promise<object>}         The server response.
+     */
+    public async reinviteUser(compact: string, userId: string) {
+        const serverResponse = await this.api.post(`/v1/compacts/${compact}/staff-users/${userId}/reinvite`);
+
+        return serverResponse;
+    }
+
+    /**
+     * DELETE User by ID.
+     * @param  {string}          compact A compact type.
+     * @param  {string}          userId  A user ID.
+     * @return {Promise<object>}         The server response.
+     */
+    public async deleteUser(compact: string, userId: string) {
+        const serverResponse = await this.api.delete(`/v1/compacts/${compact}/staff-users/${userId}`);
+
+        return serverResponse;
+    }
+
+    /**
      * UPDATE Password of authenticated user.
      * @param  {object}          data The request data.
      * @return {Promise<object>}      Axios-formatted response from AWS Cognito.
@@ -236,12 +261,7 @@ export class UserDataApi implements DataApiInterface {
         const serverResponse: any = await this.api.get(`/v1/purchases/privileges/options`);
         const { items } = serverResponse;
         const privilegePurchaseOptions = items.filter((serverItem) => (serverItem.type === 'jurisdiction')).map((serverPurchaseOption) => (PrivilegePurchaseOptionSerializer.fromServer(serverPurchaseOption)));
-
-        const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => ({
-            compactType: serverFeeObject?.compactName,
-            feeType: serverFeeObject?.compactCommissionFee?.feeType,
-            feeAmount: serverFeeObject?.compactCommissionFee?.feeAmount
-        }))[0];
+        const compactCommissionFee = items.filter((serverItem) => (serverItem.type === 'compact')).map((serverFeeObject) => (CompactFeeConfigSerializer.fromServer(serverFeeObject)))[0];
 
         return { privilegePurchaseOptions, compactCommissionFee };
     }

@@ -58,16 +58,8 @@ class TestGetPurchasePrivilegeOptions(TstFunction):
         self.assertEqual(200, resp['statusCode'])
         privilege_options = json.loads(resp['body'])
 
-        with open('../common/tests/resources/dynamo/compact.json') as f:
+        with open('../common/tests/resources/api/compact-configuration-response.json') as f:
             expected_compact_option = json.load(f)
-            expected_compact_option.pop('pk')
-            expected_compact_option.pop('sk')
-            # we should not be returning email information in the response
-            expected_compact_option.pop('compactOperationsTeamEmails')
-            expected_compact_option.pop('compactAdverseActionsNotificationEmails')
-            expected_compact_option.pop('compactSummaryReportNotificationEmails')
-            # remove date fields as they are not needed in the response
-            expected_compact_option.pop('dateOfUpdate')
 
         # the compact configuration is stored in the dynamo db as part of the
         # parent TstFunction setup, so we can compare the response directly

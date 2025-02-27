@@ -15,6 +15,7 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 
 from cc_common.config import config, logger, metrics
+from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
 from cc_common.exceptions import (
     CCAccessDeniedException,
@@ -170,6 +171,8 @@ class logger_inject_kwargs:  # noqa: N801 invalid-name
     """Decorator to inject kwargs into the logger context"""
 
     def __init__(self, logger: Logger, *arg_names: tuple[str, ...]):
+        if not isinstance(logger, Logger):
+            raise ValueError('logger must be an instance of Logger')
         self.logger = logger
         self.arg_names = arg_names
 
@@ -419,13 +422,19 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
 
     # Collect compact-wide permission changes
     for action, value in compact_changes.get('actions', {}).items():
-        if action == 'admin' and f'{path_compact}/{path_compact}.admin' not in scopes:
+        if (
+            action == CCPermissionsAction.ADMIN
+            and f'{path_compact}/{path_compact}.{CCPermissionsAction.ADMIN}' not in scopes
+        ):
             raise CCAccessDeniedException('Only compact admins can affect compact-level admin permissions')
-        if action == 'readPrivate' and f'{path_compact}/{path_compact}.admin' not in scopes:
+        if (
+            action == CCPermissionsAction.READ_PRIVATE
+            and f'{path_compact}/{path_compact}.{CCPermissionsAction.ADMIN}' not in scopes
+        ):
             raise CCAccessDeniedException('Only compact admins can affect compact-level access to private information')
 
         # dropping the read action as this is now implicitly granted to all users
-        if action == 'read':
+        if action == CCPermissionsAction.READ:
             logger.info('Dropping "read" action as this is implicitly granted to all users')
             continue
         # Any admin in the compact can affect read permissions, so no read-specific check is necessary here
@@ -436,7 +445,10 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
 
     # Collect jurisdiction-specific changes
     for jurisdiction, jurisdiction_changes in compact_changes.get('jurisdictions', {}).items():
-        if not {f'{path_compact}/{path_compact}.admin', f'{path_compact}/{jurisdiction}.admin'}.intersection(scopes):
+        if not {
+            f'{path_compact}/{path_compact}.{CCPermissionsAction.ADMIN}',
+            f'{path_compact}/{jurisdiction}.{CCPermissionsAction.ADMIN}',
+        }.intersection(scopes):
             raise CCAccessDeniedException(
                 f'Only {path_compact} or {path_compact}/{jurisdiction} admins can affect {path_compact}/{jurisdiction} '
                 'permissions',
@@ -444,7 +456,7 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
 
         for action, value in jurisdiction_changes.get('actions', {}).items():
             # dropping the read action as this is now implicitly granted to all users
-            if action == 'read':
+            if action == CCPermissionsAction.READ:
                 logger.info('Dropping "read" action as this is implicitly granted to all users')
                 continue
 
@@ -468,10 +480,27 @@ def get_sub_from_user_attributes(attributes: list):
     raise ValueError('Failed to find user sub!')
 
 
-def _user_has_private_read_access_for_provider(compact: str, provider_information: dict, scopes: set[str]) -> bool:
-    if f'{compact}/{compact}.readPrivate' in scopes:
+def _user_has_read_private_access_for_provider(compact: str, provider_information: dict, scopes: set[str]) -> bool:
+    return _user_has_permission_for_action_on_user(
+        action=CCPermissionsAction.READ_PRIVATE,
+        compact=compact,
+        provider_information=provider_information,
+        scopes=scopes,
+    )
+
+
+def user_has_read_ssn_access_for_provider(compact: str, provider_information: dict, scopes: set[str]) -> bool:
+    return _user_has_permission_for_action_on_user(
+        action=CCPermissionsAction.READ_SSN, compact=compact, provider_information=provider_information, scopes=scopes
+    )
+
+
+def _user_has_permission_for_action_on_user(
+    action: str, compact: str, provider_information: dict, scopes: set[str]
+) -> bool:
+    if f'{compact}/{compact}.{action}' in scopes:
         logger.debug(
-            'User has readPrivate permission at compact level',
+            f'User has {action} permission at compact level',
             compact=compact,
             provider_id=provider_information['providerId'],
         )
@@ -485,9 +514,9 @@ def _user_has_private_read_access_for_provider(compact: str, provider_informatio
         relevant_provider_jurisdictions.add(license_record['jurisdiction'])
 
     for jurisdiction in relevant_provider_jurisdictions:
-        if f'{compact}/{jurisdiction}.readPrivate' in scopes:
+        if f'{compact}/{jurisdiction}.{action}' in scopes:
             logger.debug(
-                'User has readPrivate permission at jurisdiction level',
+                f'User has {action} permission at jurisdiction level',
                 compact=compact,
                 provider_id=provider_information['providerId'],
                 jurisdiction=jurisdiction,
@@ -495,7 +524,7 @@ def _user_has_private_read_access_for_provider(compact: str, provider_informatio
             return True
 
     logger.debug(
-        'Caller does not have readPrivate permission at compact or jurisdiction level',
+        f'Caller does not have {action} permission at compact or jurisdiction level',
         provider_id=provider_information['providerId'],
     )
     return False
@@ -511,7 +540,7 @@ def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, 
     :param set scopes: The user's scopes from the request.
     :return: The provider record, sanitized based on the user's scopes.
     """
-    if _user_has_private_read_access_for_provider(compact=compact, provider_information=provider, scopes=scopes):
+    if _user_has_read_private_access_for_provider(compact=compact, provider_information=provider, scopes=scopes):
         # return full object since caller has 'readPrivate' access for provider
         return provider
 

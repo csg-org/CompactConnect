@@ -1,9 +1,9 @@
 {
   "type": "provider",
   "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
-  "ssn": "123-12-1234",
   "npi": "0608337260",
   "licenseNumber": "A0608337260",
+  "ssnLastFour": "1234",
   "givenName": "Björk",
   "middleName": "Gunnar",
   "familyName": "Guðmundsdóttir",
@@ -33,7 +33,6 @@
       "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
       "compact": "aslp",
       "jurisdiction": "oh",
-      "ssn": "123-12-1234",
       "ssnLastFour": "1234",
       "npi": "0608337260",
       "licenseNumber": "A0608337260",
@@ -65,11 +64,11 @@
           "jurisdiction": "oh",
           "dateOfUpdate": "2020-04-07T12:59:59+00:00",
           "previous": {
-            "ssn": "123-12-1234",
             "npi": "0608337260",
             "licenseNumber": "A0608337260",
             "licenseType": "speech-language pathologist",
             "jurisdictionStatus": "active",
+            "ssnLastFour": "1234",
             "givenName": "Björk",
             "middleName": "Gunnar",
             "familyName": "Guðmundsdóttir",
@@ -108,6 +107,7 @@
       "dateOfUpdate": "2020-05-05T12:59:59+00:00",
       "compactTransactionId": "1234567890",
       "privilegeId": "SLP-NE-1",
+      "persistedStatus": "active",
       "history": [
         {
           "type": "privilegeUpdate",
@@ -117,12 +117,22 @@
           "jurisdiction": "ne",
           "dateOfUpdate": "2020-05-05T12:59:59+00:00",
           "previous": {
+            "attestations": [
+              {"attestationId": "jurisprudence-confirmation", "version": "1"}
+            ],
             "dateOfIssuance": "2016-05-05T12:59:59+00:00",
             "dateOfRenewal": "2016-05-05T12:59:59+00:00",
             "dateOfExpiration": "2020-06-06",
             "dateOfUpdate": "2016-05-05T12:59:59+00:00",
             "compactTransactionId": "0123456789",
-            "privilegeId": "SLP-NE-1"
+            "persistedStatus": "active",
+            "privilegeId": "SLP-NE-1",
+            "attestations": [
+              {
+                "attestationId": "jurisprudence-confirmation",
+                "version": "1"
+              }
+            ]
           },
           "updatedValues": {
             "dateOfRenewal": "2020-05-05T12:59:59+00:00",

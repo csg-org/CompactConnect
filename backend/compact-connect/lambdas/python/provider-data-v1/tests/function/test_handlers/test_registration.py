@@ -129,9 +129,7 @@ class TestProviderRegistration(TstFunction):
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_200_if_no_matching_license_found(self, mock_verify_recaptcha):
         mock_verify_recaptcha.return_value = True
-        self._add_mock_provider_records(
-            license_data_overrides={'ssnLastFour': '9876', 'ssn': '123-12-9876'}
-        )  # Different SSN
+        self._add_mock_provider_records(license_data_overrides={'ssnLastFour': '9876'})  # Different SSN
         from handlers.registration import register_provider
 
         response = register_provider(self._get_test_event(), self.mock_context)

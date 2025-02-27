@@ -98,6 +98,18 @@ export class DataApi {
         return licenseDataApi.getAttestation(compact, attestationId);
     }
 
+    /**
+     * DELETE Privilege for a licensee.
+     * @param  {string}           compact        The compact string ID (aslp, otcp, coun).
+     * @param  {string}           licenseeId     The Licensee ID.
+     * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
+     * @param  {string}           licenseType    The license type / occupation.
+     * @return {Promise<object>}                 The server response.
+     */
+    public deletePrivilege(compact, licenseeId, privilegeState, licenseType) {
+        return licenseDataApi.deletePrivilege(compact, licenseeId, privilegeState, licenseType);
+    }
+
     // ========================================================================
     //                              USER API
     // ========================================================================
@@ -139,6 +151,26 @@ export class DataApi {
      */
     public updateUser(compact, userId, data) {
         return userDataApi.updateUser(compact, userId, data);
+    }
+
+    /**
+     * REINVITE User by ID.
+     * @param  {string}          compact A compact type.
+     * @param  {string}          userId  A user ID.
+     * @return {Promise<object>}         The server response.
+     */
+    public reinviteUser(compact, userId) {
+        return userDataApi.reinviteUser(compact, userId);
+    }
+
+    /**
+     * DELETE User by ID.
+     * @param  {string}          compact A compact type.
+     * @param  {string}          userId  A user ID.
+     * @return {Promise<object>}         The server response.
+     */
+    public deleteUser(compact, userId) {
+        return userDataApi.deleteUser(compact, userId);
     }
 
     /**

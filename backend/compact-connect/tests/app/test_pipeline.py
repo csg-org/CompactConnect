@@ -76,7 +76,7 @@ class TestPipeline(TstAppABC, TestCase):
             )
             # Ensure the resource servers are created with the expected scopes
             self.assertEqual(
-                ['admin', 'write', 'readGeneral'],
+                ['admin', 'write', 'readGeneral', 'readSSN'],
                 [scope['ScopeName'] for scope in resource_server_properties['Scopes']],
                 msg=f'Expected scopes for compact {compact} not found',
             )
@@ -213,10 +213,10 @@ class TestPipeline(TstAppABC, TestCase):
         This ensures the snapshot comparison is consistent.
         """
         compact_configuration_input['compacts'] = sorted(
-            compact_configuration_input['compacts'], key=lambda compact: compact['compactName']
+            compact_configuration_input['compacts'], key=lambda compact: compact['compactAbbr']
         )
-        for compact_name, jurisdictions in compact_configuration_input['jurisdictions'].items():
-            compact_configuration_input['jurisdictions'][compact_name] = sorted(
+        for compact_abbr, jurisdictions in compact_configuration_input['jurisdictions'].items():
+            compact_configuration_input['jurisdictions'][compact_abbr] = sorted(
                 jurisdictions, key=lambda jurisdiction: jurisdiction['postalAbbreviation']
             )
 
@@ -242,9 +242,9 @@ class TestPipelineVulnerable(TestCase):
         # it is persisted to local context after being retrieved from SSM:
         pipeline_context = context['ssm_context']['environments']['pipeline']
         context[
-            f'ssm:account={pipeline_context['account_id']}'
+            f'ssm:account={pipeline_context["account_id"]}'
             ':parameterName=compact-connect-context'
-            f':region={pipeline_context['region']}'
+            f':region={pipeline_context["region"]}'
         ] = json.dumps(ssm_context)
 
         with self.assertRaises(ValueError):

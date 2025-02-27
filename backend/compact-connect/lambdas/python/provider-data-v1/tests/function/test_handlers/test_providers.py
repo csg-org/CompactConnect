@@ -8,37 +8,6 @@ from .. import TstFunction
 
 @mock_aws
 class TestQueryProviders(TstFunction):
-    def test_query_by_ssn(self):
-        self._load_provider_data()
-
-        from handlers.providers import query_providers
-
-        with open('../common/tests/resources/api-event.json') as f:
-            event = json.load(f)
-
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/aslp.readPrivate'
-        event['pathParameters'] = {'compact': 'aslp'}
-        event['body'] = json.dumps({'query': {'ssn': '123-12-1234'}})
-
-        resp = query_providers(event, self.mock_context)
-
-        self.assertEqual(200, resp['statusCode'])
-
-        with open('../common/tests/resources/api/provider-response.json') as f:
-            expected_provider = json.load(f)
-
-        body = json.loads(resp['body'])
-
-        self.assertEqual(
-            {
-                'providers': [expected_provider],
-                'pagination': {'pageSize': 100, 'lastKey': None, 'prevLastKey': None},
-                'query': {'ssn': '123-12-1234'},
-            },
-            body,
-        )
-
     def test_query_by_provider_id_sanitizes_data_even_with_read_private_permission(self):
         self._load_provider_data()
 
@@ -370,18 +339,95 @@ class TestGetProvider(TstFunction):
     def test_get_provider_returns_expected_general_response_when_caller_does_not_have_read_private_scope(self):
         with open('../common/tests/resources/api/provider-detail-response.json') as f:
             expected_provider = json.load(f)
-            expected_provider.pop('ssn')
+            expected_provider.pop('ssnLastFour')
             expected_provider.pop('dateOfBirth')
 
             # we do not return the military affiliation document keys if the caller does not have read private scope
             expected_provider['militaryAffiliations'][0].pop('documentKeys')
-            # also remove the ssn from the license record
-            del expected_provider['licenses'][0]['ssn']
             del expected_provider['licenses'][0]['ssnLastFour']
             del expected_provider['licenses'][0]['dateOfBirth']
-            del expected_provider['licenses'][0]['history'][0]['previous']['ssn']
+            del expected_provider['licenses'][0]['history'][0]['previous']['ssnLastFour']
             del expected_provider['licenses'][0]['history'][0]['previous']['dateOfBirth']
 
         self._when_testing_get_provider_response_based_on_read_access(
             scopes='openid email aslp/readGeneral', expected_provider=expected_provider
         )
+
+
+@mock_aws
+class TestGetProviderSSN(TstFunction):
+    def test_get_provider_ssn_returns_ssn_if_caller_has_read_ssn_compact_level_scope(self):
+        self._load_provider_data()
+
+        from handlers.providers import get_provider_ssn
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has read permission for aslp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readSSN aslp/aslp.readSSN'
+        event['pathParameters'] = {'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+
+        resp = get_provider_ssn(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        self.assertEqual({'ssn': '123-12-1234'}, json.loads(resp['body']))
+
+    def test_get_provider_ssn_returns_ssn_if_caller_has_read_ssn_license_jurisdiction_scope(self):
+        """
+        The provider has a license in oh, and the caller has readSSN permission for oh.
+        """
+        self._load_provider_data()
+
+        from handlers.providers import get_provider_ssn
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has read permission for aslp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readSSN aslp/oh.readSSN'
+        event['pathParameters'] = {'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+
+        resp = get_provider_ssn(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        self.assertEqual({'ssn': '123-12-1234'}, json.loads(resp['body']))
+
+    def test_get_provider_ssn_returns_ssn_if_caller_has_read_ssn_privilege_jurisdiction_scope(self):
+        """
+        The provider has a privilege in ne, and the caller has readSSN permission for ne.
+        """
+        self._load_provider_data()
+
+        from handlers.providers import get_provider_ssn
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has read permission for aslp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readSSN aslp/ne.readSSN'
+        event['pathParameters'] = {'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+
+        resp = get_provider_ssn(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+        self.assertEqual({'ssn': '123-12-1234'}, json.loads(resp['body']))
+
+    def test_get_provider_ssn_forbidden_without_correct_jurisdiction_level_scope(self):
+        """
+        The provider has no license or privilege in ky, and the caller has readSSN permission for ky.
+        """
+        self._load_provider_data()
+
+        from handlers.providers import get_provider_ssn
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has read permission for aslp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readSSN aslp/ky.readSSN'
+        event['pathParameters'] = {'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
+
+        resp = get_provider_ssn(event, self.mock_context)
+
+        self.assertEqual(403, resp['statusCode'])

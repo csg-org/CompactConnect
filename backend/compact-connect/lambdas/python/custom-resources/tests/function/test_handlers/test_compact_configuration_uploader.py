@@ -25,9 +25,9 @@ def generate_mock_attestation():
     }
 
 
-def generate_single_root_compact_config(compact_name: str, active_environments: list):
+def generate_single_root_compact_config(compact_abbr: str, active_environments: list):
     return {
-        'compactName': compact_name,
+        'compactAbbr': compact_abbr,
         'compactCommissionFee': {'feeType': 'FLAT_RATE', 'feeAmount': 3.5},
         'compactOperationsTeamEmails': [],
         'compactAdverseActionsNotificationEmails': [],
@@ -103,7 +103,7 @@ class TestCompactConfigurationUploader(TstFunction):
                 {
                     'compactAdverseActionsNotificationEmails': [],
                     'compactCommissionFee': {'feeAmount': Decimal('3.5'), 'feeType': 'FLAT_RATE'},
-                    'compactName': 'aslp',
+                    'compactAbbr': 'aslp',
                     'compactOperationsTeamEmails': [],
                     'compactSummaryReportNotificationEmails': [],
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
@@ -144,7 +144,7 @@ class TestCompactConfigurationUploader(TstFunction):
                 {
                     'compactAdverseActionsNotificationEmails': [],
                     'compactCommissionFee': {'feeAmount': Decimal('3.5'), 'feeType': 'FLAT_RATE'},
-                    'compactName': 'octp',
+                    'compactAbbr': 'octp',
                     'compactOperationsTeamEmails': [],
                     'compactSummaryReportNotificationEmails': [],
                     'dateOfUpdate': MOCK_CURRENT_TIMESTAMP,
