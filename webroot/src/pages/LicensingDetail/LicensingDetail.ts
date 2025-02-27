@@ -6,6 +6,7 @@
 //
 
 import { Component, Vue } from 'vue-facing-decorator';
+import { Permission } from '@/app.config';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
@@ -13,9 +14,12 @@ import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
 import MilitaryDocumentRow from '@components/MilitaryDocumentRow/MilitaryDocumentRow.vue';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
 import LicenseIcon from '@components/Icons/LicenseIcon/LicenseIcon.vue';
+import { CompactType } from '@models/Compact/Compact.model';
+import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { License, LicenseStatus } from '@models/License/License.model';
 import { MilitaryAffiliation } from '@/models/MilitaryAffiliation/MilitaryAffiliation.model';
+import { dataApi } from '@network/data.api';
 
 @Component({
     name: 'LicensingDetail',
@@ -37,6 +41,9 @@ export default class LicensingDetail extends Vue {
     isLicensesCollapsed = false;
     isRecentPrivsCollapsed = false;
     isPastPrivsCollapsed = false;
+    licenseeFullSsnLoading = false;
+    licenseeFullSsn = '';
+    licenseeFullSsnError = '';
 
     //
     // Lifecycle
@@ -53,9 +60,32 @@ export default class LicensingDetail extends Vue {
     // Computed
     //
     get compact(): string {
-        const defaultCompact = this.$store.state.user.currentCompact;
+        const defaultCompactType = this.$store.state.user.currentCompact?.type;
 
-        return this.$route.params.compact as string || defaultCompact;
+        return this.$route.params.compact as string || defaultCompactType;
+    }
+
+    get userStore() {
+        return this.$store.state.user;
+    }
+
+    get loggedInUser(): StaffUser {
+        return this.userStore.model;
+    }
+
+    get hasLoggedInReadSsnAccessForLicensee(): boolean {
+        const { compact, loggedInUser, licenseeStates } = this;
+        let hasLoggedInReadSsnAccess = false;
+
+        if (compact && loggedInUser) {
+            hasLoggedInReadSsnAccess = licenseeStates.some((state) => loggedInUser.hasPermission(
+                Permission.READ_SSN,
+                this.compact as CompactType,
+                state
+            ));
+        }
+
+        return hasLoggedInReadSsnAccess;
     }
 
     get licenseeId(): string {
@@ -105,13 +135,23 @@ export default class LicensingDetail extends Vue {
         return this.licensee?.privileges || [];
     }
 
+    get licenseeStates(): Array<string> {
+        const licenseStates = this.activeLicenses
+            .map((license) => license.issueState?.abbrev || '')
+            .filter((state) => !!state);
+        const privilegeStates = this.licenseePrivileges
+            .map((privilege) => privilege.issueState?.abbrev || '')
+            .filter((state) => !!state);
+
+        return licenseStates.concat(privilegeStates);
+    }
+
     get dob(): string {
         return this.licensee?.dobDisplay() || '';
     }
 
     get ssn(): string {
-        // Task stubbed off here, later ticket will get this value
-        return '';
+        return this.licensee?.ssnDisplay() || '';
     }
 
     get licenseNumber(): string {
@@ -264,29 +304,52 @@ export default class LicensingDetail extends Vue {
         return license && license.statusState === LicenseStatus.ACTIVE;
     }
 
-    togglePersonalInfoCollapsed() {
+    togglePersonalInfoCollapsed(): void {
         this.isPersonalInfoCollapsed = !this.isPersonalInfoCollapsed;
     }
 
-    toggleLicensesCollapsed() {
+    toggleLicensesCollapsed(): void {
         this.isLicensesCollapsed = !this.isLicensesCollapsed;
     }
 
-    toggleRecentPrivsCollapsed() {
+    toggleRecentPrivsCollapsed(): void {
         this.isRecentPrivsCollapsed = !this.isRecentPrivsCollapsed;
     }
 
-    togglePastPrivsCollapsed() {
+    togglePastPrivsCollapsed(): void {
         this.isPastPrivsCollapsed = !this.isPastPrivsCollapsed;
     }
 
-    sortingChange() {
+    sortingChange(): boolean {
         // Sorting not API supported
         return false;
     }
 
-    paginationChange() {
+    paginationChange(): boolean {
         // Pagination not API supported
         return false;
+    }
+
+    async revealFullSsn(): Promise<void> {
+        this.licenseeFullSsnLoading = true;
+        this.licenseeFullSsn = '';
+        this.licenseeFullSsnError = '';
+
+        const { compact, licenseeId } = this;
+        let isError = false;
+        const ssnFullResponse = await dataApi.getLicenseeSsn(compact, licenseeId).catch(() => {
+            isError = true;
+            this.licenseeFullSsnError = this.$t('serverErrors.networkError');
+        });
+
+        if (!isError) {
+            if (ssnFullResponse.ssn) {
+                this.licenseeFullSsn = ssnFullResponse.ssn;
+            } else {
+                this.licenseeFullSsnError = this.$t('serverErrors.networkError');
+            }
+        }
+
+        this.licenseeFullSsnLoading = false;
     }
 }

@@ -8,7 +8,7 @@
 /* eslint-disable max-classes-per-file */
 
 import deleteUndefinedProperties from '@models/_helpers';
-import { AuthTypes } from '@/app.config';
+import { AuthTypes, Permission } from '@/app.config';
 import { Compact, CompactType, CompactSerializer } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import { User, InterfaceUserCreate } from '@models/User/User.model';
@@ -317,6 +317,73 @@ export class StaffUser extends User implements InterfaceStaffUserCreate {
         display = this.getStateListDisplay(stateNames);
 
         return display;
+    }
+
+    public hasPermission(permission: Permission, compactType: CompactType, state = '') {
+        let { permissions } = this;
+        let hasPermissionForParams = false;
+
+        if (compactType) {
+            permissions = permissions?.filter((compactPermission: any) => // TS bug; prefer 'any' in these cases, rather than the extreme verbosity required to compile correct types.
+                compactPermission.compact?.type === compactType);
+        }
+
+        permissions?.forEach((compactPermission: CompactPermission) => {
+            const {
+                isReadPrivate: isCompactReadPrivate,
+                isReadSsn: isCompactReadSsn,
+                isAdmin: isCompactAdmin,
+                states
+            } = compactPermission as CompactPermission;
+
+            // Check form permission at compact level
+            switch (permission) {
+            case Permission.READ_PRIVATE:
+                hasPermissionForParams = isCompactReadPrivate;
+                break;
+            case Permission.READ_SSN:
+                hasPermissionForParams = isCompactReadSsn;
+                break;
+            case Permission.ADMIN:
+                hasPermissionForParams = isCompactAdmin;
+                break;
+            default:
+                break;
+            }
+
+            if (!hasPermissionForParams && state) {
+                // Check form permission at state level (if needed)
+                const statePermission = states?.find((stPermission) => stPermission.state.abbrev === state);
+
+                if (statePermission) {
+                    const {
+                        isReadPrivate: isStateReadPrivate,
+                        isReadSsn: isStateReadSsn,
+                        isWrite: isStateWrite,
+                        isAdmin: isStateAdmin
+                    } = statePermission;
+
+                    switch (permission) {
+                    case Permission.READ_PRIVATE:
+                        hasPermissionForParams = isStateReadPrivate;
+                        break;
+                    case Permission.READ_SSN:
+                        hasPermissionForParams = isStateReadSsn;
+                        break;
+                    case Permission.WRITE:
+                        hasPermissionForParams = isStateWrite;
+                        break;
+                    case Permission.ADMIN:
+                        hasPermissionForParams = isStateAdmin;
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            }
+        });
+
+        return hasPermissionForParams;
     }
 }
 

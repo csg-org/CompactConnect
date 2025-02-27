@@ -232,6 +232,17 @@ export class LicenseDataApi implements DataApiInterface {
 
         return serverResponse;
     }
+
+    /**
+     * GET SSN for licensee by ID.
+     * @param  {string}          licenseeId A licensee ID.
+     * @return {Promise<object>}            The server response.
+     */
+    public async getLicenseeSsn(compact: string, licenseeId: string) {
+        const serverResponse: any = await axios.get(`${envConfig.apiUrlLicense}/v1/compacts/${compact}/providers/${licenseeId}/ssn`);
+
+        return serverResponse;
+    }
 }
 
 export const licenseDataApi = new LicenseDataApi();

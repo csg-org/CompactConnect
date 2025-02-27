@@ -21,6 +21,7 @@
                 <div class="licensee-name">
                     <span v-if="licenseStore.isLoading">Loading...</span>
                     <span v-else>{{ licenseeNameDisplay }}</span>
+                    <!-- <span>{{ hasLoggedInReadSsnAccessForLicensee }}</span> -->
                 </div>
                 <div class="tags">
                     <div v-if="licenseeHomeStateDisplay" class="tag">
@@ -99,9 +100,32 @@
                             <div class="info-item-title">{{$t('licensing.birthMonthDay')}}</div>
                             <div class="info-item">{{birthMonthDay}}</div>
                         </div>
-                        <div class="info-item-container">
+                        <div v-if="licenseeFullSsn" class="info-item-container">
+                            <div class="info-item-title">{{$t('licensing.ssn')}}</div>
+                            <div class="info-item">{{licenseeFullSsn}}</div>
+                        </div>
+                        <div v-else-if="ssn" class="info-item-container">
                             <div class="info-item-title">{{$t('licensing.ssn')}}</div>
                             <div class="info-item">{{ssn}}</div>
+                            <div
+                                v-if="hasLoggedInReadSsnAccessForLicensee && !licenseeFullSsnLoading"
+                                class="ssn-reveal-btn"
+                                role="button"
+                                @click="revealFullSsn"
+                                @keyup.enter="revealFullSsn"
+                                tabindex="0"
+                            >
+                                {{ $t('licensing.revealFullSsn') }}
+                            </div>
+                            <div
+                                v-else-if="hasLoggedInReadSsnAccessForLicensee && licenseeFullSsnLoading"
+                                class="ssn-reveal-loading"
+                            >
+                                {{ $t('common.loading') }}
+                            </div>
+                            <div v-if="licenseeFullSsnError" class="info-item-error">
+                                {{ licenseeFullSsnError }}
+                            </div>
                         </div>
                     </div>
                     <div class="core-info-block">
