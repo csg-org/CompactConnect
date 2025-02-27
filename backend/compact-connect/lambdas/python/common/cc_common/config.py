@@ -67,6 +67,18 @@ class _Config:
         return boto3.client('events', config=BotoConfig(retries={'mode': 'standard'}))
 
     @cached_property
+    def license_preprocessing_queue(self):
+        """
+        Returns the SQS Queue resource for the license preprocessing queue.
+        This allows for using the Queue's methods directly like send_messages.
+        """
+        return boto3.resource('sqs').Queue(self.license_preprocessing_queue_url)
+
+    @cached_property
+    def license_preprocessing_queue_url(self):
+        return os.environ['LICENSE_PREPROCESSING_QUEUE_URL']
+
+    @cached_property
     def event_bus_name(self):
         return os.environ['EVENT_BUS_NAME']
 

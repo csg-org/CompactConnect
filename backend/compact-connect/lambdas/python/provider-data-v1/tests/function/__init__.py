@@ -39,6 +39,8 @@ class TstFunction(TstLambdas):
         self.create_provider_table()
         self.create_ssn_table()
         self.create_rate_limiting_table()
+        self.create_license_preprocessing_queue()
+
 
         boto3.client('events').create_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
@@ -119,12 +121,17 @@ class TstFunction(TstLambdas):
             BillingMode='PAY_PER_REQUEST',
         )
 
+    def create_license_preprocessing_queue(self):
+        self._license_preprocessing_queue = boto3.resource('sqs').create_queue(QueueName='workflow-queue')
+        os.environ['LICENSE_PREPROCESSING_QUEUE_URL'] = self._license_preprocessing_queue.url
+
     def delete_resources(self):
         self._bucket.objects.delete()
         self._bucket.delete()
         self._provider_table.delete()
         self._ssn_table.delete()
         self._rate_limiting_table.delete()
+        self._license_preprocessing_queue.delete()
         boto3.client('events').delete_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
     def _load_provider_data(self):

@@ -39,6 +39,8 @@ class TstFunction(TstLambdas):
         self.create_ssn_table()
         self.create_users_table()
         self.create_transaction_history_table()
+        self.create_license_preprocessing_queue()
+
 
         # Adding a waiter allows for testing against an actual AWS account, if needed
         waiter = self._compact_configuration_table.meta.client.get_waiter('table_exists')
@@ -170,12 +172,17 @@ class TstFunction(TstLambdas):
             BillingMode='PAY_PER_REQUEST',
         )
 
+    def create_license_preprocessing_queue(self):
+        self._license_preprocessing_queue = boto3.resource('sqs').create_queue(QueueName='workflow-queue')
+        os.environ['LICENSE_PREPROCESSING_QUEUE_URL'] = self._license_preprocessing_queue.url
+
     def delete_resources(self):
         self._compact_configuration_table.delete()
         self._provider_table.delete()
         self._ssn_table.delete()
         self._users_table.delete()
         self._transaction_history_table.delete()
+        self._license_preprocessing_queue.delete()
 
         waiter = self._users_table.meta.client.get_waiter('table_not_exists')
         waiter.wait(TableName=self._compact_configuration_table.name)

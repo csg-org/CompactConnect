@@ -9,7 +9,8 @@ from botocore.response import StreamingBody
 from cc_common.config import config, logger
 from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema, LicensePostRequestSchema
 from cc_common.exceptions import CCInternalException
-from cc_common.utils import ResponseEncoder, api_handler, authorize_compact_jurisdiction
+from cc_common.utils import (ResponseEncoder, api_handler, authorize_compact_jurisdiction,
+                             send_licenses_to_preprocessing_queue)
 from event_batch_writer import EventBatchWriter
 from license_csv_reader import LicenseCSVReader
 from marshmallow import ValidationError
@@ -119,11 +120,17 @@ def process_bulk_upload_file(
     reader = LicenseCSVReader()
 
     stream = TextIOWrapper(body, encoding='utf-8')
+    
+    # Collect valid licenses to send in batches
+    valid_licenses = []
+    
     with EventBatchWriter(config.events_client) as event_writer:
         for i, raw_license in enumerate(reader.licenses(stream)):
             logger.debug('Processing line %s', i + 1)
             try:
                 validated_license = schema.load({'compact': compact, 'jurisdiction': jurisdiction, **raw_license})
+                # Add to our collection of valid licenses
+                valid_licenses.append(schema.dump(validated_license))
             except ValidationError as e:
                 # This CSV line has failed validation. We will carefully collect what information we can
                 # and publish it as a failure event. Because this data may eventually be sent back over
@@ -159,24 +166,19 @@ def process_bulk_upload_file(
                 )
                 continue
 
-            event_writer.put_event(
-                Entry={
-                    'Source': f'org.compactconnect.bulk-ingest.{object_key}',
-                    'DetailType': 'license.ingest',
-                    'Detail': json.dumps(
-                        {
-                            'eventTime': event_time.isoformat(),
-                            'compact': compact,
-                            'jurisdiction': jurisdiction,
-                            **schema.dump(validated_license),
-                        }
-                    ),
-                    'EventBusName': config.event_bus_name,
-                }
-            )
+    # Send all valid licenses to the preprocessing queue in batches
+    if valid_licenses:
+        failed_message_ids = send_licenses_to_preprocessing_queue(
+            licenses_data=valid_licenses,
+            event_time=event_time.isoformat(),
+        )
+        
+        if failed_message_ids:
+            logger.error('Failed to send messages to preprocessing queue!', failed_message_ids=failed_message_ids)
+            raise CCInternalException('Failed to process object!')
 
     if event_writer.failed_entry_count > 0:
-        logger.error('Failed to publish %s ingest events!', event_writer.failed_entry_count)
+        logger.error('Failed to publish %s ingest failure events!', event_writer.failed_entry_count)
         for failure in event_writer.failed_entries:
             logger.debug('Failed event entry', entry=failure)
 
