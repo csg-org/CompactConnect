@@ -52,11 +52,11 @@
             <div class="personal-information-section">
                 <div class="title-row">
                     <div class="title-info">
-                        <div class="license-logo-container">
+                        <div class="pi-logo-container">
                             <img
                                 class="home-state-img"
-                                src="@assets/images/black-ellipse.svg"
-                                :alt="$t('licensing.blackCircle')"
+                                src="@assets/icons/ico-personalInfo.svg"
+                                :alt="$t('licensing.pInfoIcon')"
                             />
                         </div>
                         <div class="title-text">
@@ -151,11 +151,7 @@
                 <div class="title-row">
                     <div class="title-info">
                         <div class="license-logo-container">
-                            <img
-                                class="home-state-img"
-                                src="@assets/images/black-ellipse.svg"
-                                :alt="$t('licensing.blackCircle')"
-                            />
+                            <LicenseIcon />
                         </div>
                         <div class="title-text">
                             {{licenseDetails}}
@@ -186,8 +182,8 @@
                         <div class="privilege-logo-container">
                             <img
                                 class="home-state-img"
-                                src="@assets/images/black-ellipse.svg"
-                                :alt="$t('licensing.blackCircle')"
+                                src="@assets/icons/ico-privilege.svg"
+                                :alt="$t('licensing.privilegeIcon')"
                             />
                         </div>
                         <div class="title-text">
@@ -211,13 +207,6 @@
             <div class="privilege-section">
                 <div class="title-row">
                     <div class="title-info">
-                        <div class="privilege-logo-container">
-                            <img
-                                class="home-state-img"
-                                src="@assets/images/black-ellipse.svg"
-                                :alt="$t('licensing.blackCircle')"
-                            />
-                        </div>
                         <div class="title-text">
                             {{pastPrivilegesTitle}}
                         </div>

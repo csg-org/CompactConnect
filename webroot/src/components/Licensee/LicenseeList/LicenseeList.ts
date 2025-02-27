@@ -154,7 +154,7 @@ class LicenseeList extends Vue {
             homeStateDisplay: () => this.$t('licensing.homeState'),
             // homeState: () => this.$t('licensing.homeState'),
             privilegeStatesDisplay: () => this.$t('licensing.privileges'),
-            statusDisplay: () => this.$t('licensing.status'),
+            // statusDisplay: () => this.$t('licensing.status'),
         };
 
         return record;

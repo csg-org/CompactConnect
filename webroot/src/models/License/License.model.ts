@@ -46,8 +46,7 @@ export interface InterfaceLicense {
     mailingAddress?: Address;
     expireDate?: string | null;
     npi?: string | null;
-    licenseNumber?: string | null;
-    privilegeId?: string | null;
+    privilegeOrLicenseNumber?: string | null;
     occupation?: LicenseOccupation | null,
     history?: Array<LicenseHistoryItem>,
     statusState?: LicenseStatus,
@@ -58,6 +57,7 @@ export interface InterfaceLicense {
 // =                        Model                         =
 // ========================================================
 export class License implements InterfaceLicense {
+    // This model is used to represent both privileges and licenses as their shape almost entirely overlaps
     public $tm?: any = () => [];
     public id? = null;
     public compact? = null;
@@ -68,7 +68,7 @@ export class License implements InterfaceLicense {
     public mailingAddress? = new Address();
     public renewalDate? = null;
     public npi? = null;
-    public licenseNumber? = null;
+    public privilegeOrLicenseNumber? = null;
     public privilegeId? = null;
     public expireDate? = null;
     public occupation? = null;
@@ -132,7 +132,7 @@ export class License implements InterfaceLicense {
 // ========================================================
 export class LicenseSerializer {
     static fromServer(json: any): License {
-        console.log('Ejson', json);
+        console.log(Boolean(json.type === 'privilege'), json);
 
         const licenseData = {
             id: json.id,
@@ -149,14 +149,12 @@ export class LicenseSerializer {
             issueState: new State({ abbrev: json.jurisdiction || json.licenseJurisdiction }),
             issueDate: json.dateOfIssuance,
             npi: json.npi,
-            licenseNumber: json.licenseNumber,
-            privilegeId: json.privilegeId,
+            privilegeOrLicenseNumber: json.type === 'privilege' ? json.privilegeId : json.licenseNumber,
             renewalDate: json.dateOfRenewal,
             expireDate: json.dateOfExpiration,
-            occupation: json.licenseType,
-            statusState: json.status,
+            occupation: json.licenseType, // Currently, only available on licenses
+            status: json.status,
             history: [] as Array <LicenseHistoryItem>,
-            statusCompact: json.status, // In the near future, the server will send a separate field for this
         };
 
         if (Array.isArray(json.history)) {

@@ -53,8 +53,8 @@
                     <div class="privilege-logo-container">
                         <img
                             class="home-state-img"
-                            src="@assets/images/black-ellipse.svg"
-                            :alt="$t('licensing.blackCircle')"
+                            src="@assets/icons/ico-privilege.svg"
+                            :alt="$t('licensing.privilegeIcon')"
                         />
                     </div>
                     <div class="title-text">
@@ -78,13 +78,6 @@
          <div class="privilege-section bottom">
             <div class="privilege-section-title-row">
                 <div class="title-info">
-                    <div class="privilege-logo-container">
-                        <img
-                            class="home-state-img"
-                            src="@assets/images/black-ellipse.svg"
-                            :alt="$t('licensing.blackCircle')"
-                        />
-                    </div>
                     <div class="title-text">
                         {{pastPrivilegesTitle}}
                     </div>

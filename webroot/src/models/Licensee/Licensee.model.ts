@@ -53,7 +53,6 @@ export interface InterfaceLicensee {
     privilegeStates?: Array<State>;
     privileges?: Array<License>;
     lastUpdated?: string | null;
-    status?: LicenseeStatus;
 }
 
 // ========================================================
@@ -81,7 +80,6 @@ export class Licensee implements InterfaceLicensee {
     public militaryAffiliations? = [];
     public privileges? = [];
     public lastUpdated? = null;
-    public status? = LicenseeStatus.INACTIVE;
 
     constructor(data?: InterfaceLicensee) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -201,9 +199,9 @@ export class Licensee implements InterfaceLicensee {
         return occupationName;
     }
 
-    public statusDisplay(): string {
-        return this.$t(`licensing.statusOptions.${this.status}`);
-    }
+    // public statusDisplay(): string {
+    //     return this.$t(`licensing.statusOptions.${this.status}`);
+    // }
 
     public phoneNumberDisplay(): string {
         return this.phoneNumber ? formatPhoneNumber(stripPhoneNumber(this.phoneNumber)) : '';
@@ -266,8 +264,6 @@ export class Licensee implements InterfaceLicensee {
 // ========================================================
 export class LicenseeSerializer {
     static fromServer(json: any): Licensee {
-        console.log('Ejson', json);
-
         const licenseeData: any = {
             id: json.providerId,
             npi: json.npi,
@@ -299,7 +295,6 @@ export class LicenseeSerializer {
             privilegeStates: [] as Array<State>,
             privileges: [] as Array<License>,
             militaryAffiliations: [] as Array<MilitaryAffiliation>,
-            status: json.status,
             lastUpdated: json.dateOfUpdate,
         };
 

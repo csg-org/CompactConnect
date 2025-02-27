@@ -13,6 +13,8 @@ import PrivilegePurchaseFinalize from '@components/PrivilegePurchaseFinalize/Pri
 import PrivilegePurchaseSuccessful from '@components/PrivilegePurchaseSuccessful/PrivilegePurchaseSuccessful.vue';
 import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import { Compact } from '@models/Compact/Compact.model';
+import { LicenseeUser } from '@models/LicenseeUser/LicenseeUser.model';
+import { Licensee } from '@models/Licensee/Licensee.model';
 
 @Component({
     name: 'PrivilegePurchase',
@@ -41,7 +43,7 @@ export default class PrivilegePurchase extends Vue {
     // Lifecycle
     //
     created() {
-        if (this.currentCompactType) {
+        if (this.licensee?.canPurchasePrivileges() && this.currentCompactType) {
             this.handlePurchaseFlowState();
         } else {
             this.$router.push({
@@ -55,6 +57,14 @@ export default class PrivilegePurchase extends Vue {
     //
     get userStore(): any {
         return this.$store.state.user;
+    }
+
+    get user(): LicenseeUser | null {
+        return this.userStore.model;
+    }
+
+    get licensee(): Licensee | null {
+        return this.user?.licensee || null;
     }
 
     get currentCompact(): Compact | null {
