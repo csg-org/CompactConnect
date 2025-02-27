@@ -1,7 +1,16 @@
 from __future__ import annotations
 
-from aws_cdk.aws_cognito import ClientAttributes, StandardAttribute, StandardAttributes, StringAttribute, UserPoolEmail
+from aws_cdk import Duration
+from aws_cdk.aws_cognito import (
+    ClientAttributes,
+    StandardAttribute,
+    StandardAttributes,
+    StringAttribute,
+    UserPoolEmail,
+    UserPoolOperation,
+)
 from aws_cdk.aws_kms import IKey
+from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.user_pool import UserPool
 from constructs import Construct
 
@@ -58,6 +67,7 @@ class ProviderUsers(UserPool):
             .with_custom_attributes('providerId', 'compact'),
             write_attributes=ClientAttributes().with_standard_attributes(email=True, given_name=True, family_name=True),
         )
+        self._add_custom_message_lambda(stack=stack, environment_name=environment_name)
 
     @staticmethod
     def _configure_user_pool_standard_attributes() -> StandardAttributes:
@@ -94,4 +104,32 @@ class ProviderUsers(UserPool):
             profile_picture=StandardAttribute(mutable=True, required=False),
             timezone=StandardAttribute(mutable=True, required=False),
             website=StandardAttribute(mutable=True, required=False),
+        )
+
+    def _add_custom_message_lambda(self, stack: ps.PersistentStack, environment_name: str):
+        """Add a custom message lambda to the user pool"""
+
+        from_address = 'NONE'
+        if stack.hosted_zone:
+            from_address = f'noreply@{stack.user_email_notifications.email_identity.email_identity_name}'
+
+        self.custom_message_lambda = NodejsFunction(
+            self,
+            'CustomMessageLambda',
+            description='Cognito custom message lambda',
+            lambda_dir='cognito-emails',
+            handler='customMessage',
+            timeout=Duration.minutes(1),
+            environment={
+                'FROM_ADDRESS': from_address,
+                'COMPACT_CONFIGURATION_TABLE_NAME': stack.compact_configuration_table.table_name,
+                'UI_BASE_PATH_URL': stack.get_ui_base_path_url(),
+                'ENVIRONMENT_NAME': environment_name,
+                **stack.common_env_vars,
+            },
+        )
+
+        self.add_trigger(
+            UserPoolOperation.CUSTOM_MESSAGE,
+            self.custom_message_lambda,
         )

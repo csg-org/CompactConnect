@@ -6,6 +6,7 @@ from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
+from aws_cdk.aws_logs import QueryDefinition, QueryString
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
@@ -163,6 +164,21 @@ class PersistentStack(AppStack):
             user_pool_email=user_pool_email_settings,
             security_profile=security_profile,
             removal_policy=removal_policy,
+        )
+
+        QueryDefinition(
+            self,
+            'UserCustomEmails',
+            query_definition_name='UserCustomEmails/Lambdas',
+            query_string=QueryString(
+                fields=['@timestamp', '@log', 'level', 'message', '@message'],
+                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
+                sort='@timestamp desc',
+            ),
+            log_groups=[
+                self.provider_users.custom_message_lambda.log_group,
+                self.staff_users.custom_message_lambda.log_group,
+            ],
         )
 
         if self.hosted_zone:
@@ -352,7 +368,7 @@ class PersistentStack(AppStack):
                 'FROM_ADDRESS': from_address,
                 'COMPACT_CONFIGURATION_TABLE_NAME': self.compact_configuration_table.table_name,
                 'TRANSACTION_REPORTS_BUCKET_NAME': self.transaction_reports_bucket.bucket_name,
-                'UI_BASE_PATH_URL': self._get_ui_base_path_url(),
+                'UI_BASE_PATH_URL': self.get_ui_base_path_url(),
                 'ENVIRONMENT_NAME': environment_name,
                 **self.common_env_vars,
             },
@@ -429,7 +445,7 @@ class PersistentStack(AppStack):
             )
         )
 
-    def _get_ui_base_path_url(self) -> str:
+    def get_ui_base_path_url(self) -> str:
         """Returns the base URL for the UI."""
         if self.ui_domain_name is not None:
             return f'https://{self.ui_domain_name}'
