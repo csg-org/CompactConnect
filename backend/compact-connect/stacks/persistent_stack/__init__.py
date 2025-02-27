@@ -513,17 +513,27 @@ class PersistentStack(AppStack):
             timeout=Duration.minutes(1),
             environment={
                 'EVENT_BUS_NAME': self.data_event_bus.event_bus_name,
-                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
                 'SSN_TABLE_NAME': self.ssn_table.table_name,
-                'SSN_INVERTED_INDEX_NAME': self.ssn_table.inverted_index_name,
                 **self.common_env_vars,
             },
             alarm_topic=self.alarm_topic,
         )
-
         # Grant permissions to the preprocess handler
-        self.provider_table.grant_read_write_data(preprocess_handler)
         self.data_event_bus.grant_put_events_to(preprocess_handler)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{preprocess_handler.role.node.path}/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': """
+                            This policy contains wild-carded actions and resources but they are scoped to the
+                            specific actions, KMS key and Table that this lambda specifically needs access to.
+                            """,
+                },
+            ],
+        )
 
         # Create the queued lambda processor for license preprocessing
         self.license_preprocessor = QueuedLambdaProcessor(
@@ -538,18 +548,4 @@ class PersistentStack(AppStack):
             # Use the SSN key for encryption to protect sensitive data
             encryption_key=self.ssn_table.key,
             alarm_topic=self.alarm_topic,
-        )
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{preprocess_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """
-                    This policy contains wild-carded actions and resources but they are scoped to the
-                    specific actions, KMS key and Table that this lambda specifically needs access to.
-                    """,
-                },
-            ],
         )
