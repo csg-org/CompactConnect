@@ -1,6 +1,6 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from marshmallow import pre_load
-from marshmallow.fields import Date, DateTime, String
+from marshmallow.fields import Date, DateTime, String, UUID
 from marshmallow.validate import Length
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
@@ -22,7 +22,8 @@ class LicenseIngestSchema(LicenseCommonSchema):
     SQS -> load() -> Python
     """
 
-    ssn = SocialSecurityNumber(required=True, allow_none=False)
+    ssnLastFour = String(required=True, allow_none=False, validate=Length(equal=4))
+    providerId = UUID(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     # When a license record is first uploaded into the system, we store the value of

@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from moto import mock_aws
 
+from cc_common.exceptions import CCNotFoundException
 from .. import TstFunction
 
 
@@ -33,7 +34,7 @@ class TestIngest(TstFunction):
         self._ssn_table.put_item(Item=ssn_record)
         provider_id = ssn_record['providerId']
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         if omit_email:
@@ -66,7 +67,7 @@ class TestIngest(TstFunction):
         from handlers.ingest import ingest_license_message
         from handlers.providers import query_providers
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = f.read()
 
         event = {'Records': [{'messageId': '123', 'body': message}]}
@@ -120,7 +121,7 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_id = json.load(f)['providerId']
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
         # Imagine that this provider used to be licensed in ky.
         # What happens if ky uploads that inactive license?
@@ -166,7 +167,7 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_id = json.load(f)['providerId']
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
         # Imagine that this provider was just licensed in ky, but has not registered with the system (ie has not
         # picked a home state).
@@ -211,7 +212,7 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_id = json.load(f)['providerId']
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
         # Imagine that this provider was just licensed in ky, and has registered with the system with a home state
         # selection of 'oh'.
@@ -245,7 +246,7 @@ class TestIngest(TstFunction):
 
         provider_id = self._with_ingested_license()
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         # What happens if their license goes inactive in a subsequent upload?
@@ -347,7 +348,7 @@ class TestIngest(TstFunction):
 
         provider_id = self._with_ingested_license()
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         message['detail'].update({'dateOfRenewal': '2025-03-03', 'dateOfExpiration': '2030-03-03'})
@@ -429,7 +430,7 @@ class TestIngest(TstFunction):
 
         provider_id = self._with_ingested_license()
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         message['detail'].update({'familyName': 'VonSmitherton'})
@@ -509,7 +510,7 @@ class TestIngest(TstFunction):
 
         provider_id = self._with_ingested_license()
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         # What happens if their license is uploaded again with no change?
@@ -549,7 +550,7 @@ class TestIngest(TstFunction):
 
         provider_id = self._with_ingested_license()
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         del message['detail']['emailAddress']
@@ -629,7 +630,7 @@ class TestIngest(TstFunction):
 
         provider_id = self._with_ingested_license(omit_email=True)
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         # What happens if their email is added in a subsequent upload?
@@ -696,3 +697,28 @@ class TestIngest(TstFunction):
                 del hist['previous']['dateOfUpdate']
 
         self.assertEqual(expected_provider, provider_data)
+
+    def test_preprocess_license_ingest_creates_ssn_provider_record(self):
+        from handlers.ingest import preprocess_license_ingest
+
+        test_ssn = '123-12-1234'
+
+        # Before running method under test, ensure the provider ssn record does not exist
+        with self.assertRaises(CCNotFoundException):
+            self.config.data_client.get_provider_id(compact="aslp", ssn=test_ssn)
+
+        with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
+            message = json.load(f)
+            # set fixed ssn here to ensure we are checking the expected value
+            message['ssn'] = test_ssn
+
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+
+        resp = preprocess_license_ingest(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        # Find the provider's id from their ssn
+        provider_id = self.config.data_client.get_provider_id(compact="aslp", ssn=test_ssn)
+
+        # the provider_id is randomly generated, so we cannot check an exact value, just to make sure it exists
+        self.assertIsNotNone(provider_id)
