@@ -41,7 +41,6 @@ class TstFunction(TstLambdas):
         self.create_rate_limiting_table()
         self.create_license_preprocessing_queue()
 
-
         boto3.client('events').create_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
     def create_provider_table(self):

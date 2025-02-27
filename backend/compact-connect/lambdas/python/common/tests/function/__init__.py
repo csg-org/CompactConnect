@@ -41,7 +41,6 @@ class TstFunction(TstLambdas):
         self.create_transaction_history_table()
         self.create_license_preprocessing_queue()
 
-
         # Adding a waiter allows for testing against an actual AWS account, if needed
         waiter = self._compact_configuration_table.meta.client.get_waiter('table_exists')
         waiter.wait(TableName=self._compact_configuration_table.name)

@@ -2,9 +2,9 @@ import json
 from datetime import datetime
 from unittest.mock import patch
 
+from cc_common.exceptions import CCNotFoundException
 from moto import mock_aws
 
-from cc_common.exceptions import CCNotFoundException
 from .. import TstFunction
 
 
@@ -241,7 +241,6 @@ class TestIngest(TstFunction):
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     @patch('handlers.ingest.EventBatchWriter', autospec=True)
     def test_existing_provider_deactivation(self, mock_event_writer):
-
         from handlers.ingest import ingest_license_message
 
         provider_id = self._with_ingested_license()
@@ -340,7 +339,7 @@ class TestIngest(TstFunction):
                     ),
                     'EventBusName': 'license-data-events',
                 }
-            }
+            },
         )
 
     def test_existing_provider_renewal(self):
@@ -705,7 +704,7 @@ class TestIngest(TstFunction):
 
         # Before running method under test, ensure the provider ssn record does not exist
         with self.assertRaises(CCNotFoundException):
-            self.config.data_client.get_provider_id(compact="aslp", ssn=test_ssn)
+            self.config.data_client.get_provider_id(compact='aslp', ssn=test_ssn)
 
         with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
             message = json.load(f)
@@ -718,7 +717,7 @@ class TestIngest(TstFunction):
         self.assertEqual({'batchItemFailures': []}, resp)
 
         # Find the provider's id from their ssn
-        provider_id = self.config.data_client.get_provider_id(compact="aslp", ssn=test_ssn)
+        provider_id = self.config.data_client.get_provider_id(compact='aslp', ssn=test_ssn)
 
         # the provider_id is randomly generated, so we cannot check an exact value, just to make sure it exists
         self.assertIsNotNone(provider_id)

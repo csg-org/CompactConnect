@@ -1,8 +1,8 @@
 import json
 from datetime import datetime
+from unittest.mock import patch
 
 from moto import mock_aws
-from unittest.mock import patch
 
 from .. import TstFunction
 

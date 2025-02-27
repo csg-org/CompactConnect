@@ -20,7 +20,7 @@ def preprocess_license_ingest(message: dict):
     """
     Preprocess license data to remove SSN before sending to the event bus.
     This reduces the attack surface by ensuring full SSNs don't reach the event bus.
-    
+
     For each message:
     1. Extract the SSN
     2. Get or create the provider ID using the SSN
@@ -32,21 +32,21 @@ def preprocess_license_ingest(message: dict):
     compact = message['compact']
     jurisdiction = message['jurisdiction']
     ssn = message.pop('ssn')  # Remove SSN from the detail
-    
+
     with logger.append_context_keys(compact=compact, jurisdiction=jurisdiction):
         try:
             # Get or create provider ID using the SSN and add it to the message_body
             provider_id = config.data_client.get_or_create_provider_id(compact=compact, ssn=ssn)
             message['providerId'] = provider_id
-            
+
             # Add the last 4 digits of SSN to the detail
             message['ssnLastFour'] = ssn[-4:]
             del ssn
-            
+
             # Send the sanitized license data to the event bus
             with logger.append_context_keys(provider_id=provider_id):
                 logger.info('Sending preprocessed license data to event bus')
-                
+
                 config.events_client.put_events(
                     Entries=[
                         {
@@ -57,7 +57,7 @@ def preprocess_license_ingest(message: dict):
                         }
                     ]
                 )
-        except Exception as e: # noqa: BLE001 broad-exception-caught
+        except Exception as e:  # noqa: BLE001 broad-exception-caught
             logger.error(f'Error preprocessing license data: {str(e)}', exc_info=True)
             # Send an ingest failure event
             config.events_client.put_events(

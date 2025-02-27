@@ -64,7 +64,6 @@ class TestProcessObjects(TstFunction):
         with self.assertRaises(ClientError):
             self._bucket.Object(object_key).get()
 
-
     def test_bulk_upload_processor_puts_messages_on_preprocessing_queue(self):
         from handlers.bulk_upload import parse_bulk_upload_file
 
@@ -90,9 +89,6 @@ class TestProcessObjects(TstFunction):
         self.assertEqual(5, len(messages))
 
         # load the csv test data into a dict object. Example row:
-        # dateOfIssuance,npi,licenseNumber,dateOfBirth,licenseType,familyName,homeAddressCity,middleName,status,ssn,homeAddressStreet1,homeAddressStreet2,dateOfExpiration,homeAddressState,homeAddressPostalCode,givenName,dateOfRenewal
-        # 2024-06-30,0608337260,A0608337260,2024-06-30,speech-language pathologist,Guðmundsdóttir,Birmingham,Gunnar,active,529-31-5408,123 A St.,Apt 321,2024-06-30,oh,35004,Björk,2024-06-30
-
         csv_licenses = {}
         with open('../common/tests/resources/licenses.csv') as f:
             reader = csv.DictReader(f)
@@ -101,16 +97,12 @@ class TestProcessObjects(TstFunction):
                 row['compact'] = 'aslp'
                 row['jurisdiction'] = 'oh'
                 # the event time comes from the test put-event.json file
-                row['eventTime'] = "1970-01-01T00:00:00+00:00"
+                row['eventTime'] = '1970-01-01T00:00:00+00:00'
                 # some rows have an empty homeAddressStreet2, which we need to remove from the expected object
                 if not row['homeAddressStreet2']:
                     row.pop('homeAddressStreet2', None)
                 csv_licenses[row['licenseNumber']] = row
 
-        for index, message in enumerate(messages):
+        for message in messages:
             message_data = json.loads(message.body)
-            self.assertEqual(
-                csv_licenses[message_data['licenseNumber']],
-                message_data
-            )
-            
+            self.assertEqual(csv_licenses[message_data['licenseNumber']], message_data)

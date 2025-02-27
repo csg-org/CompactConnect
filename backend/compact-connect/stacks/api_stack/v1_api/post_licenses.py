@@ -9,6 +9,7 @@ from aws_cdk.aws_sqs import IQueue
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
+
 from stacks import persistent_stack as ps
 
 # Importing module level to allow lazy loading for typing
@@ -39,9 +40,7 @@ class PostLicenses:
         )
         self.api.log_groups.extend(self.log_groups)
 
-    def _add_post_license(self, method_options: MethodOptions, 
-                          license_preprocessing_queue: IQueue, 
-                          ssn_key: IKey):
+    def _add_post_license(self, method_options: MethodOptions, license_preprocessing_queue: IQueue, ssn_key: IKey):
         self.resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
@@ -53,8 +52,7 @@ class PostLicenses:
             ],
             integration=LambdaIntegration(
                 handler=self._post_licenses_handler(
-                    license_preprocessing_queue=license_preprocessing_queue,
-                    ssn_key=ssn_key
+                    license_preprocessing_queue=license_preprocessing_queue, ssn_key=ssn_key
                 ),
                 timeout=Duration.seconds(29),
             ),
@@ -64,8 +62,7 @@ class PostLicenses:
             authorization_scopes=method_options.authorization_scopes,
         )
 
-    def _post_licenses_handler(self, license_preprocessing_queue: IQueue, 
-                              ssn_key: IKey) -> PythonFunction:
+    def _post_licenses_handler(self, license_preprocessing_queue: IQueue, ssn_key: IKey) -> PythonFunction:
         stack: Stack = Stack.of(self.resource)
         handler = PythonFunction(
             self.api,
@@ -74,7 +71,10 @@ class PostLicenses:
             lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'licenses.py'),
             handler='post_licenses',
-            environment={'LICENSE_PREPROCESSING_QUEUE_URL': license_preprocessing_queue.queue_url, **stack.common_env_vars},
+            environment={
+                'LICENSE_PREPROCESSING_QUEUE_URL': license_preprocessing_queue.queue_url,
+                **stack.common_env_vars,
+            },
             alarm_topic=self.api.alarm_topic,
         )
 

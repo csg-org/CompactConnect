@@ -80,7 +80,9 @@ class BulkUploadsBucket(Bucket):
             ],
         )
 
-    def _add_v1_ingest_object_events(self, event_bus: EventBus, license_preprocessing_queue: IQueue, ssn_encryption_key: IKey):
+    def _add_v1_ingest_object_events(
+        self, event_bus: EventBus, license_preprocessing_queue: IQueue, ssn_encryption_key: IKey
+    ):
         """Read any objects that get uploaded and trigger ingest events"""
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
         parse_objects_handler = PythonFunction(
@@ -96,7 +98,7 @@ class BulkUploadsBucket(Bucket):
             environment={
                 'EVENT_BUS_NAME': event_bus.event_bus_name,
                 'LICENSE_PREPROCESSING_QUEUE_URL': license_preprocessing_queue.queue_url,
-                **stack.common_env_vars
+                **stack.common_env_vars,
             },
         )
         self.grant_delete(parse_objects_handler)

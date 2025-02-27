@@ -572,10 +572,10 @@ def sanitize_provider_data_based_on_caller_scopes(compact: str, provider: dict, 
 def send_licenses_to_preprocessing_queue(licenses_data: list[dict], event_time: str) -> list[str]:
     """
     Send license data to the preprocessing queue in batches.
-    
+
     This function batches license data and sends it to the preprocessing queue using the SQS batch send_messages method.
     It handles chunking the data into batches of 10 (SQS batch limit) and tracks failures.
-    
+
     :param list[dict] licenses_data: List of SERIALIZED license data to send (must be serialized using the
     dump method of the LicensePostRequestSchema)
     :param str event_time: ISO formatted event time string
@@ -583,12 +583,12 @@ def send_licenses_to_preprocessing_queue(licenses_data: list[dict], event_time: 
     """
     # Track failures
     failed_license_numbers = []
-    
+
     # Process in batches of 10 (SQS batch limit)
     batch_size = 10
     for i in range(0, len(licenses_data), batch_size):
-        batch = licenses_data[i:i+batch_size]
-        
+        batch = licenses_data[i : i + batch_size]
+
         # Prepare batch entries
         entries = []
         for idx, license_data in enumerate(batch):
@@ -598,25 +598,27 @@ def send_licenses_to_preprocessing_queue(licenses_data: list[dict], event_time: 
                     **license_data,
                 }
             )
-            entries.append({
-                'Id': f'msg-{i+idx}',  # Unique ID for each message in the batch
-                'MessageBody': message_body
-            })
-        
+            entries.append(
+                {
+                    'Id': f'msg-{i + idx}',  # Unique ID for each message in the batch
+                    'MessageBody': message_body,
+                }
+            )
+
         try:
             # Send batch to preprocessing queue
             response = config.license_preprocessing_queue.send_messages(Entries=entries)
-            
+
             # Check for failed messages
             for failed in response.get('Failed', []):
                 failed_index = int(failed['Id'].split('-')[-1])
                 failed_license_number = batch[failed_index].get('licenseNumber', 'unknown')
                 failed_license_numbers.append(failed_license_number)
-                logger.error(f"Failed to send message to preprocessing queue: {failed.get('Message', 'Unknown error')}")
-        except Exception as e:
+                logger.error(f'Failed to send message to preprocessing queue: {failed.get("Message", "Unknown error")}')
+        except ClientError as e:
             # If the entire batch fails, count all messages as failed
             failed_license_numbers.extend(license_data.get('licenseNumber', 'unknown') for license_data in batch)
-            logger.error(f"Error sending batch to preprocessing queue: {str(e)}")
-    
+            logger.error(f'Error sending batch to preprocessing queue: {str(e)}')
+
     # Return success status and failure count
     return failed_license_numbers

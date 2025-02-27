@@ -12,8 +12,7 @@ from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.data_migration import DataMigration
 from common_constructs.nodejs_function import NodejsFunction
-from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
-from common_constructs.python_function import PythonFunction
+from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME, PythonFunction
 from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
