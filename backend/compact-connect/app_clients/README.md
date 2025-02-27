@@ -1,7 +1,7 @@
 # App Client Management for Staff Users
 
 ## Overview
-This document outlines the process for managing Cognito app clients for machine-to-machine authentication in the Staff Users pool. All app clients must be documented in yaml files in the `/app_clients` directory for disaster recovery purposes. See the example app client for the format.
+This document is a guide for technical staff for managing Cognito app clients for machine-to-machine authentication in the Staff Users pool. All app clients must be documented in yaml files in the `/app_clients` directory for disaster recovery purposes (ie a deployment error or AWS region outage causes app client data to be lost so it must be recreated). See the example app client for the format.
 
 ## Creating a New App Client
 
@@ -9,8 +9,8 @@ This document outlines the process for managing Cognito app clients for machine-
 Before creating a new app client, ensure you have:
 - Jurisdiction requirements documented
 - Contact information for the consuming team
-- Approval for requested scopes
-- Update access to the Staff Users user pool for the needed AWS accounts
+- Approval to grant the app client with the requested scopes
+- AWS CLI permissions to create app clients for the Staff Users user pool in the needed AWS accounts
 
 ### 2. Update Registry
 Add a new app client yaml file to `/app_clients` following the schema of the example app client.
@@ -57,7 +57,7 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
    --allowed-o-auth-scopes '<compact>/readGeneral' '<jurisdiction>/<compact>.write'
    ```
 
-   It is important to note that generated access tokens will expire after 15 minutes, so the consuming team will need to have application logic to generate a new access token before it expires (this time can be adjusted according to the needs of the consuming team by updating the access token validity in the cli command).
+   This command creates an app client with the ability to generate access tokens that expire after 15 minutes. This expiration time can be adjusted according to the needs of the consuming team up to 1 day (see [AccessTokenValidity](https://docs.aws.amazon.com/cognito-user-identity-pools/latest/APIReference/API_CreateUserPoolClient.html#CognitoUserPools-CreateUserPoolClient-request-AccessTokenValidity)), though it is strongly recommended to keep this value as short as possible to limit the amount of time an access token is valid for if it is compromised. The consuming team will need to implement logic to generate new access tokens before previous tokens expire.
 
    If the consuming team plans to use both the test and production environments, you will need to create two separate app clients, one in each respective AWS accounts for those environments.
 
@@ -79,7 +79,7 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
    aws cognito-idp describe-user-pool --user-pool-id '<user pool id>' --query 'UserPool.Domain' --output text
    ```
 
-   If the team has questions about generating access tokens, refer them to Amazon's [documentation](https://docs.aws.amazon.com/cognito/latest/developerguide/token-endpoint.html). You can also give them the following curl example for generating an access token (Instruct them to replace the `<user pool domain>`, `<client id>`, `<client secret>` with the values you send them. The `<jurisdiction>` and `<compact>` scope values should be the jurisdiction postal code and compact abbreviation they are requesting access to such as `ky` for Kentucky and `aslp` for the ASLP compact).
+   If the team has questions about generating access tokens, refer them to Amazon's [documentation](https://docs.aws.amazon.com/cognito/latest/developerguide/token-endpoint.html). You can also give them the following curl example for generating an access token (Instruct them to replace the `<user pool domain>`, `<client id>`, `<client secret>` with the values you send them. The `<jurisdiction>` and `<compact>` scope values should be the state abbreviation/postal code and compact abbreviation they are requesting access to such as `ky` for Kentucky and `aslp` for the ASLP compact).
    ```
     curl --location --request POST 'https://<user pool domain>.auth.us-east-1.amazoncognito.com/oauth2/token?grant_type=client_credentials&client_id=<client id>&client_secret=<client secret>&scope=<jurisdiction>%2F<compact>.write' \
     --header 'Content-Type: application/x-www-form-urlencoded' \
@@ -88,7 +88,7 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
 
 
 ## Rotating App Client Credentials
-Unfortunately, AWS Cognito does not support rotating app client credentials for an existing app client. The only way to rotate credentials is to create a new app client with a new clientId and clientSecret and then delete the old one.
+Unfortunately, AWS Cognito does not support rotating app client credentials for an existing app client. The only way to rotate credentials is to create a new app client with a new clientId and clientSecret and then delete the old one. The following process should be performed if credentials are accidentally exposed or in the event of a security breach where the old credentials are compromised.
 
 ### 1. Pre-rotation Tasks
 - Contact consuming team to schedule rotation

@@ -112,7 +112,7 @@ class TestPipeline(TstAppABC, TestCase):
         for resource_server in jurisdiction_resource_server_config:
             resource_server['Scopes'].sort(key=lambda scope: scope['ScopeName'])
         # this will only include resource server scopes for compacts/jurisdictions that are marked as active
-        # for the test environment
+        # for the environment
         self.compare_snapshot(
             jurisdiction_resource_server_config,
             snapshot_name,
@@ -129,7 +129,7 @@ class TestPipeline(TstAppABC, TestCase):
         self._when_testing_jurisdiction_resource_servers(
             persistent_stack=persistent_stack,
             snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_TEST_ENV',
-            overwrite_snapshot=True
+            overwrite_snapshot=False
         )
 
     def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users_prod_stage(self):
@@ -141,7 +141,7 @@ class TestPipeline(TstAppABC, TestCase):
         self._when_testing_jurisdiction_resource_servers(
             persistent_stack=persistent_stack,
             snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_PROD_ENV',
-            overwrite_snapshot=True
+            overwrite_snapshot=False
         )
 
     def test_cognito_using_recommended_security_in_prod(self):
