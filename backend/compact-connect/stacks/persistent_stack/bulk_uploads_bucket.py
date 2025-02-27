@@ -10,6 +10,7 @@ from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_logs import QueryDefinition, QueryString
 from aws_cdk.aws_s3 import BucketEncryption, CorsRule, EventType, HttpMethods
 from aws_cdk.aws_s3_notifications import LambdaDestination
+from aws_cdk.aws_sqs import IQueue
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.bucket import Bucket
@@ -26,15 +27,17 @@ class BulkUploadsBucket(Bucket):
         construct_id: str,
         *,
         access_logs_bucket: AccessLogsBucket,
-        encryption_key: IKey,
+        bucket_encryption_key: IKey,
         event_bus: EventBus,
+        license_preprocessing_queue: IQueue,
+        ssn_encryption_key: IKey,
         **kwargs,
     ):
         super().__init__(
             scope,
             construct_id,
             encryption=BucketEncryption.KMS,
-            encryption_key=encryption_key,
+            encryption_key=bucket_encryption_key,
             server_access_logs_bucket=access_logs_bucket,
             versioned=False,
             cors=[
@@ -48,7 +51,7 @@ class BulkUploadsBucket(Bucket):
         )
         self.log_groups = []
 
-        self._add_v1_ingest_object_events(event_bus)
+        self._add_v1_ingest_object_events(event_bus, license_preprocessing_queue, ssn_encryption_key)
 
         QueryDefinition(
             self,
@@ -77,7 +80,7 @@ class BulkUploadsBucket(Bucket):
             ],
         )
 
-    def _add_v1_ingest_object_events(self, event_bus: EventBus):
+    def _add_v1_ingest_object_events(self, event_bus: EventBus, license_preprocessing_queue: IQueue, ssn_encryption_key: IKey):
         """Read any objects that get uploaded and trigger ingest events"""
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
         parse_objects_handler = PythonFunction(
@@ -90,10 +93,19 @@ class BulkUploadsBucket(Bucket):
             timeout=Duration.minutes(15),
             alarm_topic=stack.alarm_topic,
             memory_size=1024,
-            environment={'EVENT_BUS_NAME': event_bus.event_bus_name, **stack.common_env_vars},
+            environment={
+                'EVENT_BUS_NAME': event_bus.event_bus_name,
+                'LICENSE_PREPROCESSING_QUEUE_URL': license_preprocessing_queue.queue_url,
+                **stack.common_env_vars
+            },
         )
         self.grant_delete(parse_objects_handler)
         self.grant_read(parse_objects_handler)
+        # Grant permission to send messages to the preprocessing queue
+        license_preprocessing_queue.grant_send_messages(parse_objects_handler)
+        # Grant permission to use the SSN key for encryption
+        ssn_encryption_key.grant_encrypt(parse_objects_handler)
+        # We still need event bus permissions for failure events
         event_bus.grant_put_events_to(parse_objects_handler)
         self.log_groups.append(parse_objects_handler.log_group)
 

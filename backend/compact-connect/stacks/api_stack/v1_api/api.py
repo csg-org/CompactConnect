@@ -139,7 +139,7 @@ class V1Api:
         PostLicenses(
             resource=licenses_resource,
             method_options=write_auth_method_options,
-            event_bus=persistent_stack.data_event_bus,
+            persistent_stack=persistent_stack,
             api_model=self.api_model,
         )
         BulkUploadUrl(

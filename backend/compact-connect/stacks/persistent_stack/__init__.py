@@ -13,6 +13,8 @@ from common_constructs.alarm_topic import AlarmTopic
 from common_constructs.data_migration import DataMigration
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
+from common_constructs.python_function import PythonFunction
+from common_constructs.queued_lambda_processor import QueuedLambdaProcessor
 from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from constructs import Construct
@@ -176,14 +178,20 @@ class PersistentStack(AppStack):
             self.provider_users.node.add_dependency(self.user_email_notifications.dmarc_record)
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
+        # Create the ssn related resources before other resources which are dependent on them
+        self.ssn_table = SSNTable(self, 'SSNTable', removal_policy=removal_policy)
+        self._create_license_preprocessing_resources()
+
         self.bulk_uploads_bucket = BulkUploadsBucket(
             self,
             'BulkUploadsBucket',
             access_logs_bucket=self.access_logs_bucket,
-            encryption_key=self.shared_encryption_key,
+            bucket_encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy,
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
             event_bus=self.data_event_bus,
+            license_preprocessing_queue=self.license_preprocessor.queue,
+            ssn_encryption_key=self.ssn_table.key,
         )
 
         self.transaction_reports_bucket = TransactionReportsBucket(
@@ -251,8 +259,6 @@ class PersistentStack(AppStack):
                 },
             ],
         )
-
-        self.ssn_table = SSNTable(self, 'SSNTable', removal_policy=removal_policy)
 
         self.data_event_table = DataEventTable(
             scope=self,
@@ -491,3 +497,60 @@ class PersistentStack(AppStack):
                         active_jurisdictions.append(formatted_jurisdiction['postalAbbreviation'].lower())
 
         return active_jurisdictions
+
+    def _create_license_preprocessing_resources(self):
+        """
+        Creates a queue and lambda for preprocessing license data to remove SSN before sending to the event bus.
+        This reduces the attack surface by ensuring full SSNs don't reach the event bus.
+        """
+        preprocess_handler = PythonFunction(
+            self,
+            'LicensePreprocessHandler',
+            description='Preprocess license data to remove SSN before sending to event bus',
+            lambda_dir='provider-data-v1',
+            index=os.path.join('handlers', 'ingest.py'),
+            handler='preprocess_license_ingest',
+            role=self.ssn_table.ingest_role,
+            timeout=Duration.minutes(1),
+            environment={
+                'EVENT_BUS_NAME': self.data_event_bus.event_bus_name,
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
+                'SSN_TABLE_NAME': self.ssn_table.table_name,
+                'SSN_INVERTED_INDEX_NAME': self.ssn_table.inverted_index_name,
+                **self.common_env_vars,
+            },
+            alarm_topic=self.alarm_topic,
+        )
+
+        # Grant permissions to the preprocess handler
+        self.provider_table.grant_read_write_data(preprocess_handler)
+        self.data_event_bus.grant_put_events_to(preprocess_handler)
+
+        # Create the queued lambda processor for license preprocessing
+        self.license_preprocessor = QueuedLambdaProcessor(
+            self,
+            'LicensePreprocessor',
+            process_function=preprocess_handler,
+            visibility_timeout=Duration.minutes(5),
+            retention_period=Duration.hours(12),
+            max_batching_window=Duration.minutes(5),
+            max_receive_count=3,
+            batch_size=50,
+            # Use the SSN key for encryption to protect sensitive data
+            encryption_key=self.ssn_table.key,
+            alarm_topic=self.alarm_topic,
+        )
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{preprocess_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': """
+                    This policy contains wild-carded actions and resources but they are scoped to the
+                    specific actions, KMS key and Table that this lambda specifically needs access to.
+                    """,
+                },
+            ],
+        )

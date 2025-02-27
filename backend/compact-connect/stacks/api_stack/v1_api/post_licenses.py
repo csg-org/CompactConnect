@@ -4,10 +4,12 @@ import os
 
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodResponse, Resource
-from aws_cdk.aws_events import EventBus
+from aws_cdk.aws_kms import IKey
+from aws_cdk.aws_sqs import IQueue
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
+from stacks import persistent_stack as ps
 
 # Importing module level to allow lazy loading for typing
 from .. import cc_api
@@ -20,7 +22,7 @@ class PostLicenses:
         *,
         resource: Resource,
         method_options: MethodOptions,
-        event_bus: EventBus,
+        persistent_stack: ps.PersistentStack,
         api_model: ApiModel,
     ):
         super().__init__()
@@ -30,10 +32,16 @@ class PostLicenses:
         self.api_model = api_model
         self.log_groups = []
 
-        self._add_post_license(method_options=method_options, event_bus=event_bus)
+        self._add_post_license(
+            method_options=method_options,
+            license_preprocessing_queue=persistent_stack.license_preprocessor.queue,
+            ssn_key=persistent_stack.ssn_table.key,
+        )
         self.api.log_groups.extend(self.log_groups)
 
-    def _add_post_license(self, method_options: MethodOptions, event_bus: EventBus):
+    def _add_post_license(self, method_options: MethodOptions, 
+                          license_preprocessing_queue: IQueue, 
+                          ssn_key: IKey):
         self.resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
@@ -44,7 +52,10 @@ class PostLicenses:
                 ),
             ],
             integration=LambdaIntegration(
-                handler=self._post_licenses_handler(event_bus=event_bus),
+                handler=self._post_licenses_handler(
+                    license_preprocessing_queue=license_preprocessing_queue,
+                    ssn_key=ssn_key
+                ),
                 timeout=Duration.seconds(29),
             ),
             request_parameters={'method.request.header.Authorization': True},
@@ -53,7 +64,8 @@ class PostLicenses:
             authorization_scopes=method_options.authorization_scopes,
         )
 
-    def _post_licenses_handler(self, event_bus: EventBus) -> PythonFunction:
+    def _post_licenses_handler(self, license_preprocessing_queue: IQueue, 
+                              ssn_key: IKey) -> PythonFunction:
         stack: Stack = Stack.of(self.resource)
         handler = PythonFunction(
             self.api,
@@ -62,10 +74,14 @@ class PostLicenses:
             lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'licenses.py'),
             handler='post_licenses',
-            environment={'EVENT_BUS_NAME': event_bus.event_bus_name, **stack.common_env_vars},
+            environment={'LICENSE_PREPROCESSING_QUEUE_URL': license_preprocessing_queue.queue_url, **stack.common_env_vars},
             alarm_topic=self.api.alarm_topic,
         )
-        event_bus.grant_put_events_to(handler)
+
+        # Grant permissions to put messages on the preprocessing queue
+        license_preprocessing_queue.grant_send_messages(handler)
+        ssn_key.grant_encrypt(handler)
+
         self.log_groups.append(handler.log_group)
 
         NagSuppressions.add_resource_suppressions_by_path(
@@ -75,7 +91,7 @@ class PostLicenses:
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The actions in this policy are specifically what this lambda needs to read '
-                    'and is scoped to one table and encryption key.',
+                    'and is scoped to one SQS queue and encryption key.',
                 },
             ],
         )
