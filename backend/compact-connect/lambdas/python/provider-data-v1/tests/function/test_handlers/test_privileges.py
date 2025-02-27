@@ -110,7 +110,7 @@ class TestDeactivatePrivilege(TstFunction):
                     ),
                     'EventBusName': 'license-data-events',
                 }
-            }
+            },
         )
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
