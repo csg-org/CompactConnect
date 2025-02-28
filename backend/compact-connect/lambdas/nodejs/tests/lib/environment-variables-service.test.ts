@@ -1,5 +1,5 @@
 import { Logger } from '@aws-lambda-powertools/logger';
-import { EnvironmentVariablesService } from '../lib/environment-variables-service';
+import { EnvironmentVariablesService } from '../../lib/environment-variables-service';
 
 describe('Environment variables service with debug', () => {
     let environmentVariables: EnvironmentVariablesService;
