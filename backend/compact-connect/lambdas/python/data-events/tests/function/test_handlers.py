@@ -44,7 +44,7 @@ class TestHandleDataEvents(TstFunction):
         from handlers.data_events import handle_data_events
 
         # this test file represents a license.ingest event
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = f.read()
 
         event = {'Records': [{'messageId': '123', 'body': message}]}

@@ -4,9 +4,8 @@ import os
 
 from aws_cdk import Duration
 from aws_cdk.aws_apigateway import LambdaIntegration, MethodOptions, MethodResponse, Resource
-from aws_cdk.aws_kms import IKey
+from aws_cdk.aws_iam import IRole
 from aws_cdk.aws_sqs import IQueue
-from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
@@ -35,12 +34,13 @@ class PostLicenses:
 
         self._add_post_license(
             method_options=method_options,
-            license_preprocessing_queue=persistent_stack.license_preprocessor.queue,
-            ssn_key=persistent_stack.ssn_table.key,
+            license_preprocessing_queue=persistent_stack.license_preprocessor.preprocessor_queue.queue,
+            license_upload_role=persistent_stack.ssn_table.license_upload_role,
         )
         self.api.log_groups.extend(self.log_groups)
 
-    def _add_post_license(self, method_options: MethodOptions, license_preprocessing_queue: IQueue, ssn_key: IKey):
+    def _add_post_license(self, method_options: MethodOptions, license_preprocessing_queue: IQueue,
+                          license_upload_role: IRole):
         self.resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
@@ -52,7 +52,7 @@ class PostLicenses:
             ],
             integration=LambdaIntegration(
                 handler=self._post_licenses_handler(
-                    license_preprocessing_queue=license_preprocessing_queue, ssn_key=ssn_key
+                    license_preprocessing_queue=license_preprocessing_queue, license_upload_role=license_upload_role
                 ),
                 timeout=Duration.seconds(29),
             ),
@@ -62,7 +62,7 @@ class PostLicenses:
             authorization_scopes=method_options.authorization_scopes,
         )
 
-    def _post_licenses_handler(self, license_preprocessing_queue: IQueue, ssn_key: IKey) -> PythonFunction:
+    def _post_licenses_handler(self, license_preprocessing_queue: IQueue, license_upload_role: IRole) -> PythonFunction:
         stack: Stack = Stack.of(self.resource)
         handler = PythonFunction(
             self.api,
@@ -71,6 +71,7 @@ class PostLicenses:
             lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'licenses.py'),
             handler='post_licenses',
+            role=license_upload_role,
             environment={
                 'LICENSE_PREPROCESSING_QUEUE_URL': license_preprocessing_queue.queue_url,
                 **stack.common_env_vars,
@@ -80,19 +81,6 @@ class PostLicenses:
 
         # Grant permissions to put messages on the preprocessing queue
         license_preprocessing_queue.grant_send_messages(handler)
-        ssn_key.grant_encrypt(handler)
 
         self.log_groups.append(handler.log_group)
-
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{handler.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': 'The actions in this policy are specifically what this lambda needs to read '
-                    'and is scoped to one SQS queue and encryption key.',
-                },
-            ],
-        )
         return handler

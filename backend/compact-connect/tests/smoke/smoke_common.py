@@ -111,6 +111,7 @@ def create_test_staff_user(*, email: str, compact: str, jurisdiction: str, permi
                 'compact': compact,
                 'attributes': user_attributes,
                 'permissions': permissions,
+                'status': 'active'
             },
         ),
     )

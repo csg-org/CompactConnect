@@ -119,6 +119,22 @@ class SSNTable(Table):
         )
         self.grant_read_write_data(self.ingest_role)
         self._role_suppressions(self.ingest_role)
+        # TODO - This dummy export is required until the ingest stack has been deployed # noqa: FIX002
+        #  to stop consuming this role
+        Stack.of(self.ingest_role).export_value(self.ingest_role.role_arn)
+
+        self.license_upload_role = Role(
+            self,
+            'LicenseUploadRole',
+            assumed_by=ServicePrincipal('lambda.amazonaws.com'),
+            description='Dedicated role for lambdas that upload license records '
+                        'into the preprocessing queue with full SSNs',
+            managed_policies=[ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')],
+        )
+        # This role does not need access to the Dynamo table, only the ability to encrypt license records in order
+        # to put them on the license preprocessing queue. The ingest role will handle generating SSN Dynamo records
+        self.key.grant_encrypt(self.license_upload_role)
+        self._role_suppressions(self.license_upload_role)
 
         # This role is to be removed, once full SSN access is removed from the /query API endpoint
         # (https://github.com/csg-org/CompactConnect/issues/391). In the meantime, we will need to have a role the
@@ -143,7 +159,10 @@ class SSNTable(Table):
                 resources=['*'],
                 conditions={
                     'StringNotEquals': {
-                        'aws:PrincipalArn': [self.ingest_role.role_arn, self.api_query_role.role_arn],
+                        'aws:PrincipalArn': [self.ingest_role.role_arn,
+                                             self.license_upload_role.role_arn,
+                                             self.api_query_role.role_arn
+                                             ],
                         'aws:PrincipalServiceName': ['dynamodb.amazonaws.com', 'events.amazonaws.com'],
                     }
                 },
@@ -178,6 +197,20 @@ class SSNTable(Table):
                     This policy contains wild-carded actions and resources but they are scoped to the
                     specific actions, KMS key and Table that this lambda specifically needs access to.
                     """,
+                },
+            ],
+        )
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            f'{role.node.path}/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'appliesTo': [f'Resource::<{stack.get_logical_id(self.node.default_child)}.Arn>/index/*'],
+                    'reason': """
+                            This policy contains wild-carded actions and resources but they are scoped to the
+                            specific actions, KMS key and Table that this lambda specifically needs access to.
+                            """,
                 },
             ],
         )

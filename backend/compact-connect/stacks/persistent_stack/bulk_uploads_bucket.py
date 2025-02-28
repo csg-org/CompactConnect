@@ -6,6 +6,7 @@ from aws_cdk import Duration
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import EventBus
+from aws_cdk.aws_iam import IRole
 from aws_cdk.aws_kms import IKey
 from aws_cdk.aws_logs import QueryDefinition, QueryString
 from aws_cdk.aws_s3 import BucketEncryption, CorsRule, EventType, HttpMethods
@@ -15,6 +16,7 @@ from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.bucket import Bucket
 from common_constructs.python_function import PythonFunction
+from common_constructs.stack import Stack
 from constructs import Construct
 
 import stacks.persistent_stack as ps
@@ -30,7 +32,7 @@ class BulkUploadsBucket(Bucket):
         bucket_encryption_key: IKey,
         event_bus: EventBus,
         license_preprocessing_queue: IQueue,
-        ssn_encryption_key: IKey,
+        license_upload_role: IRole,
         **kwargs,
     ):
         super().__init__(
@@ -51,7 +53,7 @@ class BulkUploadsBucket(Bucket):
         )
         self.log_groups = []
 
-        self._add_v1_ingest_object_events(event_bus, license_preprocessing_queue, ssn_encryption_key)
+        self._add_v1_ingest_object_events(event_bus, license_preprocessing_queue, license_upload_role)
 
         QueryDefinition(
             self,
@@ -81,7 +83,7 @@ class BulkUploadsBucket(Bucket):
         )
 
     def _add_v1_ingest_object_events(
-        self, event_bus: EventBus, license_preprocessing_queue: IQueue, ssn_encryption_key: IKey
+        self, event_bus: EventBus, license_preprocessing_queue: IQueue, license_upload_role: IRole
     ):
         """Read any objects that get uploaded and trigger ingest events"""
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
@@ -92,6 +94,7 @@ class BulkUploadsBucket(Bucket):
             lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'bulk_upload.py'),
             handler='parse_bulk_upload_file',
+            role=license_upload_role,
             timeout=Duration.minutes(15),
             alarm_topic=stack.alarm_topic,
             memory_size=1024,
@@ -105,8 +108,6 @@ class BulkUploadsBucket(Bucket):
         self.grant_read(parse_objects_handler)
         # Grant permission to send messages to the preprocessing queue
         license_preprocessing_queue.grant_send_messages(parse_objects_handler)
-        # Grant permission to use the SSN key for encryption
-        ssn_encryption_key.grant_encrypt(parse_objects_handler)
         # We still need event bus permissions for failure events
         event_bus.grant_put_events_to(parse_objects_handler)
         self.log_groups.append(parse_objects_handler.log_group)
@@ -126,14 +127,17 @@ class BulkUploadsBucket(Bucket):
 
         self.add_event_notification(event=EventType.OBJECT_CREATED, dest=LambdaDestination(parse_objects_handler))
         stack = ps.PersistentStack.of(self)
+
         NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            path=f'{parse_objects_handler.node.path}/ServiceRole/DefaultPolicy/Resource',
+            Stack.of(parse_objects_handler.role),
+            f'{parse_objects_handler.role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
-                    'reason': 'The actions and resource have wildcards but are still scoped to this bucket and'
-                    ' only the actions needed to perform its function',
+                    'reason': """
+                            This policy contains wild-carded actions and resources but are still scoped to this bucket
+                            and specific actions, KMS key and SQS queue that this lambda specifically needs access to.
+                            """,
                 },
             ],
         )
