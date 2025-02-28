@@ -176,6 +176,9 @@ def get_api_base_url():
 def get_provider_user_dynamodb_table():
     return boto3.resource('dynamodb').Table(os.environ['CC_TEST_PROVIDER_DYNAMO_TABLE_NAME'])
 
+def get_ssn_dynamodb_table():
+    return boto3.resource('dynamodb').Table(os.environ['CC_TEST_SSN_DYNAMO_TABLE_NAME'])
+
 
 def get_data_events_dynamodb_table():
     return boto3.resource('dynamodb').Table(os.environ['CC_TEST_DATA_EVENT_DYNAMO_TABLE_NAME'])

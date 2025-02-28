@@ -13,11 +13,14 @@ from smoke_common import (
     get_provider_user_dynamodb_table,
     get_staff_user_auth_headers,
     load_smoke_test_env,
+    get_ssn_dynamodb_table
 )
 
 MOCK_SSN = '999-99-9999'
 COMPACT = 'aslp'
 JURISDICTION = 'ne'
+TEST_PROVIDER_GIVEN_NAME = 'Joe'
+TEST_PROVIDER_FAMILY_NAME = 'Dokes'
 
 # This script can be run locally to test the license upload/ingest flow against a sandbox environment
 # of the Compact Connect API.
@@ -34,7 +37,7 @@ def upload_licenses_record():
     records are created in the provider table as well as the data events table.
 
     Step 1: Upload a license record through the POST '/v1/compacts/aslp/jurisdictions/ne/licenses' endpoint.
-    Step 2: Verify the provider records are added to the provider's record.
+    Step 2: Verify the provider records are added by querying the API.
     Step 3: Verify the license record is recorded in the data events table.
     """
 
@@ -46,8 +49,8 @@ def upload_licenses_record():
             'npi': '1111111111',
             'licenseNumber': 'A0608337260',
             'homeAddressPostalCode': '68001',
-            'givenName': 'Joe',
-            'familyName': 'Dokes',
+            'givenName': TEST_PROVIDER_GIVEN_NAME,
+            'familyName': TEST_PROVIDER_FAMILY_NAME,
             'homeAddressStreet1': '123 Fake Street',
             'militaryWaiver': False,
             'dateOfBirth': '1991-12-10',
@@ -74,52 +77,80 @@ def upload_licenses_record():
 
     print(f'License record successfully uploaded {post_response.json()}')
 
-    # Step 2: Verify the provider records are added to the provider's record.
-
-    provider_dynamo_table = get_provider_user_dynamodb_table()
-
-    # The ingest SQS queue has a visibility timeout of 5 minutes
-    # so we will need to poll the provider table until the record is available
-    for _ in range(15):
-        ssn_record_response = provider_dynamo_table.get_item(
-            Key={'pk': f'{COMPACT}#SSN#{MOCK_SSN}', 'sk': f'{COMPACT}#SSN#{MOCK_SSN}'}
+    # Step 2: Verify the provider records are added by querying the API
+    provider_id = None
+    
+    # The preprocessing and ingest SQS queues have a visibility timeout of 5 minutes each
+    # so we will need to poll until the record is available
+    for _ in range(30):
+        # Query the provider API to find the provider by name
+        query_body = { 
+            "query": {
+            "familyName": TEST_PROVIDER_FAMILY_NAME,
+            "givenName": TEST_PROVIDER_GIVEN_NAME
+            }
+        }
+        
+        query_response = requests.post(
+            url=get_api_base_url() + f'/v1/compacts/{COMPACT}/providers/query',
+            headers=headers,
+            json=query_body,
+            timeout=10,
         )
-        if 'Item' in ssn_record_response:
+        
+        if query_response.status_code != 200:
+            print(f'Query failed with status {query_response.status_code}. Retrying...')
+            time.sleep(30)
+            continue
+            
+        providers = query_response.json().get('providers', [])
+        if providers:
+            # Find our test provider in the results
+            for provider in providers:
+                if (provider.get('givenName') == TEST_PROVIDER_GIVEN_NAME and 
+                    provider.get('familyName') == TEST_PROVIDER_FAMILY_NAME):
+                    provider_id = provider.get('providerId')
+                    break
+                    
+        if provider_id:
             break
-        print('License record not found in provider table. Retrying...')
+            
+        print('Provider record not found via API query. Retrying...')
         time.sleep(30)
 
-    if 'Item' not in ssn_record_response:
+    if not provider_id:
+        raise SmokeTestFailureException('Failed to find provider record via API query.')
+    
+    print(f'Provider record successfully found via API query. Provider ID: {provider_id}')
+    
+    # Now get the provider details to verify the license record
+    provider_details_response = requests.get(
+        url=get_api_base_url() + f'/v1/compacts/{COMPACT}/providers/{provider_id}',
+        headers=headers,
+        timeout=10,
+    )
+    
+    if provider_details_response.status_code != 200:
         raise SmokeTestFailureException(
-            f'Failed to find license record in provider table. Response: {ssn_record_response}'
+            f'Failed to get provider details. Response: {provider_details_response.json()}'
         )
-    print(f'SSN record successfully added to provider table {ssn_record_response["Item"]}')
-
-    provider_id = ssn_record_response['Item']['providerId']
-    # now get all the records for the provider and verify the license record is there
-    provider_record_query_response = provider_dynamo_table.query(
-        KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': f'{COMPACT}#PROVIDER#{provider_id}'}
-    )
-
-    if 'Items' not in provider_record_query_response:
-        raise SmokeTestFailureException('Failed to find provider records in provider table.')
-    # we expect to find a license record and a privilege record with the following sk pattern:
-    # 'sk': f'{compact}#PROVIDER'
+        
+    provider_details = provider_details_response.json()
+    licenses = provider_details.get('licenses', [])
+    
+    if not licenses:
+        raise SmokeTestFailureException('Failed to find license record in provider details.')
+        
     license_record = next(
-        (record for record in provider_record_query_response['Items'] if record['type'] == 'license'), None
+        (license for license in licenses if license.get('licenseType') == 'audiologist'), None
     )
+    
     if not license_record:
-        raise SmokeTestFailureException('Failed to find license record in provider table.')
-    print(f'License record successfully added to provider table {license_record}')
-    provider_record = next(
-        (record for record in provider_record_query_response['Items'] if record['type'] == 'provider'), None
-    )
-    if not provider_record:
-        raise SmokeTestFailureException('Failed to find provider record in provider table.')
-    print(f'Provider record successfully added to provider table {provider_record}')
+        raise SmokeTestFailureException('Failed to find audiologist license record in provider details.')
+        
+    print(f'License record successfully found in provider details: {license_record}')
 
     # Step 3: Verify the license record is recorded in the data events table.
-
     # we don't loop here because the record should be available in the data events table by the time the
     # provider table record is available
     data_events_table = get_data_events_dynamodb_table()
@@ -142,13 +173,25 @@ def upload_licenses_record():
         f'License ingest data event successfully added to data events table {license_ingest_record_response["Items"]}'
     )
 
-    # now clear out the records we added
-    provider_dynamo_table.delete_item(Key={'pk': f'{COMPACT}#SSN#{MOCK_SSN}', 'sk': f'{COMPACT}#SSN#{MOCK_SSN}'})
-    print('Successfully deleted ssn record from provider table')
-    for record in provider_record_query_response['Items']:
+    # Now clean up the records we added
+    # First, get all provider records to delete
+    provider_dynamo_table = get_provider_user_dynamodb_table()
+    provider_record_query_response = provider_dynamo_table.query(
+        KeyConditionExpression='pk = :pk', 
+        ExpressionAttributeValues={':pk': f'{COMPACT}#PROVIDER#{provider_id}'}
+    )
+    
+    # Delete the SSN record from the SSN table
+    get_ssn_dynamodb_table().delete_item(Key={'pk': f'{COMPACT}#SSN#{MOCK_SSN}', 'sk': f'{COMPACT}#SSN#{MOCK_SSN}'})
+    print('Successfully deleted ssn record from ssn table')
+    
+    # Delete all provider records
+    for record in provider_record_query_response.get('Items', []):
         provider_dynamo_table.delete_item(Key={'pk': record['pk'], 'sk': record['sk']})
     print('Successfully deleted provider records from provider table')
-    for record in license_ingest_record_response['Items']:
+    
+    # Delete data event records
+    for record in license_ingest_record_response.get('Items', []):
         data_events_table.delete_item(Key={'pk': record['pk'], 'sk': record['sk']})
     print('Successfully deleted license ingest record from data events table')
 
