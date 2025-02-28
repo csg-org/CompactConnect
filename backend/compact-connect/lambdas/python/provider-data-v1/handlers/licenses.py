@@ -31,6 +31,7 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
 
     event_time = config.current_standard_datetime
 
+    logger.info("Sending license records to preprocessing queue", compact=compact, jurisdiction=jurisdiction)
     # Use the utility function to send licenses to the preprocessing queue
     failed_message_ids = send_licenses_to_preprocessing_queue(
         licenses_data=schema.dump(licenses, many=True),
