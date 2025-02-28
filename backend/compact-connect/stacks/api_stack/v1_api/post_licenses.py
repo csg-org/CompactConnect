@@ -39,8 +39,9 @@ class PostLicenses:
         )
         self.api.log_groups.extend(self.log_groups)
 
-    def _add_post_license(self, method_options: MethodOptions, license_preprocessing_queue: IQueue,
-                          license_upload_role: IRole):
+    def _add_post_license(
+        self, method_options: MethodOptions, license_preprocessing_queue: IQueue, license_upload_role: IRole
+    ):
         self.resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,

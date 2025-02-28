@@ -1,3 +1,5 @@
+import os
+
 from aws_cdk import CustomResource, Duration
 from aws_cdk.aws_iam import PolicyStatement, ServicePrincipal
 from aws_cdk.aws_kms import IKey
@@ -9,7 +11,6 @@ from aws_cdk.custom_resources import Provider
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 from constructs import Construct
-import os
 
 
 class UserEmailNotifications(Construct):
@@ -86,10 +87,10 @@ class UserEmailNotifications(Construct):
             record_name=f'_dmarc.{domain_name}',
             values=[f'v=DMARC1;p=reject;rua=mailto:{operation_email}'],
         )
-        
+
         # Create a custom resource that verifies the SES identity is verified
         self.verification_custom_resource = self._create_verification_custom_resource(domain_name)
-        
+
         # Add dependencies to ensure the verification custom resource is created after the SES identity
         self.verification_custom_resource.node.add_dependency(self.email_identity)
         self.verification_custom_resource.node.add_dependency(self.dmarc_record)
@@ -97,7 +98,7 @@ class UserEmailNotifications(Construct):
     def _create_verification_custom_resource(self, domain_name: str) -> CustomResource:
         """Create a custom resource that verifies the SES identity is verified."""
         stack = Stack.of(self)
-        
+
         # Create a Lambda function that checks the verification status of the SES identity
         verification_function = PythonFunction(
             self,
@@ -114,7 +115,7 @@ class UserEmailNotifications(Construct):
                 **stack.common_env_vars,
             },
         )
-        
+
         # Grant the Lambda function permission to check the verification status
         verification_function.add_to_role_policy(
             PolicyStatement(
@@ -122,20 +123,22 @@ class UserEmailNotifications(Construct):
                 resources=['*'],  # SES doesn't support resource-level permissions for this action
             )
         )
-        
+
         # Add suppressions for CDK Nag
         from cdk_nag import NagSuppressions
+
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
             path=f'{verification_function.node.path}/ServiceRole/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
-                    'reason': 'The actions in this policy are specifically what this lambda needs to check SES identity verification status.',
+                    'reason': 'The actions in this policy are specifically what '
+                    'this lambda needs to check SES identity verification status.',
                 },
             ],
         )
-        
+
         # Create a provider for the custom resource
         verification_provider = Provider(
             self,
@@ -143,7 +146,7 @@ class UserEmailNotifications(Construct):
             on_event_handler=verification_function,
             log_retention=RetentionDays.ONE_DAY,
         )
-        
+
         # Add suppressions for the provider
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
@@ -152,7 +155,8 @@ class UserEmailNotifications(Construct):
                 {'id': 'AwsSolutions-L1', 'reason': 'We do not control this runtime'},
                 {
                     'id': 'HIPAA.Security-LambdaConcurrency',
-                    'reason': 'This function is only run at deploy time, by CloudFormation and has no need for concurrency limits.',
+                    'reason': 'This function is only run at deploy time, '
+                    'by CloudFormation and has no need for concurrency limits.',
                 },
                 {
                     'id': 'HIPAA.Security-LambdaDLQ',
@@ -164,18 +168,19 @@ class UserEmailNotifications(Construct):
                 },
             ],
         )
-        
+
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
             path=f'{verification_provider.node.path}/framework-onEvent/ServiceRole/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
-                    'reason': 'The actions in this policy are specifically what this lambda needs to check SES identity verification status.',
+                    'reason': 'The actions in this policy are specifically '
+                    'what this lambda needs to check SES identity verification status.',
                 },
             ],
         )
-        
+
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
             path=f'{verification_provider.node.path}/framework-onEvent/ServiceRole/Resource',
@@ -189,7 +194,7 @@ class UserEmailNotifications(Construct):
                 },
             ],
         )
-        
+
         # Create the custom resource
         return CustomResource(
             self,

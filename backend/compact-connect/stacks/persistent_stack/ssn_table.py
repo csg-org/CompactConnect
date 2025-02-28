@@ -116,7 +116,7 @@ class SSNTable(Table):
         )
 
         self._configure_access()
-        
+
         # Initialize the license preprocessor
         self._setup_license_preprocessor_queue(data_event_bus, alarm_topic)
 
@@ -139,7 +139,7 @@ class SSNTable(Table):
             'LicenseUploadRole',
             assumed_by=ServicePrincipal('lambda.amazonaws.com'),
             description='Dedicated role for lambdas that upload license records '
-                        'into the preprocessing queue with full SSNs',
+            'into the preprocessing queue with full SSNs',
             managed_policies=[ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')],
         )
         # This role does not need access to the Dynamo table, only the ability to encrypt license records in order
@@ -170,10 +170,11 @@ class SSNTable(Table):
                 resources=['*'],
                 conditions={
                     'StringNotEquals': {
-                        'aws:PrincipalArn': [self.ingest_role.role_arn,
-                                             self.license_upload_role.role_arn,
-                                             self.api_query_role.role_arn
-                                             ],
+                        'aws:PrincipalArn': [
+                            self.ingest_role.role_arn,
+                            self.license_upload_role.role_arn,
+                            self.api_query_role.role_arn,
+                        ],
                         'aws:PrincipalServiceName': ['dynamodb.amazonaws.com', 'events.amazonaws.com'],
                     }
                 },
@@ -185,12 +186,11 @@ class SSNTable(Table):
     def _setup_license_preprocessor_queue(self, data_event_bus: EventBus, alarm_topic: ITopic):
         """Set up the license preprocessor queue and handler"""
         stack: Stack = Stack.of(self)
-        
+
         preprocess_handler = PythonFunction(
             self,
             'LicensePreprocessHandler',
-            description='Preprocess license data to create SSN Dynamo records '
-                        'before sending licenses to the event bus',
+            description='Preprocess license data to create SSN Dynamo records before sending licenses to the event bus',
             lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'ingest.py'),
             handler='preprocess_license_ingest',
@@ -203,7 +203,7 @@ class SSNTable(Table):
             },
             alarm_topic=alarm_topic,
         )
-        
+
         # Grant permissions to the preprocess handler
         data_event_bus.grant_put_events_to(preprocess_handler)
         NagSuppressions.add_resource_suppressions_by_path(

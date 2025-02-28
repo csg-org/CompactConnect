@@ -182,11 +182,11 @@ class PersistentStack(AppStack):
     def _add_data_resources(self, removal_policy: RemovalPolicy):
         # Create the ssn related resources before other resources which are dependent on them
         self.ssn_table = SSNTable(
-            self, 
-            'SSNTable', 
+            self,
+            'SSNTable',
             removal_policy=removal_policy,
             data_event_bus=self.data_event_bus,
-            alarm_topic=self.alarm_topic
+            alarm_topic=self.alarm_topic,
         )
 
         self.bulk_uploads_bucket = BulkUploadsBucket(

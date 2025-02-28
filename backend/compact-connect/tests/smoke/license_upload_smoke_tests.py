@@ -37,8 +37,7 @@ def _cleanup_test_generated_records(provider_id: str, license_ingest_record_resp
     # First, get all provider records to delete
     provider_dynamo_table = get_provider_user_dynamodb_table()
     provider_record_query_response = provider_dynamo_table.query(
-        KeyConditionExpression='pk = :pk',
-        ExpressionAttributeValues={':pk': f'{COMPACT}#PROVIDER#{provider_id}'}
+        KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': f'{COMPACT}#PROVIDER#{provider_id}'}
     )
 
     # Delete the SSN record from the SSN table
@@ -55,6 +54,7 @@ def _cleanup_test_generated_records(provider_id: str, license_ingest_record_resp
     for record in license_ingest_record_response.get('Items', []):
         data_events_table.delete_item(Key={'pk': record['pk'], 'sk': record['sk']})
     logger.info('Successfully deleted license ingest record from data events table')
+
 
 def upload_licenses_record():
     """
@@ -104,75 +104,70 @@ def upload_licenses_record():
 
     # Step 2: Verify the provider records are added by querying the API
     provider_id = None
-    
+
     # The preprocessing and ingest SQS queues have a visibility timeout of 5 minutes each
     # so we will need to poll until the record is available
     for _ in range(30):
         # Query the provider API to find the provider by name
-        query_body = { 
-            "query": {
-            "familyName": TEST_PROVIDER_FAMILY_NAME,
-            "givenName": TEST_PROVIDER_GIVEN_NAME
-            }
-        }
-        
+        query_body = {'query': {'familyName': TEST_PROVIDER_FAMILY_NAME, 'givenName': TEST_PROVIDER_GIVEN_NAME}}
+
         query_response = requests.post(
             url=get_api_base_url() + f'/v1/compacts/{COMPACT}/providers/query',
             headers=headers,
             json=query_body,
             timeout=10,
         )
-        
+
         if query_response.status_code != 200:
             logger.info(f'Query failed with status {query_response.status_code}. Retrying...')
             time.sleep(30)
             continue
-            
+
         providers = query_response.json().get('providers', [])
         if providers:
             # Find our test provider in the results
             for provider in providers:
-                if (provider.get('givenName') == TEST_PROVIDER_GIVEN_NAME and 
-                    provider.get('familyName') == TEST_PROVIDER_FAMILY_NAME):
+                if (
+                    provider.get('givenName') == TEST_PROVIDER_GIVEN_NAME
+                    and provider.get('familyName') == TEST_PROVIDER_FAMILY_NAME
+                ):
                     provider_id = provider.get('providerId')
                     break
-                    
+
         if provider_id:
             break
-            
+
         logger.info('Provider record not found via API query. Retrying...')
         time.sleep(30)
 
     if not provider_id:
         raise SmokeTestFailureException('Failed to find provider record via API query.')
-    
+
     logger.info(f'Provider record successfully found via API query. Provider ID: {provider_id}')
-    
+
     # Now get the provider details to verify the license record
     provider_details_response = requests.get(
         url=get_api_base_url() + f'/v1/compacts/{COMPACT}/providers/{provider_id}',
         headers=headers,
         timeout=10,
     )
-    
+
     if provider_details_response.status_code != 200:
-        raise SmokeTestFailureException(
-            f'Failed to get provider details. Response: {provider_details_response.json()}'
-        )
-        
+        raise SmokeTestFailureException(f'Failed to get provider details. Response: {provider_details_response.json()}')
+
     provider_details = provider_details_response.json()
     licenses = provider_details.get('licenses', [])
-    
+
     if not licenses:
         raise SmokeTestFailureException('Failed to find license record in provider details.')
-        
+
     license_record = next(
-        (license for license in licenses if license.get('licenseType') == 'audiologist'), None
+        (license_record for license_record in licenses if license_record.get('licenseType') == 'audiologist'), None
     )
-    
+
     if not license_record:
         raise SmokeTestFailureException('Failed to find audiologist license record in provider details.')
-        
+
     logger.info(f'License record successfully found in provider details: {license_record}')
 
     # Step 3: Verify the license record is recorded in the data events table.
@@ -199,8 +194,7 @@ def upload_licenses_record():
         raise SmokeTestFailureException('Failed to find license ingest records in data event table.')
 
     logger.info(
-        f'License ingest data event successfully added to data events table '
-        f'{license_ingest_record_response["Items"]}'
+        f'License ingest data event successfully added to data events table {license_ingest_record_response["Items"]}'
     )
     _cleanup_test_generated_records(provider_id, license_ingest_record_response)
 
