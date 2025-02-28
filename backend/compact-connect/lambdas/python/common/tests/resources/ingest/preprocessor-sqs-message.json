@@ -1,13 +1,4 @@
 {
-  "version": "0",
-  "id": "44ec3255-8d59-a6ae-0783-5563a9318a58",
-  "detail-type": "license.ingest",
-  "source": "org.compactconnect.manual-test",
-  "account": "992382587219",
-  "time": "2024-07-11T19:57:45Z",
-  "region": "us-east-1",
-  "resources": [],
-  "detail": {
     "eventTime": "2024-07-11T19:57:45Z",
     "ssn": "123-12-1234",
     "npi": "0608337260",
@@ -31,5 +22,4 @@
     "dateOfRenewal": "2020-04-04",
     "compact": "aslp",
     "jurisdiction": "oh"
-  }
 }

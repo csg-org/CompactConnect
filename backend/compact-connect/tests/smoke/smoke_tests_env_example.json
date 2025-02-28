@@ -1,6 +1,7 @@
 {
   "CC_TEST_API_BASE_URL": "https://api.test.compactconnect.org",
   "CC_TEST_PROVIDER_DYNAMO_TABLE_NAME": "Sandbox-PersistentStack-ProviderTable12345",
+  "CC_TEST_SSN_DYNAMO_TABLE_NAME": "Sandbox-PersistentStack-SSNTable12345",
   "CC_TEST_DATA_EVENT_DYNAMO_TABLE_NAME": "Sandbox-PersistentStack-DataEventTable1234",
   "CC_TEST_STAFF_USER_DYNAMO_TABLE_NAME": "Sandbox-PersistentStack-StaffUserTable1234",
   "CC_TEST_COGNITO_STAFF_USER_POOL_ID": "us-east-1_12345",

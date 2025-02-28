@@ -28,6 +28,7 @@ class TstLambdas(TestCase):
                 'USERS_TABLE_NAME': 'users-table',
                 'SSN_TABLE_NAME': 'ssn-table',
                 'SSN_INDEX_NAME': 'ssn-index',
+                'LICENSE_PREPROCESSING_QUEUE_URL': 'license-preprocessing-queue-url',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',

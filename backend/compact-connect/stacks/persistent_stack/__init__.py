@@ -174,16 +174,31 @@ class PersistentStack(AppStack):
             self.staff_users.node.add_dependency(self.user_email_notifications.dmarc_record)
             self.provider_users.node.add_dependency(self.user_email_notifications.email_identity)
             self.provider_users.node.add_dependency(self.user_email_notifications.dmarc_record)
+            # the verification custom resource needs to be completed before the user pools are created
+            # so that the user pools will be created after the SES identity is verified
+            self.staff_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
+            self.provider_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
+        # Create the ssn related resources before other resources which are dependent on them
+        self.ssn_table = SSNTable(
+            self,
+            'SSNTable',
+            removal_policy=removal_policy,
+            data_event_bus=self.data_event_bus,
+            alarm_topic=self.alarm_topic,
+        )
+
         self.bulk_uploads_bucket = BulkUploadsBucket(
             self,
             'BulkUploadsBucket',
             access_logs_bucket=self.access_logs_bucket,
-            encryption_key=self.shared_encryption_key,
+            bucket_encryption_key=self.shared_encryption_key,
             removal_policy=removal_policy,
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
             event_bus=self.data_event_bus,
+            license_preprocessing_queue=self.ssn_table.preprocessor_queue.queue,
+            license_upload_role=self.ssn_table.license_upload_role,
         )
 
         self.transaction_reports_bucket = TransactionReportsBucket(
@@ -251,8 +266,6 @@ class PersistentStack(AppStack):
                 },
             ],
         )
-
-        self.ssn_table = SSNTable(self, 'SSNTable', removal_policy=removal_policy)
 
         self.data_event_table = DataEventTable(
             scope=self,
