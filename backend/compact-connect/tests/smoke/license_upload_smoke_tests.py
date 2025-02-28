@@ -4,6 +4,7 @@ import time
 from datetime import UTC, datetime, timedelta
 
 import requests
+from config import logger
 from smoke_common import (
     SmokeTestFailureException,
     create_test_staff_user,
@@ -11,9 +12,9 @@ from smoke_common import (
     get_api_base_url,
     get_data_events_dynamodb_table,
     get_provider_user_dynamodb_table,
+    get_ssn_dynamodb_table,
     get_staff_user_auth_headers,
     load_smoke_test_env,
-    get_ssn_dynamodb_table
 )
 
 MOCK_SSN = '999-99-9999'
@@ -30,6 +31,30 @@ TEST_PROVIDER_FAMILY_NAME = 'Dokes'
 
 TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseUploader@smokeTestFakeEmail.com'
 
+
+def _cleanup_test_generated_records(provider_id: str, license_ingest_record_response: dict):
+    # Now clean up the records we added
+    # First, get all provider records to delete
+    provider_dynamo_table = get_provider_user_dynamodb_table()
+    provider_record_query_response = provider_dynamo_table.query(
+        KeyConditionExpression='pk = :pk',
+        ExpressionAttributeValues={':pk': f'{COMPACT}#PROVIDER#{provider_id}'}
+    )
+
+    # Delete the SSN record from the SSN table
+    get_ssn_dynamodb_table().delete_item(Key={'pk': f'{COMPACT}#SSN#{MOCK_SSN}', 'sk': f'{COMPACT}#SSN#{MOCK_SSN}'})
+    logger.info('Successfully deleted ssn record from ssn table')
+
+    # Delete all provider records
+    for record in provider_record_query_response.get('Items', []):
+        provider_dynamo_table.delete_item(Key={'pk': record['pk'], 'sk': record['sk']})
+    logger.info('Successfully deleted provider records from provider table')
+
+    # Delete data event records
+    data_events_table = get_data_events_dynamodb_table()
+    for record in license_ingest_record_response.get('Items', []):
+        data_events_table.delete_item(Key={'pk': record['pk'], 'sk': record['sk']})
+    logger.info('Successfully deleted license ingest record from data events table')
 
 def upload_licenses_record():
     """
@@ -75,7 +100,7 @@ def upload_licenses_record():
     if post_response.status_code != 200:
         raise SmokeTestFailureException(f'Failed to POST license record. Response: {post_response.json()}')
 
-    print(f'License record successfully uploaded {post_response.json()}')
+    logger.info(f'License record successfully uploaded {post_response.json()}')
 
     # Step 2: Verify the provider records are added by querying the API
     provider_id = None
@@ -99,7 +124,7 @@ def upload_licenses_record():
         )
         
         if query_response.status_code != 200:
-            print(f'Query failed with status {query_response.status_code}. Retrying...')
+            logger.info(f'Query failed with status {query_response.status_code}. Retrying...')
             time.sleep(30)
             continue
             
@@ -115,13 +140,13 @@ def upload_licenses_record():
         if provider_id:
             break
             
-        print('Provider record not found via API query. Retrying...')
+        logger.info('Provider record not found via API query. Retrying...')
         time.sleep(30)
 
     if not provider_id:
         raise SmokeTestFailureException('Failed to find provider record via API query.')
     
-    print(f'Provider record successfully found via API query. Provider ID: {provider_id}')
+    logger.info(f'Provider record successfully found via API query. Provider ID: {provider_id}')
     
     # Now get the provider details to verify the license record
     provider_details_response = requests.get(
@@ -148,14 +173,15 @@ def upload_licenses_record():
     if not license_record:
         raise SmokeTestFailureException('Failed to find audiologist license record in provider details.')
         
-    print(f'License record successfully found in provider details: {license_record}')
+    logger.info(f'License record successfully found in provider details: {license_record}')
 
     # Step 3: Verify the license record is recorded in the data events table.
     # we don't loop here because the record should be available in the data events table by the time the
     # provider table record is available
     data_events_table = get_data_events_dynamodb_table()
     event_time = datetime.now(tz=UTC)
-    start_time = event_time - timedelta(minutes=10)
+    start_time = event_time - timedelta(minutes=15)
+    logger.info('searching for license in data event')
     license_ingest_record_response = data_events_table.query(
         KeyConditionExpression='pk = :pk AND sk BETWEEN :start_time AND :end_time',
         ExpressionAttributeValues={
@@ -166,34 +192,17 @@ def upload_licenses_record():
     )
 
     if not license_ingest_record_response.get('Items'):
-        raise SmokeTestFailureException(
+        logger.error(
             f'Failed to find license ingest record in data events table. Response: {license_ingest_record_response}'
         )
-    print(
-        f'License ingest data event successfully added to data events table {license_ingest_record_response["Items"]}'
-    )
+        _cleanup_test_generated_records(provider_id, license_ingest_record_response)
+        raise SmokeTestFailureException('Failed to find license ingest records in data event table.')
 
-    # Now clean up the records we added
-    # First, get all provider records to delete
-    provider_dynamo_table = get_provider_user_dynamodb_table()
-    provider_record_query_response = provider_dynamo_table.query(
-        KeyConditionExpression='pk = :pk', 
-        ExpressionAttributeValues={':pk': f'{COMPACT}#PROVIDER#{provider_id}'}
+    logger.info(
+        f'License ingest data event successfully added to data events table '
+        f'{license_ingest_record_response["Items"]}'
     )
-    
-    # Delete the SSN record from the SSN table
-    get_ssn_dynamodb_table().delete_item(Key={'pk': f'{COMPACT}#SSN#{MOCK_SSN}', 'sk': f'{COMPACT}#SSN#{MOCK_SSN}'})
-    print('Successfully deleted ssn record from ssn table')
-    
-    # Delete all provider records
-    for record in provider_record_query_response.get('Items', []):
-        provider_dynamo_table.delete_item(Key={'pk': record['pk'], 'sk': record['sk']})
-    print('Successfully deleted provider records from provider table')
-    
-    # Delete data event records
-    for record in license_ingest_record_response.get('Items', []):
-        data_events_table.delete_item(Key={'pk': record['pk'], 'sk': record['sk']})
-    print('Successfully deleted license ingest record from data events table')
+    _cleanup_test_generated_records(provider_id, license_ingest_record_response)
 
 
 if __name__ == '__main__':
@@ -207,9 +216,9 @@ if __name__ == '__main__':
     )
     try:
         upload_licenses_record()
-        print('License record upload smoke test passed')
+        logger.info('License record upload smoke test passed')
     except SmokeTestFailureException as e:
-        print(f'License record upload smoke test failed: {str(e)}')
+        logger.error(f'License record upload smoke test failed: {str(e)}')
     finally:
         # Clean up the test staff user
         delete_test_staff_user(TEST_STAFF_USER_EMAIL, user_sub=test_user_sub, compact=COMPACT)
