@@ -158,6 +158,10 @@ compact-connect
 Note the jurisdiction configuration file name must be the name of the jurisdiction with '-'
 characters in place of spaces.
 
+
+# Creating App Clients for Machine-to-Machine Authentication
+See [App Client Management for Staff Users](../../app_clients/README.md) for more information on how to create app clients for machine-to-machine authentication.
+
 # Compact Onboarding for Compact Connect
 
 ## Add Global Compact Configuration File to the System

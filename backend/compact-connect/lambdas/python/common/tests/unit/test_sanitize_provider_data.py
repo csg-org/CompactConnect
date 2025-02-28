@@ -18,17 +18,17 @@ class TestSanitizeProviderData(TstLambdas):
 
     def test_full_provider_record_returned_if_caller_has_compact_read_private_permissions(self):
         self.when_expecting_full_provider_record_returned(
-            scopes={'openid', 'email', 'aslp/readGeneral', 'aslp/aslp.readPrivate'}
+            scopes={'openid', 'email', 'aslp/readGeneral', 'aslp/readPrivate'}
         )
 
     def test_full_provider_record_returned_if_caller_has_read_private_permissions_for_license_jurisdiction(self):
         self.when_expecting_full_provider_record_returned(
-            scopes={'openid', 'email', 'aslp/readGeneral', 'aslp/oh.readPrivate'}
+            scopes={'openid', 'email', 'aslp/readGeneral', 'oh/aslp.readPrivate'}
         )
 
     def test_full_provider_record_returned_if_caller_has_read_private_permissions_for_privileges_jurisdiction(self):
         self.when_expecting_full_provider_record_returned(
-            scopes={'openid', 'email', 'aslp/readGeneral', 'aslp/ne.readPrivate'}
+            scopes={'openid', 'email', 'aslp/readGeneral', 'ne/aslp.readPrivate'}
         )
 
     def when_testing_general_provider_info_returned(self, scopes: set[str]):
@@ -74,7 +74,7 @@ class TestSanitizeProviderData(TstLambdas):
 
     def test_sanitized_provider_record_returned_if_caller_does_not_have_read_private_permissions_for_jurisdiction(self):
         self.when_testing_general_provider_info_returned(
-            scopes={'openid', 'email', 'aslp/readGeneral', 'aslp/az.readPrivate'}
+            scopes={'openid', 'email', 'aslp/readGeneral', 'az/aslp.readPrivate'}
         )
 
     def test_sanitized_provider_record_returned_if_caller_does_not_have_any_read_private_permissions(self):
