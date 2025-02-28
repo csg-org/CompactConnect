@@ -202,7 +202,8 @@ class TstAppABC(ABC):
                     },
                 ],
                 'Version': '2012-10-17',
-            }, ssn_key_template['KeyPolicy']
+            },
+            ssn_key_template['KeyPolicy'],
         )
         # Ensure we're using our locked down KMS key for encryption
         self.assertEqual(

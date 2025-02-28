@@ -111,7 +111,7 @@ def create_test_staff_user(*, email: str, compact: str, jurisdiction: str, permi
                 'compact': compact,
                 'attributes': user_attributes,
                 'permissions': permissions,
-                'status': 'active'
+                'status': 'active',
             },
         ),
     )
@@ -175,6 +175,10 @@ def get_api_base_url():
 
 def get_provider_user_dynamodb_table():
     return boto3.resource('dynamodb').Table(os.environ['CC_TEST_PROVIDER_DYNAMO_TABLE_NAME'])
+
+
+def get_ssn_dynamodb_table():
+    return boto3.resource('dynamodb').Table(os.environ['CC_TEST_SSN_DYNAMO_TABLE_NAME'])
 
 
 def get_data_events_dynamodb_table():
