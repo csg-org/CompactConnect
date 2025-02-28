@@ -1,30 +1,12 @@
 <!--
-    MilitaryStatus.vue
+    MilitaryAffiliationInfoBlock.vue
     CompactConnect
 
-    Created by InspiringApps on 12/20/2024.
+    Created by InspiringApps on 2/28/2025.
 -->
 
 <template>
-   <div class="military-status-container">
-    <div class="military-status-content-container">
-        <InputButton
-            :label="$t('common.back')"
-            :aria-label="$t('common.back')"
-            :isTextLike="true"
-            :shouldHideMargin="true"
-            class="back-btn"
-            @click="goBack"
-        />
-        <div class="military-status-title">
-            {{ $t('military.militaryStatusTitle') }}
-        </div>
-        <MilitaryAffiliationInfoBlock
-            :licensee="licensee"
-            :currentCompactType="currentCompactType"
-            :shouldShowEditButtons="true"
-        />
-        <!-- <div class="core-info-block">
+        <div class="core-info-block">
             <div class="info-row">
                 <div class="chunk">
                     <div class="chunk-title">{{statusTitleText}}</div>
@@ -68,7 +50,7 @@
                     </ListContainer>
                 </div>
             </div>
-            <div class="button-row">
+            <div v-if="shouldShowEditButtons" class="button-row">
                 <InputButton
                     :label="$t('military.endMilitaryAffiliation')"
                     :aria-label="$t('military.endMilitaryAffiliation')"
@@ -85,9 +67,7 @@
                     @click="editInfo"
                 />
             </div>
-        </div> -->
-    </div>
-         <!-- <Modal
+        <Modal
             v-if="shouldShowEndAffiliationModal"
             class="end-affiliation-modal"
             :closeOnBackgroundClick="true"
@@ -121,9 +101,9 @@
                     </form>
                 </div>
             </template>
-        </Modal> -->
-   </div>
+        </Modal>
+    </div>
 </template>
 
-<script lang="ts" src="./MilitaryStatus.ts"></script>
-<style scoped lang="less" src="./MilitaryStatus.less"></style>
+<script lang="ts" src="./MilitaryAffiliationInfoBlock.ts"></script>
+<style scoped lang="less" src="./MilitaryAffiliationInfoBlock.less"></style>

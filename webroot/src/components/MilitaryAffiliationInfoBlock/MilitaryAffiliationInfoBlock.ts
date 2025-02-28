@@ -1,11 +1,16 @@
 //
-//  MilitaryStatus.ts
+//  MilitaryAffiliationInfoBlock.ts
 //  CompactConnect
 //
-//  Created by InspiringApps on 12/20/2024.
+//  Created by InspiringApps on 2/28/2025.
 //
 
-import { Component, mixins } from 'vue-facing-decorator';
+import {
+    Component,
+    toNative,
+    Prop,
+    mixins
+} from 'vue-facing-decorator';
 import { reactive } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
@@ -13,26 +18,26 @@ import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import MilitaryDocumentRow from '@components/MilitaryDocumentRow/MilitaryDocumentRow.vue';
 import Modal from '@components/Modal/Modal.vue';
-import MilitaryAffiliationInfoBlock from '@components/MilitaryAffiliationInfoBlock/MilitaryAffiliationInfoBlock.vue';
-import { Compact } from '@models/Compact/Compact.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
-import { LicenseeUser } from '@/models/LicenseeUser/LicenseeUser.model';
 import { Licensee } from '@/models/Licensee/Licensee.model';
 import { MilitaryAffiliation } from '@/models/MilitaryAffiliation/MilitaryAffiliation.model';
 
 @Component({
-    name: 'MilitaryStatus',
+    name: 'MilitaryAffiliationInfoBlock',
     components: {
-        InputButton,
-        InputSubmit,
         ListContainer,
         MilitaryDocumentRow,
-        MilitaryAffiliationInfoBlock,
+        InputButton,
+        InputSubmit,
         Modal
     }
 })
-export default class MilitaryStatus extends mixins(MixinForm) {
-    //
+class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
+    @Prop({ required: true }) licensee?: Licensee;
+    @Prop({ default: 'aslp' }) currentCompactType?: string;
+    @Prop({ default: false }) shouldShowEditButtons?: boolean;
+    // PROPS
+
     // Data
     //
     shouldShowEndAffiliationModal = false;
@@ -42,29 +47,6 @@ export default class MilitaryStatus extends mixins(MixinForm) {
     //
     created() {
         this.initFormInputs();
-    }
-
-    //
-    // Computed
-    //
-    get userStore(): any {
-        return this.$store.state.user;
-    }
-
-    get user(): LicenseeUser {
-        return this.userStore?.model;
-    }
-
-    get currentCompact(): Compact | null {
-        return this.userStore?.currentCompact || null;
-    }
-
-    get currentCompactType(): string | null {
-        return this.currentCompact?.type || null;
-    }
-
-    get licensee(): Licensee | null {
-        return this.user?.licensee || null;
     }
 
     get statusTitleText(): string {
@@ -190,15 +172,6 @@ export default class MilitaryStatus extends mixins(MixinForm) {
         await this.$store.dispatch('user/getLicenseeAccountRequest');
     }
 
-    goBack() {
-        if (this.currentCompactType) {
-            this.$router.push({
-                name: 'LicenseeDashboard',
-                params: { compact: this.currentCompactType }
-            });
-        }
-    }
-
     startEndAffiliationFlow() {
         this.shouldShowEndAffiliationModal = true;
         this.$nextTick(() => {
@@ -231,3 +204,7 @@ export default class MilitaryStatus extends mixins(MixinForm) {
         }
     }
 }
+
+export default toNative(MilitaryAffiliationInfoBlock);
+
+// export default MilitaryAffiliationInfoBlock;

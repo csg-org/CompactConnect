@@ -165,7 +165,7 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     get privilegeId(): string {
-        return this.privilege?.privilegeOrLicenseNumber || '';
+        return this.privilege?.privilegeId || '';
     }
 
     get licenseeId(): string {

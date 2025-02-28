@@ -46,7 +46,8 @@ export interface InterfaceLicense {
     mailingAddress?: Address;
     expireDate?: string | null;
     npi?: string | null;
-    privilegeOrLicenseNumber?: string | null;
+    licenseNumber?: string | null;
+    privilegeId?: string | null;
     occupation?: LicenseOccupation | null,
     history?: Array<LicenseHistoryItem>,
     statusState?: LicenseStatus,
@@ -68,7 +69,7 @@ export class License implements InterfaceLicense {
     public mailingAddress? = new Address();
     public renewalDate? = null;
     public npi? = null;
-    public privilegeOrLicenseNumber? = null;
+    public licenseNumber? = null;
     public privilegeId? = null;
     public expireDate? = null;
     public occupation? = null;
@@ -109,6 +110,7 @@ export class License implements InterfaceLicense {
         return Boolean(diff > 0);
     }
 
+    // Relevant for License only until occupation is included in privilege return
     public occupationName(): string {
         const occupations = this.$tm('licensing.occupations') || [];
         const occupation = occupations.find((translate) => translate.key === this.occupation);
@@ -149,10 +151,11 @@ export class LicenseSerializer {
             issueState: new State({ abbrev: json.jurisdiction || json.licenseJurisdiction }),
             issueDate: json.dateOfIssuance,
             npi: json.npi,
-            privilegeOrLicenseNumber: json.type === 'privilege' ? json.privilegeId : json.licenseNumber,
+            licenseNumber: json.licenseNumber, // License field only
+            privilegeId: json.privilegeId, // Privilege field only
             renewalDate: json.dateOfRenewal,
             expireDate: json.dateOfExpiration,
-            occupation: json.licenseType, // Currently, only available on licenses
+            occupation: json.licenseType, // License field only for now, will eventually be included in privileges
             status: json.status,
             history: [] as Array <LicenseHistoryItem>,
         };

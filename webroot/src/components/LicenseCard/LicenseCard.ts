@@ -79,7 +79,7 @@ class LicenseCard extends Vue {
     }
 
     get licenseNumber(): string {
-        return this.license?.privilegeOrLicenseNumber || '';
+        return this.license?.licenseNumber || '';
     }
 
     get isPastExiprationDate(): boolean {

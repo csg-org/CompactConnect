@@ -100,7 +100,10 @@
                             <div class="info-item">{{ssn}}</div>
                         </div>
                     </div>
-                    <div class="core-info-block">
+                    <MilitaryAffiliationInfoBlock
+                        :licensee="licensee"
+                    />
+                    <!-- <div class="core-info-block">
                         <div class="info-row">
                             <div class="chunk">
                                 <div class="chunk-title">{{militaryStatusTitleText}}</div>
@@ -144,7 +147,7 @@
                                 </ListContainer>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                 </div>
             </div>
             <div class="license-section">
