@@ -120,9 +120,6 @@ class SSNTable(Table):
         self.grant_read_write_data(self.ingest_role)
         self._role_suppressions(self.ingest_role)
 
-        # This role is to be removed, once full SSN access is removed from the /query API endpoint
-        # (https://github.com/csg-org/CompactConnect/issues/391). In the meantime, we will need to have a role the
-        # corresponding lambda can use.
         self.api_query_role = Role(
             self,
             'ProviderQueryRole',

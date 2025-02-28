@@ -252,6 +252,21 @@ class PersistentStack(AppStack):
         )
 
         self.ssn_table = SSNTable(self, 'SSNTable', removal_policy=removal_policy)
+        # The api query role needs access to the provider table to associate a provider with
+        # its jurisdictions, so it can make authorization decisions for the requester.
+        self.provider_table.grant_read_data(self.ssn_table.api_query_role)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{self.ssn_table.api_query_role.node.path}/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': """This policy contains wild-carded actions and resources but they are scoped to the
+                              specific actions, Table, and KMS Key that this lambda specifically needs access to.
+                              """,
+                },
+            ],
+        )
 
         self.data_event_table = DataEventTable(
             scope=self,
