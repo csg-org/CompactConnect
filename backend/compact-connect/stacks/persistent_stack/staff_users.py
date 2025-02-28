@@ -11,6 +11,7 @@ from aws_cdk.aws_cognito import (
     StandardAttributes,
     UserPoolEmail,
     UserPoolOperation,
+    UserPoolResourceServer,
 )
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
@@ -75,7 +76,7 @@ class StaffUsers(UserPool):
                 },
             ],
         )
-        self._add_resource_servers()
+        self._add_resource_servers(stack=stack, environment_name=environment_name)
         self._add_scope_customization(persistent_stack=stack)
 
         # Do not allow resource server scopes via the client - they are assigned via token customization
@@ -89,39 +90,91 @@ class StaffUsers(UserPool):
             read_attributes=ClientAttributes().with_standard_attributes(email=True),
         )
 
-    def _add_resource_servers(self):
+    def _generate_resource_server_scopes_list_for_compact(self, compact: str):
+        return [
+            ResourceServerScope(
+                scope_name=f'{compact}.admin',
+                scope_description=f'Admin access for the {compact} compact within the jurisdiction',
+            ),
+            ResourceServerScope(
+                scope_name=f'{compact}.write',
+                scope_description=f'Write access for the {compact} compact within the jurisdiction',
+            ),
+            ResourceServerScope(
+                scope_name=f'{compact}.readPrivate',
+                scope_description=f'Read access for SSNs in the {compact} compact within the jurisdiction',
+            ),
+            ResourceServerScope(
+                scope_name=f'{compact}.readSSN',
+                scope_description=f'Read access for SSNs in the {compact} compact within the jurisdiction',
+            ),
+        ]
+
+    def _add_resource_servers(self, stack: ps.PersistentStack, environment_name: str):
         """Add scopes for all compact/jurisdictions"""
-        # {compact}.write, {compact}.admin, {compact}.readGeneral for every compact
-        # Note: the .readGeneral .write and .admin scopes will control access to API endpoints via the Cognito
-        # authorizer, however there will be a secondary level of authorization within the business logic that controls
-        # further granularity of authorization (i.e. 'aslp/write' will grant access to POST license data, but the
-        # business logic inside the endpoint also expects an 'aslp/co.write' if the POST includes data for Colorado.)
-        self.write_scope = ResourceServerScope(
+        # {compact}/write, {compact}/admin, {compact}/readGeneral for every compact resource server
+        # {jurisdiction}/{compact}.write, {jurisdiction}/{compact}.admin, {jurisdiction}/{compact}.readGeneral
+        # for every jurisdiction and compact resource server.
+        # Note: the scopes defined here will control access to API endpoints via the Cognito
+        # authorizer, however there will be a secondary level of authorization within the runtime logic that ensures
+        # the caller has the correct privileges to perform the action against the requested compact/jurisdiction.
+
+        # The following scopes are specifically for compact level access
+        self.compact_write_scope = ResourceServerScope(
             scope_name='write',
-            scope_description='Write access for the compact, paired with a more specific scope',
+            scope_description='Write access for the compact',
         )
-        self.admin_scope = ResourceServerScope(
+        self.compact_admin_scope = ResourceServerScope(
             scope_name='admin',
-            scope_description='Admin access for the compact, paired with a more specific scope',
+            scope_description='Admin access for the compact',
         )
-        self.read_scope = ResourceServerScope(
+        self.compact_read_scope = ResourceServerScope(
             scope_name='readGeneral',
             scope_description='Read access for generally available data (not private) in the compact',
         )
-        self.read_ssn_scope = ResourceServerScope(
+        self.compact_read_ssn_scope = ResourceServerScope(
             scope_name='readSSN',
             scope_description='Read access for SSNs in the compact',
         )
 
-        # One resource server for each compact
-        self.resource_servers = {
-            compact: self.add_resource_server(
+        active_compacts = stack.get_list_of_active_compacts_for_environment(environment_name)
+        self.compact_resource_servers = {}
+        self.jurisdiction_resource_servers: dict[str, UserPoolResourceServer] = {}
+        _jurisdiction_compact_scope_mapping: dict[str, list] = {}
+        for compact in active_compacts:
+            self.compact_resource_servers[compact] = self.add_resource_server(
                 f'LicenseData-{compact}',
                 identifier=compact,
-                scopes=[self.admin_scope, self.write_scope, self.read_scope, self.read_ssn_scope],
+                scopes=[
+                    self.compact_admin_scope,
+                    self.compact_write_scope,
+                    self.compact_read_scope,
+                    self.compact_read_ssn_scope,
+                ],
             )
-            for compact in self.node.get_context('compacts')
-        }
+            # we define the jurisdiction level scopes, which will be used by every
+            # jurisdiction that is active for the compact/environment.
+            active_jurisdictions_for_compact = stack.get_list_of_active_jurisdictions_for_compact_environment(
+                compact=compact, environment_name=environment_name
+            )
+            for jurisdiction in active_jurisdictions_for_compact:
+                if _jurisdiction_compact_scope_mapping.get(jurisdiction) is None:
+                    _jurisdiction_compact_scope_mapping[jurisdiction] = (
+                        self._generate_resource_server_scopes_list_for_compact(compact)
+                    )
+                else:
+                    _jurisdiction_compact_scope_mapping[jurisdiction].extend(
+                        self._generate_resource_server_scopes_list_for_compact(compact)
+                    )
+
+        # now create resources servers for every jurisdiction that was active within at least one compact for this
+        # environment
+        for jurisdiction, scopes in _jurisdiction_compact_scope_mapping.items():
+            self.jurisdiction_resource_servers[jurisdiction] = self.add_resource_server(
+                f'LicenseData-{jurisdiction}',
+                identifier=jurisdiction,
+                scopes=scopes,
+            )
 
     def _add_scope_customization(self, persistent_stack: ps.PersistentStack):
         """Add scopes to access tokens based on the Users table"""

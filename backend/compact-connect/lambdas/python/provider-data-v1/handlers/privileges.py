@@ -29,8 +29,8 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
     ):
         # Get the user's scopes to check for jurisdiction-specific admin permission
         scopes = get_event_scopes(event)
-        jurisdiction_admin_scope = f'{compact}/{jurisdiction}.{CCPermissionsAction.ADMIN}'
-        compact_admin_scope = f'{compact}/{compact}.{CCPermissionsAction.ADMIN}'
+        jurisdiction_admin_scope = f'{jurisdiction}/{compact}.{CCPermissionsAction.ADMIN}'
+        compact_admin_scope = f'{compact}/{CCPermissionsAction.ADMIN}'
 
         # Check if user has admin permission for either the compact or the jurisdiction
         if jurisdiction_admin_scope not in scopes and compact_admin_scope not in scopes:
