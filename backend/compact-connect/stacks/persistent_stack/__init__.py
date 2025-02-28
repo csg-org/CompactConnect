@@ -17,7 +17,6 @@ from common_constructs.security_profile import SecurityProfile
 from common_constructs.stack import AppStack
 from constructs import Construct
 
-from stacks.persistent_stack.license_preproccesor import LicensePreprocessor
 from stacks.persistent_stack.bulk_uploads_bucket import BulkUploadsBucket
 from stacks.persistent_stack.compact_configuration_table import CompactConfigurationTable
 from stacks.persistent_stack.compact_configuration_upload import CompactConfigurationUpload
@@ -182,13 +181,10 @@ class PersistentStack(AppStack):
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
         # Create the ssn related resources before other resources which are dependent on them
-        self.ssn_table = SSNTable(self, 'SSNTable', removal_policy=removal_policy)
-        self.license_preprocessor = LicensePreprocessor(
-            self,
-            'LicensePreprocessor',
-            ssn_table=self.ssn_table,
-            ssn_ingest_role=self.ssn_table.ingest_role,
-            ssn_encryption_key=self.ssn_table.key,
+        self.ssn_table = SSNTable(
+            self, 
+            'SSNTable', 
+            removal_policy=removal_policy,
             data_event_bus=self.data_event_bus,
             alarm_topic=self.alarm_topic
         )
@@ -201,7 +197,7 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
             event_bus=self.data_event_bus,
-            license_preprocessing_queue=self.license_preprocessor.preprocessor_queue.queue,
+            license_preprocessing_queue=self.ssn_table.preprocessor_queue.queue,
             license_upload_role=self.ssn_table.license_upload_role,
         )
 

@@ -34,7 +34,7 @@ class PostLicenses:
 
         self._add_post_license(
             method_options=method_options,
-            license_preprocessing_queue=persistent_stack.license_preprocessor.preprocessor_queue.queue,
+            license_preprocessing_queue=persistent_stack.ssn_table.preprocessor_queue.queue,
             license_upload_role=persistent_stack.ssn_table.license_upload_role,
         )
         self.api.log_groups.extend(self.log_groups)
