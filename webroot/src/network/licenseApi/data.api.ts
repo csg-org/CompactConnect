@@ -5,6 +5,7 @@
 //  Created by InspiringApps on 6/18/24.
 //
 
+import { authStorage, tokens } from '@/app.config';
 import axios, { AxiosInstance } from 'axios';
 import {
     requestError,
@@ -239,9 +240,18 @@ export class LicenseDataApi implements DataApiInterface {
      * @return {Promise<object>}            The server response.
      */
     public async getLicenseeSsn(compact: string, licenseeId: string) {
-        const serverResponse: any = await axios.get(`${envConfig.apiUrlLicense}/v1/compacts/${compact}/providers/${licenseeId}/ssn`);
+        // This endpoint requires bypassing our regular error-handler interceptors.
+        const authTokenStaff = authStorage.getItem(tokens.staff.AUTH_TOKEN);
+        const authTokenStaffType = authStorage.getItem(tokens.staff.AUTH_TOKEN_TYPE);
+        const serverResponse: any = await axios.get(`${envConfig.apiUrlLicense}/v1/compacts/${compact}/providers/${licenseeId}/ssn`, {
+            headers: {
+                'Cache-Control': 'no-cache',
+                Accept: 'application/json',
+                Authorization: `${authTokenStaffType} ${authTokenStaff}`,
+            },
+        });
 
-        return serverResponse;
+        return serverResponse.data || {};
     }
 }
 

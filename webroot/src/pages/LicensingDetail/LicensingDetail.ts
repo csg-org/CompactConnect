@@ -342,12 +342,10 @@ export default class LicensingDetail extends Vue {
             this.licenseeFullSsnError = this.$t('serverErrors.networkError');
         });
 
-        if (!isError) {
-            if (ssnFullResponse.ssn) {
-                this.licenseeFullSsn = ssnFullResponse.ssn;
-            } else {
-                this.licenseeFullSsnError = this.$t('serverErrors.networkError');
-            }
+        if (!isError && ssnFullResponse?.ssn) {
+            this.licenseeFullSsn = ssnFullResponse.ssn;
+        } else {
+            this.licenseeFullSsnError = this.$t('serverErrors.networkError');
         }
 
         this.licenseeFullSsnLoading = false;
