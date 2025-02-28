@@ -175,6 +175,10 @@ class PersistentStack(AppStack):
             self.staff_users.node.add_dependency(self.user_email_notifications.dmarc_record)
             self.provider_users.node.add_dependency(self.user_email_notifications.email_identity)
             self.provider_users.node.add_dependency(self.user_email_notifications.dmarc_record)
+            # the verification custom resource needs to be completed before the user pools are created
+            # so that the user pools will be created after the SES identity is verified
+            self.staff_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
+            self.provider_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
         # Create the ssn related resources before other resources which are dependent on them

@@ -1,9 +1,15 @@
-from aws_cdk.aws_iam import ServicePrincipal
+from aws_cdk import CustomResource, Duration
+from aws_cdk.aws_iam import PolicyStatement, ServicePrincipal
 from aws_cdk.aws_kms import IKey
+from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.aws_route53 import IHostedZone, TxtRecord
 from aws_cdk.aws_ses import ConfigurationSet, EmailIdentity, EmailSendingEvent, EventDestination, Identity
 from aws_cdk.aws_sns import Subscription, SubscriptionProtocol, Topic
+from aws_cdk.custom_resources import Provider
+from common_constructs.python_function import PythonFunction
+from common_constructs.stack import Stack
 from constructs import Construct
+import os
 
 
 class UserEmailNotifications(Construct):
@@ -79,4 +85,118 @@ class UserEmailNotifications(Construct):
             zone=hosted_zone,
             record_name=f'_dmarc.{domain_name}',
             values=[f'v=DMARC1;p=reject;rua=mailto:{operation_email}'],
+        )
+        
+        # Create a custom resource that verifies the SES identity is verified
+        self.verification_custom_resource = self._create_verification_custom_resource(domain_name)
+        
+        # Add dependencies to ensure the verification custom resource is created after the SES identity
+        self.verification_custom_resource.node.add_dependency(self.email_identity)
+        self.verification_custom_resource.node.add_dependency(self.dmarc_record)
+
+    def _create_verification_custom_resource(self, domain_name: str) -> CustomResource:
+        """Create a custom resource that verifies the SES identity is verified."""
+        stack = Stack.of(self)
+        
+        # Create a Lambda function that checks the verification status of the SES identity
+        verification_function = PythonFunction(
+            self,
+            'DomainVerificationFunction',
+            lambda_dir='custom-resources',
+            index=os.path.join('handlers', 'ses_email_identity_verification_handler.py'),
+            handler='on_event',
+            description='Verifies that a SES email identity is verified',
+            timeout=Duration.minutes(15),  # Long timeout to allow for verification
+            memory_size=128,
+            log_retention=RetentionDays.ONE_DAY,
+            environment={
+                'DOMAIN_NAME': domain_name,
+                **stack.common_env_vars,
+            },
+        )
+        
+        # Grant the Lambda function permission to check the verification status
+        verification_function.add_to_role_policy(
+            PolicyStatement(
+                actions=['ses:GetIdentityVerificationAttributes'],
+                resources=['*'],  # SES doesn't support resource-level permissions for this action
+            )
+        )
+        
+        # Add suppressions for CDK Nag
+        from cdk_nag import NagSuppressions
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            path=f'{verification_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to check SES identity verification status.',
+                },
+            ],
+        )
+        
+        # Create a provider for the custom resource
+        verification_provider = Provider(
+            self,
+            'VerificationProvider',
+            on_event_handler=verification_function,
+            log_retention=RetentionDays.ONE_DAY,
+        )
+        
+        # Add suppressions for the provider
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            f'{verification_provider.node.path}/framework-onEvent/Resource',
+            [
+                {'id': 'AwsSolutions-L1', 'reason': 'We do not control this runtime'},
+                {
+                    'id': 'HIPAA.Security-LambdaConcurrency',
+                    'reason': 'This function is only run at deploy time, by CloudFormation and has no need for concurrency limits.',
+                },
+                {
+                    'id': 'HIPAA.Security-LambdaDLQ',
+                    'reason': 'This is a synchronous function run at deploy time. It does not need a DLQ',
+                },
+                {
+                    'id': 'HIPAA.Security-LambdaInsideVPC',
+                    'reason': 'We may choose to move our lambdas into private VPC subnets in a future enhancement',
+                },
+            ],
+        )
+        
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            path=f'{verification_provider.node.path}/framework-onEvent/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The actions in this policy are specifically what this lambda needs to check SES identity verification status.',
+                },
+            ],
+        )
+        
+        NagSuppressions.add_resource_suppressions_by_path(
+            stack,
+            path=f'{verification_provider.node.path}/framework-onEvent/ServiceRole/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM4',
+                    'appliesTo': [
+                        'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+                    ],
+                    'reason': 'This policy is appropriate for the log retention lambda',
+                },
+            ],
+        )
+        
+        # Create the custom resource
+        return CustomResource(
+            self,
+            'VerificationResource',
+            resource_type='Custom::SESIdentityVerification',
+            service_token=verification_provider.service_token,
+            properties={
+                'DomainName': domain_name,
+            },
         )
