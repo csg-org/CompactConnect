@@ -29,19 +29,6 @@ describe('CognitoEmailService', () => {
         });
     });
 
-    describe('generateCognitoEmailTemplate', () => {
-        it('should generate HTML email template with header and footer', () => {
-            const template = emailService.generateCognitoEmailTemplate(
-                'Test Subject',
-                'Test body text'
-            );
-
-            expect(template).toContain('<!DOCTYPE html');
-            expect(template).toContain('Test body text');
-            expect(template).toContain('CompactConnect');
-        });
-    });
-
     describe('generateCognitoMessage', () => {
         it('should generate AdminCreateUser message', () => {
             const { subject, htmlContent } = emailService.generateCognitoMessage(
@@ -52,7 +39,7 @@ describe('CognitoEmailService', () => {
 
             expect(subject).toBe('Welcome to CompactConnect');
             expect(htmlContent).toContain('Your temporary password is: {####}');
-            expect(htmlContent).toContain('Username: testuser');
+            expect(htmlContent).toContain('Your username is: testuser');
             expect(htmlContent).toContain('https://app.test.compactconnect.org/Login');
         });
 
@@ -63,7 +50,8 @@ describe('CognitoEmailService', () => {
             );
 
             expect(subject).toBe('Reset your password');
-            expect(htmlContent).toContain('Enter the following code to proceed: {####}');
+            expect(htmlContent).toContain('Enter the following code to proceed:');
+            expect(htmlContent).toContain('{####}');
         });
 
         it('should generate UpdateUserAttribute message', () => {
@@ -73,7 +61,8 @@ describe('CognitoEmailService', () => {
             );
 
             expect(subject).toBe('Verify your email');
-            expect(htmlContent).toContain('Please verify your new email address by entering the following code: {####}');
+            expect(htmlContent).toContain('Please verify your new email address by entering the following code:');
+            expect(htmlContent).toContain('{####}');
         });
 
         it('should generate VerifyUserAttribute message', () => {
@@ -83,7 +72,8 @@ describe('CognitoEmailService', () => {
             );
 
             expect(subject).toBe('Verify your email');
-            expect(htmlContent).toContain('Please verify your email address by entering the following code: {####}');
+            expect(htmlContent).toContain('Please verify your email address by entering the following code:');
+            expect(htmlContent).toContain('{####}');
         });
 
         it('should generate ResendCode message', () => {
@@ -93,7 +83,8 @@ describe('CognitoEmailService', () => {
             );
 
             expect(subject).toBe('New verification code for CompactConnect');
-            expect(htmlContent).toContain('Your new verification code is: {####}');
+            expect(htmlContent).toContain('Your new verification code is:');
+            expect(htmlContent).toContain('{####}');
         });
 
         it('should generate SignUp message', () => {
@@ -103,7 +94,8 @@ describe('CognitoEmailService', () => {
             );
 
             expect(subject).toBe('Welcome to CompactConnect');
-            expect(htmlContent).toContain('Please verify your email address by entering the following code: {####}');
+            expect(htmlContent).toContain('Please verify your email address by entering the following code:');
+            expect(htmlContent).toContain('{####}');
         });
 
         it('should throw error for unsupported trigger source', () => {

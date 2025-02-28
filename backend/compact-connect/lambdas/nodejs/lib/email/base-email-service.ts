@@ -4,7 +4,7 @@ import * as nodemailer from 'nodemailer';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { SendEmailCommand, SendRawEmailCommand, SESClient } from '@aws-sdk/client-ses';
 import { S3Client } from '@aws-sdk/client-s3';
-import { renderToStaticMarkup, TReaderDocument } from '@usewaypoint/email-builder';
+import { TReaderDocument } from '@usewaypoint/email-builder';
 import { CompactConfigurationClient } from '../compact-configuration-client';
 import { JurisdictionClient } from '../jurisdiction-client';
 import { EnvironmentVariablesService } from '../environment-variables-service';
@@ -204,7 +204,7 @@ export abstract class BaseEmailService {
             'type': 'Text',
             'data': {
                 'style': {
-                    'color': '#2459A9',
+                    'color': '#09122B',
                     'fontSize': 18,
                     'fontWeight': 'bold',
                     'textAlign': 'center',
@@ -290,7 +290,7 @@ export abstract class BaseEmailService {
                 },
                 'style': {
                     'textAlign': 'center',
-                    'color': '#242424',
+                    'color': '#09122B',
                     'padding': {
                         'top': 28,
                         'bottom': 12,
@@ -306,7 +306,7 @@ export abstract class BaseEmailService {
     }
 
     protected insertBody(report: TReaderDocument, bodyText: string) {
-        const blockId = `block-body`;
+        const blockId = `block-${crypto.randomUUID()}`;
 
         report[blockId] = {
             'type': 'Text',
@@ -314,7 +314,7 @@ export abstract class BaseEmailService {
                 'style': {
                     'fontSize': 16,
                     'fontWeight': 'normal',
-                    'color': '#A3A3A3',
+                    'color': '#09122B',
                     'padding': {
                         'top': 24,
                         'bottom': 24,
@@ -332,7 +332,7 @@ export abstract class BaseEmailService {
     }
 
     protected insertMarkdownBody(report: TReaderDocument, bodyText: string) {
-        const blockId = `block-markdown-body`;
+        const blockId = `block-${crypto.randomUUID()}`;
 
         report[blockId] = {
             'type': 'Text',
@@ -341,7 +341,7 @@ export abstract class BaseEmailService {
                     'fontSize': 16,
                     'fontWeight': 'normal',
                     'textAlign': 'left',
-                    'color': '#A3A3A3',
+                    'color': '#09122B',
                     'padding': {
                         'top': 24,
                         'bottom': 24,

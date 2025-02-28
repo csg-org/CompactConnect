@@ -3,6 +3,7 @@ from __future__ import annotations
 from aws_cdk import Duration
 from aws_cdk.aws_cognito import (
     ClientAttributes,
+    SignInAliases,
     StandardAttribute,
     StandardAttributes,
     StringAttribute,
@@ -43,7 +44,7 @@ class ProviderUsers(UserPool):
             encryption_key=encryption_key,
             removal_policy=removal_policy,
             email=user_pool_email,
-            sign_in_aliases=None,
+            sign_in_aliases=SignInAliases(email=True, username=False),
             standard_attributes=self._configure_user_pool_standard_attributes(),
             custom_attributes={
                 # these fields are required in order for the provider to be able to query

@@ -15,7 +15,6 @@ from aws_cdk.aws_cognito import (
 )
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
-from common_constructs.data_migration import DataMigration
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
 from common_constructs.user_pool import UserPool
@@ -56,27 +55,6 @@ class StaffUsers(UserPool):
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
 
         self.user_table = UsersTable(self, 'UsersTable', encryption_key=encryption_key, removal_policy=removal_policy)
-        read_migration_391 = DataMigration(
-            self,
-            '391ReadMigration',
-            migration_dir='391_staff_user_read',
-            lambda_environment={
-                'USERS_TABLE_NAME': self.user_table.table_name,
-            },
-        )
-        self.user_table.grant_read_write_data(read_migration_391)
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            f'{read_migration_391.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """This policy contains wild-carded actions and resources but they are scoped to the
-                              specific actions, Table, and KMS Key that this lambda specifically needs access to.
-                              """,
-                },
-            ],
-        )
         self._add_resource_servers()
         self._add_scope_customization(stack=stack)
         self._add_custom_message_lambda(stack=stack, environment_name=environment_name)
