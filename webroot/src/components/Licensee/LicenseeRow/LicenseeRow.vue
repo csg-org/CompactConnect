@@ -71,7 +71,7 @@
             :role="(isHeaderRow) ? 'columnheader' : 'cell'"
         >
             <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.homeState') }}:</span>
-            {{ item.licenseStatesDisplay() }}
+            {{ item.homeStateDisplay() }}
             <span v-if="isSortOptionEnabled('stateOfLicense')" class="sort-icon" :class="{
                 'is-selected': isSortOptionSelected('stateOfLicense'),
                 'asc': isSortOptionAscending('stateOfLicense'),
@@ -94,7 +94,7 @@
                 'desc': isSortOptionDescending('practicingLocations'),
             }"></span>
         </div>
-        <div
+        <!-- <div
             class="cell status"
             :class="{ 'is-sort-enabled': isSortOptionEnabled('status') }"
             @click="isSortOptionEnabled('status') && handleSortSelect('status')"
@@ -109,7 +109,7 @@
                 'asc': isSortOptionAscending('status'),
                 'desc': isSortOptionDescending('status'),
             }"></span>
-        </div>
+        </div> -->
     </div>
 </template>
 

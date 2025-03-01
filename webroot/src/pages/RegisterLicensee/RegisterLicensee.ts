@@ -165,9 +165,9 @@ class RegisterLicensee extends mixins(MixinForm) {
                 validation: Joi.string().required().messages(this.joiMessages.string),
                 valueOptions: this.stateOptions,
             }),
-            licenseType: new FormInput({
-                id: 'license-type',
-                name: 'license-type',
+            occupation: new FormInput({
+                id: 'occupation',
+                name: 'occupation',
                 label: computed(() => this.$t('licensing.licenseType')),
                 validation: Joi.string().required().messages(this.joiMessages.string),
                 valueOptions: this.occupationOptions,
@@ -211,15 +211,15 @@ class RegisterLicensee extends mixins(MixinForm) {
         ssnLastFour.value = format(ssnLastFour.value);
     }
 
-    getCompactFromLicenseType(): string {
-        const { licenseType: selectedLicenseType } = this.formValues;
+    getCompactFromOccupation(): string {
+        const { occupation: selectedOccupation } = this.formValues;
         const occupations = this.$tm('licensing.occupations');
         let compactType = '';
 
-        if (selectedLicenseType) {
-            const selectedOccupation = occupations.find((occupation) => occupation.key === selectedLicenseType);
+        if (selectedOccupation) {
+            const foundOccupation = occupations.find((occupation) => occupation.key === selectedOccupation);
 
-            compactType = selectedOccupation.compactKey;
+            compactType = foundOccupation.compactKey;
         }
 
         return compactType;
@@ -231,7 +231,7 @@ class RegisterLicensee extends mixins(MixinForm) {
         if (this.isFormValid) {
             this.startFormLoading();
 
-            const compact = this.getCompactFromLicenseType();
+            const compact = this.getCompactFromOccupation();
             const password = document.getElementById('password') as HTMLInputElement;
 
             if (!compact) {
@@ -279,7 +279,7 @@ class RegisterLicensee extends mixins(MixinForm) {
             ssnLastFour,
             dob,
             licenseState,
-            licenseType,
+            occupation,
         } = this.formValues;
 
         return {
@@ -289,7 +289,7 @@ class RegisterLicensee extends mixins(MixinForm) {
             partialSocial: ssnLastFour,
             dob,
             jurisdiction: licenseState,
-            licenseType,
+            licenseType: occupation,
         };
     }
 
@@ -342,7 +342,7 @@ class RegisterLicensee extends mixins(MixinForm) {
         this.formData.ssnLastFour.value = '';
         this.formData.dob.value = '';
         this.formData.licenseState.value = '';
-        this.formData.licenseType.value = '';
+        this.formData.occupation.value = '';
         this.isFormLoading = false;
         this.isFormSuccessful = false;
         this.isFormError = false;
@@ -357,7 +357,7 @@ class RegisterLicensee extends mixins(MixinForm) {
         this.formData.ssnLastFour.value = '1234';
         this.formData.dob.value = '2000-01-01';
         this.formData.licenseState.value = this.stateOptions[1]?.value || 'co';
-        this.formData.licenseType.value = this.occupationOptions[1]?.value || 'audiologist';
+        this.formData.occupation.value = this.occupationOptions[1]?.value || 'audiologist';
         this.validateAll({ asTouched: true });
     }
 }

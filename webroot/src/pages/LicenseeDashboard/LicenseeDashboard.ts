@@ -75,18 +75,8 @@ export default class LicenseeDashboard extends Vue {
         return name;
     }
 
-    get homeStateList(): Array<State> {
-        const stateList: Array<State> = [];
-
-        this.activeLicenses.forEach((license) => {
-            const { issueState } = license;
-
-            if (issueState) {
-                stateList.push(issueState);
-            }
-        });
-
-        return stateList;
+    get homeState(): State | null {
+        return this.licensee?.homeState || null;
     }
 
     get obtainPrivButtonLabel(): string {
@@ -101,20 +91,8 @@ export default class LicenseeDashboard extends Vue {
         return this.$t('common.welcome');
     }
 
-    get activeLicenses(): Array<License> {
-        return this.licenseeLicenses.filter((license) => (license.statusState === 'active'));
-    }
-
-    get hasMoreThanOneActiveLicense(): boolean {
-        return this.activeLicenses.length > 1;
-    }
-
-    get isPrivilegePurchaseDisabled(): boolean {
-        return this.hasMoreThanOneActiveLicense || !this.hasActiveLicense;
-    }
-
-    get hasActiveLicense(): boolean {
-        return this.activeLicenses.length > 0;
+    get isPrivilegePurchaseEnabled(): boolean {
+        return this.licensee?.canPurchasePrivileges() || false;
     }
 
     get twoHomeStateErrorText(): string {

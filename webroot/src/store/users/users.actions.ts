@@ -129,10 +129,10 @@ export default {
         compact,
         licenseeId,
         privilegeState,
-        licenseType
+        occupation
     }: any) => {
         commit(MutationTypes.DELETE_PRIVILEGE_REQUEST);
-        return dataApi.deletePrivilege(compact, licenseeId, privilegeState, licenseType).then(async (response) => {
+        return dataApi.deletePrivilege(compact, licenseeId, privilegeState, occupation).then(async (response) => {
             dispatch('deletePrivilegeSuccess');
 
             return response;

@@ -96,13 +96,10 @@
                                 <div class="info-row-label">{{compactCommissionFeeText}}</div>
                                 <div class="info-row-amount">${{totalCompactCommissionFeeDisplay}}</div>
                             </div>
-                        </div>
-                        <div v-if="isPerPrivilegeTransactionFeeActive" class="cost-section">
-                            <div class="section-title">{{feesText}}</div>
-                                <div class="info-row">
-                                    <div class="info-row-label">{{creditCardFeesText}}</div>
-                                    <div class="info-row-amount">${{creditCardFeesTotalDisplay}}</div>
-                                </div>
+                            <div v-if="isPerPrivilegeTransactionFeeActive" class="info-row">
+                                <div class="info-row-label">{{creditCardFeesText}}</div>
+                                <div class="info-row-amount">${{creditCardFeesTotalDisplay}}</div>
+                            </div>
                         </div>
                         <div class="purchase-total info-row">
                             <div class="info-row-label total">{{totalTitle}}</div>

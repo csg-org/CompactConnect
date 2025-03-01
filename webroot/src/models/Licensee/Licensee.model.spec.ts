@@ -95,6 +95,108 @@ describe('Licensee model', () => {
             licenseStates: [new State()],
             licenses: [
                 new License({
+                    issueState: new State({ abrrev: 'co' }),
+                    mailingAddress: new Address({
+                        street1: 'test-street1',
+                        street2: 'test-street2',
+                        city: 'test-city',
+                        state: 'co',
+                        zip: 'test-zip'
+                    }),
+                    licenseNumber: '1',
+                    statusState: 'active'
+                }),
+                new License({
+                    issueState: new State({ abrrev: 'co' }),
+                    mailingAddress: new Address({
+                        street1: 'test-street1',
+                        street2: 'test-street2',
+                        city: 'test-city',
+                        state: 'co',
+                        zip: 'test-zip'
+                    }),
+                    licenseNumber: '2',
+                    statusState: 'inactive'
+                }),
+                new License(),
+            ],
+            privilegeStates: [new State()],
+            privileges: [
+                new License(),
+            ],
+            lastUpdated: '2020-01-01',
+            status: LicenseeStatus.ACTIVE,
+        };
+        const licensee = new Licensee(data);
+
+        // Test field values
+        expect(licensee).to.be.an.instanceof(Licensee);
+        expect(licensee.id).to.equal(data.id);
+        expect(licensee.npi).to.equal(data.npi);
+        expect(licensee.licenseNumber).to.equal(data.licenseNumber);
+        expect(licensee.phoneNumber).to.equal(data.phoneNumber);
+        expect(licensee.firstName).to.equal(data.firstName);
+        expect(licensee.middleName).to.equal(data.middleName);
+        expect(licensee.lastName).to.equal(data.lastName);
+        expect(licensee.phoneNumber).to.equal(data.phoneNumber);
+        expect(licensee.homeJurisdiction).to.be.an.instanceof(State);
+        expect(licensee.address).to.be.an.instanceof(Address);
+        expect(licensee.dob).to.equal(data.dob);
+        expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
+        expect(licensee.ssn).to.equal(data.ssn);
+        expect(licensee.occupation).to.equal(data.occupation);
+        expect(licensee.licenseStates).to.be.an('array').with.length(1);
+        expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
+        expect(licensee.licenses).to.be.an('array').with.length(3);
+        expect(licensee.licenses[0]).to.be.an.instanceof(License);
+        expect(licensee.privilegeStates).to.be.an('array').with.length(1);
+        expect(licensee.privilegeStates[0]).to.be.an.instanceof(State);
+        expect(licensee.privileges).to.be.an('array').with.length(1);
+        expect(licensee.privileges[0]).to.be.an.instanceof(License);
+        expect(licensee.lastUpdated).to.equal(data.lastUpdated);
+        expect(licensee.status).to.equal(data.status);
+
+        // Test methods
+        expect(licensee.nameDisplay()).to.equal(`${data.firstName} ${data.lastName}`);
+
+        expect(licensee.phoneNumberDisplay()).to.equal('+1 323-455-8990');
+        expect(licensee.bestHomeStateLicense()).to.be.an.instanceof(License);
+        expect(licensee.bestHomeStateLicense().licenseNumber).to.equal('1');
+        expect(licensee.bestHomeStateLicenseMailingAddress()).to.be.an.instanceof(Address);
+
+        expect(licensee.isMilitary()).to.equal(false);
+        expect(licensee.aciveMilitaryAffiliation()).to.equal(null);
+        expect(licensee.dobDisplay()).to.equal('1/1/2020');
+        expect(licensee.ssnMaskedFull()).to.equal(data.ssn);
+        expect(licensee.ssnMaskedPartial()).to.equal('test-ss-ssn');
+        expect(licensee.lastUpdatedDisplay()).to.equal('1/1/2020');
+        expect(licensee.lastUpdatedDisplayRelative()).to.be.a('string').that.is.not.empty;
+        expect(licensee.getStateListDisplay([])).to.equal('');
+        expect(licensee.licenseStatesDisplay()).to.equal('Unknown, Unknown +');
+        expect(licensee.privilegeStatesAllDisplay()).to.equal('Unknown');
+        expect(licensee.privilegeStatesDisplay()).to.equal('Unknown');
+        expect(licensee.occupationName()).to.equal('Audiologist');
+        expect(licensee.canPurchasePrivileges()).to.equal(false);
+    });
+    it('should create a Licensee with specific values and the ability to purchase privileges', () => {
+        const data = {
+            id: 'test-id',
+            npi: 'test-npi',
+            licenseNumber: 'test-license-number',
+            firstName: 'test-firstName',
+            middleName: 'test-middleName',
+            lastName: 'test-lastName',
+            address: new Address(),
+            phoneNumber: '+13234558990',
+            licenseJurisdiction: 'ma',
+            dob: '2020-01-01',
+            birthMonthDay: '01-16',
+            ssn: 'test-ssn',
+            militaryAffiliations: [new MilitaryAffiliation()],
+            occupation: LicenseOccupation.AUDIOLOGIST,
+            licenseStates: [new State()],
+            licenses: [
+                new License({
                     issueState: new State({ abrrev: 'ma' }),
                     mailingAddress: new Address({
                         street1: 'test-street1',
@@ -176,6 +278,74 @@ describe('Licensee model', () => {
         expect(licensee.privilegeStatesAllDisplay()).to.equal('Unknown');
         expect(licensee.privilegeStatesDisplay()).to.equal('Unknown');
         expect(licensee.occupationName()).to.equal('Audiologist');
+        expect(licensee.canPurchasePrivileges()).to.equal(true);
+    });
+    it('should create a Licensee with specific and cant purchase privileges because they have no licenses', () => {
+        const data = {
+            id: 'test-id',
+            npi: 'test-npi',
+            licenseNumber: 'test-license-number',
+            firstName: 'test-firstName',
+            middleName: 'test-middleName',
+            lastName: 'test-lastName',
+            address: new Address(),
+            phoneNumber: '+13234558990',
+            licenseJurisdiction: 'ma',
+            dob: '2020-01-01',
+            birthMonthDay: '01-16',
+            ssn: 'test-ssn',
+            militaryAffiliations: [new MilitaryAffiliation()],
+            occupation: LicenseOccupation.AUDIOLOGIST,
+            licenseStates: [],
+            licenses: [],
+            privilegeStates: [],
+            privileges: [],
+            lastUpdated: '2020-01-01',
+            status: LicenseeStatus.ACTIVE,
+        };
+        const licensee = new Licensee(data);
+
+        // Test field values
+        expect(licensee).to.be.an.instanceof(Licensee);
+        expect(licensee.id).to.equal(data.id);
+        expect(licensee.npi).to.equal(data.npi);
+        expect(licensee.licenseNumber).to.equal(data.licenseNumber);
+        expect(licensee.phoneNumber).to.equal(data.phoneNumber);
+        expect(licensee.firstName).to.equal(data.firstName);
+        expect(licensee.middleName).to.equal(data.middleName);
+        expect(licensee.lastName).to.equal(data.lastName);
+        expect(licensee.phoneNumber).to.equal(data.phoneNumber);
+        expect(licensee.homeJurisdiction).to.be.an.instanceof(State);
+        expect(licensee.address).to.be.an.instanceof(Address);
+        expect(licensee.dob).to.equal(data.dob);
+        expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
+        expect(licensee.ssn).to.equal(data.ssn);
+        expect(licensee.occupation).to.equal(data.occupation);
+        expect(licensee.licenseStates).to.be.an('array').with.length(0);
+        expect(licensee.licenses).to.be.an('array').with.length(0);
+        expect(licensee.privilegeStates).to.be.an('array').with.length(0);
+        expect(licensee.privileges).to.be.an('array').with.length(0);
+        expect(licensee.lastUpdated).to.equal(data.lastUpdated);
+        expect(licensee.status).to.equal(data.status);
+
+        // Test methods
+        expect(licensee.nameDisplay()).to.equal(`${data.firstName} ${data.lastName}`);
+
+        expect(licensee.phoneNumberDisplay()).to.equal('+1 323-455-8990');
+
+        expect(licensee.isMilitary()).to.equal(false);
+        expect(licensee.aciveMilitaryAffiliation()).to.equal(null);
+        expect(licensee.dobDisplay()).to.equal('1/1/2020');
+        expect(licensee.ssnMaskedFull()).to.equal(data.ssn);
+        expect(licensee.ssnMaskedPartial()).to.equal('test-ss-ssn');
+        expect(licensee.lastUpdatedDisplay()).to.equal('1/1/2020');
+        expect(licensee.lastUpdatedDisplayRelative()).to.be.a('string').that.is.not.empty;
+        expect(licensee.getStateListDisplay([])).to.equal('');
+        expect(licensee.licenseStatesDisplay()).to.equal('Unknown, Unknown +');
+        expect(licensee.privilegeStatesAllDisplay()).to.equal('Unknown');
+        expect(licensee.privilegeStatesDisplay()).to.equal('Unknown');
+        expect(licensee.occupationName()).to.equal('Audiologist');
+        expect(licensee.canPurchasePrivileges()).to.equal(false);
     });
     it('should create a Licensee with specific values (active military) through serializer', () => {
         const data = {

@@ -58,6 +58,7 @@ export interface InterfaceLicense {
 // =                        Model                         =
 // ========================================================
 export class License implements InterfaceLicense {
+    // This model is used to represent both privileges and licenses as their shape almost entirely overlaps
     public $tm?: any = () => [];
     public id? = null;
     public compact? = null;
@@ -109,6 +110,7 @@ export class License implements InterfaceLicense {
         return Boolean(diff > 0);
     }
 
+    // Relevant for License only until occupation is included in privilege return
     public occupationName(): string {
         const occupations = this.$tm('licensing.occupations') || [];
         const occupation = occupations.find((translate) => translate.key === this.occupation);
@@ -132,6 +134,8 @@ export class License implements InterfaceLicense {
 // ========================================================
 export class LicenseSerializer {
     static fromServer(json: any): License {
+        console.log(Boolean(json.type === 'privilege'), json);
+
         const licenseData = {
             id: json.id,
             compact: new Compact({ type: json.compact }),
@@ -147,14 +151,13 @@ export class LicenseSerializer {
             issueState: new State({ abbrev: json.jurisdiction || json.licenseJurisdiction }),
             issueDate: json.dateOfIssuance,
             npi: json.npi,
-            licenseNumber: json.licenseNumber,
-            privilegeId: json.privilegeId,
+            licenseNumber: json.licenseNumber, // License field only
+            privilegeId: json.privilegeId, // Privilege field only
             renewalDate: json.dateOfRenewal,
             expireDate: json.dateOfExpiration,
-            occupation: json.licenseType,
-            statusState: json.status,
+            occupation: json.licenseType, // License field only for now, will eventually be included in privileges
+            status: json.status,
             history: [] as Array <LicenseHistoryItem>,
-            statusCompact: json.status, // In the near future, the server will send a separate field for this
         };
 
         if (Array.isArray(json.history)) {

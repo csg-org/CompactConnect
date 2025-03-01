@@ -6,7 +6,12 @@
 -->
 
 <template>
-    <svg class="license" viewBox="0 0 19 16" xmlns="http://www.w3.org/2000/svg">
+    <svg
+        :alt="$t('licensing.licenseIcon')"
+        class="license"
+        viewBox="0 0 19 16"
+        xmlns="http://www.w3.org/2000/svg"
+    >
         <path fill-rule="evenodd" clip-rule="evenodd" d="M2.4436 15.6226C1.47711 15.6226 0.693604 14.8391
         0.693604 13.8726L0.693604 2.16699C0.693604 1.20049 1.47711 0.416993 2.4436 0.416993L17.2284
         0.416992C18.1949 0.416992 18.9784 1.20049 18.9784 2.16699V13.8726C18.9784 14.8391 18.1949
