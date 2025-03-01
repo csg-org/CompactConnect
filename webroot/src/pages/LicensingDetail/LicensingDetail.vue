@@ -103,51 +103,6 @@
                     <MilitaryAffiliationInfoBlock
                         :licensee="licensee"
                     />
-                    <!-- <div class="core-info-block">
-                        <div class="info-row">
-                            <div class="chunk">
-                                <div class="chunk-title">{{militaryStatusTitleText}}</div>
-                                <div class="chunk-text">{{militaryStatus}}</div>
-                            </div>
-                            <div class="chunk affiliation-type">
-                                <div class="chunk-title">{{affiliationTypeTitle}}</div>
-                                <div class="chunk-text">{{affiliationType}}</div>
-                            </div>
-                        </div>
-                        <div class="chunk">
-                            <div class="chunk-title">{{militaryAffilitionDocs}}</div>
-                            <div class="prev-doc-table">
-                                <ListContainer
-                                    listId="military-affiliations"
-                                    :listData="this.affiliations"
-                                    :listSize="this.affiliations.length"
-                                    :sortOptions="sortOptions"
-                                    :sortChange="sortingChange"
-                                    :pageChange="paginationChange"
-                                    :excludeSorting="true"
-                                    :excludeTopPagination="true"
-                                    :excludeBottomPagination="true"
-                                    :isServerPaging="false"
-                                    :emptyListMessage="$t('military.noUploadedDocuments')"
-                                    :isLoading="$store.state.user.isLoadingAccount"
-                                >
-                                    <template v-slot:headers>
-                                        <MilitaryDocumentRow
-                                            :item="militaryDocumentHeader"
-                                            :isHeaderRow="true"
-                                        />
-                                    </template>
-                                    <template v-slot:list>
-                                        <MilitaryDocumentRow
-                                            v-for="(record, index) in this.affiliations"
-                                            :key="index"
-                                            :item="record"
-                                        />
-                                    </template>
-                                </ListContainer>
-                            </div>
-                        </div>
-                    </div> -->
                 </div>
             </div>
             <div class="license-section">
