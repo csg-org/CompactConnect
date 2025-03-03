@@ -94,7 +94,7 @@
                 'desc': isSortOptionDescending('practicingLocations'),
             }"></span>
         </div>
-        <!-- <div
+        <div
             class="cell status"
             :class="{ 'is-sort-enabled': isSortOptionEnabled('status') }"
             @click="isSortOptionEnabled('status') && handleSortSelect('status')"
@@ -109,7 +109,7 @@
                 'asc': isSortOptionAscending('status'),
                 'desc': isSortOptionDescending('status'),
             }"></span>
-        </div> -->
+        </div>
     </div>
 </template>
 

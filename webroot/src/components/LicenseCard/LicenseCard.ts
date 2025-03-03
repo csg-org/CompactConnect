@@ -39,7 +39,7 @@ class LicenseCard extends Vue {
     }
 
     get isActive(): boolean {
-        return Boolean(this.license && this.license.statusState === LicenseStatus.ACTIVE);
+        return Boolean(this.license && this.license.status === LicenseStatus.ACTIVE);
     }
 
     get state(): State | null {

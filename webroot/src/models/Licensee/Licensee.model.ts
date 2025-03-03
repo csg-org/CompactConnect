@@ -185,7 +185,7 @@ export class Licensee implements InterfaceLicensee {
         let stateNames: Array<string> = [];
 
         if (this.privileges?.length) {
-            stateNames = this.privileges.filter((privilege: License) => (privilege.statusState === LicenseStatus.ACTIVE)).map((privilege: License) => privilege?.issueState?.name() || '');
+            stateNames = this.privileges.filter((privilege: License) => (privilege?.status === LicenseStatus.ACTIVE)).map((privilege: License) => privilege?.issueState?.name() || '');
         } else {
             stateNames = this.privilegeStates?.map((state: State) => state.name()) || [];
         }
@@ -232,9 +232,9 @@ export class Licensee implements InterfaceLicensee {
         const homeStateLicenses = this.licenses?.filter((license: License) =>
             (license.issueState?.abbrev === this.homeState?.abbrev)) || [];
         const activeHomeStateLicenses = homeStateLicenses.filter((license: License) =>
-            (license.statusState === LicenseStatus.ACTIVE));
+            (license.status === LicenseStatus.ACTIVE));
         const inactiveHomeStateLicenses = homeStateLicenses.filter((license: License) =>
-            (license.statusState === LicenseStatus.INACTIVE));
+            (license.status === LicenseStatus.INACTIVE));
 
         if (activeHomeStateLicenses.length) {
             bestHomeLicense = activeHomeStateLicenses.reduce(function getMostRecent(prev: License, current: License) {
@@ -255,9 +255,12 @@ export class Licensee implements InterfaceLicensee {
 
     public canPurchasePrivileges(): boolean {
         // Return true if the user has an active license in their chosen homestate
+        const homeStateAbbrev = this.homeState?.abbrev;
+
         return this.licenses?.some((license: License) =>
-            (license.issueState?.abbrev === this.homeState?.abbrev
-                && license.statusState === LicenseStatus.ACTIVE)) || false;
+            (homeStateAbbrev
+                && license.issueState?.abbrev === homeStateAbbrev
+                && license.status === LicenseStatus.ACTIVE)) || false;
     }
 }
 

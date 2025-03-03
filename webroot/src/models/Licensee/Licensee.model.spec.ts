@@ -41,11 +41,11 @@ describe('Licensee model', () => {
         expect(licensee.npi).to.equal(null);
         expect(licensee.licenseNumber).to.equal(null);
         expect(licensee.phoneNumber).to.equal(null);
-        expect(licensee.homeJurisdiction).to.be.an.instanceof(State);
+        expect(licensee.homeState).to.be.an.instanceof(State);
         expect(licensee.firstName).to.equal(null);
         expect(licensee.middleName).to.equal(null);
         expect(licensee.lastName).to.equal(null);
-        expect(licensee.address).to.be.an.instanceof(Address);
+        expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.dob).to.equal(null);
         expect(licensee.birthMonthDay).to.equal(null);
         expect(licensee.ssn).to.equal(null);
@@ -86,7 +86,7 @@ describe('Licensee model', () => {
             lastName: 'test-lastName',
             address: new Address(),
             phoneNumber: '+13234558990',
-            homeJurisdiction: new State({ abrrev: 'ma' }),
+            homeState: new State({ abbrev: 'ma' }),
             dob: '2020-01-01',
             birthMonthDay: '01-16',
             ssn: 'test-ssn',
@@ -95,7 +95,7 @@ describe('Licensee model', () => {
             licenseStates: [new State()],
             licenses: [
                 new License({
-                    issueState: new State({ abrrev: 'co' }),
+                    issueState: new State({ abbrev: 'co' }),
                     mailingAddress: new Address({
                         street1: 'test-street1',
                         street2: 'test-street2',
@@ -104,10 +104,10 @@ describe('Licensee model', () => {
                         zip: 'test-zip'
                     }),
                     licenseNumber: '1',
-                    statusState: 'active'
+                    status: 'active'
                 }),
                 new License({
-                    issueState: new State({ abrrev: 'co' }),
+                    issueState: new State({ abbrev: 'co' }),
                     mailingAddress: new Address({
                         street1: 'test-street1',
                         street2: 'test-street2',
@@ -116,7 +116,7 @@ describe('Licensee model', () => {
                         zip: 'test-zip'
                     }),
                     licenseNumber: '2',
-                    statusState: 'inactive'
+                    status: 'inactive'
                 }),
                 new License(),
             ],
@@ -139,8 +139,8 @@ describe('Licensee model', () => {
         expect(licensee.middleName).to.equal(data.middleName);
         expect(licensee.lastName).to.equal(data.lastName);
         expect(licensee.phoneNumber).to.equal(data.phoneNumber);
-        expect(licensee.homeJurisdiction).to.be.an.instanceof(State);
-        expect(licensee.address).to.be.an.instanceof(Address);
+        expect(licensee.homeState).to.be.an.instanceof(State);
+        expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.dob).to.equal(data.dob);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.ssn).to.equal(data.ssn);
@@ -161,7 +161,7 @@ describe('Licensee model', () => {
 
         expect(licensee.phoneNumberDisplay()).to.equal('+1 323-455-8990');
         expect(licensee.bestHomeStateLicense()).to.be.an.instanceof(License);
-        expect(licensee.bestHomeStateLicense().licenseNumber).to.equal('1');
+        expect(licensee.bestHomeStateLicense().licenseNumber).to.equal(null);
         expect(licensee.bestHomeStateLicenseMailingAddress()).to.be.an.instanceof(Address);
 
         expect(licensee.isMilitary()).to.equal(false);
@@ -172,9 +172,9 @@ describe('Licensee model', () => {
         expect(licensee.lastUpdatedDisplay()).to.equal('1/1/2020');
         expect(licensee.lastUpdatedDisplayRelative()).to.be.a('string').that.is.not.empty;
         expect(licensee.getStateListDisplay([])).to.equal('');
-        expect(licensee.licenseStatesDisplay()).to.equal('Unknown, Unknown +');
+        expect(licensee.licenseStatesDisplay()).to.equal('Colorado, Colorado +');
         expect(licensee.privilegeStatesAllDisplay()).to.equal('Unknown');
-        expect(licensee.privilegeStatesDisplay()).to.equal('Unknown');
+        expect(licensee.privilegeStatesDisplay()).to.equal('');
         expect(licensee.occupationName()).to.equal('Audiologist');
         expect(licensee.canPurchasePrivileges()).to.equal(false);
     });
@@ -188,7 +188,7 @@ describe('Licensee model', () => {
             lastName: 'test-lastName',
             address: new Address(),
             phoneNumber: '+13234558990',
-            licenseJurisdiction: 'ma',
+            homeState: new State({ abbrev: 'ma' }),
             dob: '2020-01-01',
             birthMonthDay: '01-16',
             ssn: 'test-ssn',
@@ -197,7 +197,7 @@ describe('Licensee model', () => {
             licenseStates: [new State()],
             licenses: [
                 new License({
-                    issueState: new State({ abrrev: 'ma' }),
+                    issueState: new State({ abbrev: 'ma' }),
                     mailingAddress: new Address({
                         street1: 'test-street1',
                         street2: 'test-street2',
@@ -206,10 +206,10 @@ describe('Licensee model', () => {
                         zip: 'test-zip'
                     }),
                     licenseNumber: '1',
-                    statusState: 'active'
+                    status: 'active'
                 }),
                 new License({
-                    issueState: new State({ abrrev: 'ma' }),
+                    issueState: new State({ abbrev: 'ma' }),
                     mailingAddress: new Address({
                         street1: 'test-street1',
                         street2: 'test-street2',
@@ -218,7 +218,7 @@ describe('Licensee model', () => {
                         zip: 'test-zip'
                     }),
                     licenseNumber: '2',
-                    statusState: 'inactive'
+                    status: 'inactive'
                 }),
                 new License(),
             ],
@@ -241,8 +241,8 @@ describe('Licensee model', () => {
         expect(licensee.middleName).to.equal(data.middleName);
         expect(licensee.lastName).to.equal(data.lastName);
         expect(licensee.phoneNumber).to.equal(data.phoneNumber);
-        expect(licensee.homeJurisdiction).to.be.an.instanceof(State);
-        expect(licensee.address).to.be.an.instanceof(Address);
+        expect(licensee.homeState).to.be.an.instanceof(State);
+        expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.dob).to.equal(data.dob);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.ssn).to.equal(data.ssn);
@@ -274,9 +274,9 @@ describe('Licensee model', () => {
         expect(licensee.lastUpdatedDisplay()).to.equal('1/1/2020');
         expect(licensee.lastUpdatedDisplayRelative()).to.be.a('string').that.is.not.empty;
         expect(licensee.getStateListDisplay([])).to.equal('');
-        expect(licensee.licenseStatesDisplay()).to.equal('Unknown, Unknown +');
+        expect(licensee.licenseStatesDisplay()).to.equal('Massachusetts, Massachusetts +');
         expect(licensee.privilegeStatesAllDisplay()).to.equal('Unknown');
-        expect(licensee.privilegeStatesDisplay()).to.equal('Unknown');
+        expect(licensee.privilegeStatesDisplay()).to.equal('');
         expect(licensee.occupationName()).to.equal('Audiologist');
         expect(licensee.canPurchasePrivileges()).to.equal(true);
     });
@@ -315,8 +315,8 @@ describe('Licensee model', () => {
         expect(licensee.middleName).to.equal(data.middleName);
         expect(licensee.lastName).to.equal(data.lastName);
         expect(licensee.phoneNumber).to.equal(data.phoneNumber);
-        expect(licensee.homeJurisdiction).to.be.an.instanceof(State);
-        expect(licensee.address).to.be.an.instanceof(Address);
+        expect(licensee.homeState).to.be.an.instanceof(State);
+        expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.dob).to.equal(data.dob);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.ssn).to.equal(data.ssn);
@@ -341,9 +341,9 @@ describe('Licensee model', () => {
         expect(licensee.lastUpdatedDisplay()).to.equal('1/1/2020');
         expect(licensee.lastUpdatedDisplayRelative()).to.be.a('string').that.is.not.empty;
         expect(licensee.getStateListDisplay([])).to.equal('');
-        expect(licensee.licenseStatesDisplay()).to.equal('Unknown, Unknown +');
-        expect(licensee.privilegeStatesAllDisplay()).to.equal('Unknown');
-        expect(licensee.privilegeStatesDisplay()).to.equal('Unknown');
+        expect(licensee.licenseStatesDisplay()).to.equal('');
+        expect(licensee.privilegeStatesAllDisplay()).to.equal('');
+        expect(licensee.privilegeStatesDisplay()).to.equal('');
         expect(licensee.occupationName()).to.equal('Audiologist');
         expect(licensee.canPurchasePrivileges()).to.equal(false);
     });
@@ -483,7 +483,7 @@ describe('Licensee model', () => {
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.ssn).to.equal(data.ssn);
         expect(licensee.occupation).to.equal(data.licenseType);
-        expect(licensee.address).to.be.an.instanceof(Address);
+        expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
         expect(licensee.licenses).to.be.an('array').with.length(4);
@@ -638,7 +638,7 @@ describe('Licensee model', () => {
         expect(licensee.dob).to.equal(data.dateOfBirth);
         expect(licensee.ssn).to.equal(data.ssn);
         expect(licensee.occupation).to.equal(data.licenseType);
-        expect(licensee.address).to.be.an.instanceof(Address);
+        expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
         expect(licensee.licenses).to.be.an('array').with.length(2);
@@ -798,7 +798,7 @@ describe('Licensee model', () => {
         expect(licensee.dob).to.equal(data.dateOfBirth);
         expect(licensee.ssn).to.equal(data.ssn);
         expect(licensee.occupation).to.equal(data.licenseType);
-        expect(licensee.address).to.be.an.instanceof(Address);
+        expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
         expect(licensee.licenses).to.be.an('array').with.length(3);
@@ -862,12 +862,12 @@ describe('Licensee model', () => {
     });
     it('should create a Licensee with null address fallbacks', () => {
         const data = {
-            address: null,
+            homeJurisdictionLicenseAddress: null,
         };
         const licensee = new Licensee(data);
 
         // Test field values
-        expect(licensee.address).equal(data.address);
+        expect(licensee.homeJurisdictionLicenseAddress).equal(data.homeJurisdictionLicenseAddress);
     });
     it('should create a Licensee with empty state name fallbacks', () => {
         const licensee = new Licensee();

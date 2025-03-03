@@ -50,8 +50,7 @@ export interface InterfaceLicense {
     privilegeId?: string | null;
     occupation?: LicenseOccupation | null,
     history?: Array<LicenseHistoryItem>,
-    statusState?: LicenseStatus,
-    statusCompact?: LicenseStatus,
+    status?: LicenseStatus,
 }
 
 // ========================================================
@@ -74,8 +73,7 @@ export class License implements InterfaceLicense {
     public expireDate? = null;
     public occupation? = null;
     public history? = [];
-    public statusState? = LicenseStatus.INACTIVE;
-    public statusCompact? = LicenseStatus.INACTIVE;
+    public status? = LicenseStatus.INACTIVE;
 
     constructor(data?: InterfaceLicense) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -134,8 +132,6 @@ export class License implements InterfaceLicense {
 // ========================================================
 export class LicenseSerializer {
     static fromServer(json: any): License {
-        console.log(Boolean(json.type === 'privilege'), json);
-
         const licenseData = {
             id: json.id,
             compact: new Compact({ type: json.compact }),

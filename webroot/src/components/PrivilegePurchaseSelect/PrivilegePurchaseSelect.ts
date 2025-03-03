@@ -150,10 +150,6 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         return this.licensee?.licenses || [];
     }
 
-    // get bestHomeStateLicense(): License {
-    //     return this.licensee?.bestHomeStateLicense();
-    // }
-
     get disabledPrivilegeStateChoices(): Array<string> {
         const disabledStateList: Array<string> = [];
         const { privilegeList } = this;
@@ -164,7 +160,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
                 if (
                     privilege?.issueState?.abbrev
                     && moment(privilege?.expireDate).isSameOrAfter(bestHomeStateLicense.expireDate)
-                    && privilege.statusState === LicenseStatus.ACTIVE
+                    && privilege.status === LicenseStatus.ACTIVE
                 ) {
                     disabledStateList.push(privilege?.issueState?.abbrev);
                 }
@@ -249,7 +245,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
     }
 
     get activeLicense(): License | null {
-        return this.licenseList?.find((license) => license.statusState === LicenseStatus.ACTIVE) || null;
+        return this.licenseList?.find((license) => license.status === LicenseStatus.ACTIVE) || null;
     }
 
     get selectPrivilegesTitleText(): string {

@@ -82,10 +82,6 @@ export default class LicensingDetail extends Vue {
         return this.licensee?.homeJurisdictionLicenseAddress?.state?.name() || '';
     }
 
-    get licenseePrivilegeStatesDisplay(): string {
-        return this.licensee?.privilegeStatesAllDisplay() || '';
-    }
-
     get licenseeLicenses(): Array<License> {
         return this.licensee?.licenses || [];
     }
@@ -95,7 +91,7 @@ export default class LicensingDetail extends Vue {
     }
 
     get activeLicenses(): Array<License> {
-        return this.licenseeLicenses.filter((license) => (license.statusState === LicenseStatus.ACTIVE));
+        return this.licenseeLicenses.filter((license) => (license.status === LicenseStatus.ACTIVE));
     }
 
     get licenseePrivileges(): Array<License> {
@@ -165,7 +161,7 @@ export default class LicensingDetail extends Vue {
                     ...privilege,
                     expireDate: historyItem.previousValues?.dateOfExpiration || null,
                     issueDate: historyItem.previousValues?.dateOfIssuance || null,
-                    statusState: LicenseStatus.INACTIVE
+                    status: LicenseStatus.INACTIVE
                 }));
             });
         });
@@ -183,7 +179,7 @@ export default class LicensingDetail extends Vue {
     }
 
     isLicenseActive(license: License): boolean {
-        return license && license.statusState === LicenseStatus.ACTIVE;
+        return license && license.status === LicenseStatus.ACTIVE;
     }
 
     togglePersonalInfoCollapsed() {

@@ -52,8 +52,7 @@ describe('License model', () => {
         expect(license.mailingAddress).to.be.an.instanceof(Address);
         expect(license.occupation).to.equal(null);
         expect(license.history).to.matchPattern([]);
-        expect(license.statusState).to.equal(LicenseStatus.INACTIVE);
-        expect(license.statusCompact).to.equal(LicenseStatus.INACTIVE);
+        expect(license.status).to.equal(LicenseStatus.INACTIVE);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal('');
@@ -79,8 +78,7 @@ describe('License model', () => {
             mailingAddress: new Address(),
             npi: 'test-npi',
             occupation: LicenseOccupation.AUDIOLOGIST,
-            statusState: LicenseStatus.ACTIVE,
-            statusCompact: LicenseStatus.ACTIVE,
+            status: LicenseStatus.ACTIVE,
             history: [new LicenseHistoryItem()]
         };
         const license = new License(data);
@@ -100,8 +98,7 @@ describe('License model', () => {
         expect(license.licenseNumber).to.equal(data.licenseNumber);
         expect(license.privilegeId).to.equal(data.privilegeId);
         expect(license.occupation).to.equal(data.occupation);
-        expect(license.statusState).to.equal(data.statusState);
-        expect(license.statusCompact).to.equal(data.statusCompact);
+        expect(license.status).to.equal(data.status);
         expect(license.history[0]).to.be.an.instanceof(LicenseHistoryItem);
 
         // Test methods
@@ -165,9 +162,9 @@ describe('License model', () => {
         expect(license.renewalDate).to.equal(data.dateOfRenewal);
         expect(license.expireDate).to.equal(data.dateOfExpiration);
         expect(license.occupation).to.equal(data.licenseType);
-        expect(license.statusState).to.equal(data.status);
+        expect(license.status).to.equal(data.status);
         expect(license.privilegeId).to.equal(data.privilegeId);
-        expect(license.statusCompact).to.equal(data.status);
+        expect(license.status).to.equal(data.status);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal(
@@ -237,8 +234,7 @@ describe('License model', () => {
         expect(license.npi).to.equal(data.npi);
         expect(license.licenseNumber).to.equal(data.licenseNumber);
         expect(license.occupation).to.equal(data.licenseType);
-        expect(license.statusState).to.equal(data.status);
-        expect(license.statusCompact).to.equal(data.status);
+        expect(license.status).to.equal(data.status);
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal(

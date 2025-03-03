@@ -112,7 +112,7 @@ export default class LicenseeDashboard extends Vue {
                     ...privilege,
                     expireDate: historyItem.previousValues?.dateOfExpiration || null,
                     issueDate: historyItem.previousValues?.dateOfIssuance || null,
-                    statusState: LicenseStatus.INACTIVE
+                    status: LicenseStatus.INACTIVE
                 }));
             });
         });
@@ -142,7 +142,7 @@ export default class LicenseeDashboard extends Vue {
     }
 
     isLicenseActive(license: License): boolean {
-        return license && license.statusState === LicenseStatus.ACTIVE;
+        return license && license.status === LicenseStatus.ACTIVE;
     }
 
     togglePrivsCollapsed() {
