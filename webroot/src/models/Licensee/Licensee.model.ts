@@ -285,6 +285,8 @@ export class LicenseeSerializer {
             homeState: json.homeJurisdictionSelection
                 ? new State({ abbrev: json.homeJurisdictionSelection.jurisdiction })
                 : new State({ abbrev: json.licenseJurisdiction }),
+            // This value is updated to equal bestHomeStateLicenseMailingAddress() whenever a License record is added or updated for the user
+            // in the edge case where the user's best home state license expires this can get out of sync with that calulated value
             homeJurisdictionLicenseAddress: AddressSerializer.fromServer({
                 street1: json.homeAddressStreet1,
                 street2: json.homeAddressStreet2,

@@ -79,7 +79,9 @@ export default class LicensingDetail extends Vue {
     }
 
     get licenseeHomeStateDisplay(): string {
-        return this.licensee?.homeJurisdictionLicenseAddress?.state?.name() || '';
+        return this.licensee?.bestHomeStateLicenseMailingAddress()?.state?.name()
+            || this.licensee?.homeJurisdictionLicenseAddress?.state?.name()
+            || '';
     }
 
     get licenseeLicenses(): Array<License> {
@@ -112,15 +114,21 @@ export default class LicensingDetail extends Vue {
     }
 
     get addressLine1(): string {
-        return this.licensee?.homeJurisdictionLicenseAddress?.street1 || '';
+        return this.licensee?.bestHomeStateLicenseMailingAddress()?.street1
+        || this.licensee?.homeJurisdictionLicenseAddress?.street1
+        || '';
     }
 
     get addressLine2(): string {
-        return this.licensee?.homeJurisdictionLicenseAddress?.street2 || '';
+        return this.licensee?.bestHomeStateLicenseMailingAddress()?.street2
+        || this.licensee?.homeJurisdictionLicenseAddress?.street2
+        || '';
     }
 
     get addressLine3(): string {
-        const { homeJurisdictionLicenseAddress = {}} = this.licensee || {};
+        const homeJurisdictionLicenseAddress = this.licensee?.bestHomeStateLicenseMailingAddress()
+        || this.licensee?.homeJurisdictionLicenseAddress
+        || {};
         const { city = '', state = null, zip = '' } = homeJurisdictionLicenseAddress;
         const stateAbbrev = state?.abbrev?.toUpperCase();
         const delim = (city && stateAbbrev) ? ', ' : '';
@@ -149,7 +157,7 @@ export default class LicensingDetail extends Vue {
     }
 
     get homeState(): string {
-        return this.licensee?.homeJurisdictionLicenseAddress?.state?.name() || '';
+        return this.licensee?.homeState?.name() || '';
     }
 
     get pastPrivilegeList(): Array<License> {
