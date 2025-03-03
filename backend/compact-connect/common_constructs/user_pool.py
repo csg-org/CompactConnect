@@ -10,6 +10,7 @@ from aws_cdk.aws_cognito import (
     ClientAttributes,
     CognitoDomainOptions,
     DeviceTracking,
+    FeaturePlan,
     ICustomAttribute,
     Mfa,
     MfaSecondFactor,
@@ -19,8 +20,7 @@ from aws_cdk.aws_cognito import (
     PasswordPolicy,
     SignInAliases,
     StandardAttributes,
-    UserPoolEmail,
-    FeaturePlan
+    UserPoolEmail
 )
 from aws_cdk.aws_cognito import UserPool as CdkUserPool
 from aws_cdk.aws_kms import IKey
