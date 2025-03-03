@@ -20,7 +20,7 @@ from aws_cdk.aws_cognito import (
     PasswordPolicy,
     SignInAliases,
     StandardAttributes,
-    UserPoolEmail
+    UserPoolEmail,
 )
 from aws_cdk.aws_cognito import UserPool as CdkUserPool
 from aws_cdk.aws_kms import IKey
