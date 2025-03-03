@@ -33,17 +33,17 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
 
     logger.info('Sending license records to preprocessing queue', compact=compact, jurisdiction=jurisdiction)
     # Use the utility function to send licenses to the preprocessing queue
-    failed_message_ids = send_licenses_to_preprocessing_queue(
+    failed_license_numbers = send_licenses_to_preprocessing_queue(
         licenses_data=schema.dump(licenses, many=True),
         event_time=event_time.isoformat(),
     )
 
-    if failed_message_ids:
+    if failed_license_numbers:
         logger.error(
-            'Failed to send messages to preprocessing queue!',
+            'Failed to send license messages to preprocessing queue!',
             compact=compact,
             jurisdiction=jurisdiction,
-            failed_message_ids=failed_message_ids,
+            failed_license_numbers=failed_license_numbers,
         )
         raise CCInternalException('Failed to process licenses!')
 

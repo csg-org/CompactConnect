@@ -172,13 +172,17 @@ def process_bulk_upload_file(
 
     # Send all valid licenses to the preprocessing queue in batches
     if valid_licenses:
-        failed_message_ids = send_licenses_to_preprocessing_queue(
+        failed_license_numbers = send_licenses_to_preprocessing_queue(
             licenses_data=valid_licenses,
             event_time=event_time.isoformat(),
         )
 
-        if failed_message_ids:
-            logger.error('Failed to send messages to preprocessing queue!', failed_message_ids=failed_message_ids)
+        if failed_license_numbers:
+            logger.error('Failed to send license messages to preprocessing queue!',
+                         failed_license_numbers=failed_license_numbers,
+                         compact=compact,
+                         jurisdiction=jurisdiction
+                         )
             raise CCInternalException('Failed to process object!')
 
     if event_writer.failed_entry_count > 0:

@@ -12,7 +12,6 @@ from smoke_common import (
     get_api_base_url,
     get_data_events_dynamodb_table,
     get_provider_user_dynamodb_table,
-    get_ssn_dynamodb_table,
     get_staff_user_auth_headers,
     load_smoke_test_env,
 )
@@ -29,20 +28,22 @@ TEST_PROVIDER_FAMILY_NAME = 'Dokes'
 # To run this script, create a smoke_tests_env.json file in the same directory as this script using the
 # 'smoke_tests_env_example.json' file as a template.
 
+# Note that by design, developers do not have the ability to delete records from the SSN DynamoDB table,
+# so this script does not delete the created SSN records as part of cleanup.
+
 TEST_STAFF_USER_EMAIL = 'testStaffUserLicenseUploader@smokeTestFakeEmail.com'
 
 
 def _cleanup_test_generated_records(provider_id: str, license_ingest_record_response: dict):
+    """
+    Cleanup all test records except the SSN record, which developers do not have the ability to delete
+    """
     # Now clean up the records we added
     # First, get all provider records to delete
     provider_dynamo_table = get_provider_user_dynamodb_table()
     provider_record_query_response = provider_dynamo_table.query(
         KeyConditionExpression='pk = :pk', ExpressionAttributeValues={':pk': f'{COMPACT}#PROVIDER#{provider_id}'}
     )
-
-    # Delete the SSN record from the SSN table
-    get_ssn_dynamodb_table().delete_item(Key={'pk': f'{COMPACT}#SSN#{MOCK_SSN}', 'sk': f'{COMPACT}#SSN#{MOCK_SSN}'})
-    logger.info('Successfully deleted ssn record from ssn table')
 
     # Delete all provider records
     for record in provider_record_query_response.get('Items', []):

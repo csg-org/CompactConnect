@@ -600,7 +600,7 @@ def send_licenses_to_preprocessing_queue(licenses_data: list[dict], event_time: 
             )
             entries.append(
                 {
-                    'Id': f'msg-{i + idx}',  # Unique ID for each message in the batch
+                    'Id': f'msg-{idx}',  # Unique ID for each message in the batch
                     'MessageBody': message_body,
                 }
             )

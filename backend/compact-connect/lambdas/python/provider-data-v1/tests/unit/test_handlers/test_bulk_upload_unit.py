@@ -102,11 +102,12 @@ class TestProcessS3Event(TstLambdas):
 class TestProcessBulkUploadFile(TstLambdas):
     # We can't autospec because it causes the patch to evaluate properties that look up environment variables that we
     # don't intend to set for these tests.
-    @patch('handlers.bulk_upload.config', autospec=False)
-    def test_good_data(self, mock_config):
+    @patch('handlers.bulk_upload.send_licenses_to_preprocessing_queue')
+    def test_good_data(self, mock_send_licenses_to_preprocessing_queue):
         from handlers.bulk_upload import process_bulk_upload_file
 
-        mock_config.events_client.put_events.return_value = {'FailedEntryCount': 0, 'Entries': [{'EventId': '123'}]}
+        # this method returns a list of any message ids that failed to send, in this test case, there are no failures
+        mock_send_licenses_to_preprocessing_queue.return_value = []
 
         with open('../common/tests/resources/licenses.csv', 'rb') as f:
             line_count = len(f.readlines())
@@ -124,31 +125,31 @@ class TestProcessBulkUploadFile(TstLambdas):
                 jurisdiction='oh',
             )
 
-        # Collect events put for inspection
-        detail_types = {
-            entry['DetailType']
-            for call in mock_config.events_client.put_events.call_args_list
-            for entry in call.kwargs['Entries']
-        }
+        # Collect events sent to SQS for inspection
+
         # There should only be successful ingest events
-        self.assertEqual({'license.ingest'}, detail_types)
         entries = [
-            entry for call in mock_config.events_client.put_events.call_args_list for entry in call.kwargs['Entries']
+            entry
+            for call in mock_send_licenses_to_preprocessing_queue.call_args_list
+            for entry in call.kwargs['licenses_data']
         ]
-        # Make sure we published the right number of events
+        # Make sure we put the right number of events on the queue
         self.assertEqual(line_count - 1, len(entries))
 
     # We can't autospec because it causes the patch to evaluate properties that look up environment variables that we
     # don't intend to set for these tests.
     @patch('handlers.bulk_upload.config', autospec=False)
-    def test_bad_data(self, mock_config):
+    @patch('handlers.bulk_upload.send_licenses_to_preprocessing_queue')
+    def test_bad_data(self, mock_send_licenses_to_preprocessing_queue, mock_config):
         from handlers.bulk_upload import process_bulk_upload_file
 
+        # mock static response for the events client when we put messages on the event bus
         mock_config.events_client.put_events.return_value = {'FailedEntryCount': 0, 'Entries': [{'EventId': '123'}]}
+        # mock status response returned when putting valid licenses on the queue
+        mock_send_licenses_to_preprocessing_queue.return_value = []
 
         # We'll do a little processing to mangle our CSV data a bit
         with open('../common/tests/resources/licenses.csv') as f:
-            line_count = len(f.readlines())
             f.seek(0)
             csv_data = [line.split(',') for line in f]
         # SSN of line 3
@@ -170,20 +171,31 @@ class TestProcessBulkUploadFile(TstLambdas):
             jurisdiction='oh',
         )
 
-        # Collect events put for inspection
-        # There should be three successful ingest events and two failures
-        entries = [
+        # Collect events put for validation failures
+        # There should be two failures
+        event_writer_entries = [
             entry for call in mock_config.events_client.put_events.call_args_list for entry in call.kwargs['Entries']
         ]
-        self.assertEqual(line_count - 1, len(entries))
-        self.assertEqual(2, len([entry for entry in entries if entry['DetailType'] == 'license.validation-error']))
-        self.assertEqual(line_count - 3, len([entry for entry in entries if entry['DetailType'] == 'license.ingest']))
+        self.assertEqual(
+            2, len([entry for entry in event_writer_entries if entry['DetailType'] == 'license.validation-error'])
+        )
 
         # Make sure we're capturing _some_ valid data from the license for feedback
-        bad_ssn_event_details = json.loads(entries[1]['Detail'])
+        bad_ssn_event_details = json.loads(event_writer_entries[0]['Detail'])
         self.assertIn('familyName', bad_ssn_event_details['validData'].keys())
 
-        bad_license_type_details = json.loads(entries[3]['Detail'])
+        bad_license_type_details = json.loads(event_writer_entries[1]['Detail'])
         self.assertIn('dateOfIssuance', bad_license_type_details['validData'])
         # Make sure we don't include sensitive data in these events
         self.assertNotIn('ssn', bad_license_type_details['validData'])
+
+        # Now we collect how many entries were sent to SQS
+        # there should be three successful messages
+        preprocessor_entries = [
+            entry
+            for call in mock_send_licenses_to_preprocessing_queue.call_args_list
+            for entry in call.kwargs['licenses_data']
+        ]
+        # the payload contract for these messages is covered in other tests, so we just check that the expected
+        # number of messages was sent
+        self.assertEqual(3, len(preprocessor_entries))
