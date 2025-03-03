@@ -17,7 +17,7 @@ class TestPatchUser(TstFunction):
             event = json.load(f)
 
         # The user has admin permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/oh.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
         event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = json.dumps({'permissions': {'aslp': {'jurisdictions': {'oh': {'actions': {'admin': True}}}}}})
 
@@ -67,9 +67,7 @@ class TestPatchUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = (
-            'openid email octp/admin octp/octp.admin octp/oh.admin'
-        )
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email octp/admin oh/octp.admin'
         event['pathParameters'] = {'compact': 'octp', 'userId': '648864e8-10f1-702f-e666-2e0ff3482502'}
         event['body'] = json.dumps(
             {
@@ -123,7 +121,7 @@ class TestPatchUser(TstFunction):
         api_user['permissions'] = {'aslp': {'jurisdictions': {}}}
         event['body'] = json.dumps(api_user)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/aslp.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
         event['pathParameters'] = {'compact': 'aslp'}
 
         resp = post_user(event, self.mock_context)
@@ -161,7 +159,7 @@ class TestPatchUser(TstFunction):
         with open('tests/resources/api/user-post.json') as f:
             api_user = json.load(f)
 
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/aslp.admin'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps(api_user)
 
@@ -199,8 +197,8 @@ class TestPatchUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for aslp/oh not aslp/ne
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/oh.admin'
+        # The user has admin permission for oh/aslp not ne/aslp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
         event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = json.dumps({'permissions': {'aslp': {'jurisdictions': {'ne': {'actions': {'admin': True}}}}}})
 
@@ -214,8 +212,8 @@ class TestPatchUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The caller has admin permission for aslp/oh not aslp/ne
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/oh.admin'
+        # The caller has admin permission for oh/aslp not ne/aslp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
         # The staff user does not exist
         event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = json.dumps({'permissions': {'aslp': {'jurisdictions': {'oh': {'actions': {'admin': True}}}}}})
@@ -234,10 +232,8 @@ class TestPatchUser(TstFunction):
         with open('tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has admin permission for aslp/oh
-        event['requestContext']['authorizer']['claims']['scope'] = (
-            'openid email aslp/admin aslp/oh.admin aslp/aslp.admin'
-        )
+        # The user has admin permission for compact and oh
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin aslp/admin'
         event['pathParameters'] = {'compact': 'aslp', 'userId': 'a4182428-d061-701c-82e5-a3d1d547d797'}
         event['body'] = json.dumps(
             {

@@ -190,8 +190,13 @@ class logger_inject_kwargs:  # noqa: N801 invalid-name
         return wrapped
 
 
-class authorize_compact:  # noqa: N801 invalid-name
-    """Authorize endpoint by matching path parameter compact to the expected scope, (i.e. aslp/readGeneral)"""
+class authorize_compact_level_only_action:  # noqa: N801 invalid-name
+    """Authorize endpoint by matching path parameter compact to the expected scope limited to compact level
+    (i.e. aslp/admin).
+
+    This wrapper should be used when we want to explicitly restrict access to callers with permission scopes
+     at the compact level.
+    """
 
     def __init__(self, action: str):
         super().__init__()
@@ -223,6 +228,45 @@ class authorize_compact:  # noqa: N801 invalid-name
         return authorized
 
 
+class authorize_compact:  # noqa: N801 invalid-name
+    """Authorize endpoint by matching path parameter compact to the expected scope
+
+    This wrapper checks if the caller has the permission at either the compact or jurisdiction level for the compact
+    (i.e. aslp/write or oh/aslp.write).
+    """
+
+    def __init__(self, action: str):
+        super().__init__()
+        self.action = action
+
+    def __call__(self, fn: Callable):
+        @wraps(fn)
+        @logger.inject_lambda_context
+        def authorized(event: dict, context: LambdaContext):
+            try:
+                compact = event['pathParameters']['compact']
+            except KeyError as e:
+                logger.error('Access attempt with missing path parameter!')
+                raise CCInvalidRequestException('Missing path parameter!') from e
+
+            logger.debug('Checking authorizer context', request_context=event['requestContext'])
+            try:
+                scopes: list[str] = event['requestContext']['authorizer']['claims']['scope'].split(' ')
+            except KeyError as e:
+                logger.error('Unauthorized access attempt!', exc_info=e)
+                raise CCUnauthorizedException('Unauthorized access attempt!') from e
+
+            compact_level_required_scope = f'{compact}/{self.action}'
+            jurisdiction_level_required_scope = f'/{compact}.{self.action}'
+            for scope in scopes:
+                if compact_level_required_scope == scope or scope.endswith(jurisdiction_level_required_scope):
+                    return fn(event, context)
+            logger.warning('Forbidden access attempt!')
+            raise CCAccessDeniedException('Forbidden access attempt!')
+
+        return authorized
+
+
 def _authorize_compact_with_scope(event: dict, resource_parameter: str, scope_parameter: str, action: str) -> None:
     """
     Check the authorization of the user attempting to access the endpoint.
@@ -241,11 +285,11 @@ def _authorize_compact_with_scope(event: dict, resource_parameter: str, scope_pa
     i.e. aslp/readGeneral would allow read access to all generally available jurisdiction data within the aslp compact.
 
     Write - granted at jurisdiction level, allows write access to a specific jurisdiction within the compact.
-    i.e. aslp/oh.write would allow write access to the ohio jurisdiction within the aslp compact.
+    i.e. oh/aslp.write would allow write access to the ohio jurisdiction within the aslp compact.
 
     Admin - granted at compact level and jurisdiction level, allows administrative access to either a specific
     compact or a specific jurisdiction within the compact.
-    i.e. 'aslp/aslp.admin' would allow administrative access to the aslp compact. 'aslp/oh.admin' would allow
+    i.e. 'aslp/admin' would allow administrative access to the aslp compact. 'oh/aslp.admin' would allow
     administrative access to the ohio jurisdiction within the aslp compact.
 
     :param dict event: The event object passed to the lambda function.
@@ -282,34 +326,12 @@ def _authorize_compact_with_scope(event: dict, resource_parameter: str, scope_pa
 class authorize_compact_jurisdiction:  # noqa: N801 invalid-name
     """
     Authorize endpoint by matching path parameters compact and jurisdiction to the expected scope.
-    (i.e. aslp/oh.write)
+    (i.e. oh/aslp.write)
     """
 
     def __init__(self, action: str):
         super().__init__()
-        self.resource_parameter = 'compact'
-        self.scope_parameter = 'jurisdiction'
-        self.action = action
-
-    def __call__(self, fn: Callable):
-        @wraps(fn)
-        @logger.inject_lambda_context
-        def authorized(event: dict, context: LambdaContext):
-            _authorize_compact_with_scope(event, self.resource_parameter, self.scope_parameter, self.action)
-            return fn(event, context)
-
-        return authorized
-
-
-class authorize_compact_scoped_action:  # noqa: N801 invalid-name
-    """
-    Authorize endpoint by matching compact path parameter to the expected scope.
-    (i.e. aslp/aslp.admin)
-    """
-
-    def __init__(self, action: str):
-        super().__init__()
-        self.resource_parameter = 'compact'
+        self.resource_parameter = 'jurisdiction'
         self.scope_parameter = 'compact'
         self.action = action
 
@@ -369,12 +391,12 @@ def get_allowed_jurisdictions(*, compact: str, scopes: set[str]) -> list[str] | 
     :return: A list of jurisdictions the user is allowed to access, or None, if no filtering is needed.
     :rtype: list
     """
-    if f'{compact}/{compact}.admin' in scopes:
+    if f'{compact}/admin' in scopes:
         # The user has compact-level admin, so no jurisdiction filtering
         return None
 
     compact_jurisdictions = []
-    scope_pattern = f'{compact}/(.*).admin'
+    scope_pattern = f'([a-z]*)/{compact}.admin'
     for scope in scopes:
         if match_obj := match(scope_pattern, scope):
             compact_jurisdictions.append(match_obj.group(1))
@@ -422,15 +444,9 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
 
     # Collect compact-wide permission changes
     for action, value in compact_changes.get('actions', {}).items():
-        if (
-            action == CCPermissionsAction.ADMIN
-            and f'{path_compact}/{path_compact}.{CCPermissionsAction.ADMIN}' not in scopes
-        ):
+        if action == CCPermissionsAction.ADMIN and f'{path_compact}/{CCPermissionsAction.ADMIN}' not in scopes:
             raise CCAccessDeniedException('Only compact admins can affect compact-level admin permissions')
-        if (
-            action == CCPermissionsAction.READ_PRIVATE
-            and f'{path_compact}/{path_compact}.{CCPermissionsAction.ADMIN}' not in scopes
-        ):
+        if action == CCPermissionsAction.READ_PRIVATE and f'{path_compact}/{CCPermissionsAction.ADMIN}' not in scopes:
             raise CCAccessDeniedException('Only compact admins can affect compact-level access to private information')
 
         # dropping the read action as this is now implicitly granted to all users
@@ -446,11 +462,11 @@ def collect_and_authorize_changes(*, path_compact: str, scopes: set, compact_cha
     # Collect jurisdiction-specific changes
     for jurisdiction, jurisdiction_changes in compact_changes.get('jurisdictions', {}).items():
         if not {
-            f'{path_compact}/{path_compact}.{CCPermissionsAction.ADMIN}',
-            f'{path_compact}/{jurisdiction}.{CCPermissionsAction.ADMIN}',
+            f'{path_compact}/{CCPermissionsAction.ADMIN}',
+            f'{jurisdiction}/{path_compact}.{CCPermissionsAction.ADMIN}',
         }.intersection(scopes):
             raise CCAccessDeniedException(
-                f'Only {path_compact} or {path_compact}/{jurisdiction} admins can affect {path_compact}/{jurisdiction} '
+                f'Only {path_compact} or {jurisdiction}/{path_compact} admins can affect {jurisdiction}/{path_compact} '
                 'permissions',
             )
 
@@ -498,7 +514,7 @@ def user_has_read_ssn_access_for_provider(compact: str, provider_information: di
 def _user_has_permission_for_action_on_user(
     action: str, compact: str, provider_information: dict, scopes: set[str]
 ) -> bool:
-    if f'{compact}/{compact}.{action}' in scopes:
+    if f'{compact}/{action}' in scopes:
         logger.debug(
             f'User has {action} permission at compact level',
             compact=compact,
@@ -514,7 +530,7 @@ def _user_has_permission_for_action_on_user(
         relevant_provider_jurisdictions.add(license_record['jurisdiction'])
 
     for jurisdiction in relevant_provider_jurisdictions:
-        if f'{compact}/{jurisdiction}.{action}' in scopes:
+        if f'{jurisdiction}/{compact}.{action}' in scopes:
             logger.debug(
                 f'User has {action} permission at jurisdiction level',
                 compact=compact,

@@ -31,7 +31,7 @@ class TestPostPaymentProcessorCredentials(TstFunction):
             event = json.load(f)
             event['pathParameters'] = {'compact': TEST_COMPACT}
             # user is a compact admin with admin scoped permissions
-            event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/aslp.admin'
+            event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin'
             event['body'] = _generate_test_request_body()
 
         return event
@@ -41,7 +41,7 @@ class TestPostPaymentProcessorCredentials(TstFunction):
             event = json.load(f)
             event['pathParameters'] = {'compact': TEST_COMPACT}
             # user is an admin with jurisdiction scoped permissions
-            event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/admin aslp/oh.admin'
+            event['requestContext']['authorizer']['claims']['scope'] = 'openid email oh/aslp.admin'
             event['body'] = _generate_test_request_body()
 
         return event

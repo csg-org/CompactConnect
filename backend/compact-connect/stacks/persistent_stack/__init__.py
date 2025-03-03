@@ -1,5 +1,6 @@
 import os
 
+import yaml
 from aws_cdk import Duration, RemovalPolicy, aws_ssm
 from aws_cdk.aws_cognito import UserPoolEmail
 from aws_cdk.aws_iam import Effect, PolicyStatement
@@ -451,3 +452,57 @@ class PersistentStack(AppStack):
 
         # default to csg test environment
         return 'https://app.test.compactconnect.org'
+
+    def _configuration_is_active_for_environment(self, environment_name: str, active_environments: list[str]) -> bool:
+        """Check if the compact configuration is active in the given environment."""
+        return environment_name in active_environments or self.node.try_get_context('sandbox') is True
+
+    def get_list_of_active_compacts_for_environment(self, environment_name: str) -> list[str]:
+        """
+        Currently, all configuration for compacts and jurisdictions is hardcoded in the compact-config directory.
+        This reads the YAML configuration files and returns the list of compacts that are marked as
+        active for the environment.
+        """
+
+        active_compacts = []
+        # Read all compact configuration YAML files from top level compact-config directory
+        for compact_config_file in os.listdir('compact-config'):
+            if compact_config_file.endswith('.yml'):
+                with open(os.path.join('compact-config', compact_config_file)) as f:
+                    # convert YAML to JSON
+                    formatted_compact = yaml.safe_load(f)
+                    # only include the compact configuration if it is active in the environment
+                    if self._configuration_is_active_for_environment(
+                        environment_name,
+                        formatted_compact['activeEnvironments'],
+                    ):
+                        active_compacts.append(formatted_compact['compactAbbr'])
+
+        return active_compacts
+
+    def get_list_of_active_jurisdictions_for_compact_environment(
+        self, compact: str, environment_name: str
+    ) -> list[str]:
+        """
+        Get the list of jurisdiction postal codes which are active within a compact and environment.
+
+        Currently, all configuration for compacts and jurisdictions is hardcoded in the compact-config directory.
+        This reads the YAML configuration files and returns the list of jurisdiction postal codes that are marked as
+        active for the environment.
+        """
+
+        active_jurisdictions = []
+
+        # Read all jurisdiction configuration YAML files from each active compact directory
+        for jurisdiction_config_file in os.listdir(os.path.join('compact-config', compact)):
+            if jurisdiction_config_file.endswith('.yml'):
+                with open(os.path.join('compact-config', compact, jurisdiction_config_file)) as f:
+                    formatted_jurisdiction = yaml.safe_load(f)
+                    # only include the jurisdiction configuration if it is active in the environment
+                    if self._configuration_is_active_for_environment(
+                        environment_name,
+                        formatted_jurisdiction['activeEnvironments'],
+                    ):
+                        active_jurisdictions.append(formatted_jurisdiction['postalAbbreviation'].lower())
+
+        return active_jurisdictions

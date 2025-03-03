@@ -46,15 +46,22 @@ class LicenseeList extends Vue {
     // Lifecycle
     //
     async created() {
-        if (this.licenseStore.model?.length) {
+        if (this.licenseStoreRecordCount) {
             this.hasSearched = true;
         }
     }
 
     async mounted() {
-        if (!this.licenseStore.model?.length) {
+        if (!this.licenseStoreRecordCount) {
+            // License store is empty - apply defaults
             await this.setDefaultSort();
             await this.setDefaultPaging();
+        } else if (this.licenseStoreRecordCount === 1 && !this.searchDisplayAll) {
+            // Edge case: Returning from a detail page that was refreshed / cache-cleared
+            this.shouldShowSearchModal = true;
+        } else {
+            // License store already has records
+            this.isInitialFetchCompleted = true;
         }
     }
 
@@ -75,6 +82,10 @@ class LicenseeList extends Vue {
 
     get licenseStore(): any {
         return this.$store.state.license;
+    }
+
+    get licenseStoreRecordCount(): number {
+        return this.licenseStore.model?.length || 0;
     }
 
     get searchParams(): LicenseSearch {
