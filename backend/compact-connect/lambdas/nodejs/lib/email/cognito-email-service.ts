@@ -18,7 +18,7 @@ export class CognitoEmailService extends BaseEmailService {
     public generateCognitoMessage(
         triggerSource: string,
         codeParameter?: string,
-        usernameParameter?: string,
+        usernameParameter?: string
     ): { subject: string; htmlContent: string } {
         /*
          * We don't actually anticipate using all of these triggers, but we're including them just to avoid breaking
@@ -51,7 +51,7 @@ export class CognitoEmailService extends BaseEmailService {
      */
     private generateAdminCreateUserTemplate(
         codeParameter: string,
-        usernameParameter: string,
+        usernameParameter: string
     ): { subject: string; htmlContent: string } {
         const subject = 'Welcome to CompactConnect';
         const report = JSON.parse(JSON.stringify(this.emailTemplate));
