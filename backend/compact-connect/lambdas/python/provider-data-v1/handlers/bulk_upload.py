@@ -178,11 +178,12 @@ def process_bulk_upload_file(
         )
 
         if failed_license_numbers:
-            logger.error('Failed to send license messages to preprocessing queue!',
-                         failed_license_numbers=failed_license_numbers,
-                         compact=compact,
-                         jurisdiction=jurisdiction
-                         )
+            logger.error(
+                'Failed to send license messages to preprocessing queue!',
+                failed_license_numbers=failed_license_numbers,
+                compact=compact,
+                jurisdiction=jurisdiction,
+            )
             raise CCInternalException('Failed to process object!')
 
     if event_writer.failed_entry_count > 0:

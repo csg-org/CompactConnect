@@ -5,6 +5,7 @@ import time
 import boto3
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import logger
+from cc_common.exceptions import CCInternalException
 
 
 def on_event(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
@@ -70,7 +71,7 @@ def verify_ses_email_identity(properties: dict):
         if verification_status == 'Failed':
             error_msg = f'Domain {domain_name} verification failed'
             logger.error(error_msg)
-            raise Exception(error_msg)
+            raise CCInternalException(error_msg)
 
         # Wait and try again
         attempts += 1
@@ -80,4 +81,4 @@ def verify_ses_email_identity(properties: dict):
     # If we get here, we've timed out
     error_msg = f'Timed out waiting for domain {domain_name} to be verified'
     logger.error(error_msg)
-    raise Exception(error_msg)
+    raise CCInternalException(error_msg)
