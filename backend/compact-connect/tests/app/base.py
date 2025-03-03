@@ -105,7 +105,8 @@ class TstAppABC(ABC):
                 callbacks.append(f'http://localhost:{local_ui_port}/auth/callback')
 
             # ensure we have two user pools, one for staff users and one for providers
-            persistent_stack_template.resource_count_is(CfnUserPool.CFN_RESOURCE_TYPE_NAME, 2)
+            # Temporarily setting to 3 to account for the standby provider user pool, during migration
+            persistent_stack_template.resource_count_is(CfnUserPool.CFN_RESOURCE_TYPE_NAME, 3)
 
             # Ensure our provider user pool is created with expected custom attributes
             provider_users_user_pool = self.get_resource_properties_by_logical_id(

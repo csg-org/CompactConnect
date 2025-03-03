@@ -15,37 +15,44 @@ export class CognitoEmailService extends BaseEmailService {
      * @param usernameParameter - The username parameter to include in the message (if applicable)
      * @returns An object containing the subject and HTML content for the email
      */
-    public generateCognitoMessage(triggerSource: string, codeParameter?: string, usernameParameter?: string): { subject: string; htmlContent: string } {
+    public generateCognitoMessage(
+        triggerSource: string,
+        codeParameter?: string,
+        usernameParameter?: string,
+    ): { subject: string; htmlContent: string } {
         /*
          * We don't actually anticipate using all of these triggers, but we're including them just to avoid breaking
          * any Cognito flows.
          */
         switch (triggerSource) {
-            // Sent as an invite, after a user is created by our API.
-            case 'CustomMessage_AdminCreateUser':
-                return this.generateAdminCreateUserTemplate(codeParameter!, usernameParameter!);
-            // Sent if a user requests to reset their password
-            case 'CustomMessage_ForgotPassword':
-                return this.generateForgotPasswordTemplate(codeParameter!);
-            // Sent if a user changes their email attribute
-            case 'CustomMessage_UpdateUserAttribute':
-                return this.generateUpdateUserAttributeTemplate(codeParameter!);
-            // These next ones, we don't anticipate actually using
-            case 'CustomMessage_VerifyUserAttribute':
-                return this.generateVerifyUserAttributeTemplate(codeParameter!);
-            case 'CustomMessage_ResendCode':
-                return this.generateResendCodeTemplate(codeParameter!);
-            case 'CustomMessage_SignUp':
-                return this.generateSignUpTemplate(codeParameter!);
-            default:
-                throw new Error(`Unsupported Cognito trigger source: ${triggerSource}`);
+        // Sent as an invite, after a user is created by our API.
+        case 'CustomMessage_AdminCreateUser':
+            return this.generateAdminCreateUserTemplate(codeParameter!, usernameParameter!);
+        // Sent if a user requests to reset their password
+        case 'CustomMessage_ForgotPassword':
+            return this.generateForgotPasswordTemplate(codeParameter!);
+        // Sent if a user changes their email attribute
+        case 'CustomMessage_UpdateUserAttribute':
+            return this.generateUpdateUserAttributeTemplate(codeParameter!);
+        // These next ones, we don't anticipate actually using
+        case 'CustomMessage_VerifyUserAttribute':
+            return this.generateVerifyUserAttributeTemplate(codeParameter!);
+        case 'CustomMessage_ResendCode':
+            return this.generateResendCodeTemplate(codeParameter!);
+        case 'CustomMessage_SignUp':
+            return this.generateSignUpTemplate(codeParameter!);
+        default:
+            throw new Error(`Unsupported Cognito trigger source: ${triggerSource}`);
         }
     }
 
     /**
      * Generates a template for when an admin creates a new user
      */
-    private generateAdminCreateUserTemplate(codeParameter: string, usernameParameter: string): { subject: string; htmlContent: string } {
+    private generateAdminCreateUserTemplate(
+        codeParameter: string,
+        usernameParameter: string,
+    ): { subject: string; htmlContent: string } {
         const subject = 'Welcome to CompactConnect';
         const report = JSON.parse(JSON.stringify(this.emailTemplate));
 

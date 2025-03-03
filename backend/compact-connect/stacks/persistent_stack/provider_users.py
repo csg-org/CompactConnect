@@ -32,6 +32,7 @@ class ProviderUsers(UserPool):
         environment_name: str,
         environment_context: dict,
         encryption_key: IKey,
+        sign_in_aliases: SignInAliases,
         user_pool_email: UserPoolEmail,
         removal_policy,
         **kwargs,
@@ -44,7 +45,7 @@ class ProviderUsers(UserPool):
             encryption_key=encryption_key,
             removal_policy=removal_policy,
             email=user_pool_email,
-            sign_in_aliases=SignInAliases(email=True, username=False),
+            sign_in_aliases=sign_in_aliases,
             standard_attributes=self._configure_user_pool_standard_attributes(),
             custom_attributes={
                 # these fields are required in order for the provider to be able to query

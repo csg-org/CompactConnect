@@ -1,7 +1,7 @@
 import os
 
 from aws_cdk import Duration, RemovalPolicy, aws_ssm
-from aws_cdk.aws_cognito import UserPoolEmail
+from aws_cdk.aws_cognito import SignInAliases, UserPoolEmail
 from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import Runtime
@@ -150,16 +150,53 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
         )
 
+        # PROVIDER USER POOL MIGRATION PLAN:
+        # 1. Create the blue user pool in all environments. (Deploy 1 of 3)
+        # 2. Cut over to the blue user pool by: (Deploy 2 of 3)
+        #   a. Update the API stack to use the blue user pool (just rename
+        #      self.provider_users->self.provider_users_deprecated and
+        #      self.provider_users_standby->self.provider_users below)
+        #   b. Move the main provider prefix to the blue user pool (just use the provider_prefix in the other
+        #      ProviderUsers constructor below)
+        #   c. Deploy to all environments. You will have to manually delete the original user pool domain right before
+        #      deploying to each environment. This will result in a deletion failure in the CFn events, but the overall
+        #      deployment will succeed.
+        # 3. Testers/users will need to re-register to get a new provider user in the blue user pool.
+        # 4. Remove the original user pool. (Deploy 3 of 3)
+
+        # This user pool is currently in use but will be replaced with the blue user pool,
+        # once the blue user pool is deployed across all environments.
         provider_prefix = f'{app_name}-provider'
+        provider_prefix = provider_prefix if environment_name == 'prod' else f'{provider_prefix}-{environment_name}'
         self.provider_users = ProviderUsers(
             self,
             'ProviderUsers',
-            cognito_domain_prefix=provider_prefix
-            if environment_name == 'prod'
-            else f'{provider_prefix}-{environment_name}',
+            cognito_domain_prefix=provider_prefix,
             environment_name=environment_name,
             environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
+            sign_in_aliases=None,
+            user_pool_email=user_pool_email_settings,
+            security_profile=security_profile,
+            removal_policy=removal_policy,
+        )
+        # We explicitly export the user pool values so we can later move the API stack over to the
+        # new user pool without putting our app into a cross-stack dependency 'deadly embrace':
+        # https://www.endoflineblog.com/cdk-tips-03-how-to-unblock-cross-stack-references
+        self.export_value(self.provider_users.user_pool_id)
+        self.export_value(self.provider_users.user_pool_arn)
+
+        # This user pool is not yet used but we will cut over to the new pool once it is
+        # deployed across all environments.
+        # We have to use a different prefix so we don't have a naming conflict with the original user pool
+        self.provider_users_standby = ProviderUsers(
+            self,
+            'ProviderUsersBlue',
+            cognito_domain_prefix=None,
+            environment_name=environment_name,
+            environment_context=environment_context,
+            encryption_key=self.shared_encryption_key,
+            sign_in_aliases=SignInAliases(email=True, username=False),
             user_pool_email=user_pool_email_settings,
             security_profile=security_profile,
             removal_policy=removal_policy,
@@ -188,6 +225,8 @@ class PersistentStack(AppStack):
             self.staff_users.node.add_dependency(self.user_email_notifications.dmarc_record)
             self.provider_users.node.add_dependency(self.user_email_notifications.email_identity)
             self.provider_users.node.add_dependency(self.user_email_notifications.dmarc_record)
+            self.provider_users_standby.node.add_dependency(self.user_email_notifications.email_identity)
+            self.provider_users_standby.node.add_dependency(self.user_email_notifications.dmarc_record)
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
         self.bulk_uploads_bucket = BulkUploadsBucket(
