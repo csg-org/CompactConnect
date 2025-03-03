@@ -193,13 +193,6 @@ class TstAppABC(ABC):
                         'Principal': '*',
                         'Resource': '*',
                     },
-                    {
-                        'Action': ['kms:Decrypt', 'kms:Encrypt', 'kms:GenerateDataKey*', 'kms:ReEncrypt*'],
-                        'Condition': {'StringEquals': {'aws:SourceAccount': persistent_stack.account}},
-                        'Effect': 'Allow',
-                        'Principal': {'Service': 'events.amazonaws.com'},
-                        'Resource': '*',
-                    },
                 ],
                 'Version': '2012-10-17',
             },

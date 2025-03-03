@@ -4,19 +4,17 @@
 #
 #    pip-compile --no-emit-index-url multi-account/requirements.in
 #
-attrs==24.3.0
+attrs==25.1.0
     # via
     #   cattrs
     #   jsii
-aws-cdk-asset-awscli-v1==2.2.223
-    # via aws-cdk-lib
-aws-cdk-asset-kubectl-v20==2.1.4
+aws-cdk-asset-awscli-v1==2.2.225
     # via aws-cdk-lib
 aws-cdk-asset-node-proxy-agent-v6==2.1.0
     # via aws-cdk-lib
 aws-cdk-cloud-assembly-schema==39.2.20
     # via aws-cdk-lib
-aws-cdk-lib==2.178.2
+aws-cdk-lib==2.181.1
     # via -r multi-account/requirements.in
 cattrs==24.1.2
     # via jsii
@@ -26,10 +24,9 @@ constructs==10.4.2
     #   aws-cdk-lib
 importlib-resources==6.5.2
     # via jsii
-jsii==1.106.0
+jsii==1.108.0
     # via
     #   aws-cdk-asset-awscli-v1
-    #   aws-cdk-asset-kubectl-v20
     #   aws-cdk-asset-node-proxy-agent-v6
     #   aws-cdk-cloud-assembly-schema
     #   aws-cdk-lib
@@ -37,7 +34,6 @@ jsii==1.106.0
 publication==0.0.3
     # via
     #   aws-cdk-asset-awscli-v1
-    #   aws-cdk-asset-kubectl-v20
     #   aws-cdk-asset-node-proxy-agent-v6
     #   aws-cdk-cloud-assembly-schema
     #   aws-cdk-lib
@@ -50,7 +46,6 @@ six==1.17.0
 typeguard==2.13.3
     # via
     #   aws-cdk-asset-awscli-v1
-    #   aws-cdk-asset-kubectl-v20
     #   aws-cdk-asset-node-proxy-agent-v6
     #   aws-cdk-cloud-assembly-schema
     #   aws-cdk-lib
