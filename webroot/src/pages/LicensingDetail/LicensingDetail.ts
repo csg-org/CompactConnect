@@ -79,9 +79,7 @@ export default class LicensingDetail extends Vue {
     }
 
     get licenseeHomeStateDisplay(): string {
-        return this.licensee?.bestHomeStateLicenseMailingAddress()?.state?.name()
-            || this.licensee?.homeJurisdictionLicenseAddress?.state?.name()
-            || '';
+        return this.licensee?.homeStateDisplay() || '';
     }
 
     get licenseeLicenses(): Array<License> {

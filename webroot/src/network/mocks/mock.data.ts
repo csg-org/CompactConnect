@@ -373,17 +373,6 @@ export const licensees = {
                     status: 'inactive'
                 },
                 {
-                    licenseJurisdiction: 'al',
-                    dateOfExpiration: '2024-08-29',
-                    compact: 'aslp',
-                    providerId: '1',
-                    type: 'privilege',
-                    dateOfIssuance: '2022-08-29',
-                    dateOfRenewal: '2023-08-29',
-                    dateOfUpdate: '2023-08-29',
-                    status: 'inactive'
-                },
-                {
                     licenseJurisdiction: 'ak',
                     dateOfExpiration: '2025-08-29',
                     compact: 'aslp',
@@ -430,17 +419,6 @@ export const licensees = {
                     dateOfRenewal: '2024-08-29',
                     dateOfUpdate: '2024-08-29',
                     status: 'active'
-                },
-                {
-                    licenseJurisdiction: 'ma',
-                    dateOfExpiration: '2024-08-29',
-                    compact: 'aslp',
-                    providerId: '1',
-                    type: 'privilege',
-                    dateOfIssuance: '2023-08-29',
-                    dateOfRenewal: '2023-08-29',
-                    dateOfUpdate: '2023-08-29',
-                    status: 'inactive'
                 },
                 {
                     licenseJurisdiction: 'me',
@@ -509,31 +487,6 @@ export const licensees = {
                 {
                     compact: 'aslp',
                     homeAddressStreet2: '',
-                    npi: '6944447281',
-                    licenseNumber: 'A-944447281',
-                    homeAddressPostalCode: '',
-                    jurisdiction: 'co',
-                    givenName: 'Jane',
-                    homeAddressStreet1: '1640 Riverside Drive',
-                    militaryWaiver: true,
-                    dateOfBirth: '1990-08-29',
-                    type: 'license-home',
-                    dateOfIssuance: '2023-08-29',
-                    ssn: '085-32-1496',
-                    licenseType: 'audiologist',
-                    dateOfExpiration: '2024-08-29',
-                    homeAddressState: 'co',
-                    providerId: '1',
-                    dateOfRenewal: '2023-08-29',
-                    familyName: 'Doe',
-                    homeAddressCity: 'Riverside',
-                    middleName: '',
-                    dateOfUpdate: '2023-08-29',
-                    status: 'inactive'
-                },
-                {
-                    compact: 'aslp',
-                    homeAddressStreet2: '',
                     licenseNumber: 'A-944447281',
                     npi: '6944447281',
                     homeAddressPostalCode: '',
@@ -579,31 +532,6 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
-                    status: 'inactive'
-                },
-                {
-                    compact: 'aslp',
-                    homeAddressStreet2: '',
-                    licenseNumber: 'A-944447281',
-                    npi: '6944447281',
-                    homeAddressPostalCode: '',
-                    jurisdiction: 'nv',
-                    givenName: 'Jane',
-                    homeAddressStreet1: '1640 Riverside Drive',
-                    militaryWaiver: true,
-                    dateOfBirth: '1990-08-29',
-                    type: 'license-home',
-                    dateOfIssuance: '2024-08-29',
-                    ssn: '085-32-1496',
-                    licenseType: 'audiologist',
-                    dateOfExpiration: '2023-08-29',
-                    homeAddressState: 'co',
-                    providerId: '1',
-                    dateOfRenewal: '2023-08-29',
-                    familyName: 'Doe',
-                    homeAddressCity: 'Riverside',
-                    middleName: '',
-                    dateOfUpdate: '2023-08-29',
                     status: 'inactive'
                 }
             ],
@@ -720,7 +648,9 @@ export const licensees = {
             militaryWaiver: true,
             dateOfBirth: '1965-01-01',
             privilegeJurisdictions: [
-                'al'
+                'al',
+                'ak',
+                'ar'
             ],
             type: 'provider',
             ssn: '748-19-5033',

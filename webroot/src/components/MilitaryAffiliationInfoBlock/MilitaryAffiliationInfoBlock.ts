@@ -33,10 +33,10 @@ import { MilitaryAffiliation } from '@/models/MilitaryAffiliation/MilitaryAffili
     }
 })
 class MilitaryAffiliationInfoBlock extends mixins(MixinForm) {
+    // PROPS
     @Prop({ required: true }) licensee?: Licensee;
     @Prop({ default: 'aslp' }) currentCompactType?: string;
     @Prop({ default: false }) shouldShowEditButtons?: boolean;
-    // PROPS
 
     // Data
     //

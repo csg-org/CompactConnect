@@ -20,6 +20,7 @@ from aws_cdk.aws_cognito import (
     SignInAliases,
     StandardAttributes,
     UserPoolEmail,
+    FeaturePlan
 )
 from aws_cdk.aws_cognito import UserPool as CdkUserPool
 from aws_cdk.aws_kms import IKey
@@ -62,6 +63,7 @@ class UserPool(CdkUserPool):
             advanced_security_mode=AdvancedSecurityMode.ENFORCED
             if security_profile == SecurityProfile.RECOMMENDED
             else AdvancedSecurityMode.AUDIT,
+            feature_plan=FeaturePlan.PLUS,
             custom_sender_kms_key=encryption_key,
             device_tracking=DeviceTracking(
                 challenge_required_on_new_device=True, device_only_remembered_on_user_prompt=True

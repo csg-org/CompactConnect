@@ -158,6 +158,7 @@ describe('Licensee model', () => {
 
         // Test methods
         expect(licensee.nameDisplay()).to.equal(`${data.firstName} ${data.lastName}`);
+        expect(licensee.homeStateDisplay()).to.equal('Massachusetts');
 
         expect(licensee.phoneNumberDisplay()).to.equal('+1 323-455-8990');
         expect(licensee.bestHomeStateLicense()).to.be.an.instanceof(License);
