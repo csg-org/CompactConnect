@@ -21,7 +21,6 @@
                 <div class="licensee-name">
                     <span v-if="licenseStore.isLoading">Loading...</span>
                     <span v-else>{{ licenseeNameDisplay }}</span>
-                    <!-- <span>{{ hasLoggedInReadSsnAccessForLicensee }}</span> -->
                 </div>
                 <div class="tags">
                     <div v-if="licenseeHomeStateDisplay" class="tag">
