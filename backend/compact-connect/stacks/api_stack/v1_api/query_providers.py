@@ -244,12 +244,12 @@ class QueryProviders:
             authorization_scopes=method_options.authorization_scopes,
         )
 
-        # Create a metric
-        metric = Metric(
+        # Create a metric to track how many times this endpoint has been invoked with a day
+        daily_read_ssn_count_metric = Metric(
             namespace='compact-connect',
             metric_name='read-ssn',
             statistic='SampleCount',
-            period=Duration.hours(1),
+            period=Duration.days(1),
             dimensions_map={'service': 'common'},
         )
 
@@ -271,8 +271,8 @@ class QueryProviders:
                     id='m1',
                     metric_stat=CfnAlarm.MetricStatProperty(
                         metric=CfnAlarm.MetricProperty(
-                            metric_name=metric.metric_name,
-                            namespace=metric.namespace,
+                            metric_name=daily_read_ssn_count_metric.metric_name,
+                            namespace=daily_read_ssn_count_metric.namespace,
                             dimensions=[CfnAlarm.DimensionProperty(name='service', value='common')],
                         ),
                         period=3600,
@@ -283,11 +283,11 @@ class QueryProviders:
             threshold_metric_id='ad1',
         )
 
-        # We'll also set a flat maximum access rate of 5 reads per hour to alarm on
+        # We'll also set a flat maximum access rate of 5 reads per day to alarm on
         self.max_ssn_reads_alarm = Alarm(
             self.api,
             'MaxSSNReadsAlarm',
-            metric=metric,
+            metric=daily_read_ssn_count_metric,
             threshold=5,
             evaluation_periods=1,
             comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
