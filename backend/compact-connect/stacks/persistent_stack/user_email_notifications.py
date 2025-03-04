@@ -8,6 +8,7 @@ from aws_cdk.aws_route53 import IHostedZone, TxtRecord
 from aws_cdk.aws_ses import ConfigurationSet, EmailIdentity, EmailSendingEvent, EventDestination, Identity
 from aws_cdk.aws_sns import Subscription, SubscriptionProtocol, Topic
 from aws_cdk.custom_resources import Provider
+from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 from constructs import Construct
@@ -124,9 +125,6 @@ class UserEmailNotifications(Construct):
             )
         )
 
-        # Add suppressions for CDK Nag
-        from cdk_nag import NagSuppressions
-
         NagSuppressions.add_resource_suppressions_by_path(
             stack,
             path=f'{verification_function.node.path}/ServiceRole/DefaultPolicy/Resource',
@@ -190,7 +188,7 @@ class UserEmailNotifications(Construct):
                     'appliesTo': [
                         'Policy::arn:<AWS::Partition>:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
                     ],
-                    'reason': 'This policy is appropriate for the log retention lambda',
+                    'reason': 'This policy is needed for the custom resource provider to manage the SES verification.',
                 },
             ],
         )

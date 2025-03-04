@@ -264,17 +264,3 @@ class SSNTable(Table):
                 },
             ],
         )
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            f'{role.node.path}/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'appliesTo': [f'Resource::<{stack.get_logical_id(self.node.default_child)}.Arn>/index/*'],
-                    'reason': """
-                            This policy contains wild-carded actions and resources but they are scoped to the
-                            specific actions, KMS key and Table that this lambda specifically needs access to.
-                            """,
-                },
-            ],
-        )

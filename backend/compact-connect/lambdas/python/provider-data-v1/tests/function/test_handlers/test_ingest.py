@@ -721,3 +721,18 @@ class TestIngest(TstFunction):
 
         # the provider_id is randomly generated, so we cannot check an exact value, just to make sure it exists
         self.assertIsNotNone(provider_id)
+
+    def test_preprocess_license_returns_batch_item_failure_if_error_occurs(self):
+        from handlers.ingest import preprocess_license_ingest
+
+        # adding an invalid ssn here to force an exception
+        test_ssn = False
+        with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
+            message = json.load(f)
+            # set fixed ssn here to ensure we are checking the expected value
+            message['ssn'] = test_ssn
+
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+
+        resp = preprocess_license_ingest(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': [{'itemIdentifier': '123'}]}, resp)

@@ -77,6 +77,8 @@ def preprocess_license_ingest(message: dict):
                     }
                 ]
             )
+            # raise the exception so SQS will retry the message again
+            raise e
 
 
 @sqs_handler
@@ -87,11 +89,11 @@ def ingest_license_message(message: dict):
 
     # This schema load will transform the 'status' field to 'jurisdictionStatus' for internal
     # references, and will also validate the data.
-    license_post = license_schema.load(message['detail'])
+    license_ingest_message = license_schema.load(message['detail'])
 
-    compact = license_post['compact']
-    jurisdiction = license_post['jurisdiction']
-    provider_id = license_post['providerId']
+    compact = license_ingest_message['compact']
+    jurisdiction = license_ingest_message['jurisdiction']
+    provider_id = license_ingest_message['providerId']
 
     with logger.append_context_keys(compact=compact, jurisdiction=jurisdiction):
         with logger.append_context_keys(provider_id=provider_id):
@@ -101,9 +103,9 @@ def ingest_license_message(message: dict):
             data_events = []
 
             license_record_schema = LicenseRecordSchema()
-            dumped_license = license_record_schema.dumps(license_post)
+            dumped_license = license_record_schema.dumps(license_ingest_message)
 
-            del license_post
+            del license_ingest_message
 
             # We fully JSON serialize then load again so that we have a completely independent copy of the data
             posted_license_record = license_record_schema.load(json.loads(dumped_license))

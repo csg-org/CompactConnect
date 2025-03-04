@@ -51,7 +51,7 @@ def verify_ses_email_identity(properties: dict):
     attempts = 0
 
     # Poll until the identity is verified or we time out
-    while attempts < max_attempts:
+    for _attempt in range(max_attempts):
         # Check verification status
         response = ses_client.get_identity_verification_attributes(Identities=[domain_name])
 
