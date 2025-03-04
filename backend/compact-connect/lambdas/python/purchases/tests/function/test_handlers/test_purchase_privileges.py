@@ -372,8 +372,6 @@ class TestPostPurchasePrivileges(TstFunction):
             privilege_record['persistedStatus'] = 'inactive'
             self.config.provider_table.put_item(Item=privilege_record)
 
-        # self._load_license_data(expiration_date=test_expiration_date)
-
         # now make the same call with the same jurisdiction
         resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'], resp['body'])
