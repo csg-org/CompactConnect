@@ -146,6 +146,7 @@ class V1Api:
             resource=licenses_resource,
             method_options=write_auth_method_options,
             bulk_uploads_bucket=persistent_stack.bulk_uploads_bucket,
+            license_upload_role=persistent_stack.ssn_table.license_upload_role,
             api_model=self.api_model,
         )
 

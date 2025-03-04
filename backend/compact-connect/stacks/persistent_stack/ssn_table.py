@@ -142,9 +142,11 @@ class SSNTable(Table):
             'into the preprocessing queue with full SSNs',
             managed_policies=[ManagedPolicy.from_aws_managed_policy_name('service-role/AWSLambdaBasicExecutionRole')],
         )
-        # This role does not need access to the Dynamo table, only the ability to encrypt license records in order
-        # to put them on the license preprocessing queue. The ingest role will handle generating SSN Dynamo records
-        self.key.grant_encrypt(self.license_upload_role)
+        # This role is used by both the bulk upload and post license lambdas, the bulk upload S3 bucket is encrypted
+        # with the same KMS key as the SSN table, so we must grant the role decrypt and encrypt to read/write the
+        # objects in the bucket.
+        # The role also needs the encrypt permission in order to put license data on the license preprocessing queue.
+        self.key.grant_encrypt_decrypt(self.license_upload_role)
         self._role_suppressions(self.license_upload_role)
 
         # This role is to be removed, once full SSN access is removed from the /query API endpoint

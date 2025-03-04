@@ -193,7 +193,10 @@ class PersistentStack(AppStack):
             self,
             'BulkUploadsBucket',
             access_logs_bucket=self.access_logs_bucket,
-            bucket_encryption_key=self.shared_encryption_key,
+            # Note that we're using the ssn key here, which has a much more restrictive policy.
+            # The messages in this bucket include SSN, so we want it just as locked down as our
+            # permanent storage of SSN data.
+            bucket_encryption_key=self.ssn_table.key,
             removal_policy=removal_policy,
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
             event_bus=self.data_event_bus,
