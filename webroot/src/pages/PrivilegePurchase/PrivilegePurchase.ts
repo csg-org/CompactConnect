@@ -6,6 +6,7 @@
 //
 
 import { Component, Vue, Watch } from 'vue-facing-decorator';
+import PrivilegePurchaseLicense from '@components/PrivilegePurchaseLicense/PrivilegePurchaseLicense.vue';
 import PrivilegePurchaseAttestation from '@components/PrivilegePurchaseAttestation/PrivilegePurchaseAttestation.vue';
 import PrivilegePurchaseInformationConfirmation from '@components/PrivilegePurchaseInformationConfirmation/PrivilegePurchaseInformationConfirmation.vue';
 import PrivilegePurchaseSelect from '@components/PrivilegePurchaseSelect/PrivilegePurchaseSelect.vue';
@@ -13,10 +14,16 @@ import PrivilegePurchaseFinalize from '@components/PrivilegePurchaseFinalize/Pri
 import PrivilegePurchaseSuccessful from '@components/PrivilegePurchaseSuccessful/PrivilegePurchaseSuccessful.vue';
 import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import { Compact } from '@models/Compact/Compact.model';
+import { License } from '@models/License/License.model';
+import { Licensee } from '@models/Licensee/Licensee.model';
+import { LicenseeUser } from '@models/LicenseeUser/LicenseeUser.model';
+import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
+import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 
 @Component({
     name: 'PrivilegePurchase',
     components: {
+        PrivilegePurchaseLicense,
         PrivilegePurchaseInformationConfirmation,
         PrivilegePurchaseSelect,
         PrivilegePurchaseAttestation,
@@ -30,6 +37,7 @@ export default class PrivilegePurchase extends Vue {
     // Data
     //
     flowOrder = [
+        'PrivilegePurchaseLicense',
         'PrivilegePurchaseInformationConfirmation',
         'PrivilegePurchaseSelect',
         'PrivilegePurchaseAttestation',
@@ -57,6 +65,14 @@ export default class PrivilegePurchase extends Vue {
         return this.$store.state.user;
     }
 
+    get user(): LicenseeUser | null {
+        return this.userStore.model;
+    }
+
+    get licensee(): Licensee {
+        return this.user?.licensee || new Licensee();
+    }
+
     get currentCompact(): Compact | null {
         return this.userStore?.currentCompact || null;
     }
@@ -67,6 +83,14 @@ export default class PrivilegePurchase extends Vue {
 
     get routeName(): string {
         return this.$route?.name?.toString() || '';
+    }
+
+    get purchaseFlowState(): PurchaseFlowState {
+        return this.userStore.purchase;
+    }
+
+    get isSelectLicenseRoute(): boolean {
+        return Boolean(this.routeName === 'PrivilegePurchaseSelectLicense');
     }
 
     get isConfirmInfoRoute(): boolean {
@@ -87,6 +111,28 @@ export default class PrivilegePurchase extends Vue {
 
     get isPurchaseSuccessfulRoute(): boolean {
         return Boolean(this.routeName === 'PrivilegePurchaseSuccessful');
+    }
+
+    get hasMoreThanOneLicense(): boolean {
+        return (this.licensee?.licenses && this.licensee?.licenses?.length > 1) || false;
+    }
+
+    get licenseSelected(): License | null {
+        let licenseSelected: License | null = null;
+
+        if (this.hasMoreThanOneLicense) {
+            this.purchaseFlowState.steps?.forEach((step: PurchaseFlowStep) => {
+                if (step.licenseSelected) {
+                    licenseSelected = step.licenseSelected;
+                }
+            });
+        } else {
+            const { licenses } = this.licensee;
+
+            licenseSelected = licenses ? licenses[0] : new License();
+        }
+
+        return licenseSelected;
     }
 
     get currentFlowStep(): number {
