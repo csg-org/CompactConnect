@@ -71,6 +71,7 @@ export class Lambda implements LambdaInterface {
 
     /**
      * Lambda handler for Cognito custom messages
+     * https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-custom-message.html
      *
      * This handler generates custom email templates for various Cognito triggers
      * like sign up verification, password reset, etc.
