@@ -304,6 +304,7 @@ class TestPublicGetProvider(TstFunction):
             expected_provider['privileges'][0]['history'][0]['previous'].pop('attestations')
             expected_provider['privileges'][0]['history'][0]['previous'].pop('compactTransactionId')
             expected_provider['privileges'][0]['history'][0]['updatedValues'].pop('compactTransactionId')
+            expected_provider.pop('homeJurisdictionSelection')
 
         self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)

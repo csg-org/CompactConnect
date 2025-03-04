@@ -880,7 +880,6 @@ class ApiModel:
                 'licenses',
                 'privileges',
                 'militaryAffiliations',
-                'homeJurisdictionSelection',
             ],
             properties={
                 'licenses': JsonSchema(
@@ -1298,7 +1297,6 @@ class ApiModel:
     @property
     def _public_provider_detailed_response_schema(self):
         """Schema for public provider responses based on ProviderPublicResponseSchema"""
-        stack: AppStack = AppStack.of(self.api)
         return JsonSchema(
             type=JsonSchemaType.OBJECT,
             required=[
@@ -1323,32 +1321,6 @@ class ApiModel:
                 'privileges': JsonSchema(
                     type=JsonSchemaType.ARRAY,
                     items=self._public_privilege_response_schema,
-                ),
-                'homeJurisdictionSelection': JsonSchema(
-                    type=JsonSchemaType.OBJECT,
-                    required=[
-                        'type',
-                        'compact',
-                        'providerId',
-                        'jurisdiction',
-                        'dateOfSelection',
-                        'dateOfUpdate',
-                    ],
-                    properties={
-                        'type': JsonSchema(type=JsonSchemaType.STRING, enum=['homeJurisdictionSelection']),
-                        'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
-                        'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
-                        'jurisdiction': JsonSchema(
-                            type=JsonSchemaType.STRING,
-                            enum=stack.node.get_context('jurisdictions'),
-                        ),
-                        'dateOfSelection': JsonSchema(
-                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                        ),
-                        'dateOfUpdate': JsonSchema(
-                            type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
-                        ),
-                    },
                 ),
                 **self._common_public_provider_properties,
             },
@@ -1595,7 +1567,7 @@ class ApiModel:
                 'licenseJurisdiction',
                 'privilegeJurisdictions',
                 'dateOfUpdate',
-                'dateOfExpiration'
+                'dateOfExpiration',
             ],
             properties=self._common_public_provider_properties,
         )

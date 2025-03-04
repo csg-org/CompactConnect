@@ -11,10 +11,7 @@ from cc_common.data_model.schema.fields import (
     NationalProviderIdentifier,
     Set,
 )
-from cc_common.data_model.schema.home_jurisdiction.api import (
-    ProviderHomeJurisdictionSelectionGeneralResponseSchema,
-    ProviderHomeJurisdictionSelectionPublicResponseSchema,
-)
+from cc_common.data_model.schema.home_jurisdiction.api import ProviderHomeJurisdictionSelectionGeneralResponseSchema
 from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema, LicensePublicResponseSchema
 from cc_common.data_model.schema.military_affiliation.api import MilitaryAffiliationGeneralResponseSchema
 from cc_common.data_model.schema.privilege.api import PrivilegeGeneralResponseSchema, PrivilegePublicResponseSchema
@@ -118,6 +115,3 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     # so we check for them here and sanitize them if they are present
     licenses = List(Nested(LicensePublicResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegePublicResponseSchema(), required=False, allow_none=False))
-    homeJurisdictionSelection = Nested(
-        ProviderHomeJurisdictionSelectionPublicResponseSchema(), required=False, allow_none=False
-    )
