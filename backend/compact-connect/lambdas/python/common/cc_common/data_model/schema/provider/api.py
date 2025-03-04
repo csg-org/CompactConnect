@@ -12,7 +12,7 @@ from cc_common.data_model.schema.fields import (
     Set,
 )
 from cc_common.data_model.schema.home_jurisdiction.api import ProviderHomeJurisdictionSelectionGeneralResponseSchema
-from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema, LicensePublicResponseSchema
+from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema
 from cc_common.data_model.schema.military_affiliation.api import MilitaryAffiliationGeneralResponseSchema
 from cc_common.data_model.schema.privilege.api import PrivilegeGeneralResponseSchema, PrivilegePublicResponseSchema
 
@@ -96,22 +96,13 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     compact = Compact(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
-    licenseType = String(required=True, allow_none=False)
-    jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
     suffix = String(required=False, allow_none=False, validate=Length(1, 100))
-    # This date is determined by the license records uploaded by a state
-    # they do not include a timestamp, so we use the Date field type
-    dateOfExpiration = Raw(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
 
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
-    providerDateOfUpdate = Raw(required=False, allow_none=False)
-
-    # these records are present when getting provider information from the GET endpoint
+    # We only return privileges when getting provider information from the public GET endpoint
     # so we check for them here and sanitize them if they are present
-    licenses = List(Nested(LicensePublicResponseSchema(), required=False, allow_none=False))
     privileges = List(Nested(PrivilegePublicResponseSchema(), required=False, allow_none=False))

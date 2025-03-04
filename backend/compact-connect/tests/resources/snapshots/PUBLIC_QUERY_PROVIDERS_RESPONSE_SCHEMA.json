@@ -17,11 +17,6 @@
             "pattern": "^[0-9]{10}$",
             "type": "string"
           },
-          "licenseNumber": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
           "givenName": {
             "maxLength": 100,
             "minLength": 1,
@@ -35,16 +30,6 @@
           "familyName": {
             "maxLength": 100,
             "minLength": 1,
-            "type": "string"
-          },
-          "licenseType": {
-            "enum": [
-              "audiologist",
-              "speech-language pathologist",
-              "occupational therapist",
-              "occupational therapy assistant",
-              "licensed professional counselor"
-            ],
             "type": "string"
           },
           "status": {
@@ -180,16 +165,6 @@
               "type": "string"
             },
             "type": "array"
-          },
-          "dateOfUpdate": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-            "type": "string"
-          },
-          "dateOfExpiration": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-            "type": "string"
           }
         },
         "required": [
@@ -197,13 +172,10 @@
           "providerId",
           "givenName",
           "familyName",
-          "licenseType",
           "status",
           "compact",
           "licenseJurisdiction",
-          "privilegeJurisdictions",
-          "dateOfUpdate",
-          "dateOfExpiration"
+          "privilegeJurisdictions"
         ],
         "type": "object"
       },
