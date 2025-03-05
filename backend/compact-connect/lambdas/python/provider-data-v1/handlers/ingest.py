@@ -39,6 +39,7 @@ def ingest_license_message(message: dict):
             data_events = []
 
             license_record_schema = LicenseRecordSchema()
+            # We'll use the schema/serializer to populate index fields for us
             dumped_license = license_record_schema.dumps(
                 {
                     'providerId': provider_id,
@@ -59,7 +60,6 @@ def ingest_license_message(message: dict):
                 {
                     'Put': {
                         'TableName': config.provider_table_name,
-                        # We'll use the schema/serializer to populate index fields for us
                         'Item': TypeSerializer().serialize(json.loads(dumped_license))['M'],
                     },
                 },
@@ -76,21 +76,23 @@ def ingest_license_message(message: dict):
                 privilege_jurisdictions = {
                     record['jurisdiction']
                     for record in provider_data['items']
-                    if record['type'] == 'privilege' and record['status'] == 'active'
+                    if record['type'] == 'privilege'
+                    and record['persistedStatus'] == ProviderEligibilityStatus.ACTIVE.value
                 }
-                # Get all the existing license records, by jurisdiction, to find the best data for the provider
-                licenses = {
-                    record['jurisdiction']: record for record in provider_data['items'] if record['type'] == 'license'
-                }
+                # Get all the existing license records, by jurisdiction and license type, to find the best data for the provider
+                licenses = {}
+                for record in provider_data['items']:
+                    if record['type'] == 'license':
+                        licenses[record['jurisdiction']].setdefault({})
+                        licenses[record['jurisdiction']][record['licenseType']] = record
             except CCNotFoundException:
                 privilege_jurisdictions = set()
                 licenses = {}
 
-            # Which license do we use for provider data?
-            # If at least one active: last issued active license
-            # If all inactive: last issued inactive license
             # Set (or replace) the posted license for its jurisdiction
-            existing_license = licenses.get(posted_license_record['jurisdiction'])
+            existing_license = licenses.get(posted_license_record['jurisdiction'], {}).get(
+                posted_license_record['licenseType']
+            )
             if existing_license is not None:
                 _process_license_update(
                     existing_license=existing_license,
@@ -98,8 +100,13 @@ def ingest_license_message(message: dict):
                     dynamo_transactions=dynamo_transactions,
                     data_events=data_events,
                 )
-            licenses[posted_license_record['jurisdiction']] = posted_license_record
+            licenses[posted_license_record['jurisdiction']][posted_license_record['licenseType']] = (
+                posted_license_record
+            )
 
+            # Which license do we use for provider data?
+            # If at least one active: last issued active license
+            # If all inactive: last issued inactive license
             # First try to find the home state license
             best_license = config.data_client.find_home_state_license(
                 compact=compact, provider_id=provider_id, licenses=list(licenses.values())

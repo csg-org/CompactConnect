@@ -94,7 +94,6 @@ class TestLicenseSchema(TstLambdas):
         del expected_license_record['dateOfUpdate']
         del license_record['dateOfUpdate']
 
-        self.maxDiff = None
         self.assertEqual(expected_license_record, license_record)
 
     def test_license_record_schema_sets_status_to_inactive_if_license_expired(self):
@@ -154,7 +153,6 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
 
         # Round-trip SERDE with a fixed timestamp demonstrates that our sk generation is deterministic for the same
         # input values, which is an important property for this schema.
-        self.maxDiff = None
         self.assertEqual(record, dumped_record)
 
     def test_hash_is_deterministic(self):
@@ -175,8 +173,8 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
             {
                 'type': 'licenseUpdate',
                 'providerId': uuid4(),
-                'compact': 'different',
-                'jurisdiction': 'different',
+                'compact': 'aslp',
+                'jurisdiction': 'ky',
                 # These two fields should determine the change hash:
                 'previous': loaded_record['previous'].copy(),
                 'updatedValues': loaded_record['updatedValues'].copy(),
@@ -201,8 +199,8 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
         alternate_record = {
             'type': 'licenseUpdate',
             'providerId': uuid4(),
-            'compact': 'different',
-            'jurisdiction': 'different',
+            'compact': 'aslp',
+            'jurisdiction': 'ky',
             # These two fields should determine the change hash:
             'previous': loaded_record['previous'].copy(),
             'updatedValues': loaded_record['updatedValues'].copy(),

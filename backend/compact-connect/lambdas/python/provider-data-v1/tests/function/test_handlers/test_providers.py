@@ -259,7 +259,6 @@ class TestGetProvider(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
-        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)
 
         # The sk for a license-update record is sensitive so we'll do an extra, pretty broad, check just to make sure

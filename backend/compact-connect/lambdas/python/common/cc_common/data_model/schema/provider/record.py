@@ -1,12 +1,11 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from urllib.parse import quote
 
-from marshmallow import ValidationError, post_load, pre_dump, pre_load, validates_schema
+from marshmallow import post_load, pre_dump, pre_load
 from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, String
 from marshmallow.validate import Length, Regexp
 
-from cc_common.config import config
-from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema, ForgivingSchema
+from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema
 from cc_common.data_model.schema.common import ensure_value_is_datetime
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
@@ -18,19 +17,19 @@ from cc_common.data_model.schema.fields import (
 )
 
 
-class ProviderPrivateSchema(ForgivingSchema):
-    """Schema for provider data that can be shared with the staff users with the appropriate permissions, as well as
-    the provider themselves"""
+@BaseRecordSchema.register_schema('provider')
+class ProviderRecordSchema(CalculatedStatusRecordSchema):
+    """Schema for provider records in the provider data table"""
+
+    _record_type = 'provider'
 
     # Provided fields
     providerId = UUID(required=True, allow_none=False)
 
     compact = Compact(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
-    licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     ssnLastFour = String(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
-    licenseType = String(required=True, allow_none=False)
     jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
@@ -53,19 +52,6 @@ class ProviderPrivateSchema(ForgivingSchema):
 
     # Generated fields
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
-
-    @validates_schema
-    def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
-        license_types = config.license_types_for_compact(data['compact'])
-        if data['licenseType'] not in license_types:
-            raise ValidationError({'licenseType': f"'licenseType' must be one of {license_types}"})
-
-
-@BaseRecordSchema.register_schema('provider')
-class ProviderRecordSchema(CalculatedStatusRecordSchema, ProviderPrivateSchema):
-    """Schema for license records in the license data table"""
-
-    _record_type = 'provider'
 
     # Generated fields
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())

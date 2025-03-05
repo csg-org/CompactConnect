@@ -266,6 +266,7 @@ class DataClient:
         compact_transaction_id: str,
         attestations: list[dict],
         license_type: str,
+        license_jurisdiction: str,
         original_privilege: dict | None = None,
     ):
         current_datetime = config.current_standard_datetime
@@ -301,6 +302,8 @@ class DataClient:
             'providerId': provider_id,
             'compact': compact,
             'jurisdiction': jurisdiction_postal_abbreviation.lower(),
+            'licenseJurisdiction': license_jurisdiction.lower(),
+            'licenseType': license_type,
             'dateOfIssuance': date_of_issuance,
             'dateOfRenewal': current_datetime,
             'dateOfExpiration': license_expiration_date,
@@ -346,6 +349,8 @@ class DataClient:
             privilege_jurisdictions=jurisdiction_postal_abbreviations,
         )
 
+        license_jurisdiction = provider_record['licenseJurisdiction']
+
         try:
             # We'll collect all the record changes into a transaction to protect data consistency
             transactions = []
@@ -371,6 +376,7 @@ class DataClient:
                     compact_transaction_id=compact_transaction_id,
                     attestations=attestations,
                     license_type=license_type,
+                    license_jurisdiction=license_jurisdiction,
                     original_privilege=original_privilege,
                 )
 
@@ -838,7 +844,6 @@ class DataClient:
         3. Filter to active licenses if any exist
         4. Return the most recently issued active license, or None if no matching license is found
 
-
         :param compact: The compact name
         :param provider_id: The provider ID
         :param licenses: List of license records to search through
@@ -893,8 +898,8 @@ class DataClient:
             logger.info('No home jurisdiction selection found. Cannot determine home state license')
             return None
 
-    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction')
-    def deactivate_privilege(self, *, compact: str, provider_id: str, jurisdiction: str) -> None:
+    @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
+    def deactivate_privilege(self, *, compact: str, provider_id: str, jurisdiction: str, license_type: str) -> None:
         """
         Deactivate a privilege by setting its persistedStatus to inactive.
         This will create a history record and update the provider record.
@@ -902,14 +907,16 @@ class DataClient:
         :param str compact: The compact name
         :param str provider_id: The provider ID
         :param str jurisdiction: The jurisdiction postal abbreviation
+        :param str license_type: The type of license
         :raises CCNotFoundException: If the privilege record is not found
         """
         # Get the privilege record
+        license_type_abbr = config.license_type_abbreviations[compact][license_type]
         try:
             privilege_record = self.config.provider_table.get_item(
                 Key={
                     'pk': f'{compact}#PROVIDER#{provider_id}',
-                    'sk': f'{compact}#PROVIDER#privilege/{jurisdiction}#',
+                    'sk': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#',
                 },
             )['Item']
         except KeyError as e:
@@ -954,7 +961,7 @@ class DataClient:
                         'TableName': self.config.provider_table.name,
                         'Key': {
                             'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                            'sk': {'S': f'{compact}#PROVIDER#privilege/{jurisdiction}#'},
+                            'sk': {'S': f'{compact}#PROVIDER#privilege/{jurisdiction}/{license_type_abbr}#'},
                         },
                         'UpdateExpression': 'SET persistedStatus = :status, dateOfUpdate = :dateOfUpdate',
                         'ExpressionAttributeValues': {
