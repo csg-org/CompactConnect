@@ -13,6 +13,7 @@
             class="login-link"
             rel="noopener noreferrer"
         >
+            <StaffUserIcon class="login-icon" />
             {{ $t('navigation.loginAsStaff') }}
         </a>
         <a
@@ -21,6 +22,7 @@
             class="login-link"
             rel="noopener noreferrer"
         >
+            <LicenseeUserIcon class="login-icon" />
             {{ $t('navigation.loginAsProvider') }}
         </a>
         <InputButton
@@ -37,13 +39,6 @@
             :isTextLike="true"
             @click="mockLicenseeLogin"
         />
-        <router-link
-            :to="{ name: 'RegisterLicensee' }"
-            class="login-link"
-            tabindex="0"
-        >
-            {{ $t('navigation.registerAsProvider') }}
-        </router-link>
     </div>
 </template>
 

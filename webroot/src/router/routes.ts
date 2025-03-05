@@ -12,7 +12,13 @@ import guards from '@router/_guards';
 const routes: Array<RouteConfig> = [
     {
         path: '/',
-        redirect: '/Login',
+        redirect: '/Search',
+        beforeEnter: guards.noAuthGuard,
+    },
+    {
+        path: '/Search',
+        name: 'LicneseeSearchPublic',
+        component: () => import(/* webpackChunkName: "search" */ '@pages/LicensingListPublic/LicensingListPublic.vue'),
         beforeEnter: guards.noAuthGuard,
     },
     {

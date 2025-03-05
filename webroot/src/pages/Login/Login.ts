@@ -7,12 +7,16 @@
 
 import { Component, Vue } from 'vue-facing-decorator';
 import { AuthTypes } from '@/app.config';
+import StaffUserIcon from '@components/Icons/StaffUser/StaffUser.vue';
+import LicenseeUserIcon from '@components/Icons/LicenseeUser/LicenseeUser.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 
 @Component({
     name: 'Login',
     components: {
-        InputButton
+        StaffUserIcon,
+        LicenseeUserIcon,
+        InputButton,
     }
 })
 export default class Login extends Vue {
