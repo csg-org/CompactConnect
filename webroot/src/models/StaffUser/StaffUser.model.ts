@@ -319,6 +319,7 @@ export class StaffUser extends User implements InterfaceStaffUserCreate {
         return display;
     }
 
+    // Check that the user has the provided permission at the compact or state level
     public hasPermission(permission: Permission, compactType: CompactType, state = '') {
         let { permissions } = this;
         let hasPermissionForParams = false;
