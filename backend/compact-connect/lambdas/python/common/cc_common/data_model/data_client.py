@@ -196,6 +196,7 @@ class DataClient:
         provider_name: tuple[str, str] | None = None,  # (familyName, givenName)
         jurisdiction: str | None = None,
         scan_forward: bool = True,
+        exclude_providers_without_privileges: bool = False,
     ):
         logger.info('Getting providers by family name')
 
@@ -222,6 +223,14 @@ class DataClient:
         else:
             filter_expression = None
 
+        # Add filter for providers with privileges if requested
+        if exclude_providers_without_privileges:
+            privilege_filter = Attr('privilegeJurisdictions').exists()
+            if filter_expression is not None:
+                filter_expression = filter_expression & privilege_filter
+            else:
+                filter_expression = privilege_filter
+
         return config.provider_table.query(
             IndexName=config.fam_giv_mid_index_name,
             Select='ALL_ATTRIBUTES',
@@ -240,6 +249,7 @@ class DataClient:
         dynamo_pagination: dict,
         jurisdiction: str | None = None,
         scan_forward: bool = True,
+        exclude_providers_without_privileges: bool = False,
     ):
         logger.info('Getting providers by date updated')
         if jurisdiction is not None:
@@ -248,6 +258,15 @@ class DataClient:
             )
         else:
             filter_expression = None
+
+        # Add filter for providers with privileges if requested
+        if exclude_providers_without_privileges:
+            privilege_filter = Attr('privilegeJurisdictions').exists()
+            if filter_expression is not None:
+                filter_expression = filter_expression & privilege_filter
+            else:
+                filter_expression = privilege_filter
+
         return config.provider_table.query(
             IndexName=config.date_of_update_index_name,
             Select='ALL_ATTRIBUTES',

@@ -83,6 +83,33 @@ class TestPublicQueryProviders(TstFunction):
         dates_of_update = [provider['dateOfUpdate'] for provider in body['providers']]
         self.assertListEqual(sorted(dates_of_update), dates_of_update)
 
+    def test_public_query_providers_updated_sorting_filters_providers_without_privileges(self):
+        from handlers.public_lookup import public_query_providers
+
+        # 20 providers, 10 with privileges, 10 without
+        self._generate_providers(home='oh', privilege='ne', start_serial=9999)
+        self._generate_providers(home='oh', privilege=None, start_serial=9899)
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # public endpoint does not have authorizer
+        del event['requestContext']['authorizer']
+        event['pathParameters'] = {'compact': 'aslp'}
+        event['body'] = json.dumps(
+            {'sorting': {'key': 'dateOfUpdate'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 20}},
+        )
+
+        resp = public_query_providers(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        body = json.loads(resp['body'])
+        self.assertEqual(10, len(body['providers']))
+        # Check we're actually sorted
+        dates_of_update = [provider['dateOfUpdate'] for provider in body['providers']]
+        self.assertListEqual(sorted(dates_of_update), dates_of_update)
+
     def test_public_query_providers_family_name_sorting(self):
         from handlers.public_lookup import public_query_providers
 
@@ -135,6 +162,45 @@ class TestPublicQueryProviders(TstFunction):
         self._generate_providers(
             home='oh',
             privilege='ne',
+            start_serial=9999,
+            names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
+        )
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+
+        # The user has read permission for aslp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
+        event['pathParameters'] = {'compact': 'aslp'}
+        event['body'] = json.dumps(
+            {
+                'sorting': {'key': 'familyName'},
+                'query': {'jurisdiction': 'oh', 'familyName': 'Testerly'},
+                'pagination': {'pageSize': 10},
+            },
+        )
+
+        resp = public_query_providers(event, self.mock_context)
+
+        self.assertEqual(200, resp['statusCode'])
+
+        body = json.loads(resp['body'])
+        self.assertEqual(2, len(body['providers']))
+
+    def test_public_query_providers_by_family_name_filters_providers_without_privileges(self):
+        from handlers.public_lookup import public_query_providers
+
+        # 10 providers, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
+        self._generate_providers(
+            home='oh',
+            privilege='ne',
+            start_serial=9999,
+            names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
+        )
+        # 10 more providers without privileges, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
+        self._generate_providers(
+            home='oh',
+            privilege=None,
             start_serial=9999,
             names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
         )
