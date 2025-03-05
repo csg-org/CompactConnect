@@ -2,16 +2,12 @@ import * as crypto from 'crypto';
 import { renderToStaticMarkup, TReaderDocument } from '@usewaypoint/email-builder';
 import { IIngestFailureEventRecord, IValidationErrorEventRecord } from '../models';
 import { BaseEmailService } from './base-email-service';
-import { EnvironmentVariablesService } from '../environment-variables-service';
-
-const environmentVariableService = new EnvironmentVariablesService();
 
 interface IIngestEvents {
     ingestFailures: IIngestFailureEventRecord[];
     validationErrors: IValidationErrorEventRecord[];
 }
 
-/**
 /**
  * Email service for handling ingest event reporting
  */
@@ -34,7 +30,7 @@ export class IngestEventEmailService extends BaseEmailService {
         this.logger.info('Sending alls well email', { recipients: recipients });
 
         // Generate the HTML report
-        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        const report = this.getNewEmailTemplate();
 
         this.insertHeaderWithJurisdiction(report, compact, jurisdiction, 'License Data Summary');
         this.insertNoErrorImage(report);
@@ -55,7 +51,7 @@ export class IngestEventEmailService extends BaseEmailService {
         this.logger.info('Sending no license updates email', { recipients: recipients });
 
         // Generate the HTML report
-        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        const report = this.getNewEmailTemplate();
 
         this.insertHeaderWithJurisdiction(report, compact, jurisdiction, 'License Data Summary');
         this.insertClockImage(report);
@@ -73,7 +69,7 @@ export class IngestEventEmailService extends BaseEmailService {
     }
 
     public generateReport(events: IIngestEvents, compact: string, jurisdiction: string): string {
-        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        const report = this.getNewEmailTemplate();
 
         this.insertHeaderWithJurisdiction(
             report,
@@ -106,7 +102,7 @@ export class IngestEventEmailService extends BaseEmailService {
 
     protected sortValidationErrors(validationErrors: IValidationErrorEventRecord[]) {
         validationErrors.sort((a, b) => {
-            if ( a.recordNumber != b.recordNumber ) {
+            if (a.recordNumber != b.recordNumber) {
                 return a.recordNumber - b.recordNumber;
             } else {
                 return new Date(a.eventTime).getTime() - new Date(b.eventTime).getTime();
@@ -275,7 +271,7 @@ export class IngestEventEmailService extends BaseEmailService {
          * must be one of X, Y
          * smells bad
          */
-        for (const [ key, value ] of Object.entries(validationError.errors)) {
+        for (const [key, value] of Object.entries(validationError.errors)) {
             this.logger.debug('Assembling text', { key: key, value: value });
 
             errorText.push(`${key}:\n${value.join('\n')}`);
@@ -304,7 +300,7 @@ export class IngestEventEmailService extends BaseEmailService {
         const blockCId = `block-${crypto.randomUUID()}`;
         const validDataText: string[] = [];
 
-        for (const [ key, value ] of Object.entries(validationError.validData)) {
+        for (const [key, value] of Object.entries(validationError.validData)) {
             validDataText.push(`${key}: ${value}`);
         }
 

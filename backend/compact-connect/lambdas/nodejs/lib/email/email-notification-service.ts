@@ -43,7 +43,7 @@ export class EmailNotificationService extends BaseEmailService {
             throw new Error(`No recipients found for compact ${compact} with recipient type ${recipientType}`);
         }
 
-        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        const report = this.getNewEmailTemplate();
         const subject = `Transactions Failed to Settle for ${compact.toUpperCase()} Payment Processor`;
         const bodyText = 'A transaction settlement error was detected within the payment processing account for the compact. ' +
             'Please reach out to your payment processing representative to determine the cause. ' +
@@ -84,7 +84,7 @@ export class EmailNotificationService extends BaseEmailService {
 
         const reportZipBuffer = Buffer.from(await reportZipResponse.Body.transformToByteArray());
 
-        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        const report = this.getNewEmailTemplate();
         const subject = `${reportingCycle === 'weekly' ? 'Weekly' : 'Monthly'} Report for Compact ${compact.toUpperCase()}`;
         const bodyText = `Please find attached the ${reportingCycle} settled transaction reports for the compact for the period ${startDate} to ${endDate}:\n\n` +
             '- Financial Summary Report - A summary of all settled transactions and fees\n' +
@@ -143,7 +143,7 @@ export class EmailNotificationService extends BaseEmailService {
 
         const reportZipBuffer = Buffer.from(await reportZipResponse.Body.transformToByteArray());
 
-        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        const report = this.getNewEmailTemplate();
         const subject = `${jurisdictionConfig.jurisdictionName} ${reportingCycle === 'weekly' ? 'Weekly' : 'Monthly'} Report for Compact ${compact.toUpperCase()}`;
         const bodyText = `Please find attached the ${reportingCycle} settled transaction report for your jurisdiction for the period ${startDate} to ${endDate}.`;
 

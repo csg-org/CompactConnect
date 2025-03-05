@@ -28,7 +28,7 @@ export abstract class BaseEmailService {
     protected readonly s3Client: S3Client;
     protected readonly compactConfigurationClient: CompactConfigurationClient;
     protected readonly jurisdictionClient: JurisdictionClient;
-    protected readonly emailTemplate: TReaderDocument = {
+    private readonly emailTemplate: TReaderDocument = {
         'root': {
             'type': 'EmailLayout',
             'data': {
@@ -40,6 +40,11 @@ export abstract class BaseEmailService {
             }
         }
     };
+
+    protected getNewEmailTemplate() {
+        // Make a deep copy of the template so we can modify it without affecting the original
+        return JSON.parse(JSON.stringify(this.emailTemplate));
+    }
 
     public constructor(props: EmailServiceProperties) {
         this.logger = props.logger;

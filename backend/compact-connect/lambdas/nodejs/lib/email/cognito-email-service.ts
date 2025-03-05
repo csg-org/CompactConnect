@@ -26,6 +26,8 @@ export class CognitoEmailService extends BaseEmailService {
          */
         switch (triggerSource) {
         // Sent as an invite, after a user is created by our API.
+        // Based on the triggerSource value, we know which parameters are defined, so we will
+        // assert that they are defined for each particular template.
         case 'CustomMessage_AdminCreateUser':
             return this.generateAdminCreateUserTemplate(codeParameter!, usernameParameter!);
         // Sent if a user requests to reset their password
@@ -54,20 +56,21 @@ export class CognitoEmailService extends BaseEmailService {
         usernameParameter: string
     ): { subject: string; htmlContent: string } {
         const subject = 'Welcome to CompactConnect';
-        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        // Make a deep copy of the template so we can modify it without affecting the original
+        const template = this.getNewEmailTemplate();
 
-        this.insertHeader(report, subject);
-        this.insertMarkdownBody(report,
+        this.insertHeader(template, subject);
+        this.insertMarkdownBody(template,
             `Your temporary password is: ${codeParameter}\n\nYour username is: ${usernameParameter}`
         );
-        this.insertMarkdownBody(report,
+        this.insertMarkdownBody(template,
             `Please sign in at ${environmentVariableService.getUiBasePathUrl()}/Login and change your password when prompted.`
         );
-        this.insertFooter(report);
+        this.insertFooter(template);
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(report, { rootBlockId: 'root' })
+            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
         };
     }
 
@@ -76,18 +79,19 @@ export class CognitoEmailService extends BaseEmailService {
      */
     private generateForgotPasswordTemplate(codeParameter: string): { subject: string; htmlContent: string } {
         const subject = 'Reset your password';
-        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        // Make a deep copy of the template so we can modify it without affecting the original
+        const template = this.getNewEmailTemplate();
 
-        this.insertHeader(report, subject);
-        this.insertMarkdownBody(report,
+        this.insertHeader(template, subject);
+        this.insertMarkdownBody(template,
             'You requested to reset your password. Enter the following code to proceed:'
         );
-        this.insertSubHeading(report, codeParameter);
-        this.insertFooter(report);
+        this.insertSubHeading(template, codeParameter);
+        this.insertFooter(template);
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(report, { rootBlockId: 'root' })
+            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
         };
     }
 
@@ -96,18 +100,19 @@ export class CognitoEmailService extends BaseEmailService {
      */
     private generateUpdateUserAttributeTemplate(codeParameter: string): { subject: string; htmlContent: string } {
         const subject = 'Verify your email';
-        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        // Make a deep copy of the template so we can modify it without affecting the original
+        const template = this.getNewEmailTemplate();
 
-        this.insertHeader(report, subject);
-        this.insertMarkdownBody(report,
+        this.insertHeader(template, subject);
+        this.insertMarkdownBody(template,
             'Please verify your new email address by entering the following code:'
         );
-        this.insertSubHeading(report, codeParameter);
-        this.insertFooter(report);
+        this.insertSubHeading(template, codeParameter);
+        this.insertFooter(template);
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(report, { rootBlockId: 'root' })
+            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
         };
     }
 
@@ -117,18 +122,19 @@ export class CognitoEmailService extends BaseEmailService {
      */
     private generateVerifyUserAttributeTemplate(codeParameter: string): { subject: string; htmlContent: string } {
         const subject = 'Verify your email';
-        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        // Make a deep copy of the template so we can modify it without affecting the original
+        const template = this.getNewEmailTemplate();
 
-        this.insertHeader(report, subject);
-        this.insertMarkdownBody(report,
+        this.insertHeader(template, subject);
+        this.insertMarkdownBody(template,
             'Please verify your email address by entering the following code:'
         );
-        this.insertSubHeading(report, codeParameter);
-        this.insertFooter(report);
+        this.insertSubHeading(template, codeParameter);
+        this.insertFooter(template);
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(report, { rootBlockId: 'root' })
+            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
         };
     }
 
@@ -138,18 +144,19 @@ export class CognitoEmailService extends BaseEmailService {
      */
     private generateResendCodeTemplate(codeParameter: string): { subject: string; htmlContent: string } {
         const subject = 'New verification code for CompactConnect';
-        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        // Make a deep copy of the template so we can modify it without affecting the original
+        const template = this.getNewEmailTemplate();
 
-        this.insertHeader(report, subject);
-        this.insertMarkdownBody(report,
+        this.insertHeader(template, subject);
+        this.insertMarkdownBody(template,
             'Your new verification code is:'
         );
-        this.insertSubHeading(report, codeParameter);
-        this.insertFooter(report);
+        this.insertSubHeading(template, codeParameter);
+        this.insertFooter(template);
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(report, { rootBlockId: 'root' })
+            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
         };
     }
 
@@ -159,18 +166,19 @@ export class CognitoEmailService extends BaseEmailService {
      */
     private generateSignUpTemplate(codeParameter: string): { subject: string; htmlContent: string } {
         const subject = 'Welcome to CompactConnect';
-        const report = JSON.parse(JSON.stringify(this.emailTemplate));
+        // Make a deep copy of the template so we can modify it without affecting the original
+        const template = this.getNewEmailTemplate();
 
-        this.insertHeader(report, subject);
-        this.insertMarkdownBody(report,
+        this.insertHeader(template, subject);
+        this.insertMarkdownBody(template,
             'Please verify your email address by entering the following code:'
         );
-        this.insertSubHeading(report, codeParameter);
-        this.insertFooter(report);
+        this.insertSubHeading(template, codeParameter);
+        this.insertFooter(template);
 
         return {
             subject,
-            htmlContent: renderToStaticMarkup(report, { rootBlockId: 'root' })
+            htmlContent: renderToStaticMarkup(template, { rootBlockId: 'root' })
         };
     }
 }
