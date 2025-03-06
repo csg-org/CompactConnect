@@ -9,12 +9,11 @@ import { EnvironmentVariablesService } from '../lib/environment-variables-servic
 import { CompactConfigurationClient } from '../lib/compact-configuration-client';
 import { JurisdictionClient } from '../lib/jurisdiction-client';
 import { IEventBridgeEvent } from '../lib/models/event-bridge-event-detail';
-import { EmailService } from '../lib/email-service';
+import { IngestEventEmailService } from '../lib/email';
 import { EventClient } from '../lib/event-client';
 
 const environmentVariables = new EnvironmentVariablesService();
 const logger = new Logger({ logLevel: environmentVariables.getLogLevel() });
-
 
 interface LambdaProperties {
     dynamoDBClient: DynamoDBClient;
@@ -28,7 +27,7 @@ interface LambdaProperties {
 export class Lambda implements LambdaInterface {
     private readonly jurisdictionClient: JurisdictionClient;
     private readonly eventClient: EventClient;
-    private readonly emailService: EmailService;
+    private readonly emailService: IngestEventEmailService;
 
     constructor(props: LambdaProperties) {
         this.jurisdictionClient = new JurisdictionClient({
@@ -45,7 +44,7 @@ export class Lambda implements LambdaInterface {
             logger: logger,
             dynamoDBClient: props.dynamoDBClient,
         });
-        this.emailService = new EmailService({
+        this.emailService = new IngestEventEmailService({
             logger: logger,
             sesClient: props.sesClient,
             s3Client: props.s3Client,

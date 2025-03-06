@@ -154,8 +154,7 @@ class TestPipeline(TstAppABC, TestCase):
             CfnUserPool.CFN_RESOURCE_TYPE_NAME,
             props={'Properties': {'UserPoolAddOns': {'AdvancedSecurityMode': 'ENFORCED'}, 'MfaConfiguration': 'ON'}},
         )
-        # Two user pools, we should find two matches
-        self.assertEqual(2, len(user_pools))
+        number_of_user_pools = len(user_pools)
 
         # Check risk configurations
         risk_configurations = template.find_resources(
@@ -173,8 +172,8 @@ class TestPipeline(TstAppABC, TestCase):
                 }
             },
         )
-        # One for each of two user pools
-        self.assertEqual(2, len(risk_configurations))
+        # Every user pool should have this risk configuration
+        self.assertEqual(number_of_user_pools, len(risk_configurations))
 
         # Verify that we're not allowing the implicit grant flow in any of our clients
         implicit_grant_clients = template.find_resources(

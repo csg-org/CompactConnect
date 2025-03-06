@@ -5,7 +5,7 @@ import { SESClient, SendEmailCommand, SendRawEmailCommand } from '@aws-sdk/clien
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 import { sdkStreamMixin } from '@smithy/util-stream';
-import { Lambda } from '../email-notification-service/email-notification-service-lambda';
+import { Lambda } from '../email-notification-service/lambda';
 import { EmailNotificationEvent } from '../lib/models/email-notification-service-event';
 import { describe, it, expect, beforeAll, beforeEach, jest } from '@jest/globals';
 
