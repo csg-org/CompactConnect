@@ -133,7 +133,7 @@ def ingest_license_message(message: dict):
                 privilege_jurisdictions = {
                     record['jurisdiction']
                     for record in provider_data['items']
-                    if record['type'] == 'privilege' and record['status'] == 'active'
+                    if record['type'] == 'privilege'
                 }
                 # Get all the existing license records, by jurisdiction, to find the best data for the provider
                 licenses = {
