@@ -6,14 +6,9 @@ import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
 import { sdkStreamMixin } from '@smithy/util-stream';
 import * as nodemailer from 'nodemailer';
-import { EmailService } from '../lib/email-service';
-import { CompactConfigurationClient } from '../lib/compact-configuration-client';
-import { JurisdictionClient } from '../lib/jurisdiction-client';
-import {
-    SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS,
-    SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD,
-    SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD
-} from './sample-records';
+import { EmailNotificationService } from '../../../lib/email';
+import { CompactConfigurationClient } from '../../../lib/compact-configuration-client';
+import { JurisdictionClient } from '../../../lib/jurisdiction-client';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 
 jest.mock('nodemailer');
@@ -45,9 +40,6 @@ const SAMPLE_JURISDICTION_CONFIG = {
     jurisdictionSummaryReportNotificationEmails: ['oh-summary@example.com']
 };
 
-/*
- * Double casting to allow us to pass a mock in for the real thing
- */
 const asSESClient = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as SESClient;
 
@@ -62,8 +54,8 @@ const MOCK_TRANSPORT = {
     sendMail: jest.fn().mockImplementation(async () => ({ messageId: 'test-message-id' }))
 };
 
-describe('Email Service', () => {
-    let emailService: EmailService;
+describe('EmailNotificationService', () => {
+    let emailService: EmailNotificationService;
     let mockSESClient: ReturnType<typeof mockClient>;
     let mockS3Client: ReturnType<typeof mockClient>;
     let mockCompactConfigurationClient: jest.Mocked<CompactConfigurationClient>;
@@ -97,141 +89,13 @@ describe('Email Service', () => {
 
         (nodemailer.createTransport as jest.Mock).mockReturnValue(MOCK_TRANSPORT);
 
-        emailService = new EmailService({
+        emailService = new EmailNotificationService({
             logger: new Logger({ serviceName: 'test' }),
             sesClient: asSESClient(mockSESClient),
             s3Client: asS3Client(mockS3Client),
             compactConfigurationClient: mockCompactConfigurationClient,
             jurisdictionClient: mockJurisdictionClient
         });
-    });
-
-    it('should render an html document', async () => {
-        const template = emailService.generateReport(
-            {
-                ingestFailures: [ SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD ],
-                validationErrors: [ SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD ]
-            },
-            'aslp',
-            'ohio'
-        );
-
-        // Any HTML document would start with a '<' and end with a '>'
-        expect(template.charAt(0)).toBe('<');
-        expect(template.charAt(template.length - 1)).toBe('>');
-    });
-
-    it('should send a report email', async () => {
-        const messageId = await emailService.sendReportEmail(
-            {
-                ingestFailures: [ SAMPLE_UNMARSHALLED_INGEST_FAILURE_ERROR_RECORD ],
-                validationErrors: [ SAMPLE_UNMARSHALLED_VALIDATION_ERROR_RECORD ]
-            },
-            'aslp',
-            'ohio',
-            [
-                'operations@example.com'
-            ]
-        );
-
-        expect(messageId).toEqual('message-id-123');
-        expect(mockSESClient).toHaveReceivedCommandWith(
-            SendEmailCommand,
-            {
-                Destination: {
-                    ToAddresses: ['operations@example.com']
-                },
-                Message: {
-                    Body: {
-                        Html: {
-                            Charset: 'UTF-8',
-                            Data: expect.stringContaining('<!DOCTYPE html>')
-                        }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'License Data Error Summary: aslp / ohio'
-                    }
-                },
-                Source: 'Compact Connect <noreply@example.org>'
-            }
-        );
-    });
-
-    it('should sort validation errors by record number then time', async () => {
-        const sorted = emailService['sortValidationErrors'](
-            SAMPLE_SORTABLE_VALIDATION_ERROR_RECORDS
-        );
-
-        const flattenedErrors: string[] = sorted.flatMap((record) => record.errors.dateOfRenewal);
-
-        expect(flattenedErrors).toEqual([
-            'Row 4, 5:47',
-            'Row 5, 4:47',
-            'Row 5, 5:47'
-        ]);
-    });
-
-    it('should send an alls well email', async () => {
-        const messageId = await emailService.sendAllsWellEmail(
-            'aslp',
-            'ohio',
-            [ 'operations@example.com' ]
-        );
-
-        expect(messageId).toEqual('message-id-123');
-        expect(mockSESClient).toHaveReceivedCommandWith(
-            SendEmailCommand,
-            {
-                Destination: {
-                    ToAddresses: ['operations@example.com']
-                },
-                Message: {
-                    Body: {
-                        Html: {
-                            Charset: 'UTF-8',
-                            Data: expect.stringContaining('<!DOCTYPE html>')
-                        }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'License Data Summary: aslp / ohio'
-                    }
-                },
-                Source: 'Compact Connect <noreply@example.org>'
-            }
-        );
-    });
-
-    it('should send a "no license updates" email with expected image url', async () => {
-        const messageId = await emailService.sendNoLicenseUpdatesEmail(
-            'aslp',
-            'ohio',
-            [ 'operations@example.com' ]
-        );
-
-        expect(messageId).toEqual('message-id-123');
-        expect(mockSESClient).toHaveReceivedCommandWith(
-            SendEmailCommand,
-            {
-                Destination: {
-                    ToAddresses: ['operations@example.com']
-                },
-                Message: {
-                    Body: {
-                        Html: {
-                            Charset: 'UTF-8',
-                            Data: expect.stringContaining('src=\"https://app.test.compactconnect.org/img/email/ico-noupdates@2x.png\"')
-                        }
-                    },
-                    Subject: {
-                        Charset: 'UTF-8',
-                        Data: 'No License Updates for Last 7 Days: aslp / ohio'
-                    }
-                },
-                Source: 'Compact Connect <noreply@example.org>'
-            }
-        );
     });
 
     describe('Transaction Batch Settlement Failure', () => {
