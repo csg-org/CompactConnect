@@ -203,6 +203,9 @@ class PersistentStack(AppStack):
             license_preprocessing_queue=self.ssn_table.preprocessor_queue.queue,
             license_upload_role=self.ssn_table.license_upload_role,
         )
+        # TODO - This dummy export is required until the api stack has been deployed # noqa: FIX002
+        #  to stop referencing this bucket arn
+        self.export_value(self.bulk_uploads_bucket.bucket_arn)
 
         self.transaction_reports_bucket = TransactionReportsBucket(
             self,
