@@ -54,11 +54,7 @@ requests==2.32.3
     #   responses
 responses==0.25.6
     # via moto
-<<<<<<< HEAD
-s3transfer==0.11.3
-=======
 s3transfer==0.11.4
->>>>>>> development
     # via boto3
 six==1.17.0
     # via python-dateutil
