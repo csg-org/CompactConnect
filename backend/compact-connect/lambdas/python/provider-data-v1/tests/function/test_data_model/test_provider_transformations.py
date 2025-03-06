@@ -12,7 +12,8 @@ from .. import TstFunction
 class TestTransformations(TstFunction):
     # Yes, this is an excessively long method. We're going with it for sake of a single illustrative test.
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
-    def test_transformations(self):
+    @patch('cc_common.config._Config.license_preprocessing_queue')
+    def test_transformations(self, mock_license_preprocessing_queue):
         """Provider data undergoes several transformations from when a license is first posted, stored into the
         database, then returned via the API. We will specifically test that chain, end to end, to make sure the
         transformations all happen as expected.
@@ -43,23 +44,30 @@ class TestTransformations(TstFunction):
 
         from handlers.licenses import post_licenses
 
-        # Mock EventBatchWriter so we can intercept the EventBridge event for later
-        with patch('handlers.licenses.EventBatchWriter', autospec=True) as mock_event_batch_writer:
-            mock_event_batch_writer.return_value.__enter__.return_value.failed_entry_count = 0
-            mock_event_batch_writer.return_value.__enter__.return_value.failed_entries = []
+        # POST the license via the API
+        post_licenses(event, self.mock_context)
 
-            # POST the license via the API
-            post_licenses(event, self.mock_context)
+        # Capture the message sent to the preprocessing queue
+        preprocessing_message = json.loads(
+            mock_license_preprocessing_queue.send_messages.call_args.kwargs['Entries'][0]['MessageBody']
+        )
 
-            # Capture the event the API POST will produce
-            event_bridge_event = json.loads(
-                mock_event_batch_writer.return_value.__enter__.return_value.put_event.call_args.kwargs['Entry'][
-                    'Detail'
-                ],
-            )
+        # Now we need to simulate the preprocessing step
+        # Mock EventBatchWriter so we can intercept the EventBridge event
+        with patch('handlers.ingest.config.events_client', autospec=True) as mock_event_client:
+            from handlers.ingest import preprocess_license_ingest
+
+            # Create an SQS event with our preprocessing message
+            preprocess_event = {'Records': [{'messageId': '123', 'body': json.dumps(preprocessing_message)}]}
+
+            # Run the preprocessing step
+            preprocess_license_ingest(preprocess_event, self.mock_context)
+
+            # Capture the event the preprocessor will produce for the event bus
+            event_bridge_event = json.loads(mock_event_client.put_events.call_args.kwargs['Entries'][0]['Detail'])
 
         # A sample SQS message from EventBridge
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         # Pack our license.ingest event into the sample message
