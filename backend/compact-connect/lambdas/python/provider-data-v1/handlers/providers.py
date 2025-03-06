@@ -1,10 +1,18 @@
 import json
+import uuid
+from datetime import timedelta
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
+from botocore.exceptions import ClientError
 from cc_common.config import config, logger, metrics
 from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.data_model.schema.provider.api import ProviderGeneralResponseSchema
-from cc_common.exceptions import CCAccessDeniedException, CCInvalidRequestException
+from cc_common.exceptions import (
+    CCAccessDeniedException,
+    CCAwsServiceException,
+    CCInvalidRequestException,
+    CCRateLimitingException,
+)
 from cc_common.utils import (
     api_handler,
     authorize_compact,
@@ -128,9 +136,19 @@ def get_provider_ssn(event: dict, context: LambdaContext):  # noqa: ARG001 unuse
     """
     compact = event['pathParameters']['compact']
     provider_id = event['pathParameters']['providerId']
+    user_id = event['requestContext']['authorizer']['claims']['sub']
 
-    with logger.append_context_keys(compact=compact, provider_id=provider_id):
+    with logger.append_context_keys(compact=compact, provider_id=provider_id, user_id=user_id):
         logger.info('Processing provider SSN request')
+
+        # Check if the user has exceeded the rate limit
+        if _ssn_rate_limit_exceeded(user_id=user_id, provider_id=provider_id, compact=compact):
+            metrics.add_metric(name='rate-limited-ssn-access', value=1, unit='Count')
+            logger.warning('Rate limited SSN access attempt')
+            raise CCRateLimitingException(
+                'Rate limit exceeded. You have reached the maximum number of SSN requests allowed in a 24-hour period.'
+            )
+
         provider_information = get_provider_information(compact=compact, provider_id=provider_id)
 
         # Inspect the caller's scopes to determine if they have readSSN permission for this provider
@@ -153,3 +171,81 @@ def get_provider_ssn(event: dict, context: LambdaContext):  # noqa: ARG001 unuse
         return {
             'ssn': ssn,
         }
+
+
+def _ssn_rate_limit_exceeded(user_id: str, provider_id: str, compact: str) -> bool:
+    """Check if the user has exceeded the SSN rate limit.
+
+    :param user_id: The Cognito user ID of the staff user
+    :param provider_id: The provider ID being accessed
+    :param compact: The compact being accessed
+    :return: True if rate limit is exceeded, False otherwise
+    """
+    now = config.current_standard_datetime
+    window_start = now - timedelta(hours=24)
+    window_start_timestamp = window_start.timestamp()
+    now_timestamp = now.timestamp()
+
+    # Generate a unique ID for this request
+    # This ensures uniqueness even for requests within the same second
+    request_sk = f'READ_SSN#{now_timestamp}#{uuid.uuid4()}'
+
+    try:
+        # Add the current request
+        config.rate_limiting_table.put_item(
+            Item={
+                'pk': f'STAFF_USER_ID#{user_id}',
+                'sk': request_sk,
+                'compact': compact,
+                'provider_id': provider_id,
+                'ttl': int(now.timestamp()) + 86400,  # 24 hours in seconds
+            }
+        )
+        # Query for count of requests in the last 24 hours
+        response = config.rate_limiting_table.query(
+            KeyConditionExpression='pk = :pk AND sk BETWEEN :start_sk AND :end_sk',
+            ExpressionAttributeValues={
+                ':pk': f'STAFF_USER_ID#{user_id}',
+                ':start_sk': f'READ_SSN#{window_start_timestamp}',
+                # Add 1 second to ensure we include all records at the current timestamp
+                ':end_sk': f'READ_SSN#{now_timestamp + 1}',
+            },
+            Select='COUNT',
+            ConsistentRead=True,
+        )
+
+        request_count = response['Count']
+        logger.info('Checking SSN requests made by user in last 24 hours', request_count=request_count, user_id=user_id)
+
+        # If the user makes another request after being throttled, deactivate their account
+        if request_count >= 7:
+            logger.warning(
+                'User exceeded SSN rate limit multiple times, deactivating account',
+                user_id=user_id,
+                request_count=request_count,
+            )
+
+            # Deactivate the user's account
+            try:
+                config.cognito_client.admin_disable_user(UserPoolId=config.user_pool_id, Username=user_id)
+                logger.info('User account deactivated due to excessive SSN requests', user_id=user_id)
+            except ClientError as e:
+                logger.error('Failed to deactivate user account', error=str(e), user_id=user_id)
+
+            return True
+
+        # If there are more than 5 requests in the window, rate limit is exceeded
+        if request_count >= 6:
+            logger.warning('SSN rate limit exceeded', user_id=user_id, request_count=request_count)
+            return True
+
+        logger.info(
+            'Rate limit has not been exceeded, proceeding with request',
+            request_count=request_count,
+            staff_user_id=user_id,
+            provider_id=provider_id,
+        )
+        return False
+    except ClientError as e:
+        logger.error('Failed to check SSN rate limit', error=str(e))
+        raise CCAwsServiceException('Failed to track SSN rate limit') from e

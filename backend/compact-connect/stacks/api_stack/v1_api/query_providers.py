@@ -18,9 +18,11 @@ from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
+from stacks import persistent_stack as ps
+
 # Importing module level to allow lazy loading for typing
 from stacks.api_stack import cc_api
-from stacks.persistent_stack import ProviderTable, SSNTable
+from stacks.persistent_stack import ProviderTable, RateLimitingTable, SSNTable, StaffUsers
 
 from .api_model import ApiModel
 
@@ -33,10 +35,7 @@ class QueryProviders:
         method_options: MethodOptions,
         admin_method_options: MethodOptions,
         ssn_method_options: MethodOptions,
-        event_bus: EventBus,
-        data_encryption_key: IKey,
-        ssn_table: SSNTable,
-        provider_data_table: ProviderTable,
+        persistent_stack: ps.PersistentStack,
         api_model: ApiModel,
     ):
         super().__init__()
@@ -47,36 +46,40 @@ class QueryProviders:
 
         stack: Stack = Stack.of(resource)
         lambda_environment = {
-            'PROVIDER_TABLE_NAME': provider_data_table.table_name,
-            'PROV_FAM_GIV_MID_INDEX_NAME': provider_data_table.provider_fam_giv_mid_index_name,
-            'PROV_DATE_OF_UPDATE_INDEX_NAME': provider_data_table.provider_date_of_update_index_name,
-            'SSN_TABLE_NAME': ssn_table.table_name,
-            'SSN_INDEX_NAME': ssn_table.ssn_index_name,
-            'EVENT_BUS_NAME': event_bus.event_bus_name,
+            'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
+            'PROV_FAM_GIV_MID_INDEX_NAME': persistent_stack.provider_table.provider_fam_giv_mid_index_name,
+            'PROV_DATE_OF_UPDATE_INDEX_NAME': persistent_stack.provider_table.provider_date_of_update_index_name,
+            'SSN_TABLE_NAME': persistent_stack.ssn_table.table_name,
+            'SSN_INDEX_NAME': persistent_stack.ssn_table.ssn_index_name,
+            'EVENT_BUS_NAME': persistent_stack.data_event_bus.event_bus_name,
+            'RATE_LIMITING_TABLE_NAME': persistent_stack.rate_limiting_table.table_name,
+            'USER_POOL_ID': persistent_stack.staff_users.user_pool_id,
             **stack.common_env_vars,
         }
 
         self._add_query_providers(
             method_options=method_options,
-            data_encryption_key=data_encryption_key,
-            provider_data_table=provider_data_table,
+            data_encryption_key=persistent_stack.shared_encryption_key,
+            provider_data_table=persistent_stack.provider_table,
             lambda_environment=lambda_environment,
         )
         self._add_get_provider(
             method_options=method_options,
-            data_encryption_key=data_encryption_key,
-            provider_data_table=provider_data_table,
+            data_encryption_key=persistent_stack.shared_encryption_key,
+            provider_data_table=persistent_stack.provider_table,
             lambda_environment=lambda_environment,
         )
         self._add_get_provider_ssn(
             method_options=ssn_method_options,
-            ssn_table=ssn_table,
+            ssn_table=persistent_stack.ssn_table,
+            staff_user_pool=persistent_stack.staff_users,
+            rate_limiting_table=persistent_stack.rate_limiting_table,
             lambda_environment=lambda_environment,
         )
         self._add_deactivate_privilege(
             method_options=admin_method_options,
-            provider_data_table=provider_data_table,
-            event_bus=event_bus,
+            provider_data_table=persistent_stack.provider_table,
+            event_bus=persistent_stack.data_event_bus,
             lambda_environment=lambda_environment,
         )
 
@@ -218,6 +221,8 @@ class QueryProviders:
         self,
         method_options: MethodOptions,
         ssn_table: SSNTable,
+        staff_user_pool: StaffUsers,
+        rate_limiting_table: RateLimitingTable,
         lambda_environment: dict,
     ):
         """Add GET /providers/{providerId}/ssn endpoint to retrieve a provider's SSN."""
@@ -225,6 +230,10 @@ class QueryProviders:
             ssn_table=ssn_table,
             lambda_environment=lambda_environment,
         )
+        rate_limiting_table.grant(handler, 'dynamodb:PutItem')
+        rate_limiting_table.grant(handler, 'dynamodb:Query')
+        # here we grant the lambda the ability to disable staff users if they exceed the rate limit
+        staff_user_pool.grant(handler, 'cognito-idp:AdminDisableUser')
         self.api.log_groups.append(handler.log_group)
 
         # Add the SSN endpoint as a sub-resource of the provider
