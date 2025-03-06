@@ -9,7 +9,12 @@ from botocore.response import StreamingBody
 from cc_common.config import config, logger
 from cc_common.data_model.schema.license.api import LicenseGeneralResponseSchema, LicensePostRequestSchema
 from cc_common.exceptions import CCInternalException
-from cc_common.utils import ResponseEncoder, api_handler, authorize_compact_jurisdiction
+from cc_common.utils import (
+    ResponseEncoder,
+    api_handler,
+    authorize_compact_jurisdiction,
+    send_licenses_to_preprocessing_queue,
+)
 from event_batch_writer import EventBatchWriter
 from license_csv_reader import LicenseCSVReader
 from marshmallow import ValidationError
@@ -113,18 +118,35 @@ def process_bulk_upload_file(
 ):
     """
     Stream each line of the new CSV file, validating it then publishing an ingest event for each line.
+    Process licenses in batches to avoid loading the entire file into memory.
     """
     general_schema = LicenseGeneralResponseSchema()
     schema = LicensePostRequestSchema()
     reader = LicenseCSVReader()
 
     stream = TextIOWrapper(body, encoding='utf-8')
+
+    # Define batch size for processing to limit memory footprint
+    batch_size = 100
+    current_batch = []
+    total_processed = 0
+    failed_validation_count = 0
+
     with EventBatchWriter(config.events_client) as event_writer:
         for i, raw_license in enumerate(reader.licenses(stream)):
             logger.debug('Processing line %s', i + 1)
             try:
                 validated_license = schema.load({'compact': compact, 'jurisdiction': jurisdiction, **raw_license})
+                current_batch.append(schema.dump(validated_license))
+
+                # When batch is full, send to preprocessing queue
+                if len(current_batch) >= batch_size:
+                    _process_license_batch(current_batch, event_time, compact, jurisdiction)
+                    total_processed += len(current_batch)
+                    current_batch = []  # Reset batch
+
             except ValidationError as e:
+                failed_validation_count += 1
                 # This CSV line has failed validation. We will carefully collect what information we can
                 # and publish it as a failure event. Because this data may eventually be sent back over
                 # an email, we will only include the generally available values that we can still validate.
@@ -159,25 +181,50 @@ def process_bulk_upload_file(
                 )
                 continue
 
-            event_writer.put_event(
-                Entry={
-                    'Source': f'org.compactconnect.bulk-ingest.{object_key}',
-                    'DetailType': 'license.ingest',
-                    'Detail': json.dumps(
-                        {
-                            'eventTime': event_time.isoformat(),
-                            'compact': compact,
-                            'jurisdiction': jurisdiction,
-                            **schema.dump(validated_license),
-                        }
-                    ),
-                    'EventBusName': config.event_bus_name,
-                }
-            )
+        # Process any remaining licenses in the final batch
+        if current_batch:
+            _process_license_batch(current_batch, event_time, compact, jurisdiction)
+            total_processed += len(current_batch)
+
+    logger.info(
+        'Bulk upload processing complete',
+        total_processed=total_processed,
+        failed_validation_count=failed_validation_count,
+        compact=compact,
+        jurisdiction=jurisdiction,
+    )
 
     if event_writer.failed_entry_count > 0:
-        logger.error('Failed to publish %s ingest events!', event_writer.failed_entry_count)
+        logger.error('Failed to publish %s ingest failure events!', event_writer.failed_entry_count)
         for failure in event_writer.failed_entries:
             logger.debug('Failed event entry', entry=failure)
 
+        raise CCInternalException('Failed to process object!')
+
+
+def _process_license_batch(licenses_batch: list[dict], event_time: datetime, compact: str, jurisdiction: str):
+    """
+    Process a batch of licenses by sending them to the preprocessing queue.
+
+    :param licenses_batch: List of validated licenses to process
+    :param event_time: The event time
+    :param compact: The compact identifier
+    :param jurisdiction: The jurisdiction identifier
+    :raises CCInternalException: If any licenses fail to be sent to the queue
+    """
+    if not licenses_batch:
+        return
+
+    failed_license_numbers = send_licenses_to_preprocessing_queue(
+        licenses_data=licenses_batch,
+        event_time=event_time.isoformat(),
+    )
+
+    if failed_license_numbers:
+        logger.error(
+            'Failed to send license messages to preprocessing queue!',
+            failed_license_numbers=failed_license_numbers,
+            compact=compact,
+            jurisdiction=jurisdiction,
+        )
         raise CCInternalException('Failed to process object!')

@@ -4,28 +4,26 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/requirements.in
 #
-attrs==24.3.0
+attrs==25.1.0
     # via
     #   cattrs
     #   jsii
-aws-cdk-asset-awscli-v1==2.2.223
-    # via aws-cdk-lib
-aws-cdk-asset-kubectl-v20==2.1.4
+aws-cdk-asset-awscli-v1==2.2.226
     # via aws-cdk-lib
 aws-cdk-asset-node-proxy-agent-v6==2.1.0
     # via aws-cdk-lib
-aws-cdk-aws-lambda-python-alpha==2.178.2a0
+aws-cdk-aws-lambda-python-alpha==2.182.0a0
     # via -r compact-connect/requirements.in
-aws-cdk-cloud-assembly-schema==39.2.20
+aws-cdk-cloud-assembly-schema==40.7.0
     # via aws-cdk-lib
-aws-cdk-lib==2.178.2
+aws-cdk-lib==2.182.0
     # via
     #   -r compact-connect/requirements.in
     #   aws-cdk-aws-lambda-python-alpha
     #   cdk-nag
 cattrs==24.1.2
     # via jsii
-cdk-nag==2.35.17
+cdk-nag==2.35.37
     # via -r compact-connect/requirements.in
 constructs==10.4.2
     # via
@@ -35,10 +33,9 @@ constructs==10.4.2
     #   cdk-nag
 importlib-resources==6.5.2
     # via jsii
-jsii==1.106.0
+jsii==1.108.0
     # via
     #   aws-cdk-asset-awscli-v1
-    #   aws-cdk-asset-kubectl-v20
     #   aws-cdk-asset-node-proxy-agent-v6
     #   aws-cdk-aws-lambda-python-alpha
     #   aws-cdk-cloud-assembly-schema
@@ -48,7 +45,6 @@ jsii==1.106.0
 publication==0.0.3
     # via
     #   aws-cdk-asset-awscli-v1
-    #   aws-cdk-asset-kubectl-v20
     #   aws-cdk-asset-node-proxy-agent-v6
     #   aws-cdk-aws-lambda-python-alpha
     #   aws-cdk-cloud-assembly-schema
@@ -65,7 +61,6 @@ six==1.17.0
 typeguard==2.13.3
     # via
     #   aws-cdk-asset-awscli-v1
-    #   aws-cdk-asset-kubectl-v20
     #   aws-cdk-asset-node-proxy-agent-v6
     #   aws-cdk-aws-lambda-python-alpha
     #   aws-cdk-cloud-assembly-schema

@@ -174,16 +174,34 @@ class PersistentStack(AppStack):
             self.staff_users.node.add_dependency(self.user_email_notifications.dmarc_record)
             self.provider_users.node.add_dependency(self.user_email_notifications.email_identity)
             self.provider_users.node.add_dependency(self.user_email_notifications.dmarc_record)
+            # the verification custom resource needs to be completed before the user pools are created
+            # so that the user pools will be created after the SES identity is verified
+            self.staff_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
+            self.provider_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
+        # Create the ssn related resources before other resources which are dependent on them
+        self.ssn_table = SSNTable(
+            self,
+            'SSNTable',
+            removal_policy=removal_policy,
+            data_event_bus=self.data_event_bus,
+            alarm_topic=self.alarm_topic,
+        )
+
         self.bulk_uploads_bucket = BulkUploadsBucket(
             self,
             'BulkUploadsBucket',
             access_logs_bucket=self.access_logs_bucket,
-            encryption_key=self.shared_encryption_key,
+            # Note that we're using the ssn key here, which has a much more restrictive policy.
+            # The messages in this bucket include SSN, so we want it just as locked down as our
+            # permanent storage of SSN data.
+            bucket_encryption_key=self.ssn_table.key,
             removal_policy=removal_policy,
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
             event_bus=self.data_event_bus,
+            license_preprocessing_queue=self.ssn_table.preprocessor_queue.queue,
+            license_upload_role=self.ssn_table.license_upload_role,
         )
 
         self.transaction_reports_bucket = TransactionReportsBucket(
@@ -204,6 +222,22 @@ class PersistentStack(AppStack):
         self.provider_table = ProviderTable(
             self, 'ProviderTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
         )
+        # The api query role needs access to the provider table to associate a provider with
+        # its jurisdictions, so it can make authorization decisions for the requester.
+        self.provider_table.grant_read_data(self.ssn_table.api_query_role)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{self.ssn_table.api_query_role.node.path}/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': """This policy contains wild-carded actions and resources but they are scoped to the
+                              specific actions, Table, and KMS Key that this lambda specifically needs access to.
+                              """,
+                },
+            ],
+        )
+
         # Run migration 391 (GH issue number) to remove ssn fields from the provider data table
         migration_391 = DataMigration(
             self,
@@ -242,23 +276,6 @@ class PersistentStack(AppStack):
         NagSuppressions.add_resource_suppressions_by_path(
             self,
             f'{migration_563.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """This policy contains wild-carded actions and resources but they are scoped to the
-                              specific actions, Table, and KMS Key that this lambda specifically needs access to.
-                              """,
-                },
-            ],
-        )
-
-        self.ssn_table = SSNTable(self, 'SSNTable', removal_policy=removal_policy)
-        # The api query role needs access to the provider table to associate a provider with
-        # its jurisdictions, so it can make authorization decisions for the requester.
-        self.provider_table.grant_read_data(self.ssn_table.api_query_role)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{self.ssn_table.api_query_role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',

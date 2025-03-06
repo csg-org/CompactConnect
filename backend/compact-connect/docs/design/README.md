@@ -41,26 +41,51 @@ of the ingest chain architecture. Board admins and/or information systems have t
 - A bulk-upload mechanism that allows submitting of a CSV file with a much larger number of licenses for asynchronous
   validation and ingest.
 
-Internally, the ingest chain is an event-driven architecture, with a single ingest process that receives events from a
-single EventBridge event bus. Both the HTTP POST and the bulk-upload file publish events for each individual license
-to be validated.
+### SSN Access Controls
+The system implements strict controls for SSN access:
 
-### Bulk-Upload
-To upload a bulk license file, clients use an authenticated GET endpoint to receive a
+1. **Dedicated SSN Table**: All SSN data is stored in a dedicated DynamoDB table with strict access controls and customer-managed KMS encryption.
+2. **Limited API Access**: Only specific API endpoints can query SSN data for staff users with the proper `readSSN` scope.
+3. **Audit Logging**: All access to SSN data is logged and monitored
+4. **Restricted Operations**: The SSN table policy explicitly denies batch operations to prevent mass data extraction.
+
+#### SSN Role-Based Access
+Three specialized IAM roles control access to SSN data:
+   - `license_upload_role`: Used by upload handlers to encrypt SSN data for the preprocessing queue.
+   - `ingest_role`: Used by the license preprocessor to create and update SSN records in the SSN table.
+   - `api_query_role`: Used by the Get SSN API endpoint to allow staff users to read the SSN for an individual provider per request (staff user must have the readSSN permission).
+
+### Ingest Flow
+
+The ingest process begins when license data enters the system through one of the following two methods:
+
+#### HTTP POST
+   Clients can directly post an array of up to 100 licenses to the license data API. If they do this, the API will
+validate each license synchronously and return any validation errors to the client. If the licenses are valid,
+the API will send the validated licenses to the preprocessing queue.
+
+#### Bulk Upload
+   To upload a bulk license file, clients use an authenticated GET endpoint to receive a
 [presigned url](https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html) that will allow the
 client to directly upload their file to s3. Once the file is uploaded to s3, an s3 event triggers a lambda to read and
 validate each license in the data file, then fire either a success or failure event to the license data event bus.
 
-### HTTP POST
-Clients can directly post an array of up to 100 licenses to the license data API. If they do this, the API will
-validate each license synchronously and return any validation errors to the client. If the licenses are valid,
-the API will publish an ingest event for each license.
+Both of these upload methods will place license records containing full SSNs in an SQS queue which is encrypted with the same KMS key as the SSN table to invoke the license preprocessor Lambda function.
 
-### Ingest processing
-Ingest events published to the event bus will be passed to an SQS queue, where ingest jobs will be batched for
-efficient processing. A lambda receives messages from the SQS queue. Each message corresponds to one license to be
-ingested. The lambda receives the data and creates or updates a corresponding license record in the DynamoDB license
-data table.
+#### **License Preprocessing**:
+   - A Lambda function processes messages from the encrypted queue
+   - For each license, it:
+     - Extracts the full SSN from the license data and creates/updates a record in the SSN table, which becomes associated with a provider ID. This provider id is unique to the CompactConnect system and is used to generate provider records within the system.
+     - After creating the SSN record, the lambda Publishes an event to the data event bus with the license data (minus the full SSN)
+
+   The event bus then triggers the license data processing Lambda function.
+
+#### **License Data Processing**:
+   - The data event bus receives the sanitized license events
+   - Downstream processors create provider and license records in the provider table, using only the last four digits of the SSN
+
+
+This architecture ensures that SSN data is protected throughout the ingest process while still allowing the system to associate licenses with the correct providers across jurisdictions.
 
 ### Asynchronous validation feedback
 Asynchronous validation feedback for boards to review is not yet implemented.
@@ -75,12 +100,12 @@ the accompanying [architecture diagram](./users-arch-diagram.pdf) for an illustr
 
 ### Staff Users
 
-Staff users will be granted a variety of different permissions, depending on their role. Read permissions are granted 
-to a user for an entire compact or not at all. Data writing and user administration permissions can each be granted to 
+Staff users will be granted a variety of different permissions, depending on their role. Read permissions are granted
+to a user for an entire compact or not at all. Data writing and user administration permissions can each be granted to
 a user per compact/jurisdiction combination. All of a compact user's permissions are stored in a DynamoDB record that is
 associated with their own Cognito user id. That record will be used to generate scopes in the Oauth2 token issued to them
 on login. See [Implementation of scopes](#implementation-of-scopes) for a detailed explanation of the design for exactly
-how permissions will be represented by scopes in an access token. See 
+how permissions will be represented by scopes in an access token. See
 [Implementation of permissions](#implementation-of-permissions) for a detailed explanation of the design for exactly
 how permissions are stored and translated into scopes.
 
@@ -99,7 +124,7 @@ Compact ED level staff will typically be granted the following permissions at th
 - `readPrivate` - grants access to view all data for any licensee within the compact.
 
 With the `admin` permission, they can grant other users the ability to write data for a particular
-jurisdiction and to create more users associated with a particular jurisdiction. They can also delete any user within 
+jurisdiction and to create more users associated with a particular jurisdiction. They can also delete any user within
 their compact, so long as that user does not have permissions associated with a different compact, in which case the
 permissions from the other compact would have to be removed first.
 
@@ -110,7 +135,7 @@ which allows them to read any licensee data within that compact that is not cons
 
 Board ED level staff may be granted the following permissions at a jurisdiction level:
 
-- `admin` - grants access to administrative functions for the jurisdiction, such as creating and managing users and 
+- `admin` - grants access to administrative functions for the jurisdiction, such as creating and managing users and
 their permissions.
 - `write` - grants access to write data for their particular jurisdiction (ie uploading license information).
 - `readPrivate` - grants access to view all information for any licensee that has either a license or privilege within their jurisdiction (except the full SSN, see `readSSN` permission below. This permission allows viewing the last 4 digits of the SSN).
@@ -118,7 +143,7 @@ their permissions.
 
 #### Implementation of Scopes
 
-AWS Cognito integrates with API Gateway to provide [authorizers](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-integrate-with-cognito.html) 
+AWS Cognito integrates with API Gateway to provide [authorizers](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-integrate-with-cognito.html)
 on an API that can verify the tokens issued by a given User Pool and to protect access based on scopes belonging to
 [Resource Servers](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-define-resource-servers.html)
 associated with that User Pool.
@@ -129,7 +154,7 @@ Each jurisdiction has its own resource server with scopes that control access to
 
 ```
 ky/aslp.admin
-ky/aslp.write  
+ky/aslp.write
 ky/aslp.readPrivate
 ky/aslp.readSSN
 ky/octp.admin
@@ -162,7 +187,7 @@ Staff user permissions are stored in a dedicated DynamoDB table, which has a sin
 and includes a data structure that details that user's particular permissions. Cognito allows for a lambda to be [invoked
 just before it issues a token](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-pre-token-generation.html).
 We use that feature to retrieve the database record for each user, parse the permissions data and translate those
-into scopes, which will be added to the Cognito token. The lambda generates scopes based on both compact-level and 
+into scopes, which will be added to the Cognito token. The lambda generates scopes based on both compact-level and
 jurisdiction-level permissions, ensuring consistent access control at token issuance.
 
 #### Machine-to-machine app clients
