@@ -153,6 +153,9 @@ class TstAppABC(ABC):
         ingest_role_logical_id = persistent_stack.get_logical_id(
             persistent_stack.ssn_table.ingest_role.node.default_child
         )
+        license_upload_role_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.ssn_table.license_upload_role.node.default_child
+        )
         api_query_role_logical_id = persistent_stack.get_logical_id(
             persistent_stack.ssn_table.api_query_role.node.default_child
         )
@@ -167,7 +170,6 @@ class TstAppABC(ABC):
         self.assertTrue(ssn_table_template['TableName'].endswith('-DataEventsLog'))
         # Ensure our SSN Key is locked down by resource policy
         self.assertEqual(
-            ssn_key_template['KeyPolicy'],
             {
                 'Statement': [
                     {
@@ -182,6 +184,7 @@ class TstAppABC(ABC):
                             'StringNotEquals': {
                                 'aws:PrincipalArn': [
                                     {'Fn::GetAtt': [ingest_role_logical_id, 'Arn']},
+                                    {'Fn::GetAtt': [license_upload_role_logical_id, 'Arn']},
                                     {'Fn::GetAtt': [api_query_role_logical_id, 'Arn']},
                                 ],
                                 'aws:PrincipalServiceName': ['dynamodb.amazonaws.com', 'events.amazonaws.com'],
@@ -191,16 +194,10 @@ class TstAppABC(ABC):
                         'Principal': '*',
                         'Resource': '*',
                     },
-                    {
-                        'Action': ['kms:Decrypt', 'kms:Encrypt', 'kms:GenerateDataKey*', 'kms:ReEncrypt*'],
-                        'Condition': {'StringEquals': {'aws:SourceAccount': persistent_stack.account}},
-                        'Effect': 'Allow',
-                        'Principal': {'Service': 'events.amazonaws.com'},
-                        'Resource': '*',
-                    },
                 ],
                 'Version': '2012-10-17',
             },
+            ssn_key_template['KeyPolicy'],
         )
         # Ensure we're using our locked down KMS key for encryption
         self.assertEqual(

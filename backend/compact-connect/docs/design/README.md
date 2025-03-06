@@ -41,26 +41,51 @@ of the ingest chain architecture. Board admins and/or information systems have t
 - A bulk-upload mechanism that allows submitting of a CSV file with a much larger number of licenses for asynchronous
   validation and ingest.
 
-Internally, the ingest chain is an event-driven architecture, with a single ingest process that receives events from a
-single EventBridge event bus. Both the HTTP POST and the bulk-upload file publish events for each individual license
-to be validated.
+### SSN Access Controls
+The system implements strict controls for SSN access:
 
-### Bulk-Upload
-To upload a bulk license file, clients use an authenticated GET endpoint to receive a
+1. **Dedicated SSN Table**: All SSN data is stored in a dedicated DynamoDB table with strict access controls and customer-managed KMS encryption.
+2. **Limited API Access**: Only specific API endpoints can query SSN data for staff users with the proper `readSSN` scope.
+3. **Audit Logging**: All access to SSN data is logged and monitored
+4. **Restricted Operations**: The SSN table policy explicitly denies batch operations to prevent mass data extraction.
+
+#### SSN Role-Based Access
+Three specialized IAM roles control access to SSN data:
+   - `license_upload_role`: Used by upload handlers to encrypt SSN data for the preprocessing queue.
+   - `ingest_role`: Used by the license preprocessor to create and update SSN records in the SSN table.
+   - `api_query_role`: Used by the Get SSN API endpoint to allow staff users to read the SSN for an individual provider per request (staff user must have the readSSN permission).
+
+### Ingest Flow
+
+The ingest process begins when license data enters the system through one of the following two methods:
+
+#### HTTP POST
+   Clients can directly post an array of up to 100 licenses to the license data API. If they do this, the API will
+validate each license synchronously and return any validation errors to the client. If the licenses are valid,
+the API will send the validated licenses to the preprocessing queue.
+
+#### Bulk Upload
+   To upload a bulk license file, clients use an authenticated GET endpoint to receive a
 [presigned url](https://docs.aws.amazon.com/AmazonS3/latest/userguide/using-presigned-url.html) that will allow the
 client to directly upload their file to s3. Once the file is uploaded to s3, an s3 event triggers a lambda to read and
 validate each license in the data file, then fire either a success or failure event to the license data event bus.
 
-### HTTP POST
-Clients can directly post an array of up to 100 licenses to the license data API. If they do this, the API will
-validate each license synchronously and return any validation errors to the client. If the licenses are valid,
-the API will publish an ingest event for each license.
+Both of these upload methods will place license records containing full SSNs in an SQS queue which is encrypted with the same KMS key as the SSN table to invoke the license preprocessor Lambda function.
 
-### Ingest processing
-Ingest events published to the event bus will be passed to an SQS queue, where ingest jobs will be batched for
-efficient processing. A lambda receives messages from the SQS queue. Each message corresponds to one license to be
-ingested. The lambda receives the data and creates or updates a corresponding license record in the DynamoDB license
-data table.
+#### **License Preprocessing**:
+   - A Lambda function processes messages from the encrypted queue
+   - For each license, it:
+     - Extracts the full SSN from the license data and creates/updates a record in the SSN table, which becomes associated with a provider ID. This provider id is unique to the CompactConnect system and is used to generate provider records within the system.
+     - After creating the SSN record, the lambda Publishes an event to the data event bus with the license data (minus the full SSN)
+
+   The event bus then triggers the license data processing Lambda function.
+
+#### **License Data Processing**:
+   - The data event bus receives the sanitized license events
+   - Downstream processors create provider and license records in the provider table, using only the last four digits of the SSN
+
+
+This architecture ensures that SSN data is protected throughout the ingest process while still allowing the system to associate licenses with the correct providers across jurisdictions.
 
 ### Asynchronous validation feedback
 Asynchronous validation feedback for boards to review is not yet implemented.
