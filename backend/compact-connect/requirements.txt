@@ -12,18 +12,30 @@ aws-cdk-asset-awscli-v1==2.2.226
     # via aws-cdk-lib
 aws-cdk-asset-node-proxy-agent-v6==2.1.0
     # via aws-cdk-lib
+<<<<<<< HEAD
 aws-cdk-aws-lambda-python-alpha==2.181.1a0
+=======
+aws-cdk-aws-lambda-python-alpha==2.182.0a0
+>>>>>>> development
     # via -r compact-connect/requirements.in
-aws-cdk-cloud-assembly-schema==39.2.20
+aws-cdk-cloud-assembly-schema==40.7.0
     # via aws-cdk-lib
+<<<<<<< HEAD
 aws-cdk-lib==2.181.1
+=======
+aws-cdk-lib==2.182.0
+>>>>>>> development
     # via
     #   -r compact-connect/requirements.in
     #   aws-cdk-aws-lambda-python-alpha
     #   cdk-nag
 cattrs==24.1.2
     # via jsii
+<<<<<<< HEAD
 cdk-nag==2.35.35
+=======
+cdk-nag==2.35.37
+>>>>>>> development
     # via -r compact-connect/requirements.in
 constructs==10.4.2
     # via

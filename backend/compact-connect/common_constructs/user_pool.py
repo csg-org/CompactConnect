@@ -63,6 +63,7 @@ class UserPool(CdkUserPool):
             advanced_security_mode=AdvancedSecurityMode.ENFORCED
             if security_profile == SecurityProfile.RECOMMENDED
             else AdvancedSecurityMode.AUDIT,
+            # required for advanced security mode
             feature_plan=FeaturePlan.PLUS,
             custom_sender_kms_key=encryption_key,
             device_tracking=DeviceTracking(
