@@ -70,7 +70,6 @@ class TestSESEmailIdentityVerificationHandler(unittest.TestCase):
         # Mock pending verification that never completes
         mock_ses_client = self._when_testing_ses_response_with_status(mock_boto3_client, status='Pending')
 
-        # Patch time.sleep to avoid actual waiting
         with self.assertRaises(CCInternalException):
             on_event(self.create_event, self.context)
 

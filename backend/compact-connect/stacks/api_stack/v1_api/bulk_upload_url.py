@@ -73,8 +73,7 @@ class BulkUploadUrl:
             ],
             integration=LambdaIntegration(
                 self._get_bulk_upload_url_handler(
-                    bulk_uploads_bucket=bulk_uploads_bucket,
-                    license_upload_role=license_upload_role
+                    bulk_uploads_bucket=bulk_uploads_bucket, license_upload_role=license_upload_role
                 ),
                 timeout=Duration.seconds(29),
             ),

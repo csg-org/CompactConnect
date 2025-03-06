@@ -45,15 +45,15 @@ of the ingest chain architecture. Board admins and/or information systems have t
 The system implements strict controls for SSN access:
 
 1. **Dedicated SSN Table**: All SSN data is stored in a dedicated DynamoDB table with strict access controls and customer-managed KMS encryption.
-2. **Limited API Access**: Only specific API endpoints can query SSN data for staff users with the proper `readSSN`scope. 
+2. **Limited API Access**: Only specific API endpoints can query SSN data for staff users with the proper `readSSN` scope. 
 3. **Audit Logging**: All access to SSN data is logged and monitored
-4. **Restricted Operations**: The SSN table policy explicitly denies batch operations to prevent mass data extraction
+4. **Restricted Operations**: The SSN table policy explicitly denies batch operations to prevent mass data extraction.
 
 #### SSN Role-Based Access
 Three specialized IAM roles control access to SSN data:
-   - `license_upload_role`: Used by upload handlers to encrypt SSN data for the preprocessing queue
-   - `ingest_role`: Used by the license preprocessor to create and update SSN records in the SSN table
-   - `api_query_role`: Used by the API endpoint can SSN data (with restricted permissions)
+   - `license_upload_role`: Used by upload handlers to encrypt SSN data for the preprocessing queue.
+   - `ingest_role`: Used by the license preprocessor to create and update SSN records in the SSN table.
+   - `api_query_role`: Used by the Get SSN API endpoint to allow staff users to read the SSN for an individual provider per request (staff user must have the readSSN permission).
 
 ### Ingest Flow
 

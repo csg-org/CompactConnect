@@ -202,7 +202,7 @@ def process_bulk_upload_file(
         raise CCInternalException('Failed to process object!')
 
 
-def _process_license_batch(licenses_batch, event_time, compact, jurisdiction):
+def _process_license_batch(licenses_batch: list[dict], event_time: datetime, compact: str, jurisdiction: str):
     """
     Process a batch of licenses by sending them to the preprocessing queue.
 
@@ -217,7 +217,7 @@ def _process_license_batch(licenses_batch, event_time, compact, jurisdiction):
 
     failed_license_numbers = send_licenses_to_preprocessing_queue(
         licenses_data=licenses_batch,
-        event_time=event_time.isoformat() if isinstance(event_time, datetime) else event_time,
+        event_time=event_time.isoformat(),
     )
 
     if failed_license_numbers:

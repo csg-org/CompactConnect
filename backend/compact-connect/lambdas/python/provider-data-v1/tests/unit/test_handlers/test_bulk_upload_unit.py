@@ -145,7 +145,7 @@ class TestProcessBulkUploadFile(TstLambdas):
 
         # mock static response for the events client when we put messages on the event bus
         mock_config.events_client.put_events.return_value = {'FailedEntryCount': 0, 'Entries': [{'EventId': '123'}]}
-        # mock status response returned when putting valid licenses on the queue
+        # this method returns a list of any message ids that failed to send, in this test case, there are no failures
         mock_send_licenses_to_preprocessing_queue.return_value = []
 
         # We'll do a little processing to mangle our CSV data a bit

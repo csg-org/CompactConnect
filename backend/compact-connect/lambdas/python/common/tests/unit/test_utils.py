@@ -26,7 +26,7 @@ class TestUtils(TstLambdas):
 
         # generate 5 records and ensure the system processes all the failures
         licenses_data = []
-        for i in range(6):
+        for i in range(5):
             with open('tests/resources/api/license-post.json') as f:
                 license_record = json.load(f)
                 license_record['compact'] = 'aslp'
@@ -38,4 +38,4 @@ class TestUtils(TstLambdas):
             licenses_data=licenses_data, event_time='2024-12-04T08:08:08+00:00'
         )
 
-        self.assertEqual([f'licenseNumber-{i}' for i in range(6)], failed_license_numbers)
+        self.assertEqual([f'licenseNumber-{i}' for i in range(5)], failed_license_numbers)

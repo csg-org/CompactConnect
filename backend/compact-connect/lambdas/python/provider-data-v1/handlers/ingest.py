@@ -41,6 +41,7 @@ def preprocess_license_ingest(message: dict):
 
             # Add the last 4 digits of SSN to the detail
             message['ssnLastFour'] = ssn[-4:]
+            # delete the ssn value from memory so it can be cleaned up as soon as we are done with it
             del ssn
 
             # Send the sanitized license data to the event bus
