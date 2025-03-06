@@ -771,7 +771,7 @@ class TestIngest(TstFunction):
         self.config.provider_table.put_item(Item=inactive_privilege)
 
         # Now ingest a new license to trigger the provider record update
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         # Make a small change to trigger an update
