@@ -988,20 +988,6 @@ class DataClient:
                         'TableName': self.config.provider_table.name,
                         'Item': TypeSerializer().serialize(privilege_update_record)['M'],
                     },
-                },
-                # Delete the deactivated privilege jurisdiction from the provider record
-                {
-                    'Update': {
-                        'TableName': self.config.provider_table.name,
-                        'Key': {
-                            'pk': {'S': f'{compact}#PROVIDER#{provider_id}'},
-                            'sk': {'S': f'{compact}#PROVIDER'},
-                        },
-                        'UpdateExpression': 'DELETE privilegeJurisdictions :jurisdiction',
-                        'ExpressionAttributeValues': {
-                            ':jurisdiction': {'SS': [jurisdiction]},
-                        },
-                    },
-                },
+                }
             ],
         )

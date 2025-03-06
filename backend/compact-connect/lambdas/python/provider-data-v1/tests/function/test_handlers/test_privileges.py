@@ -51,8 +51,6 @@ class TestDeactivatePrivilege(TstFunction):
         expected_provider['privileges'][0]['status'] = 'inactive'
         # Add the deactivation history
         expected_provider['privileges'][0]['history'].insert(0, DEACTIVATION_HISTORY)
-        # Remove the privilege jurisdiction from the privilege jurisdictions list
-        expected_provider['privilegeJurisdictions'] = []
         expected_provider['privileges'][0]['dateOfUpdate'] = '2024-11-08T23:59:59+00:00'
 
         body = json.loads(resp['body'])
