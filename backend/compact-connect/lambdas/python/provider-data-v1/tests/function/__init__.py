@@ -39,6 +39,7 @@ class TstFunction(TstLambdas):
         self.create_provider_table()
         self.create_ssn_table()
         self.create_rate_limiting_table()
+        self.create_license_preprocessing_queue()
 
         boto3.client('events').create_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
@@ -119,12 +120,17 @@ class TstFunction(TstLambdas):
             BillingMode='PAY_PER_REQUEST',
         )
 
+    def create_license_preprocessing_queue(self):
+        self._license_preprocessing_queue = boto3.resource('sqs').create_queue(QueueName='workflow-queue')
+        os.environ['LICENSE_PREPROCESSING_QUEUE_URL'] = self._license_preprocessing_queue.url
+
     def delete_resources(self):
         self._bucket.objects.delete()
         self._bucket.delete()
         self._provider_table.delete()
         self._ssn_table.delete()
         self._rate_limiting_table.delete()
+        self._license_preprocessing_queue.delete()
         boto3.client('events').delete_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
     def _load_provider_data(self):
@@ -157,9 +163,12 @@ class TstFunction(TstLambdas):
         :param names: A list of tuples, each containing a family name and given name
         """
         from cc_common.data_model.data_client import DataClient
-        from handlers.ingest import ingest_license_message
+        from handlers.ingest import ingest_license_message, preprocess_license_ingest
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
+            preprocessing_sqs_message = json.load(f)
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             ingest_message = json.load(f)
 
         name_faker = Faker(['en_US', 'ja_JP', 'es_MX'])
@@ -168,6 +177,7 @@ class TstFunction(TstLambdas):
         # Generate 10 providers, each with a license and a privilege
         for name_idx, ssn_serial in enumerate(range(start_serial, start_serial - 10, -1)):
             # So we can mutate top-level fields without messing up subsequent iterations
+            preprocessing_sqs_message_copy = json.loads(json.dumps(preprocessing_sqs_message))
             ingest_message_copy = json.loads(json.dumps(ingest_message))
 
             # Use a requested name, if provided
@@ -176,18 +186,53 @@ class TstFunction(TstLambdas):
             except IndexError:
                 family_name = name_faker.unique.last_name()
                 given_name = name_faker.unique.first_name()
-            ingest_message['detail']['familyName'] = family_name
-            ingest_message['detail']['givenName'] = given_name
-            ingest_message['detail']['middleName'] = name_faker.unique.first_name()
 
+            # Update both message copies with the same data
             ssn = f'{randint(100, 999)}-{randint(10, 99)}-{ssn_serial}'
 
-            ingest_message_copy['detail'].update(
+            # Update preprocessing message with license data including SSN
+            preprocessing_sqs_message_copy.update(
                 {
-                    'ssn': ssn,
                     'compact': 'aslp',
                     'jurisdiction': home,
-                },
+                    'licenseNumber': f'TEST-{ssn_serial}',
+                    'licenseType': 'speech-language pathologist',
+                    'status': 'active',
+                    'dateOfIssuance': '2020-01-01',
+                    'dateOfExpiration': '2050-01-01',
+                    'familyName': family_name,
+                    'givenName': given_name,
+                    'middleName': name_faker.unique.first_name(),
+                    'ssn': ssn,
+                    'dateOfBirth': '1980-01-01',
+                    'homeAddressStreet1': '123 Test St',
+                    'homeAddressCity': 'Test City',
+                    'homeAddressState': 'TS',
+                    'homeAddressPostalCode': '12345',
+                }
+            )
+
+            # Update ingest message with the same data (minus SSN which will be handled by preprocessor)
+            ingest_message_copy['detail'].update(
+                {
+                    'familyName': family_name,
+                    'givenName': given_name,
+                    'middleName': name_faker.unique.first_name(),
+                    'compact': 'aslp',
+                    'jurisdiction': home,
+                    'licenseNumber': f'TEST-{ssn_serial}',
+                    'licenseType': 'speech-language pathologist',
+                    'status': 'active',
+                    'dateOfIssuance': '2020-01-01',
+                    'dateOfExpiration': '2050-01-01',
+                    'dateOfBirth': '1980-01-01',
+                    'homeAddressStreet1': '123 Test St',
+                    'homeAddressCity': 'Test City',
+                    'homeAddressState': 'TS',
+                    'homeAddressPostalCode': '12345',
+                    # Only include last 4 of SSN in the event bus message
+                    'ssnLastFour': ssn[-4:],
+                }
             )
 
             # This gives us some variation in dateOfUpdate values to sort by
@@ -195,15 +240,30 @@ class TstFunction(TstLambdas):
                 'cc_common.config._Config.current_standard_datetime',
                 new_callable=lambda: datetime.now(tz=UTC).replace(microsecond=0) - timedelta(days=randint(1, 365)),
             ):
+                # First call the preprocessor to handle the SSN data
+                preprocess_license_ingest(
+                    {'Records': [{'messageId': '123', 'body': json.dumps(preprocessing_sqs_message_copy)}]},
+                    self.mock_context,
+                )
+                # we need to get the provider id from the ssn table so it can be used in the ingest message
+                provider_id = data_client.get_provider_id(compact='aslp', ssn=ssn)
+
+                # update the ingest message with the provider id
+                ingest_message_copy['detail']['providerId'] = provider_id
+
+                # Then call the ingest message handler to process the provider data
                 ingest_license_message(
                     {'Records': [{'messageId': '123', 'body': json.dumps(ingest_message_copy)}]},
                     self.mock_context,
                 )
+
             # Add a privilege
-            provider_id = data_client.get_provider_id(compact='aslp', ssn=ssn)
-            provider_record = data_client.get_provider(compact='aslp', provider_id=provider_id, detail=False)['items'][
-                0
-            ]
+
+            provider_record = data_client.get_provider(
+                compact='aslp',
+                provider_id=provider_id,
+                detail=False
+            )['items'][0]
             data_client.create_provider_privileges(
                 compact='aslp',
                 provider_id=provider_id,

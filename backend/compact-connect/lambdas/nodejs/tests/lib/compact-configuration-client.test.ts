@@ -2,7 +2,7 @@ import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { DynamoDBClient, GetItemCommand } from '@aws-sdk/client-dynamodb';
-import { CompactConfigurationClient } from '../lib/compact-configuration-client';
+import { CompactConfigurationClient } from '../../lib/compact-configuration-client';
 
 const SAMPLE_COMPACT_CONFIGURATION = {
     'pk': { S: 'aslp#CONFIGURATION' },

@@ -9,7 +9,8 @@
   "resources": [],
   "detail": {
     "eventTime": "2024-07-11T19:57:45Z",
-    "ssn": "123-12-1234",
+    "ssnLastFour": "1234",
+    "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
     "npi": "0608337260",
     "licenseNumber": "A0608337260",
     "givenName": "Björk",

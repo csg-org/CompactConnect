@@ -105,7 +105,8 @@ class TstAppABC(ABC):
                 callbacks.append(f'http://localhost:{local_ui_port}/auth/callback')
 
             # ensure we have two user pools, one for staff users and one for providers
-            persistent_stack_template.resource_count_is(CfnUserPool.CFN_RESOURCE_TYPE_NAME, 2)
+            # Temporarily setting to 3 to account for the standby provider user pool, during migration
+            persistent_stack_template.resource_count_is(CfnUserPool.CFN_RESOURCE_TYPE_NAME, 3)
 
             # Ensure our provider user pool is created with expected custom attributes
             provider_users_user_pool = self.get_resource_properties_by_logical_id(
@@ -152,6 +153,9 @@ class TstAppABC(ABC):
         ingest_role_logical_id = persistent_stack.get_logical_id(
             persistent_stack.ssn_table.ingest_role.node.default_child
         )
+        license_upload_role_logical_id = persistent_stack.get_logical_id(
+            persistent_stack.ssn_table.license_upload_role.node.default_child
+        )
         api_query_role_logical_id = persistent_stack.get_logical_id(
             persistent_stack.ssn_table.api_query_role.node.default_child
         )
@@ -166,7 +170,6 @@ class TstAppABC(ABC):
         self.assertTrue(ssn_table_template['TableName'].endswith('-DataEventsLog'))
         # Ensure our SSN Key is locked down by resource policy
         self.assertEqual(
-            ssn_key_template['KeyPolicy'],
             {
                 'Statement': [
                     {
@@ -181,6 +184,7 @@ class TstAppABC(ABC):
                             'StringNotEquals': {
                                 'aws:PrincipalArn': [
                                     {'Fn::GetAtt': [ingest_role_logical_id, 'Arn']},
+                                    {'Fn::GetAtt': [license_upload_role_logical_id, 'Arn']},
                                     {'Fn::GetAtt': [api_query_role_logical_id, 'Arn']},
                                 ],
                                 'aws:PrincipalServiceName': ['dynamodb.amazonaws.com', 'events.amazonaws.com'],
@@ -190,16 +194,10 @@ class TstAppABC(ABC):
                         'Principal': '*',
                         'Resource': '*',
                     },
-                    {
-                        'Action': ['kms:Decrypt', 'kms:Encrypt', 'kms:GenerateDataKey*', 'kms:ReEncrypt*'],
-                        'Condition': {'StringEquals': {'aws:SourceAccount': persistent_stack.account}},
-                        'Effect': 'Allow',
-                        'Principal': {'Service': 'events.amazonaws.com'},
-                        'Resource': '*',
-                    },
                 ],
                 'Version': '2012-10-17',
             },
+            ssn_key_template['KeyPolicy'],
         )
         # Ensure we're using our locked down KMS key for encryption
         self.assertEqual(

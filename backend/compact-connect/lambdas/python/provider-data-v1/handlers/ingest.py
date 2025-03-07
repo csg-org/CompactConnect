@@ -16,6 +16,73 @@ license_update_schema = LicenseUpdateRecordSchema()
 
 
 @sqs_handler
+def preprocess_license_ingest(message: dict):
+    """
+    Preprocess license data to remove SSN before sending to the event bus.
+    This reduces the attack surface by ensuring full SSNs don't reach the event bus.
+
+    For each message:
+    1. Extract the SSN
+    2. Get or create the provider ID using the SSN
+    3. Replace the full SSN with just the last 4 digits
+    4. Send the modified message to the event bus
+    """
+
+    # Extract necessary fields
+    compact = message['compact']
+    jurisdiction = message['jurisdiction']
+    ssn = message.pop('ssn')  # Remove SSN from the detail
+
+    with logger.append_context_keys(compact=compact, jurisdiction=jurisdiction):
+        try:
+            # Get or create provider ID using the SSN and add it to the message_body
+            provider_id = config.data_client.get_or_create_provider_id(compact=compact, ssn=ssn)
+            message['providerId'] = provider_id
+
+            # Add the last 4 digits of SSN to the detail
+            message['ssnLastFour'] = ssn[-4:]
+            # delete the ssn value from memory so it can be cleaned up as soon as we are done with it
+            del ssn
+
+            # Send the sanitized license data to the event bus
+            with logger.append_context_keys(provider_id=provider_id):
+                logger.info('Sending preprocessed license data to event bus')
+
+                config.events_client.put_events(
+                    Entries=[
+                        {
+                            'Source': 'org.compactconnect.provider-data',
+                            'DetailType': 'license.ingest',
+                            'Detail': json.dumps(message),
+                            'EventBusName': config.event_bus_name,
+                        }
+                    ]
+                )
+        except Exception as e:  # noqa: BLE001 broad-exception-caught
+            logger.error(f'Error preprocessing license data: {str(e)}', exc_info=True)
+            # Send an ingest failure event
+            config.events_client.put_events(
+                Entries=[
+                    {
+                        'Source': 'org.compactconnect.provider-data',
+                        'DetailType': 'license.ingest-failure',
+                        'Detail': json.dumps(
+                            {
+                                'eventTime': message.get('eventTime', config.current_standard_datetime.isoformat()),
+                                'compact': compact,
+                                'jurisdiction': jurisdiction,
+                                'errors': [f'Error preprocessing license data: {str(e)}'],
+                            }
+                        ),
+                        'EventBusName': config.event_bus_name,
+                    }
+                ]
+            )
+            # raise the exception so SQS will retry the message again
+            raise e
+
+
+@sqs_handler
 def ingest_license_message(message: dict):
     """For each message, validate the license data and persist it in the database"""
     # We're not using the event time here, currently, so we'll discard it
@@ -23,15 +90,13 @@ def ingest_license_message(message: dict):
 
     # This schema load will transform the 'status' field to 'jurisdictionStatus' for internal
     # references, and will also validate the data.
-    license_post = license_schema.load(message['detail'])
-    # We won't store SSN with the license record, but we'll need it for provider ID creation
-    ssn = license_post.pop('ssn')
+    license_ingest_message = license_schema.load(message['detail'])
 
-    compact = license_post['compact']
-    jurisdiction = license_post['jurisdiction']
+    compact = license_ingest_message['compact']
+    jurisdiction = license_ingest_message['jurisdiction']
+    provider_id = license_ingest_message['providerId']
 
     with logger.append_context_keys(compact=compact, jurisdiction=jurisdiction):
-        provider_id = config.data_client.get_or_create_provider_id(compact=compact, ssn=ssn)
         with logger.append_context_keys(provider_id=provider_id):
             logger.info('Ingesting license data')
 
@@ -39,18 +104,8 @@ def ingest_license_message(message: dict):
             data_events = []
 
             license_record_schema = LicenseRecordSchema()
-            # We'll use the schema/serializer to populate index fields for us
-            dumped_license = license_record_schema.dumps(
-                {
-                    'providerId': provider_id,
-                    'compact': compact,
-                    'jurisdiction': jurisdiction,
-                    'ssnLastFour': ssn[-4:],
-                    **license_post,
-                },
-            )
-            del ssn
-            del license_post
+            dumped_license = license_record_schema.dumps(license_ingest_message)
+            del license_ingest_message
 
             # We fully JSON serialize then load again so that we have a completely independent copy of the data
             posted_license_record = license_record_schema.load(json.loads(dumped_license))

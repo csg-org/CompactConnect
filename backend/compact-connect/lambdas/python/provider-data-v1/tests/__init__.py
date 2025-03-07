@@ -29,6 +29,7 @@ class TstLambdas(TestCase):
                 'USERS_TABLE_NAME': 'provider-table',
                 'PROV_DATE_OF_UPDATE_INDEX_NAME': 'providerDateOfUpdate',
                 'SSN_INDEX_NAME': 'ssnIndex',
+                'LICENSE_PREPROCESSING_QUEUE_URL': 'license-preprocessing-queue-url',
                 'PROVIDER_USER_BUCKET_NAME': 'provider-user-bucket',
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',
