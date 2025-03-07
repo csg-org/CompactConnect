@@ -41,7 +41,7 @@
                         <InputText :formInput="formData.ssnLastFour" @input="formatSsn()" />
                         <InputDate
                             :formInput="formData.dob"
-                            :yearRange="[1940, new Date().getFullYear()]"
+                            :yearRange="[1920, new Date().getFullYear()]"
                             :maxDate="new Date()"
                             :preventMinMaxNavigation="true"
                         />
