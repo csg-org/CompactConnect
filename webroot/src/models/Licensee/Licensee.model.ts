@@ -44,7 +44,7 @@ export interface InterfaceLicensee {
     homeJurisdiction?: State;
     dob?: string | null;
     birthMonthDay?: string | null;
-    ssn?: string | null;
+    ssnLastFour?: string | null;
     phoneNumber?: string | null;
     occupation?: LicenseOccupation | null;
     militaryAffiliations?: Array <MilitaryAffiliation>;
@@ -72,7 +72,7 @@ export class Licensee implements InterfaceLicensee {
     public address? = new Address(); // TODO: Deprecated delete in clean up ticket
     public dob? = null;
     public birthMonthDay? = null;
-    public ssn? = null;
+    public ssnLastFour? = null;
     public phoneNumber? = null;
     public occupation? = null;
     public licenseStates? = [];
@@ -108,24 +108,10 @@ export class Licensee implements InterfaceLicensee {
         return dateDisplay(this.dob);
     }
 
-    public ssnMaskedFull(): string {
-        const { ssn } = this;
-        let masked = '';
+    public ssnDisplay(): string {
+        const { ssnLastFour } = this;
 
-        if (ssn) {
-            masked = (ssn as string).replace(/[0-9]/g, '#');
-        }
-
-        return masked;
-    }
-
-    public ssnMaskedPartial(): string {
-        const { ssn } = this;
-        const masked = (ssn) ? (ssn as string).slice(0, 7).replace(/[0-9]/g, '#') : '';
-        const unmasked = (ssn) ? (ssn as string).slice(-4) : '';
-        const partial = `${masked}${unmasked}`;
-
-        return partial;
+        return (ssnLastFour) ? `*** ** ${ssnLastFour}` : '';
     }
 
     public lastUpdatedDisplay(): string {
@@ -272,7 +258,7 @@ export class LicenseeSerializer {
             }), // TODO: Deprecated delete in clean up ticket
             dob: json.dateOfBirth,
             birthMonthDay: json.birthMonthDay,
-            ssn: json.ssn,
+            ssnLastFour: json.ssnLastFour,
             phoneNumber: json.phoneNumber,
             occupation: json.licenseType,
             licenseStates: [] as Array<State>,

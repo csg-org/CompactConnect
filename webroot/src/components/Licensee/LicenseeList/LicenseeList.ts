@@ -102,25 +102,10 @@ class LicenseeList extends Vue {
         return `${delimiter}${this.searchParams.lastName}` || '';
     }
 
-    get searchDisplaySsn(): string {
-        const { ssn } = this.searchParams;
-        const delimiter = (this.searchDisplayFirstName || this.searchDisplayLastName) ? ', ' : '';
-        let displaySsn = '';
-
-        if (ssn) {
-            const masked = ssn.slice(0, 7).replace(/[0-9]/g, '#');
-            const unmasked = ssn.slice(-4);
-
-            displaySsn = `${delimiter}${masked}${unmasked}`;
-        }
-
-        return displaySsn;
-    }
-
     get searchDisplayState(): string {
         const { state } = this.searchParams;
-        const { searchDisplayFirstName, searchDisplayLastName, searchDisplaySsn } = this;
-        const delimiter = (searchDisplayFirstName || searchDisplayLastName || searchDisplaySsn) ? ', ' : '';
+        const { searchDisplayFirstName, searchDisplayLastName } = this;
+        const delimiter = (searchDisplayFirstName || searchDisplayLastName) ? ', ' : '';
         let displayState = '';
 
         if (state) {
@@ -136,11 +121,10 @@ class LicenseeList extends Vue {
         const {
             searchDisplayFirstName,
             searchDisplayLastName,
-            searchDisplaySsn,
             searchDisplayState
         } = this;
 
-        return [searchDisplayFirstName, searchDisplayLastName, searchDisplaySsn, searchDisplayState].join('').trim();
+        return [searchDisplayFirstName, searchDisplayLastName, searchDisplayState].join('').trim();
     }
 
     get sortOptions(): Array<any> {
@@ -148,7 +132,6 @@ class LicenseeList extends Vue {
             // Temp for limited server sorting support
             // { value: 'firstName', name: this.$t('common.firstName') },
             { value: 'lastName', name: this.$t('common.lastName'), isDefault: true },
-            // { value: 'ssn', name: this.$t('licensing.ssn') },
             // { value: 'licenseStates', name: this.$t('licensing.homeState') },
             // { value: 'privilegeStates', name: this.$t('licensing.privileges') },
             // { value: 'status', name: this.$t('licensing.status') },
@@ -161,7 +144,6 @@ class LicenseeList extends Vue {
         const record = {
             firstName: this.$t('common.firstName'),
             lastName: this.$t('common.lastName'),
-            ssnMaskedPartial: () => this.$t('licensing.ssn'),
             licenseStatesDisplay: () => this.$t('licensing.homeState'),
             privilegeStatesDisplay: () => this.$t('licensing.privileges'),
             statusDisplay: () => this.$t('licensing.status'),
@@ -286,9 +268,6 @@ class LicenseeList extends Vue {
         }
         if (searchParams?.lastName) {
             requestConfig.licenseeLastName = searchParams.lastName;
-        }
-        if (searchParams?.ssn) {
-            requestConfig.licenseeSsn = searchParams.ssn;
         }
         if (searchParams?.state) {
             requestConfig.jurisdiction = searchParams.state.toLowerCase();
