@@ -58,8 +58,8 @@ class TestPublicQueryProviders(TstFunction):
         from handlers.public_lookup import public_query_providers
 
         # 20 providers, 10 with licenses in oh, 10 with privileges in oh
-        self._generate_providers(home='ne', privilege='oh', start_serial=9999)
-        self._generate_providers(home='oh', privilege='ne', start_serial=9899)
+        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999)
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -83,12 +83,18 @@ class TestPublicQueryProviders(TstFunction):
         dates_of_update = [provider['dateOfUpdate'] for provider in body['providers']]
         self.assertListEqual(sorted(dates_of_update), dates_of_update)
 
-    def test_public_query_providers_updated_sorting_filters_providers_without_privileges(self):
+    def test_public_query_providers_updated_sorting_only_returns_matching_providers_which_have_any_privileges(self):
+        """Tests that the public endpoint only returns providers with privileges."""
         from handlers.public_lookup import public_query_providers
 
-        # 20 providers, 10 with privileges, 10 without
-        self._generate_providers(home='oh', privilege='ne', start_serial=9999)
-        self._generate_providers(home='oh', privilege=None, start_serial=9899)
+        # 30 providers:
+        # - 10 with licenses in oh and which have privileges
+        # - 10 with privileges in oh
+        # - 10 with licenses in oh, but which have no privileges
+        # We expect only 20 of the 30 to be returned, as we do not return providers which don't have any privileges
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9999)
+        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9899)
+        self._generate_providers(home='oh', privilege_jurisdiction=None, start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -105,7 +111,7 @@ class TestPublicQueryProviders(TstFunction):
         self.assertEqual(200, resp['statusCode'])
 
         body = json.loads(resp['body'])
-        self.assertEqual(10, len(body['providers']))
+        self.assertEqual(20, len(body['providers']))
         # Check we're actually sorted
         dates_of_update = [provider['dateOfUpdate'] for provider in body['providers']]
         self.assertListEqual(sorted(dates_of_update), dates_of_update)
@@ -127,10 +133,10 @@ class TestPublicQueryProviders(TstFunction):
             ('Figueroa', '9'),
             ('Frías', '10'),
         ]
-        self._generate_providers(home='ne', privilege='oh', start_serial=9999, names=names)
+        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999, names=names)
         # We'll leave the last 10 names to be randomly generated to let the Faker data set come up with some
         # interesting values, to leave the door open to identify new edge cases.
-        self._generate_providers(home='oh', privilege='ne', start_serial=9899)
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -161,7 +167,7 @@ class TestPublicQueryProviders(TstFunction):
         # 10 providers, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
         self._generate_providers(
             home='oh',
-            privilege='ne',
+            privilege_jurisdiction='ne',
             start_serial=9999,
             names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
         )
@@ -169,8 +175,8 @@ class TestPublicQueryProviders(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
+        # public endpoint does not have authorizer
+        del event['requestContext']['authorizer']
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps(
             {
@@ -193,14 +199,14 @@ class TestPublicQueryProviders(TstFunction):
         # 10 providers, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
         self._generate_providers(
             home='oh',
-            privilege='ne',
+            privilege_jurisdiction='ne',
             start_serial=9999,
             names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
         )
         # 10 more providers without privileges, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
         self._generate_providers(
             home='oh',
-            privilege=None,
+            privilege_jurisdiction=None,
             start_serial=9999,
             names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
         )
@@ -208,8 +214,8 @@ class TestPublicQueryProviders(TstFunction):
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
-        # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral'
+        # public endpoint does not have authorizer
+        del event['requestContext']['authorizer']
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps(
             {
@@ -232,7 +238,7 @@ class TestPublicQueryProviders(TstFunction):
         # 10 providers, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
         self._generate_providers(
             home='oh',
-            privilege='ne',
+            privilege_jurisdiction='ne',
             start_serial=9999,
             names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
         )
@@ -260,8 +266,8 @@ class TestPublicQueryProviders(TstFunction):
         from handlers.public_lookup import public_query_providers
 
         # 20 providers, 10 with licenses in oh, 10 with privileges in oh
-        self._generate_providers(home='ne', privilege='oh', start_serial=9999)
-        self._generate_providers(home='oh', privilege='ne', start_serial=9899)
+        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999)
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -288,8 +294,8 @@ class TestPublicQueryProviders(TstFunction):
         from handlers.public_lookup import public_query_providers
 
         # 20 providers, 10 with licenses in oh, 10 with privileges in oh
-        self._generate_providers(home='ne', privilege='oh', start_serial=9999)
-        self._generate_providers(home='oh', privilege='ne', start_serial=9899)
+        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999)
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)

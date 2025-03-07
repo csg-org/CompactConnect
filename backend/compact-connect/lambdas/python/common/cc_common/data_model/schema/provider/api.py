@@ -103,6 +103,6 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     status = ActiveInactive(required=True, allow_none=False)
 
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
-    # We only return privileges when getting provider information from the public GET endpoint
-    # so we check for them here and sanitize them if they are present
+    # Unlike the internal provider search endpoints used by staff users, which return license data in addition to
+    # privilege data for a provider, we only return privilege data for a provider from the public GET provider endpoint
     privileges = List(Nested(PrivilegePublicResponseSchema(), required=False, allow_none=False))

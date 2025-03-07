@@ -988,6 +988,6 @@ class DataClient:
                         'TableName': self.config.provider_table.name,
                         'Item': TypeSerializer().serialize(privilege_update_record)['M'],
                     },
-                }
+                },
             ],
         )

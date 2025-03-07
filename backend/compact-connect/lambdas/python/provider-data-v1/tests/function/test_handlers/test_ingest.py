@@ -761,9 +761,9 @@ class TestIngest(TstFunction):
             'dateOfIssuance': '2023-01-01',
             'dateOfRenewal': '2023-01-01',
             'dateOfExpiration': '2025-01-01',
-            "dateOfUpdate": "2025-01-01T12:59:59+00:00",
-            "compactTransactionId": "1234567890",
-            "compactTransactionIdGSIPK": "COMPACT#aslp#TX#1234567890#",
+            'dateOfUpdate': '2025-01-01T12:59:59+00:00',
+            'compactTransactionId': '1234567890',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
             'privilegeId': 'test-privilege-id',
             'persistedStatus': 'inactive',  # This privilege is inactive
             'attestations': [],
