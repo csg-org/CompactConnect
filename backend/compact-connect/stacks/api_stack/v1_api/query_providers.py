@@ -248,7 +248,7 @@ class QueryProviders:
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'The wildcard actions in this policy are scoped to the rate-limiting table and '
-                              'the provider data table.',
+                    'the provider data table.',
                 },
             ],
         )

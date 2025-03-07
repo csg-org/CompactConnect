@@ -139,7 +139,7 @@ def trigger_get_provider_ssn_endpoint_throttling():
                 raise SmokeTestFailureException(
                     f'Expected 429 on 6th request for user {email}, got {response.status_code}'
                 )
-            logger.info(f'Request 6 correctly throttled with 429 status code')
+            logger.info('Request 6 correctly throttled with 429 status code')
 
             # Check that user is still enabled
             if not _staff_user_is_enabled(email):
@@ -154,7 +154,7 @@ def trigger_get_provider_ssn_endpoint_throttling():
                 raise SmokeTestFailureException(
                     f'Expected 429 on 7th request for user {email}, got {response.status_code}'
                 )
-            logger.info(f'Request 7 correctly throttled with 429 status code')
+            logger.info('Request 7 correctly throttled with 429 status code')
 
             # Check that user is now disabled
             if _staff_user_is_enabled(email):
@@ -179,7 +179,7 @@ def trigger_get_provider_ssn_endpoint_throttling():
             raise SmokeTestFailureException(
                 f'Expected 429 on 2nd request for user {test_emails[2]}, got {response.status_code}'
             )
-        logger.info(f'Second request correctly throttled with 429 status code')
+        logger.info('Second request correctly throttled with 429 status code')
 
         # Verify that lambda's reserved concurrency is set to 0
         # Give the lambda a moment to update its concurrency
