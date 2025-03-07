@@ -677,7 +677,7 @@ class TestDataClient(TstFunction):
             compact='aslp',
             provider_id=provider_id,
             jurisdiction='ne',
-            license_type='audiologist',
+            license_type_abbr='aud',
         )
 
         # Verify that the privilege record was updated
@@ -757,7 +757,7 @@ class TestDataClient(TstFunction):
                 compact='aslp',
                 provider_id='some-provider-id',
                 jurisdiction='ne',
-                license_type='audiologist',
+                license_type_abbr='aud',
             )
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
@@ -829,7 +829,7 @@ class TestDataClient(TstFunction):
             compact='aslp',
             provider_id=provider_id,
             jurisdiction='ne',
-            license_type='audiologist',
+            license_type_abbr='aud',
         )
 
         # Verify that the privilege record was unchanged

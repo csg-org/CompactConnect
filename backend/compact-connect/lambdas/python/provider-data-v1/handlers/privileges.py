@@ -20,12 +20,10 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
     compact = event['pathParameters']['compact']
     provider_id = event['pathParameters']['providerId']
     jurisdiction = event['pathParameters']['jurisdiction']
-    # Note: We currently only support one license type per jurisdiction, so this is not used
-    # We require this in the API to avoid one breaking change when we move to multiple license types per jurisdiction
-    license_type = event['pathParameters']['licenseType']
+    license_type_abbr = event['pathParameters']['licenseType']
 
     with logger.append_context_keys(
-        compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type=license_type
+        compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type=license_type_abbr
     ):
         # Get the user's scopes to check for jurisdiction-specific admin permission
         scopes = get_event_scopes(event)
@@ -42,6 +40,7 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
             compact=compact,
             provider_id=provider_id,
             jurisdiction=jurisdiction,
+            license_type_abbr=license_type_abbr,
         )
         with EventBatchWriter(config.events_client) as event_writer:
             event_writer.put_event(

@@ -834,72 +834,10 @@ class DataClient:
             ]
         )
 
-    @logger_inject_kwargs(logger, 'compact', 'provider_id')
-    def find_home_state_license(self, *, compact: str, provider_id: str, licenses: list[dict]) -> dict | None:
-        """Find the license from the provider's selected home jurisdiction.
-
-        This method will:
-        1. Get the home jurisdiction selection record
-        2. Find all licenses from that jurisdiction
-        3. Filter to active licenses if any exist
-        4. Return the most recently issued active license, or None if no matching license is found
-
-        :param compact: The compact name
-        :param provider_id: The provider ID
-        :param licenses: List of license records to search through
-        :return: The matching home state license if found, None otherwise
-        """
-        logger.info('Finding home state license')
-
-        # Get home jurisdiction selection
-        try:
-            home_jurisdiction = self.get_provider_home_jurisdiction_selection(
-                compact=compact,
-                provider_id=provider_id,
-            )
-
-            # Find all licenses from home jurisdiction
-            home_state_licenses = [
-                provider_license
-                for provider_license in licenses
-                if provider_license['jurisdiction'].lower() == home_jurisdiction['jurisdiction'].lower()
-            ]
-
-            if not home_state_licenses:
-                # If the user has registered with the system and set a home jurisdiction,
-                # but no licenses are found, there is an issue with the data.
-                logger.error(
-                    'No licenses found for selected home jurisdiction',
-                    jurisdiction=home_jurisdiction['jurisdiction'],
-                )
-                raise CCInternalException("No licenses found for provider's selected home jurisdiction")
-
-            if len(home_state_licenses) == 1:
-                return home_state_licenses[0]
-
-            # If there are multiple licenses for the home jurisdiction, we need to determine which one to use.
-            # Currently, we will use the most recently issued active license.
-            logger.info(
-                'Multiple licenses found for home jurisdiction. Using most recently issued active license.',
-                jurisdiction=home_jurisdiction['jurisdiction'],
-            )
-            active_licenses = [
-                provider_license
-                for provider_license in home_state_licenses
-                if provider_license.get('status', '').lower() == 'active'
-            ]
-
-            target_licenses = active_licenses if active_licenses else home_state_licenses
-
-            # Return the most recently issued license
-            return max(target_licenses, key=lambda x: x['dateOfIssuance'])
-        except CCNotFoundException:
-            # The user has not registered with the system and set a home jurisdiction
-            logger.info('No home jurisdiction selection found. Cannot determine home state license')
-            return None
-
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
-    def deactivate_privilege(self, *, compact: str, provider_id: str, jurisdiction: str, license_type: str) -> None:
+    def deactivate_privilege(
+        self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str
+    ) -> None:
         """
         Deactivate a privilege by setting its persistedStatus to inactive.
         This will create a history record and update the provider record.
@@ -907,11 +845,10 @@ class DataClient:
         :param str compact: The compact name
         :param str provider_id: The provider ID
         :param str jurisdiction: The jurisdiction postal abbreviation
-        :param str license_type: The type of license
+        :param str license_type_abbr: The type of license abbreviation
         :raises CCNotFoundException: If the privilege record is not found
         """
         # Get the privilege record
-        license_type_abbr = config.license_type_abbreviations[compact][license_type]
         try:
             privilege_record = self.config.provider_table.get_item(
                 Key={
