@@ -12,25 +12,25 @@ import guards from '@router/_guards';
 const routes: Array<RouteConfig> = [
     {
         path: '/',
-        redirect: '/Search',
+        redirect: '/Dashboard',
+        beforeEnter: guards.noAuthGuard,
+    },
+    {
+        path: '/Dashboard',
+        name: 'DashboardPublic',
+        component: () => import(/* webpackChunkName: "dashboard" */ '@pages/PublicDashboard/PublicDashboard.vue'),
         beforeEnter: guards.noAuthGuard,
     },
     {
         path: '/Search',
         name: 'LicneseeSearchPublic',
-        component: () => import(/* webpackChunkName: "search" */ '@pages/LicensingListPublic/LicensingListPublic.vue'),
+        component: () => import(/* webpackChunkName: "search" */ '@pages/PublicLicensingList/PublicLicensingList.vue'),
         beforeEnter: guards.noAuthGuard,
     },
     {
         path: '/Register',
         name: 'RegisterLicensee',
         component: () => import(/* webpackChunkName: "register" */ '@pages/RegisterLicensee/RegisterLicensee.vue'),
-        beforeEnter: guards.noAuthGuard,
-    },
-    {
-        path: '/Login',
-        name: 'Login',
-        component: () => import(/* webpackChunkName: "home" */ '@pages/Login/Login.vue'),
         beforeEnter: guards.noAuthGuard,
     },
     {

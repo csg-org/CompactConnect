@@ -14,7 +14,6 @@ import {
 } from 'vue';
 import { Component, Vue, toNative } from 'vue-facing-decorator';
 import { AuthTypes } from '@/app.config';
-import LoginIcon from '@components/Icons/Login/Login.vue';
 import RegisterIcon from '@components/Icons/Register/Register.vue';
 import UploadIcon from '@components/Icons/Upload/Upload.vue';
 import UsersIcon from '@components/Icons/Users/Users.vue';
@@ -43,7 +42,6 @@ export interface NavLink {
 @Component({
     name: 'PageMainNav',
     components: {
-        LoginIcon,
         RegisterIcon,
         UploadIcon,
         UsersIcon,
@@ -134,17 +132,17 @@ class PageMainNav extends Vue {
     get mainLinks(): Array<NavLink> {
         return reactive([
             {
-                to: 'LicneseeSearchPublic',
-                label: computed(() => this.$t('navigation.licensing')),
-                iconComponent: markRaw(LicenseSearchIcon),
+                to: 'DashboardPublic',
+                label: computed(() => this.$t('navigation.dashboard')),
+                iconComponent: markRaw(DashboardIcon),
                 isEnabled: !this.isLoggedIn,
                 isExternal: false,
                 isExactActive: false,
             },
             {
-                to: 'Login',
-                label: computed(() => this.$t('navigation.login')),
-                iconComponent: markRaw(LoginIcon),
+                to: 'LicneseeSearchPublic',
+                label: computed(() => this.$t('navigation.licensing')),
+                iconComponent: markRaw(LicenseSearchIcon),
                 isEnabled: !this.isLoggedIn,
                 isExternal: false,
                 isExactActive: false,

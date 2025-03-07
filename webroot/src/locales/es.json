@@ -348,11 +348,13 @@
         "uploadDocument": "Subir documento"
     },
     "navigation": {
+        "dashboard": "Panel",
         "login": "Iniciar sesión",
         "loginAsStaff": "Iniciar sesión como personal",
         "loginAsProvider": "Iniciar sesión como proveedor",
         "register": "Registro",
         "registerAsProvider": "Registrarse como proveedor",
+        "verifyPrivilege": "Verificar un privilegio del compacto",
         "home": "Hogar",
         "upload": "Subir",
         "licensing": "Licencia",

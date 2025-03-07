@@ -349,11 +349,13 @@
         "uploadDocument": "Upload document"
     },
     "navigation": {
+        "dashboard": "Dashboard",
         "login": "Login",
         "loginAsStaff": "Login as Staff",
         "loginAsProvider": "Login as Provider",
         "register": "Register",
         "registerAsProvider": "Register as Provider",
+        "verifyPrivilege": "Verify a compact privilege",
         "home": "Home",
         "upload": "Upload data",
         "licensing": "Search licensing data",

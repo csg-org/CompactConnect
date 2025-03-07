@@ -1,5 +1,5 @@
 //
-//  LicensingListPublic.ts
+//  PublicLicensingList.ts
 //  CompactConnect
 //
 //  Created by InspiringApps on 3/5/2025.

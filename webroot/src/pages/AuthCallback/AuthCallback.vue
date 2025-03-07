@@ -11,7 +11,9 @@
             <div class="auth-error-message">{{ $t('serverErrors.loginError') }}</div>
             <div class="auth-error-message">
                 {{ $t('serverErrors.loginErrorActionPart1') }}
-                <router-link :to="{ name: 'Login' }">{{ $t('serverErrors.loginErrorActionPart2') }}</router-link>.
+                <router-link :to="{ name: 'DashboardPublic' }">
+                    {{ $t('serverErrors.loginErrorActionPart2') }}
+                </router-link>.
             </div>
         </Card>
     </Section>
