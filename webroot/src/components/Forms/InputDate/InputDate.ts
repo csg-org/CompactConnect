@@ -71,6 +71,17 @@ class InputDate extends mixins(MixinInput) {
     focus(): void {
         (this.$refs.datepicker as any)?.openMenu();
     }
+
+    blur(): void {
+        try {
+            (this.$refs.datepicker as any)?.selectDate();
+        } catch {
+            // Continue
+        }
+
+        this.formInput.isTouched = true;
+        this.formInput.validate();
+    }
 }
 
 export default toNative(InputDate);

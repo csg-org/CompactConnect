@@ -13,6 +13,7 @@
             'no-margin': formInput.shouldHideMargin,
             'has-error': !!formInput.errorMessage
         }"
+        @blur="blur"
     >
         <label
             v-if="!formInput.shouldHideLabel"
