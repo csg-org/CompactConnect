@@ -53,13 +53,6 @@ class ApiModel:
                         description='The query parameters',
                         additional_properties=False,
                         properties={
-                            # TODO: Remove this once we remove SSN queries from the UI (they will be  # noqa: FIX002
-                            # ignored in the meantime)
-                            'ssn': JsonSchema(
-                                type=JsonSchemaType.STRING,
-                                description='Social security number to look up',
-                                pattern=cc_api.SSN_FORMAT,
-                            ),
                             'providerId': JsonSchema(
                                 type=JsonSchemaType.STRING,
                                 description='Internal UUID for the provider',
@@ -842,10 +835,9 @@ class ApiModel:
             required=[
                 'type',
                 'providerId',
-                'ssn',
                 'givenName',
                 'familyName',
-                'licenseType',
+                'jurisdictionStatus',
                 'status',
                 'compact',
                 'licenseJurisdiction',
@@ -854,7 +846,6 @@ class ApiModel:
                 'homeAddressCity',
                 'homeAddressState',
                 'homeAddressPostalCode',
-                'dateOfBirth',
                 'dateOfUpdate',
                 'dateOfExpiration',
                 'birthMonthDay',
@@ -870,7 +861,6 @@ class ApiModel:
             required=[
                 'type',
                 'providerId',
-                'ssn',
                 'givenName',
                 'familyName',
                 'licenseType',
@@ -896,6 +886,28 @@ class ApiModel:
                     type=JsonSchemaType.ARRAY,
                     items=JsonSchema(
                         type=JsonSchemaType.OBJECT,
+                        required=[
+                            'type',
+                            'providerId',
+                            'compact',
+                            'jurisdiction',
+                            'dateOfUpdate',
+                            'givenName',
+                            'middleName',
+                            'familyName',
+                            'homeAddressStreet1',
+                            'homeAddressCity',
+                            'homeAddressState',
+                            'homeAddressPostalCode',
+                            'licenseType',
+                            'dateOfIssuance',
+                            'dateOfRenewal',
+                            'dateOfExpiration',
+                            'birthMonthDay',
+                            'jurisdictionStatus',
+                            'status',
+                            'history',
+                        ],
                         properties={
                             'type': JsonSchema(type=JsonSchemaType.STRING, enum=['license-home']),
                             'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
@@ -909,10 +921,20 @@ class ApiModel:
                                 format='date',
                                 pattern=cc_api.YMD_FORMAT,
                             ),
+                            'jurisdictionStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+                            'ssnLastFour': JsonSchema(type=JsonSchemaType.STRING, pattern='^[0-9]{4}$'),
                             'history': JsonSchema(
                                 type=JsonSchemaType.ARRAY,
                                 items=JsonSchema(
                                     type=JsonSchemaType.OBJECT,
+                                    required=[
+                                        'type',
+                                        'updateType',
+                                        'compact',
+                                        'jurisdiction',
+                                        'dateOfUpdate',
+                                        'previous',
+                                    ],
                                     properties={
                                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['licenseUpdate']),
                                         'updateType': JsonSchema(
@@ -928,7 +950,23 @@ class ApiModel:
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                         ),
                                         'previous': JsonSchema(
-                                            type=JsonSchemaType.OBJECT, properties=self._common_license_properties
+                                            type=JsonSchemaType.OBJECT,
+                                            required=[
+                                                'licenseType',
+                                                'givenName',
+                                                'middleName',
+                                                'familyName',
+                                                'dateOfUpdate',
+                                                'dateOfIssuance',
+                                                'dateOfRenewal',
+                                                'dateOfExpiration',
+                                                'homeAddressStreet1',
+                                                'homeAddressCity',
+                                                'homeAddressState',
+                                                'homeAddressPostalCode',
+                                                'jurisdictionStatus',
+                                            ],
+                                            properties=self._common_license_properties,
                                         ),
                                         'updatedValues': JsonSchema(
                                             type=JsonSchemaType.OBJECT, properties=self._common_license_properties
@@ -950,11 +988,37 @@ class ApiModel:
                     type=JsonSchemaType.ARRAY,
                     items=JsonSchema(
                         type=JsonSchemaType.OBJECT,
+                        required=[
+                            'type',
+                            'providerId',
+                            'compact',
+                            'jurisdiction',
+                            'dateOfIssuance',
+                            'dateOfRenewal',
+                            'dateOfExpiration',
+                            'dateOfUpdate',
+                            'compactTransactionId',
+                            'privilegeId',
+                            'licenseType',
+                            'licenseJurisdiction',
+                            'persistedStatus',
+                            'status',
+                            'attestations',
+                            'history',
+                        ],
                         properties={
                             'history': JsonSchema(
                                 type=JsonSchemaType.ARRAY,
                                 items=JsonSchema(
                                     type=JsonSchemaType.OBJECT,
+                                    required=[
+                                        'type',
+                                        'updateType',
+                                        'compact',
+                                        'jurisdiction',
+                                        'dateOfUpdate',
+                                        'previous',
+                                    ],
                                     properties={
                                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['privilegeUpdate']),
                                         'updateType': JsonSchema(
@@ -970,7 +1034,20 @@ class ApiModel:
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                                         ),
                                         'previous': JsonSchema(
-                                            type=JsonSchemaType.OBJECT, properties=self._common_privilege_properties
+                                            type=JsonSchemaType.OBJECT,
+                                            required=[
+                                                'dateOfIssuance',
+                                                'dateOfRenewal',
+                                                'dateOfExpiration',
+                                                'dateOfUpdate',
+                                                'compactTransactionId',
+                                                'privilegeId',
+                                                'licenseType',
+                                                'licenseJurisdiction',
+                                                'persistedStatus',
+                                                'attestations',
+                                            ],
+                                            properties=self._common_privilege_properties,
                                         ),
                                         'updatedValues': JsonSchema(
                                             type=JsonSchemaType.OBJECT, properties=self._common_privilege_properties
@@ -1050,7 +1127,6 @@ class ApiModel:
         stack: AppStack = AppStack.of(self.api)
 
         return {
-            'ssn': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.SSN_FORMAT),
             'npi': JsonSchema(type=JsonSchemaType.STRING, pattern='^[0-9]{10}$'),
             'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
@@ -1067,7 +1143,7 @@ class ApiModel:
             'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
-            'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', max_length=100),
+            'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', min_length=5, max_length=100),
             'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=r'^\+[0-9]{8,15}$'),
             'suffix': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'militaryWaiver': JsonSchema(
@@ -1082,39 +1158,44 @@ class ApiModel:
         return {
             'type': JsonSchema(type=JsonSchemaType.STRING, enum=['provider']),
             'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
-            'ssn': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.SSN_FORMAT),
+            # Derived from a license record
             'npi': JsonSchema(type=JsonSchemaType.STRING, pattern='^[0-9]{10}$'),
-            'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'ssnLastFour': JsonSchema(type=JsonSchemaType.STRING, pattern='^[0-9]{4}$'),
             'givenName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'middleName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-            'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=stack.license_types),
-            'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+            'suffix': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'jurisdictionStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
-            'licenseJurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
-            'privilegeJurisdictions': JsonSchema(
-                type=JsonSchemaType.ARRAY,
-                items=JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
-            ),
+            'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', min_length=5, max_length=100),
+            'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.PHONE_NUMBER_FORMAT),
             'homeAddressStreet1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
             'homeAddressStreet2': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'homeAddressCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
             'homeAddressState': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
             'homeAddressPostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
+            'birthMonthDay': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.MD_FORMAT),
+            'dateOfBirth': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
+            'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'militaryWaiver': JsonSchema(
                 type=JsonSchemaType.BOOLEAN,
+            ),
+            'licenseJurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
+            'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+            'privilegeJurisdictions': JsonSchema(
+                type=JsonSchemaType.ARRAY,
+                items=JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
             ),
             'compactConnectRegisteredEmailAddress': JsonSchema(
                 type=JsonSchemaType.STRING,
                 format='email',
+                min_length=5,
+                max_length=100,
             ),
             'cognitoSub': JsonSchema(
                 type=JsonSchemaType.STRING,
             ),
-            'birthMonthDay': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.MD_FORMAT),
-            'dateOfBirth': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-            'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
         }
 
     @property
@@ -1132,6 +1213,8 @@ class ApiModel:
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'compactTransactionId': JsonSchema(type=JsonSchemaType.STRING),
             'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
+            'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=stack.license_types),
+            'licenseJurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
             'persistedStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'attestations': JsonSchema(
@@ -1278,6 +1361,8 @@ class ApiModel:
                     'email': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description="Provider's email address",
+                        format='email',
+                        min_length=5,
                         max_length=100,
                     ),
                     'partialSocial': JsonSchema(

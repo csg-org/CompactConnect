@@ -43,7 +43,7 @@ class LicenseCommonSchema(ForgivingSchema):
     homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
     militaryWaiver = Boolean(required=False, allow_none=False)
-    emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
+    emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
 
     @validates_schema

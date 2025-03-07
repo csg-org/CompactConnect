@@ -5,11 +5,6 @@
       "additionalProperties": false,
       "description": "The query parameters",
       "properties": {
-        "ssn": {
-          "description": "Social security number to look up",
-          "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$",
-          "type": "string"
-        },
         "providerId": {
           "description": "Internal UUID for the provider",
           "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",

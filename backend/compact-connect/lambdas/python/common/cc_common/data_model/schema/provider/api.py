@@ -51,7 +51,7 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
-    emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
+    emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
     cognitoSub = String(required=False, allow_none=False)
@@ -61,7 +61,7 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = Raw(required=False, allow_none=False)
-    birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
+    birthMonthDay = String(required=True, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
 
     # these records are present when getting provider information from the GET endpoint
     # so we check for them here and sanitize them if they are present

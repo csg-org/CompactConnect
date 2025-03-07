@@ -84,6 +84,17 @@
             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
             "type": "string"
           },
+          "jurisdictionStatus": {
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "type": "string"
+          },
+          "ssnLastFour": {
+            "pattern": "^[0-9]{4}$",
+            "type": "string"
+          },
           "history": {
             "items": {
               "properties": {
@@ -174,10 +185,6 @@
                 },
                 "previous": {
                   "properties": {
-                    "ssn": {
-                      "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$",
-                      "type": "string"
-                    },
                     "npi": {
                       "pattern": "^[0-9]{10}$",
                       "type": "string"
@@ -267,6 +274,7 @@
                     "emailAddress": {
                       "format": "email",
                       "maxLength": 100,
+                      "minLength": 5,
                       "type": "string"
                     },
                     "phoneNumber": {
@@ -282,14 +290,25 @@
                       "type": "boolean"
                     }
                   },
+                  "required": [
+                    "licenseType",
+                    "givenName",
+                    "middleName",
+                    "familyName",
+                    "dateOfUpdate",
+                    "dateOfIssuance",
+                    "dateOfRenewal",
+                    "dateOfExpiration",
+                    "homeAddressStreet1",
+                    "homeAddressCity",
+                    "homeAddressState",
+                    "homeAddressPostalCode",
+                    "jurisdictionStatus"
+                  ],
                   "type": "object"
                 },
                 "updatedValues": {
                   "properties": {
-                    "ssn": {
-                      "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$",
-                      "type": "string"
-                    },
                     "npi": {
                       "pattern": "^[0-9]{10}$",
                       "type": "string"
@@ -379,6 +398,7 @@
                     "emailAddress": {
                       "format": "email",
                       "maxLength": 100,
+                      "minLength": 5,
                       "type": "string"
                     },
                     "phoneNumber": {
@@ -404,13 +424,17 @@
                   "type": "array"
                 }
               },
+              "required": [
+                "type",
+                "updateType",
+                "compact",
+                "jurisdiction",
+                "dateOfUpdate",
+                "previous"
+              ],
               "type": "object"
             },
             "type": "array"
-          },
-          "ssn": {
-            "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$",
-            "type": "string"
           },
           "npi": {
             "pattern": "^[0-9]{10}$",
@@ -501,6 +525,7 @@
           "emailAddress": {
             "format": "email",
             "maxLength": 100,
+            "minLength": 5,
             "type": "string"
           },
           "phoneNumber": {
@@ -516,6 +541,28 @@
             "type": "boolean"
           }
         },
+        "required": [
+          "type",
+          "providerId",
+          "compact",
+          "jurisdiction",
+          "dateOfUpdate",
+          "givenName",
+          "middleName",
+          "familyName",
+          "homeAddressStreet1",
+          "homeAddressCity",
+          "homeAddressState",
+          "homeAddressPostalCode",
+          "licenseType",
+          "dateOfIssuance",
+          "dateOfRenewal",
+          "dateOfExpiration",
+          "birthMonthDay",
+          "jurisdictionStatus",
+          "status",
+          "history"
+        ],
         "type": "object"
       },
       "type": "array"
@@ -715,6 +762,74 @@
                     "privilegeId": {
                       "type": "string"
                     },
+                    "licenseType": {
+                      "enum": [
+                        "audiologist",
+                        "speech-language pathologist",
+                        "occupational therapist",
+                        "occupational therapy assistant",
+                        "licensed professional counselor"
+                      ],
+                      "type": "string"
+                    },
+                    "licenseJurisdiction": {
+                      "enum": [
+                        "al",
+                        "ak",
+                        "az",
+                        "ar",
+                        "ca",
+                        "co",
+                        "ct",
+                        "de",
+                        "dc",
+                        "fl",
+                        "ga",
+                        "hi",
+                        "id",
+                        "il",
+                        "in",
+                        "ia",
+                        "ks",
+                        "ky",
+                        "la",
+                        "me",
+                        "md",
+                        "ma",
+                        "mi",
+                        "mn",
+                        "ms",
+                        "mo",
+                        "mt",
+                        "ne",
+                        "nv",
+                        "nh",
+                        "nj",
+                        "nm",
+                        "ny",
+                        "nc",
+                        "nd",
+                        "oh",
+                        "ok",
+                        "or",
+                        "pa",
+                        "pr",
+                        "ri",
+                        "sc",
+                        "sd",
+                        "tn",
+                        "tx",
+                        "ut",
+                        "vt",
+                        "va",
+                        "vi",
+                        "wa",
+                        "wv",
+                        "wi",
+                        "wy"
+                      ],
+                      "type": "string"
+                    },
                     "persistedStatus": {
                       "enum": [
                         "active",
@@ -750,6 +865,18 @@
                       "type": "array"
                     }
                   },
+                  "required": [
+                    "dateOfIssuance",
+                    "dateOfRenewal",
+                    "dateOfExpiration",
+                    "dateOfUpdate",
+                    "compactTransactionId",
+                    "privilegeId",
+                    "licenseType",
+                    "licenseJurisdiction",
+                    "persistedStatus",
+                    "attestations"
+                  ],
                   "type": "object"
                 },
                 "updatedValues": {
@@ -856,6 +983,74 @@
                     "privilegeId": {
                       "type": "string"
                     },
+                    "licenseType": {
+                      "enum": [
+                        "audiologist",
+                        "speech-language pathologist",
+                        "occupational therapist",
+                        "occupational therapy assistant",
+                        "licensed professional counselor"
+                      ],
+                      "type": "string"
+                    },
+                    "licenseJurisdiction": {
+                      "enum": [
+                        "al",
+                        "ak",
+                        "az",
+                        "ar",
+                        "ca",
+                        "co",
+                        "ct",
+                        "de",
+                        "dc",
+                        "fl",
+                        "ga",
+                        "hi",
+                        "id",
+                        "il",
+                        "in",
+                        "ia",
+                        "ks",
+                        "ky",
+                        "la",
+                        "me",
+                        "md",
+                        "ma",
+                        "mi",
+                        "mn",
+                        "ms",
+                        "mo",
+                        "mt",
+                        "ne",
+                        "nv",
+                        "nh",
+                        "nj",
+                        "nm",
+                        "ny",
+                        "nc",
+                        "nd",
+                        "oh",
+                        "ok",
+                        "or",
+                        "pa",
+                        "pr",
+                        "ri",
+                        "sc",
+                        "sd",
+                        "tn",
+                        "tx",
+                        "ut",
+                        "vt",
+                        "va",
+                        "vi",
+                        "wa",
+                        "wv",
+                        "wi",
+                        "wy"
+                      ],
+                      "type": "string"
+                    },
                     "persistedStatus": {
                       "enum": [
                         "active",
@@ -901,6 +1096,14 @@
                   "type": "array"
                 }
               },
+              "required": [
+                "type",
+                "updateType",
+                "compact",
+                "jurisdiction",
+                "dateOfUpdate",
+                "previous"
+              ],
               "type": "object"
             },
             "type": "array"
@@ -1007,6 +1210,74 @@
           "privilegeId": {
             "type": "string"
           },
+          "licenseType": {
+            "enum": [
+              "audiologist",
+              "speech-language pathologist",
+              "occupational therapist",
+              "occupational therapy assistant",
+              "licensed professional counselor"
+            ],
+            "type": "string"
+          },
+          "licenseJurisdiction": {
+            "enum": [
+              "al",
+              "ak",
+              "az",
+              "ar",
+              "ca",
+              "co",
+              "ct",
+              "de",
+              "dc",
+              "fl",
+              "ga",
+              "hi",
+              "id",
+              "il",
+              "in",
+              "ia",
+              "ks",
+              "ky",
+              "la",
+              "me",
+              "md",
+              "ma",
+              "mi",
+              "mn",
+              "ms",
+              "mo",
+              "mt",
+              "ne",
+              "nv",
+              "nh",
+              "nj",
+              "nm",
+              "ny",
+              "nc",
+              "nd",
+              "oh",
+              "ok",
+              "or",
+              "pa",
+              "pr",
+              "ri",
+              "sc",
+              "sd",
+              "tn",
+              "tx",
+              "ut",
+              "vt",
+              "va",
+              "vi",
+              "wa",
+              "wv",
+              "wi",
+              "wy"
+            ],
+            "type": "string"
+          },
           "persistedStatus": {
             "enum": [
               "active",
@@ -1042,6 +1313,24 @@
             "type": "array"
           }
         },
+        "required": [
+          "type",
+          "providerId",
+          "compact",
+          "jurisdiction",
+          "dateOfIssuance",
+          "dateOfRenewal",
+          "dateOfExpiration",
+          "dateOfUpdate",
+          "compactTransactionId",
+          "privilegeId",
+          "licenseType",
+          "licenseJurisdiction",
+          "persistedStatus",
+          "status",
+          "attestations",
+          "history"
+        ],
         "type": "object"
       },
       "type": "array"
@@ -1213,17 +1502,12 @@
       "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
       "type": "string"
     },
-    "ssn": {
-      "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$",
-      "type": "string"
-    },
     "npi": {
       "pattern": "^[0-9]{10}$",
       "type": "string"
     },
-    "licenseNumber": {
-      "maxLength": 100,
-      "minLength": 1,
+    "ssnLastFour": {
+      "pattern": "^[0-9]{4}$",
       "type": "string"
     },
     "givenName": {
@@ -1241,17 +1525,12 @@
       "minLength": 1,
       "type": "string"
     },
-    "licenseType": {
-      "enum": [
-        "audiologist",
-        "speech-language pathologist",
-        "occupational therapist",
-        "occupational therapy assistant",
-        "licensed professional counselor"
-      ],
+    "suffix": {
+      "maxLength": 100,
+      "minLength": 1,
       "type": "string"
     },
-    "status": {
+    "jurisdictionStatus": {
       "enum": [
         "active",
         "inactive"
@@ -1265,6 +1544,59 @@
         "coun"
       ],
       "type": "string"
+    },
+    "emailAddress": {
+      "format": "email",
+      "maxLength": 100,
+      "minLength": 5,
+      "type": "string"
+    },
+    "phoneNumber": {
+      "pattern": "^\\+[0-9]{8,15}$",
+      "type": "string"
+    },
+    "homeAddressStreet1": {
+      "maxLength": 100,
+      "minLength": 2,
+      "type": "string"
+    },
+    "homeAddressStreet2": {
+      "maxLength": 100,
+      "minLength": 1,
+      "type": "string"
+    },
+    "homeAddressCity": {
+      "maxLength": 100,
+      "minLength": 2,
+      "type": "string"
+    },
+    "homeAddressState": {
+      "maxLength": 100,
+      "minLength": 2,
+      "type": "string"
+    },
+    "homeAddressPostalCode": {
+      "maxLength": 7,
+      "minLength": 5,
+      "type": "string"
+    },
+    "birthMonthDay": {
+      "format": "date",
+      "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+      "type": "string"
+    },
+    "dateOfBirth": {
+      "format": "date",
+      "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+      "type": "string"
+    },
+    "dateOfExpiration": {
+      "format": "date",
+      "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+      "type": "string"
+    },
+    "militaryWaiver": {
+      "type": "boolean"
     },
     "licenseJurisdiction": {
       "enum": [
@@ -1321,6 +1653,13 @@
         "wv",
         "wi",
         "wy"
+      ],
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "active",
+        "inactive"
       ],
       "type": "string"
     },
@@ -1385,57 +1724,16 @@
       },
       "type": "array"
     },
-    "homeAddressStreet1": {
-      "maxLength": 100,
-      "minLength": 2,
-      "type": "string"
-    },
-    "homeAddressStreet2": {
-      "maxLength": 100,
-      "minLength": 1,
-      "type": "string"
-    },
-    "homeAddressCity": {
-      "maxLength": 100,
-      "minLength": 2,
-      "type": "string"
-    },
-    "homeAddressState": {
-      "maxLength": 100,
-      "minLength": 2,
-      "type": "string"
-    },
-    "homeAddressPostalCode": {
-      "maxLength": 7,
-      "minLength": 5,
-      "type": "string"
-    },
-    "militaryWaiver": {
-      "type": "boolean"
-    },
     "compactConnectRegisteredEmailAddress": {
       "format": "email",
+      "maxLength": 100,
+      "minLength": 5,
       "type": "string"
     },
     "cognitoSub": {
       "type": "string"
     },
-    "birthMonthDay": {
-      "format": "date",
-      "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-      "type": "string"
-    },
-    "dateOfBirth": {
-      "format": "date",
-      "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-      "type": "string"
-    },
     "dateOfUpdate": {
-      "format": "date",
-      "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-      "type": "string"
-    },
-    "dateOfExpiration": {
       "format": "date",
       "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
       "type": "string"
@@ -1444,7 +1742,6 @@
   "required": [
     "type",
     "providerId",
-    "ssn",
     "givenName",
     "familyName",
     "licenseType",

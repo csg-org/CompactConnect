@@ -12,7 +12,9 @@
     },
     "email": {
       "description": "Provider's email address",
+      "format": "email",
       "maxLength": 100,
+      "minLength": 5,
       "type": "string"
     },
     "partialSocial": {
