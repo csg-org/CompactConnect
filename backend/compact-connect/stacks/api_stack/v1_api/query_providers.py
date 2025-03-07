@@ -13,6 +13,7 @@ from aws_cdk.aws_cloudwatch import (
 )
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import EventBus
+from aws_cdk.aws_iam import Policy, PolicyStatement
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
@@ -325,6 +326,21 @@ class QueryProviders:
         # The lambda needs to read providers from the provider table and the SSN from the ssn table
         # Though, ssn table access is granted via resource policies on the table and key so `.grant()`
         # calls are not needed here.
+
+        # Add permission for the lambda to update its own concurrency setting
+        function_arn = self.get_provider_ssn_handler.function_arn
+        self.get_provider_ssn_handler.role.attach_inline_policy(
+            Policy(
+                self.resource,
+                'PutFunctionConcurrency',
+                statements=[
+                    PolicyStatement(
+                        actions=['lambda:PutFunctionConcurrency'],
+                        resources=[function_arn],
+                    )
+                ],
+            )
+        )
 
         return self.get_provider_ssn_handler
 

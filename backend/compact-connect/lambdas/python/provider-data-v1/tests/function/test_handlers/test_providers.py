@@ -1,5 +1,7 @@
 import json
+import uuid
 from datetime import timedelta
+from unittest.mock import patch
 from urllib.parse import quote
 
 from moto import mock_aws
@@ -374,11 +376,12 @@ class TestGetProviderSSN(TstFunction):
         for attempt in range(previous_attempt_count):
             self.config.rate_limiting_table.put_item(
                 Item={
-                    'pk': f'STAFF_USER_ID#{user_id}',
+                    'pk': 'READ_SSN_REQUESTS',
                     # separate each attempt by one minute
-                    'sk': f'READ_SSN#{(now_datetime - timedelta(minutes=attempt)).timestamp()}',
+                    'sk': f'TIME#{(now_datetime - timedelta(minutes=attempt)).timestamp()}#UUID#{uuid.uuid4()}',
                     'compact': 'aslp',
-                    'provider_id': provider_id,
+                    'providerId': provider_id,
+                    'staffUserId': user_id,
                 }
             )
 
@@ -498,3 +501,36 @@ class TestGetProviderSSN(TstFunction):
         # assert that the user's account has been deactivated.
         user = self.config.cognito_client.admin_get_user(UserPoolId=self.config.user_pool_id, Username=staff_user_id)
         self.assertEqual(user['Enabled'], False)
+
+    @patch('handlers.providers.config.lambda_client', autospec=True)
+    @patch('cc_common.config._Config.current_lambda_name', 'testLambdaName')
+    def test_get_provider_ssn_sets_reserved_concurrency_to_zero_and_deactivated_if_staff_user_goes_beyond_rate_limit(
+        self, mock_lambda_client
+    ):
+        """
+        If this endpoint is invoked more than the set global limit within a 24-hour period, we throttle this endpoint
+        by setting its reserved concurrency to 0, to prevent a concentrated attack.
+        """
+        self._load_provider_data()
+        from handlers.providers import get_provider_ssn
+
+        test_provider_id = '89a6377e-c3a5-40e5-bca5-317ec854c570'
+        # add 15 previous calls to the endpoint
+        staff_user_id = self._when_testing_rate_limiting(previous_attempt_count=15, provider_id=test_provider_id)
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+            event['requestContext']['authorizer']['claims']['sub'] = staff_user_id
+
+        # The user has read permission for aslp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readSSN'
+        event['pathParameters'] = {'compact': 'aslp', 'providerId': test_provider_id}
+
+        # request should be throttled
+        resp = get_provider_ssn(event, self.mock_context)
+        self.assertEqual(429, resp['statusCode'])
+
+        # assert that the lambda client was called with expected parameters
+        mock_lambda_client.put_function_concurrency.assert_called_once_with(
+            FunctionName='testLambdaName', ReservedConcurrentExecutions=0
+        )

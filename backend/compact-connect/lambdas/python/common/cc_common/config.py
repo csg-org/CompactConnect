@@ -274,5 +274,10 @@ class _Config:
     def email_notification_service_lambda_name(self):
         return os.environ['EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME']
 
+    @property
+    def current_lambda_name(self):
+        """Return the name of the current lambda function."""
+        return os.environ['AWS_LAMBDA_FUNCTION_NAME']
+
 
 config = _Config()

@@ -187,65 +187,95 @@ def _ssn_rate_limit_exceeded(user_id: str, provider_id: str, compact: str) -> bo
     now_timestamp = now.timestamp()
 
     # Generate a unique ID for this request
-    # This ensures uniqueness even for requests within the same second
-    request_sk = f'READ_SSN#{now_timestamp}#{uuid.uuid4()}'
+    # This ensures every request is recorded, even for requests within the same second
+    request_sk = f'TIME#{now_timestamp}#UUID#{uuid.uuid4()}'
 
     try:
-        # Add the current request
+        # First, record this request in the rate limiting table
         config.rate_limiting_table.put_item(
             Item={
-                'pk': f'STAFF_USER_ID#{user_id}',
+                'pk': 'READ_SSN_REQUESTS',
                 'sk': request_sk,
                 'compact': compact,
                 'provider_id': provider_id,
-                'ttl': int(now.timestamp()) + 86400,  # 24 hours in seconds
+                'staffUserId': user_id,
+                'ttl': int(now_timestamp) + 86400,  # 24 hours in seconds
             }
         )
-        # Query for count of requests in the last 24 hours
-        response = config.rate_limiting_table.query(
+
+        # Check if the global rate limit has been exceeded (more than 15 requests in 24 hours)
+        all_requests = config.rate_limiting_table.query(
             KeyConditionExpression='pk = :pk AND sk BETWEEN :start_sk AND :end_sk',
             ExpressionAttributeValues={
-                ':pk': f'STAFF_USER_ID#{user_id}',
-                ':start_sk': f'READ_SSN#{window_start_timestamp}',
+                ':pk': 'READ_SSN_REQUESTS',
+                ':start_sk': f'TIME#{window_start_timestamp}',
                 # Add 1 second to ensure we include all records at the current timestamp
-                ':end_sk': f'READ_SSN#{now_timestamp + 1}',
+                ':end_sk': f'TIME#{now_timestamp + 1}',
             },
-            Select='COUNT',
             ConsistentRead=True,
         )
 
-        request_count = response['Count']
-        logger.info('Checking SSN requests made by user in last 24 hours', request_count=request_count, user_id=user_id)
+        global_request_count = len(all_requests['Items'])
+        logger.info(f'Global SSN request count in last 24 hours: {global_request_count}')
 
-        # If the user makes another request after being throttled, deactivate their account
-        if request_count >= 7:
+        # If there are more than 15 requests globally in the last 24 hours, throttle the entire endpoint
+        if global_request_count > 15:
+            logger.critical(
+                'Global SSN rate limit exceeded, throttling endpoint',
+                global_request_count=global_request_count,
+                current_request_user_id=user_id,
+                current_request_compact=compact,
+            )
+
+            # Set the lambda's reserved concurrency to 0 to throttle the endpoint
+            try:
+                config.lambda_client.put_function_concurrency(
+                    FunctionName=config.current_lambda_name, ReservedConcurrentExecutions=0
+                )
+                logger.critical('Lambda concurrency set to 0 due to excessive SSN requests')
+                metrics.add_metric(name='ssn-endpoint-throttled', value=1, unit='Count')
+            except ClientError as e:
+                logger.error('Failed to set lambda concurrency', error=str(e))
+
+            return True
+
+        # Count how many requests were made by this user
+        user_request_count = 0
+        for item in all_requests.get('Items', []):
+            if item.get('staffUserId') == user_id:
+                user_request_count += 1
+
+        logger.info(f'User SSN request count: {user_request_count}', user_id=user_id)
+
+        # If there are more than 6 requests by this user in the window, deactivate the user's account
+        if user_request_count >= 7:
             logger.warning(
                 'User exceeded SSN rate limit multiple times, deactivating account',
                 user_id=user_id,
-                request_count=request_count,
+                request_count=user_request_count,
             )
 
             # Deactivate the user's account
             try:
                 config.cognito_client.admin_disable_user(UserPoolId=config.user_pool_id, Username=user_id)
-                logger.info('User account deactivated due to excessive SSN requests', user_id=user_id)
+                logger.warning('User account deactivated due to excessive SSN requests', user_id=user_id)
             except ClientError as e:
                 logger.error('Failed to deactivate user account', error=str(e), user_id=user_id)
 
             return True
 
-        # If there are more than 5 requests in the window, rate limit is exceeded
-        if request_count >= 6:
-            logger.warning('SSN rate limit exceeded', user_id=user_id, request_count=request_count)
+        # If there are 5 or more requests by this user in the window, rate limit is exceeded
+        if user_request_count >= 6:
+            logger.warning('SSN rate limit exceeded for user', user_id=user_id, request_count=user_request_count)
             return True
 
         logger.info(
             'Rate limit has not been exceeded, proceeding with request',
-            request_count=request_count,
+            user_request_count=user_request_count,
             staff_user_id=user_id,
             provider_id=provider_id,
         )
         return False
     except ClientError as e:
         logger.error('Failed to check SSN rate limit', error=str(e))
-        raise CCAwsServiceException('Failed to track SSN rate limit') from e
+        raise CCAwsServiceException('Failed to check SSN rate limit') from e
