@@ -238,7 +238,8 @@ class QueryProviders:
         self.api.log_groups.append(handler.log_group)
 
         # Add the SSN endpoint as a sub-resource of the provider
-        self.provider_resource.add_resource('ssn').add_method(
+        self.ssn_resource = self.provider_resource.add_resource('ssn')
+        self.ssn_resource.add_method(
             'GET',
             request_validator=self.api.parameter_body_validator,
             method_responses=[
@@ -294,6 +295,7 @@ class QueryProviders:
         )
 
         # We'll also set a flat maximum access rate of 5 reads per day to alarm on
+        # This will help us determine if the limit needs to be raised
         self.max_ssn_reads_alarm = Alarm(
             self.api,
             'MaxSSNReadsAlarm',
@@ -302,9 +304,35 @@ class QueryProviders:
             evaluation_periods=1,
             comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
-            alarm_description=(f'{self.api.node.path} max ssn reads alarm'),
+            alarm_description=f'{self.api.node.path} max ssn reads alarm. The GET provider SSN endpoint has been '
+                              f'invoked more than an expected threshold within a 24 hour period. Investigation is '
+                              f'required to ensure access is not the result of abuse.',
         )
         self.max_ssn_reads_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
+        # Add an alarm for 429 responses from the SSN endpoint
+        self.ssn_api_throttling_alarm = Alarm(
+            self.api, "SSNApi429ThrottlingAlarm",
+            alarm_description="SECURITY ALERT: Potential abuse detected - "
+                              "API throttling (429) errors triggered on GET provider SSN endpoint. "
+                              "Immediate investigation required.",
+            metric=Metric(
+                namespace="AWS/ApiGateway",
+                metric_name="4XXError",
+                dimensions_map={
+                    "ApiName": self.api.rest_api_name,
+                    "Stage": self.api.deployment_stage.stage_name,
+                    "Resource": self.ssn_resource.path,
+                    "Method": "GET"
+                },
+                statistic="Sum",
+                period=Duration.minutes(5),
+            ),
+            evaluation_periods=1,
+            threshold=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+        )
+        self.ssn_api_throttling_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
 
     def _get_provider_ssn_handler(
         self,
@@ -341,7 +369,6 @@ class QueryProviders:
                 ],
             )
         )
-
         return self.get_provider_ssn_handler
 
     def _add_deactivate_privilege(
