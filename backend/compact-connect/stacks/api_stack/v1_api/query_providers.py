@@ -75,6 +75,7 @@ class QueryProviders:
             ssn_table=persistent_stack.ssn_table,
             staff_user_pool=persistent_stack.staff_users,
             rate_limiting_table=persistent_stack.rate_limiting_table,
+            provider_table=persistent_stack.provider_table,
             lambda_environment=lambda_environment,
         )
         self._add_deactivate_privilege(
@@ -224,6 +225,7 @@ class QueryProviders:
         ssn_table: SSNTable,
         staff_user_pool: StaffUsers,
         rate_limiting_table: RateLimitingTable,
+        provider_table: ProviderTable,
         lambda_environment: dict,
     ):
         """Add GET /providers/{providerId}/ssn endpoint to retrieve a provider's SSN."""
@@ -231,11 +233,25 @@ class QueryProviders:
             ssn_table=ssn_table,
             lambda_environment=lambda_environment,
         )
-        rate_limiting_table.grant(handler, 'dynamodb:PutItem')
-        rate_limiting_table.grant(handler, 'dynamodb:Query')
+        # these permissions are needed to read and write items on the rate-limiting table
+        rate_limiting_table.grant_read_write_data(handler)
+        # these permissions are needed to query provider records on the provider table
+        provider_table.grant_read_data(handler)
         # here we grant the lambda the ability to disable staff users if they exceed the rate limit
         staff_user_pool.grant(handler, 'cognito-idp:AdminDisableUser')
         self.api.log_groups.append(handler.log_group)
+
+        NagSuppressions.add_resource_suppressions_by_path(
+            Stack.of(handler.role),
+            path=f'{handler.role.node.path}/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The wildcard actions in this policy are scoped to the rate-limiting table and '
+                              'the provider data table.',
+                },
+            ],
+        )
 
         # Add the SSN endpoint as a sub-resource of the provider
         self.ssn_resource = self.provider_resource.add_resource('ssn')
@@ -305,26 +321,27 @@ class QueryProviders:
             comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
             alarm_description=f'{self.api.node.path} max ssn reads alarm. The GET provider SSN endpoint has been '
-                              f'invoked more than an expected threshold within a 24 hour period. Investigation is '
-                              f'required to ensure access is not the result of abuse.',
+            f'invoked more than an expected threshold within a 24 hour period. Investigation is '
+            f'required to ensure access is not the result of abuse.',
         )
         self.max_ssn_reads_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
         # Add an alarm for 429 responses from the SSN endpoint
         self.ssn_api_throttling_alarm = Alarm(
-            self.api, "SSNApi429ThrottlingAlarm",
-            alarm_description="SECURITY ALERT: Potential abuse detected - "
-                              "API throttling (429) errors triggered on GET provider SSN endpoint. "
-                              "Immediate investigation required.",
+            self.api,
+            'SSNApi429ThrottlingAlarm',
+            alarm_description='SECURITY ALERT: Potential abuse detected - '
+            'API throttling (429) errors triggered on GET provider SSN endpoint. '
+            'Immediate investigation required.',
             metric=Metric(
-                namespace="AWS/ApiGateway",
-                metric_name="4XXError",
+                namespace='AWS/ApiGateway',
+                metric_name='4XXError',
                 dimensions_map={
-                    "ApiName": self.api.rest_api_name,
-                    "Stage": self.api.deployment_stage.stage_name,
-                    "Resource": self.ssn_resource.path,
-                    "Method": "GET"
+                    'ApiName': self.api.rest_api_name,
+                    'Stage': self.api.deployment_stage.stage_name,
+                    'Resource': self.ssn_resource.path,
+                    'Method': 'GET',
                 },
-                statistic="Sum",
+                statistic='Sum',
                 period=Duration.minutes(5),
             ),
             evaluation_periods=1,
