@@ -90,30 +90,6 @@ class DataClient:
             raise CCInternalException(f'Expected 1 SSN index record, got {len(resp)}')
         return resp[0]['ssn']
 
-    @logger_inject_kwargs(logger, 'compact', 'provider_id')
-    def get_provider_home_jurisdiction_selection(self, *, compact: str, provider_id: str) -> dict | None:
-        """Get the home jurisdiction selection record for a provider.
-
-        :param compact: The compact name
-        :param provider_id: The provider ID
-        :return: The home jurisdiction record if found, None otherwise
-        :rtype: dict or None
-        """
-        logger.info('Getting home jurisdiction selection record', provider_id=provider_id, compact=compact)
-        resp = self.config.provider_table.get_item(
-            Key={
-                'pk': f'{compact}#PROVIDER#{provider_id}',
-                'sk': f'{compact}#PROVIDER#home-jurisdiction#',
-            },
-            ConsistentRead=True,
-        ).get('Item')
-
-        if resp is None:
-            logger.info('Home jurisdiction selection record not found', provider_id=provider_id, compact=compact)
-            raise CCNotFoundException('No home jurisdiction selection record found')
-
-        return resp
-
     @logger_inject_kwargs(logger, 'compact', 'jurisdiction', 'family_name', 'given_name')
     def find_matching_license_record(
         self,

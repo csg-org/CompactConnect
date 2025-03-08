@@ -95,7 +95,7 @@ if [ -n "$files" ]; then
 fi
 
 # Run the back-end tests
-bin/run_tests.sh all no-report || exit "$?"
+bin/run_tests.sh -no || exit "$?"
 
 # Check dependencies for known vulnerabilities
 pip-audit || exit "$?"
