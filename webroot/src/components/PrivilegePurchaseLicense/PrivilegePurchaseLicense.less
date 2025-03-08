@@ -4,3 +4,99 @@
 //
 //  Created by InspiringApps on 3/3/2025.
 //
+.select-license-container {
+    width: 100%;
+
+    .license-form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+
+        .button-row {
+            position: fixed;
+            bottom: 0;
+            z-index: 3;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            background-color: @veryLightGrey;
+
+            @media @tabletWidth {
+                position: unset;
+                display: flex;
+                flex-direction: row;
+                align-items: flex-end;
+                justify-content: space-between;
+                width: 100%;
+                margin-top: 2rem;
+                background-color: unset;
+            }
+
+            :deep(.input-container) {
+                margin-bottom: 1rem;
+
+                @media @tabletWidth {
+                    margin-bottom: unset;
+                }
+
+                input {
+                    width: 41vw;
+
+                    @media @tabletWidth {
+                        width: unset;
+                    }
+                }
+            }
+
+            .right-cell {
+                display: flex;
+                flex-direction: row;
+                align-items: flex-end;
+                justify-content: space-between;
+
+                .back-button {
+                    margin-right: 1rem;
+                }
+            }
+        }
+
+        .select-license-core-container {
+            width: 100%;
+            padding: 0 2rem 2rem 2rem;
+            border-radius: 20px;
+            background-color: @white;
+
+            @media @tabletWidth {
+                width: 72rem;
+            }
+
+            @media @desktopWidth {
+                min-width: 91rem;
+            }
+
+            .mock-populate {
+                margin: 0 1rem;
+            }
+
+            .privilege-purchase-title {
+                margin: 4rem 1rem 2rem 1rem;
+                font-weight: @fontWeightBold;
+            }
+
+            .select-license-title {
+                margin: 2rem 1rem 2rem 1rem;
+                font-weight: @fontWeightBold;
+                font-size: @fontSizeLarge;
+            }
+
+            .select-container {
+                max-width: 30rem;
+            }
+        }
+    }
+}

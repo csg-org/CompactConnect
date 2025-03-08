@@ -14,11 +14,9 @@ import PrivilegePurchaseFinalize from '@components/PrivilegePurchaseFinalize/Pri
 import PrivilegePurchaseSuccessful from '@components/PrivilegePurchaseSuccessful/PrivilegePurchaseSuccessful.vue';
 import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import { Compact } from '@models/Compact/Compact.model';
-import { License } from '@models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { LicenseeUser } from '@models/LicenseeUser/LicenseeUser.model';
 import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
-import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 
 @Component({
     name: 'PrivilegePurchase',
@@ -37,7 +35,7 @@ export default class PrivilegePurchase extends Vue {
     // Data
     //
     flowOrder = [
-        'PrivilegePurchaseLicense',
+        'PrivilegePurchaseSelectLicense',
         'PrivilegePurchaseInformationConfirmation',
         'PrivilegePurchaseSelect',
         'PrivilegePurchaseAttestation',
@@ -111,28 +109,6 @@ export default class PrivilegePurchase extends Vue {
 
     get isPurchaseSuccessfulRoute(): boolean {
         return Boolean(this.routeName === 'PrivilegePurchaseSuccessful');
-    }
-
-    get hasMoreThanOneLicense(): boolean {
-        return (this.licensee?.licenses && this.licensee?.licenses?.length > 1) || false;
-    }
-
-    get licenseSelected(): License | null {
-        let licenseSelected: License | null = null;
-
-        if (this.hasMoreThanOneLicense) {
-            this.purchaseFlowState.steps?.forEach((step: PurchaseFlowStep) => {
-                if (step.licenseSelected) {
-                    licenseSelected = step.licenseSelected;
-                }
-            });
-        } else {
-            const { licenses } = this.licensee;
-
-            licenseSelected = licenses ? licenses[0] : new License();
-        }
-
-        return licenseSelected;
     }
 
     get currentFlowStep(): number {

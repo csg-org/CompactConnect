@@ -8,7 +8,7 @@
 <template>
     <div class="purchase-flow-container">
         <ProgressBar :progressPercent="progressPercent" />
-        <PrivilegePurchaseSelect
+        <PrivilegePurchaseLicense
             v-if="isSelectLicenseRoute"
             :flowStep="currentFlowStep"
             class="step"

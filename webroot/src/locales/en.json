@@ -513,6 +513,7 @@
         "privilegeNumSymbol": "Privilege #",
         "driversLicense": "Drivers License #",
         "militaryAffilitionDocs": "military affiliation documents",
+        "selectLicense": "Select a license",
         "personalInformation": "Personal information",
         "licenseExpired": "License expired",
         "noRefundsMessage": "All compact privilege purchases are final. Refunds will not be issued.",

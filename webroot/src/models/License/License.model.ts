@@ -125,6 +125,10 @@ export class License implements InterfaceLicense {
 
         return upperCaseAbbrev;
     }
+
+    public displayName(): string {
+        return `${this.issueState?.name() || ''} - ${this.occupationAbbreviation()}`;
+    }
 }
 
 // ========================================================
@@ -132,8 +136,10 @@ export class License implements InterfaceLicense {
 // ========================================================
 export class LicenseSerializer {
     static fromServer(json: any): License {
+        console.log('json', json);
+
         const licenseData = {
-            id: json.id,
+            id: `${json.providerId}-${json.jurisdiction}-${json.licenseType}`,
             compact: new Compact({ type: json.compact }),
             isPrivilege: Boolean(json.type === 'privilege'),
             licenseeId: json.providerId,

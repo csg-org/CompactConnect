@@ -23,9 +23,9 @@ import { FormInput } from '@models/FormInput/FormInput.model';
 import { LicenseeUser, LicenseeUserPurchaseSerializer } from '@models/LicenseeUser/LicenseeUser.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
-import Joi from 'joi';
 import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
+import Joi from 'joi';
 
 @Component({
     name: 'PrivilegePurchaseFinalize',

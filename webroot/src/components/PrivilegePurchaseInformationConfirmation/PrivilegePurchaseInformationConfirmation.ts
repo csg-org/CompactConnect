@@ -17,6 +17,7 @@ import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
+import SelectedLicenseInfo from '@components/SelectedLicenseInfo/SelectedLicenseInfo.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
 import { Address } from '@models/Address/Address.model';
 import { Compact } from '@models/Compact/Compact.model';
@@ -38,6 +39,7 @@ import Joi from 'joi';
         InputButton,
         InputCheckbox,
         LoadingSpinner,
+        SelectedLicenseInfo,
         MockPopulate
     }
 })
@@ -243,10 +245,17 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
 
     handleBackClicked() {
         if (this.currentCompactType) {
-            this.$router.push({
-                name: 'LicenseeDashboard',
-                params: { compact: this.currentCompactType }
-            });
+            if (this.licensee && this.licensee.homeStateLicenses().length > 1) {
+                this.$router.push({
+                    name: 'PrivilegePurchaseSelectLicense',
+                    params: { compact: this.currentCompactType }
+                });
+            } else {
+                this.$router.push({
+                    name: 'LicenseeDashboard',
+                    params: { compact: this.currentCompactType }
+                });
+            }
         }
     }
 

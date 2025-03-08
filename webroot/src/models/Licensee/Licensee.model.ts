@@ -221,12 +221,16 @@ export class Licensee implements InterfaceLicensee {
         return this.militaryAffiliations?.find((affiliation) => ((affiliation as MilitaryAffiliation).status as any) === 'active') || null;
     }
 
+    public homeStateLicenses(): Array<License> {
+        return this.licenses?.filter((license: License) =>
+            (license.issueState?.abbrev === this.homeJurisdiction?.abbrev)) || [];
+    }
+
     public bestHomeStateLicense(): License {
         // Return most recently issued active license that matches the user's registered home jurisdiction
         // If no active license return  most recently issued inactive license that matches the user's registered home jurisdiction
         let bestHomeLicense = new License();
-        const homeStateLicenses = this.licenses?.filter((license: License) =>
-            (license.issueState?.abbrev === this.homeJurisdiction?.abbrev)) || [];
+        const homeStateLicenses = this.homeStateLicenses();
         const activeHomeStateLicenses = homeStateLicenses.filter((license: License) =>
             (license.statusState === LicenseStatus.ACTIVE));
         const inactiveHomeStateLicenses = homeStateLicenses.filter((license: License) =>
