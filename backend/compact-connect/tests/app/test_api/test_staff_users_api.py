@@ -223,7 +223,9 @@ class TestStaffUsersApi(TestApi):
 
         # Ensure the max hourly alarm is created
         max_staff_user_creation_hourly_alarm = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.staff_users.max_hourly_staff_users_created_alarm.node.default_child),
+            api_stack.get_logical_id(
+                api_stack.api.v1_api.staff_users.max_hourly_staff_users_created_alarm.node.default_child
+            ),
             alarms,
         )
 
@@ -239,7 +241,8 @@ class TestStaffUsersApi(TestApi):
         # Ensure the max daily alarm is created
         max_staff_user_creation_daily_alarm = TestApi.get_resource_properties_by_logical_id(
             api_stack.get_logical_id(
-                api_stack.api.v1_api.staff_users.max_daily_staff_users_created_alarm.node.default_child),
+                api_stack.api.v1_api.staff_users.max_daily_staff_users_created_alarm.node.default_child
+            ),
             alarms,
         )
 

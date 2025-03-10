@@ -516,8 +516,8 @@ class StaffUsers:
             comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
             alarm_description=f'{self.api.node.path} max hourly staff users created alarm. The POST staff user '
-                              f'endpoint has been invoked more than an expected threshold within an hour period. '
-                              f'Investigation is required to ensure requests are authorized.',
+            f'endpoint has been invoked more than an expected threshold within an hour period. '
+            f'Investigation is required to ensure requests are authorized.',
         )
         self.max_hourly_staff_users_created_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
 
@@ -540,8 +540,8 @@ class StaffUsers:
             comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
             alarm_description=f'{self.api.node.path} max daily staff users created alarm. The POST staff user endpoint '
-                              f'has been invoked more than an expected threshold within an hour period. '
-                              f'Investigation is required to ensure requests are authorized.',
+            f'has been invoked more than an expected threshold within an hour period. '
+            f'Investigation is required to ensure requests are authorized.',
         )
         self.max_daily_staff_users_created_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
 
@@ -552,8 +552,8 @@ class StaffUsers:
             self.api,
             'StaffUserCreationAnomalyAlarm',
             alarm_description=f'{self.api.node.path} staff-user-created anomaly detection. Anomalies in the number of '
-                              f'staff users created per day are detected. Investigation is required to ensure requests '
-                              f'are authorized.',
+            f'staff users created per day are detected. Investigation is required to ensure requests '
+            f'are authorized.',
             comparison_operator='GreaterThanUpperThreshold',
             evaluation_periods=1,
             treat_missing_data='notBreaching',
