@@ -222,8 +222,14 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     )
 
     # we now validate that the license type matches one of the license types from the home state license records
-    matching_license_record = next((record for record in license_records if record['licenseType'] == body['licenseType']
-                                    and record['jurisdiction'] == home_state_selection), None)
+    matching_license_record = next(
+        (
+            record
+            for record in license_records
+            if record['licenseType'] == body['licenseType'] and record['jurisdiction'] == home_state_selection
+        ),
+        None,
+    )
 
     if matching_license_record is None:
         raise CCInvalidRequestException('Specified license type does not match any home state license type.')

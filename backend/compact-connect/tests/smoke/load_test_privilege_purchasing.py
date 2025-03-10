@@ -9,8 +9,8 @@ from faker import Faker
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
+    get_license_type_abbreviation,
     get_provider_user_auth_headers_cached,
-    get_license_type_abbreviation
 )
 
 # Load-Testing Script for populating authorize.net with transactions

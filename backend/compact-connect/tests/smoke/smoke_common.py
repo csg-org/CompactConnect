@@ -169,6 +169,7 @@ def get_staff_user_auth_headers(username: str, password: str = _TEST_STAFF_USER_
         'Authorization': 'Bearer ' + tokens['AccessToken'],
     }
 
+
 def get_license_type_abbreviation(license_type: str):
     """
     Gets the abbreviation for a specific license type.
