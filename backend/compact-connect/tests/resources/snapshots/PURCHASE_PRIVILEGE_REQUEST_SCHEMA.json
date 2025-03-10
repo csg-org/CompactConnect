@@ -1,5 +1,9 @@
 {
   "properties": {
+    "licenseType": {
+      "description": "The type of license the provider is purchasing",
+      "type": "string"
+    },
     "selectedJurisdictions": {
       "items": {
         "description": "Jurisdictions a provider has selected to purchase privileges in.",
@@ -173,6 +177,7 @@
     }
   },
   "required": [
+    "licenseType",
     "selectedJurisdictions",
     "orderInformation",
     "attestations"
