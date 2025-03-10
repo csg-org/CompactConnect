@@ -337,15 +337,13 @@ export default class LicensingDetail extends Vue {
 
         const { compact, licenseeId } = this;
         let isError = false;
-        const ssnFullResponse = await dataApi.getLicenseeSsn(compact, licenseeId).catch(() => {
+        const ssnFullResponse = await dataApi.getLicenseeSsn(compact, licenseeId).catch((error) => {
             isError = true;
-            this.licenseeFullSsnError = this.$t('serverErrors.networkError');
+            this.licenseeFullSsnError = error?.response?.data?.message || this.$t('serverErrors.networkError');
         });
 
         if (!isError && ssnFullResponse?.ssn) {
             this.licenseeFullSsn = ssnFullResponse.ssn;
-        } else {
-            this.licenseeFullSsnError = this.$t('serverErrors.networkError');
         }
 
         this.licenseeFullSsnLoading = false;
