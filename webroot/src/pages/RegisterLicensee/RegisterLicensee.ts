@@ -76,14 +76,14 @@ class RegisterLicensee extends mixins(MixinForm) {
         return options;
     }
 
-    get occupationOptions(): Array<SelectOption> {
+    get licenseTypeOptions(): Array<SelectOption> {
         const options = [{ value: '', name: this.$t('common.select') }];
-        const occupations = this.$tm('licensing.occupations') || [];
+        const licenseTypes = this.$tm('licensing.licenseTypes') || [];
 
-        occupations.forEach((occupation) => {
+        licenseTypes.forEach((licenseType) => {
             options.push({
-                value: occupation.key,
-                name: occupation.name,
+                value: licenseType.key,
+                name: licenseType.name,
             });
         });
 
@@ -165,12 +165,12 @@ class RegisterLicensee extends mixins(MixinForm) {
                 validation: Joi.string().required().messages(this.joiMessages.string),
                 valueOptions: this.stateOptions,
             }),
-            occupation: new FormInput({
-                id: 'occupation',
-                name: 'occupation',
+            licenseType: new FormInput({
+                id: 'license-type',
+                name: 'license-type',
                 label: computed(() => this.$t('licensing.licenseType')),
                 validation: Joi.string().required().messages(this.joiMessages.string),
-                valueOptions: this.occupationOptions,
+                valueOptions: this.licenseTypeOptions,
             }),
             submit: new FormInput({
                 isSubmitInput: true,
@@ -211,15 +211,15 @@ class RegisterLicensee extends mixins(MixinForm) {
         ssnLastFour.value = format(ssnLastFour.value);
     }
 
-    getCompactFromOccupation(): string {
-        const { occupation: selectedOccupation } = this.formValues;
-        const occupations = this.$tm('licensing.occupations');
+    getCompactFromlicenseType(): string {
+        const { licenseType: selectedlicenseType } = this.formValues;
+        const licenseTypes = this.$tm('licensing.licenseTypes');
         let compactType = '';
 
-        if (selectedOccupation) {
-            const foundOccupation = occupations.find((occupation) => occupation.key === selectedOccupation);
+        if (selectedlicenseType) {
+            const foundlicenseType = licenseTypes.find((licenseType) => licenseType.key === selectedlicenseType);
 
-            compactType = foundOccupation.compactKey;
+            compactType = foundlicenseType.compactKey;
         }
 
         return compactType;
@@ -231,7 +231,7 @@ class RegisterLicensee extends mixins(MixinForm) {
         if (this.isFormValid) {
             this.startFormLoading();
 
-            const compact = this.getCompactFromOccupation();
+            const compact = this.getCompactFromlicenseType();
             const password = document.getElementById('password') as HTMLInputElement;
 
             if (!compact) {
@@ -279,7 +279,7 @@ class RegisterLicensee extends mixins(MixinForm) {
             ssnLastFour,
             dob,
             licenseState,
-            occupation,
+            licenseType,
         } = this.formValues;
 
         return {
@@ -289,7 +289,7 @@ class RegisterLicensee extends mixins(MixinForm) {
             partialSocial: ssnLastFour,
             dob,
             jurisdiction: licenseState,
-            licenseType: occupation,
+            licenseType,
         };
     }
 
@@ -342,7 +342,7 @@ class RegisterLicensee extends mixins(MixinForm) {
         this.formData.ssnLastFour.value = '';
         this.formData.dob.value = '';
         this.formData.licenseState.value = '';
-        this.formData.occupation.value = '';
+        this.formData.licenseType.value = '';
         this.isFormLoading = false;
         this.isFormSuccessful = false;
         this.isFormError = false;
@@ -357,7 +357,7 @@ class RegisterLicensee extends mixins(MixinForm) {
         this.formData.ssnLastFour.value = '1234';
         this.formData.dob.value = '2000-01-01';
         this.formData.licenseState.value = this.stateOptions[1]?.value || 'co';
-        this.formData.occupation.value = this.occupationOptions[1]?.value || 'audiologist';
+        this.formData.licenseType.value = this.licenseTypeOptions[1]?.value || 'audiologist';
         this.validateAll({ asTouched: true });
     }
 }

@@ -17,7 +17,7 @@ import moment from 'moment';
 // ========================================================
 // =                       Interface                      =
 // ========================================================
-export enum LicenseOccupation { // Temp server definition until server returns via endpoint
+export enum LicenseType { // Temp server definition until server returns via endpoint
     AUDIOLOGIST = 'audiologist',
     SPEECH_LANGUAGE_PATHOLOGIST = 'speech-language pathologist',
     SPEECH_AND_LANGUAGE_PATHOLOGIST = 'speech and language pathologist',
@@ -48,7 +48,7 @@ export interface InterfaceLicense {
     npi?: string | null;
     licenseNumber?: string | null;
     privilegeId?: string | null;
-    occupation?: LicenseOccupation | null,
+    licenseType?: LicenseType | null,
     history?: Array<LicenseHistoryItem>,
     status?: LicenseStatus,
 }
@@ -71,7 +71,7 @@ export class License implements InterfaceLicense {
     public licenseNumber? = null;
     public privilegeId? = null;
     public expireDate? = null;
-    public occupation? = null;
+    public licenseType? = null;
     public history? = [];
     public status? = LicenseStatus.INACTIVE;
 
@@ -108,20 +108,20 @@ export class License implements InterfaceLicense {
         return Boolean(diff > 0);
     }
 
-    // Relevant for License only until occupation is included in privilege return
-    public occupationName(): string {
-        const occupations = this.$tm('licensing.occupations') || [];
-        const occupation = occupations.find((translate) => translate.key === this.occupation);
-        const occupationName = occupation?.name || '';
+    // Relevant for License only until licenseType is included in privilege return
+    public licenseTypeName(): string {
+        const licenseTypes = this.$tm('licensing.licenseTypes') || [];
+        const licenseType = licenseTypes.find((translate) => translate.key === this.licenseType);
+        const licenseTypeName = licenseType?.name || '';
 
-        return occupationName;
+        return licenseTypeName;
     }
 
-    public occupationAbbreviation(): string {
-        const occupations = this.$tm('licensing.occupations') || [];
-        const occupation = occupations.find((translate) => translate.key === this.occupation);
-        const occupationAbbrev = occupation?.abbrev || '';
-        const upperCaseAbbrev = occupationAbbrev.toUpperCase();
+    public licenseTypeAbbreviation(): string {
+        const licenseTypes = this.$tm('licensing.licenseTypes') || [];
+        const licenseType = licenseTypes.find((translate) => translate.key === this.licenseType);
+        const licenseTypeAbbrev = licenseType?.abbrev || '';
+        const upperCaseAbbrev = licenseTypeAbbrev.toUpperCase();
 
         return upperCaseAbbrev;
     }
@@ -151,7 +151,7 @@ export class LicenseSerializer {
             privilegeId: json.privilegeId, // Privilege field only
             renewalDate: json.dateOfRenewal,
             expireDate: json.dateOfExpiration,
-            occupation: json.licenseType, // License field only for now, will eventually be included in privileges
+            licenseType: json.licenseType, // License field only for now, will eventually be included in privileges
             status: json.status,
             history: [] as Array <LicenseHistoryItem>,
         };

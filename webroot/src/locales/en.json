@@ -558,7 +558,7 @@
         "deactivate": "Deactivate",
         "deactivated": "Deactivated",
         "confirmPrivilegeDeactivate": "Are you sure you want to deactivate this privilege? This cannot be undone.",
-        "occupations": [
+        "licenseTypes": [
             {
                 "name": "Audiologist",
                 "key": "audiologist",

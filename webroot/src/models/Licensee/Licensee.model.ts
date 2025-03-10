@@ -11,7 +11,7 @@ import { formatPhoneNumber, stripPhoneNumber } from '@models/_formatters/phone';
 import { Address, AddressSerializer } from '@models/Address/Address.model';
 import {
     License,
-    LicenseOccupation,
+    LicenseType,
     LicenseSerializer,
     LicenseStatus
 } from '@models/License/License.model';
@@ -46,7 +46,7 @@ export interface InterfaceLicensee {
     birthMonthDay?: string | null;
     ssn?: string | null;
     phoneNumber?: string | null;
-    occupation?: LicenseOccupation | null;
+    licenseType?: LicenseType | null;
     militaryAffiliations?: Array <MilitaryAffiliation>;
     licenseStates?: Array<State>;
     licenses?: Array<License>;
@@ -74,7 +74,7 @@ export class Licensee implements InterfaceLicensee {
     public birthMonthDay? = null;
     public ssn? = null;
     public phoneNumber? = null;
-    public occupation? = null;
+    public licenseType? = null;
     public licenseStates? = [];
     public licenses? = [];
     public privilegeStates? = [];
@@ -193,12 +193,12 @@ export class Licensee implements InterfaceLicensee {
         return this.getStateListDisplay(stateNames);
     }
 
-    public occupationName(): string {
-        const occupations = this.$tm('licensing.occupations') || [];
-        const occupation = occupations.find((translate) => translate.key === this.occupation);
-        const occupationName = occupation?.name || '';
+    public licenseTypeName(): string {
+        const licenseTypes = this.$tm('licensing.licenseTypes') || [];
+        const licenseType = licenseTypes.find((translate) => translate.key === this.licenseType);
+        const licenseTypeName = licenseType?.name || '';
 
-        return occupationName;
+        return licenseTypeName;
     }
 
     public statusDisplay(): string {
@@ -277,14 +277,14 @@ export class LicenseeSerializer {
             middleName: json.middleName,
             lastName: json.familyName,
             // If the user has registered, json.homeJurisdictionSelection will be populated with the user's selected home state
-            // licenselicenseJurisdiction is the server's best guess at their home state. Once #467 is merged we can simply use
-            // json.licenselicenseJurisdiction as this will be updated to match the users' choice once that happens, therefor always
+            // licenseJurisdiction is the server's best guess at their home state. Once #467 is merged we can simply use
+            // json.licenseJurisdiction as this will be updated to match the users' choice once that happens, therefor always
             // being the best choice for this field. Also json.homeJurisdictionSelection is not available in get all responses
             homeState: json.homeJurisdictionSelection
                 ? new State({ abbrev: json.homeJurisdictionSelection.jurisdiction })
                 : new State({ abbrev: json.licenseJurisdiction }),
-            // This value is updated to equal bestHomeStateLicenseMailingAddress() whenever a License record is added or updated for the user
-            // in the edge case where the user's best home state license expires this can get out of sync with that calulated value
+            // This value is updated to equal bestHomeStateLicenseMailingAddress() whenever a License record is added or updated for the user.
+            // In the edge case where the user's best home state license expires this can get out of sync with that calulated value.
             homeJurisdictionLicenseAddress: AddressSerializer.fromServer({
                 street1: json.homeAddressStreet1,
                 street2: json.homeAddressStreet2,
@@ -296,7 +296,7 @@ export class LicenseeSerializer {
             birthMonthDay: json.birthMonthDay,
             ssn: json.ssn,
             phoneNumber: json.phoneNumber,
-            occupation: json.licenseType,
+            licenseType: json.licenseType,
             licenseStates: [] as Array<State>,
             licenses: [] as Array<License>,
             privilegeStates: [] as Array<State>,

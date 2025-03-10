@@ -11,7 +11,7 @@ import { serverDateFormat, displayDateFormat } from '@/app.config';
 import { CompactType } from '@models/Compact/Compact.model';
 import { Licensee, LicenseeStatus, LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { Address } from '@models/Address/Address.model';
-import { License, LicenseOccupation, LicenseStatus } from '@models/License/License.model';
+import { License, LicenseType, LicenseStatus } from '@models/License/License.model';
 import { MilitaryAffiliation } from '@models/MilitaryAffiliation/MilitaryAffiliation.model';
 import { State } from '@models/State/State.model';
 import i18n from '@/i18n';
@@ -49,7 +49,7 @@ describe('Licensee model', () => {
         expect(licensee.dob).to.equal(null);
         expect(licensee.birthMonthDay).to.equal(null);
         expect(licensee.ssn).to.equal(null);
-        expect(licensee.occupation).to.equal(null);
+        expect(licensee.licenseType).to.equal(null);
         expect(licensee.licenseStates).to.be.an('array').that.is.empty;
         expect(licensee.licenses).to.be.an('array').that.is.empty;
         expect(licensee.privilegeStates).to.be.an('array').that.is.empty;
@@ -74,7 +74,7 @@ describe('Licensee model', () => {
         expect(licensee.licenseStatesDisplay()).to.equal('');
         expect(licensee.privilegeStatesAllDisplay()).to.equal('');
         expect(licensee.privilegeStatesDisplay()).to.equal('');
-        expect(licensee.occupationName()).to.equal('');
+        expect(licensee.licenseTypeName()).to.equal('');
     });
     it('should create a Licensee with specific values', () => {
         const data = {
@@ -91,7 +91,7 @@ describe('Licensee model', () => {
             birthMonthDay: '01-16',
             ssn: 'test-ssn',
             militaryAffiliations: [new MilitaryAffiliation()],
-            occupation: LicenseOccupation.AUDIOLOGIST,
+            licenseType: LicenseType.AUDIOLOGIST,
             licenseStates: [new State()],
             licenses: [
                 new License({
@@ -144,7 +144,7 @@ describe('Licensee model', () => {
         expect(licensee.dob).to.equal(data.dob);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.ssn).to.equal(data.ssn);
-        expect(licensee.occupation).to.equal(data.occupation);
+        expect(licensee.licenseType).to.equal(data.licenseType);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
         expect(licensee.licenses).to.be.an('array').with.length(3);
@@ -176,7 +176,7 @@ describe('Licensee model', () => {
         expect(licensee.licenseStatesDisplay()).to.equal('Colorado, Colorado +');
         expect(licensee.privilegeStatesAllDisplay()).to.equal('Unknown');
         expect(licensee.privilegeStatesDisplay()).to.equal('');
-        expect(licensee.occupationName()).to.equal('Audiologist');
+        expect(licensee.licenseTypeName()).to.equal('Audiologist');
         expect(licensee.canPurchasePrivileges()).to.equal(false);
     });
     it('should create a Licensee with specific values and the ability to purchase privileges', () => {
@@ -194,7 +194,7 @@ describe('Licensee model', () => {
             birthMonthDay: '01-16',
             ssn: 'test-ssn',
             militaryAffiliations: [new MilitaryAffiliation()],
-            occupation: LicenseOccupation.AUDIOLOGIST,
+            licenseType: LicenseType.AUDIOLOGIST,
             licenseStates: [new State()],
             licenses: [
                 new License({
@@ -247,7 +247,7 @@ describe('Licensee model', () => {
         expect(licensee.dob).to.equal(data.dob);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.ssn).to.equal(data.ssn);
-        expect(licensee.occupation).to.equal(data.occupation);
+        expect(licensee.licenseType).to.equal(data.licenseType);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
         expect(licensee.licenses).to.be.an('array').with.length(3);
@@ -278,7 +278,7 @@ describe('Licensee model', () => {
         expect(licensee.licenseStatesDisplay()).to.equal('Massachusetts, Massachusetts +');
         expect(licensee.privilegeStatesAllDisplay()).to.equal('Unknown');
         expect(licensee.privilegeStatesDisplay()).to.equal('');
-        expect(licensee.occupationName()).to.equal('Audiologist');
+        expect(licensee.licenseTypeName()).to.equal('Audiologist');
         expect(licensee.canPurchasePrivileges()).to.equal(true);
     });
     it('should create a Licensee with specific and cant purchase privileges because they have no licenses', () => {
@@ -296,7 +296,7 @@ describe('Licensee model', () => {
             birthMonthDay: '01-16',
             ssn: 'test-ssn',
             militaryAffiliations: [new MilitaryAffiliation()],
-            occupation: LicenseOccupation.AUDIOLOGIST,
+            licenseType: LicenseType.AUDIOLOGIST,
             licenseStates: [],
             licenses: [],
             privilegeStates: [],
@@ -321,7 +321,7 @@ describe('Licensee model', () => {
         expect(licensee.dob).to.equal(data.dob);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.ssn).to.equal(data.ssn);
-        expect(licensee.occupation).to.equal(data.occupation);
+        expect(licensee.licenseType).to.equal(data.licenseType);
         expect(licensee.licenseStates).to.be.an('array').with.length(0);
         expect(licensee.licenses).to.be.an('array').with.length(0);
         expect(licensee.privilegeStates).to.be.an('array').with.length(0);
@@ -345,7 +345,7 @@ describe('Licensee model', () => {
         expect(licensee.licenseStatesDisplay()).to.equal('');
         expect(licensee.privilegeStatesAllDisplay()).to.equal('');
         expect(licensee.privilegeStatesDisplay()).to.equal('');
-        expect(licensee.occupationName()).to.equal('Audiologist');
+        expect(licensee.licenseTypeName()).to.equal('Audiologist');
         expect(licensee.canPurchasePrivileges()).to.equal(false);
     });
     it('should create a Licensee with specific values (active military) through serializer', () => {
@@ -373,7 +373,7 @@ describe('Licensee model', () => {
             dateOfBirth: moment().format(serverDateFormat),
             birthMonthDay: '01-16',
             ssn: '000-00-0000',
-            licenseType: LicenseOccupation.AUDIOLOGIST,
+            licenseType: LicenseType.AUDIOLOGIST,
             licenseJurisdiction: 'co',
             militaryAffiliations: [{
                 affiliationType: 'affiliationType',
@@ -399,7 +399,7 @@ describe('Licensee model', () => {
                     homeAddressPostalCode: 'test-zip',
                     renewalDate: moment().format(serverDateFormat),
                     expireDate: moment().subtract(2, 'day').format(serverDateFormat),
-                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    licenseType: LicenseType.AUDIOLOGIST,
                     status: LicenseStatus.ACTIVE,
                 },
                 {
@@ -416,7 +416,7 @@ describe('Licensee model', () => {
                     homeAddressPostalCode: 'test-zip',
                     renewalDate: moment().format(serverDateFormat),
                     expireDate: moment().subtract(1, 'day').format(serverDateFormat),
-                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    licenseType: LicenseType.AUDIOLOGIST,
                     status: LicenseStatus.ACTIVE,
                 },
                 {
@@ -433,7 +433,7 @@ describe('Licensee model', () => {
                     homeAddressPostalCode: 'test-zip',
                     renewalDate: moment().format(serverDateFormat),
                     expireDate: moment().subtract(3, 'day').format(serverDateFormat),
-                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    licenseType: LicenseType.AUDIOLOGIST,
                     status: LicenseStatus.ACTIVE,
                 },
                 {
@@ -450,7 +450,7 @@ describe('Licensee model', () => {
                     dateOfIssuance: moment().format(serverDateFormat),
                     renewalDate: moment().format(serverDateFormat),
                     expireDate: moment().subtract(1, 'day').format(serverDateFormat),
-                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    licenseType: LicenseType.AUDIOLOGIST,
                     status: LicenseStatus.INACTIVE,
                 },
             ],
@@ -464,7 +464,7 @@ describe('Licensee model', () => {
                     issueDate: moment().format(serverDateFormat),
                     renewalDate: moment().format(serverDateFormat),
                     expireDate: moment().subtract(1, 'day').format(serverDateFormat),
-                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    licenseType: LicenseType.AUDIOLOGIST,
                     status: LicenseStatus.ACTIVE,
                 },
             ],
@@ -483,7 +483,7 @@ describe('Licensee model', () => {
         expect(licensee.dob).to.equal(data.dateOfBirth);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.ssn).to.equal(data.ssn);
-        expect(licensee.occupation).to.equal(data.licenseType);
+        expect(licensee.licenseType).to.equal(data.licenseType);
         expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
@@ -528,7 +528,7 @@ describe('Licensee model', () => {
         expect(licensee.licenseStatesDisplay()).to.equal('Colorado, Colorado +');
         expect(licensee.privilegeStatesAllDisplay()).to.equal('Colorado');
         expect(licensee.privilegeStatesDisplay()).to.equal('Colorado');
-        expect(licensee.occupationName()).to.equal('Audiologist');
+        expect(licensee.licenseTypeName()).to.equal('Audiologist');
     });
     it('should create a Licensee with specific values (inactive military) through serializer', () => {
         const data = {
@@ -553,7 +553,7 @@ describe('Licensee model', () => {
                 type: 'homeJurisdictionSelection'
             },
             ssn: '000-00-0000',
-            licenseType: LicenseOccupation.AUDIOLOGIST,
+            licenseType: LicenseType.AUDIOLOGIST,
             licenseJurisdiction: 'co',
             militaryAffiliations: [{
                 affiliationType: 'affiliationType',
@@ -588,7 +588,7 @@ describe('Licensee model', () => {
                     homeAddressPostalCode: 'test-zip',
                     renewalDate: moment().format(serverDateFormat),
                     expireDate: moment().subtract(1, 'day').format(serverDateFormat),
-                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    licenseType: LicenseType.AUDIOLOGIST,
                     status: LicenseStatus.ACTIVE,
                 },
                 {
@@ -605,7 +605,7 @@ describe('Licensee model', () => {
                     dateOfIssuance: moment().format(serverDateFormat),
                     renewalDate: moment().format(serverDateFormat),
                     expireDate: moment().subtract(1, 'day').format(serverDateFormat),
-                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    licenseType: LicenseType.AUDIOLOGIST,
                     status: LicenseStatus.INACTIVE,
                 },
             ],
@@ -619,7 +619,7 @@ describe('Licensee model', () => {
                     issueDate: moment().format(serverDateFormat),
                     renewalDate: moment().format(serverDateFormat),
                     expireDate: moment().subtract(1, 'day').format(serverDateFormat),
-                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    licenseType: LicenseType.AUDIOLOGIST,
                     status: LicenseStatus.ACTIVE,
                 }
             ],
@@ -638,7 +638,7 @@ describe('Licensee model', () => {
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.dob).to.equal(data.dateOfBirth);
         expect(licensee.ssn).to.equal(data.ssn);
-        expect(licensee.occupation).to.equal(data.licenseType);
+        expect(licensee.licenseType).to.equal(data.licenseType);
         expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
@@ -670,7 +670,7 @@ describe('Licensee model', () => {
         expect(licensee.licenseStatesDisplay()).to.equal('Colorado, Colorado');
         expect(licensee.privilegeStatesAllDisplay()).to.equal('Colorado');
         expect(licensee.privilegeStatesDisplay()).to.equal('Colorado');
-        expect(licensee.occupationName()).to.equal('Audiologist');
+        expect(licensee.licenseTypeName()).to.equal('Audiologist');
     });
     it('should create a Licensee with specific values with inactive best license', () => {
         const data = {
@@ -688,7 +688,7 @@ describe('Licensee model', () => {
             homeAddressPostalCode: 'test-zip',
             dateOfBirth: moment().format(serverDateFormat),
             ssn: '000-00-0000',
-            licenseType: LicenseOccupation.AUDIOLOGIST,
+            licenseType: LicenseType.AUDIOLOGIST,
             licenseJurisdiction: 'co',
             homeJurisdictionSelection: {
                 compact: 'aslp',
@@ -731,7 +731,7 @@ describe('Licensee model', () => {
                     homeAddressPostalCode: 'test-zip',
                     renewalDate: moment().format(serverDateFormat),
                     expireDate: moment().subtract(1, 'day').format(serverDateFormat),
-                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    licenseType: LicenseType.AUDIOLOGIST,
                     status: LicenseStatus.INACTIVE,
                 },
                 {
@@ -748,7 +748,7 @@ describe('Licensee model', () => {
                     dateOfIssuance: moment().format(serverDateFormat),
                     renewalDate: moment().format(serverDateFormat),
                     expireDate: moment().subtract(1, 'day').format(serverDateFormat),
-                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    licenseType: LicenseType.AUDIOLOGIST,
                     status: LicenseStatus.INACTIVE,
                 },
                 {
@@ -765,7 +765,7 @@ describe('Licensee model', () => {
                     dateOfIssuance: moment().subtract(2, 'day').format(serverDateFormat),
                     renewalDate: moment().format(serverDateFormat),
                     expireDate: moment().subtract(1, 'day').format(serverDateFormat),
-                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    licenseType: LicenseType.AUDIOLOGIST,
                     status: LicenseStatus.INACTIVE,
                 },
             ],
@@ -779,7 +779,7 @@ describe('Licensee model', () => {
                     issueDate: moment().format(serverDateFormat),
                     renewalDate: moment().format(serverDateFormat),
                     expireDate: moment().subtract(1, 'day').format(serverDateFormat),
-                    licenseType: LicenseOccupation.AUDIOLOGIST,
+                    licenseType: LicenseType.AUDIOLOGIST,
                     status: LicenseStatus.ACTIVE,
                 },
             ],
@@ -798,7 +798,7 @@ describe('Licensee model', () => {
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.dob).to.equal(data.dateOfBirth);
         expect(licensee.ssn).to.equal(data.ssn);
-        expect(licensee.occupation).to.equal(data.licenseType);
+        expect(licensee.licenseType).to.equal(data.licenseType);
         expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
@@ -834,7 +834,7 @@ describe('Licensee model', () => {
         expect(licensee.licenseStatesDisplay()).to.equal('Colorado, Colorado +');
         expect(licensee.privilegeStatesAllDisplay()).to.equal('Colorado');
         expect(licensee.privilegeStatesDisplay()).to.equal('Colorado');
-        expect(licensee.occupationName()).to.equal('Audiologist');
+        expect(licensee.licenseTypeName()).to.equal('Audiologist');
     });
     it('should serialize a Licensee for transmission to server', () => {
         const licensee = LicenseeSerializer.fromServer({
@@ -851,7 +851,7 @@ describe('Licensee model', () => {
             dateOfBirth: moment().format(serverDateFormat),
             ssn: '000-00-0000',
             militaryWaiver: true,
-            licenseType: LicenseOccupation.AUDIOLOGIST,
+            licenseType: LicenseType.AUDIOLOGIST,
             licenseJurisdiction: 'co',
             privilegeJurisdictions: ['co'],
             dateOfUpdate: moment().format(serverDateFormat),

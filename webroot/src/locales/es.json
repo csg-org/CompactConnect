@@ -557,7 +557,7 @@
         "deactivate": "Desactivar",
         "deactivated": "Desactivado",
         "confirmPrivilegeDeactivate": "¿Está seguro de que desea desactivar este privilegio? No es posible deshacer esta acción.",
-        "occupations": [
+        "licenseTypes": [
             {
                 "name": "Audiólogo",
                 "key": "audiologist",

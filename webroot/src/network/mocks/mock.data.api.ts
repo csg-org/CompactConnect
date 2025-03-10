@@ -128,13 +128,13 @@ export class DataApi {
     }
 
     // Delete Privilege for a licensee.
-    public deletePrivilege(compact, licenseeId, privilegeState, occupation) {
+    public deletePrivilege(compact, licenseeId, privilegeState, licenseType) {
         return this.wait(500).then(() => ({
             message: 'success',
             compact,
             licenseeId,
             privilegeState,
-            occupation,
+            licenseType,
         }));
     }
 

@@ -41,7 +41,7 @@
                         <InputText :formInput="formData.ssnLastFour" @input="formatSsn()" />
                         <InputDate :formInput="formData.dob" />
                         <InputSelect :formInput="formData.licenseState" />
-                        <InputSelect :formInput="formData.occupation" />
+                        <InputSelect :formInput="formData.licenseType" />
                         <label ref="password">
                             {{ $t('common.password') }}
                             <input type="password" id="password" name="password" tabindex="-1" autocomplete="off" />

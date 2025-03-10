@@ -20,7 +20,7 @@
                 {{stateContent}}
             </div>
             <div class="occupation-abbrev">
-                {{occupationDisplay}}
+                {{licenseTypeDisplay}}
             </div>
         </div>
         <div class="license-info-grid">

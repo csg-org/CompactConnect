@@ -99,8 +99,8 @@ class LicenseCard extends Vue {
         return isPastDate;
     }
 
-    get occupationDisplay(): string {
-        return this.license?.occupationAbbreviation() || '';
+    get licenseTypeDisplay(): string {
+        return this.license?.licenseTypeAbbreviation() || '';
     }
 }
 

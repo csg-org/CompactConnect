@@ -176,8 +176,8 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.licensee?.bestHomeStateLicense() || new License();
     }
 
-    get occupationAbbrev(): string {
-        return this.bestHomeStateLicense?.occupationAbbreviation();
+    get licenseTypeAbbrev(): string {
+        return this.bestHomeStateLicense?.licenseTypeAbbreviation();
     }
 
     //
@@ -240,13 +240,13 @@ class PrivilegeCard extends mixins(MixinForm) {
             stateAbbrev,
             bestHomeStateLicense,
         } = this;
-        const { occupation } = bestHomeStateLicense;
+        const { licenseType } = bestHomeStateLicense;
 
         await this.$store.dispatch(`users/deletePrivilegeRequest`, {
             compact: compactType,
             licenseeId,
             privilegeState: stateAbbrev,
-            occupation
+            licenseType
         }).catch((err) => {
             this.modalErrorMessage = err?.message || this.$t('common.error');
             this.isFormError = true;
