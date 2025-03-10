@@ -247,7 +247,7 @@ def _ssn_rate_limit_exceeded(user_id: str, provider_id: str, compact: str) -> bo
 
         logger.info(f'User SSN request count: {user_request_count}', user_id=user_id)
 
-        # If there are more than 6 requests by this user in the window, deactivate the user's account
+        # If there are more than 7 requests by this user in the window, deactivate the user's account
         if user_request_count >= 7:
             logger.warning(
                 'User exceeded SSN rate limit multiple times, deactivating account',
