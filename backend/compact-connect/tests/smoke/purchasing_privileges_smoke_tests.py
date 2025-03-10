@@ -8,8 +8,8 @@ from config import config, logger
 from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
-    get_provider_user_auth_headers_cached,
     get_license_type_abbreviation,
+    get_provider_user_auth_headers_cached,
 )
 
 # This script can be run locally to test the privilege purchasing flow against a sandbox environment
@@ -203,8 +203,9 @@ def test_purchasing_privilege():
         if not matching_attestation_from_system:
             raise SmokeTestFailureException(f'No matching attestation found for {attestation["attestationId"]}')
         if attestation['version'] != matching_attestation_from_system['version']:
-            raise SmokeTestFailureException('Attestation version in privilege record does not match '
-                                            'latest version in system')
+            raise SmokeTestFailureException(
+                'Attestation version in privilege record does not match latest version in system'
+            )
 
     logger.info(f'Successfully purchased privilege record: {matching_privilege}')
 
