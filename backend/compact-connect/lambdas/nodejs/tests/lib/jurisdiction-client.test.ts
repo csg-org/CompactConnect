@@ -2,7 +2,7 @@ import { mockClient } from 'aws-sdk-client-mock';
 import 'aws-sdk-client-mock-jest';
 import { Logger } from '@aws-lambda-powertools/logger';
 import { DynamoDBClient, QueryCommand, GetItemCommand } from '@aws-sdk/client-dynamodb';
-import { JurisdictionClient } from '../lib/jurisdiction-client';
+import { JurisdictionClient } from '../../lib/jurisdiction-client';
 import { describe, it, expect, beforeAll, beforeEach, jest } from '@jest/globals';
 
 

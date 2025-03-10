@@ -155,10 +155,12 @@ class TstFunction(TstLambdas):
             else:
                 self._provider_table.put_item(Item=record)
 
-    def _generate_providers(self, *, home: str, privilege: str, start_serial: int, names: tuple[tuple[str, str]] = ()):
+    def _generate_providers(
+        self, *, home: str, privilege_jurisdiction: str | None, start_serial: int, names: tuple[tuple[str, str]] = ()
+    ):
         """Generate 10 providers with one license and one privilege
         :param home: The jurisdiction for the license
-        :param privilege: The jurisdiction for the privilege
+        :param privilege_jurisdiction: The jurisdiction for the privilege
         :param start_serial: Starting number for last portion of the provider's SSN
         :param names: A list of tuples, each containing a family name and given name
         """
@@ -260,16 +262,17 @@ class TstFunction(TstLambdas):
             # Add a privilege
 
             provider_record = data_client.get_provider(compact='aslp', provider_id=provider_id, detail=False)
-            data_client.create_provider_privileges(
-                compact='aslp',
-                provider_id=provider_id,
-                provider_record=provider_record,
-                jurisdiction_postal_abbreviations=[privilege],
-                license_expiration_date=date(2050, 6, 6),
-                compact_transaction_id='1234567890',
-                existing_privileges=[],
-                license_type='speech-language pathologist',
-                # This attestation id/version pair is defined in the 'privilege.json' file under the
-                # common/tests/resources/dynamo directory
-                attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
-            )
+            if privilege_jurisdiction:
+                data_client.create_provider_privileges(
+                    compact='aslp',
+                    provider_id=provider_id,
+                    provider_record=provider_record,
+                    jurisdiction_postal_abbreviations=[privilege_jurisdiction],
+                    license_expiration_date=date(2050, 6, 6),
+                    compact_transaction_id='1234567890',
+                    existing_privileges=[],
+                    license_type='speech-language pathologist',
+                    # This attestation id/version pair is defined in the 'privilege.json' file under the
+                    # common/tests/resources/dynamo directory
+                    attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
+                )

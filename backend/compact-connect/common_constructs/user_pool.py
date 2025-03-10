@@ -57,7 +57,6 @@ class UserPool(CdkUserPool):
             removal_policy=removal_policy,
             deletion_protection=removal_policy != RemovalPolicy.DESTROY,
             email=email,
-            # user_invitation=UserInvitationConfig(...),
             account_recovery=AccountRecovery.EMAIL_ONLY,
             auto_verify=AutoVerifiedAttrs(email=True),
             advanced_security_mode=AdvancedSecurityMode.ENFORCED
@@ -82,11 +81,12 @@ class UserPool(CdkUserPool):
 
         self.security_profile = security_profile
 
-        self.user_pool_domain = self.add_domain(
-            f'{construct_id}Domain', cognito_domain=CognitoDomainOptions(domain_prefix=cognito_domain_prefix)
-        )
+        if cognito_domain_prefix:
+            self.user_pool_domain = self.add_domain(
+                f'{construct_id}Domain', cognito_domain=CognitoDomainOptions(domain_prefix=cognito_domain_prefix)
+            )
 
-        CfnOutput(self, f'{construct_id}UsersDomain', value=self.user_pool_domain.domain_name)
+            CfnOutput(self, f'{construct_id}UsersDomain', value=self.user_pool_domain.domain_name)
         CfnOutput(self, f'{construct_id}UserPoolId', value=self.user_pool_id)
 
         self._add_risk_configuration(security_profile)

@@ -8,7 +8,7 @@ import { Context } from 'aws-lambda';
 import { EnvironmentVariablesService } from '../lib/environment-variables-service';
 import { CompactConfigurationClient } from '../lib/compact-configuration-client';
 import { JurisdictionClient } from '../lib/jurisdiction-client';
-import { EmailService } from '../lib/email-service';
+import { EmailNotificationService } from '../lib/email';
 import { EmailNotificationEvent, EmailNotificationResponse } from '../lib/models/email-notification-service-event';
 
 const environmentVariables = new EnvironmentVariablesService();
@@ -21,7 +21,7 @@ interface LambdaProperties {
 }
 
 export class Lambda implements LambdaInterface {
-    private readonly emailService: EmailService;
+    private readonly emailService: EmailNotificationService;
 
     constructor(props: LambdaProperties) {
         const compactConfigurationClient = new CompactConfigurationClient({
@@ -34,7 +34,7 @@ export class Lambda implements LambdaInterface {
             dynamoDBClient: props.dynamoDBClient,
         });
 
-        this.emailService = new EmailService({
+        this.emailService = new EmailNotificationService({
             logger: logger,
             sesClient: props.sesClient,
             s3Client: props.s3Client,

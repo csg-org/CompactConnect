@@ -48,8 +48,8 @@ describe('Licensee model', () => {
         expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.dob).to.equal(null);
         expect(licensee.birthMonthDay).to.equal(null);
-        expect(licensee.ssn).to.equal(null);
         expect(licensee.licenseType).to.equal(null);
+        expect(licensee.ssnLastFour).to.equal(null);
         expect(licensee.licenseStates).to.be.an('array').that.is.empty;
         expect(licensee.licenses).to.be.an('array').that.is.empty;
         expect(licensee.privilegeStates).to.be.an('array').that.is.empty;
@@ -66,8 +66,7 @@ describe('Licensee model', () => {
         expect(licensee.isMilitary()).to.equal(false);
         expect(licensee.aciveMilitaryAffiliation()).to.equal(null);
         expect(licensee.dobDisplay()).to.equal('');
-        expect(licensee.ssnMaskedFull()).to.equal('');
-        expect(licensee.ssnMaskedPartial()).to.equal('');
+        expect(licensee.ssnDisplay()).to.equal('');
         expect(licensee.lastUpdatedDisplay()).to.equal('');
         expect(licensee.lastUpdatedDisplayRelative()).to.equal('');
         expect(licensee.getStateListDisplay([])).to.equal('');
@@ -89,7 +88,7 @@ describe('Licensee model', () => {
             homeJurisdiction: new State({ abbrev: 'ma' }),
             dob: '2020-01-01',
             birthMonthDay: '01-16',
-            ssn: 'test-ssn',
+            ssnLastFour: '0000',
             militaryAffiliations: [new MilitaryAffiliation()],
             licenseType: LicenseType.AUDIOLOGIST,
             licenseStates: [new State()],
@@ -168,8 +167,6 @@ describe('Licensee model', () => {
         expect(licensee.isMilitary()).to.equal(false);
         expect(licensee.aciveMilitaryAffiliation()).to.equal(null);
         expect(licensee.dobDisplay()).to.equal('1/1/2020');
-        expect(licensee.ssnMaskedFull()).to.equal(data.ssn);
-        expect(licensee.ssnMaskedPartial()).to.equal('test-ss-ssn');
         expect(licensee.lastUpdatedDisplay()).to.equal('1/1/2020');
         expect(licensee.lastUpdatedDisplayRelative()).to.be.a('string').that.is.not.empty;
         expect(licensee.getStateListDisplay([])).to.equal('');
@@ -192,7 +189,7 @@ describe('Licensee model', () => {
             homeJurisdiction: new State({ abbrev: 'ma' }),
             dob: '2020-01-01',
             birthMonthDay: '01-16',
-            ssn: 'test-ssn',
+            ssnLastFour: 'test-ssn',
             militaryAffiliations: [new MilitaryAffiliation()],
             licenseType: LicenseType.AUDIOLOGIST,
             licenseStates: [new State()],
@@ -246,8 +243,8 @@ describe('Licensee model', () => {
         expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.dob).to.equal(data.dob);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
-        expect(licensee.ssn).to.equal(data.ssn);
         expect(licensee.licenseType).to.equal(data.licenseType);
+        expect(licensee.ssnLastFour).to.equal(data.ssnLastFour);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
         expect(licensee.licenseStates[0]).to.be.an.instanceof(State);
         expect(licensee.licenses).to.be.an('array').with.length(3);
@@ -270,8 +267,7 @@ describe('Licensee model', () => {
         expect(licensee.isMilitary()).to.equal(false);
         expect(licensee.aciveMilitaryAffiliation()).to.equal(null);
         expect(licensee.dobDisplay()).to.equal('1/1/2020');
-        expect(licensee.ssnMaskedFull()).to.equal(data.ssn);
-        expect(licensee.ssnMaskedPartial()).to.equal('test-ss-ssn');
+        expect(licensee.ssnDisplay()).to.equal(`*** ** ${data.ssnLastFour}`);
         expect(licensee.lastUpdatedDisplay()).to.equal('1/1/2020');
         expect(licensee.lastUpdatedDisplayRelative()).to.be.a('string').that.is.not.empty;
         expect(licensee.getStateListDisplay([])).to.equal('');
@@ -294,7 +290,7 @@ describe('Licensee model', () => {
             licenseJurisdiction: 'ma',
             dob: '2020-01-01',
             birthMonthDay: '01-16',
-            ssn: 'test-ssn',
+            ssnLastFour: 'test-ssn',
             militaryAffiliations: [new MilitaryAffiliation()],
             licenseType: LicenseType.AUDIOLOGIST,
             licenseStates: [],
@@ -320,7 +316,6 @@ describe('Licensee model', () => {
         expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.dob).to.equal(data.dob);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
-        expect(licensee.ssn).to.equal(data.ssn);
         expect(licensee.licenseType).to.equal(data.licenseType);
         expect(licensee.licenseStates).to.be.an('array').with.length(0);
         expect(licensee.licenses).to.be.an('array').with.length(0);
@@ -337,8 +332,7 @@ describe('Licensee model', () => {
         expect(licensee.isMilitary()).to.equal(false);
         expect(licensee.aciveMilitaryAffiliation()).to.equal(null);
         expect(licensee.dobDisplay()).to.equal('1/1/2020');
-        expect(licensee.ssnMaskedFull()).to.equal(data.ssn);
-        expect(licensee.ssnMaskedPartial()).to.equal('test-ss-ssn');
+
         expect(licensee.lastUpdatedDisplay()).to.equal('1/1/2020');
         expect(licensee.lastUpdatedDisplayRelative()).to.be.a('string').that.is.not.empty;
         expect(licensee.getStateListDisplay([])).to.equal('');
@@ -372,7 +366,7 @@ describe('Licensee model', () => {
             },
             dateOfBirth: moment().format(serverDateFormat),
             birthMonthDay: '01-16',
-            ssn: '000-00-0000',
+            ssnLastFour: '0000',
             licenseType: LicenseType.AUDIOLOGIST,
             licenseJurisdiction: 'co',
             militaryAffiliations: [{
@@ -482,7 +476,7 @@ describe('Licensee model', () => {
         expect(licensee.lastName).to.equal(data.familyName);
         expect(licensee.dob).to.equal(data.dateOfBirth);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
-        expect(licensee.ssn).to.equal(data.ssn);
+        expect(licensee.ssnLastFour).to.equal(data.ssnLastFour);
         expect(licensee.licenseType).to.equal(data.licenseType);
         expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
@@ -519,8 +513,7 @@ describe('Licensee model', () => {
         expect(licensee.dobDisplay()).to.equal(
             moment(data.dateOfBirth, serverDateFormat).format(displayDateFormat)
         );
-        expect(licensee.ssnMaskedFull()).to.equal(`###-##-####`);
-        expect(licensee.ssnMaskedPartial()).to.equal(`###-##-0000`);
+        expect(licensee.ssnDisplay()).to.equal(`*** ** ${data.ssnLastFour}`);
         expect(licensee.lastUpdatedDisplay()).to.equal(
             moment(data.dateOfUpdate, serverDateFormat).format(displayDateFormat)
         );
@@ -552,7 +545,7 @@ describe('Licensee model', () => {
                 providerId: '0a945011-e2a7-4b25-b514-84f4d89b9937',
                 type: 'homeJurisdictionSelection'
             },
-            ssn: '000-00-0000',
+            ssnLastFour: '0000',
             licenseType: LicenseType.AUDIOLOGIST,
             licenseJurisdiction: 'co',
             militaryAffiliations: [{
@@ -637,7 +630,7 @@ describe('Licensee model', () => {
         expect(licensee.lastName).to.equal(data.familyName);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.dob).to.equal(data.dateOfBirth);
-        expect(licensee.ssn).to.equal(data.ssn);
+        expect(licensee.ssnLastFour).to.equal(data.ssnLastFour);
         expect(licensee.licenseType).to.equal(data.licenseType);
         expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
@@ -661,8 +654,7 @@ describe('Licensee model', () => {
         expect(licensee.dobDisplay()).to.equal(
             moment(data.dateOfBirth, serverDateFormat).format(displayDateFormat)
         );
-        expect(licensee.ssnMaskedFull()).to.equal(`###-##-####`);
-        expect(licensee.ssnMaskedPartial()).to.equal(`###-##-0000`);
+        expect(licensee.ssnDisplay()).to.equal(`*** ** ${data.ssnLastFour}`);
         expect(licensee.lastUpdatedDisplay()).to.equal(
             moment(data.dateOfUpdate, serverDateFormat).format(displayDateFormat)
         );
@@ -672,7 +664,7 @@ describe('Licensee model', () => {
         expect(licensee.privilegeStatesDisplay()).to.equal('Colorado');
         expect(licensee.licenseTypeName()).to.equal('Audiologist');
     });
-    it('should create a Licensee with specific values with inactive best license', () => {
+    it('should create a Licensee with specific values (with inactive best license) through serializer', () => {
         const data = {
             providerId: 'test-id',
             npi: 'test-npi',
@@ -687,8 +679,8 @@ describe('Licensee model', () => {
             homeAddressState: 'co',
             homeAddressPostalCode: 'test-zip',
             dateOfBirth: moment().format(serverDateFormat),
-            ssn: '000-00-0000',
             licenseType: LicenseType.AUDIOLOGIST,
+            ssnLastFour: '0000',
             licenseJurisdiction: 'co',
             homeJurisdictionSelection: {
                 compact: 'aslp',
@@ -797,7 +789,7 @@ describe('Licensee model', () => {
         expect(licensee.lastName).to.equal(data.familyName);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
         expect(licensee.dob).to.equal(data.dateOfBirth);
-        expect(licensee.ssn).to.equal(data.ssn);
+        expect(licensee.ssnLastFour).to.equal(data.ssnLastFour);
         expect(licensee.licenseType).to.equal(data.licenseType);
         expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.licenseStates).to.be.an('array').with.length(1);
@@ -825,8 +817,7 @@ describe('Licensee model', () => {
         expect(licensee.dobDisplay()).to.equal(
             moment(data.dateOfBirth, serverDateFormat).format(displayDateFormat)
         );
-        expect(licensee.ssnMaskedFull()).to.equal(`###-##-####`);
-        expect(licensee.ssnMaskedPartial()).to.equal(`###-##-0000`);
+        expect(licensee.ssnDisplay()).to.equal(`*** ** ${data.ssnLastFour}`);
         expect(licensee.lastUpdatedDisplay()).to.equal(
             moment(data.dateOfUpdate, serverDateFormat).format(displayDateFormat)
         );
@@ -849,7 +840,7 @@ describe('Licensee model', () => {
             homeAddressState: 'co',
             homeAddressPostalCode: 'test-zip',
             dateOfBirth: moment().format(serverDateFormat),
-            ssn: '000-00-0000',
+            ssnLastFour: '0000',
             militaryWaiver: true,
             licenseType: LicenseType.AUDIOLOGIST,
             licenseJurisdiction: 'co',

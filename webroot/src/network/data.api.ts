@@ -110,6 +110,16 @@ export class DataApi {
         return licenseDataApi.deletePrivilege(compact, licenseeId, privilegeState, licenseType);
     }
 
+    /**
+     * GET Licensee SSN by ID.
+     * @param  {string}          compact    A compact type.
+     * @param  {string}          licenseeId A licensee ID.
+     * @return {Promise<object>}            The server response.
+     */
+    public getLicenseeSsn(compact, licenseeId) {
+        return licenseDataApi.getLicenseeSsn(compact, licenseeId);
+    }
+
     // ========================================================================
     //                              USER API
     // ========================================================================

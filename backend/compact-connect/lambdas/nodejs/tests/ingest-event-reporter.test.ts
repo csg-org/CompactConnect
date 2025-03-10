@@ -6,7 +6,7 @@ import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
 import { S3Client } from '@aws-sdk/client-s3';
 
 import { Lambda } from '../ingest-event-reporter/lambda';
-import { EmailService } from '../lib/email-service';
+import { IngestEventEmailService } from '../lib/email';
 import { IEventBridgeEvent } from '../lib/models/event-bridge-event-detail';
 import {
     SAMPLE_INGEST_FAILURE_ERROR_RECORD,
@@ -52,31 +52,29 @@ const asSESClient = (mock: ReturnType<typeof mockClient>) =>
 const asS3Client = (mock: ReturnType<typeof mockClient>) =>
     mock as unknown as S3Client;
 
+jest.mock('../lib/email/ingest-event-email-service', () => {
+    return {
+        IngestEventEmailService: jest.fn().mockImplementation(() => ({
+            sendReportEmail: mockSendReportEmail,
+            sendAllsWellEmail: mockSendAllsWellEmail,
+            sendNoLicenseUpdatesEmail: mockSendNoLicenseUpdatesEmail
+        }))
+    };
+});
 
-jest.mock('../lib/email-service');
-
-const mockSendReportEmail = jest.fn(
+const mockSendReportEmail = jest.fn().mockImplementation(
     (events, recipients: string[]) => Promise.resolve('message-id-123')
 );
-const mockSendAllsWellEmail = jest.fn(
+const mockSendAllsWellEmail = jest.fn().mockImplementation(
     (recipients: string[]) => Promise.resolve('message-id-123')
 );
-
-const mockSendNoLicenseUpdatesEmail = jest.fn(
+const mockSendNoLicenseUpdatesEmail = jest.fn().mockImplementation(
     (recipients: string[]) => Promise.resolve('message-id-no-license-updates')
 );
-
-(EmailService as jest.Mock) = jest.fn().mockImplementation(() => ({
-    sendReportEmail: mockSendReportEmail,
-    sendAllsWellEmail: mockSendAllsWellEmail,
-    sendNoLicenseUpdatesEmail: mockSendNoLicenseUpdatesEmail
-}));
-
 
 describe('Nightly runs', () => {
     let mockSESClient: ReturnType<typeof mockClient>;
     let mockS3Client: ReturnType<typeof mockClient>;
-    let mockEmailService: jest.Mocked<EmailService>;
     let lambda: Lambda;
 
     beforeAll(async () => {

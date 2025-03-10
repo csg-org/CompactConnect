@@ -1,7 +1,7 @@
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { SESClient } from '@aws-sdk/client-ses';
 import { S3Client } from '@aws-sdk/client-s3';
-import { Lambda } from './email-notification-service-lambda';
+import { Lambda } from './lambda';
 
 
 const lambda = new Lambda({

@@ -22,78 +22,99 @@ export const staffAccount = {
     permissions: {
         aslp: {
             actions: {
-                read: true,
                 admin: true,
+                readPrivate: true,
+                readSsn: true,
             },
             jurisdictions: {
                 al: {
                     actions: {
                         admin: true,
                         write: true,
+                        readPrivate: true,
+                        readSsn: true,
                     },
                 },
                 co: {
                     actions: {
                         admin: true,
                         write: true,
+                        readPrivate: true,
+                        readSsn: true,
                     },
                 },
                 ky: {
                     actions: {
                         admin: true,
                         write: true,
+                        readPrivate: true,
+                        readSsn: true,
                     },
                 },
             },
         },
         octp: {
             actions: {
-                read: true,
                 admin: true,
+                readPrivate: true,
+                readSsn: true,
             },
             jurisdictions: {
                 ak: {
                     actions: {
                         admin: true,
                         write: true,
+                        readPrivate: true,
+                        readSsn: true,
                     },
                 },
                 ar: {
                     actions: {
                         admin: true,
                         write: true,
+                        readPrivate: true,
+                        readSsn: true,
                     },
                 },
                 co: {
                     actions: {
                         admin: true,
                         write: true,
+                        readPrivate: true,
+                        readSsn: true,
                     },
                 },
             },
         },
         coun: {
             actions: {
-                read: true,
                 admin: true,
+                readPrivate: true,
+                readSsn: true,
             },
             jurisdictions: {
                 al: {
                     actions: {
                         admin: true,
                         write: true,
+                        readPrivate: true,
+                        readSsn: true,
                     },
                 },
                 co: {
                     actions: {
                         admin: true,
                         write: true,
+                        readPrivate: true,
+                        readSsn: true,
                     },
                 },
                 ky: {
                     actions: {
                         admin: true,
                         write: true,
+                        readPrivate: true,
+                        readSsn: true,
                     },
                 },
             },
@@ -456,7 +477,7 @@ export const licensees = {
                 'al'
             ],
             type: 'provider',
-            ssn: '085-32-1496',
+            ssnLastFour: '1111',
             licenseType: 'audiologist',
             licenses: [
                 {
@@ -472,7 +493,7 @@ export const licensees = {
                     dateOfBirth: '1990-08-29',
                     type: 'license-home',
                     dateOfIssuance: '2023-08-29',
-                    ssn: '085-32-1496',
+                    ssnLastFour: '1111',
                     licenseType: 'audiologist',
                     dateOfExpiration: '2025-08-29',
                     homeAddressState: 'co',
@@ -487,6 +508,31 @@ export const licensees = {
                 {
                     compact: 'aslp',
                     homeAddressStreet2: '',
+                    npi: '6944447281',
+                    licenseNumber: 'A-944447281',
+                    homeAddressPostalCode: '',
+                    jurisdiction: 'co',
+                    givenName: 'Jane',
+                    homeAddressStreet1: '1640 Riverside Drive',
+                    militaryWaiver: true,
+                    dateOfBirth: '1990-08-29',
+                    type: 'license-home',
+                    dateOfIssuance: '2023-08-29',
+                    ssnLastFour: '1111',
+                    licenseType: 'audiologist',
+                    dateOfExpiration: '2024-08-29',
+                    homeAddressState: 'co',
+                    providerId: '1',
+                    dateOfRenewal: '2023-08-29',
+                    familyName: 'Doe',
+                    homeAddressCity: 'Riverside',
+                    middleName: '',
+                    dateOfUpdate: '2023-08-29',
+                    status: 'inactive'
+                },
+                {
+                    compact: 'aslp',
+                    homeAddressStreet2: '',
                     licenseNumber: 'A-944447281',
                     npi: '6944447281',
                     homeAddressPostalCode: '',
@@ -497,7 +543,7 @@ export const licensees = {
                     dateOfBirth: '1990-08-29',
                     type: 'license-home',
                     dateOfIssuance: '2024-08-29',
-                    ssn: '085-32-1496',
+                    ssnLastFour: '1111',
                     licenseType: 'audiologist',
                     dateOfExpiration: '2024-08-29',
                     homeAddressState: 'co',
@@ -522,7 +568,7 @@ export const licensees = {
                     dateOfBirth: '1990-08-29',
                     type: 'license-home',
                     dateOfIssuance: '2023-08-29',
-                    ssn: '085-32-1496',
+                    ssnLastFour: '1111',
                     licenseType: 'audiologist',
                     dateOfExpiration: '2024-08-29',
                     homeAddressState: 'co',
@@ -532,6 +578,31 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
+                    status: 'inactive'
+                },
+                {
+                    compact: 'aslp',
+                    homeAddressStreet2: '',
+                    licenseNumber: 'A-944447281',
+                    npi: '6944447281',
+                    homeAddressPostalCode: '',
+                    jurisdiction: 'nv',
+                    givenName: 'Jane',
+                    homeAddressStreet1: '1640 Riverside Drive',
+                    militaryWaiver: true,
+                    dateOfBirth: '1990-08-29',
+                    type: 'license-home',
+                    dateOfIssuance: '2024-08-29',
+                    ssnLastFour: '1111',
+                    licenseType: 'audiologist',
+                    dateOfExpiration: '2023-08-29',
+                    homeAddressState: 'co',
+                    providerId: '1',
+                    dateOfRenewal: '2023-08-29',
+                    familyName: 'Doe',
+                    homeAddressCity: 'Riverside',
+                    middleName: '',
+                    dateOfUpdate: '2023-08-29',
                     status: 'inactive'
                 }
             ],
@@ -579,7 +650,7 @@ export const licensees = {
                 'al'
             ],
             type: 'provider',
-            ssn: '748-19-5032',
+            ssnLastFour: '2222',
             licenseType: 'audiologist',
             licenses: [
                 {
@@ -594,7 +665,7 @@ export const licensees = {
                     dateOfBirth: '1975-01-01',
                     type: 'license-home',
                     dateOfIssuance: '2024-08-29',
-                    ssn: '748-19-5032',
+                    ssnLastFour: '2222',
                     licenseType: 'audiologist',
                     dateOfExpiration: '2024-08-29',
                     homeAddressState: 'co',
@@ -653,7 +724,7 @@ export const licensees = {
                 'ar'
             ],
             type: 'provider',
-            ssn: '748-19-5033',
+            ssnLastFour: '3333',
             licenseType: 'audiologist',
             licenses: [
                 {
@@ -668,7 +739,7 @@ export const licensees = {
                     dateOfBirth: '1965-01-01',
                     type: 'license-home',
                     dateOfIssuance: '2024-08-29',
-                    ssn: '748-19-5033',
+                    ssnLastFour: '3333',
                     licenseType: 'audiologist',
                     dateOfExpiration: '2024-08-29',
                     homeAddressState: 'co',
@@ -745,7 +816,7 @@ export const licensees = {
                 'al'
             ],
             type: 'provider',
-            ssn: '085-32-1496',
+            ssnLastFour: '4444',
             licenseType: 'audiologist',
             licenses: [
                 {
@@ -760,7 +831,7 @@ export const licensees = {
                     dateOfBirth: '1990-08-29',
                     type: 'license-home',
                     dateOfIssuance: '2024-08-29',
-                    ssn: '085-32-1496',
+                    ssnLastFour: '4444',
                     licenseType: 'audiologist',
                     dateOfExpiration: '2024-08-29',
                     homeAddressState: 'co',
@@ -800,78 +871,99 @@ export const users = {
             permissions: {
                 aslp: {
                     actions: {
-                        read: true,
                         admin: true,
+                        readPrivate: true,
+                        readSsn: true,
                     },
                     jurisdictions: {
                         al: {
                             actions: {
                                 admin: true,
                                 write: true,
+                                readPrivate: true,
+                                readSsn: true,
                             },
                         },
                         co: {
                             actions: {
                                 admin: true,
                                 write: true,
+                                readPrivate: true,
+                                readSsn: true,
                             },
                         },
                         ky: {
                             actions: {
                                 admin: true,
                                 write: true,
+                                readPrivate: true,
+                                readSsn: true,
                             },
                         },
                     },
                 },
                 octp: {
                     actions: {
-                        read: true,
                         admin: true,
+                        readPrivate: true,
+                        readSsn: true,
                     },
                     jurisdictions: {
                         ak: {
                             actions: {
                                 admin: true,
                                 write: true,
+                                readPrivate: true,
+                                readSsn: true,
                             },
                         },
                         ar: {
                             actions: {
                                 admin: true,
                                 write: true,
+                                readPrivate: true,
+                                readSsn: true,
                             },
                         },
                         co: {
                             actions: {
                                 admin: true,
                                 write: true,
+                                readPrivate: true,
+                                readSsn: true,
                             },
                         },
                     },
                 },
                 coun: {
                     actions: {
-                        read: true,
                         admin: true,
+                        readPrivate: true,
+                        readSsn: true,
                     },
                     jurisdictions: {
                         al: {
                             actions: {
                                 admin: true,
                                 write: true,
+                                readPrivate: true,
+                                readSsn: true,
                             },
                         },
                         co: {
                             actions: {
                                 admin: true,
                                 write: true,
+                                readPrivate: true,
+                                readSsn: true,
                             },
                         },
                         ky: {
                             actions: {
                                 admin: true,
                                 write: true,
+                                readPrivate: true,
+                                readSsn: true,
                             },
                         },
                     },
@@ -888,26 +980,33 @@ export const users = {
             permissions: {
                 aslp: {
                     actions: {
-                        read: false,
                         admin: false,
+                        readPrivate: false,
+                        readSsn: false,
                     },
                     jurisdictions: {
                         al: {
                             actions: {
                                 admin: false,
                                 write: false,
+                                readPrivate: false,
+                                readSsn: false,
                             },
                         },
                         co: {
                             actions: {
                                 admin: true,
                                 write: true,
+                                readPrivate: true,
+                                readSsn: true,
                             },
                         },
                         ky: {
                             actions: {
                                 admin: false,
                                 write: true,
+                                readPrivate: true,
+                                readSsn: true,
                             },
                         },
                     },
@@ -924,14 +1023,17 @@ export const users = {
             permissions: {
                 aslp: {
                     actions: {
-                        read: false,
                         admin: false,
+                        readPrivate: false,
+                        readSsn: false,
                     },
                     jurisdictions: {
                         ky: {
                             actions: {
                                 admin: true,
                                 write: true,
+                                readPrivate: true,
+                                readSsn: true,
                             },
                         },
                     },

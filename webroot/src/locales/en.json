@@ -519,6 +519,7 @@
         "noRefundsMessage": "All compact privilege purchases are final. Refunds will not be issued.",
         "ssn": "SSN",
         "ssnLastFour": "Last 4 of SSN",
+        "revealFullSsn": "Reveal full SSN",
         "incorrectInfoDisclaimer": "The information on this page was provided by your home state. If the information is incorrect, you must reach out to that state and ask them to correct it. Refer to the compact FAQ page for more information.",
         "deselectState": "Deselect state",
         "adminFee": "Administration Fee",
@@ -650,6 +651,7 @@
             "none": "None",
             "read": "Read",
             "readPrivate": "Read Private",
+            "readSsn": "Read SSN",
             "write": "Write",
             "admin": "Admin"
         },

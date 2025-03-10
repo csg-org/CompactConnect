@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 
+from aws_cdk import Duration
 from aws_cdk.aws_cognito import (
     ClientAttributes,
     LambdaVersion,
@@ -15,7 +16,7 @@ from aws_cdk.aws_cognito import (
 )
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
-from common_constructs.data_migration import DataMigration
+from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
 from common_constructs.user_pool import UserPool
 from constructs import Construct
@@ -55,29 +56,9 @@ class StaffUsers(UserPool):
         stack: ps.PersistentStack = ps.PersistentStack.of(self)
 
         self.user_table = UsersTable(self, 'UsersTable', encryption_key=encryption_key, removal_policy=removal_policy)
-        read_migration_391 = DataMigration(
-            self,
-            '391ReadMigration',
-            migration_dir='391_staff_user_read',
-            lambda_environment={
-                'USERS_TABLE_NAME': self.user_table.table_name,
-            },
-        )
-        self.user_table.grant_read_write_data(read_migration_391)
-        NagSuppressions.add_resource_suppressions_by_path(
-            stack,
-            f'{read_migration_391.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """This policy contains wild-carded actions and resources but they are scoped to the
-                              specific actions, Table, and KMS Key that this lambda specifically needs access to.
-                              """,
-                },
-            ],
-        )
         self._add_resource_servers(stack=stack, environment_name=environment_name)
-        self._add_scope_customization(persistent_stack=stack)
+        self._add_scope_customization(stack=stack)
+        self._add_custom_message_lambda(stack=stack, environment_name=environment_name)
 
         # Do not allow resource server scopes via the client - they are assigned via token customization
         # to allow for user attribute-based access
@@ -176,7 +157,7 @@ class StaffUsers(UserPool):
                 scopes=scopes,
             )
 
-    def _add_scope_customization(self, persistent_stack: ps.PersistentStack):
+    def _add_scope_customization(self, stack: ps.PersistentStack):
         """Add scopes to access tokens based on the Users table"""
         compacts = self.node.get_context('compacts')
         jurisdictions = self.node.get_context('jurisdictions')
@@ -188,7 +169,7 @@ class StaffUsers(UserPool):
             lambda_dir='staff-user-pre-token',
             index='main.py',
             handler='customize_scopes',
-            alarm_topic=persistent_stack.alarm_topic,
+            alarm_topic=stack.alarm_topic,
             environment={
                 'DEBUG': 'true',
                 'USERS_TABLE_NAME': self.user_table.table_name,
@@ -215,4 +196,32 @@ class StaffUsers(UserPool):
             UserPoolOperation.PRE_TOKEN_GENERATION_CONFIG,
             scope_customization_handler,
             lambda_version=LambdaVersion.V2_0,
+        )
+
+    def _add_custom_message_lambda(self, stack: ps.PersistentStack, environment_name: str):
+        """Add a custom message lambda to the user pool"""
+
+        from_address = 'NONE'
+        if stack.hosted_zone:
+            from_address = f'noreply@{stack.user_email_notifications.email_identity.email_identity_name}'
+
+        self.custom_message_lambda = NodejsFunction(
+            self,
+            'CustomMessageLambda',
+            description='Cognito custom message lambda',
+            lambda_dir='cognito-emails',
+            handler='customMessage',
+            timeout=Duration.minutes(1),
+            environment={
+                'FROM_ADDRESS': from_address,
+                'COMPACT_CONFIGURATION_TABLE_NAME': stack.compact_configuration_table.table_name,
+                'UI_BASE_PATH_URL': stack.get_ui_base_path_url(),
+                'ENVIRONMENT_NAME': environment_name,
+                **stack.common_env_vars,
+            },
+        )
+
+        self.add_trigger(
+            UserPoolOperation.CUSTOM_MESSAGE,
+            self.custom_message_lambda,
         )
