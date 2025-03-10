@@ -1,7 +1,7 @@
 import json
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from cc_common.config import config, logger
+from cc_common.config import config, logger, metrics
 from cc_common.exceptions import CCAccessDeniedException, CCNotFoundException
 from cc_common.utils import (
     api_handler,
@@ -122,9 +122,12 @@ def post_user(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argum
 
     # Use the UserClient to create a new user
     user = user_api_schema.dump(body)
-    return user_api_schema.load(
+    created_user = user_api_schema.load(
         config.user_client.create_user(compact=compact, attributes=user['attributes'], permissions=user['permissions']),
     )
+    # add metric so we can monitor suspicious activity of too many staff users being created
+    metrics.add_metric(name='staff-user-created', value=1, unit='Count')
+    return created_user
 
 
 @api_handler

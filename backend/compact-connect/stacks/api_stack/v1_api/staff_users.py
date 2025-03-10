@@ -2,12 +2,21 @@ from __future__ import annotations
 
 import os
 
+from aws_cdk import Duration
 from aws_cdk.aws_apigateway import (
     AuthorizationType,
     LambdaIntegration,
     MethodResponse,
     Resource,
 )
+from aws_cdk.aws_cloudwatch import (
+    Alarm,
+    CfnAlarm,
+    ComparisonOperator,
+    Metric,
+    TreatMissingData,
+)
+from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_cognito import IUserPool
 from aws_cdk.aws_dynamodb import ITable
 from aws_cdk.aws_kms import IKey
@@ -486,6 +495,86 @@ class StaffUsers:
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
             authorization_scopes=scopes,
+        )
+
+        # Create a metric to track how many times this endpoint has been invoked within an hour
+        staff_user_created_hourly_count_metric = Metric(
+            namespace='compact-connect',
+            metric_name='staff-user-created',
+            statistic='SampleCount',
+            period=Duration.hours(1),
+            dimensions_map={'service': 'common'},
+        )
+
+        # Setting a flat rate of 5 Staff users per hour to alarm on
+        self.max_hourly_staff_users_created_alarm = Alarm(
+            self.api,
+            'MaxHourlyStaffUserCreatedAlarm',
+            metric=staff_user_created_hourly_count_metric,
+            threshold=5,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=f'{self.api.node.path} max hourly staff users created alarm. The POST staff user '
+                              f'endpoint has been invoked more than an expected threshold within an hour period. '
+                              f'Investigation is required to ensure requests are authorized.',
+        )
+        self.max_hourly_staff_users_created_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
+
+        # Also create a daily metric
+        staff_user_created_daily_count_metric = Metric(
+            namespace='compact-connect',
+            metric_name='staff-user-created',
+            statistic='SampleCount',
+            period=Duration.days(1),
+            dimensions_map={'service': 'common'},
+        )
+
+        # Setting a flat rate of 20 Staff users created per day to alarm on
+        self.max_daily_staff_users_created_alarm = Alarm(
+            self.api,
+            'MaxDailyStaffUserCreatedAlarm',
+            metric=staff_user_created_daily_count_metric,
+            threshold=20,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=f'{self.api.node.path} max daily staff users created alarm. The POST staff user endpoint '
+                              f'has been invoked more than an expected threshold within an hour period. '
+                              f'Investigation is required to ensure requests are authorized.',
+        )
+        self.max_daily_staff_users_created_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
+
+        # We'll monitor longer access patterns to detect anomalies, over time
+        # The L2 construct, Alarm, doesn't yet support Anomaly Detection as a configuration
+        # so we're using the L1 construct, CfnAlarm
+        self.staff_user_creation_anomaly_detection_alarm = CfnAlarm(
+            self.api,
+            'StaffUserCreationAnomalyAlarm',
+            alarm_description=f'{self.api.node.path} staff-user-created anomaly detection. Anomalies in the number of '
+                              f'staff users created per day are detected. Investigation is required to ensure requests '
+                              f'are authorized.',
+            comparison_operator='GreaterThanUpperThreshold',
+            evaluation_periods=1,
+            treat_missing_data='notBreaching',
+            actions_enabled=True,
+            alarm_actions=[self.api.alarm_topic.node.default_child.ref],
+            metrics=[
+                CfnAlarm.MetricDataQueryProperty(id='ad1', expression='ANOMALY_DETECTION_BAND(m1, 2)'),
+                CfnAlarm.MetricDataQueryProperty(
+                    id='m1',
+                    metric_stat=CfnAlarm.MetricStatProperty(
+                        metric=CfnAlarm.MetricProperty(
+                            metric_name=staff_user_created_daily_count_metric.metric_name,
+                            namespace=staff_user_created_daily_count_metric.namespace,
+                            dimensions=[CfnAlarm.DimensionProperty(name='service', value='common')],
+                        ),
+                        period=3600,
+                        stat='SampleCount',
+                    ),
+                ),
+            ],
+            threshold_metric_id='ad1',
         )
 
     def _post_user_handler(self, env_vars: dict, data_encryption_key: IKey, user_table: ITable, user_pool: IUserPool):

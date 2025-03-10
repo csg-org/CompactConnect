@@ -236,7 +236,7 @@ class TestQueryProvidersApi(TestApi):
         )
 
     def test_synth_generates_get_provider_ssn_alarms(self):
-        """Test that the GET /providers/{providerId}/ssn alarm is configured correctly."""
+        """Test that the GET /providers/{providerId}/ssn alarms are configured correctly."""
         api_stack = self.app.sandbox_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
