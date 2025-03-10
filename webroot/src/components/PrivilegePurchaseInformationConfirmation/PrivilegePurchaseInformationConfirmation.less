@@ -92,22 +92,22 @@
                 width: 90rem;
             }
 
-            &.right-gap {
-                @media @tabletWidth {
-                    padding-right: 14rem;
-                }
-
-                @media @desktopWidth {
-                    padding-right: 26rem;
-                }
-            }
-
             .title-row {
                 display: flex;
                 flex-direction: row;
-                align-items: center;
+                align-items: flex-start;
+                justify-content: space-between;
                 margin-top: 4rem;
                 margin-bottom: 1rem;
+
+                @media @tabletWidth {
+                    align-items: center;
+                }
+
+                .license-info {
+                    min-width: 10rem;
+                    margin-top: 1rem;
+                }
             }
 
             .personal-info-title {
@@ -116,47 +116,59 @@
                 font-size: @h3FontSize;
             }
 
-            .chunk {
-                display: flex;
-                flex-direction: column;
-                padding: 1rem 0;
+            .confirm-info-content-container {
+                &.right-gap {
+                    @media @tabletWidth {
+                        padding-right: 14rem;
+                    }
 
-                &.in-row {
-                    padding-right: 2rem;
+                    @media @desktopWidth {
+                        padding-right: 26rem;
+                    }
                 }
 
-                .chunk-title {
-                    font-weight: @fontWeightBold;
-                    font-size: 1.4rem;
-                }
+                .chunk {
+                    display: flex;
+                    flex-direction: column;
+                    padding: 1rem 0;
 
-                .chunk-text {
-                    font-size: 1.6rem;
+                    &.in-row {
+                        padding-right: 2rem;
+                    }
 
-                    :deep(.checkbox-container) {
-                        .checkbox-wrapper {
-                            padding-left: 30px;
-                        }
+                    .chunk-title {
+                        font-weight: @fontWeightBold;
+                        font-size: 1.4rem;
+                    }
 
-                        .input-label {
-                            font-weight: @fontWeightLight;
-                        }
+                    .chunk-text {
+                        font-size: 1.6rem;
 
-                        input[type="checkbox"]:checked + .checkbox-replacement::after {
-                            background-color: @primaryColor;
+                        :deep(.checkbox-container) {
+                            .checkbox-wrapper {
+                                padding-left: 30px;
+                            }
+
+                            .input-label {
+                                font-weight: @fontWeightLight;
+                            }
+
+                            input[type="checkbox"]:checked + .checkbox-replacement::after {
+                                background-color: @primaryColor;
+                            }
                         }
                     }
                 }
-            }
 
-            .chunk-row {
-                display: flex;
-                flex-direction: row;
-            }
+                .chunk-row {
+                    display: flex;
+                    flex-direction: row;
+                }
 
-            .disclaimer-section {
-                padding-left: 2rem;
-                border-left: 2px solid @lightTextGrey;
+                .disclaimer-section {
+                    padding-left: 2rem;
+                    border-left: 2px solid @lightTextGrey;
+                }
             }
         }
     }

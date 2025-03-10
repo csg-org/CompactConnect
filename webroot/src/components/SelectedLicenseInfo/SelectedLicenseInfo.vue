@@ -7,7 +7,7 @@
 
 <template>
     <div class="selected-license-info-container">
-        <div class="title-row">{{license.displayName()}}</div>
+        <div class="title-row">{{licenseDisplay}}</div>
         <div class="expiration-row">{{expirationDisplay}}</div>
     </div>
 </template>

@@ -127,7 +127,7 @@ export class License implements InterfaceLicense {
     }
 
     public displayName(): string {
-        return `${this.issueState?.name() || ''} - ${this.occupationAbbreviation()}`;
+        return `${this.issueState?.name() || ''}${this.issueState?.name() && this.occupationAbbreviation() ? ' - ' : ''}${this.occupationAbbreviation()}`;
     }
 }
 

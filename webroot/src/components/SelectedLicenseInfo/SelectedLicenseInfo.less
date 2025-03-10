@@ -6,7 +6,13 @@
 //
 .selected-license-info-container {
     padding-left: 1rem;
-    border-left: 1px solid black;
+    border-left: 1px solid @primaryColor;
+    color: @primaryColor;
+    font-size: @fontSizeSmall;
+
+    @media @tabletWidth {
+        font-size: @fontSize;
+    }
 
     .title-row {
         font-weight: @fontWeightBold;

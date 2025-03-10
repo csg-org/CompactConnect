@@ -15,6 +15,7 @@ import { reactive } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import SelectedStatePurchaseInformation from '@components/SelectedStatePurchaseInformation/SelectedStatePurchaseInformation.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
+import SelectedLicenseInfo from '@components/SelectedLicenseInfo/SelectedLicenseInfo.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
@@ -39,6 +40,7 @@ import { dataApi } from '@network/data.api';
         InputButton,
         SelectedStatePurchaseInformation,
         LoadingSpinner,
+        SelectedLicenseInfo,
         MockPopulate
     }
 })

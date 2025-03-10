@@ -8,17 +8,17 @@
 <template>
     <div class="privileges-info-container">
         <form class="confirm-info-form" @submit.prevent="handleSubmit">
-            <div  class="confirm-info-core-container" :class="{ 'right-gap': areFormInputsSet }">
+            <div  class="confirm-info-core-container">
                 <div class="title-row">
                     <h1 class="privilege-purchase-title">
                         {{$t('licensing.privilegePurchaseTitle')}}
                     </h1>
-                    <SelectedLicenseInfo />
+                    <SelectedLicenseInfo class="license-info" />
                 </div>
                 <div v-if="!areFormInputsSet" class="loading-container">
                     <LoadingSpinner v-if="!userStore.isLoadingAccount" />
                 </div>
-                <div v-else>
+                <div class="confirm-info-content-container" :class="{ 'right-gap': areFormInputsSet }" v-else>
                     <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                     <div class="personal-info-title">
                         {{$t('licensing.personalInfoTitle')}}

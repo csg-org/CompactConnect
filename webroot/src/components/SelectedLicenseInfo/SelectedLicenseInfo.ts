@@ -12,16 +12,6 @@ import { License } from '@/models/License/License.model';
     name: 'SelectedLicenseInfo',
 })
 class SelectedLicenseInfo extends Vue {
-    // PROPS
-
-    //
-    // Data
-    //
-
-    //
-    // Lifecycle
-    //
-
     //
     // Computed
     //
@@ -29,13 +19,13 @@ class SelectedLicenseInfo extends Vue {
         return this.$store.getters['user/getLicenseSelected']();
     }
 
+    get licenseDisplay(): string {
+        return this.license?.displayName() || '';
+    }
+
     get expirationDisplay(): string {
         return `Exp ${this.license?.expireDateDisplay()}`;
     }
-
-    //
-    // Methods
-    //
 }
 
 export default toNative(SelectedLicenseInfo);

@@ -4,8 +4,8 @@
 //
 //  Created by InspiringApps on 7/8/2024.
 //
-
-import { expect } from 'chai';
+import chaiMatchPattern from 'chai-match-pattern';
+import chai from 'chai';
 import { serverDateFormat, displayDateFormat } from '@/app.config';
 import {
     License,
@@ -20,14 +20,19 @@ import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryIte
 import i18n from '@/i18n';
 import moment from 'moment';
 
+chai.use(chaiMatchPattern);
+
+const { expect } = chai;
+
 describe('License model', () => {
     before(() => {
-        const { tm: $tm } = i18n.global;
+        const { tm: $tm, t: $t } = i18n.global;
 
         (window as any).Vue = {
             config: {
                 globalProperties: {
                     $tm,
+                    $t,
                 }
             }
         };
@@ -62,6 +67,7 @@ describe('License model', () => {
         expect(license.isExpired()).to.equal(false);
         expect(license.occupationName()).to.equal('');
         expect(license.occupationAbbreviation()).to.equal('');
+        expect(license.displayName()).to.equal('Unknown');
     });
     it('should create a License with specific values', () => {
         const data = {
@@ -111,10 +117,10 @@ describe('License model', () => {
         expect(license.isExpired()).to.equal(false);
         expect(license.occupationName()).to.equal('Audiologist');
         expect(license.occupationAbbreviation()).to.equal('AUD');
+        expect(license.displayName()).to.equal('Unknown - AUD');
     });
     it('should create a License with specific values through serializer', () => {
         const data = {
-            id: 'test-id',
             compact: CompactType.ASLP,
             type: 'privilege',
             providerId: 'test-provider-id',
@@ -153,7 +159,7 @@ describe('License model', () => {
 
         // Test field values
         expect(license).to.be.an.instanceof(License);
-        expect(license.id).to.equal(data.id);
+        expect(license.id).to.equal('test-provider-id-al-audiologist');
         expect(license.compact).to.be.an.instanceof(Compact);
         expect(license.isPrivilege).to.equal(true);
         expect(license.licenseeId).to.equal(data.providerId);
@@ -168,6 +174,7 @@ describe('License model', () => {
         expect(license.statusState).to.equal(data.status);
         expect(license.privilegeId).to.equal(data.privilegeId);
         expect(license.statusCompact).to.equal(data.status);
+        expect(license.displayName()).to.equal('Alabama - AUD');
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal(
@@ -185,7 +192,6 @@ describe('License model', () => {
     });
     it('should create a License with specific values through serializer and not populate history when change is not renewal', () => {
         const data = {
-            id: 'test-id',
             compact: CompactType.ASLP,
             type: 'privilege',
             providerId: 'test-provider-id',
@@ -223,7 +229,7 @@ describe('License model', () => {
 
         // Test field values
         expect(license).to.be.an.instanceof(License);
-        expect(license.id).to.equal(data.id);
+        expect(license.id).to.equal('test-provider-id-al-audiologist');
         expect(license.compact).to.be.an.instanceof(Compact);
         expect(license.isPrivilege).to.equal(true);
         expect(license.licenseeId).to.equal(data.providerId);
@@ -239,6 +245,7 @@ describe('License model', () => {
         expect(license.occupation).to.equal(data.licenseType);
         expect(license.statusState).to.equal(data.status);
         expect(license.statusCompact).to.equal(data.status);
+        expect(license.displayName()).to.equal('Alabama - AUD');
 
         // Test methods
         expect(license.issueDateDisplay()).to.equal(
