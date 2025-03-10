@@ -17,11 +17,6 @@
             "pattern": "^[0-9]{10}$",
             "type": "string"
           },
-          "licenseNumber": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
           "givenName": {
             "maxLength": 100,
             "minLength": 1,
@@ -35,16 +30,6 @@
           "familyName": {
             "maxLength": 100,
             "minLength": 1,
-            "type": "string"
-          },
-          "licenseType": {
-            "enum": [
-              "audiologist",
-              "speech-language pathologist",
-              "occupational therapist",
-              "occupational therapy assistant",
-              "licensed professional counselor"
-            ],
             "type": "string"
           },
           "status": {
@@ -180,61 +165,6 @@
               "type": "string"
             },
             "type": "array"
-          },
-          "homeAddressStreet1": {
-            "maxLength": 100,
-            "minLength": 2,
-            "type": "string"
-          },
-          "homeAddressStreet2": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
-          "homeAddressCity": {
-            "maxLength": 100,
-            "minLength": 2,
-            "type": "string"
-          },
-          "homeAddressState": {
-            "maxLength": 100,
-            "minLength": 2,
-            "type": "string"
-          },
-          "homeAddressPostalCode": {
-            "maxLength": 7,
-            "minLength": 5,
-            "type": "string"
-          },
-          "militaryWaiver": {
-            "type": "boolean"
-          },
-          "compactConnectRegisteredEmailAddress": {
-            "format": "email",
-            "type": "string"
-          },
-          "cognitoSub": {
-            "type": "string"
-          },
-          "birthMonthDay": {
-            "format": "date",
-            "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-            "type": "string"
-          },
-          "dateOfBirth": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-            "type": "string"
-          },
-          "dateOfUpdate": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-            "type": "string"
-          },
-          "dateOfExpiration": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-            "type": "string"
           }
         },
         "required": [
@@ -242,19 +172,10 @@
           "providerId",
           "givenName",
           "familyName",
-          "licenseType",
           "status",
           "compact",
           "licenseJurisdiction",
-          "privilegeJurisdictions",
-          "homeAddressStreet1",
-          "homeAddressCity",
-          "homeAddressState",
-          "homeAddressPostalCode",
-          "dateOfBirth",
-          "dateOfUpdate",
-          "dateOfExpiration",
-          "birthMonthDay"
+          "privilegeJurisdictions"
         ],
         "type": "object"
       },
@@ -287,6 +208,85 @@
       },
       "type": "object"
     },
+    "query": {
+      "properties": {
+        "providerId": {
+          "description": "Internal UUID for the provider",
+          "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+          "type": "string"
+        },
+        "jurisdiction": {
+          "description": "Filter for providers with privilege/license in a jurisdiction",
+          "enum": [
+            "al",
+            "ak",
+            "az",
+            "ar",
+            "ca",
+            "co",
+            "ct",
+            "de",
+            "dc",
+            "fl",
+            "ga",
+            "hi",
+            "id",
+            "il",
+            "in",
+            "ia",
+            "ks",
+            "ky",
+            "la",
+            "me",
+            "md",
+            "ma",
+            "mi",
+            "mn",
+            "ms",
+            "mo",
+            "mt",
+            "ne",
+            "nv",
+            "nh",
+            "nj",
+            "nm",
+            "ny",
+            "nc",
+            "nd",
+            "oh",
+            "ok",
+            "or",
+            "pa",
+            "pr",
+            "ri",
+            "sc",
+            "sd",
+            "tn",
+            "tx",
+            "ut",
+            "vt",
+            "va",
+            "vi",
+            "wa",
+            "wv",
+            "wi",
+            "wy"
+          ],
+          "type": "string"
+        },
+        "givenName": {
+          "description": "Filter for providers with a given name",
+          "maxLength": 100,
+          "type": "string"
+        },
+        "familyName": {
+          "description": "Filter for providers with a family name",
+          "maxLength": 100,
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "sorting": {
       "description": "How to sort results",
       "properties": {
@@ -314,7 +314,7 @@
     }
   },
   "required": [
-    "items",
+    "providers",
     "pagination"
   ],
   "type": "object",

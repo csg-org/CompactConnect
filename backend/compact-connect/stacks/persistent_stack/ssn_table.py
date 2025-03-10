@@ -135,7 +135,6 @@ class SSNTable(Table):
         Stack.of(self.ingest_role).export_value(self.ingest_role.role_arn)
         Stack.of(self.key).export_value(self.key.key_arn)
 
-
         self.license_upload_role = Role(
             self,
             'LicenseUploadRole',
