@@ -46,9 +46,7 @@ def generate_default_attestation_list():
 
 
 def _generate_test_request_body(
-    selected_jurisdictions: list[str] = None,
-    attestations: list[dict] = None,
-    license_type: str = TEST_LICENSE_TYPE
+    selected_jurisdictions: list[str] = None, attestations: list[dict] = None, license_type: str = TEST_LICENSE_TYPE
 ):
     if not selected_jurisdictions:
         selected_jurisdictions = ['ky']
@@ -432,7 +430,8 @@ class TestPostPurchasePrivileges(TstFunction):
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_400_if_license_type_does_not_match_any_home_state_license(
-            self, mock_purchase_client_constructor):
+        self, mock_purchase_client_constructor
+    ):
         from handlers.privileges import post_purchase_privileges
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
@@ -444,8 +443,9 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(400, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'message': 'Specified license type does not match any home state license type.'},
-                         response_body)
+        self.assertEqual(
+            {'message': 'Specified license type does not match any home state license type.'}, response_body
+        )
 
     @patch('handlers.privileges.PurchaseClient')
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
