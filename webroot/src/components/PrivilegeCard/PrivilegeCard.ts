@@ -172,12 +172,12 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.privilege?.licenseeId || '';
     }
 
-    get bestHomeStateLicense(): License {
-        return this.licensee?.bestHomeStateLicense() || new License();
+    get bestHomeJurisdictionLicense(): License {
+        return this.licensee?.bestHomeJurisdictionLicense() || new License();
     }
 
     get licenseTypeAbbrev(): string {
-        return this.bestHomeStateLicense?.licenseTypeAbbreviation();
+        return this.bestHomeJurisdictionLicense?.licenseTypeAbbreviation();
     }
 
     //
@@ -238,9 +238,9 @@ class PrivilegeCard extends mixins(MixinForm) {
             currentCompactType: compactType,
             licenseeId,
             stateAbbrev,
-            bestHomeStateLicense,
+            bestHomeJurisdictionLicense,
         } = this;
-        const { licenseType } = bestHomeStateLicense;
+        const { licenseType } = bestHomeJurisdictionLicense;
 
         await this.$store.dispatch(`users/deletePrivilegeRequest`, {
             compact: compactType,

@@ -41,7 +41,7 @@ describe('Licensee model', () => {
         expect(licensee.npi).to.equal(null);
         expect(licensee.licenseNumber).to.equal(null);
         expect(licensee.phoneNumber).to.equal(null);
-        expect(licensee.homeState).to.be.an.instanceof(State);
+        expect(licensee.homeJurisdiction).to.be.an.instanceof(State);
         expect(licensee.firstName).to.equal(null);
         expect(licensee.middleName).to.equal(null);
         expect(licensee.lastName).to.equal(null);
@@ -61,8 +61,8 @@ describe('Licensee model', () => {
         // Test methods
         expect(licensee.nameDisplay()).to.equal('');
         expect(licensee.phoneNumberDisplay()).to.equal('');
-        expect(licensee.bestHomeStateLicense()).to.be.an.instanceof(License);
-        expect(licensee.bestHomeStateLicenseMailingAddress()).to.be.an.instanceof(Address);
+        expect(licensee.bestHomeJurisdictionLicense()).to.be.an.instanceof(License);
+        expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
         expect(licensee.isMilitary()).to.equal(false);
         expect(licensee.aciveMilitaryAffiliation()).to.equal(null);
         expect(licensee.dobDisplay()).to.equal('');
@@ -86,7 +86,7 @@ describe('Licensee model', () => {
             lastName: 'test-lastName',
             address: new Address(),
             phoneNumber: '+13234558990',
-            homeState: new State({ abbrev: 'ma' }),
+            homeJurisdiction: new State({ abbrev: 'ma' }),
             dob: '2020-01-01',
             birthMonthDay: '01-16',
             ssn: 'test-ssn',
@@ -139,7 +139,7 @@ describe('Licensee model', () => {
         expect(licensee.middleName).to.equal(data.middleName);
         expect(licensee.lastName).to.equal(data.lastName);
         expect(licensee.phoneNumber).to.equal(data.phoneNumber);
-        expect(licensee.homeState).to.be.an.instanceof(State);
+        expect(licensee.homeJurisdiction).to.be.an.instanceof(State);
         expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.dob).to.equal(data.dob);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
@@ -158,12 +158,12 @@ describe('Licensee model', () => {
 
         // Test methods
         expect(licensee.nameDisplay()).to.equal(`${data.firstName} ${data.lastName}`);
-        expect(licensee.homeStateDisplay()).to.equal('Massachusetts');
+        expect(licensee.homeJurisdictionDisplay()).to.equal('Massachusetts');
 
         expect(licensee.phoneNumberDisplay()).to.equal('+1 323-455-8990');
-        expect(licensee.bestHomeStateLicense()).to.be.an.instanceof(License);
-        expect(licensee.bestHomeStateLicense().licenseNumber).to.equal(null);
-        expect(licensee.bestHomeStateLicenseMailingAddress()).to.be.an.instanceof(Address);
+        expect(licensee.bestHomeJurisdictionLicense()).to.be.an.instanceof(License);
+        expect(licensee.bestHomeJurisdictionLicense().licenseNumber).to.equal(null);
+        expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
 
         expect(licensee.isMilitary()).to.equal(false);
         expect(licensee.aciveMilitaryAffiliation()).to.equal(null);
@@ -189,7 +189,7 @@ describe('Licensee model', () => {
             lastName: 'test-lastName',
             address: new Address(),
             phoneNumber: '+13234558990',
-            homeState: new State({ abbrev: 'ma' }),
+            homeJurisdiction: new State({ abbrev: 'ma' }),
             dob: '2020-01-01',
             birthMonthDay: '01-16',
             ssn: 'test-ssn',
@@ -242,7 +242,7 @@ describe('Licensee model', () => {
         expect(licensee.middleName).to.equal(data.middleName);
         expect(licensee.lastName).to.equal(data.lastName);
         expect(licensee.phoneNumber).to.equal(data.phoneNumber);
-        expect(licensee.homeState).to.be.an.instanceof(State);
+        expect(licensee.homeJurisdiction).to.be.an.instanceof(State);
         expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.dob).to.equal(data.dob);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
@@ -263,9 +263,9 @@ describe('Licensee model', () => {
         expect(licensee.nameDisplay()).to.equal(`${data.firstName} ${data.lastName}`);
 
         expect(licensee.phoneNumberDisplay()).to.equal('+1 323-455-8990');
-        expect(licensee.bestHomeStateLicense()).to.be.an.instanceof(License);
-        expect(licensee.bestHomeStateLicense().licenseNumber).to.equal('1');
-        expect(licensee.bestHomeStateLicenseMailingAddress()).to.be.an.instanceof(Address);
+        expect(licensee.bestHomeJurisdictionLicense()).to.be.an.instanceof(License);
+        expect(licensee.bestHomeJurisdictionLicense().licenseNumber).to.equal('1');
+        expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
 
         expect(licensee.isMilitary()).to.equal(false);
         expect(licensee.aciveMilitaryAffiliation()).to.equal(null);
@@ -316,7 +316,7 @@ describe('Licensee model', () => {
         expect(licensee.middleName).to.equal(data.middleName);
         expect(licensee.lastName).to.equal(data.lastName);
         expect(licensee.phoneNumber).to.equal(data.phoneNumber);
-        expect(licensee.homeState).to.be.an.instanceof(State);
+        expect(licensee.homeJurisdiction).to.be.an.instanceof(State);
         expect(licensee.homeJurisdictionLicenseAddress).to.be.an.instanceof(Address);
         expect(licensee.dob).to.equal(data.dob);
         expect(licensee.birthMonthDay).to.equal(data.birthMonthDay);
@@ -511,9 +511,9 @@ describe('Licensee model', () => {
         });
 
         expect(licensee.phoneNumberDisplay()).to.equal('+1 323-455-8990');
-        expect(licensee.bestHomeStateLicense()).to.be.an.instanceof(License);
-        expect(licensee.bestHomeStateLicense().licenseNumber).to.equal('1');
-        expect(licensee.bestHomeStateLicenseMailingAddress()).to.be.an.instanceof(Address);
+        expect(licensee.bestHomeJurisdictionLicense()).to.be.an.instanceof(License);
+        expect(licensee.bestHomeJurisdictionLicense().licenseNumber).to.equal('1');
+        expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
 
         expect(licensee.nameDisplay()).to.equal(`${data.givenName} ${data.familyName}`);
         expect(licensee.dobDisplay()).to.equal(
@@ -816,9 +816,9 @@ describe('Licensee model', () => {
 
         // Test methods
         expect(licensee.phoneNumberDisplay()).to.equal('+1 323-455-8990');
-        expect(licensee.bestHomeStateLicense()).to.be.an.instanceof(License);
-        expect(licensee.bestHomeStateLicense().licenseNumber).to.equal('2');
-        expect(licensee.bestHomeStateLicenseMailingAddress()).to.be.an.instanceof(Address);
+        expect(licensee.bestHomeJurisdictionLicense()).to.be.an.instanceof(License);
+        expect(licensee.bestHomeJurisdictionLicense().licenseNumber).to.equal('2');
+        expect(licensee.bestHomeJurisdictionLicenseMailingAddress()).to.be.an.instanceof(Address);
         expect(licensee.isMilitary()).to.equal(false);
         expect(licensee.aciveMilitaryAffiliation()).to.equal(null);
         expect(licensee.nameDisplay()).to.equal(`${data.givenName} ${data.familyName}`);

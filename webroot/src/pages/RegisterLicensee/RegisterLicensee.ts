@@ -212,12 +212,12 @@ class RegisterLicensee extends mixins(MixinForm) {
     }
 
     getCompactFromlicenseType(): string {
-        const { licenseType: selectedlicenseType } = this.formValues;
+        const { licenseType: selectedLicenseType } = this.formValues;
         const licenseTypes = this.$tm('licensing.licenseTypes');
         let compactType = '';
 
-        if (selectedlicenseType) {
-            const foundlicenseType = licenseTypes.find((licenseType) => licenseType.key === selectedlicenseType);
+        if (selectedLicenseType) {
+            const foundlicenseType = licenseTypes.find((licenseType) => licenseType.key === selectedLicenseType);
 
             compactType = foundlicenseType.compactKey;
         }

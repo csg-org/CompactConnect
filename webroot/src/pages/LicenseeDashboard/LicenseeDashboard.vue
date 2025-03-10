@@ -27,9 +27,9 @@
             </div>
         </div>
         <div class="license-section">
-            <div v-if="homeState" class="home-state-section">
+            <div v-if="homeJurisdiction" class="home-state-section">
                 <HomeStateBlock
-                    :state="homeState"
+                    :state="homeJurisdiction"
                     class="no-touch-item"
                 />
             </div>

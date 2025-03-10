@@ -75,8 +75,8 @@ export default class LicenseeDashboard extends Vue {
         return name;
     }
 
-    get homeState(): State | null {
-        return this.licensee?.homeState || null;
+    get homeJurisdiction(): State | null {
+        return this.licensee?.homeJurisdiction || null;
     }
 
     get obtainPrivButtonLabel(): string {

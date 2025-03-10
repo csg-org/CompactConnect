@@ -162,7 +162,7 @@ class LicenseeList extends Vue {
             firstName: this.$t('common.firstName'),
             lastName: this.$t('common.lastName'),
             ssnMaskedPartial: () => this.$t('licensing.ssn'),
-            homeStateDisplay: () => this.$t('licensing.homeState'),
+            homeJurisdictionDisplay: () => this.$t('licensing.homeState'),
             privilegeStatesDisplay: () => this.$t('licensing.privileges'),
             statusDisplay: () => this.$t('licensing.status'),
         };

@@ -121,11 +121,11 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
     }
 
     get homeStateLicense(): License {
-        return this.licensee?.bestHomeStateLicense() || new License();
+        return this.licensee?.bestHomeJurisdictionLicense() || new License();
     }
 
     get homeStateText(): string {
-        return this.licensee?.homeState?.name() || '';
+        return this.licensee?.homeJurisdiction?.name() || '';
     }
 
     get licenseExpirationDate(): string {

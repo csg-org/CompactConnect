@@ -153,20 +153,20 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
     get disabledPrivilegeStateChoices(): Array<string> {
         const disabledStateList: Array<string> = [];
         const { privilegeList } = this;
-        const bestHomeStateLicense = this.licensee?.bestHomeStateLicense();
+        const bestHomeJurisdictionLicense = this.licensee?.bestHomeJurisdictionLicense();
 
-        if (bestHomeStateLicense) {
+        if (bestHomeJurisdictionLicense) {
             privilegeList.forEach((privilege) => {
                 if (
                     privilege?.issueState?.abbrev
-                    && moment(privilege?.expireDate).isSameOrAfter(bestHomeStateLicense.expireDate)
+                    && moment(privilege?.expireDate).isSameOrAfter(bestHomeJurisdictionLicense.expireDate)
                     && privilege.status === LicenseStatus.ACTIVE
                 ) {
                     disabledStateList.push(privilege?.issueState?.abbrev);
                 }
             });
 
-            disabledStateList.push(bestHomeStateLicense?.issueState?.abbrev || '');
+            disabledStateList.push(bestHomeJurisdictionLicense?.issueState?.abbrev || '');
         }
 
         return disabledStateList;
