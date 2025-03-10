@@ -9,6 +9,7 @@ from smoke_common import (
     SmokeTestFailureException,
     call_provider_users_me_endpoint,
     get_provider_user_auth_headers_cached,
+    get_license_type_abbreviation,
 )
 
 # This script can be run locally to test the privilege purchasing flow against a sandbox environment
@@ -90,8 +91,9 @@ def test_purchasing_privilege():
         compact = original_provider_data.get('compact')
         dynamodb_table = config.provider_user_dynamodb_table
         for privilege in original_privileges:
+            license_type_abbreviation = get_license_type_abbreviation(privilege['licenseType'])
             privilege_pk = f'{compact}#PROVIDER#{provider_id}'
-            privilege_sk = f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}#'
+            privilege_sk = f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}/{license_type_abbreviation}#'
             logger.info(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
             dynamodb_table.delete_item(
                 Key={
@@ -135,6 +137,8 @@ def test_purchasing_privilege():
         logger.info(f'Received attestation response for {attestation_id}: {attestation}')
         attestations_from_system.append({'attestationId': attestation_id, 'version': attestation['version']})
 
+    license_type = original_provider_data['licenses'][0]['licenseType']
+
     post_body = {
         'orderInformation': {
             'card': {
@@ -155,6 +159,7 @@ def test_purchasing_privilege():
         },
         'selectedJurisdictions': ['ne'],
         'attestations': attestations_from_system,
+        'licenseType': license_type,
     }
 
     headers = get_provider_user_auth_headers_cached()
@@ -198,12 +203,8 @@ def test_purchasing_privilege():
         if not matching_attestation_from_system:
             raise SmokeTestFailureException(f'No matching attestation found for {attestation["attestationId"]}')
         if attestation['version'] != matching_attestation_from_system['version']:
-            raise SmokeTestFailureException('Attestation version in privilege record does not match')
-        if attestation['version'] != attestations_from_system[0]['version']:
-            raise SmokeTestFailureException(
-                f'Attestation {attestation["attestationId"]} version in privilege record '
-                f'does not match latest version in system'
-            )
+            raise SmokeTestFailureException('Attestation version in privilege record does not match '
+                                            'latest version in system')
 
     logger.info(f'Successfully purchased privilege record: {matching_privilege}')
 
