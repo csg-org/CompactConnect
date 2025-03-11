@@ -153,7 +153,7 @@ class RegisterLicensee extends mixins(MixinForm) {
                 id: 'dob',
                 name: 'dob',
                 label: computed(() => this.$t('common.dateOfBirth')),
-                placeholder: computed(() => this.$t('common.dateOfBirth')),
+                placeholder: computed(() => 'MM/DD/YYYY'),
                 autocomplete: 'bday',
                 validation: Joi.string().required().messages(this.joiMessages.string),
             }),

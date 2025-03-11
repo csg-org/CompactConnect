@@ -63,7 +63,7 @@ class PrivilegeUpdateGeneralResponseSchema(ForgivingSchema):
 
 class PrivilegeGeneralResponseSchema(ForgivingSchema):
     """
-    Schema defining fields available to all staff users with only the 'readGeneral' permission.
+    Privilege object fields, as seen by staff users with only the 'readGeneral' permission.
 
     Serialization direction:
     Python -> load() -> API
@@ -85,6 +85,68 @@ class PrivilegeGeneralResponseSchema(ForgivingSchema):
     compactTransactionId = String(required=False, allow_none=False)
     # list of attestations that were accepted when purchasing this privilege
     attestations = List(Nested(AttestationVersionResponseSchema(), required=False, allow_none=False))
+    # the human-friendly identifier for this privilege
+    privilegeId = String(required=True, allow_none=False)
+    status = ActiveInactive(required=True, allow_none=False)
+
+
+class PrivilegeUpdatePreviousPublicResponseSchema(ForgivingSchema):
+    """
+    A snapshot of a previous state of a privilege object
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    dateOfExpiration = Raw(required=True, allow_none=False)
+    dateOfIssuance = Raw(required=True, allow_none=False)
+    dateOfRenewal = Raw(required=True, allow_none=False)
+    dateOfUpdate = Raw(required=True, allow_none=False)
+    persistedStatus = ActiveInactive(required=True, allow_none=False)
+    privilegeId = String(required=True, allow_none=False)
+    licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+
+
+class PrivilegeUpdatePublicResponseSchema(ForgivingSchema):
+    """
+    Schema for privilege update history entries in the privilege object
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    type = String(required=True, allow_none=False)
+    updateType = UpdateType(required=True, allow_none=False)
+    providerId = Raw(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    dateOfUpdate = Raw(required=True, allow_none=False)
+    previous = Nested(PrivilegeUpdatePreviousPublicResponseSchema(), required=True, allow_none=False)
+    # We'll allow any fields that can show up in the previous field to be here as well, but none are required
+    updatedValues = Nested(PrivilegeUpdatePreviousPublicResponseSchema(partial=True), required=True, allow_none=False)
+
+
+class PrivilegePublicResponseSchema(ForgivingSchema):
+    """
+    Privilege object fields, as seen by the public lookup endpoints.
+
+    Serialization direction:
+    Python -> load() -> API
+    """
+
+    type = String(required=True, allow_none=False)
+    providerId = Raw(required=True, allow_none=False)
+    compact = Compact(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    dateOfExpiration = Raw(required=True, allow_none=False)
+    dateOfIssuance = Raw(required=True, allow_none=False)
+    dateOfRenewal = Raw(required=True, allow_none=False)
+    dateOfUpdate = Raw(required=True, allow_none=False)
+    history = List(Nested(PrivilegeUpdatePublicResponseSchema, required=False, allow_none=False))
+    persistedStatus = ActiveInactive(required=True, allow_none=False)
     # the human-friendly identifier for this privilege
     privilegeId = String(required=True, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)

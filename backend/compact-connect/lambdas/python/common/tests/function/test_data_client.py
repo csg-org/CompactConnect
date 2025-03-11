@@ -738,11 +738,12 @@ class TestDataClient(TstFunction):
             new_privilege,
         )
 
-        # The deactivation should still ensure that 'ne' is removed from privilegeJurisdictions
+        # The deactivation should not remove 'ne' from privilegeJurisdictions, as that set is intended to include
+        # all active/inactive privileges associated with the provider
         provider = self._provider_table.get_item(
             Key={'pk': f'aslp#PROVIDER#{provider_id}', 'sk': 'aslp#PROVIDER'},
         )['Item']
-        self.assertEqual(set(), provider.get('privilegeJurisdictions', set()))
+        self.assertEqual({'ne'}, provider.get('privilegeJurisdictions', set()))
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_deactivate_privilege_raises_if_privilege_not_found(self):

@@ -141,7 +141,6 @@ def ingest_license_message(message: dict):
                 privilege_records = ProviderRecordUtility.get_records_of_type(
                     provider_data['items'],
                     ProviderRecordType.PRIVILEGE,
-                    _filter=lambda x: x['persistedStatus'] == ProviderEligibilityStatus.ACTIVE,
                 )
 
                 # Get the home jurisdiction selection, if it exists

@@ -135,7 +135,6 @@ class SSNTable(Table):
         Stack.of(self.ingest_role).export_value(self.ingest_role.role_arn)
         Stack.of(self.key).export_value(self.key.key_arn)
 
-
         self.license_upload_role = Role(
             self,
             'LicenseUploadRole',
@@ -151,9 +150,6 @@ class SSNTable(Table):
         self.key.grant_encrypt_decrypt(self.license_upload_role)
         self._role_suppressions(self.license_upload_role)
 
-        # This role is to be removed, once full SSN access is removed from the /query API endpoint
-        # (https://github.com/csg-org/CompactConnect/issues/391). In the meantime, we will need to have a role the
-        # corresponding lambda can use.
         self.api_query_role = Role(
             self,
             'ProviderQueryRole',

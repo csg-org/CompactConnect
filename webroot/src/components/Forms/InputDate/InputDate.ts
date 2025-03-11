@@ -37,6 +37,7 @@ class InputDate extends mixins(MixinInput) {
     @Prop({ default: null }) minDate?: Date | string | null;
     @Prop({ default: null }) maxDate?: Date | string | null;
     @Prop({ default: true }) preventMinMaxNavigation?: boolean;
+    @Prop({ default: null }) startDate?: string | null;
     @Prop({ default: null }) allowedDates?: Array<Date | string> | null;
     @Prop({ default: [] }) disabledDates?: Array<Date | string | ((date: Date) => boolean)>;
     @Prop({ default: [1900, 2100] }) yearRange?: [number, number];
@@ -65,6 +66,21 @@ class InputDate extends mixins(MixinInput) {
             formInput.value = '';
             formInput.validate();
         }
+    }
+
+    focus(): void {
+        (this.$refs.datepicker as any)?.openMenu();
+    }
+
+    blur(): void {
+        try {
+            (this.$refs.datepicker as any)?.selectDate();
+        } catch {
+            // Continue
+        }
+
+        this.formInput.isTouched = true;
+        this.formInput.validate();
     }
 }
 

@@ -52,8 +52,6 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema):
 
     # Generated fields
     birthMonthDay = String(required=False, allow_none=False, validate=Regexp('^[0-1]{1}[0-9]{1}-[0-3]{1}[0-9]{1}'))
-
-    # Generated fields
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))
     providerDateOfUpdate = DateTime(required=True, allow_none=False)

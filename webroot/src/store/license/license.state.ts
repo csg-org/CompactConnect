@@ -26,7 +26,6 @@ export const state: State = {
     search: {
         firstName: '',
         lastName: '',
-        ssn: '',
         state: '',
     },
 };

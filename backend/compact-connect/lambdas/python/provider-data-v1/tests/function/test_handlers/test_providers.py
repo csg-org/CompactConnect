@@ -42,8 +42,8 @@ class TestQueryProviders(TstFunction):
         from handlers.providers import query_providers
 
         # 20 providers, 10 with licenses in oh, 10 with privileges in oh
-        self._generate_providers(home='ne', privilege='oh', start_serial=9999)
-        self._generate_providers(home='oh', privilege='ne', start_serial=9899)
+        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999)
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -84,10 +84,10 @@ class TestQueryProviders(TstFunction):
             ('Figueroa', '9'),
             ('Frías', '10'),
         ]
-        self._generate_providers(home='ne', privilege='oh', start_serial=9999, names=names)
+        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999, names=names)
         # We'll leave the last 10 names to be randomly generated to let the Faker data set come up with some
         # interesting values, to leave the door open to identify new edge cases.
-        self._generate_providers(home='oh', privilege='ne', start_serial=9899)
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -118,7 +118,7 @@ class TestQueryProviders(TstFunction):
         # 10 providers, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
         self._generate_providers(
             home='oh',
-            privilege='ne',
+            privilege_jurisdiction='ne',
             start_serial=9999,
             names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
         )
@@ -150,7 +150,7 @@ class TestQueryProviders(TstFunction):
         # 10 providers, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
         self._generate_providers(
             home='oh',
-            privilege='ne',
+            privilege_jurisdiction='ne',
             start_serial=9999,
             names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
         )
@@ -178,8 +178,8 @@ class TestQueryProviders(TstFunction):
         from handlers.providers import query_providers
 
         # 20 providers, 10 with licenses in oh, 10 with privileges in oh
-        self._generate_providers(home='ne', privilege='oh', start_serial=9999)
-        self._generate_providers(home='oh', privilege='ne', start_serial=9899)
+        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999)
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -206,8 +206,8 @@ class TestQueryProviders(TstFunction):
         from handlers.providers import query_providers
 
         # 20 providers, 10 with licenses in oh, 10 with privileges in oh
-        self._generate_providers(home='ne', privilege='oh', start_serial=9999)
-        self._generate_providers(home='oh', privilege='ne', start_serial=9899)
+        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999)
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
