@@ -26,3 +26,8 @@ class TstLambdas(TestCase):
         cls.config = config._Config()  # noqa: SLF001 protected-access
         config.config = cls.config
         cls.mock_context = MagicMock(name='MockLambdaContext', spec=LambdaContext)
+
+    @classmethod
+    def tearDownClass(cls):
+        import logging
+        logging.shutdown()

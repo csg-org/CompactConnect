@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# noqa: I001
+# These imports _are_ sorted but the linter keeps identifying them as an issue, specifically in
+# GitHub Actions, even they lint fine locally. We'll just suppress the issue for this script.
 """
 This script runs all Python tests in a unified pytest session, which allows coverage data collection to properly merge
 across multiple test suites.

@@ -48,3 +48,9 @@ class TstLambdas(TestCase):
 
     def delete_resources(self):
         self._table.delete()
+
+
+    @classmethod
+    def tearDownClass(cls):
+        import logging
+        logging.shutdown()
