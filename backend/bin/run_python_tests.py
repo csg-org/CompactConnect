@@ -25,6 +25,7 @@ TEST_DIRS = (
     'compact-connect/lambdas/python/attestations',
     'compact-connect/lambdas/python/custom-resources',
     'compact-connect/lambdas/python/data-events',
+    'compact-connect/lambdas/python/migration',
     'compact-connect/lambdas/python/provider-data-v1',
     'compact-connect/lambdas/python/purchases',
     'compact-connect/lambdas/python/staff-user-pre-token',

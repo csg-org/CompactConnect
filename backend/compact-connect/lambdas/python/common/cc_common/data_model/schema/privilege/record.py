@@ -132,7 +132,6 @@ class PrivilegeUpdatePreviousRecordSchema(ForgivingSchema):
     attestations = List(Nested(AttestationVersionRecordSchema()), required=True, allow_none=False)
     persistedStatus = ActiveInactive(required=False, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
-    licenseType = String(required=True, allow_none=False)
 
 
 @BaseRecordSchema.register_schema('privilegeUpdate')
@@ -150,6 +149,7 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     providerId = UUID(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
     compactTransactionIdGSIPK = String(required=True, allow_none=False)
     previous = Nested(PrivilegeUpdatePreviousRecordSchema, required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
@@ -162,7 +162,7 @@ class PrivilegeUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         # to the record. We'll use the current time and the hash of the updatedValues
         # field for this.
         change_hash = self.hash_changes(in_data)
-        license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['previous']['licenseType']]
+        license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
         in_data['sk'] = (
             f'{in_data["compact"]}#PROVIDER#privilege/{in_data["jurisdiction"]}/{license_type_abbr}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'
         )

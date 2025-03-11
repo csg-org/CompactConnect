@@ -122,7 +122,7 @@ if [[ "$LANGUAGE" == 'python' || "$LANGUAGE" == 'all' ]]; then
   PYTHON_ARGS+=("--fail-under" "$FAIL_UNDER")
 
   # Run the Python tests
-  python3 bin/run_unified_tests.py "${PYTHON_ARGS[@]}" || exit "$?"
+  python3 bin/run_python_tests.py "${PYTHON_ARGS[@]}" || exit "$?"
   EXIT=0
 fi
 

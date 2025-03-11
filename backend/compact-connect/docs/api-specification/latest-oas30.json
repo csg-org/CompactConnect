@@ -2,7 +2,7 @@
   "openapi": "3.0.1",
   "info": {
     "title": "LicenseApi",
-    "version": "2025-03-07T18:54:18Z"
+    "version": "2025-03-10T22:18:02Z"
   },
   "servers": [
     {
@@ -1379,6 +1379,16 @@
                           "type": "string"
                         }
                       },
+                      "licenseType": {
+                        "type": "string",
+                        "enum": [
+                          "audiologist",
+                          "speech-language pathologist",
+                          "occupational therapist",
+                          "occupational therapy assistant",
+                          "licensed professional counselor"
+                        ]
+                      },
                       "compact": {
                         "type": "string",
                         "enum": [
@@ -1396,7 +1406,6 @@
                           "dateOfRenewal",
                           "dateOfUpdate",
                           "licenseJurisdiction",
-                          "licenseType",
                           "persistedStatus",
                           "privilegeId"
                         ],
@@ -1565,16 +1574,6 @@
                             "enum": [
                               "active",
                               "inactive"
-                            ]
-                          },
-                          "licenseType": {
-                            "type": "string",
-                            "enum": [
-                              "audiologist",
-                              "speech-language pathologist",
-                              "occupational therapist",
-                              "occupational therapy assistant",
-                              "licensed professional counselor"
                             ]
                           },
                           "dateOfExpiration": {
@@ -1832,16 +1831,6 @@
                             "enum": [
                               "active",
                               "inactive"
-                            ]
-                          },
-                          "licenseType": {
-                            "type": "string",
-                            "enum": [
-                              "audiologist",
-                              "speech-language pathologist",
-                              "occupational therapist",
-                              "occupational therapy assistant",
-                              "licensed professional counselor"
                             ]
                           },
                           "dateOfExpiration": {
@@ -2489,6 +2478,16 @@
                           "type": "string"
                         }
                       },
+                      "licenseType": {
+                        "type": "string",
+                        "enum": [
+                          "audiologist",
+                          "speech-language pathologist",
+                          "occupational therapist",
+                          "occupational therapy assistant",
+                          "licensed professional counselor"
+                        ]
+                      },
                       "compact": {
                         "type": "string",
                         "enum": [
@@ -2508,7 +2507,6 @@
                           "homeAddressPostalCode",
                           "homeAddressState",
                           "homeAddressStreet1",
-                          "licenseType",
                           "middleName"
                         ],
                         "type": "object",
@@ -2554,16 +2552,6 @@
                             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                             "type": "string",
                             "format": "date"
-                          },
-                          "licenseType": {
-                            "type": "string",
-                            "enum": [
-                              "audiologist",
-                              "speech-language pathologist",
-                              "occupational therapist",
-                              "occupational therapy assistant",
-                              "licensed professional counselor"
-                            ]
                           },
                           "emailAddress": {
                             "maxLength": 100,
@@ -2721,16 +2709,6 @@
                             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                             "type": "string",
                             "format": "date"
-                          },
-                          "licenseType": {
-                            "type": "string",
-                            "enum": [
-                              "audiologist",
-                              "speech-language pathologist",
-                              "occupational therapist",
-                              "occupational therapy assistant",
-                              "licensed professional counselor"
-                            ]
                           },
                           "emailAddress": {
                             "maxLength": 100,

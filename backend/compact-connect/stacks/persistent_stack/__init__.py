@@ -11,6 +11,7 @@ from aws_cdk.aws_logs import QueryDefinition, QueryString
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
+from common_constructs.data_migration import DataMigration
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
 from common_constructs.security_profile import SecurityProfile
@@ -320,7 +321,28 @@ class PersistentStack(AppStack):
         there should be an associated migration script that is run as part of the deployment. These are short-lived
         custom resources that should be removed from the CDK app once the migration has been run in all environments.
         """
-        # No migrations are currently needed
+        multi_license_migration = DataMigration(
+            self,
+            '569MultiLicense',
+            migration_dir='569_multi_license',
+            lambda_environment={
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
+                'PROV_FAM_GIV_MID_INDEX_NAME': self.provider_table.provider_fam_giv_mid_index_name,
+                **self.common_env_vars,
+            },
+        )
+        self.provider_table.grant_read_write_data(multi_license_migration)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{multi_license_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
+                    'specific actions, reporting Table and Key that this lambda specifically needs access to.',
+                },
+            ],
+        )
 
     def _create_email_notification_service(self, environment_name: str) -> None:
         """This lambda is intended to be a general purpose email notification service.

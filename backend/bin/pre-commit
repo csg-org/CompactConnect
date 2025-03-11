@@ -94,9 +94,10 @@ if [ -n "$files" ]; then
     ruff check $files || exit "$?"
 fi
 
+# Check dependencies for known vulnerabilities
+pip-audit || exit "$?"
+
 # Run the back-end tests
 bin/run_tests.sh -no || exit "$?"
 
-# Check dependencies for known vulnerabilities
-pip-audit || exit "$?"
 cd "$dir"

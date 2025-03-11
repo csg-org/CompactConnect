@@ -73,7 +73,6 @@ class LicenseUpdatePreviousGeneralResponseSchema(ForgivingSchema):
 
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
-    licenseType = String(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -106,6 +105,7 @@ class LicenseUpdateGeneralResponseSchema(ForgivingSchema):
     providerId = Raw(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
     previous = Nested(LicenseUpdatePreviousGeneralResponseSchema(), required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required

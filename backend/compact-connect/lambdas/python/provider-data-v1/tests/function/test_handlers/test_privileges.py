@@ -12,6 +12,7 @@ DEACTIVATION_HISTORY = {
     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
     'compact': 'aslp',
     'jurisdiction': 'ne',
+    'licenseType': 'speech-language pathologist',
     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
     'previous': {
         'attestations': [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
@@ -23,7 +24,6 @@ DEACTIVATION_HISTORY = {
         'privilegeId': 'SLP-NE-1',
         'persistedStatus': 'active',
         'licenseJurisdiction': 'oh',
-        'licenseType': 'speech-language pathologist',
     },
     'updatedValues': {'persistedStatus': 'inactive'},
 }
@@ -63,7 +63,6 @@ class TestDeactivatePrivilege(TstFunction):
 
         body = json.loads(resp['body'])
 
-        self.maxDiff = None
         self.assertEqual(expected_provider, body)
 
     def _request_deactivation_with_scopes(self, scopes: str):

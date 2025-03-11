@@ -154,7 +154,6 @@ class TestIngest(TstFunction):
         expected_provider['privileges'][0]['compactTransactionId'] = '1234567890'
 
         # The original provider data is preferred over the posted license data in our test case
-        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)
 
         # But the second license should now be listed
@@ -281,11 +280,11 @@ class TestIngest(TstFunction):
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
+                    'licenseType': 'speech-language pathologist',
                     'previous': {
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
@@ -381,11 +380,11 @@ class TestIngest(TstFunction):
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
+                    'licenseType': 'speech-language pathologist',
                     'previous': {
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
@@ -462,11 +461,11 @@ class TestIngest(TstFunction):
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
+                    'licenseType': 'speech-language pathologist',
                     'previous': {
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
@@ -583,11 +582,11 @@ class TestIngest(TstFunction):
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
+                    'licenseType': 'speech-language pathologist',
                     'previous': {
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
@@ -656,11 +655,11 @@ class TestIngest(TstFunction):
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
+                    'licenseType': 'speech-language pathologist',
                     'previous': {
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',

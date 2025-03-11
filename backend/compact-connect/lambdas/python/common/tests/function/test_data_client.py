@@ -309,13 +309,14 @@ class TestDataClient(TstFunction):
                 # A new history record
                 {
                     'pk': 'aslp#PROVIDER#test_provider_id',
-                    'sk': 'aslp#PROVIDER#privilege/ky/aud#UPDATE#1731110399/237767c83d685542ee1e8fbbb9054927',
+                    'sk': 'aslp#PROVIDER#privilege/ky/aud#UPDATE#1731110399/cda961edc5c829a8d11850ee101c2b34',
                     'type': 'privilegeUpdate',
                     'updateType': 'renewal',
                     'providerId': 'test_provider_id',
                     'compact': 'aslp',
                     'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
                     'jurisdiction': 'ky',
+                    'licenseType': 'audiologist',
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'previous': {
                         'dateOfIssuance': '2023-11-08T23:59:59+00:00',
@@ -326,7 +327,6 @@ class TestDataClient(TstFunction):
                         'attestations': self.sample_privilege_attestations,
                         'persistedStatus': 'active',
                         'licenseJurisdiction': 'oh',
-                        'licenseType': 'audiologist',
                         'privilegeId': 'AUD-KY-1',
                     },
                     'updatedValues': {
@@ -710,13 +710,14 @@ class TestDataClient(TstFunction):
                 # A new history record
                 {
                     'pk': f'aslp#PROVIDER#{provider_id}',
-                    'sk': 'aslp#PROVIDER#privilege/ne/aud#UPDATE#1731110399/42bd9d24e27dead07dc0b21c95646135',
+                    'sk': 'aslp#PROVIDER#privilege/ne/aud#UPDATE#1731110399/ea6384fced955d3307df919907982f28',
                     'type': 'privilegeUpdate',
                     'updateType': 'deactivation',
                     'providerId': provider_id,
                     'compact': 'aslp',
                     'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
                     'jurisdiction': 'ne',
+                    'licenseType': 'audiologist',
                     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
                     'previous': {
                         'dateOfIssuance': '2023-11-08T23:59:59+00:00',
@@ -727,7 +728,6 @@ class TestDataClient(TstFunction):
                         'attestations': self.sample_privilege_attestations,
                         'persistedStatus': 'active',
                         'licenseJurisdiction': 'oh',
-                        'licenseType': 'audiologist',
                         'privilegeId': 'AUD-NE-1',
                     },
                     'updatedValues': {

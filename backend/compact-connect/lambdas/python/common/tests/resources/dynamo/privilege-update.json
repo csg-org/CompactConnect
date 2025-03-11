@@ -6,6 +6,7 @@
   "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
   "compact": "aslp",
   "jurisdiction": "ne",
+  "licenseType": "speech-language pathologist",
   "compactTransactionIdGSIPK": "COMPACT#aslp#TX#0123456789#",
   "dateOfUpdate": "2020-05-05T12:59:59+00:00",
   "previous": {
@@ -19,8 +20,7 @@
     "compactTransactionId": "0123456789",
     "privilegeId": "SLP-NE-1",
     "persistedStatus": "active",
-    "licenseJurisdiction": "oh",
-    "licenseType": "speech-language pathologist"
+    "licenseJurisdiction": "oh"
   },
   "updatedValues": {
     "dateOfRenewal": "2020-05-05T12:59:59+00:00",

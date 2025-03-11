@@ -1,6 +1,8 @@
 # ruff: noqa: SLF001
 # This class initializes the api models for the root api, which we then want to set as protected
 # so other classes won't modify it. This is a valid use case for protected access to work with cdk.
+from __future__ import annotations
+
 from aws_cdk.aws_apigateway import JsonSchema, JsonSchemaType, Model
 from common_constructs.stack import AppStack
 
@@ -11,7 +13,8 @@ from stacks.api_stack import cc_api
 class ApiModel:
     """This class is responsible for defining the model definitions used in the API endpoints."""
 
-    def __init__(self, api: cc_api):
+    def __init__(self, api: cc_api.CCApi):
+        self.stack: AppStack = AppStack.of(api)
         self.api = api
 
     @property
@@ -149,7 +152,10 @@ class ApiModel:
                         'status',
                     ],
                     additional_properties=False,
-                    properties=self._common_license_properties,
+                    properties={
+                        'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_types),
+                        **self._common_license_properties,
+                    },
                 ),
             ),
         )
@@ -855,7 +861,6 @@ class ApiModel:
 
     @property
     def _provider_detail_response_schema(self):
-        stack: AppStack = AppStack.of(self.api)
         return JsonSchema(
             type=JsonSchemaType.OBJECT,
             required=[
@@ -911,11 +916,14 @@ class ApiModel:
                         properties={
                             'type': JsonSchema(type=JsonSchemaType.STRING, enum=['license-home']),
                             'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
-                            'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                            'compact': JsonSchema(
+                                type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')
+                            ),
                             'jurisdiction': JsonSchema(
                                 type=JsonSchemaType.STRING,
-                                enum=stack.node.get_context('jurisdictions'),
+                                enum=self.stack.node.get_context('jurisdictions'),
                             ),
+                            'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_types),
                             'dateOfUpdate': JsonSchema(
                                 type=JsonSchemaType.STRING,
                                 format='date',
@@ -941,10 +949,14 @@ class ApiModel:
                                             type=JsonSchemaType.STRING, enum=['renewal', 'deactivation', 'other']
                                         ),
                                         'compact': JsonSchema(
-                                            type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')
+                                            type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')
                                         ),
                                         'jurisdiction': JsonSchema(
-                                            type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
+                                            type=JsonSchemaType.STRING,
+                                            enum=self.stack.node.get_context('jurisdictions'),
+                                        ),
+                                        'licenseType': JsonSchema(
+                                            type=JsonSchemaType.STRING, enum=self.stack.license_types
                                         ),
                                         'dateOfUpdate': JsonSchema(
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
@@ -952,7 +964,6 @@ class ApiModel:
                                         'previous': JsonSchema(
                                             type=JsonSchemaType.OBJECT,
                                             required=[
-                                                'licenseType',
                                                 'givenName',
                                                 'middleName',
                                                 'familyName',
@@ -1025,10 +1036,14 @@ class ApiModel:
                                             type=JsonSchemaType.STRING, enum=['renewal', 'deactivation', 'other']
                                         ),
                                         'compact': JsonSchema(
-                                            type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')
+                                            type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')
                                         ),
                                         'jurisdiction': JsonSchema(
-                                            type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
+                                            type=JsonSchemaType.STRING,
+                                            enum=self.stack.node.get_context('jurisdictions'),
+                                        ),
+                                        'licenseType': JsonSchema(
+                                            type=JsonSchemaType.STRING, enum=self.stack.license_types
                                         ),
                                         'dateOfUpdate': JsonSchema(
                                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
@@ -1042,7 +1057,6 @@ class ApiModel:
                                                 'dateOfUpdate',
                                                 'compactTransactionId',
                                                 'privilegeId',
-                                                'licenseType',
                                                 'licenseJurisdiction',
                                                 'persistedStatus',
                                                 'attestations',
@@ -1061,6 +1075,7 @@ class ApiModel:
                                     },
                                 ),
                             ),
+                            'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.license_types),
                             **self._common_privilege_properties,
                         },
                     ),
@@ -1069,10 +1084,10 @@ class ApiModel:
                     type=JsonSchemaType.OBJECT,
                     properties={
                         'type': JsonSchema(type=JsonSchemaType.STRING, enum=['homeJurisdictionSelection']),
-                        'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                        'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
                         'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
                         'jurisdiction': JsonSchema(
-                            type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')
+                            type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')
                         ),
                         'dateOfSelection': JsonSchema(
                             type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
@@ -1102,7 +1117,9 @@ class ApiModel:
                                 type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT
                             ),
                             'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
-                            'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                            'compact': JsonSchema(
+                                type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')
+                            ),
                             'fileNames': JsonSchema(
                                 type=JsonSchemaType.ARRAY,
                                 items=JsonSchema(type=JsonSchemaType.STRING),
@@ -1124,8 +1141,6 @@ class ApiModel:
 
     @property
     def _common_license_properties(self) -> dict:
-        stack: AppStack = AppStack.of(self.api)
-
         return {
             'npi': JsonSchema(type=JsonSchemaType.STRING, pattern='^[0-9]{10}$'),
             'licenseNumber': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
@@ -1138,7 +1153,6 @@ class ApiModel:
             'homeAddressCity': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
             'homeAddressState': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
             'homeAddressPostalCode': JsonSchema(type=JsonSchemaType.STRING, min_length=5, max_length=7),
-            'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=stack.license_types),
             'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
@@ -1153,8 +1167,6 @@ class ApiModel:
 
     @property
     def _common_provider_properties(self) -> dict:
-        stack: AppStack = AppStack.of(self.api)
-
         return {
             'type': JsonSchema(type=JsonSchemaType.STRING, enum=['provider']),
             'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
@@ -1166,7 +1178,7 @@ class ApiModel:
             'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'suffix': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'jurisdictionStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
-            'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+            'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
             'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', min_length=5, max_length=100),
             'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.PHONE_NUMBER_FORMAT),
             'homeAddressStreet1': JsonSchema(type=JsonSchemaType.STRING, min_length=2, max_length=100),
@@ -1180,11 +1192,13 @@ class ApiModel:
             'militaryWaiver': JsonSchema(
                 type=JsonSchemaType.BOOLEAN,
             ),
-            'licenseJurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
+            'licenseJurisdiction': JsonSchema(
+                type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')
+            ),
             'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'privilegeJurisdictions': JsonSchema(
                 type=JsonSchemaType.ARRAY,
-                items=JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
+                items=JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')),
             ),
             'compactConnectRegisteredEmailAddress': JsonSchema(
                 type=JsonSchemaType.STRING,
@@ -1200,21 +1214,20 @@ class ApiModel:
 
     @property
     def _common_privilege_properties(self) -> dict:
-        stack: AppStack = AppStack.of(self.api)
-
         return {
             'type': JsonSchema(type=JsonSchemaType.STRING, enum=['privilege']),
             'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
-            'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
-            'jurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
+            'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
+            'jurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')),
             'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfUpdate': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'compactTransactionId': JsonSchema(type=JsonSchemaType.STRING),
             'privilegeId': JsonSchema(type=JsonSchemaType.STRING),
-            'licenseType': JsonSchema(type=JsonSchemaType.STRING, enum=stack.license_types),
-            'licenseJurisdiction': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('jurisdictions')),
+            'licenseJurisdiction': JsonSchema(
+                type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')
+            ),
             'persistedStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'attestations': JsonSchema(
@@ -1282,7 +1295,6 @@ class ApiModel:
         if hasattr(self.api, '_v1_get_attestations_response_model'):
             return self.api._v1_get_attestations_response_model
 
-        stack: AppStack = AppStack.of(self.api)
         self.api._v1_get_attestations_response_model = self.api.add_model(
             'V1GetAttestationsResponseModel',
             description='Get attestations response model',
@@ -1291,7 +1303,7 @@ class ApiModel:
                 properties={
                     'type': JsonSchema(type=JsonSchemaType.STRING, enum=['attestation']),
                     'attestationType': JsonSchema(type=JsonSchemaType.STRING),
-                    'compact': JsonSchema(type=JsonSchemaType.STRING, enum=stack.node.get_context('compacts')),
+                    'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
                     'version': JsonSchema(type=JsonSchemaType.STRING),
                     'dateCreated': JsonSchema(type=JsonSchemaType.STRING, format='date-time'),
                     'text': JsonSchema(type=JsonSchemaType.STRING),

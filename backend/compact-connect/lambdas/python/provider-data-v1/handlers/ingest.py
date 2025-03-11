@@ -286,6 +286,7 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
             'providerId': existing_license['providerId'],
             'compact': existing_license['compact'],
             'jurisdiction': existing_license['jurisdiction'],
+            'licenseType': existing_license['licenseType'],
             'previous': existing_license,
             'updatedValues': updated_values,
             # We'll only include the removed values field if there are some

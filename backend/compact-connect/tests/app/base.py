@@ -399,7 +399,7 @@ class TstAppABC(ABC):
                 f.write('\n')
             sys.stdout.write(f"Snapshot '{snapshot_name}' has been overwritten.")
         else:
-            # self.maxDiff = None  # pylint: disable=invalid-name,attribute-defined-outside-init
+            self.maxDiff = None  # pylint: disable=invalid-name,attribute-defined-outside-init
             self.assertEqual(
                 snapshot,
                 actual,

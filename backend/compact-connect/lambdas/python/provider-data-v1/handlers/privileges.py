@@ -3,7 +3,7 @@ import json
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.common import CCPermissionsAction
-from cc_common.exceptions import CCAccessDeniedException
+from cc_common.exceptions import CCAccessDeniedException, CCInvalidRequestException
 from cc_common.utils import api_handler, authorize_compact, get_event_scopes
 from event_batch_writer import EventBatchWriter
 
@@ -30,10 +30,15 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
         jurisdiction_admin_scope = f'{jurisdiction}/{compact}.{CCPermissionsAction.ADMIN}'
         compact_admin_scope = f'{compact}/{CCPermissionsAction.ADMIN}'
 
+        # Validate the the license type is a supported abbreviation
         # Check if user has admin permission for either the compact or the jurisdiction
         if jurisdiction_admin_scope not in scopes and compact_admin_scope not in scopes:
             logger.warning('Unauthorized deactivation attempt')
             raise CCAccessDeniedException('User does not have admin permission for this jurisdiction')
+
+        if license_type_abbr not in config.license_type_abbreviations[compact].values():
+            logger.warning('Invalid license type abbreviation')
+            raise CCInvalidRequestException(f'Invalid license type abbreviation: {license_type_abbr}')
 
         logger.info('Deactivating privilege')
         config.data_client.deactivate_privilege(

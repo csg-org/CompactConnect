@@ -364,6 +364,7 @@ class DataClient:
                         'providerId': provider_id,
                         'compact': compact,
                         'jurisdiction': postal_abbreviation.lower(),
+                        'licenseType': license_type,
                         'previous': original_privilege,
                         'updatedValues': {
                             'dateOfRenewal': privilege_record['dateOfRenewal'],
@@ -815,13 +816,15 @@ class DataClient:
         self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str
     ) -> None:
         """
-        Deactivate a privilege by setting its persistedStatus to inactive.
-        This will create a history record and update the provider record.
+        Deactivate a privilege for a provider in a jurisdiction.
 
-        :param str compact: The compact name
-        :param str provider_id: The provider ID
-        :param str jurisdiction: The jurisdiction postal abbreviation
-        :param str license_type_abbr: The type of license abbreviation
+        This will update the privilege record to have a persistedStatus of 'inactive' and will remove the jurisdiction
+        from the provider's privilegeJurisdictions set.
+
+        :param str compact: The compact to deactivate the privilege for
+        :param str provider_id: The provider to deactivate the privilege for
+        :param str jurisdiction: The jurisdiction to deactivate the privilege for
+        :param str license_type_abbr: The license type abbreviation to deactivate the privilege for
         :raises CCNotFoundException: If the privilege record is not found
         """
         # Get the privilege record
@@ -853,7 +856,7 @@ class DataClient:
                 'providerId': provider_id,
                 'compact': compact,
                 'jurisdiction': jurisdiction,
-                'dateOfUpdate': self.config.current_standard_datetime.isoformat(),
+                'licenseType': privilege_record['licenseType'],
                 'previous': {
                     # We're relying on the schema to trim out unneeded fields
                     **privilege_record,
