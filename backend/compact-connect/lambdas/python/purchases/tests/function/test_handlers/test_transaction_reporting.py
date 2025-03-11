@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 from io import BytesIO
-from unittest.mock import patch, call
+from unittest.mock import call, patch
 from zipfile import ZipFile
 
 from cc_common.exceptions import CCInternalException, CCNotFoundException
@@ -255,14 +255,14 @@ class TestGenerateTransactionReports(TstFunction):
             report_s3_path=expected_compact_path,
             reporting_cycle=reporting_cycle,
             start_date=start_time,
-            end_date=end_time
+            end_date=end_time,
         )
 
         return expected_compact_path
 
-
-    def _validate_jurisdiction_email_notification(self, mock_email_service_client, jurisdiction,
-                                                  reporting_cycle, start_time, end_time):
+    def _validate_jurisdiction_email_notification(
+        self, mock_email_service_client, jurisdiction, reporting_cycle, start_time, end_time
+    ):
         date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
 
         expected_jurisdiction_path = (
@@ -277,7 +277,7 @@ class TestGenerateTransactionReports(TstFunction):
             report_s3_path=expected_jurisdiction_path,
             reporting_cycle=reporting_cycle,
             start_date=start_time,
-            end_date=end_time
+            end_date=end_time,
         )
         self.assertIn(expected_call, email_service_client_calls)
 
@@ -286,7 +286,9 @@ class TestGenerateTransactionReports(TstFunction):
     # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
     @patch('handlers.transaction_reporting.config.email_service_client')
-    def test_generate_transaction_reports_sends_csv_with_zero_values_when_no_transactions(self, mock_email_service_client):
+    def test_generate_transaction_reports_sends_csv_with_zero_values_when_no_transactions(
+        self, mock_email_service_client
+    ):
         """Test successful processing of settled transactions."""
         from handlers.transaction_reporting import generate_transaction_reports
 
@@ -308,7 +310,7 @@ class TestGenerateTransactionReports(TstFunction):
             mock_email_service_client=mock_email_service_client,
             reporting_cycle='weekly',
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
 
         # Verify S3 stored files
@@ -345,7 +347,7 @@ class TestGenerateTransactionReports(TstFunction):
             jurisdiction='oh',
             reporting_cycle='weekly',
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
 
         # Check jurisdiction report
@@ -409,7 +411,7 @@ class TestGenerateTransactionReports(TstFunction):
             mock_email_service_client=mock_email_service_client,
             reporting_cycle='weekly',
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
 
         # Check jurisdiction report emails
@@ -419,9 +421,8 @@ class TestGenerateTransactionReports(TstFunction):
                 jurisdiction=jurisdiction,
                 reporting_cycle='weekly',
                 start_time=start_time,
-                end_time=end_time
+                end_time=end_time,
             )
-
 
         # Verify S3 stored files for compact report
         compact_zip_obj = self.config.s3_client.get_object(
@@ -513,7 +514,7 @@ class TestGenerateTransactionReports(TstFunction):
             mock_email_service_client=mock_email_service_client,
             reporting_cycle='weekly',
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
 
         # Verify S3 stored files for compact report
@@ -557,7 +558,7 @@ class TestGenerateTransactionReports(TstFunction):
                 jurisdiction=jurisdiction,
                 reporting_cycle='weekly',
                 start_time=start_time,
-                end_time=end_time
+                end_time=end_time,
             )
             jurisdiction_zip_obj = self.config.s3_client.get_object(
                 Bucket=self.config.transaction_reports_bucket_name,
@@ -713,8 +714,10 @@ class TestGenerateTransactionReports(TstFunction):
         from handlers.transaction_reporting import generate_transaction_reports
 
         # Set up the mock to raise an exception
-        mock_email_service_client.send_compact_transaction_report_email.side_effect = CCInternalException("Something went wrong")
-        
+        mock_email_service_client.send_compact_transaction_report_email.side_effect = CCInternalException(
+            'Something went wrong'
+        )
+
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
 
         with self.assertRaises(CCInternalException) as exc_info:
@@ -797,7 +800,7 @@ class TestGenerateTransactionReports(TstFunction):
             call[1]['jurisdiction']
             for call in mock_email_service_client.send_jurisdiction_transaction_report_email.call_args_list
         ]
-        
+
         # Verify only OH and KY got reports
         self.assertIn('oh', jurisdiction_args)
         self.assertIn('ky', jurisdiction_args)
@@ -869,7 +872,7 @@ class TestGenerateTransactionReports(TstFunction):
             mock_email_service_client=mock_email_service_client,
             reporting_cycle='monthly',
             start_time=display_start_time,
-            end_time=display_end_time
+            end_time=display_end_time,
         )
 
         # Verify S3 stored files for compact report
@@ -969,7 +972,7 @@ class TestGenerateTransactionReports(TstFunction):
             mock_email_service_client=mock_email_service_client,
             reporting_cycle='weekly',
             start_time=start_time,
-            end_time=end_time
+            end_time=end_time,
         )
 
         # Verify S3 stored files for compact report

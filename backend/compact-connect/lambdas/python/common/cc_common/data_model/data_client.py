@@ -872,7 +872,7 @@ class DataClient:
         # If already inactive, do nothing
         if privilege_record.get('persistedStatus', 'active') == 'inactive':
             logger.info('Provider already inactive. Doing nothing.')
-            return
+            raise CCInvalidRequestException('Privilege already deactivated')
 
         # Create the update record
         # Use the schema to generate the update record with proper pk/sk
@@ -922,3 +922,5 @@ class DataClient:
                 },
             ],
         )
+
+        return privilege_record
