@@ -394,17 +394,6 @@ export const licensees = {
                     status: 'inactive'
                 },
                 {
-                    licenseJurisdiction: 'al',
-                    dateOfExpiration: '2024-08-29',
-                    compact: 'aslp',
-                    providerId: '1',
-                    type: 'privilege',
-                    dateOfIssuance: '2022-08-29',
-                    dateOfRenewal: '2023-08-29',
-                    dateOfUpdate: '2023-08-29',
-                    status: 'inactive'
-                },
-                {
                     licenseJurisdiction: 'ak',
                     dateOfExpiration: '2025-08-29',
                     compact: 'aslp',
@@ -451,17 +440,6 @@ export const licensees = {
                     dateOfRenewal: '2024-08-29',
                     dateOfUpdate: '2024-08-29',
                     status: 'active'
-                },
-                {
-                    licenseJurisdiction: 'ma',
-                    dateOfExpiration: '2024-08-29',
-                    compact: 'aslp',
-                    providerId: '1',
-                    type: 'privilege',
-                    dateOfIssuance: '2023-08-29',
-                    dateOfRenewal: '2023-08-29',
-                    dateOfUpdate: '2023-08-29',
-                    status: 'inactive'
                 },
                 {
                     licenseJurisdiction: 'me',
@@ -741,7 +719,9 @@ export const licensees = {
             militaryWaiver: true,
             dateOfBirth: '1965-01-01',
             privilegeJurisdictions: [
-                'al'
+                'al',
+                'ak',
+                'ar'
             ],
             type: 'provider',
             ssnLastFour: '3333',

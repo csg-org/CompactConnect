@@ -10,15 +10,13 @@ import { Permission } from '@/app.config';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import LicenseCard from '@/components/LicenseCard/LicenseCard.vue';
 import PrivilegeCard from '@/components/PrivilegeCard/PrivilegeCard.vue';
-import ListContainer from '@components/Lists/ListContainer/ListContainer.vue';
-import MilitaryDocumentRow from '@components/MilitaryDocumentRow/MilitaryDocumentRow.vue';
+import MilitaryAffiliationInfoBlock from '@components/MilitaryAffiliationInfoBlock/MilitaryAffiliationInfoBlock.vue';
 import CollapseCaretButton from '@components/CollapseCaretButton/CollapseCaretButton.vue';
 import LicenseIcon from '@components/Icons/LicenseIcon/LicenseIcon.vue';
 import { CompactType } from '@models/Compact/Compact.model';
 import { StaffUser } from '@models/StaffUser/StaffUser.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { License, LicenseStatus } from '@models/License/License.model';
-import { MilitaryAffiliation } from '@/models/MilitaryAffiliation/MilitaryAffiliation.model';
 import { dataApi } from '@network/data.api';
 
 @Component({
@@ -28,9 +26,8 @@ import { dataApi } from '@network/data.api';
         LicenseCard,
         PrivilegeCard,
         CollapseCaretButton,
-        ListContainer,
-        MilitaryDocumentRow,
-        LicenseIcon
+        LicenseIcon,
+        MilitaryAffiliationInfoBlock
     }
 })
 export default class LicensingDetail extends Vue {
@@ -112,11 +109,7 @@ export default class LicensingDetail extends Vue {
     }
 
     get licenseeHomeStateDisplay(): string {
-        return this.licensee?.address?.state?.name() || '';
-    }
-
-    get licenseePrivilegeStatesDisplay(): string {
-        return this.licensee?.privilegeStatesAllDisplay() || '';
+        return this.licensee?.homeJurisdictionDisplay() || '';
     }
 
     get licenseeLicenses(): Array<License> {
@@ -128,7 +121,7 @@ export default class LicensingDetail extends Vue {
     }
 
     get activeLicenses(): Array<License> {
-        return this.licenseeLicenses.filter((license) => (license.statusState === LicenseStatus.ACTIVE));
+        return this.licenseeLicenses.filter((license) => (license.status === LicenseStatus.ACTIVE));
     }
 
     get licenseePrivileges(): Array<License> {
@@ -154,26 +147,27 @@ export default class LicensingDetail extends Vue {
         return this.licensee?.ssnDisplay() || '';
     }
 
-    get licenseNumber(): string {
-        // Task stubbed off here, later ticket will get this value
-        return '';
-    }
-
     get birthMonthDay(): string {
         return this.licensee?.birthMonthDay || '';
     }
 
     get addressLine1(): string {
-        return this.licensee?.address?.street1 || '';
+        return this.licensee?.bestHomeJurisdictionLicenseMailingAddress()?.street1
+        || this.licensee?.homeJurisdictionLicenseAddress?.street1
+        || '';
     }
 
     get addressLine2(): string {
-        return this.licensee?.address?.street2 || '';
+        return this.licensee?.bestHomeJurisdictionLicenseMailingAddress()?.street2
+        || this.licensee?.homeJurisdictionLicenseAddress?.street2
+        || '';
     }
 
     get addressLine3(): string {
-        const { address = {}} = this.licensee || {};
-        const { city = '', state = null, zip = '' } = address;
+        const homeJurisdictionLicenseAddress = this.licensee?.bestHomeJurisdictionLicenseMailingAddress()
+        || this.licensee?.homeJurisdictionLicenseAddress
+        || {};
+        const { city = '', state = null, zip = '' } = homeJurisdictionLicenseAddress;
         const stateAbbrev = state?.abbrev?.toUpperCase();
         const delim = (city && stateAbbrev) ? ', ' : '';
 
@@ -200,78 +194,8 @@ export default class LicensingDetail extends Vue {
         return this.$t('licensing.licenseExpired');
     }
 
-    get militaryStatusTitleText(): string {
-        return this.$t('licensing.status').toUpperCase();
-    }
-
-    get militaryStatus(): string {
-        let status = '';
-
-        if (this.licensee) {
-            status = this.licensee.isMilitary() ? this.$t('licensing.statusOptions.active') : this.$t('licensing.statusOptions.inactive');
-        }
-
-        return status;
-    }
-
-    get affiliationTypeTitle(): string {
-        return this.$t('military.affiliationType').toUpperCase();
-    }
-
-    get affiliationType(): string {
-        let affiliationType = '';
-
-        if (this.licensee) {
-            const activeAffiliation = this.licensee.aciveMilitaryAffiliation() as any;
-            const isMilitary = this.licensee.isMilitary();
-
-            if (isMilitary && activeAffiliation?.affiliationType === 'militaryMember') {
-                affiliationType = this.$tm('military.affiliationTypes.militaryMember');
-            } else if (isMilitary && activeAffiliation?.affiliationType === 'militaryMemberSpouse') {
-                affiliationType = this.$tm('military.affiliationTypes.militaryMemberSpouse');
-            } else {
-                affiliationType = this.$tm('military.affiliationTypes.none');
-            }
-        }
-
-        return affiliationType;
-    }
-
-    get militaryAffilitionDocs(): string {
-        return this.$t('licensing.militaryAffilitionDocs').toUpperCase();
-    }
-
-    get militaryDocumentHeader(): any {
-        return { name: this.$t('military.fileName'), date: this.$t('military.dateUploaded') };
-    }
-
-    get sortOptions(): Array<any> {
-        // Sorting not API supported
-        return [];
-    }
-
-    get affiliations(): Array<any> {
-        let affiliations: any = [];
-
-        if (this.licensee && this.licensee?.militaryAffiliations) {
-            affiliations = (this.licensee.militaryAffiliations)
-                .map((militaryAffiliation: MilitaryAffiliation) => {
-                    const affiliationDisplay = { name: '', date: '' };
-
-                    if (militaryAffiliation.fileNames && (militaryAffiliation.fileNames as Array<string>).length) {
-                        affiliationDisplay.name = militaryAffiliation.fileNames[0] || '';
-                        affiliationDisplay.date = militaryAffiliation.dateOfUploadDisplay();
-                    }
-
-                    return affiliationDisplay;
-                });
-        }
-
-        return affiliations;
-    }
-
     get homeState(): string {
-        return this.licensee?.address?.state?.name() || '';
+        return this.licensee?.homeJurisdiction?.name() || '';
     }
 
     get pastPrivilegeList(): Array<License> {
@@ -283,7 +207,7 @@ export default class LicensingDetail extends Vue {
                     ...privilege,
                     expireDate: historyItem.previousValues?.dateOfExpiration || null,
                     issueDate: historyItem.previousValues?.dateOfIssuance || null,
-                    statusState: LicenseStatus.INACTIVE
+                    status: LicenseStatus.INACTIVE
                 }));
             });
         });
@@ -301,7 +225,7 @@ export default class LicensingDetail extends Vue {
     }
 
     isLicenseActive(license: License): boolean {
-        return license && license.statusState === LicenseStatus.ACTIVE;
+        return license && license.status === LicenseStatus.ACTIVE;
     }
 
     togglePersonalInfoCollapsed(): void {

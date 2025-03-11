@@ -75,18 +75,8 @@ export default class LicenseeDashboard extends Vue {
         return name;
     }
 
-    get homeStateList(): Array<State> {
-        const stateList: Array<State> = [];
-
-        this.activeLicenses.forEach((license) => {
-            const { issueState } = license;
-
-            if (issueState) {
-                stateList.push(issueState);
-            }
-        });
-
-        return stateList;
+    get homeJurisdiction(): State | null {
+        return this.licensee?.homeJurisdiction || null;
     }
 
     get obtainPrivButtonLabel(): string {
@@ -101,20 +91,8 @@ export default class LicenseeDashboard extends Vue {
         return this.$t('common.welcome');
     }
 
-    get activeLicenses(): Array<License> {
-        return this.licenseeLicenses.filter((license) => (license.statusState === 'active'));
-    }
-
-    get hasMoreThanOneActiveLicense(): boolean {
-        return this.activeLicenses.length > 1;
-    }
-
-    get isPrivilegePurchaseDisabled(): boolean {
-        return this.hasMoreThanOneActiveLicense || !this.hasActiveLicense;
-    }
-
-    get hasActiveLicense(): boolean {
-        return this.activeLicenses.length > 0;
+    get isPrivilegePurchaseEnabled(): boolean {
+        return this.licensee?.canPurchasePrivileges() || false;
     }
 
     get twoHomeStateErrorText(): string {
@@ -134,7 +112,7 @@ export default class LicenseeDashboard extends Vue {
                     ...privilege,
                     expireDate: historyItem.previousValues?.dateOfExpiration || null,
                     issueDate: historyItem.previousValues?.dateOfIssuance || null,
-                    statusState: LicenseStatus.INACTIVE
+                    status: LicenseStatus.INACTIVE
                 }));
             });
         });
@@ -164,7 +142,7 @@ export default class LicenseeDashboard extends Vue {
     }
 
     isLicenseActive(license: License): boolean {
-        return license && license.statusState === LicenseStatus.ACTIVE;
+        return license && license.status === LicenseStatus.ACTIVE;
     }
 
     togglePrivsCollapsed() {

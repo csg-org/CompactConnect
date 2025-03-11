@@ -490,7 +490,6 @@
         "license": "License",
         "licensingListTitle": "Licensing Data",
         "attestation": "Attestation",
-        "attestations": "Attestations",
         "stateProvidedEmail": "State-provided email",
         "accountEmail": "Account email",
         "searchTitle": "Begin a search",
@@ -508,6 +507,8 @@
         "recentPrivilegesTitle": "Recent privileges",
         "birthMonthDay": "Birth month-day",
         "pastPrivilegesTitle": "Past privileges",
+        "privilegeIcon": "Privilege icon",
+        "pInfoIcon": "Personal info icon",
         "licenseDetails": "License details",
         "licenseNumSymbol": "License #",
         "privilegeNumSymbol": "Privilege #",
@@ -548,7 +549,6 @@
         "discipline": "Discipline",
         "provisionOfInformation": "Provision of true information",
         "militaryAffiliation": "Military affiliation",
-        "blackCircle": "Black circle",
         "licenseIcon": "License icon",
         "houseIcon": "House icon",
         "statusOptions": {
@@ -559,7 +559,7 @@
         "deactivate": "Deactivate",
         "deactivated": "Deactivated",
         "confirmPrivilegeDeactivate": "Are you sure you want to deactivate this privilege? This cannot be undone.",
-        "occupations": [
+        "licenseTypes": [
             {
                 "name": "Audiologist",
                 "key": "audiologist",

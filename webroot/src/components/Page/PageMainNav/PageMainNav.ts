@@ -25,6 +25,7 @@ import LogoutIcon from '@components/Icons/Logout/Logout.vue';
 import CompactSelector from '@components/CompactSelector/CompactSelector.vue';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { CompactPermission } from '@models/StaffUser/StaffUser.model';
+import { Licensee } from '@/models/Licensee/Licensee.model';
 
 export interface NavLink {
     to: string;
@@ -72,6 +73,10 @@ class PageMainNav extends Vue {
         return this.$store.state.user;
     }
 
+    get user() {
+        return this.userStore.model;
+    }
+
     get isLoggedIn(): boolean {
         return this.userStore.isLoggedIn;
     }
@@ -86,6 +91,14 @@ class PageMainNav extends Vue {
 
     get isLoggedInAsLicensee(): boolean {
         return this.authType === AuthTypes.LICENSEE;
+    }
+
+    get licensee(): Licensee | null {
+        return this.isLoggedInAsLicensee ? this.user?.licensee : null;
+    }
+
+    get isPrivilegePurchaseEnabled(): boolean {
+        return this.licensee?.canPurchasePrivileges() || false;
     }
 
     get staffPermission(): CompactPermission | null {
@@ -179,7 +192,7 @@ class PageMainNav extends Vue {
                 params: { compact: this.currentCompact?.type },
                 label: computed(() => this.$t('navigation.purchasePrivileges')),
                 iconComponent: markRaw(PurchaseIcon),
-                isEnabled: Boolean(this.currentCompact) && !this.isLoggedInAsStaff,
+                isEnabled: Boolean(this.currentCompact) && this.isPrivilegePurchaseEnabled,
                 isExternal: false,
                 isExactActive: false,
             },
