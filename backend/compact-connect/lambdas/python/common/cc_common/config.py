@@ -274,5 +274,15 @@ class _Config:
     def email_notification_service_lambda_name(self):
         return os.environ['EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME']
 
+    @cached_property
+    def email_service_client(self):
+        from cc_common.email_service_client import EmailServiceClient
+        
+        return EmailServiceClient(
+            lambda_client=self.lambda_client,
+            email_notification_service_lambda_name=self.email_notification_service_lambda_name,
+            logger=logger
+        )
+
 
 config = _Config()
