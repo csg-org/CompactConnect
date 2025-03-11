@@ -10,7 +10,7 @@
         <div class="privilege-title-row" :class="{ 'has-actions': isCurrentUserPrivilegeAdmin }">
             <div class="privilege-title-section">
                 <div class="privilege-title">{{stateContent}}</div>
-                <div class="occupation-abbrev">{{licenseTypeAbbrev}}</div>
+                <div class="license-type-abbrev">{{licenseTypeAbbrev}}</div>
             </div>
             <div class="privilege-status" :class="{ 'italics': !isActive, 'bold': isActive }">
                 {{statusDisplay}}

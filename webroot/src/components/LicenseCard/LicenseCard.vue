@@ -19,7 +19,7 @@
             <div class="state-title">
                 {{stateContent}}
             </div>
-            <div class="occupation-abbrev">
+            <div class="license-type-abbrev">
                 {{licenseTypeDisplay}}
             </div>
         </div>
