@@ -48,7 +48,7 @@ jobs:
         run: "cd backend; bin/sync_deps.sh"
 
       - name: Test backend
-        run: "cd backend; bin/run_tests.sh python -no"
+        run: "cd backend; bin/run_tests.sh -l python -no"
 
       - name: Check Dependencies
         run: "pip-audit"
