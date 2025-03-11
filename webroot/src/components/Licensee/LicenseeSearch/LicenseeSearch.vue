@@ -25,11 +25,6 @@
                 />
             </div>
             <div class="search-form-row">
-                <InputText
-                    :formInput="formData.ssn"
-                    class="search-input ssn-input"
-                    @input="formatSsn()"
-                />
                 <InputSelect :formInput="formData.state" class="search-input state-select" />
             </div>
             <div class="search-form-row">

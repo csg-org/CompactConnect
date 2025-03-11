@@ -47,7 +47,7 @@ export default class PrivilegePurchase extends Vue {
     // Lifecycle
     //
     created() {
-        if (this.currentCompactType) {
+        if (this.licensee?.canPurchasePrivileges() && this.currentCompactType) {
             this.handlePurchaseFlowState();
         } else {
             this.$router.push({
@@ -67,8 +67,8 @@ export default class PrivilegePurchase extends Vue {
         return this.userStore.model;
     }
 
-    get licensee(): Licensee {
-        return this.user?.licensee || new Licensee();
+    get licensee(): Licensee | null {
+        return this.user?.licensee || null;
     }
 
     get currentCompact(): Compact | null {

@@ -17,8 +17,8 @@ Add a new app client yaml file to `/app_clients` following the schema of the exa
 
 #### **Scope Configuration**
    Scopes are the permissions that the app client will have. There are two tiers of scopes:
-   
-##### **Compact-Level Scopes:** 
+
+##### **Compact-Level Scopes:**
    These are the scopes that are scoped to a specific compact. Granting these scopes will allow the app client to perform actions across all jurisdictions within that compact.
    Generally, the only scope that should be granted at the compact level is the `{compact}/readGeneral` scope.
 

@@ -31,6 +31,7 @@ import { PrivilegeAttestation } from '@models/PrivilegeAttestation/PrivilegeAtte
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { State } from '@/models/State/State.model';
 import { dataApi } from '@network/data.api';
+import moment from 'moment';
 
 @Component({
     name: 'PrivilegePurchaseSelect',
@@ -77,7 +78,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         await this.$store.dispatch('user/getPrivilegePurchaseInformationRequest');
         await this.fetchAttestations();
 
-        if (this.alreadyObtainedPrivilegeStates?.length) {
+        if (this.disabledPrivilegeStateChoices?.length) {
             this.initFormInputs();
         }
         this.isLoading = false;
@@ -151,34 +152,26 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         return this.licensee?.licenses || [];
     }
 
-    get alreadyObtainedPrivilegeStates(): Array<string> {
-        const licenseList = this.licenseList.concat(this.privilegeList);
-        const stateList: Array<string> = [];
-
-        licenseList.forEach((license) => {
-            if (license?.issueState?.abbrev) {
-                stateList.push(license?.issueState?.abbrev);
-            }
-        });
-
-        return stateList;
-    }
-
     get disabledPrivilegeStateChoices(): Array<string> {
-        const licenseList = this.licenseList.concat(this.privilegeList);
-        const stateList: Array<string> = [];
+        const disabledStateList: Array<string> = [];
+        const { privilegeList } = this;
+        const bestHomeJurisdictionLicense = this.licensee?.bestHomeJurisdictionLicense();
 
-        licenseList.forEach((license) => {
-            if (
-                license?.issueState?.abbrev
-                && license?.expireDate === this.activeLicense?.expireDate
-                && license.statusState === LicenseStatus.ACTIVE
-            ) {
-                stateList.push(license?.issueState?.abbrev);
-            }
-        });
+        if (bestHomeJurisdictionLicense) {
+            privilegeList.forEach((privilege) => {
+                if (
+                    privilege?.issueState?.abbrev
+                    && moment(privilege?.expireDate).isSameOrAfter(bestHomeJurisdictionLicense.expireDate)
+                    && privilege.status === LicenseStatus.ACTIVE
+                ) {
+                    disabledStateList.push(privilege?.issueState?.abbrev);
+                }
+            });
 
-        return stateList;
+            disabledStateList.push(bestHomeJurisdictionLicense?.issueState?.abbrev || '');
+        }
+
+        return disabledStateList;
     }
 
     get backText(): string {
@@ -254,7 +247,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
     }
 
     get activeLicense(): License | null {
-        return this.licenseList?.find((license) => license.statusState === LicenseStatus.ACTIVE) || null;
+        return this.licenseList?.find((license) => license.status === LicenseStatus.ACTIVE) || null;
     }
 
     get selectPrivilegesTitleText(): string {
@@ -466,7 +459,7 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
         });
     }
 
-    @Watch('alreadyObtainedPrivilegeStates.length') reInitForm() {
+    @Watch('disabledPrivilegeStateChoices.length') reInitForm() {
         this.initFormInputs();
     }
 }

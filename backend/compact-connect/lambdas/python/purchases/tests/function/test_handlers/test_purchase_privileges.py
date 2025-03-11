@@ -312,12 +312,13 @@ class TestPostPurchasePrivileges(TstFunction):
         )
 
     @patch('handlers.privileges.PurchaseClient')
-    def test_purchase_privileges_invalid_if_existing_privilege_expiration_matches_license_expiration(
+    def test_purchase_privileges_invalid_if_existing_privilege_expiration_matches_license_expiration_and_is_active(
         self, mock_purchase_client_constructor
     ):
         """
-        In this case, the user is attempting to purchase a privilege in kentucky twice and the license expiration
-        date has not been updated since the last renewal. We reject the request in this case.
+        In this case, the user is attempting to purchase a privilege in kentucky twice, the license expiration
+        date has not been updated since the last renewal and the initial privilege is still active.
+        We reject the request in this case.
         """
         from handlers.privileges import post_purchase_privileges
 
@@ -337,6 +338,51 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(
             {'message': "Selected privilege jurisdiction 'ky' matches existing privilege jurisdiction"}, response_body
         )
+
+    @patch('handlers.privileges.PurchaseClient')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-10-05T23:59:59+00:00'))
+    def test_purchase_privileges_allows_existing_privilege_purchase_if_license_expiration_matches_but_is_inactive(
+            self, mock_purchase_client_constructor
+    ):
+        """
+        In this case, the user is attempting to purchase a privilege in kentucky twice with the same expiration date
+        but the status of the first privilege is inactive
+        """
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+        test_expiration_date = date(2026, 10, 8).isoformat()
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date=test_expiration_date)
+        event['body'] = _generate_test_request_body()
+        test_issuance_date = datetime(2023, 10, 8, hour=5, tzinfo=UTC).isoformat()
+
+        # create an existing privilege record for the kentucky jurisdiction, simulating a previous purchase
+        with open('../common/tests/resources/dynamo/privilege.json') as f:
+            privilege_record = json.load(f)
+            privilege_record['pk'] = f'{TEST_COMPACT}#PROVIDER#{TEST_PROVIDER_ID}'
+            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky#2023-10-08'
+            # in this case, the user is purchasing the privilege for the first time
+            # so the date of renewal is the same as the date of issuance
+            privilege_record['dateOfRenewal'] = test_issuance_date
+            privilege_record['dateOfIssuance'] = test_issuance_date
+            privilege_record['dateOfExpiration'] = test_expiration_date
+            privilege_record['compact'] = TEST_COMPACT
+            privilege_record['jurisdiction'] = 'ky'
+            privilege_record['providerId'] = TEST_PROVIDER_ID
+            privilege_record['persistedStatus'] = 'inactive'
+            self.config.provider_table.put_item(Item=privilege_record)
+
+        # now make the same call with the same jurisdiction
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'], resp['body'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual({'transactionId': MOCK_TRANSACTION_ID}, response_body)
+
+        # ensure the persistent status is now active
+        provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
+        privilege_records = [record for record in provider_records['items'] if record['type'] == 'privilege']
+        self.assertEqual('active', privilege_records[0]['persistedStatus'])
 
     @patch('handlers.privileges.PurchaseClient')
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-10-05T23:59:59+00:00'))

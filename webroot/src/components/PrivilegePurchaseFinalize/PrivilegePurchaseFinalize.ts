@@ -369,7 +369,7 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
     }
 
     get licenseTypeSelected(): string {
-        return this.selectedPurchaseLicense?.occupationAbbreviation() || '';
+        return this.selectedPurchaseLicense?.licenseTypeAbbreviation() || '';
     }
 
     get selectionText(): string {

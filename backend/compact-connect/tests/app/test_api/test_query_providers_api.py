@@ -321,50 +321,60 @@ class TestQueryProvidersApi(TestApi):
         provider_resource = api_stack.api.v1_api.query_providers.provider_resource.node.default_child
         privileges_logical_id = api_stack_template.find_resources(
             type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={'Properties': {
-                'ParentId': {'Ref': api_stack.get_logical_id(provider_resource)},
-                'PathPart': 'privileges',
-            }},
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': api_stack.get_logical_id(provider_resource)},
+                    'PathPart': 'privileges',
+                }
+            },
         )
         self.assertEqual(len(privileges_logical_id), 1)
         privileges_logical_id = next(key for key in privileges_logical_id.keys())
 
         jurisdiction_logical_id = api_stack_template.find_resources(
             type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={'Properties': {
-                'ParentId': {'Ref': privileges_logical_id},
-                'PathPart': 'jurisdiction',
-            }},
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': privileges_logical_id},
+                    'PathPart': 'jurisdiction',
+                }
+            },
         )
         self.assertEqual(len(jurisdiction_logical_id), 1)
         jurisdiction_logical_id = next(key for key in jurisdiction_logical_id.keys())
 
         jurisdiction_param_logical_id = api_stack_template.find_resources(
             type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={'Properties': {
-                'ParentId': {'Ref': jurisdiction_logical_id},
-                'PathPart': '{jurisdiction}',
-            }},
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': jurisdiction_logical_id},
+                    'PathPart': '{jurisdiction}',
+                }
+            },
         )
         self.assertEqual(len(jurisdiction_param_logical_id), 1)
         jurisdiction_param_logical_id = next(key for key in jurisdiction_param_logical_id.keys())
 
         license_type_logical_id = api_stack_template.find_resources(
             type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={'Properties': {
-                'ParentId': {'Ref': jurisdiction_param_logical_id},
-                'PathPart': 'licenseType',
-            }},
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': jurisdiction_param_logical_id},
+                    'PathPart': 'licenseType',
+                }
+            },
         )
         self.assertEqual(len(license_type_logical_id), 1)
         license_type_logical_id = next(key for key in license_type_logical_id.keys())
 
         license_type_param_logical_id = api_stack_template.find_resources(
             type=CfnResource.CFN_RESOURCE_TYPE_NAME,
-            props={'Properties': {
-                'ParentId': {'Ref': license_type_logical_id},
-                'PathPart': '{licenseType}',
-            }},
+            props={
+                'Properties': {
+                    'ParentId': {'Ref': license_type_logical_id},
+                    'PathPart': '{licenseType}',
+                }
+            },
         )
         self.assertEqual(len(license_type_param_logical_id), 1)
         license_type_param_logical_id = next(key for key in license_type_param_logical_id.keys())
@@ -374,5 +384,5 @@ class TestQueryProvidersApi(TestApi):
             props={
                 'ParentId': {'Ref': license_type_param_logical_id},
                 'PathPart': 'deactivate',
-            }
+            },
         )

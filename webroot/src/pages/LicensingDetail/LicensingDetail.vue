@@ -52,11 +52,11 @@
             <div class="personal-information-section">
                 <div class="title-row">
                     <div class="title-info">
-                        <div class="license-logo-container">
+                        <div class="pi-logo-container">
                             <img
                                 class="home-state-img"
-                                src="@assets/images/black-ellipse.svg"
-                                :alt="$t('licensing.blackCircle')"
+                                src="@assets/icons/ico-personalInfo.svg"
+                                :alt="$t('licensing.pInfoIcon')"
                             />
                         </div>
                         <div class="title-text">
@@ -87,10 +87,6 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="info-item-container">
-                            <div class="info-item-title">{{$t('licensing.driversLicense')}}</div>
-                            <div class="info-item">{{licenseNumber}}</div>
-                        </div>
                         <div v-if="dob" class="info-item-container">
                             <div class="info-item-title">{{$t('common.dateOfBirthShort')}}</div>
                             <div class="info-item">{{dob}}</div>
@@ -99,67 +95,44 @@
                             <div class="info-item-title">{{$t('licensing.birthMonthDay')}}</div>
                             <div class="info-item">{{birthMonthDay}}</div>
                         </div>
-                        <div class="info-item-container">
+                        <div v-if="licenseeFullSsn" class="info-item-container">
+                            <div class="info-item-title">{{$t('licensing.ssn')}}</div>
+                            <div class="info-item">{{licenseeFullSsn}}</div>
+                        </div>
+                        <div v-else-if="ssn" class="info-item-container">
                             <div class="info-item-title">{{$t('licensing.ssn')}}</div>
                             <div class="info-item">{{ssn}}</div>
-                        </div>
-                    </div>
-                    <div class="core-info-block">
-                        <div class="info-row">
-                            <div class="chunk">
-                                <div class="chunk-title">{{militaryStatusTitleText}}</div>
-                                <div class="chunk-text">{{militaryStatus}}</div>
+                            <div
+                                v-if="hasLoggedInReadSsnAccessForLicensee && !licenseeFullSsnLoading"
+                                class="ssn-reveal-btn"
+                                role="button"
+                                @click="revealFullSsn"
+                                @keyup.enter="revealFullSsn"
+                                tabindex="0"
+                            >
+                                {{ $t('licensing.revealFullSsn') }}
                             </div>
-                            <div class="chunk affiliation-type">
-                                <div class="chunk-title">{{affiliationTypeTitle}}</div>
-                                <div class="chunk-text">{{affiliationType}}</div>
+                            <div
+                                v-else-if="hasLoggedInReadSsnAccessForLicensee && licenseeFullSsnLoading"
+                                class="ssn-reveal-loading"
+                            >
+                                {{ $t('common.loading') }}
                             </div>
-                        </div>
-                        <div class="chunk">
-                            <div class="chunk-title">{{militaryAffilitionDocs}}</div>
-                            <div class="prev-doc-table">
-                                <ListContainer
-                                    listId="military-affiliations"
-                                    :listData="this.affiliations"
-                                    :listSize="this.affiliations.length"
-                                    :sortOptions="sortOptions"
-                                    :sortChange="sortingChange"
-                                    :pageChange="paginationChange"
-                                    :excludeSorting="true"
-                                    :excludeTopPagination="true"
-                                    :excludeBottomPagination="true"
-                                    :isServerPaging="false"
-                                    :emptyListMessage="$t('military.noUploadedDocuments')"
-                                    :isLoading="$store.state.user.isLoadingAccount"
-                                >
-                                    <template v-slot:headers>
-                                        <MilitaryDocumentRow
-                                            :item="militaryDocumentHeader"
-                                            :isHeaderRow="true"
-                                        />
-                                    </template>
-                                    <template v-slot:list>
-                                        <MilitaryDocumentRow
-                                            v-for="(record, index) in this.affiliations"
-                                            :key="index"
-                                            :item="record"
-                                        />
-                                    </template>
-                                </ListContainer>
+                            <div v-if="licenseeFullSsnError" class="info-item-error">
+                                {{ licenseeFullSsnError }}
                             </div>
                         </div>
                     </div>
+                    <MilitaryAffiliationInfoBlock
+                        :licensee="licensee"
+                    />
                 </div>
             </div>
             <div class="license-section">
                 <div class="title-row">
                     <div class="title-info">
                         <div class="license-logo-container">
-                            <img
-                                class="home-state-img"
-                                src="@assets/images/black-ellipse.svg"
-                                :alt="$t('licensing.blackCircle')"
-                            />
+                            <LicenseIcon />
                         </div>
                         <div class="title-text">
                             {{licenseDetails}}
@@ -190,8 +163,8 @@
                         <div class="privilege-logo-container">
                             <img
                                 class="home-state-img"
-                                src="@assets/images/black-ellipse.svg"
-                                :alt="$t('licensing.blackCircle')"
+                                src="@assets/icons/ico-privilege.svg"
+                                :alt="$t('licensing.privilegeIcon')"
                             />
                         </div>
                         <div class="title-text">
@@ -215,13 +188,6 @@
             <div class="privilege-section">
                 <div class="title-row">
                     <div class="title-info">
-                        <div class="privilege-logo-container">
-                            <img
-                                class="home-state-img"
-                                src="@assets/images/black-ellipse.svg"
-                                :alt="$t('licensing.blackCircle')"
-                            />
-                        </div>
                         <div class="title-text">
                             {{pastPrivilegesTitle}}
                         </div>

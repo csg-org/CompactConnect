@@ -116,7 +116,6 @@ describe('LicenseeList component', async () => {
             jurisdiction: undefined,
             licenseeFirstName: undefined,
             licenseeLastName: undefined,
-            licenseeSsn: undefined,
             '...': '',
         });
     });
@@ -126,7 +125,6 @@ describe('LicenseeList component', async () => {
         const testParams = {
             firstName: 'firstName',
             lastName: 'lastName',
-            ssn: 'ssn',
             state: 'state',
         };
 
@@ -140,7 +138,6 @@ describe('LicenseeList component', async () => {
             jurisdiction: testParams.state,
             licenseeFirstName: testParams.firstName,
             licenseeLastName: testParams.lastName,
-            licenseeSsn: testParams.ssn,
             '...': '',
         });
     });

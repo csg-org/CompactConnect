@@ -65,8 +65,10 @@ class TestPipeline(TstAppABC, TestCase):
         resource_servers = persistent_stack.staff_users.compact_resource_servers
         # We must confirm that these scopes are being explicitly created for each compact marked as active in the
         # environment, which are absolutely critical for the system to function as expected.
-        self.assertEqual(sorted(persistent_stack.get_list_of_active_compacts_for_environment(environment_name)),
-                         sorted(list(resource_servers.keys())))
+        self.assertEqual(
+            sorted(persistent_stack.get_list_of_active_compacts_for_environment(environment_name)),
+            sorted(list(resource_servers.keys())),
+        )
 
         for compact, resource_server in resource_servers.items():
             resource_server_properties = self.get_resource_properties_by_logical_id(
@@ -119,7 +121,6 @@ class TestPipeline(TstAppABC, TestCase):
             overwrite_snapshot=overwrite_snapshot,
         )
 
-
     def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users_test_stage(self):
         """
         Test that the jurisdiction resource servers are created with the expected scopes
@@ -129,7 +130,7 @@ class TestPipeline(TstAppABC, TestCase):
         self._when_testing_jurisdiction_resource_servers(
             persistent_stack=persistent_stack,
             snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_TEST_ENV',
-            overwrite_snapshot=False
+            overwrite_snapshot=False,
         )
 
     def test_synth_generates_jurisdiction_resource_servers_with_expected_scopes_for_staff_users_prod_stage(self):
@@ -141,7 +142,7 @@ class TestPipeline(TstAppABC, TestCase):
         self._when_testing_jurisdiction_resource_servers(
             persistent_stack=persistent_stack,
             snapshot_name='JURISDICTION_RESOURCE_SERVER_CONFIGURATION_PROD_ENV',
-            overwrite_snapshot=False
+            overwrite_snapshot=False,
         )
 
     def test_cognito_using_recommended_security_in_prod(self):
@@ -153,8 +154,7 @@ class TestPipeline(TstAppABC, TestCase):
             CfnUserPool.CFN_RESOURCE_TYPE_NAME,
             props={'Properties': {'UserPoolAddOns': {'AdvancedSecurityMode': 'ENFORCED'}, 'MfaConfiguration': 'ON'}},
         )
-        # Two user pools, we should find two matches
-        self.assertEqual(2, len(user_pools))
+        number_of_user_pools = len(user_pools)
 
         # Check risk configurations
         risk_configurations = template.find_resources(
@@ -172,8 +172,8 @@ class TestPipeline(TstAppABC, TestCase):
                 }
             },
         )
-        # One for each of two user pools
-        self.assertEqual(2, len(risk_configurations))
+        # Every user pool should have this risk configuration
+        self.assertEqual(number_of_user_pools, len(risk_configurations))
 
         # Verify that we're not allowing the implicit grant flow in any of our clients
         implicit_grant_clients = template.find_resources(

@@ -17,7 +17,7 @@ import moment from 'moment';
 // ========================================================
 // =                       Interface                      =
 // ========================================================
-export enum LicenseOccupation { // Temp server definition until server returns via endpoint
+export enum LicenseType { // Temp server definition until server returns via endpoint
     AUDIOLOGIST = 'audiologist',
     SPEECH_LANGUAGE_PATHOLOGIST = 'speech-language pathologist',
     SPEECH_AND_LANGUAGE_PATHOLOGIST = 'speech and language pathologist',
@@ -48,16 +48,16 @@ export interface InterfaceLicense {
     npi?: string | null;
     licenseNumber?: string | null;
     privilegeId?: string | null;
-    occupation?: LicenseOccupation | null,
+    licenseType?: LicenseType | null,
     history?: Array<LicenseHistoryItem>,
-    statusState?: LicenseStatus,
-    statusCompact?: LicenseStatus,
+    status?: LicenseStatus,
 }
 
 // ========================================================
 // =                        Model                         =
 // ========================================================
 export class License implements InterfaceLicense {
+    // This model is used to represent both privileges and licenses as their shape almost entirely overlaps
     public $tm?: any = () => [];
     public id? = null;
     public compact? = null;
@@ -71,10 +71,9 @@ export class License implements InterfaceLicense {
     public licenseNumber? = null;
     public privilegeId? = null;
     public expireDate? = null;
-    public occupation? = null;
+    public licenseType? = null;
     public history? = [];
-    public statusState? = LicenseStatus.INACTIVE;
-    public statusCompact? = LicenseStatus.INACTIVE;
+    public status? = LicenseStatus.INACTIVE;
 
     constructor(data?: InterfaceLicense) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -109,25 +108,26 @@ export class License implements InterfaceLicense {
         return Boolean(diff > 0);
     }
 
-    public occupationName(): string {
-        const occupations = this.$tm('licensing.occupations') || [];
-        const occupation = occupations.find((translate) => translate.key === this.occupation);
-        const occupationName = occupation?.name || '';
+    // Relevant for License only until licenseType is included in privilege return
+    public licenseTypeName(): string {
+        const licenseTypes = this.$tm('licensing.licenseTypes') || [];
+        const licenseType = licenseTypes.find((translate) => translate.key === this.licenseType);
+        const licenseTypeName = licenseType?.name || '';
 
-        return occupationName;
+        return licenseTypeName;
     }
 
-    public occupationAbbreviation(): string {
-        const occupations = this.$tm('licensing.occupations') || [];
-        const occupation = occupations.find((translate) => translate.key === this.occupation);
-        const occupationAbbrev = occupation?.abbrev || '';
-        const upperCaseAbbrev = occupationAbbrev.toUpperCase();
+    public licenseTypeAbbreviation(): string {
+        const licenseTypes = this.$tm('licensing.licenseTypes') || [];
+        const licenseType = licenseTypes.find((translate) => translate.key === this.licenseType);
+        const licenseTypeAbbrev = licenseType?.abbrev || '';
+        const upperCaseAbbrev = licenseTypeAbbrev.toUpperCase();
 
         return upperCaseAbbrev;
     }
 
     public displayName(): string {
-        return `${this.issueState?.name() || ''}${this.issueState?.name() && this.occupationAbbreviation() ? ' - ' : ''}${this.occupationAbbreviation()}`;
+        return `${this.issueState?.name() || ''}${this.issueState?.name() && this.licenseTypeAbbreviation() ? ' - ' : ''}${this.licenseTypeAbbreviation()}`;
     }
 }
 
@@ -153,14 +153,13 @@ export class LicenseSerializer {
             issueState: new State({ abbrev: json.jurisdiction || json.licenseJurisdiction }),
             issueDate: json.dateOfIssuance,
             npi: json.npi,
-            licenseNumber: json.licenseNumber,
-            privilegeId: json.privilegeId,
+            licenseNumber: json.licenseNumber, // License field only
+            privilegeId: json.privilegeId, // Privilege field only
             renewalDate: json.dateOfRenewal,
             expireDate: json.dateOfExpiration,
-            occupation: json.licenseType,
-            statusState: json.status,
+            licenseType: json.licenseType, // License field only for now, will eventually be included in privileges
+            status: json.status,
             history: [] as Array <LicenseHistoryItem>,
-            statusCompact: json.status, // In the near future, the server will send a separate field for this
         };
 
         if (Array.isArray(json.history)) {

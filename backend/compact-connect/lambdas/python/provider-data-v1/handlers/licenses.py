@@ -1,12 +1,10 @@
 import json
-from datetime import UTC, datetime
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.license.api import LicensePostRequestSchema
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException
-from cc_common.utils import api_handler, authorize_compact_jurisdiction
-from event_batch_writer import EventBatchWriter
+from cc_common.utils import api_handler, authorize_compact_jurisdiction, send_licenses_to_preprocessing_queue
 from marshmallow import ValidationError
 
 schema = LicensePostRequestSchema()
@@ -31,29 +29,22 @@ def post_licenses(event: dict, context: LambdaContext):  # noqa: ARG001 unused-a
     except ValidationError as e:
         raise CCInvalidRequestException(e.messages) from e
 
-    event_time = datetime.now(tz=UTC)
-    with EventBatchWriter(config.events_client) as event_writer:
-        for license_data in licenses:
-            event_writer.put_event(
-                Entry={
-                    'Source': 'org.compactconnect.licenses',
-                    'DetailType': 'license.ingest',
-                    'Detail': json.dumps(
-                        {
-                            'eventTime': event_time.isoformat(),
-                            'compact': compact,
-                            'jurisdiction': jurisdiction,
-                            **schema.dump(license_data),
-                        }
-                    ),
-                    'EventBusName': config.event_bus_name,
-                }
-            )
+    event_time = config.current_standard_datetime
 
-    if event_writer.failed_entry_count > 0:
-        logger.error('Failed to publish %s ingest events!', event_writer.failed_entry_count)
-        for failure in event_writer.failed_entries:
-            logger.debug('Failed event entry', entry=failure)
+    logger.info('Sending license records to preprocessing queue', compact=compact, jurisdiction=jurisdiction)
+    # Use the utility function to send licenses to the preprocessing queue
+    failed_license_numbers = send_licenses_to_preprocessing_queue(
+        licenses_data=schema.dump(licenses, many=True),
+        event_time=event_time.isoformat(),
+    )
 
+    if failed_license_numbers:
+        logger.error(
+            'Failed to send license messages to preprocessing queue!',
+            compact=compact,
+            jurisdiction=jurisdiction,
+            failed_license_numbers=failed_license_numbers,
+        )
         raise CCInternalException('Failed to process licenses!')
+
     return {'message': 'OK'}

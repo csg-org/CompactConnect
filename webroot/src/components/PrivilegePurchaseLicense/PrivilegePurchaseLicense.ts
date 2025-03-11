@@ -67,9 +67,9 @@ class PrivilegePurchaseLicense extends mixins(MixinForm) {
     }
 
     get homeStateLicenses(): Array<License> {
-        console.log('huh', this.licensee?.homeStateLicenses());
+        console.log('huh', this.licensee?.homeJurisdictionLicenses());
 
-        return this.licensee?.homeStateLicenses() || [];
+        return this.licensee?.homeJurisdictionLicenses() || [];
     }
 
     get currentCompact(): Compact | null {

@@ -123,7 +123,7 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
     }
 
     get homeStateLicense(): License {
-        return this.licensee?.bestHomeStateLicense() || new License();
+        return this.licensee?.bestHomeJurisdictionLicense() || new License();
     }
 
     get homeStateText(): string {
@@ -245,7 +245,7 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
 
     handleBackClicked() {
         if (this.currentCompactType) {
-            if (this.licensee && this.licensee.homeStateLicenses().length > 1) {
+            if (this.licensee && this.licensee.homeJurisdictionLicenses().length > 1) {
                 this.$router.push({
                     name: 'PrivilegePurchaseSelectLicense',
                     params: { compact: this.currentCompactType }

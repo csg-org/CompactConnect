@@ -491,7 +491,6 @@
         "attestation": "Atestación",
         "stateProvidedEmail": "Correo electrónico proporcionado por el estado",
         "accountEmail": "Correo electrónico de la cuenta",
-        "attestations": "Atestaciónes",
         "searchSubtext": "Introduzca al menos un campo para buscar datos de licencia.",
         "searchLabel": "Buscar",
         "searchPlaceholderName": "Introducir nombre",
@@ -505,6 +504,9 @@
         "licenseDetails": "Detalles de la licencia",
         "licenseNumSymbol": "Licencia #",
         "privilegeNumSymbol": "Privilegio #",
+        "licenseIcon": "Icono de licencia",
+        "privilegeIcon": "Icono de Privilegio",
+        "pInfoIcon": "Icono de información personal",
         "licenseExpired": "Licencia caducada",
         "selectLicense": "Seleccione una licencia",
         "driversLicense": "Licencia de conducir #",
@@ -513,6 +515,7 @@
         "personalInformation": "Información personal",
         "ssn": "SSN",
         "ssnLastFour": "Últimos 4 números del SSN",
+        "revealFullSsn": "Revelar el SSN completo",
         "incorrectInfoDisclaimer": "La información en esta página fue proporcionada por su estado de origen. Si la información es incorrecta, debe comunicarse con ese estado y pedirles que la corrijan. Consulte la página compacta de Preguntas Frecuentes para obtener más información.",
         "noRefundsMessage": "Todas las compras de privilegios compactos son definitivas. No se emitirán reembolsos.",
         "licenseType": "Tipo de licencia",
@@ -541,8 +544,6 @@
         "scopeAttestTitle": "Alcance de la certificación de práctica",
         "scopeAttestLabel": "He leído el alcance de la atestación de práctica.",
         "noDiscipline": "No disciplina",
-        "blackCircle": "Circulo negro",
-        "licenseIcon": "Icono de licencia",
         "houseIcon": "Icono de la casa",
         "twoHomeStateErrorMessage": "Dos estados lo tienen incluido como residente. Actualice su información con esos estados para reflejar su estado de residencia actual.",
         "state": "Estado",
@@ -559,7 +560,7 @@
         "deactivate": "Desactivar",
         "deactivated": "Desactivado",
         "confirmPrivilegeDeactivate": "¿Está seguro de que desea desactivar este privilegio? No es posible deshacer esta acción.",
-        "occupations": [
+        "licenseTypes": [
             {
                 "name": "Audiólogo",
                 "key": "audiologist",
@@ -651,6 +652,7 @@
             "none": "Ninguno",
             "read": "Lectura",
             "readPrivate": "Leer datos privados",
+            "readSsn": "Leer el SSN",
             "write": "Escritura",
             "admin": "Administración"
         },

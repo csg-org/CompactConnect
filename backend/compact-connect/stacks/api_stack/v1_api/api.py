@@ -13,6 +13,7 @@ from stacks.api_stack.v1_api.query_providers import QueryProviders
 from .api_model import ApiModel
 from .credentials import Credentials
 from .post_licenses import PostLicenses
+from .public_lookup_api import PublicLookupApi
 from .staff_users import StaffUsers
 
 
@@ -77,6 +78,21 @@ class V1Api:
             authorization_scopes=read_ssn_scopes,
         )
 
+        # /v1/public
+        self.public_resource = self.resource.add_resource('public')
+        # POST /v1/public/compacts/{compact}/providers/query
+        # GET  /v1/public/compacts/{compact}/providers/{providerId}
+        self.public_compacts_resource = self.public_resource.add_resource('compacts')
+        self.public_compacts_compact_resource = self.public_compacts_resource.add_resource('{compact}')
+        self.public_compacts_compact_providers_resource = self.public_compacts_compact_resource.add_resource(
+            'providers'
+        )
+        self.public_lookup_api = PublicLookupApi(
+            resource=self.public_compacts_compact_providers_resource,
+            persistent_stack=persistent_stack,
+            api_model=self.api_model,
+        )
+
         # /v1/provider-users
         self.provider_users_resource = self.resource.add_resource('provider-users')
         self.provider_users = ProviderUsers(
@@ -139,13 +155,14 @@ class V1Api:
         PostLicenses(
             resource=licenses_resource,
             method_options=write_auth_method_options,
-            event_bus=persistent_stack.data_event_bus,
+            persistent_stack=persistent_stack,
             api_model=self.api_model,
         )
         BulkUploadUrl(
             resource=licenses_resource,
             method_options=write_auth_method_options,
             bulk_uploads_bucket=persistent_stack.bulk_uploads_bucket,
+            license_upload_role=persistent_stack.ssn_table.license_upload_role,
             api_model=self.api_model,
         )
 
