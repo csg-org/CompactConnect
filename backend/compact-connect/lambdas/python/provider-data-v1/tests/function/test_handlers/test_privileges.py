@@ -22,6 +22,8 @@ DEACTIVATION_HISTORY = {
         'compactTransactionId': '1234567890',
         'privilegeId': 'SLP-NE-1',
         'persistedStatus': 'active',
+        'licenseJurisdiction': 'oh',
+        'licenseType': 'speech-language pathologist',
     },
     'updatedValues': {'persistedStatus': 'inactive'},
 }
@@ -40,7 +42,11 @@ class TestDeactivatePrivilege(TstFunction):
 
         # The user has read permission for aslp
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral ne/aslp.readPrivate'
-        event['pathParameters'] = {'compact': 'aslp', 'providerId': expected_provider['providerId']}
+        event['pathParameters'] = {
+            'compact': 'aslp',
+            'providerId': expected_provider['providerId'],
+            'licenseType': 'aud',
+        }
 
         resp = get_provider(event, self.mock_context)
 
@@ -55,6 +61,7 @@ class TestDeactivatePrivilege(TstFunction):
 
         body = json.loads(resp['body'])
 
+        self.maxDiff = None
         self.assertEqual(expected_provider, body)
 
     def _request_deactivation_with_scopes(self, scopes: str):
@@ -68,9 +75,7 @@ class TestDeactivatePrivilege(TstFunction):
             'compact': 'aslp',
             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
             'jurisdiction': 'ne',
-            # NOTE: This is not currently used, but is required by the API for future compatibility with
-            # multiple license types per jurisdiction
-            'licenseType': 'audiologist',
+            'licenseType': 'slp',
         }
         event['body'] = None
 

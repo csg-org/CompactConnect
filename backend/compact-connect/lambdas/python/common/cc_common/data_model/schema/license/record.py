@@ -46,7 +46,8 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
-        in_data['sk'] = f'{in_data["compact"]}#PROVIDER#license/{in_data["jurisdiction"]}#'
+        license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
+        in_data['sk'] = f'{in_data["compact"]}#PROVIDER#license/{in_data["jurisdiction"]}/{license_type_abbr}#'
         return in_data
 
     @pre_dump
@@ -133,8 +134,9 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         # to the record. We'll use the current time and the hash of the updatedValues
         # field for this.
         change_hash = self.hash_changes(in_data)
+        license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['previous']['licenseType']]
         in_data['sk'] = (
-            f'{in_data["compact"]}#PROVIDER#license/{in_data["jurisdiction"]}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'
+            f'{in_data["compact"]}#PROVIDER#license/{in_data["jurisdiction"]}/{license_type_abbr}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'
         )
         return in_data
 

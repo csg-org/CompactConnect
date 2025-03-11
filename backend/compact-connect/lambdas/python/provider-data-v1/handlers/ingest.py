@@ -1,9 +1,9 @@
 import json
-from collections.abc import Iterable
 
 from boto3.dynamodb.types import TypeSerializer
 from cc_common.config import config, logger
-from cc_common.data_model.schema import LicenseRecordSchema, ProviderRecordSchema
+from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility
+from cc_common.data_model.schema import LicenseRecordSchema
 from cc_common.data_model.schema.common import ProviderEligibilityStatus, UpdateCategory
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
@@ -116,12 +116,12 @@ def ingest_license_message(message: dict):
                 {
                     'Put': {
                         'TableName': config.provider_table_name,
-                        # We'll use the schema/serializer to populate index fields for us
                         'Item': TypeSerializer().serialize(json.loads(dumped_license))['M'],
                     },
                 },
             ]
 
+            home_jurisdiction = None
             try:
                 provider_data = config.data_client.get_provider(
                     compact=compact,
@@ -129,23 +129,32 @@ def ingest_license_message(message: dict):
                     detail=True,
                     consistent_read=True,
                 )
-                # Get all privilege jurisdictions, directly from privilege records
-                privilege_jurisdictions = {
-                    record['jurisdiction'] for record in provider_data['items'] if record['type'] == 'privilege'
-                }
-                # Get all the existing license records, by jurisdiction, to find the best data for the provider
-                licenses = {
-                    record['jurisdiction']: record for record in provider_data['items'] if record['type'] == 'license'
-                }
-            except CCNotFoundException:
-                privilege_jurisdictions = set()
-                licenses = {}
+                license_records = ProviderRecordUtility.get_records_of_type(
+                    provider_data['items'],
+                    ProviderRecordType.LICENSE,
+                )
+                licenses_organized = {}
+                for record in license_records:
+                    licenses_organized.setdefault(record['jurisdiction'], {})
+                    licenses_organized[record['jurisdiction']][record['licenseType']] = record
 
-            # Which license do we use for provider data?
-            # If at least one active: last issued active license
-            # If all inactive: last issued inactive license
+                # Get all privilege jurisdictions, directly from privilege records
+                privilege_records = ProviderRecordUtility.get_records_of_type(
+                    provider_data['items'],
+                    ProviderRecordType.PRIVILEGE,
+                )
+
+                # Get the home jurisdiction selection, if it exists
+                home_jurisdiction = ProviderRecordUtility.get_provider_home_state_selection(provider_data['items'])
+
+            except CCNotFoundException:
+                licenses_organized = {}
+                privilege_records = []
+
             # Set (or replace) the posted license for its jurisdiction
-            existing_license = licenses.get(posted_license_record['jurisdiction'])
+            existing_license = licenses_organized.get(posted_license_record['jurisdiction'], {}).get(
+                posted_license_record['licenseType']
+            )
             if existing_license is not None:
                 _process_license_update(
                     existing_license=existing_license,
@@ -153,23 +162,28 @@ def ingest_license_message(message: dict):
                     dynamo_transactions=dynamo_transactions,
                     data_events=data_events,
                 )
-            licenses[posted_license_record['jurisdiction']] = posted_license_record
-
-            # First try to find the home state license
-            best_license = config.data_client.find_home_state_license(
-                compact=compact, provider_id=provider_id, licenses=list(licenses.values())
+            licenses_organized.setdefault(posted_license_record['jurisdiction'], {})
+            licenses_organized[posted_license_record['jurisdiction']][posted_license_record['licenseType']] = (
+                posted_license_record
             )
-            # If no home state selection exists yet, fall back to finding the best license based on status and date
-            if best_license is None:
-                best_license = _find_best_license(licenses.values())
+            licenses_flattened = [
+                license_record
+                for jurisdiction_licenses in licenses_organized.values()
+                for license_record in jurisdiction_licenses.values()
+            ]
+
+            best_license = ProviderRecordUtility.find_best_license(
+                license_records=licenses_flattened,
+                home_jurisdiction=home_jurisdiction,
+            )
 
             if best_license is posted_license_record:
                 logger.info('Updating provider data')
 
-                provider_record = _populate_provider_record(
+                provider_record = ProviderRecordUtility.populate_provider_record(
                     provider_id=provider_id,
-                    posted_license_record=posted_license_record,
-                    privilege_jurisdictions=privilege_jurisdictions,
+                    license_record=posted_license_record,
+                    privilege_records=privilege_records,
                 )
                 # Update our provider data
                 dynamo_transactions.append(
@@ -187,19 +201,6 @@ def ingest_license_message(message: dict):
             with EventBatchWriter(config.events_client) as event_writer:
                 for event in data_events:
                     event_writer.put_event(Entry=event)
-
-
-def _populate_provider_record(*, provider_id: str, posted_license_record: dict, privilege_jurisdictions: set) -> dict:
-    return ProviderRecordSchema().dump(
-        {
-            'providerId': provider_id,
-            'compact': posted_license_record['compact'],
-            'licenseJurisdiction': posted_license_record['jurisdiction'],
-            # We can't put an empty string set to DynamoDB, so we'll only add the field if it is not empty
-            **({'privilegeJurisdictions': privilege_jurisdictions} if privilege_jurisdictions else {}),
-            **posted_license_record,
-        }
-    )
 
 
 def _process_license_update(*, existing_license: dict, new_license: dict, dynamo_transactions: list, data_events: list):
@@ -291,21 +292,3 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
             **({'removedValues': sorted(removed_values)} if removed_values else {}),
         }
     )
-
-
-def _find_best_license(all_licenses: Iterable) -> dict:
-    # Last issued active license, if there are any active licenses
-    latest_active_licenses = sorted(
-        [
-            license_data
-            for license_data in all_licenses
-            if license_data['jurisdictionStatus'] == ProviderEligibilityStatus.ACTIVE.value
-        ],
-        key=lambda x: x['dateOfIssuance'],
-        reverse=True,
-    )
-    if latest_active_licenses:
-        return latest_active_licenses[0]
-    # Last issued inactive license, otherwise
-    latest_licenses = sorted(all_licenses, key=lambda x: x['dateOfIssuance'], reverse=True)
-    return latest_licenses[0]

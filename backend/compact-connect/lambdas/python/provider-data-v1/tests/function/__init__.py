@@ -260,8 +260,11 @@ class TstFunction(TstLambdas):
                 )
 
             # Add a privilege
-
-            provider_record = data_client.get_provider(compact='aslp', provider_id=provider_id, detail=False)
+            provider_record = data_client.get_provider(
+                compact='aslp',
+                provider_id=provider_id,
+                detail=False,
+            )['items'][0]
             if privilege_jurisdiction:
                 data_client.create_provider_privileges(
                     compact='aslp',
