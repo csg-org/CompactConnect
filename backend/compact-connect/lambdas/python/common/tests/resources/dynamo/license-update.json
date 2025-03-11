@@ -1,16 +1,16 @@
 {
   "pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
-  "sk": "aslp#PROVIDER#license/oh/slp#UPDATE#1586264399/51d56e2cd9cef6f89d1ce912acbf1077",
+  "sk": "aslp#PROVIDER#license/oh/slp#UPDATE#1586264399/879a4d2855336daee3ac697fdf6c6a77",
   "type": "licenseUpdate",
   "updateType": "renewal",
   "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
   "compact": "aslp",
   "jurisdiction": "oh",
+  "licenseType": "speech-language pathologist",
   "dateOfUpdate": "2020-04-07T12:59:59+00:00",
   "previous": {
     "npi": "0608337260",
     "licenseNumber": "A0608337260",
-    "licenseType": "speech-language pathologist",
     "ssnLastFour": "1234",
     "givenName": "Björk",
     "middleName": "Gunnar",

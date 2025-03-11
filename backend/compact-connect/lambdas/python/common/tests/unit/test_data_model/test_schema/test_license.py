@@ -189,6 +189,7 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
                 'providerId': uuid4(),
                 'compact': 'aslp',
                 'jurisdiction': 'ky',
+                'licenseType': 'speech-language pathologist',
                 # These two fields should determine the change hash:
                 'previous': loaded_record['previous'].copy(),
                 'updatedValues': loaded_record['updatedValues'].copy(),
@@ -215,6 +216,7 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
             'providerId': uuid4(),
             'compact': 'aslp',
             'jurisdiction': 'ky',
+            'licenseType': 'speech-language pathologist',
             # These two fields should determine the change hash:
             'previous': loaded_record['previous'].copy(),
             'updatedValues': loaded_record['updatedValues'].copy(),

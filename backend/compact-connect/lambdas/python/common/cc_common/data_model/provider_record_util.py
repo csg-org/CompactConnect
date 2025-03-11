@@ -165,12 +165,10 @@ class ProviderRecordUtility:
             match record['type']:
                 case 'licenseUpdate':
                     logger.debug('Identified license update record')
-                    licenses[f'{record["jurisdiction"]}-{record["previous"]["licenseType"]}']['history'].append(record)
+                    licenses[f'{record["jurisdiction"]}-{record["licenseType"]}']['history'].append(record)
                 case 'privilegeUpdate':
                     logger.debug('Identified privilege update record')
-                    privileges[f'{record["jurisdiction"]}-{record["previous"]["licenseType"]}']['history'].append(
-                        record
-                    )
+                    privileges[f'{record["jurisdiction"]}-{record["licenseType"]}']['history'].append(record)
 
         if provider is None:
             logger.error("Failed to find a provider's primary record!")

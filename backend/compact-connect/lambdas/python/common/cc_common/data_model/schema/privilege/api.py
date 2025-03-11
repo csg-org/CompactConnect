@@ -38,7 +38,6 @@ class PrivilegeUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     dateOfUpdate = Raw(required=True, allow_none=False)
     persistedStatus = ActiveInactive(required=True, allow_none=False)
     privilegeId = String(required=True, allow_none=False)
-    licenseType = String(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
 
 
@@ -55,6 +54,7 @@ class PrivilegeUpdateGeneralResponseSchema(ForgivingSchema):
     providerId = Raw(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
     previous = Nested(PrivilegeUpdatePreviousGeneralResponseSchema(), required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
@@ -105,7 +105,6 @@ class PrivilegeUpdatePreviousPublicResponseSchema(ForgivingSchema):
     persistedStatus = ActiveInactive(required=True, allow_none=False)
     privilegeId = String(required=True, allow_none=False)
     licenseJurisdiction = Jurisdiction(required=True, allow_none=False)
-    licenseType = String(required=True, allow_none=False)
 
 
 class PrivilegeUpdatePublicResponseSchema(ForgivingSchema):
@@ -121,6 +120,7 @@ class PrivilegeUpdatePublicResponseSchema(ForgivingSchema):
     providerId = Raw(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
     dateOfUpdate = Raw(required=True, allow_none=False)
     previous = Nested(PrivilegeUpdatePreviousPublicResponseSchema(), required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required

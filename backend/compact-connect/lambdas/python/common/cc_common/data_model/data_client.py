@@ -91,30 +91,6 @@ class DataClient:
             raise CCInternalException(f'Expected 1 SSN index record, got {len(resp)}')
         return resp[0]['ssn']
 
-    @logger_inject_kwargs(logger, 'compact', 'provider_id')
-    def get_provider_home_jurisdiction_selection(self, *, compact: str, provider_id: str) -> dict | None:
-        """Get the home jurisdiction selection record for a provider.
-
-        :param compact: The compact name
-        :param provider_id: The provider ID
-        :return: The home jurisdiction record if found, None otherwise
-        :rtype: dict or None
-        """
-        logger.info('Getting home jurisdiction selection record', provider_id=provider_id, compact=compact)
-        resp = self.config.provider_table.get_item(
-            Key={
-                'pk': f'{compact}#PROVIDER#{provider_id}',
-                'sk': f'{compact}#PROVIDER#home-jurisdiction#',
-            },
-            ConsistentRead=True,
-        ).get('Item')
-
-        if resp is None:
-            logger.info('Home jurisdiction selection record not found', provider_id=provider_id, compact=compact)
-            raise CCNotFoundException('No home jurisdiction selection record found')
-
-        return resp
-
     @logger_inject_kwargs(logger, 'compact', 'jurisdiction', 'family_name', 'given_name')
     def find_matching_license_record(
         self,
@@ -408,6 +384,7 @@ class DataClient:
                         'providerId': provider_id,
                         'compact': compact,
                         'jurisdiction': postal_abbreviation.lower(),
+                        'licenseType': license_type,
                         'previous': original_privilege,
                         'updatedValues': {
                             'dateOfRenewal': privilege_record['dateOfRenewal'],
@@ -864,13 +841,15 @@ class DataClient:
         self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str
     ) -> None:
         """
-        Deactivate a privilege by setting its persistedStatus to inactive.
-        This will create a history record and update the provider record.
+        Deactivate a privilege for a provider in a jurisdiction.
 
-        :param str compact: The compact name
-        :param str provider_id: The provider ID
-        :param str jurisdiction: The jurisdiction postal abbreviation
-        :param str license_type_abbr: The type of license abbreviation
+        This will update the privilege record to have a persistedStatus of 'inactive' and will remove the jurisdiction
+        from the provider's privilegeJurisdictions set.
+
+        :param str compact: The compact to deactivate the privilege for
+        :param str provider_id: The provider to deactivate the privilege for
+        :param str jurisdiction: The jurisdiction to deactivate the privilege for
+        :param str license_type_abbr: The license type abbreviation to deactivate the privilege for
         :raises CCNotFoundException: If the privilege record is not found
         """
         # Get the privilege record
@@ -902,7 +881,7 @@ class DataClient:
                 'providerId': provider_id,
                 'compact': compact,
                 'jurisdiction': jurisdiction,
-                'dateOfUpdate': self.config.current_standard_datetime.isoformat(),
+                'licenseType': privilege_record['licenseType'],
                 'previous': {
                     # We're relying on the schema to trim out unneeded fields
                     **privilege_record,

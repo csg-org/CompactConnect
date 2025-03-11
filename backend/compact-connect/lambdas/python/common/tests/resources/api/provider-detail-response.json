@@ -60,11 +60,11 @@
           "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
           "compact": "aslp",
           "jurisdiction": "oh",
+          "licenseType": "speech-language pathologist",
           "dateOfUpdate": "2020-04-07T12:59:59+00:00",
           "previous": {
             "npi": "0608337260",
             "licenseNumber": "A0608337260",
-            "licenseType": "speech-language pathologist",
             "jurisdictionStatus": "active",
             "ssnLastFour": "1234",
             "givenName": "Björk",
@@ -115,6 +115,7 @@
           "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
           "compact": "aslp",
           "jurisdiction": "ne",
+          "licenseType": "speech-language pathologist",
           "dateOfUpdate": "2020-05-05T12:59:59+00:00",
           "previous": {
             "dateOfIssuance": "2016-05-05T12:59:59+00:00",
@@ -122,7 +123,6 @@
             "dateOfExpiration": "2020-06-06",
             "dateOfUpdate": "2016-05-05T12:59:59+00:00",
             "licenseJurisdiction": "oh",
-            "licenseType": "speech-language pathologist",
             "compactTransactionId": "0123456789",
             "persistedStatus": "active",
             "privilegeId": "SLP-NE-1",
