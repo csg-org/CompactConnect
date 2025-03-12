@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: I001
 """
 This script runs all Python tests in a unified pytest session, which allows coverage data collection to properly merge
 across multiple test suites.
