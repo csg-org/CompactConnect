@@ -1,12 +1,12 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 from datetime import date, datetime
 
-from marshmallow import Schema, ValidationError, post_dump, post_load, pre_dump, pre_load, validates_schema
+from marshmallow import Schema, post_dump, post_load, pre_dump, pre_load
 from marshmallow.fields import UUID, Date, DateTime, List, Nested, String
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
-from cc_common.data_model.schema.common import ChangeHashMixin, ensure_value_is_datetime
+from cc_common.data_model.schema.common import ChangeHashMixin, ValidatesLicenseTypeMixin, ensure_value_is_datetime
 from cc_common.data_model.schema.fields import ActiveInactive, Compact, Jurisdiction, UpdateType
 
 
@@ -23,14 +23,6 @@ class AttestationVersionRecordSchema(Schema):
 
     attestationId = String(required=True, allow_none=False)
     version = String(required=True, allow_none=False)
-
-
-class ValidatesLicenseTypeMixin:
-    @validates_schema
-    def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
-        license_types = config.license_types_for_compact(data['compact'])
-        if data['licenseType'] not in license_types:
-            raise ValidationError({'licenseType': [f'Must be one of: {", ".join(license_types)}.']})
 
 
 @BaseRecordSchema.register_schema('privilege')

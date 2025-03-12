@@ -1,13 +1,10 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
 
-from marshmallow import ValidationError, validates_schema
 from marshmallow.fields import Boolean, Date, Email, String
 from marshmallow.validate import Length
 
-from cc_common.config import config
-from cc_common.data_model.schema.base_record import (
-    ForgivingSchema,
-)
+from cc_common.data_model.schema.base_record import ForgivingSchema
+from cc_common.data_model.schema.common import ValidatesLicenseTypeMixin
 from cc_common.data_model.schema.fields import (
     Compact,
     ITUTE164PhoneNumber,
@@ -15,7 +12,7 @@ from cc_common.data_model.schema.fields import (
 )
 
 
-class LicenseCommonSchema(ForgivingSchema):
+class LicenseCommonSchema(ForgivingSchema, ValidatesLicenseTypeMixin):
     """
     This schema is used for both the LicensePostSchema and LicenseIngestSchema. It contains the fields that are common
     to both the external and internal representations of a license record.
@@ -45,9 +42,3 @@ class LicenseCommonSchema(ForgivingSchema):
     militaryWaiver = Boolean(required=False, allow_none=False)
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
-
-    @validates_schema
-    def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
-        license_types = config.license_types_for_compact(data['compact'])
-        if data['licenseType'] not in license_types:
-            raise ValidationError({'licenseType': [f'Must be one of: {", ".join(license_types)}.']})
