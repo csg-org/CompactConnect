@@ -66,10 +66,8 @@ class PrivilegePurchaseLicense extends mixins(MixinForm) {
         return this.user?.licensee || null;
     }
 
-    get homeStateLicenses(): Array<License> {
-        console.log('huh', this.licensee?.homeJurisdictionLicenses());
-
-        return this.licensee?.homeJurisdictionLicenses() || [];
+    get activeHomeJurisdictionLicenses(): Array<License> {
+        return this.licensee?.activeHomeJurisdictionLicenses() || [];
     }
 
     get currentCompact(): Compact | null {
@@ -87,7 +85,7 @@ class PrivilegePurchaseLicense extends mixins(MixinForm) {
     get homeStateLicenseOptions(): Array<any> {
         const homeStateLicenseOptions: Array<any> = [{ value: '', name: this.$t('common.select') }];
 
-        this.homeStateLicenses.forEach((license: License) => {
+        this.activeHomeJurisdictionLicenses.forEach((license: License) => {
             homeStateLicenseOptions.push({
                 value: license.id,
                 name: license.displayName()
@@ -135,10 +133,10 @@ class PrivilegePurchaseLicense extends mixins(MixinForm) {
     }
 
     initPage() {
-        if (this.homeStateLicenses.length === 1) {
+        if (this.activeHomeJurisdictionLicenses.length === 1) {
             this.$store.dispatch('user/saveFlowStep', new PurchaseFlowStep({
                 stepNum: this.flowStep,
-                licenseSelected: this.homeStateLicenses[0]
+                licenseSelected: this.activeHomeJurisdictionLicenses[0].id
             }));
 
             this.$router.push({

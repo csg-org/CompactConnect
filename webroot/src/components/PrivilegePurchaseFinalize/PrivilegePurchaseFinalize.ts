@@ -515,12 +515,14 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             const {
                 formValues,
                 statesSelected,
-                attestationsSelected
+                attestationsSelected,
+                selectedPurchaseLicense
             } = this;
             const serverData = LicenseeUserPurchaseSerializer.toServer({
                 formValues,
                 statesSelected,
-                attestationsSelected
+                attestationsSelected,
+                selectedPurchaseLicense
             });
             const purchaseServerEvent = await this.$store.dispatch('user/postPrivilegePurchases', serverData);
 

@@ -553,7 +553,7 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2024-08-29',
-                    status: 'active'
+                    status: 'inactive'
                 },
                 {
                     compact: 'aslp',

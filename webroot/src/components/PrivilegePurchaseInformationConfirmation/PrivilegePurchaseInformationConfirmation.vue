@@ -41,16 +41,16 @@
                     </div>
                     <div class="chunk">
                         <div class="chunk-title">{{$t('payment.streetAddress')}}</div>
-                        <div class="chunk-text">{{homeStateLicenseMailingAddress.street1}}</div>
+                        <div class="chunk-text">{{licenseSelectedMailingAddress.street1}}</div>
                     </div>
                     <div class="chunk">
                         <div class="chunk-title">{{$t('payment.streetAddress2')}}</div>
-                        <div class="chunk-text">{{homeStateLicenseMailingAddress.street2}}</div>
+                        <div class="chunk-text">{{licenseSelectedMailingAddress.street2}}</div>
                     </div>
                     <div class="chunk-row">
                         <div class="chunk in-row">
                             <div class="chunk-title">{{$t('common.city')}}</div>
-                            <div class="chunk-text">{{homeStateLicenseMailingAddress.city}}</div>
+                            <div class="chunk-text">{{licenseSelectedMailingAddress.city}}</div>
                         </div>
                         <div class="chunk in-row">
                             <div class="chunk-title">{{$t('common.state')}}</div>
@@ -58,7 +58,7 @@
                         </div>
                         <div class="chunk in-row">
                             <div class="chunk-title">{{$t('common.zipCode')}}</div>
-                            <div class="chunk-text">{{homeStateLicenseMailingAddress.zip}}</div>
+                            <div class="chunk-text">{{licenseSelectedMailingAddress.zip}}</div>
                         </div>
                     </div>
                     <div class="chunk">

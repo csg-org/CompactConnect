@@ -111,7 +111,7 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
     }
 
     get licenseNumber(): string {
-        return this.licensee?.licenseNumber || '';
+        return this.licenseSelected?.licenseNumber || '';
     }
 
     get backText(): string {
@@ -122,8 +122,8 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
         return this.$t('common.cancel');
     }
 
-    get homeStateLicense(): License {
-        return this.licensee?.bestHomeJurisdictionLicense() || new License();
+    get licenseSelected(): License {
+        return this.$store.getters['user/getLicenseSelected']();
     }
 
     get homeStateText(): string {
@@ -131,15 +131,15 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
     }
 
     get licenseExpirationDate(): string {
-        return this.homeStateLicense?.expireDateDisplay() || '';
+        return this.licenseSelected?.expireDateDisplay() || '';
     }
 
-    get homeStateLicenseMailingAddress(): Address {
-        return this.homeStateLicense.mailingAddress || new Address();
+    get licenseSelectedMailingAddress(): Address {
+        return this.licenseSelected.mailingAddress || new Address();
     }
 
     get mailingAddessStateDisplay(): string {
-        return this.homeStateLicense?.mailingAddress?.state?.abbrev?.toUpperCase() || '';
+        return this.licenseSelected?.mailingAddress?.state?.abbrev?.toUpperCase() || '';
     }
 
     get stateProvidedEmail(): string {
