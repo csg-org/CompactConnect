@@ -14,6 +14,7 @@ import {
 import { reactive, computed, ComputedRef } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
+import SelectedLicenseInfo from '@components/SelectedLicenseInfo/SelectedLicenseInfo.vue';
 import InputRadioGroup from '@components/Forms/InputRadioGroup/InputRadioGroup.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
@@ -38,6 +39,7 @@ interface AttestationOption {
     name: 'PrivilegePurchaseAttestation',
     components: {
         LoadingSpinner,
+        SelectedLicenseInfo,
         MockPopulate,
         InputRadioGroup,
         InputCheckbox,

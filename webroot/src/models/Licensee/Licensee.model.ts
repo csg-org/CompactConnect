@@ -207,6 +207,21 @@ export class Licensee implements InterfaceLicensee {
         return this.militaryAffiliations?.find((affiliation) => ((affiliation as MilitaryAffiliation).status as any) === 'active') || null;
     }
 
+    public homeJurisdictionLicenses(): Array<License> {
+        return this.licenses?.filter((license: License) =>
+            (license.issueState?.abbrev === this.homeJurisdiction?.abbrev)) || [];
+    }
+
+    public activeHomeJurisdictionLicenses(): Array<License> {
+        return this.homeJurisdictionLicenses().filter((license: License) =>
+            (license.status === LicenseStatus.ACTIVE));
+    }
+
+    public inactiveHomeJurisdictionLicenses(): Array<License> {
+        return this.homeJurisdictionLicenses().filter((license: License) =>
+            (license.status === LicenseStatus.INACTIVE));
+    }
+
     public homeJurisdictionDisplay(): string {
         return this.homeJurisdiction?.name() || '';
     }
@@ -215,12 +230,8 @@ export class Licensee implements InterfaceLicensee {
         // Return most recently issued active license that matches the best guess at the user's home jurisdiction
         // If no active license return  most recently issued inactive license that matches the user's registered home jurisdiction
         let bestHomeLicense = new License();
-        const homeJurisdictionLicenses = this.licenses?.filter((license: License) =>
-            (license.issueState?.abbrev === this.homeJurisdiction?.abbrev)) || [];
-        const activeHomeJurisdictionLicenses = homeJurisdictionLicenses.filter((license: License) =>
-            (license.status === LicenseStatus.ACTIVE));
-        const inactiveHomeJurisdictionLicenses = homeJurisdictionLicenses.filter((license: License) =>
-            (license.status === LicenseStatus.INACTIVE));
+        const activeHomeJurisdictionLicenses = this.activeHomeJurisdictionLicenses();
+        const inactiveHomeJurisdictionLicenses = this.inactiveHomeJurisdictionLicenses();
 
         if (activeHomeJurisdictionLicenses.length) {
             bestHomeLicense = activeHomeJurisdictionLicenses.reduce(
@@ -245,12 +256,7 @@ export class Licensee implements InterfaceLicensee {
 
     public canPurchasePrivileges(): boolean {
         // Return true if the user has an active license in their chosen homestate
-        const homeJurisdictionAbbrev = this.homeJurisdiction?.abbrev;
-
-        return this.licenses?.some((license: License) =>
-            (homeJurisdictionAbbrev
-                && license.issueState?.abbrev === homeJurisdictionAbbrev
-                && license.status === LicenseStatus.ACTIVE)) || false;
+        return !!this.activeHomeJurisdictionLicenses().length;
     }
 }
 

@@ -19,4 +19,16 @@ export default {
 
         return nextStep;
     },
+    getLicenseSelected: (state: any) => () => {
+        let licenseId = null;
+        const storeSteps = state.purchase.steps;
+
+        storeSteps?.forEach((step) => {
+            if (step.licenseSelected) {
+                licenseId = step.licenseSelected;
+            }
+        });
+
+        return state.model?.licensee?.licenses?.find((license) => (license.id === licenseId)) || null;
+    },
 };

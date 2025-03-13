@@ -21,11 +21,12 @@ import { Compact } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import { LicenseeUser, LicenseeUserPurchaseSerializer } from '@models/LicenseeUser/LicenseeUser.model';
+import { License } from '@models/License/License.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
 import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/PrivilegePurchaseOption.model';
-import Joi from 'joi';
 import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
 import { PurchaseFlowStep } from '@/models/PurchaseFlowStep/PurchaseFlowStep.model';
+import Joi from 'joi';
 
 @Component({
     name: 'PrivilegePurchaseFinalize',
@@ -183,10 +184,6 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
 
     get zipLabel(): string {
         return this.$t('common.zipCode');
-    }
-
-    get selectionText(): string {
-        return this.$t('common.selection');
     }
 
     get purchaseFlowState(): PurchaseFlowState {
@@ -367,6 +364,18 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
         return this.creditCardFeesTotal.toFixed(2);
     }
 
+    get selectedPurchaseLicense(): License | null {
+        return this.$store.getters['user/getLicenseSelected']();
+    }
+
+    get licenseTypeSelected(): string {
+        return this.selectedPurchaseLicense?.licenseTypeAbbreviation() || '';
+    }
+
+    get selectionText(): string {
+        return `${this.licenseTypeSelected} ${this.$t('licensing.privilege')} ${this.$t('common.selection')}`;
+    }
+
     //
     // Methods
     //
@@ -506,12 +515,14 @@ export default class PrivilegePurchaseFinalize extends mixins(MixinForm) {
             const {
                 formValues,
                 statesSelected,
-                attestationsSelected
+                attestationsSelected,
+                selectedPurchaseLicense
             } = this;
             const serverData = LicenseeUserPurchaseSerializer.toServer({
                 formValues,
                 statesSelected,
-                attestationsSelected
+                attestationsSelected,
+                selectedPurchaseLicense
             });
             const purchaseServerEvent = await this.$store.dispatch('user/postPrivilegePurchases', serverData);
 

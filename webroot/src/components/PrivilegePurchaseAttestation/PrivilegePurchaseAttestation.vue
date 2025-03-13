@@ -9,7 +9,10 @@
     <div class="privilege-purchase-attestation-container">
         <form class="privilege-purchase-attestation-form" @submit.prevent="handleSubmit">
             <div class="privilege-purchase-attestation-form-container">
-                <h1 class="form-title">{{ $t('licensing.attestations') }}</h1>
+                <div class="title-row">
+                    <h1 class="form-title">{{ $t('licensing.attestations') }}</h1>
+                    <SelectedLicenseInfo class="license-info" />
+                </div>
                 <div v-if="!areFormInputsSet" class="loading-container">
                     <LoadingSpinner v-if="!userStore.isLoadingAccount" />
                 </div>
