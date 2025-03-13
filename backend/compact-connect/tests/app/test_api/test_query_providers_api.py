@@ -299,7 +299,7 @@ class TestQueryProvidersApi(TestApi):
 
         self.compare_snapshot(
             throttling_alarm,
-            'GET_PROVIDER_SSN_THROTTLING_ALARM_SCHEMA',
+            'GET_PROVIDER_SSN_4XX_ALARM_SCHEMA',
             overwrite_snapshot=False,
         )
 

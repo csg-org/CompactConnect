@@ -1,5 +1,5 @@
 {
-  "AlarmDescription": "SECURITY ALERT: Potential abuse detected - Excessive 4xx errors triggered on GET provider SSN endpoint. Immediate investigation required.",
+  "AlarmDescription": "Sandbox/APIStack/LicenseApi SECURITY ALERT: Potential abuse detected - Excessive 4xx errors triggered on GET provider SSN endpoint. Immediate investigation required.",
   "ComparisonOperator": "GreaterThanOrEqualToThreshold",
   "Dimensions": [
     {

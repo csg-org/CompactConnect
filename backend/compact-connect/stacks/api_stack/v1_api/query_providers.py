@@ -286,7 +286,9 @@ class QueryProviders:
         self.ssn_anomaly_detection_alarm = CfnAlarm(
             self.api,
             'ReadSSNAnomalyAlarm',
-            alarm_description=f'{self.api.node.path} read-ssn anomaly detection',
+            alarm_description=f'{self.api.node.path} read-ssn anomaly detection. The GET provider SSN endpoint has been'
+                              f'called an irregular number of times. Investigation required to ensure ssn endpoint is '
+                              f'not being abused.',
             comparison_operator='GreaterThanUpperThreshold',
             evaluation_periods=1,
             treat_missing_data='notBreaching',
@@ -327,7 +329,7 @@ class QueryProviders:
             metric=ssn_rate_limited_count_metric,
             threshold=1,
             evaluation_periods=1,
-            comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
             alarm_description=f'{self.api.node.path} ssn reads rate-limited alarm. The GET provider SSN endpoint has '
             f'been invoked more than an expected threshold within a 24 hour period. Investigation is required to ensure'
@@ -350,19 +352,20 @@ class QueryProviders:
             metric=ssn_endpoint_disabled_count_metric,
             threshold=1,
             evaluation_periods=1,
-            comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
-            alarm_description='SECURITY ALERT: SSN ENDPOINT DISABLED. The GET provider SSN endpoint has been disabled '
-                              'due to excessive requests. Immediate investigation required. Endpoint will need to be '
-                              'manually reactivated before any further requests can be processed.',
+            alarm_description=f'{self.api.node.path} SECURITY ALERT: SSN ENDPOINT DISABLED. The GET provider SSN '
+                              'endpoint has been disabled due to excessive requests. Immediate investigation required. '
+                              'Endpoint will need to be manually reactivated before any further requests can be '
+                              'processed.',
         )
         self.ssn_endpoint_disabled_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
 
         # Add an alarm for 429 responses from the SSN endpoint
         self.ssn_api_throttling_alarm = Alarm(
             self.api,
-            'SSNApi429ThrottlingAlarm',
-            alarm_description='SECURITY ALERT: Potential abuse detected - '
+            'SSNApi4XXAlarm',
+            alarm_description=f'{self.api.node.path} SECURITY ALERT: Potential abuse detected - '
             'Excessive 4xx errors triggered on GET provider SSN endpoint. '
             'Immediate investigation required.',
             metric=Metric(
