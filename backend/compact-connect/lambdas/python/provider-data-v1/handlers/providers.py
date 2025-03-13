@@ -1,5 +1,4 @@
 import json
-import uuid
 from datetime import timedelta
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
@@ -22,6 +21,8 @@ from cc_common.utils import (
 )
 
 from . import get_provider_information
+
+SSN_RATE_LIMITING_PK = 'READ_SSN_REQUESTS'
 
 
 @api_handler
@@ -142,7 +143,7 @@ def get_provider_ssn(event: dict, context: LambdaContext):  # noqa: ARG001 unuse
         logger.info('Processing provider SSN request')
 
         # Check if the user has exceeded the rate limit
-        if _ssn_rate_limit_exceeded(user_id=user_id, provider_id=provider_id, compact=compact):
+        if _ssn_rate_limit_exceeded(context=context, user_id=user_id, provider_id=provider_id, compact=compact):
             metrics.add_metric(name='rate-limited-ssn-access', value=1, unit='Count')
             logger.warning('Rate limited SSN access attempt')
             raise CCRateLimitingException(
@@ -173,9 +174,10 @@ def get_provider_ssn(event: dict, context: LambdaContext):  # noqa: ARG001 unuse
         }
 
 
-def _ssn_rate_limit_exceeded(user_id: str, provider_id: str, compact: str) -> bool:
+def _ssn_rate_limit_exceeded(context: LambdaContext, user_id: str, provider_id: str, compact: str) -> bool:
     """Check if the user has exceeded the SSN rate limit.
 
+    :param context: The lambda context, used to get the unique request id and lambda name
     :param user_id: The Cognito user ID of the staff user
     :param provider_id: The provider ID being accessed
     :param compact: The compact being accessed
@@ -186,15 +188,18 @@ def _ssn_rate_limit_exceeded(user_id: str, provider_id: str, compact: str) -> bo
     window_start_timestamp = window_start.timestamp()
     now_timestamp = now.timestamp()
 
-    # Generate a unique ID for this request
-    # This ensures every request is recorded, even for requests within the same second
-    request_sk = f'TIME#{now_timestamp}#UUID#{uuid.uuid4()}'
+    # Append the unique AWS request id for this request
+    # This ensures every request is recorded, even for
+    # requests within the same second
+    request_sk = f'TIME#{now_timestamp}#REQUEST#{context.aws_request_id}'
+
+    logger.info('Recording request in rate limiting table', request_sk=request_sk)
 
     try:
         # First, record this request in the rate limiting table
         config.rate_limiting_table.put_item(
             Item={
-                'pk': 'READ_SSN_REQUESTS',
+                'pk': SSN_RATE_LIMITING_PK,
                 'sk': request_sk,
                 'compact': compact,
                 'provider_id': provider_id,
@@ -207,7 +212,7 @@ def _ssn_rate_limit_exceeded(user_id: str, provider_id: str, compact: str) -> bo
         all_requests = config.rate_limiting_table.query(
             KeyConditionExpression='pk = :pk AND sk BETWEEN :start_sk AND :end_sk',
             ExpressionAttributeValues={
-                ':pk': 'READ_SSN_REQUESTS',
+                ':pk': SSN_RATE_LIMITING_PK,
                 ':start_sk': f'TIME#{window_start_timestamp}',
                 # Add 1 second to ensure we include all records at the current timestamp
                 ':end_sk': f'TIME#{now_timestamp + 1}',
@@ -230,7 +235,7 @@ def _ssn_rate_limit_exceeded(user_id: str, provider_id: str, compact: str) -> bo
             # Set the lambda's reserved concurrency to 0 to throttle the endpoint
             try:
                 config.lambda_client.put_function_concurrency(
-                    FunctionName=config.current_lambda_name, ReservedConcurrentExecutions=0
+                    FunctionName=context.function_name, ReservedConcurrentExecutions=0
                 )
                 logger.critical('Lambda concurrency set to 0 due to excessive SSN requests')
                 metrics.add_metric(name='ssn-endpoint-throttled', value=1, unit='Count')

@@ -378,7 +378,7 @@ class TestGetProviderSSN(TstFunction):
                 Item={
                     'pk': 'READ_SSN_REQUESTS',
                     # separate each attempt by one minute
-                    'sk': f'TIME#{(now_datetime - timedelta(minutes=attempt)).timestamp()}#UUID#{uuid.uuid4()}',
+                    'sk': f'TIME#{(now_datetime - timedelta(minutes=attempt)).timestamp()}#REQUEST#{uuid.uuid4()}',
                     'compact': 'aslp',
                     'providerId': provider_id,
                     'staffUserId': user_id,
@@ -386,6 +386,12 @@ class TestGetProviderSSN(TstFunction):
             )
 
         return user_id
+
+    def _make_ssn_request_with_unique_request_id(self, event: dict):
+        from handlers.providers import get_provider_ssn
+
+        self.mock_context.aws_request_id = uuid.uuid4()
+        return get_provider_ssn(event, self.mock_context)
 
     def test_get_provider_ssn_returns_ssn_if_caller_has_read_ssn_compact_level_scope(self):
         self._load_provider_data()
@@ -470,10 +476,9 @@ class TestGetProviderSSN(TstFunction):
         fired.
         """
         self._load_provider_data()
-        from handlers.providers import get_provider_ssn
 
         test_provider_id = '89a6377e-c3a5-40e5-bca5-317ec854c570'
-        # add 5 previous calls to the endpoint
+        # add 4 previous calls to the endpoint
         staff_user_id = self._when_testing_rate_limiting(previous_attempt_count=4, provider_id=test_provider_id)
 
         with open('../common/tests/resources/api-event.json') as f:
@@ -484,18 +489,18 @@ class TestGetProviderSSN(TstFunction):
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readSSN'
         event['pathParameters'] = {'compact': 'aslp', 'providerId': test_provider_id}
 
-        # the first request should succeed, being right at the limit
-        resp = get_provider_ssn(event, self.mock_context)
+        # the fifth request should succeed, being right at the limit
+        resp = self._make_ssn_request_with_unique_request_id(event)
         self.assertEqual(200, resp['statusCode'])
         # next request should be throttled, but should not deactivate their account
-        resp = get_provider_ssn(event, self.mock_context)
+        resp = self._make_ssn_request_with_unique_request_id(event)
         self.assertEqual(429, resp['statusCode'])
         # assert that the user's account has not been deactivated yet.
         user = self.config.cognito_client.admin_get_user(UserPoolId=self.config.user_pool_id, Username=staff_user_id)
         self.assertEqual(user['Enabled'], True)
 
         # make another request to trigger deactivation
-        resp = get_provider_ssn(event, self.mock_context)
+        resp = self._make_ssn_request_with_unique_request_id(event)
         self.assertEqual(429, resp['statusCode'])
 
         # assert that the user's account has been deactivated.
@@ -503,7 +508,6 @@ class TestGetProviderSSN(TstFunction):
         self.assertEqual(user['Enabled'], False)
 
     @patch('handlers.providers.config.lambda_client', autospec=True)
-    @patch('cc_common.config._Config.current_lambda_name', 'testLambdaName')
     def test_get_provider_ssn_sets_reserved_concurrency_to_zero_and_deactivated_if_staff_user_goes_beyond_rate_limit(
         self, mock_lambda_client
     ):
@@ -512,7 +516,6 @@ class TestGetProviderSSN(TstFunction):
         by setting its reserved concurrency to 0, to prevent a concentrated attack.
         """
         self._load_provider_data()
-        from handlers.providers import get_provider_ssn
 
         test_provider_id = '89a6377e-c3a5-40e5-bca5-317ec854c570'
         # add 15 previous calls to the endpoint
@@ -527,7 +530,8 @@ class TestGetProviderSSN(TstFunction):
         event['pathParameters'] = {'compact': 'aslp', 'providerId': test_provider_id}
 
         # request should be throttled
-        resp = get_provider_ssn(event, self.mock_context)
+        self.mock_context.function_name = 'testLambdaName'
+        resp = self._make_ssn_request_with_unique_request_id(event)
         self.assertEqual(429, resp['statusCode'])
 
         # assert that the lambda client was called with expected parameters
