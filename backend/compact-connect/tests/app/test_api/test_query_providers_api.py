@@ -258,18 +258,33 @@ class TestQueryProvidersApi(TestApi):
             overwrite_snapshot=False,
         )
 
-        # Ensure the max daily read alarm is created
-        max_read_alarm = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.query_providers.max_ssn_reads_alarm.node.default_child),
+        # Ensure the ssn read rate-limited alarm is created
+        ssn_read_rate_limited_alarm = TestApi.get_resource_properties_by_logical_id(
+            api_stack.get_logical_id(api_stack.api.v1_api.query_providers.ssn_rate_limited_alarm.node.default_child),
             alarms,
         )
 
-        actions = max_read_alarm.pop('AlarmActions', [])
+        actions = ssn_read_rate_limited_alarm.pop('AlarmActions', [])
         self.assertEqual(len(actions), 1)
 
         self.compare_snapshot(
-            max_read_alarm,
-            'GET_PROVIDER_SSN_MAX_READS_ALARM_SCHEMA',
+            ssn_read_rate_limited_alarm,
+            'GET_PROVIDER_SSN_READS_RATE_LIMITED_ALARM_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+        # Ensure the ssn endpoint disabled alarm is created
+        ssn_endpoint_disabled_alarm = TestApi.get_resource_properties_by_logical_id(
+            api_stack.get_logical_id(api_stack.api.v1_api.query_providers.ssn_endpoint_disabled_alarm.node.default_child),
+            alarms,
+        )
+
+        actions = ssn_endpoint_disabled_alarm.pop('AlarmActions', [])
+        self.assertEqual(len(actions), 1)
+
+        self.compare_snapshot(
+            ssn_endpoint_disabled_alarm,
+            'GET_PROVIDER_SSN_ENDPOINT_DISABLED_ALARM_SCHEMA',
             overwrite_snapshot=False,
         )
 

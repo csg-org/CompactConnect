@@ -540,7 +540,7 @@ class StaffUsers:
             comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
             alarm_description=f'{self.api.node.path} max daily staff users created alarm. The POST staff user endpoint '
-            f'has been invoked more than an expected threshold within an hour period. '
+            f'has been invoked more than an expected threshold within a day. '
             f'Investigation is required to ensure requests are authorized.',
         )
         self.max_daily_staff_users_created_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))

@@ -1,5 +1,5 @@
 {
-  "AlarmDescription": "SECURITY ALERT: Potential abuse detected - API throttling (429) errors triggered on GET provider SSN endpoint. Immediate investigation required.",
+  "AlarmDescription": "SECURITY ALERT: Potential abuse detected - Excessive 4xx errors triggered on GET provider SSN endpoint. Immediate investigation required.",
   "ComparisonOperator": "GreaterThanOrEqualToThreshold",
   "Dimensions": [
     {
@@ -26,6 +26,6 @@
   "Namespace": "AWS/ApiGateway",
   "Period": 300,
   "Statistic": "Sum",
-  "Threshold": 1,
+  "Threshold": 100,
   "TreatMissingData": "notBreaching"
 }

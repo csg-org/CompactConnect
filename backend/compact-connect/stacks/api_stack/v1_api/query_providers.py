@@ -310,27 +310,60 @@ class QueryProviders:
             threshold_metric_id='ad1',
         )
 
-        # We'll also set a flat maximum access rate of 5 reads per day to alarm on
-        # This will help us determine if the limit needs to be raised
-        self.max_ssn_reads_alarm = Alarm(
+        # Create a metric to track if any user is rate-limited while calling this endpoint
+        ssn_rate_limited_count_metric = Metric(
+            namespace='compact-connect',
+            metric_name='rate-limited-ssn-access',
+            statistic='SampleCount',
+            period=Duration.minutes(5),
+            dimensions_map={'service': 'common'},
+        )
+
+        # This alarm will fire if any user is rate-limited by this endpoint
+        # This will help us determine if the limit needs to be raised or detect early abuse
+        self.ssn_rate_limited_alarm = Alarm(
             self.api,
-            'MaxSSNReadsAlarm',
-            metric=daily_read_ssn_count_metric,
-            threshold=5,
+            'SSNReadsRateLimitedAlarm',
+            metric=ssn_rate_limited_count_metric,
+            threshold=1,
             evaluation_periods=1,
             comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
-            alarm_description=f'{self.api.node.path} max ssn reads alarm. The GET provider SSN endpoint has been '
-            f'invoked more than an expected threshold within a 24 hour period. Investigation is '
-            f'required to ensure access is not the result of abuse.',
+            alarm_description=f'{self.api.node.path} ssn reads rate-limited alarm. The GET provider SSN endpoint has '
+            f'been invoked more than an expected threshold within a 24 hour period. Investigation is required to ensure'
+            f' access is not the result of abuse.',
         )
-        self.max_ssn_reads_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
+        self.ssn_rate_limited_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
+
+        # Create a metric to track if ssn endpoint has been disabled due to excessive requests
+        ssn_endpoint_disabled_count_metric = Metric(
+            namespace='compact-connect',
+            metric_name='ssn-endpoint-disabled',
+            statistic='SampleCount',
+            period=Duration.minutes(5),
+            dimensions_map={'service': 'common'},
+        )
+        # This alarm will fire if the ssn endpoint hits our global threshold and is disabled (concurrency set to 0)
+        self.ssn_endpoint_disabled_alarm = Alarm(
+            self.api,
+            'SSNEndpointDisabledAlarm',
+            metric=ssn_endpoint_disabled_count_metric,
+            threshold=1,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description='SECURITY ALERT: SSN ENDPOINT DISABLED. The GET provider SSN endpoint has been disabled '
+                              'due to excessive requests. Immediate investigation required. Endpoint will need to be '
+                              'manually reactivated before any further requests can be processed.',
+        )
+        self.ssn_endpoint_disabled_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
+
         # Add an alarm for 429 responses from the SSN endpoint
         self.ssn_api_throttling_alarm = Alarm(
             self.api,
             'SSNApi429ThrottlingAlarm',
             alarm_description='SECURITY ALERT: Potential abuse detected - '
-            'API throttling (429) errors triggered on GET provider SSN endpoint. '
+            'Excessive 4xx errors triggered on GET provider SSN endpoint. '
             'Immediate investigation required.',
             metric=Metric(
                 namespace='AWS/ApiGateway',
@@ -345,7 +378,7 @@ class QueryProviders:
                 period=Duration.minutes(5),
             ),
             evaluation_periods=1,
-            threshold=1,
+            threshold=100,
             comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
         )

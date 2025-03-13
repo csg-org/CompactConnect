@@ -238,7 +238,7 @@ def _ssn_rate_limit_exceeded(context: LambdaContext, user_id: str, provider_id: 
                     FunctionName=context.function_name, ReservedConcurrentExecutions=0
                 )
                 logger.critical('Lambda concurrency set to 0 due to excessive SSN requests')
-                metrics.add_metric(name='ssn-endpoint-throttled', value=1, unit='Count')
+                metrics.add_metric(name='ssn-endpoint-disabled', value=1, unit='Count')
             except ClientError as e:
                 logger.error('Failed to set lambda concurrency', error=str(e))
 
