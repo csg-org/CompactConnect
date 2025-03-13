@@ -11,9 +11,9 @@ class TestClient(TstFunction):
     def test_get_providers_sorted_by_family_name(self):
         from cc_common.data_model.data_client import DataClient
 
-        self._generate_providers(home='oh', privilege='ne', start_serial=9999)
-        self._generate_providers(home='ne', privilege='oh', start_serial=9989)
-        self._generate_providers(home='ne', privilege='co', start_serial=9979)
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9999)
+        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9989)
+        self._generate_providers(home='ne', privilege_jurisdiction='co', start_serial=9979)
         client = DataClient(self.config)
 
         # We expect to see 20 providers: 10 have privileges in oh, 10 have licenses in oh
@@ -48,7 +48,7 @@ class TestClient(TstFunction):
     def test_get_providers_sorted_by_family_name_descending(self):
         from cc_common.data_model.data_client import DataClient
 
-        self._generate_providers(home='oh', privilege='ne', start_serial=9999)
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9999)
         client = DataClient(self.config)
 
         resp = client.get_providers_sorted_by_family_name(
@@ -68,7 +68,7 @@ class TestClient(TstFunction):
         # We'll provide names, so we know we'll have one record for our friends, Tess and Ted Testerly
         self._generate_providers(
             home='oh',
-            privilege='ne',
+            privilege_jurisdiction='ne',
             start_serial=9999,
             names=(
                 ('Testerly', 'Tess'),
@@ -95,7 +95,7 @@ class TestClient(TstFunction):
         # We'll provide names, so we know we'll have one record for our friends, Tess and Ted Testerly
         self._generate_providers(
             home='oh',
-            privilege='ne',
+            privilege_jurisdiction='ne',
             start_serial=9999,
             names=(
                 ('Testerly', 'Tess'),
@@ -120,9 +120,9 @@ class TestClient(TstFunction):
     def test_get_providers_sorted_by_date_updated(self):
         from cc_common.data_model.data_client import DataClient
 
-        self._generate_providers(home='oh', privilege='ne', start_serial=9999)
-        self._generate_providers(home='ne', privilege='oh', start_serial=9989)
-        self._generate_providers(home='ne', privilege='ky', start_serial=9979)
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9999)
+        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9989)
+        self._generate_providers(home='ne', privilege_jurisdiction='ky', start_serial=9979)
         client = DataClient(self.config)
 
         # We expect to see 20 providers: 10 have privileges in oh, 10 have licenses in oh
@@ -157,7 +157,7 @@ class TestClient(TstFunction):
     def test_get_providers_sorted_by_date_of_update_descending(self):
         from cc_common.data_model.data_client import DataClient
 
-        self._generate_providers(home='oh', privilege='ne', start_serial=9999)
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9999)
         client = DataClient(self.config)
 
         resp = client.get_providers_sorted_by_updated(

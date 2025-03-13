@@ -17,7 +17,7 @@ class TestQueryProviders(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/aslp.readPrivate'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readPrivate'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps({'query': {'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}})
 
@@ -42,14 +42,14 @@ class TestQueryProviders(TstFunction):
         from handlers.providers import query_providers
 
         # 20 providers, 10 with licenses in oh, 10 with privileges in oh
-        self._generate_providers(home='ne', privilege='oh', start_serial=9999)
-        self._generate_providers(home='oh', privilege='ne', start_serial=9899)
+        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999)
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/aslp.readPrivate'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readPrivate'
         event['pathParameters'] = {'compact': 'aslp'}
         event['body'] = json.dumps(
             {'sorting': {'key': 'dateOfUpdate'}, 'query': {'jurisdiction': 'oh'}, 'pagination': {'pageSize': 10}},
@@ -84,10 +84,10 @@ class TestQueryProviders(TstFunction):
             ('Figueroa', '9'),
             ('Frías', '10'),
         ]
-        self._generate_providers(home='ne', privilege='oh', start_serial=9999, names=names)
+        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999, names=names)
         # We'll leave the last 10 names to be randomly generated to let the Faker data set come up with some
         # interesting values, to leave the door open to identify new edge cases.
-        self._generate_providers(home='oh', privilege='ne', start_serial=9899)
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -118,7 +118,7 @@ class TestQueryProviders(TstFunction):
         # 10 providers, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
         self._generate_providers(
             home='oh',
-            privilege='ne',
+            privilege_jurisdiction='ne',
             start_serial=9999,
             names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
         )
@@ -150,7 +150,7 @@ class TestQueryProviders(TstFunction):
         # 10 providers, licenses in oh, and privileges in ne, including a Tess and Ted Testerly
         self._generate_providers(
             home='oh',
-            privilege='ne',
+            privilege_jurisdiction='ne',
             start_serial=9999,
             names=(('Testerly', 'Tess'), ('Testerly', 'Ted')),
         )
@@ -178,8 +178,8 @@ class TestQueryProviders(TstFunction):
         from handlers.providers import query_providers
 
         # 20 providers, 10 with licenses in oh, 10 with privileges in oh
-        self._generate_providers(home='ne', privilege='oh', start_serial=9999)
-        self._generate_providers(home='oh', privilege='ne', start_serial=9899)
+        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999)
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -206,8 +206,8 @@ class TestQueryProviders(TstFunction):
         from handlers.providers import query_providers
 
         # 20 providers, 10 with licenses in oh, 10 with privileges in oh
-        self._generate_providers(home='ne', privilege='oh', start_serial=9999)
-        self._generate_providers(home='oh', privilege='ne', start_serial=9899)
+        self._generate_providers(home='ne', privilege_jurisdiction='oh', start_serial=9999)
+        self._generate_providers(home='oh', privilege_jurisdiction='ne', start_serial=9899)
 
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
@@ -276,19 +276,19 @@ class TestGetProvider(TstFunction):
 
     def test_get_provider_with_compact_level_read_private_access(self):
         self._when_testing_get_provider_with_read_private_access(
-            scopes='openid email aslp/readGeneral aslp/aslp.readPrivate',
+            scopes='openid email aslp/readGeneral aslp/readPrivate',
         )
 
     def test_get_provider_with_matching_license_jurisdiction_level_read_private_access(self):
         # test provider has a license in oh and a privilege in ne
         self._when_testing_get_provider_with_read_private_access(
-            scopes='openid email aslp/readGeneral aslp/oh.readPrivate'
+            scopes='openid email aslp/readGeneral oh/aslp.readPrivate'
         )
 
     def test_get_provider_with_matching_privilege_jurisdiction_level_read_private_access(self):
         # test provider has a license in oh and a privilege in ne
         self._when_testing_get_provider_with_read_private_access(
-            scopes='openid email aslp/readGeneral aslp/ne.readPrivate'
+            scopes='openid email aslp/readGeneral ne/aslp.readPrivate'
         )
 
     def test_get_provider_does_not_return_home_jurisdiction_selection_if_user_has_not_registered(self):
@@ -297,7 +297,7 @@ class TestGetProvider(TstFunction):
             del expected_provider['homeJurisdictionSelection']
 
         self._when_testing_get_provider_response_based_on_read_access(
-            scopes='openid email aslp/readGeneral aslp/aslp.readPrivate',
+            scopes='openid email aslp/readGeneral aslp/readPrivate',
             expected_provider=expected_provider,
             delete_home_jurisdiction_selection=True,
         )
@@ -365,7 +365,7 @@ class TestGetProviderSSN(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readSSN aslp/aslp.readSSN'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readSSN'
         event['pathParameters'] = {'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
 
         resp = get_provider_ssn(event, self.mock_context)
@@ -385,7 +385,7 @@ class TestGetProviderSSN(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readSSN aslp/oh.readSSN'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral oh/aslp.readSSN'
         event['pathParameters'] = {'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
 
         resp = get_provider_ssn(event, self.mock_context)
@@ -405,7 +405,7 @@ class TestGetProviderSSN(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readSSN aslp/ne.readSSN'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral ne/aslp.readSSN'
         event['pathParameters'] = {'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
 
         resp = get_provider_ssn(event, self.mock_context)
@@ -425,7 +425,7 @@ class TestGetProviderSSN(TstFunction):
             event = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readSSN aslp/ky.readSSN'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email ky/aslp.readSSN'
         event['pathParameters'] = {'compact': 'aslp', 'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570'}
 
         resp = get_provider_ssn(event, self.mock_context)

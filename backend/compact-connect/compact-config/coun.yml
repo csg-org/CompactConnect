@@ -7,7 +7,7 @@ compactCommissionFee:
 compactOperationsTeamEmails: []
 compactAdverseActionsNotificationEmails: []
 compactSummaryReportNotificationEmails: []
-activeEnvironments: []
+activeEnvironments: ["test"]
 
 attestations:
   - attestationId: "jurisprudence-confirmation"

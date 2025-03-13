@@ -24,7 +24,6 @@ import Joi from 'joi';
 export interface LicenseSearch {
     firstName?: string;
     lastName?: string;
-    ssn?: string;
     state?: string;
 }
 
@@ -100,17 +99,6 @@ class LicenseeSearch extends mixins(MixinForm) {
                 value: this.searchParams.lastName || '',
                 enforceMax: true,
             }),
-            ssn: new FormInput({
-                id: 'ssn',
-                name: 'ssn',
-                label: computed(() => this.$t('licensing.ssn')),
-                placeholder: '000-00-0000',
-                validation: Joi.string().pattern(/^([0-9]){3}-([0-9]{2}-([0-9]{4}$))/).allow('').messages({
-                    ...this.joiMessages.string,
-                    'string.pattern.base': this.$t('inputErrors.ssnFormat'),
-                }),
-                value: this.searchParams.ssn || '',
-            }),
             state: new FormInput({
                 id: 'state',
                 name: 'state',
@@ -126,28 +114,6 @@ class LicenseeSearch extends mixins(MixinForm) {
         this.watchFormInputs(); // Important if you want automated form validation
     }
 
-    formatSsn(): void {
-        const { ssn } = this.formData;
-        const format = (ssnInputVal) => {
-            // Remove all non-dash and non-numerals
-            let formatted = ssnInputVal.replace(/[^\d-]/g, '');
-
-            // Add the first dash if a number from the second group appears
-            formatted = formatted.replace(/^(\d{3})-?(\d{1,2})/, '$1-$2');
-
-            // Add the second dash if a number from the third group appears
-            formatted = formatted.replace(/^(\d{3})-?(\d{2})-?(\d{1,4})/, '$1-$2-$3');
-
-            // Remove misplaced dashes
-            formatted = formatted.split('').filter((val, idx) => val !== '-' || idx === 3 || idx === 6).join('');
-
-            // Enforce max length
-            return formatted.substring(0, 11);
-        };
-
-        ssn.value = format(ssn.value);
-    }
-
     async handleSubmit(): Promise<void> {
         this.validateAll({ asTouched: true });
         this.customValidateLastName();
@@ -158,7 +124,6 @@ class LicenseeSearch extends mixins(MixinForm) {
             const allowedSearchProps = [
                 'firstName',
                 'lastName',
-                'ssn',
                 'state'
             ];
             const searchProps: LicenseSearch = {};

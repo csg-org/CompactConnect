@@ -5,6 +5,7 @@
 //  Created by InspiringApps on 6/18/24.
 //
 
+import { authStorage, tokens } from '@/app.config';
 import axios, { AxiosInstance } from 'axios';
 import {
     requestError,
@@ -22,7 +23,6 @@ export interface RequestParamsInterfaceLocal {
     licenseeId?: string;
     licenseeFirstName?: string;
     licenseeLastName?: string;
-    licenseeSsn?: string;
     pageSize?: number;
     pageNumber?: number;
     lastKey?: string;
@@ -46,9 +46,8 @@ export interface RequestParamsInterfaceRemote {
         compact?: string,
         jurisdiction?: string,
         providerId?: string,
-        givenName?: string;
-        familyName?: string;
-        ssn?: string,
+        givenName?: string,
+        familyName?: string,
     },
 }
 
@@ -114,13 +113,12 @@ export class LicenseDataApi implements DataApiInterface {
             licenseeId,
             licenseeFirstName,
             licenseeLastName,
-            licenseeSsn,
             pageSize,
             lastKey,
             sortBy,
             sortDirection,
         } = params;
-        const hasSearchTerms = Boolean(licenseeId || licenseeFirstName || licenseeLastName || licenseeSsn);
+        const hasSearchTerms = Boolean(licenseeId || licenseeFirstName || licenseeLastName);
         const requestParams: RequestParamsInterfaceRemote = { query: {}};
 
         if (jurisdiction) {
@@ -137,12 +135,9 @@ export class LicenseDataApi implements DataApiInterface {
             if (licenseeLastName) {
                 requestParams.query.familyName = licenseeLastName;
             }
-            if (licenseeSsn) {
-                requestParams.query.ssn = licenseeSsn;
-            }
         }
 
-        if (!licenseeId && !licenseeSsn) {
+        if (!licenseeId) {
             if (pageSize || lastKey) {
                 requestParams.pagination = {};
 
@@ -230,13 +225,33 @@ export class LicenseDataApi implements DataApiInterface {
      * @param  {string}           compact        The compact string ID (aslp, otcp, coun).
      * @param  {string}           licenseeId     The Licensee ID.
      * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
-     * @param  {string}           licenseType    The license type / occupation.
+     * @param  {string}           licenseType    The license type.
      * @return {Promise<object>}                 The server response.
      */
     public async deletePrivilege(compact: string, licenseeId: string, privilegeState: string, licenseType: string) {
         const serverResponse: any = await this.api.post(`/v1/compacts/${compact}/providers/${licenseeId}/privileges/jurisdiction/${privilegeState}/licenseType/${licenseType}/deactivate`, {});
 
         return serverResponse;
+    }
+
+    /**
+     * GET SSN for licensee by ID.
+     * @param  {string}          licenseeId A licensee ID.
+     * @return {Promise<object>}            The server response.
+     */
+    public async getLicenseeSsn(compact: string, licenseeId: string) {
+        // This endpoint requires bypassing our regular error-handler interceptors.
+        const authTokenStaff = authStorage.getItem(tokens.staff.AUTH_TOKEN);
+        const authTokenStaffType = authStorage.getItem(tokens.staff.AUTH_TOKEN_TYPE);
+        const serverResponse: any = await axios.get(`${envConfig.apiUrlLicense}/v1/compacts/${compact}/providers/${licenseeId}/ssn`, {
+            headers: {
+                'Cache-Control': 'no-cache',
+                Accept: 'application/json',
+                Authorization: `${authTokenStaffType} ${authTokenStaff}`,
+            },
+        });
+
+        return serverResponse.data || {};
     }
 }
 

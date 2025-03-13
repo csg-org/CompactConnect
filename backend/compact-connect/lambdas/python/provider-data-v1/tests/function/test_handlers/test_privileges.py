@@ -39,7 +39,7 @@ class TestDeactivatePrivilege(TstFunction):
             expected_provider = json.load(f)
 
         # The user has read permission for aslp
-        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/ne.readPrivate'
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral ne/aslp.readPrivate'
         event['pathParameters'] = {'compact': 'aslp', 'providerId': expected_provider['providerId']}
 
         resp = get_provider(event, self.mock_context)
@@ -51,8 +51,6 @@ class TestDeactivatePrivilege(TstFunction):
         expected_provider['privileges'][0]['status'] = 'inactive'
         # Add the deactivation history
         expected_provider['privileges'][0]['history'].insert(0, DEACTIVATION_HISTORY)
-        # Remove the privilege jurisdiction from the privilege jurisdictions list
-        expected_provider['privilegeJurisdictions'] = []
         expected_provider['privileges'][0]['dateOfUpdate'] = '2024-11-08T23:59:59+00:00'
 
         body = json.loads(resp['body'])
@@ -87,7 +85,7 @@ class TestDeactivatePrivilege(TstFunction):
         self._load_provider_data()
 
         # The user has admin permission for aslp
-        resp = self._request_deactivation_with_scopes('openid email aslp/admin aslp/aslp.admin')
+        resp = self._request_deactivation_with_scopes('openid email aslp/admin aslp/admin')
         self.assertEqual(200, resp['statusCode'])
         self.assertEqual({'message': 'OK'}, json.loads(resp['body']))
 
@@ -110,7 +108,7 @@ class TestDeactivatePrivilege(TstFunction):
                     ),
                     'EventBusName': 'license-data-events',
                 }
-            }
+            },
         )
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
@@ -121,7 +119,7 @@ class TestDeactivatePrivilege(TstFunction):
         self._load_provider_data()
 
         # The user has admin permission for ne
-        resp = self._request_deactivation_with_scopes('openid email aslp/admin aslp/ne.admin')
+        resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
         self.assertEqual(200, resp['statusCode'])
         self.assertEqual({'message': 'OK'}, json.loads(resp['body']))
 
@@ -136,7 +134,7 @@ class TestDeactivatePrivilege(TstFunction):
         self._load_provider_data()
 
         # The user has admin permission for oh
-        resp = self._request_deactivation_with_scopes('openid email aslp/admin aslp/oh.admin')
+        resp = self._request_deactivation_with_scopes('openid email oh/aslp.admin')
         self.assertEqual(403, resp['statusCode'])
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
@@ -147,7 +145,7 @@ class TestDeactivatePrivilege(TstFunction):
         self._load_provider_data()
 
         # The user has read permission for aslp
-        resp = self._request_deactivation_with_scopes('openid email aslp/readGeneral aslp/ne.readPrivate')
+        resp = self._request_deactivation_with_scopes('openid email aslp/readGeneral ne/aslp.readPrivate')
         self.assertEqual(403, resp['statusCode'])
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
@@ -156,5 +154,5 @@ class TestDeactivatePrivilege(TstFunction):
         If a privilege is not found, the response should be a 404
         """
         # Note lack of self._load_provider_data() here - we're _not_ loading the provider in this case
-        resp = self._request_deactivation_with_scopes('openid email aslp/admin aslp/ne.admin')
+        resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
         self.assertEqual(404, resp['statusCode'])

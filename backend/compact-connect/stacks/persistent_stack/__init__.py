@@ -1,15 +1,16 @@
 import os
 
+import yaml
 from aws_cdk import Duration, RemovalPolicy, aws_ssm
-from aws_cdk.aws_cognito import UserPoolEmail
+from aws_cdk.aws_cognito import SignInAliases, UserPoolEmail
 from aws_cdk.aws_iam import Effect, PolicyStatement
 from aws_cdk.aws_kms import Key
 from aws_cdk.aws_lambda import Runtime
 from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
+from aws_cdk.aws_logs import QueryDefinition, QueryString
 from cdk_nag import NagSuppressions
 from common_constructs.access_logs_bucket import AccessLogsBucket
 from common_constructs.alarm_topic import AlarmTopic
-from common_constructs.data_migration import DataMigration
 from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME
 from common_constructs.security_profile import SecurityProfile
@@ -150,19 +151,71 @@ class PersistentStack(AppStack):
             removal_policy=removal_policy,
         )
 
+        # PROVIDER USER POOL MIGRATION PLAN:
+        # 1. Create the blue user pool in all environments. (Deploy 1 of 3)
+        # 2. Cut over to the blue user pool by: (Deploy 2 of 3)
+        #   a. Update the API stack to use the blue user pool (just rename
+        #      self.provider_users->self.provider_users_deprecated and
+        #      self.provider_users_standby->self.provider_users below)
+        #   b. Move the main provider prefix to the blue user pool (just use the provider_prefix in the other
+        #      ProviderUsers constructor below)
+        #   c. Deploy to all environments. You will have to manually delete the original user pool domain right before
+        #      deploying to each environment. This will result in a deletion failure in the CFn events, but the overall
+        #      deployment will succeed.
+        # 3. Testers/users will need to re-register to get a new provider user in the blue user pool.
+        # 4. Remove the original user pool. (Deploy 3 of 3)
+
+        # This user pool is currently in use but will be replaced with the blue user pool,
+        # once the blue user pool is deployed across all environments.
         provider_prefix = f'{app_name}-provider'
+        provider_prefix = provider_prefix if environment_name == 'prod' else f'{provider_prefix}-{environment_name}'
         self.provider_users = ProviderUsers(
             self,
             'ProviderUsers',
-            cognito_domain_prefix=provider_prefix
-            if environment_name == 'prod'
-            else f'{provider_prefix}-{environment_name}',
+            cognito_domain_prefix=provider_prefix,
             environment_name=environment_name,
             environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
+            sign_in_aliases=None,
             user_pool_email=user_pool_email_settings,
             security_profile=security_profile,
             removal_policy=removal_policy,
+        )
+        # We explicitly export the user pool values so we can later move the API stack over to the
+        # new user pool without putting our app into a cross-stack dependency 'deadly embrace':
+        # https://www.endoflineblog.com/cdk-tips-03-how-to-unblock-cross-stack-references
+        self.export_value(self.provider_users.user_pool_id)
+        self.export_value(self.provider_users.user_pool_arn)
+
+        # This user pool is not yet used but we will cut over to the new pool once it is
+        # deployed across all environments.
+        # We have to use a different prefix so we don't have a naming conflict with the original user pool
+        self.provider_users_standby = ProviderUsers(
+            self,
+            'ProviderUsersBlue',
+            cognito_domain_prefix=None,
+            environment_name=environment_name,
+            environment_context=environment_context,
+            encryption_key=self.shared_encryption_key,
+            sign_in_aliases=SignInAliases(email=True, username=False),
+            user_pool_email=user_pool_email_settings,
+            security_profile=security_profile,
+            removal_policy=removal_policy,
+        )
+
+        QueryDefinition(
+            self,
+            'UserCustomEmails',
+            query_definition_name='UserCustomEmails/Lambdas',
+            query_string=QueryString(
+                fields=['@timestamp', '@log', 'level', 'message', '@message'],
+                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
+                sort='@timestamp desc',
+            ),
+            log_groups=[
+                self.provider_users.custom_message_lambda.log_group,
+                self.staff_users.custom_message_lambda.log_group,
+            ],
         )
 
         if self.hosted_zone:
@@ -173,17 +226,41 @@ class PersistentStack(AppStack):
             self.staff_users.node.add_dependency(self.user_email_notifications.dmarc_record)
             self.provider_users.node.add_dependency(self.user_email_notifications.email_identity)
             self.provider_users.node.add_dependency(self.user_email_notifications.dmarc_record)
+            self.provider_users_standby.node.add_dependency(self.user_email_notifications.email_identity)
+            self.provider_users_standby.node.add_dependency(self.user_email_notifications.dmarc_record)
+            # the verification custom resource needs to be completed before the user pools are created
+            # so that the user pools will be created after the SES identity is verified
+            self.staff_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
+            self.provider_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
+            self.provider_users_standby.node.add_dependency(self.user_email_notifications.verification_custom_resource)
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
+        # Create the ssn related resources before other resources which are dependent on them
+        self.ssn_table = SSNTable(
+            self,
+            'SSNTable',
+            removal_policy=removal_policy,
+            data_event_bus=self.data_event_bus,
+            alarm_topic=self.alarm_topic,
+        )
+
         self.bulk_uploads_bucket = BulkUploadsBucket(
             self,
             'BulkUploadsBucket',
             access_logs_bucket=self.access_logs_bucket,
-            encryption_key=self.shared_encryption_key,
+            # Note that we're using the ssn key here, which has a much more restrictive policy.
+            # The messages in this bucket include SSN, so we want it just as locked down as our
+            # permanent storage of SSN data.
+            bucket_encryption_key=self.ssn_table.key,
             removal_policy=removal_policy,
             auto_delete_objects=removal_policy == RemovalPolicy.DESTROY,
             event_bus=self.data_event_bus,
+            license_preprocessing_queue=self.ssn_table.preprocessor_queue.queue,
+            license_upload_role=self.ssn_table.license_upload_role,
         )
+        # TODO - This dummy export is required until the api stack has been deployed # noqa: FIX002
+        #  to stop referencing this bucket arn
+        self.export_value(self.bulk_uploads_bucket.bucket_arn)
 
         self.transaction_reports_bucket = TransactionReportsBucket(
             self,
@@ -203,20 +280,13 @@ class PersistentStack(AppStack):
         self.provider_table = ProviderTable(
             self, 'ProviderTable', encryption_key=self.shared_encryption_key, removal_policy=removal_policy
         )
-        # Run migration 391 (GH issue number) to remove ssn fields from the provider data table
-        migration_391 = DataMigration(
-            self,
-            '391ProviderDataMigration',
-            migration_dir='391_reduced_ssn',
-            lambda_environment={
-                **self.common_env_vars,
-                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
-            },
-        )
-        self.provider_table.grant_read_write_data(migration_391)
+
+        # The api query role needs access to the provider table to associate a provider with
+        # its jurisdictions, so it can make authorization decisions for the requester.
+        self.provider_table.grant_read_data(self.ssn_table.api_query_role)
         NagSuppressions.add_resource_suppressions_by_path(
             self,
-            f'{migration_391.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            f'{self.ssn_table.api_query_role.node.path}/DefaultPolicy/Resource',
             suppressions=[
                 {
                     'id': 'AwsSolutions-IAM5',
@@ -226,32 +296,6 @@ class PersistentStack(AppStack):
                 },
             ],
         )
-
-        # Run migration 563 (GH issue number) to add persistedStatus field to privilege records
-        migration_563 = DataMigration(
-            self,
-            '563PrivilegePersistedStatusMigration',
-            migration_dir='563_privilege_persisted_status',
-            lambda_environment={
-                **self.common_env_vars,
-                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
-            },
-        )
-        self.provider_table.grant_read_write_data(migration_563)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{migration_563.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """This policy contains wild-carded actions and resources but they are scoped to the
-                              specific actions, Table, and KMS Key that this lambda specifically needs access to.
-                              """,
-                },
-            ],
-        )
-
-        self.ssn_table = SSNTable(self, 'SSNTable', removal_policy=removal_policy)
 
         self.data_event_table = DataEventTable(
             scope=self,
@@ -292,40 +336,7 @@ class PersistentStack(AppStack):
         there should be an associated migration script that is run as part of the deployment. These are short-lived
         custom resources that should be removed from the CDK app once the migration has been run in all environments.
         """
-        # # Run migration 392 (GH issue number) to add a GSI pk field to the SSN records
-        DataMigration(
-            self,
-            '392SSNMigration',
-            migration_dir='392_ssn',
-            lambda_environment={
-                **self.common_env_vars,
-                'SSN_TABLE_NAME': self.ssn_table.table_name,
-            },
-            role=self.ssn_table.ingest_role,
-        )
-        # Run migration 492 (GH issue number) to add compact transaction id GSI pk to privilege records
-        migration_492 = DataMigration(
-            self,
-            '492CompactTransactionIdGSIMigration',
-            migration_dir='492_transaction_id',
-            lambda_environment={
-                **self.common_env_vars,
-                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
-            },
-        )
-        self.provider_table.grant_read_write_data(migration_492)
-        NagSuppressions.add_resource_suppressions_by_path(
-            self,
-            f'{migration_492.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
-            suppressions=[
-                {
-                    'id': 'AwsSolutions-IAM5',
-                    'reason': """This policy contains wild-carded actions and resources but they are scoped to the
-                            specific actions, Table, and KMS Key that this lambda specifically needs access to.
-                            """,
-                },
-            ],
-        )
+        # No migrations are currently needed
 
     def _create_email_notification_service(self, environment_name: str) -> None:
         """This lambda is intended to be a general purpose email notification service.
@@ -352,7 +363,7 @@ class PersistentStack(AppStack):
                 'FROM_ADDRESS': from_address,
                 'COMPACT_CONFIGURATION_TABLE_NAME': self.compact_configuration_table.table_name,
                 'TRANSACTION_REPORTS_BUCKET_NAME': self.transaction_reports_bucket.bucket_name,
-                'UI_BASE_PATH_URL': self._get_ui_base_path_url(),
+                'UI_BASE_PATH_URL': self.get_ui_base_path_url(),
                 'ENVIRONMENT_NAME': environment_name,
                 **self.common_env_vars,
             },
@@ -429,10 +440,64 @@ class PersistentStack(AppStack):
             )
         )
 
-    def _get_ui_base_path_url(self) -> str:
+    def get_ui_base_path_url(self) -> str:
         """Returns the base URL for the UI."""
         if self.ui_domain_name is not None:
             return f'https://{self.ui_domain_name}'
 
         # default to csg test environment
         return 'https://app.test.compactconnect.org'
+
+    def _configuration_is_active_for_environment(self, environment_name: str, active_environments: list[str]) -> bool:
+        """Check if the compact configuration is active in the given environment."""
+        return environment_name in active_environments or self.node.try_get_context('sandbox') is True
+
+    def get_list_of_active_compacts_for_environment(self, environment_name: str) -> list[str]:
+        """
+        Currently, all configuration for compacts and jurisdictions is hardcoded in the compact-config directory.
+        This reads the YAML configuration files and returns the list of compacts that are marked as
+        active for the environment.
+        """
+
+        active_compacts = []
+        # Read all compact configuration YAML files from top level compact-config directory
+        for compact_config_file in os.listdir('compact-config'):
+            if compact_config_file.endswith('.yml'):
+                with open(os.path.join('compact-config', compact_config_file)) as f:
+                    # convert YAML to JSON
+                    formatted_compact = yaml.safe_load(f)
+                    # only include the compact configuration if it is active in the environment
+                    if self._configuration_is_active_for_environment(
+                        environment_name,
+                        formatted_compact['activeEnvironments'],
+                    ):
+                        active_compacts.append(formatted_compact['compactAbbr'])
+
+        return active_compacts
+
+    def get_list_of_active_jurisdictions_for_compact_environment(
+        self, compact: str, environment_name: str
+    ) -> list[str]:
+        """
+        Get the list of jurisdiction postal codes which are active within a compact and environment.
+
+        Currently, all configuration for compacts and jurisdictions is hardcoded in the compact-config directory.
+        This reads the YAML configuration files and returns the list of jurisdiction postal codes that are marked as
+        active for the environment.
+        """
+
+        active_jurisdictions = []
+
+        # Read all jurisdiction configuration YAML files from each active compact directory
+        for jurisdiction_config_file in os.listdir(os.path.join('compact-config', compact)):
+            if jurisdiction_config_file.endswith('.yml'):
+                with open(os.path.join('compact-config', compact, jurisdiction_config_file)) as f:
+                    formatted_jurisdiction = yaml.safe_load(f)
+                    # only include the jurisdiction configuration if it is active in the environment
+                    if self._configuration_is_active_for_environment(
+                        environment_name,
+                        formatted_jurisdiction['activeEnvironments'],
+                    ):
+                        active_jurisdictions.append(formatted_jurisdiction['postalAbbreviation'].lower())
+
+        return active_jurisdictions

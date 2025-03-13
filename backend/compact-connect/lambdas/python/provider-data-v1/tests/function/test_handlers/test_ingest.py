@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 from unittest.mock import patch
 
+from cc_common.exceptions import CCNotFoundException
 from moto import mock_aws
 
 from .. import TstFunction
@@ -33,7 +34,7 @@ class TestIngest(TstFunction):
         self._ssn_table.put_item(Item=ssn_record)
         provider_id = ssn_record['providerId']
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         if omit_email:
@@ -56,7 +57,7 @@ class TestIngest(TstFunction):
 
         event['pathParameters'] = {'compact': 'aslp', 'providerId': provider_id}
         event['requestContext']['authorizer']['claims']['scope'] = (
-            'openid email stuff aslp/readGeneral aslp/aslp.readPrivate'
+            'openid email stuff aslp/readGeneral aslp/readPrivate'
         )
         resp = get_provider(event, self.mock_context)
         self.assertEqual(resp['statusCode'], 200)
@@ -66,7 +67,7 @@ class TestIngest(TstFunction):
         from handlers.ingest import ingest_license_message
         from handlers.providers import query_providers
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = f.read()
 
         event = {'Records': [{'messageId': '123', 'body': message}]}
@@ -120,7 +121,7 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_id = json.load(f)['providerId']
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
         # Imagine that this provider used to be licensed in ky.
         # What happens if ky uploads that inactive license?
@@ -166,7 +167,7 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_id = json.load(f)['providerId']
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
         # Imagine that this provider was just licensed in ky, but has not registered with the system (ie has not
         # picked a home state).
@@ -211,7 +212,7 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_id = json.load(f)['providerId']
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
         # Imagine that this provider was just licensed in ky, and has registered with the system with a home state
         # selection of 'oh'.
@@ -240,12 +241,11 @@ class TestIngest(TstFunction):
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     @patch('handlers.ingest.EventBatchWriter', autospec=True)
     def test_existing_provider_deactivation(self, mock_event_writer):
-
         from handlers.ingest import ingest_license_message
 
         provider_id = self._with_ingested_license()
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         # What happens if their license goes inactive in a subsequent upload?
@@ -339,7 +339,7 @@ class TestIngest(TstFunction):
                     ),
                     'EventBusName': 'license-data-events',
                 }
-            }
+            },
         )
 
     def test_existing_provider_renewal(self):
@@ -347,7 +347,7 @@ class TestIngest(TstFunction):
 
         provider_id = self._with_ingested_license()
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         message['detail'].update({'dateOfRenewal': '2025-03-03', 'dateOfExpiration': '2030-03-03'})
@@ -429,7 +429,7 @@ class TestIngest(TstFunction):
 
         provider_id = self._with_ingested_license()
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         message['detail'].update({'familyName': 'VonSmitherton'})
@@ -509,7 +509,7 @@ class TestIngest(TstFunction):
 
         provider_id = self._with_ingested_license()
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         # What happens if their license is uploaded again with no change?
@@ -549,7 +549,7 @@ class TestIngest(TstFunction):
 
         provider_id = self._with_ingested_license()
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         del message['detail']['emailAddress']
@@ -629,7 +629,7 @@ class TestIngest(TstFunction):
 
         provider_id = self._with_ingested_license(omit_email=True)
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         # What happens if their email is added in a subsequent upload?
@@ -696,3 +696,94 @@ class TestIngest(TstFunction):
                 del hist['previous']['dateOfUpdate']
 
         self.assertEqual(expected_provider, provider_data)
+
+    def test_preprocess_license_ingest_creates_ssn_provider_record(self):
+        from handlers.ingest import preprocess_license_ingest
+
+        test_ssn = '123-12-1234'
+
+        # Before running method under test, ensure the provider ssn record does not exist
+        with self.assertRaises(CCNotFoundException):
+            self.config.data_client.get_provider_id(compact='aslp', ssn=test_ssn)
+
+        with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
+            message = json.load(f)
+            # set fixed ssn here to ensure we are checking the expected value
+            message['ssn'] = test_ssn
+
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+
+        resp = preprocess_license_ingest(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        # Find the provider's id from their ssn
+        provider_id = self.config.data_client.get_provider_id(compact='aslp', ssn=test_ssn)
+
+        # the provider_id is randomly generated, so we cannot check an exact value, just to make sure it exists
+        self.assertIsNotNone(provider_id)
+
+    def test_preprocess_license_returns_batch_item_failure_if_error_occurs(self):
+        from handlers.ingest import preprocess_license_ingest
+
+        # adding an invalid ssn here to force an exception
+        test_ssn = False
+        with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
+            message = json.load(f)
+            # set fixed ssn here to ensure we are checking the expected value
+            message['ssn'] = test_ssn
+
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+
+        resp = preprocess_license_ingest(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': [{'itemIdentifier': '123'}]}, resp)
+
+    def test_inactive_privileges_included_in_privilege_jurisdictions(self):
+        """
+        Test that inactive privileges are included in the privilegeJurisdictions list.
+        This test verifies that we include all jurisdictions a user has privileges in,
+        regardless of whether they are active or not.
+        """
+        from handlers.ingest import ingest_license_message
+
+        # The test resource provider has a license in oh and active privilege in ne
+        self._load_provider_data()
+        with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
+            provider_id = json.load(f)['providerId']
+
+        # Add an inactive privilege record for this provider in a different jurisdiction (ky)
+        inactive_privilege = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': 'aslp#PROVIDER#privilege/ky#',
+            'type': 'privilege',
+            'providerId': provider_id,
+            'compact': 'aslp',
+            'jurisdiction': 'ky',
+            'dateOfIssuance': '2023-01-01',
+            'dateOfRenewal': '2023-01-01',
+            'dateOfExpiration': '2025-01-01',
+            'dateOfUpdate': '2025-01-01T12:59:59+00:00',
+            'compactTransactionId': '1234567890',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+            'privilegeId': 'test-privilege-id',
+            'persistedStatus': 'inactive',  # This privilege is inactive
+            'attestations': [],
+        }
+        self.config.provider_table.put_item(Item=inactive_privilege)
+
+        # Now ingest a new license to trigger the provider record update
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        # Make a small change to trigger an update
+        message['detail']['phoneNumber'] = '+19876543210'
+
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        # Get the provider data and verify that the inactive privilege jurisdiction is included
+        provider_data = self._get_provider_via_api(provider_id)
+
+        # The privilegeJurisdictions should include both the active privilege from the test setup
+        # and the inactive privilege we just added
+        self.assertEqual({'ky', 'ne'}, set(provider_data['privilegeJurisdictions']))

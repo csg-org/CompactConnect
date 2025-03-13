@@ -39,7 +39,7 @@ class LicenseCard extends Vue {
     }
 
     get isActive(): boolean {
-        return Boolean(this.license && this.license.statusState === LicenseStatus.ACTIVE);
+        return Boolean(this.license && this.license.status === LicenseStatus.ACTIVE);
     }
 
     get state(): State | null {
@@ -99,8 +99,8 @@ class LicenseCard extends Vue {
         return isPastDate;
     }
 
-    get occupationDisplay(): string {
-        return this.license?.occupationAbbreviation() || '';
+    get licenseTypeDisplay(): string {
+        return this.license?.licenseTypeAbbreviation() || '';
     }
 }
 

@@ -4,7 +4,7 @@
 //
 //  Created by InspiringApps on 4/12/2020.
 //
-import { compacts as compactConfigs, AuthTypes } from '@/app.config';
+import { compacts as compactConfigs, AuthTypes, Permission } from '@/app.config';
 import { StaffUser, StaffUserSerializer } from '@models/StaffUser/StaffUser.model';
 import { Compact, CompactType } from '@models/Compact/Compact.model';
 import { State } from '@models/State/State.model';
@@ -53,6 +53,7 @@ describe('Staff User model', () => {
         expect(user.affiliationDisplay(CompactType.ASLP)).to.equal('');
         expect(user.statesDisplay()).to.equal('');
         expect(user.statesDisplay(CompactType.ASLP)).to.equal('');
+        expect(user.hasPermission(Permission.READ_PRIVATE, CompactType.ASLP)).to.equal(false);
         expect(user.accountStatusDisplay()).to.equal('');
     });
     it('should create a Staff User with specific values (compact-level permission)', () => {
@@ -65,11 +66,13 @@ describe('Staff User model', () => {
                 {
                     compact: new Compact({ type: CompactType.ASLP }),
                     isReadPrivate: true,
+                    isReadSsn: true,
                     isAdmin: true,
                     states: [
                         {
                             state: new State({ abbrev: 'co' }),
                             isReadPrivate: true,
+                            isReadSsn: true,
                             isWrite: true,
                             isAdmin: true,
                         },
@@ -91,10 +94,12 @@ describe('Staff User model', () => {
             {
                 compact: new Compact({ type: CompactType.ASLP }),
                 isReadPrivate: true,
+                isReadSsn: true,
                 isAdmin: true,
                 states: [
                     {
                         isReadPrivate: true,
+                        isReadSsn: true,
                         isWrite: true,
                         isAdmin: true,
                         '...': '',
@@ -105,13 +110,14 @@ describe('Staff User model', () => {
         expect(user.accountStatus).to.equal(data.accountStatus);
         expect(user.getFullName()).to.equal(`${data.firstName} ${data.lastName}`);
         expect(user.getInitials()).to.equal('FL');
-        expect(user.permissionsShortDisplay()).to.equal('Read Private, Admin');
+        expect(user.permissionsShortDisplay()).to.equal('Read Private, Read SSN, Admin');
         expect(user.permissionsFullDisplay()).to.matchPattern([
-            'ASLP: Read Private, Admin',
-            'Colorado: Read Private, Write, Admin',
+            'ASLP: Read Private, Read SSN, Admin',
+            'Colorado: Read Private, Read SSN, Write, Admin',
         ]);
         expect(user.affiliationDisplay()).to.equal('ASLP');
         expect(user.statesDisplay()).to.equal('Colorado');
+        expect(user.hasPermission(Permission.READ_PRIVATE, CompactType.ASLP)).to.equal(true);
         expect(user.accountStatusDisplay()).to.equal('Active');
     });
     it('should create a Staff User with specific values (compact-level permission)', () => {
@@ -214,12 +220,14 @@ describe('Staff User model', () => {
                 aslp: {
                     actions: {
                         readPrivate: true,
+                        readSSN: true,
                         admin: true,
                     },
                     jurisdictions: {
                         co: {
                             actions: {
                                 readPrivate: true,
+                                readSSN: true,
                                 write: true,
                                 admin: true,
                             },
@@ -246,10 +254,12 @@ describe('Staff User model', () => {
                     '...': '',
                 },
                 isReadPrivate: true,
+                isReadSsn: true,
                 isAdmin: true,
                 states: [
                     {
                         isReadPrivate: true,
+                        isReadSsn: true,
                         isWrite: true,
                         isAdmin: true,
                         '...': '',
@@ -262,13 +272,14 @@ describe('Staff User model', () => {
         expect(user.userType).to.equal(AuthTypes.STAFF);
         expect(user.getFullName()).to.equal(`${data.attributes.givenName} ${data.attributes.familyName}`);
         expect(user.getInitials()).to.equal('FL');
-        expect(user.permissionsShortDisplay()).to.equal('Read Private, Admin');
+        expect(user.permissionsShortDisplay()).to.equal('Read Private, Read SSN, Admin');
         expect(user.permissionsFullDisplay()).to.matchPattern([
-            'ASLP: Read Private, Admin',
-            'Colorado: Read Private, Write, Admin',
+            'ASLP: Read Private, Read SSN, Admin',
+            'Colorado: Read Private, Read SSN, Write, Admin',
         ]);
         expect(user.affiliationDisplay()).to.equal('ASLP');
         expect(user.statesDisplay()).to.equal('Colorado');
+        expect(user.hasPermission(Permission.READ_PRIVATE, CompactType.ASLP)).to.equal(true);
         expect(user.accountStatusDisplay()).to.equal('Active');
     });
     it('should create a Staff User with specific values through staff serializer (server-inactive -> pending)', () => {
@@ -281,17 +292,83 @@ describe('Staff User model', () => {
         expect(user.accountStatus).to.equal('pending');
         expect(user.accountStatusDisplay()).to.equal('Pending');
     });
+    it('should create a Staff User with specific values through staff serializer (no permissions)', () => {
+        const data = {};
+        const user = StaffUserSerializer.fromServer(data);
+
+        expect(user).to.be.an.instanceof(StaffUser);
+        expect(user.hasPermission(Permission.READ_PRIVATE, CompactType.ASLP)).to.equal(false);
+        expect(user.hasPermission(Permission.READ_SSN, CompactType.ASLP)).to.equal(false);
+        expect(user.hasPermission(Permission.ADMIN, CompactType.ASLP)).to.equal(false);
+        expect(user.hasPermission(Permission.READ_PRIVATE, CompactType.ASLP, 'co')).to.equal(false);
+        expect(user.hasPermission(Permission.READ_SSN, CompactType.ASLP, 'co')).to.equal(false);
+        expect(user.hasPermission(Permission.WRITE, CompactType.ASLP, 'co')).to.equal(false);
+        expect(user.hasPermission(Permission.ADMIN, CompactType.ASLP, 'co')).to.equal(false);
+    });
+    it('should create a Staff User with specific values through staff serializer (state only permissions)', () => {
+        const data = {
+            permissions: {
+                aslp: {
+                    jurisdictions: {
+                        co: {
+                            actions: {
+                                readPrivate: true,
+                                readSSN: true,
+                                write: true,
+                                admin: true,
+                            },
+                        },
+                    },
+                },
+            },
+        };
+        const user = StaffUserSerializer.fromServer(data);
+
+        expect(user).to.be.an.instanceof(StaffUser);
+        expect(user.hasPermission(Permission.READ_PRIVATE, CompactType.ASLP)).to.equal(false);
+        expect(user.hasPermission(Permission.READ_SSN, CompactType.ASLP)).to.equal(false);
+        expect(user.hasPermission(Permission.ADMIN, CompactType.ASLP)).to.equal(false);
+        expect(user.hasPermission(Permission.READ_PRIVATE, CompactType.ASLP, 'co')).to.equal(true);
+        expect(user.hasPermission(Permission.READ_SSN, CompactType.ASLP, 'co')).to.equal(true);
+        expect(user.hasPermission(Permission.WRITE, CompactType.ASLP, 'co')).to.equal(true);
+        expect(user.hasPermission(Permission.ADMIN, CompactType.ASLP, 'co')).to.equal(true);
+    });
+    it('should create a Staff User with specific values through staff serializer (compact level permissions)', () => {
+        const data = {
+            permissions: {
+                aslp: {
+                    actions: {
+                        readPrivate: true,
+                        readSSN: true,
+                        admin: true,
+                    },
+                },
+            },
+        };
+        const user = StaffUserSerializer.fromServer(data);
+
+        expect(user).to.be.an.instanceof(StaffUser);
+        expect(user.hasPermission(Permission.READ_PRIVATE, CompactType.ASLP)).to.equal(true);
+        expect(user.hasPermission(Permission.READ_SSN, CompactType.ASLP)).to.equal(true);
+        expect(user.hasPermission(Permission.ADMIN, CompactType.ASLP)).to.equal(true);
+        expect(user.hasPermission(Permission.READ_PRIVATE, CompactType.ASLP, 'co')).to.equal(true);
+        expect(user.hasPermission(Permission.READ_SSN, CompactType.ASLP, 'co')).to.equal(true);
+        expect(user.hasPermission(Permission.WRITE, CompactType.ASLP, 'co')).to.equal(false);
+        expect(user.hasPermission(Permission.ADMIN, CompactType.ASLP, 'co')).to.equal(true);
+    });
     it('should prepare a Staff User for server request through serializer', () => {
         const data = {
             permissions: [
                 {
                     compact: CompactType.ASLP,
                     isReadPrivate: true,
+                    isReadSsn: true,
                     isAdmin: true,
                     states: [
                         {
                             abbrev: 'co',
                             isReadPrivate: true,
+                            isReadSsn: true,
                             isWrite: true,
                             isAdmin: true,
                         },
@@ -311,12 +388,14 @@ describe('Staff User model', () => {
                 [CompactType.ASLP]: {
                     actions: {
                         readPrivate: true,
+                        readSSN: true,
                         admin: true,
                     },
                     jurisdictions: {
                         co: {
                             actions: {
                                 readPrivate: true,
+                                readSSN: true,
                                 write: true,
                                 admin: true,
                             },

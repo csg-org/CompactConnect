@@ -13,6 +13,7 @@ from stacks.api_stack.v1_api.query_providers import QueryProviders
 from .api_model import ApiModel
 from .credentials import Credentials
 from .post_licenses import PostLicenses
+from .public_lookup_api import PublicLookupApi
 from .staff_users import StaffUsers
 
 
@@ -25,18 +26,35 @@ class V1Api:
         self.resource = root.add_resource('v1')
         self.api: cc_api.CCApi = root.api
         self.api_model = ApiModel(api=self.api)
-        read_scopes = [
-            f'{resource_server}/readGeneral' for resource_server in persistent_stack.staff_users.resource_servers.keys()
-        ]
-        write_scopes = [
-            f'{resource_server}/write' for resource_server in persistent_stack.staff_users.resource_servers.keys()
-        ]
-        admin_scopes = [
-            f'{resource_server}/admin' for resource_server in persistent_stack.staff_users.resource_servers.keys()
-        ]
-        read_ssn_scopes = [
-            f'{resource_server}/readSSN' for resource_server in persistent_stack.staff_users.resource_servers.keys()
-        ]
+        _active_compacts = persistent_stack.get_list_of_active_compacts_for_environment(
+            environment_name=self.api.environment_name
+        )
+
+        read_scopes = []
+        write_scopes = []
+        admin_scopes = []
+        read_ssn_scopes = []
+        # set the compact level scopes
+        for compact in _active_compacts:
+            # We only set the readGeneral permission scope at the compact level, since users with any permissions
+            # within a compact are implicitly granted this scope
+            read_scopes.append(f'{compact}/readGeneral')
+            write_scopes.append(f'{compact}/write')
+            admin_scopes.append(f'{compact}/admin')
+            read_ssn_scopes.append(f'{compact}/readSSN')
+
+            _active_compact_jurisdictions = persistent_stack.get_list_of_active_jurisdictions_for_compact_environment(
+                compact=compact, environment_name=self.api.environment_name
+            )
+
+            # We also include the jurisdiction level compact scopes for all jurisdictions active within the compact
+            # The one exception to this is the readPrivate scope, as this is exclusively checked in the runtime code
+            # to determine what data to return from the query related endpoints
+            for jurisdiction in _active_compact_jurisdictions:
+                write_scopes.append(f'{jurisdiction}/{compact}.write')
+                admin_scopes.append(f'{jurisdiction}/{compact}.admin')
+                read_ssn_scopes.append(f'{jurisdiction}/{compact}.readSSN')
+
         read_auth_method_options = MethodOptions(
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
@@ -58,6 +76,21 @@ class V1Api:
             authorization_type=AuthorizationType.COGNITO,
             authorizer=self.api.staff_users_authorizer,
             authorization_scopes=read_ssn_scopes,
+        )
+
+        # /v1/public
+        self.public_resource = self.resource.add_resource('public')
+        # POST /v1/public/compacts/{compact}/providers/query
+        # GET  /v1/public/compacts/{compact}/providers/{providerId}
+        self.public_compacts_resource = self.public_resource.add_resource('compacts')
+        self.public_compacts_compact_resource = self.public_compacts_resource.add_resource('{compact}')
+        self.public_compacts_compact_providers_resource = self.public_compacts_compact_resource.add_resource(
+            'providers'
+        )
+        self.public_lookup_api = PublicLookupApi(
+            resource=self.public_compacts_compact_providers_resource,
+            persistent_stack=persistent_stack,
+            api_model=self.api_model,
         )
 
         # /v1/provider-users
@@ -122,13 +155,14 @@ class V1Api:
         PostLicenses(
             resource=licenses_resource,
             method_options=write_auth_method_options,
-            event_bus=persistent_stack.data_event_bus,
+            persistent_stack=persistent_stack,
             api_model=self.api_model,
         )
         BulkUploadUrl(
             resource=licenses_resource,
             method_options=write_auth_method_options,
             bulk_uploads_bucket=persistent_stack.bulk_uploads_bucket,
+            license_upload_role=persistent_stack.ssn_table.license_upload_role,
             api_model=self.api_model,
         )
 

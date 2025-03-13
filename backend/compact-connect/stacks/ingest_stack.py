@@ -29,13 +29,10 @@ class IngestStack(AppStack):
             lambda_dir='provider-data-v1',
             index=os.path.join('handlers', 'ingest.py'),
             handler='ingest_license_message',
-            role=persistent_stack.ssn_table.ingest_role,
             timeout=Duration.minutes(1),
             environment={
                 'EVENT_BUS_NAME': persistent_stack.data_event_bus.event_bus_name,
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
-                'SSN_TABLE_NAME': persistent_stack.ssn_table.table_name,
-                'SSN_INVERTED_INDEX_NAME': persistent_stack.ssn_table.inverted_index_name,
                 **self.common_env_vars,
             },
             alarm_topic=persistent_stack.alarm_topic,
@@ -78,10 +75,7 @@ class IngestStack(AppStack):
             max_batching_window=Duration.minutes(5),
             max_receive_count=3,
             batch_size=50,
-            # Note that we're using the ssn key here, which has a much more restrictive policy.
-            # The messages on this queue include SSN, so we want it just as locked down as our
-            # permanent storage of SSN data.
-            encryption_key=persistent_stack.ssn_table.key,
+            encryption_key=persistent_stack.shared_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
         )
 
