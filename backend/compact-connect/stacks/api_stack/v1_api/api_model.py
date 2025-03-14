@@ -496,7 +496,7 @@ class ApiModel:
                 properties={
                     'licenseType': JsonSchema(
                         type=JsonSchemaType.STRING,
-                        description='The type of license the provider is purchasing',
+                        description='The type of license the provider is purchasing a privilege for.',
                     ),
                     'selectedJurisdictions': JsonSchema(
                         type=JsonSchemaType.ARRAY,
