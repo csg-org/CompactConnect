@@ -16,7 +16,6 @@
   "homeAddressCity": "Columbus",
   "homeAddressState": "oh",
   "homeAddressPostalCode": "43004",
-  "militaryWaiver": false,
   "emailAddress": "björk@example.com",
   "phoneNumber": "+13213214321",
   "compactConnectRegisteredEmailAddress": "björkRegisteredEmail@example.com",
@@ -52,7 +51,6 @@
       "homeAddressPostalCode": "43004",
       "emailAddress": "björk@example.com",
       "phoneNumber": "+13213214321",
-      "militaryWaiver": false,
       "history": [
         {
           "type": "licenseUpdate",
@@ -82,7 +80,6 @@
             "homeAddressPostalCode": "43004",
             "emailAddress": "björk@example.com",
             "phoneNumber": "+13213214321",
-            "militaryWaiver": false
           },
           "updatedValues": {
             "dateOfRenewal": "2020-04-04",

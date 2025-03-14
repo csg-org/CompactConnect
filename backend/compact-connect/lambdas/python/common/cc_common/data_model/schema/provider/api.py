@@ -56,7 +56,6 @@ class ProviderGeneralResponseSchema(ForgivingSchema):
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
     cognitoSub = String(required=False, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
-    militaryWaiver = Boolean(required=False, allow_none=False)
 
     privilegeJurisdictions = Set(String, required=False, allow_none=False, load_default=set())
     providerFamGivMid = String(required=False, allow_none=False, validate=Length(2, 400))

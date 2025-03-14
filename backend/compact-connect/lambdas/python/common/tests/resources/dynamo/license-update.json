@@ -27,7 +27,6 @@
     "homeAddressPostalCode": "43004",
     "emailAddress": "björk@example.com",
     "phoneNumber": "+13213214321",
-    "militaryWaiver": false,
     "jurisdictionStatus": "active"
   },
   "updatedValues": {

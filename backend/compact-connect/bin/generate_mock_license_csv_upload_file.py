@@ -55,7 +55,6 @@ FIELDS = (
     'homeAddressCity',
     'homeAddressState',
     'homeAddressPostalCode',
-    'militaryWaiver',
     'emailAddress',
     'phoneNumber',
 )
@@ -124,24 +123,10 @@ def generate_mock_license_number() -> str:
 
 
 def _set_address_state(license_data: dict, jurisdiction: str) -> dict:
-    # 1/5 will have a military waiver
-    military = choice([False, False, False, False, True])
-    if military:
-        home_state = faker.state_abbr().lower()
-        license_data.update(
-            {
-                'homeAddressState': home_state,
-                'homeAddressPostalCode': faker.zipcode_in_state(state_abbr=home_state.upper()),
-                'militaryWaiver': military,
-            },
-        )
-    else:
-        license_data.update(
+    license_data.update(
             {
                 'homeAddressState': jurisdiction,
                 'homeAddressPostalCode': faker.zipcode_in_state(state_abbr=jurisdiction.upper()),
-                # Explicitly set False for some, omit for others
-                'militaryWaiver': military if choice([True, False]) else None,
             },
         )
     return license_data
