@@ -84,9 +84,10 @@ def trigger_get_provider_ssn_endpoint_throttling():
     endpoint too frequently.
 
     Step 1: Create three test staff users with the aslp/readSSN scope.
-    Step 2: Have each user call the endpoint until throttled (6 requests each). The first two should be disabled
-    (asserted with the AdminGetUser api), and the last one should cause the lambda to throttle itself with a set
-    reserved concurrency limit of 0 (asserted using the boto3 lambda client
+    Step 2: Have each user call the endpoint until throttled after 16 requests (7 requests from first two users,
+    2 requests from the third). The first two should be disabled (asserted with the AdminGetUser api), and the last
+    one should cause the lambda to throttle itself with a set reserved concurrency limit of 0 (asserted using the boto3
+    lambda client)
     Step 3: Ensure that all test staff users are cleaned up and all request record in the rate limiting table
     are cleared.
     """
@@ -130,8 +131,6 @@ def trigger_get_provider_ssn_endpoint_throttling():
                         f'User {email} was throttled on request {j + 1}, expected to succeed'
                     )
                 logger.info(f'Request {j + 1} successful with status code {response.status_code}')
-                # Small delay to ensure requests are recorded properly
-                time.sleep(0.5)
 
             # 6th request should be throttled but user should still be enabled
             response = _make_ssn_request(email, test_provider_id)
@@ -162,7 +161,7 @@ def trigger_get_provider_ssn_endpoint_throttling():
             logger.info(f'User {email} correctly disabled after 7th request')
 
         # Test the third user - this should trigger the global throttling after 16 total requests
-        # (14 from first two users, plus 6 from this user)
+        # (14 from first two users, plus 2 from this user)
         logger.info(f'Testing user 3: {test_emails[2]}')
 
         # First request should succeed

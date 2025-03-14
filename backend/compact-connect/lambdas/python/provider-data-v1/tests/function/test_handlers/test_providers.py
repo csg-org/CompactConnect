@@ -471,9 +471,8 @@ class TestGetProviderSSN(TstFunction):
 
     def test_get_provider_ssn_throttled_and_deactivated_if_staff_user_goes_beyond_rate_limit(self):
         """
-        The staff user has called this endpoint more than the set limit, so the endpoint returns a 429
-        If the user makes another request after this, their account should be deactivated and an alert should be
-        fired.
+        The staff user has called this endpoint more than the set limit, so the endpoint throttles the user (which will
+        cause an alert to trigger from CloudWatch) and, after one more request, their account is deactivated.
         """
         self._load_provider_data()
 
@@ -508,9 +507,7 @@ class TestGetProviderSSN(TstFunction):
         self.assertEqual(user['Enabled'], False)
 
     @patch('handlers.providers.config.lambda_client', autospec=True)
-    def test_get_provider_ssn_sets_reserved_concurrency_to_zero_and_deactivated_if_staff_user_goes_beyond_rate_limit(
-        self, mock_lambda_client
-    ):
+    def test_get_provider_ssn_endpoint_throttled_if_endpoint_calls_exceed_global_rate_limit(self, mock_lambda_client):
         """
         If this endpoint is invoked more than the set global limit within a 24-hour period, we throttle this endpoint
         by setting its reserved concurrency to 0, to prevent a concentrated attack.

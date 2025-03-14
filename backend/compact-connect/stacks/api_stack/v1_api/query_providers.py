@@ -283,12 +283,16 @@ class QueryProviders:
         # We'll monitor longer access patterns to detect anomalies, over time
         # The L2 construct, Alarm, doesn't yet support Anomaly Detection as a configuration
         # so we're using the L1 construct, CfnAlarm
+        # This anomaly detector scans the count of requests to the ssn endpoint by
+        # the daily_read_ssn_count_metric and uses machine-learning and pattern recognition to
+        # establish baselines of typical usage.
+        # See https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/LogsAnomalyDetection.html
         self.ssn_anomaly_detection_alarm = CfnAlarm(
             self.api,
             'ReadSSNAnomalyAlarm',
             alarm_description=f'{self.api.node.path} read-ssn anomaly detection. The GET provider SSN endpoint has been'
-                              f'called an irregular number of times. Investigation required to ensure ssn endpoint is '
-                              f'not being abused.',
+            f'called an irregular number of times. Investigation required to ensure ssn endpoint is '
+            f'not being abused.',
             comparison_operator='GreaterThanUpperThreshold',
             evaluation_periods=1,
             treat_missing_data='notBreaching',
@@ -355,13 +359,13 @@ class QueryProviders:
             comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
             treat_missing_data=TreatMissingData.NOT_BREACHING,
             alarm_description=f'{self.api.node.path} SECURITY ALERT: SSN ENDPOINT DISABLED. The GET provider SSN '
-                              'endpoint has been disabled due to excessive requests. Immediate investigation required. '
-                              'Endpoint will need to be manually reactivated before any further requests can be '
-                              'processed.',
+            'endpoint has been disabled due to excessive requests. Immediate investigation required. '
+            'Endpoint will need to be manually reactivated before any further requests can be '
+            'processed.',
         )
         self.ssn_endpoint_disabled_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
 
-        # Add an alarm for 429 responses from the SSN endpoint
+        # Add an alarm for 4xx responses from the SSN endpoint
         self.ssn_api_throttling_alarm = Alarm(
             self.api,
             'SSNApi4XXAlarm',

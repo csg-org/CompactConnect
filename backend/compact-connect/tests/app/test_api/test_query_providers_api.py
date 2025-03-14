@@ -275,7 +275,9 @@ class TestQueryProvidersApi(TestApi):
 
         # Ensure the ssn endpoint disabled alarm is created
         ssn_endpoint_disabled_alarm = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.query_providers.ssn_endpoint_disabled_alarm.node.default_child),
+            api_stack.get_logical_id(
+                api_stack.api.v1_api.query_providers.ssn_endpoint_disabled_alarm.node.default_child
+            ),
             alarms,
         )
 
