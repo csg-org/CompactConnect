@@ -342,7 +342,7 @@ class TestPostPurchasePrivileges(TstFunction):
     @patch('handlers.privileges.PurchaseClient')
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-10-05T23:59:59+00:00'))
     def test_purchase_privileges_allows_existing_privilege_purchase_if_license_expiration_matches_but_is_inactive(
-            self, mock_purchase_client_constructor
+        self, mock_purchase_client_constructor
     ):
         """
         In this case, the user is attempting to purchase a privilege in kentucky twice with the same expiration date

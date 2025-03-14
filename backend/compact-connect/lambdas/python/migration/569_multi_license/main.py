@@ -1,4 +1,3 @@
-
 from boto3.dynamodb.conditions import Key
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility

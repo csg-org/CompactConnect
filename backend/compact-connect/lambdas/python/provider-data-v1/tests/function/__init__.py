@@ -43,7 +43,7 @@ class TstFunction(TstLambdas):
         self.create_staff_user_pool()
 
         boto3.client('events').create_event_bus(Name=os.environ['EVENT_BUS_NAME'])
-        
+
         # Create a new Cognito user pool for providers
         cognito_client = boto3.client('cognito-idp')
         user_pool_name = 'TestProviderUserPool'
@@ -66,7 +66,6 @@ class TstFunction(TstLambdas):
         )
         os.environ['USER_POOL_ID'] = user_pool_response['UserPool']['Id']
         self._user_pool_id = user_pool_response['UserPool']['Id']
-
 
     def create_provider_table(self):
         self._provider_table = boto3.resource('dynamodb').create_table(
