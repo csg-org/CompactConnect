@@ -50,7 +50,6 @@ The following table describes all available fields for the license CSV file. Req
 | homeAddressStreet2 | Second line of provider's street address (optional) | String (max 100 chars) | Suite 100 |
 | licenseNumber | License number (optional) | String (max 100 chars) | OT12345 |
 | middleName | Provider's middle name (optional) | String (max 100 chars) | Robert |
-| militaryWaiver | Whether provider has military waiver (optional) | One of: `true`, `false` | true |
 | npi | National Provider Identifier (optional) | 10-digit number | 1234567890 |
 | phoneNumber | Provider's phone number (optional) | [ITU-T E.164 format](https://www.itu.int/rec/T-REC-E.164-201011-I/en) (must include country code, no spaces or dashes) | +12025550123 |
 | suffix | Provider's name suffix (optional) | String (max 100 chars) | Jr. |

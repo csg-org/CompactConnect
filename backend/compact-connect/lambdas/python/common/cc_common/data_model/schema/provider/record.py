@@ -2,7 +2,7 @@
 from urllib.parse import quote
 
 from marshmallow import post_load, pre_dump, pre_load
-from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, String
+from marshmallow.fields import UUID, Date, DateTime, Email, String
 from marshmallow.validate import Length, Regexp
 
 from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema
@@ -44,7 +44,6 @@ class ProviderRecordSchema(CalculatedStatusRecordSchema):
     homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
-    militaryWaiver = Boolean(required=False, allow_none=False)
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     compactConnectRegisteredEmailAddress = Email(required=False, allow_none=False)
