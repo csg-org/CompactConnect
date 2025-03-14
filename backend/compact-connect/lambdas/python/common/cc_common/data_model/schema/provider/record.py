@@ -2,7 +2,7 @@
 from urllib.parse import quote
 
 from marshmallow import post_load, pre_dump, pre_load
-from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, String
+from marshmallow.fields import UUID, Date, DateTime, Email, String
 from marshmallow.validate import Length, Regexp
 
 from cc_common.data_model.schema.base_record import BaseRecordSchema, CalculatedStatusRecordSchema

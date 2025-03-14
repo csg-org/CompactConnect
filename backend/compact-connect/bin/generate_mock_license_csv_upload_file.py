@@ -124,11 +124,11 @@ def generate_mock_license_number() -> str:
 
 def _set_address_state(license_data: dict, jurisdiction: str) -> dict:
     license_data.update(
-            {
-                'homeAddressState': jurisdiction,
-                'homeAddressPostalCode': faker.zipcode_in_state(state_abbr=jurisdiction.upper()),
-            },
-        )
+        {
+            'homeAddressState': jurisdiction,
+            'homeAddressPostalCode': faker.zipcode_in_state(state_abbr=jurisdiction.upper()),
+        },
+    )
     return license_data
 
 
