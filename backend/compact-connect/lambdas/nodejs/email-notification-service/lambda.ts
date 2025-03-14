@@ -73,6 +73,31 @@ export class Lambda implements LambdaInterface {
                 event.specificEmails
             );
             break;
+        case 'privilegeDeactivationJurisdictionNotification':
+            if (!event.jurisdiction) {
+                throw new Error('Missing required jurisdiction field.');
+            }
+            if (!event.templateVariables.privilegeId 
+                || !event.templateVariables.providerFirstName 
+                || !event.templateVariables.providerLastName) {
+                throw new Error('Missing required template variables for privilegeDeactivationJurisdictionNotification template.');
+            }
+            await this.emailService.sendPrivilegeDeactivationJurisdictionNotificationEmail(
+                event.compact,
+                event.jurisdiction,
+                event.recipientType,
+                event.templateVariables.privilegeId,
+                event.templateVariables.providerFirstName,
+                event.templateVariables.providerLastName
+            );
+            break;
+        case 'privilegeDeactivationProviderNotification':
+            await this.emailService.sendPrivilegeDeactivationProviderNotificationEmail(
+                event.compact,
+                event.specificEmails,
+                event.templateVariables.privilegeId
+            );
+            break;
         case 'CompactTransactionReporting':
             if (!event.templateVariables?.reportS3Path) {
                 throw new Error('Missing required template variables for CompactTransactionReporting template');

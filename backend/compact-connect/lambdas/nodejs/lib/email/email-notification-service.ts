@@ -10,7 +10,7 @@ const environmentVariableService = new EnvironmentVariablesService();
  * Email service for handling email notifications
  */
 export class EmailNotificationService extends BaseEmailService {
-    private async getRecipients(compact: string,
+    private async getCompactRecipients(compact: string,
         recipientType: RecipientType,
         specificEmails?: string[]
     ): Promise<string[]> {
@@ -32,12 +32,33 @@ export class EmailNotificationService extends BaseEmailService {
         }
     }
 
+    private async getJurisdictionRecipients(compact: string,
+        jurisdiction: string,
+        recipientType: RecipientType,
+        specificEmails?: string[]
+    ): Promise<string[]> {
+        if (recipientType === 'SPECIFIC') {
+            if (specificEmails) return specificEmails;
+
+            throw new Error(`SPECIFIC recipientType requested but no specific email addresses provided`);
+        }
+
+        const jurisdictionConfig = await this.jurisdictionClient.getJurisdictionConfiguration(compact, jurisdiction);
+
+        switch (recipientType) {
+        case 'JURISDICTION_SUMMARY_REPORT':
+            return jurisdictionConfig.jurisdictionSummaryReportNotificationEmails;
+        default:
+            throw new Error(`Unsupported recipient type for compact configuration: ${recipientType}`);
+        }
+    }
+
     public async sendTransactionBatchSettlementFailureEmail(compact: string,
         recipientType: RecipientType,
         specificEmails?: string[]
     ): Promise<void> {
         this.logger.info('Sending transaction batch settlement failure email', { compact: compact });
-        const recipients = await this.getRecipients(compact, recipientType, specificEmails);
+        const recipients = await this.getCompactRecipients(compact, recipientType, specificEmails);
 
         if (recipients.length === 0) {
             throw new Error(`No recipients found for compact ${compact} with recipient type ${recipientType}`);
@@ -58,6 +79,80 @@ export class EmailNotificationService extends BaseEmailService {
         await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send transaction batch settlement failure email' });
     }
 
+    /**
+     * Sends an email notification to the jurisdiction report notification emails when a privilege is deactivated
+     * @param compact - The compact name for which the privilege was deactivated
+     * @param jurisdiction - The jurisdiction for which the privilege was deactivated
+     * @param privilegeId - The privilege ID of the privilege that was deactivated
+     * @param providerFirstName - The first name of the provider whose privilege was deactivated
+     * @param providerLastName - The last name of the provider whose privilege was deactivated
+     */
+    public async sendPrivilegeDeactivationJurisdictionNotificationEmail(
+        compact: string,
+        jurisdiction: string,
+        recipientType: RecipientType,
+        privilegeId: string,
+        providerFirstName: string,
+        providerLastName: string
+    ): Promise<void> {
+        
+        this.logger.info('Sending privilege deactivation jurisdiction notification email', { compact: compact, jurisdiction: jurisdiction });
+
+        const recipients = await this.getJurisdictionRecipients(
+            compact,
+            jurisdiction,
+            recipientType
+        );
+
+        if (recipients?.length === 0) {
+            throw new Error(`No recipients found for jurisdiction ${jurisdiction} in compact ${compact}`);
+        }
+
+        const report = this.getNewEmailTemplate();
+        const subject = `A Privilege was Deactivated in the ${compact.toUpperCase()} Compact`;
+        const bodyText = `This message is to notify you that privilege ${privilegeId} held by ${providerFirstName} ${providerLastName} was deactivated and can no longer be used to practice.`;
+
+        this.insertHeader(report, subject);
+        this.insertBody(report, bodyText);
+        this.insertFooter(report);
+
+        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send privilege deactivation state notification email' });
+    }
+
+    /**
+     * Sends an email notification to a provider when one of their privileges is deactivated
+     * @param compact - The compact name for which the privilege was deactivated
+     * @param jurisdiction - The jurisdiction for which the privilege was deactivated
+     * @param privilegeId - The privilege ID
+     */
+    public async sendPrivilegeDeactivationProviderNotificationEmail(
+        compact: string,
+        specificEmails: string[] | undefined,
+        privilegeId: string
+    ): Promise<void> {
+        this.logger.info('Sending provider privilege deactivation notification email', { compact: compact });
+
+        const recipients = specificEmails || [];
+
+        if (recipients.length === 0) {
+            throw new Error(`No recipients specified for provider privilege deactivation notification email`);
+        }
+
+        const report = this.getNewEmailTemplate();
+        const subject = `Your Privilege ${privilegeId} is Deactivated`;
+        const bodyText = `This message is to notify you that your privilege ${privilegeId} is deactivated and can no longer be used to practice.`;
+
+        this.insertHeader(report, subject);
+        this.insertBody(report, bodyText);
+        this.insertFooter(report);
+
+        const htmlContent = renderToStaticMarkup(report, { rootBlockId: 'root' });
+
+        await this.sendEmail({ htmlContent, subject, recipients, errorMessage: 'Unable to send provider privilege deactivation notification email' });
+    }
+
     public async sendCompactTransactionReportEmail(
         compact: string,
         reportS3Path: string,
@@ -66,7 +161,7 @@ export class EmailNotificationService extends BaseEmailService {
         endDate: string
     ): Promise<void> {
         this.logger.info('Sending compact transaction report email', { compact: compact });
-        const recipients = await this.getRecipients(compact, 'COMPACT_SUMMARY_REPORT');
+        const recipients = await this.getCompactRecipients(compact, 'COMPACT_SUMMARY_REPORT');
 
         if (recipients.length === 0) {
             throw new Error(`No recipients found for compact ${compact} with recipient type COMPACT_SUMMARY_REPORT`);

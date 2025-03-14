@@ -390,4 +390,108 @@ describe('EmailNotificationServiceLambda', () => {
                 .toThrow('Failed to retrieve report from S3: compact/aslp/reports/jurisdiction-transactions/jurisdiction/oh/reporting-cycle/weekly/2024/03/07/transaction-report.zip');
         });
     });
+
+    describe('Privilege Deactivation Jurisdiction Notification', () => {
+        const SAMPLE_PRIVILEGE_DEACTIVATION_JURISDICTION_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'privilegeDeactivationJurisdictionNotification',
+            recipientType: 'JURISDICTION_SUMMARY_REPORT',
+            compact: 'aslp',
+            jurisdiction: 'oh',
+            templateVariables: {
+                privilegeId: '123',
+                providerFirstName: 'John',
+                providerLastName: 'Doe'
+            }
+        };
+
+        it('should successfully send privilege deactivation jurisdiction notification email', async () => {
+            const response = await lambda.handler(
+                SAMPLE_PRIVILEGE_DEACTIVATION_JURISDICTION_NOTIFICATION_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            // Verify DynamoDB was queried for jurisdiction configuration
+            expect(mockDynamoDBClient).toHaveReceivedCommandWith(GetItemCommand, {
+                TableName: 'compact-table',
+                Key: {
+                    'pk': { S: 'aslp#CONFIGURATION' },
+                    'sk': { S: 'aslp#JURISDICTION#oh' }
+                }
+            });
+
+            // Verify email was sent with correct parameters
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['ohio@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('<!DOCTYPE html>')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'A Privilege was Deactivated in the ASLP Compact'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+        });
+    });
+
+    describe('Privilege Deactivation Provider Notification', () => {
+        const SAMPLE_PRIVILEGE_DEACTIVATION_PROVIDER_NOTIFICATION_EVENT: EmailNotificationEvent = {
+            template: 'privilegeDeactivationProviderNotification',
+            recipientType: 'SPECIFIC',
+            compact: 'aslp',
+            specificEmails: ['specific@example.com'],
+            templateVariables: {
+                privilegeId: '123',
+            }
+        };
+
+        it('should successfully send privilege deactivation provider notification email', async () => {
+            const response = await lambda.handler(SAMPLE_PRIVILEGE_DEACTIVATION_PROVIDER_NOTIFICATION_EVENT, {} as any);
+
+            expect(response).toEqual({
+                message: 'Email message sent'
+            });
+
+            // Verify email was sent with correct parameters
+            expect(mockSESClient).toHaveReceivedCommandWith(SendEmailCommand, {
+                Destination: {
+                    ToAddresses: ['specific@example.com']
+                },
+                Message: {
+                    Body: {
+                        Html: {
+                            Charset: 'UTF-8',
+                            Data: expect.stringContaining('<!DOCTYPE html>')
+                        }
+                    },
+                    Subject: {
+                        Charset: 'UTF-8',
+                        Data: 'Your Privilege 123 is Deactivated'
+                    }
+                },
+                Source: 'Compact Connect <noreply@example.org>'
+            });
+        });
+
+        it('should throw error when no recipients specified for provider privilege deactivation notification email', async () => {
+            const eventWithMissingRecipients: EmailNotificationEvent = {
+                ...SAMPLE_PRIVILEGE_DEACTIVATION_PROVIDER_NOTIFICATION_EVENT,
+                recipientType: 'SPECIFIC',
+                specificEmails: []
+            };
+
+            await expect(lambda.handler(eventWithMissingRecipients, {} as any))
+                .rejects
+                .toThrow('No recipients specified for provider privilege deactivation notification email');
+        });
+    });
 });

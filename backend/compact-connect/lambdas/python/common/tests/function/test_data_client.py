@@ -4,6 +4,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 from boto3.dynamodb.conditions import Key
+from cc_common.exceptions import CCInvalidRequestException
 from moto import mock_aws
 
 from tests.function import TstFunction
@@ -766,7 +767,7 @@ class TestDataClient(TstFunction):
             )
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
-    def test_deactivate_privilege_on_inactive_privilege_has_no_effect(self):
+    def test_deactivate_privilege_on_inactive_privilege_raises_exception(self):
         from cc_common.data_model.data_client import DataClient
 
         provider_id = self._load_provider_data()
@@ -830,12 +831,14 @@ class TestDataClient(TstFunction):
         test_data_client = DataClient(self.config)
 
         # Now, deactivate the privilege
-        test_data_client.deactivate_privilege(
-            compact='aslp',
-            provider_id=provider_id,
-            jurisdiction='ne',
-            license_type_abbr='aud',
-        )
+        with self.assertRaises(CCInvalidRequestException) as context:
+            test_data_client.deactivate_privilege(
+                compact='aslp',
+                provider_id=provider_id,
+                jurisdiction='ne',
+                license_type_abbr='aud',
+            )
+        self.assertEqual('Privilege already deactivated', context.exception.message)
 
         # Verify that the privilege record was unchanged
         new_privilege = self._provider_table.query(
