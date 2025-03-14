@@ -43,6 +43,17 @@ class TstFunction(TstLambdas):
 
         boto3.client('events').create_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
+        # Create a new Cognito user pool for providers
+        cognito_client = boto3.client('cognito-idp')
+        user_pool_name = 'TestProviderUserPool'
+        user_pool_response = cognito_client.create_user_pool(
+            PoolName=user_pool_name,
+            AliasAttributes=['email'],
+            UsernameAttributes=['email'],
+        )
+        os.environ['PROVIDER_USER_POOL_ID'] = user_pool_response['UserPool']['Id']
+        self._provider_user_pool_id = user_pool_response['UserPool']['Id']
+
     def create_provider_table(self):
         self._provider_table = boto3.resource('dynamodb').create_table(
             AttributeDefinitions=[
@@ -132,6 +143,10 @@ class TstFunction(TstLambdas):
         self._rate_limiting_table.delete()
         self._license_preprocessing_queue.delete()
         boto3.client('events').delete_event_bus(Name=os.environ['EVENT_BUS_NAME'])
+
+        # Delete the Cognito user pool
+        cognito_client = boto3.client('cognito-idp')
+        cognito_client.delete_user_pool(UserPoolId=self._provider_user_pool_id)
 
     def _load_provider_data(self):
         """Use the canned test resources to load a basic provider to the DB"""
@@ -279,3 +294,26 @@ class TstFunction(TstLambdas):
                     # common/tests/resources/dynamo directory
                     attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
                 )
+
+    def _create_cognito_user(self, *, email: str, attributes=None):
+        """
+        Create a Cognito user in the provider user pool.
+
+        :param email: The email address for the user
+        :param attributes: Optional additional user attributes
+        :return: The Cognito sub (user ID)
+        """
+        from cc_common.utils import get_sub_from_user_attributes
+
+        user_attributes = [{'Name': 'email', 'Value': email}, {'Name': 'email_verified', 'Value': 'true'}]
+
+        if attributes:
+            user_attributes.extend(attributes)
+
+        user_data = self.config.cognito_client.admin_create_user(
+            UserPoolId=self.config.provider_user_pool_id,
+            Username=email,
+            UserAttributes=user_attributes,
+            DesiredDeliveryMediums=['EMAIL'],
+        )
+        return get_sub_from_user_attributes(user_data['User']['Attributes'])

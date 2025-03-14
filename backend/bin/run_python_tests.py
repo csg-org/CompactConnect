@@ -93,7 +93,6 @@ def run_tests(cov: Coverage, args):
                 # Update exit code if any tests fail
                 if test_result != 0 and exit_code == 0:
                     return test_result
-                    # exit_code = test_result
 
                 # Restore the original environment
                 os.environ = original_env  # noqa: B003

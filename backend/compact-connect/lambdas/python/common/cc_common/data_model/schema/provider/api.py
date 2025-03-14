@@ -1,5 +1,5 @@
 # ruff: noqa: N801, N815, ARG002  invalid-name unused-argument
-from marshmallow.fields import Boolean, Email, List, Nested, Raw, String
+from marshmallow.fields import Boolean, Date, Email, List, Nested, Raw, String
 from marshmallow.validate import Length, Regexp
 
 from cc_common.data_model.schema.base_record import ForgivingSchema
@@ -104,3 +104,25 @@ class ProviderPublicResponseSchema(ForgivingSchema):
     # Unlike the internal provider search endpoints used by staff users, which return license data in addition to
     # privilege data for a provider, we only return privilege data for a provider from the public GET provider endpoint
     privileges = List(Nested(PrivilegePublicResponseSchema(), required=False, allow_none=False))
+
+
+class ProviderRegistrationRequestSchema(ForgivingSchema):
+    """
+    Schema for provider registration requests.
+
+    This schema is used to validate incoming requests to the provider registration API endpoint.
+    It corresponds to the V1ProviderRegistrationRequestModel in the API model.
+
+    Serialization direction:
+    API -> load() -> Python
+    """
+
+    givenName = String(required=True, allow_none=False)
+    familyName = String(required=True, allow_none=False)
+    email = Email(required=True, allow_none=False)
+    partialSocial = String(required=True, allow_none=False)
+    dob = Date(required=True, allow_none=False)
+    jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
+    compact = String(required=True, allow_none=False)
+    token = String(required=True, allow_none=False)

@@ -30,12 +30,12 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
         jurisdiction_admin_scope = f'{jurisdiction}/{compact}.{CCPermissionsAction.ADMIN}'
         compact_admin_scope = f'{compact}/{CCPermissionsAction.ADMIN}'
 
-        # Validate the the license type is a supported abbreviation
         # Check if user has admin permission for either the compact or the jurisdiction
         if jurisdiction_admin_scope not in scopes and compact_admin_scope not in scopes:
             logger.warning('Unauthorized deactivation attempt')
             raise CCAccessDeniedException('User does not have admin permission for this jurisdiction')
 
+        # Validate the the license type is a supported abbreviation
         if license_type_abbr not in config.license_type_abbreviations[compact].values():
             logger.warning('Invalid license type abbreviation')
             raise CCInvalidRequestException(f'Invalid license type abbreviation: {license_type_abbr}')

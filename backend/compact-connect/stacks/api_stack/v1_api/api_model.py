@@ -1169,7 +1169,6 @@ class ApiModel:
         return {
             'type': JsonSchema(type=JsonSchemaType.STRING, enum=['provider']),
             'providerId': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.UUID4_FORMAT),
-
             # Derived from a license record
             'npi': JsonSchema(type=JsonSchemaType.STRING, pattern='^[0-9]{10}$'),
             'ssnLastFour': JsonSchema(type=JsonSchemaType.STRING, pattern='^[0-9]{4}$'),
@@ -1195,7 +1194,6 @@ class ApiModel:
             'licenseJurisdiction': JsonSchema(
                 type=JsonSchemaType.STRING, enum=self.stack.node.get_context('jurisdictions')
             ),
-
             'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
             'privilegeJurisdictions': JsonSchema(
                 type=JsonSchemaType.ARRAY,
@@ -1510,7 +1508,7 @@ class ApiModel:
                     'dob': JsonSchema(
                         type=JsonSchemaType.STRING,
                         description='Date of birth in YYYY-MM-DD format',
-                        pattern=r'^\d{4}-\d{2}-\d{2}$',
+                        pattern=cc_api.YMD_FORMAT,
                     ),
                     'jurisdiction': JsonSchema(
                         type=JsonSchemaType.STRING,

@@ -100,7 +100,7 @@ class DataClient:
         family_name: str,
         given_name: str,
         partial_ssn: str,
-        dob: str,
+        dob: date,
         license_type: str,
     ) -> dict | None:
         """Query license records using the license GSI and find a matching record.
@@ -110,7 +110,7 @@ class DataClient:
         :param family_name: Provider's family name
         :param given_name: Provider's given name
         :param partial_ssn: Last 4 digits of SSN
-        :param dob: Date of birth
+        :param date dob: Date of birth
         :param license_type: Type of license
         :return: The matching license record if found, None otherwise
         """
@@ -123,7 +123,9 @@ class DataClient:
                 & Key('licenseGSISK').eq(f'FN#{quote(family_name.lower())}#GN#{quote(given_name.lower())}')
             ),
             FilterExpression=(
-                Attr('ssnLastFour').eq(partial_ssn) & Attr('dateOfBirth').eq(dob) & Attr('licenseType').eq(license_type)
+                Attr('ssnLastFour').eq(partial_ssn)
+                & Attr('dateOfBirth').eq(dob.isoformat())
+                & Attr('licenseType').eq(license_type)
             ),
         )
 
