@@ -4,8 +4,10 @@ from datetime import UTC, datetime
 from enum import StrEnum
 from hashlib import md5
 
-from marshmallow import Schema
+from marshmallow import Schema, ValidationError, validates_schema
 from marshmallow.fields import Dict, String, Url
+
+from cc_common.config import config
 
 
 class CCEnum(StrEnum):
@@ -119,3 +121,11 @@ class ChangeHashMixin:
         change_hash.update(json.dumps(hash_data, sort_keys=True).encode('utf-8'))
 
         return change_hash.hexdigest()
+
+
+class ValidatesLicenseTypeMixin:
+    @validates_schema
+    def validate_license_type(self, data, **kwargs):  # noqa: ARG002 unused-argument
+        license_types = config.license_types_for_compact(data['compact'])
+        if data['licenseType'] not in license_types:
+            raise ValidationError({'licenseType': [f'Must be one of: {", ".join(license_types)}.']})
