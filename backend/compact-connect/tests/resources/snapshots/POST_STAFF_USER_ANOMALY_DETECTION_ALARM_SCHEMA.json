@@ -1,6 +1,6 @@
 {
   "ActionsEnabled": true,
-  "AlarmDescription": "Sandbox/APIStack/LicenseApi read-ssn anomaly detection. The GET provider SSN endpoint has beencalled an irregular number of times. Investigation required to ensure ssn endpoint is not being abused.",
+  "AlarmDescription": "Sandbox/APIStack/LicenseApi staff-user-created anomaly detection. Anomalies in the number of staff users created per day are detected. Investigation is required to ensure requests are authorized.",
   "ComparisonOperator": "GreaterThanUpperThreshold",
   "EvaluationPeriods": 1,
   "Metrics": [
@@ -18,7 +18,7 @@
               "Value": "common"
             }
           ],
-          "MetricName": "read-ssn",
+          "MetricName": "staff-user-created",
           "Namespace": "compact-connect"
         },
         "Period": 3600,

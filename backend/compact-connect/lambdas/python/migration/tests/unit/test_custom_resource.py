@@ -1,4 +1,3 @@
-
 from custom_resource_handler import CustomResourceHandler, CustomResourceResponse
 
 from tests import TstLambdas

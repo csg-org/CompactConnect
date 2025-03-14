@@ -789,6 +789,7 @@ class TestIngest(TstFunction):
         # The privilegeJurisdictions should include both the active privilege from the test setup
         # and the inactive privilege we just added
         self.assertEqual({'ky', 'ne'}, set(provider_data['privilegeJurisdictions']))
+
     def test_multiple_license_types_same_jurisdiction(self):
         """
         Test that multiple license types in the same jurisdiction are handled correctly.

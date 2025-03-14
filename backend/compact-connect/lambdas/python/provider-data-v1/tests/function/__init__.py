@@ -40,6 +40,7 @@ class TstFunction(TstLambdas):
         self.create_ssn_table()
         self.create_rate_limiting_table()
         self.create_license_preprocessing_queue()
+        self.create_staff_user_pool()
 
         boto3.client('events').create_event_bus(Name=os.environ['EVENT_BUS_NAME'])
 
@@ -53,6 +54,18 @@ class TstFunction(TstLambdas):
         )
         os.environ['PROVIDER_USER_POOL_ID'] = user_pool_response['UserPool']['Id']
         self._provider_user_pool_id = user_pool_response['UserPool']['Id']
+
+    def create_staff_user_pool(self):
+        # Create a new Cognito user pool
+        cognito_client = boto3.client('cognito-idp')
+        user_pool_name = 'TestUserPool'
+        user_pool_response = cognito_client.create_user_pool(
+            PoolName=user_pool_name,
+            AliasAttributes=['email'],
+            UsernameAttributes=['email'],
+        )
+        os.environ['USER_POOL_ID'] = user_pool_response['UserPool']['Id']
+        self._user_pool_id = user_pool_response['UserPool']['Id']
 
     def create_provider_table(self):
         self._provider_table = boto3.resource('dynamodb').create_table(
