@@ -150,7 +150,8 @@ def print_human_readable(api_gateway_url, provider_details, staff_details):
 
 def print_env_format(api_gateway_url, provider_details, staff_details):
     """Prints data in .env format"""
-    login_url = provider_details.get('login_url', 'N/A').removesuffix('/login')
+    provider_login_url = provider_details.get('login_url', 'N/A').removesuffix('/login')
+    staff_login_url = staff_details.get('login_url', 'N/A').removesuffix('/login')
     staff_client_id = staff_details.get('client_id', 'N/A')
     provider_client_id = provider_details.get('client_id', 'N/A')
     staff_table = staff_details.get('dynamodb_table', 'N/A')
@@ -160,9 +161,9 @@ def print_env_format(api_gateway_url, provider_details, staff_details):
     print(f'VUE_APP_API_LICENSE_ROOT={api_gateway_url}')
     print(f'VUE_APP_API_USER_ROOT={api_gateway_url}')
     print(f'VUE_APP_COGNITO_REGION={aws_region}')
-    print(f'VUE_APP_COGNITO_AUTH_DOMAIN_STAFF={login_url}')
+    print(f'VUE_APP_COGNITO_AUTH_DOMAIN_STAFF={staff_login_url}')
     print(f'VUE_APP_COGNITO_CLIENT_ID_STAFF={staff_client_id}')
-    print(f'VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE={login_url}')
+    print(f'VUE_APP_COGNITO_AUTH_DOMAIN_LICENSEE={provider_login_url}')
     print(f'VUE_APP_COGNITO_CLIENT_ID_LICENSEE={provider_client_id}')
     print(f'VUE_APP_DYNAMO_TABLE_PROVIDER={provider_table}')
     print(f'VUE_APP_DYNAMO_TABLE_STAFF={staff_table}')

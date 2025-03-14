@@ -225,7 +225,7 @@ export class LicenseDataApi implements DataApiInterface {
      * @param  {string}           compact        The compact string ID (aslp, otcp, coun).
      * @param  {string}           licenseeId     The Licensee ID.
      * @param  {string}           privilegeState The 2-character state abbreviation for the Privilege.
-     * @param  {string}           licenseType    The license type / occupation.
+     * @param  {string}           licenseType    The license type.
      * @return {Promise<object>}                 The server response.
      */
     public async deletePrivilege(compact: string, licenseeId: string, privilegeState: string, licenseType: string) {

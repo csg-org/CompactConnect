@@ -88,7 +88,7 @@ class TestTransformations(TstFunction):
             ssn=license_ssn,
         )
         self.assertEqual(expected_provider_id, provider_id)
-        provider_record = client.get_provider(compact='aslp', provider_id=provider_id, detail=False)
+        provider_record = client.get_provider(compact='aslp', provider_id=provider_id, detail=False)['items'][0]
 
         # Expected representation of each record in the database
         with open('../common/tests/resources/dynamo/provider.json') as f:

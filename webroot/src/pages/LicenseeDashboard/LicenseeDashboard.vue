@@ -21,24 +21,17 @@
                     :label="obtainPrivButtonLabel"
                     :aria-label="$t('licensing.obtainPrivileges')"
                     class="obtain-priv-btn"
-                    :isEnabled="!isPrivilegePurchaseDisabled"
+                    :isEnabled="isPrivilegePurchaseEnabled"
                     @click="startPrivPurchaseFlow"
                 />
             </div>
         </div>
         <div class="license-section">
-            <div class="home-state-section">
-                <div class="home-state-list">
-                    <HomeStateBlock
-                        v-for="(state, i) in homeStateList"
-                        :key="i"
-                        :state="state"
-                        class="no-touch-item"
-                    />
-                </div>
-                <div v-if="hasMoreThanOneActiveLicense" class="homestate-error-text">
-                    {{twoHomeStateErrorText}}
-                </div>
+            <div v-if="homeJurisdiction" class="home-state-section">
+                <HomeStateBlock
+                    :state="homeJurisdiction"
+                    class="no-touch-item"
+                />
             </div>
             <div
                 v-for="(license, index) in licenseeLicenses"
@@ -60,8 +53,8 @@
                     <div class="privilege-logo-container">
                         <img
                             class="home-state-img"
-                            src="@assets/images/black-ellipse.svg"
-                            :alt="$t('licensing.blackCircle')"
+                            src="@assets/icons/ico-privilege.svg"
+                            :alt="$t('licensing.privilegeIcon')"
                         />
                     </div>
                     <div class="title-text">
@@ -85,13 +78,6 @@
          <div class="privilege-section bottom">
             <div class="privilege-section-title-row">
                 <div class="title-info">
-                    <div class="privilege-logo-container">
-                        <img
-                            class="home-state-img"
-                            src="@assets/images/black-ellipse.svg"
-                            :alt="$t('licensing.blackCircle')"
-                        />
-                    </div>
                     <div class="title-text">
                         {{pastPrivilegesTitle}}
                     </div>

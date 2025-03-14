@@ -76,14 +76,14 @@ class RegisterLicensee extends mixins(MixinForm) {
         return options;
     }
 
-    get occupationOptions(): Array<SelectOption> {
+    get licenseTypeOptions(): Array<SelectOption> {
         const options = [{ value: '', name: this.$t('common.select') }];
-        const occupations = this.$tm('licensing.occupations') || [];
+        const licenseTypes = this.$tm('licensing.licenseTypes') || [];
 
-        occupations.forEach((occupation) => {
+        licenseTypes.forEach((licenseType) => {
             options.push({
-                value: occupation.key,
-                name: occupation.name,
+                value: licenseType.key,
+                name: licenseType.name,
             });
         });
 
@@ -153,7 +153,7 @@ class RegisterLicensee extends mixins(MixinForm) {
                 id: 'dob',
                 name: 'dob',
                 label: computed(() => this.$t('common.dateOfBirth')),
-                placeholder: computed(() => this.$t('common.dateOfBirth')),
+                placeholder: computed(() => 'MM/DD/YYYY'),
                 autocomplete: 'bday',
                 validation: Joi.string().required().messages(this.joiMessages.string),
             }),
@@ -170,7 +170,7 @@ class RegisterLicensee extends mixins(MixinForm) {
                 name: 'license-type',
                 label: computed(() => this.$t('licensing.licenseType')),
                 validation: Joi.string().required().messages(this.joiMessages.string),
-                valueOptions: this.occupationOptions,
+                valueOptions: this.licenseTypeOptions,
             }),
             submit: new FormInput({
                 isSubmitInput: true,
@@ -211,15 +211,15 @@ class RegisterLicensee extends mixins(MixinForm) {
         ssnLastFour.value = format(ssnLastFour.value);
     }
 
-    getCompactFromLicenseType(): string {
+    getCompactFromlicenseType(): string {
         const { licenseType: selectedLicenseType } = this.formValues;
-        const occupations = this.$tm('licensing.occupations');
+        const licenseTypes = this.$tm('licensing.licenseTypes');
         let compactType = '';
 
         if (selectedLicenseType) {
-            const selectedOccupation = occupations.find((occupation) => occupation.key === selectedLicenseType);
+            const foundlicenseType = licenseTypes.find((licenseType) => licenseType.key === selectedLicenseType);
 
-            compactType = selectedOccupation.compactKey;
+            compactType = foundlicenseType.compactKey;
         }
 
         return compactType;
@@ -231,7 +231,7 @@ class RegisterLicensee extends mixins(MixinForm) {
         if (this.isFormValid) {
             this.startFormLoading();
 
-            const compact = this.getCompactFromLicenseType();
+            const compact = this.getCompactFromlicenseType();
             const password = document.getElementById('password') as HTMLInputElement;
 
             if (!compact) {
@@ -357,7 +357,7 @@ class RegisterLicensee extends mixins(MixinForm) {
         this.formData.ssnLastFour.value = '1234';
         this.formData.dob.value = '2000-01-01';
         this.formData.licenseState.value = this.stateOptions[1]?.value || 'co';
-        this.formData.licenseType.value = this.occupationOptions[1]?.value || 'audiologist';
+        this.formData.licenseType.value = this.licenseTypeOptions[1]?.value || 'audiologist';
         this.validateAll({ asTouched: true });
     }
 }

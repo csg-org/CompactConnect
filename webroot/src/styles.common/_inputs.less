@@ -77,6 +77,15 @@
         }
     }
 
+    &.has-error {
+        input:not(.has-error),
+        textarea:not(.has-error),
+        select:not(.has-error) {
+            border-color: @midRed;
+            border-width: 2px;
+        }
+    }
+
     .form-field-error {
         margin-top: 0.6rem;
         color: @midRed;

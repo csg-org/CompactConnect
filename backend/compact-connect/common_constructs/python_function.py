@@ -14,7 +14,6 @@ from aws_cdk.aws_sns import ITopic
 from aws_cdk.aws_ssm import StringParameter
 from cdk_nag import NagSuppressions
 from constructs import Construct
-from stacks import persistent_stack as ps
 
 COMMON_PYTHON_LAMBDA_LAYER_SSM_PARAMETER_NAME = '/deployment/lambda/layers/common-python-layer-arn'
 
@@ -131,6 +130,9 @@ class PythonFunction(CdkPythonFunction):
         throttle_alarm.add_alarm_action(SnsAction(alarm_topic))
 
     def _get_common_layer(self) -> ILayerVersion:
+        # Move to local import to avoid circular import
+        from stacks import persistent_stack as ps
+
         common_layer_construct_id = 'CommonPythonLayer'
         stack = Stack.of(self)
         # Outside the Persistent stack, we look up the layer via an SSM parameter to avoid cross-stack references in

@@ -1,6 +1,7 @@
 [run]
 include =
-  backend/**/*
+  ./**/*
+
 data_file = .coverage
 
 omit =

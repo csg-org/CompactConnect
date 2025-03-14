@@ -8,7 +8,7 @@
 <template>
     <div
         @click="toggleCollapse"
-        @keydown.prevent="toggleCollapse"
+        @keyup.enter="toggleCollapse"
         tabIndex="0"
         class="collapse-caret-button"
     >

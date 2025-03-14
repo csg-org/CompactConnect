@@ -13,6 +13,7 @@
             'no-margin': formInput.shouldHideMargin,
             'has-error': !!formInput.errorMessage
         }"
+        @blur="blur"
     >
         <label
             v-if="!formInput.shouldHideLabel"
@@ -30,6 +31,7 @@
             :model-type="modelFormat"
             v-model="formInput.value"
             :autocomplete="isAutoComplete"
+            :text-input="{ format: 'MM/dd/yyyy', openMenu: true }"
             :disabled="isDisabled"
             :inline="isInline"
             :auto-apply="isAutoApply"
@@ -40,6 +42,7 @@
             :min-date="minDate"
             :max-date="maxDate"
             :prevent-min-max-navigation="(minDate || maxDate) ? preventMinMaxNavigation : false"
+            :start-date="startDate"
             :allowed-dates="allowedDates"
             :disabledDates="disabledDates"
             :year-range="yearRange"
@@ -48,6 +51,7 @@
             :min-time="minTime"
             :max-time="maxTime"
             :is-24="isTime24"
+            @focus="focus"
             @closed="blur(formInput)"
             @update:model-value="input(formInput)"
             :loading="isLoading"

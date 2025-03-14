@@ -46,7 +46,8 @@ class LicenseRecordSchema(CalculatedStatusRecordSchema, LicenseCommonSchema):
     @pre_dump
     def generate_pk_sk(self, in_data, **kwargs):  # noqa: ARG001 unused-argument
         in_data['pk'] = f'{in_data["compact"]}#PROVIDER#{in_data["providerId"]}'
-        in_data['sk'] = f'{in_data["compact"]}#PROVIDER#license/{in_data["jurisdiction"]}#'
+        license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
+        in_data['sk'] = f'{in_data["compact"]}#PROVIDER#license/{in_data["jurisdiction"]}/{license_type_abbr}#'
         return in_data
 
     @pre_dump
@@ -75,7 +76,6 @@ class LicenseUpdateRecordPreviousSchema(StrictSchema):
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     ssnLastFour = String(required=True, allow_none=False)
-    licenseType = String(required=True, allow_none=False)
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
     middleName = String(required=False, allow_none=False, validate=Length(1, 100))
     familyName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -93,7 +93,7 @@ class LicenseUpdateRecordPreviousSchema(StrictSchema):
     homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
     militaryWaiver = Boolean(required=False, allow_none=False)
-    emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
+    emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
 
@@ -113,6 +113,7 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
     providerId = UUID(required=True, allow_none=False)
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
+    licenseType = String(required=True, allow_none=False)
     previous = Nested(LicenseUpdateRecordPreviousSchema, required=True, allow_none=False)
     # We'll allow any fields that can show up in the previous field to be here as well, but none are required
     updatedValues = Nested(LicenseUpdateRecordPreviousSchema(partial=True), required=True, allow_none=False)
@@ -133,16 +134,17 @@ class LicenseUpdateRecordSchema(BaseRecordSchema, ChangeHashMixin):
         # to the record. We'll use the current time and the hash of the updatedValues
         # field for this.
         change_hash = self.hash_changes(in_data)
+        license_type_abbr = config.license_type_abbreviations[in_data['compact']][in_data['licenseType']]
         in_data['sk'] = (
-            f'{in_data["compact"]}#PROVIDER#license/{in_data["jurisdiction"]}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'
+            f'{in_data["compact"]}#PROVIDER#license/{in_data["jurisdiction"]}/{license_type_abbr}#UPDATE#{int(config.current_standard_datetime.timestamp())}/{change_hash}'
         )
         return in_data
 
     @validates_schema
     def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
         license_types = config.license_types_for_compact(data['compact'])
-        if data['previous']['licenseType'] not in license_types:
-            raise ValidationError({'previous.licenseType': [f'Must be one of: {", ".join(license_types)}.']})
+        if data['licenseType'] not in license_types:
+            raise ValidationError({'licenseType': [f'Must be one of: {", ".join(license_types)}.']})
         # We have to check for existence here to allow for the updatedValues partial case
         if data['updatedValues'].get('licenseType') and data['updatedValues']['licenseType'] not in license_types:
             raise ValidationError({'updatedValues.licenseType': [f'Must be one of: {", ".join(license_types)}.']})
