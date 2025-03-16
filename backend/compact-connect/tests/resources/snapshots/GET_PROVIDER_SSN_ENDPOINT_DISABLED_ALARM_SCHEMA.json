@@ -1,0 +1,17 @@
+{
+  "AlarmDescription": "Sandbox/APIStack/LicenseApi SECURITY ALERT: SSN ENDPOINT DISABLED. The GET provider SSN endpoint has been disabled due to excessive requests. Immediate investigation required. Endpoint will need to be manually reactivated before any further requests can be processed.",
+  "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+  "Dimensions": [
+    {
+      "Name": "service",
+      "Value": "common"
+    }
+  ],
+  "EvaluationPeriods": 1,
+  "MetricName": "ssn-endpoint-disabled",
+  "Namespace": "compact-connect",
+  "Period": 300,
+  "Statistic": "SampleCount",
+  "Threshold": 1,
+  "TreatMissingData": "notBreaching"
+}

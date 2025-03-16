@@ -3,7 +3,7 @@ import json
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.schema.common import CCPermissionsAction
-from cc_common.exceptions import CCAccessDeniedException
+from cc_common.exceptions import CCAccessDeniedException, CCInvalidRequestException
 from cc_common.utils import api_handler, authorize_compact, get_event_scopes
 from event_batch_writer import EventBatchWriter
 
@@ -20,12 +20,10 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
     compact = event['pathParameters']['compact']
     provider_id = event['pathParameters']['providerId']
     jurisdiction = event['pathParameters']['jurisdiction']
-    # Note: We currently only support one license type per jurisdiction, so this is not used
-    # We require this in the API to avoid one breaking change when we move to multiple license types per jurisdiction
-    license_type = event['pathParameters']['licenseType']
+    license_type_abbr = event['pathParameters']['licenseType']
 
     with logger.append_context_keys(
-        compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type=license_type
+        compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type=license_type_abbr
     ):
         # Get the user's scopes to check for jurisdiction-specific admin permission
         scopes = get_event_scopes(event)
@@ -37,11 +35,17 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
             logger.warning('Unauthorized deactivation attempt')
             raise CCAccessDeniedException('User does not have admin permission for this jurisdiction')
 
+        # Validate the the license type is a supported abbreviation
+        if license_type_abbr not in config.license_type_abbreviations[compact].values():
+            logger.warning('Invalid license type abbreviation')
+            raise CCInvalidRequestException(f'Invalid license type abbreviation: {license_type_abbr}')
+
         logger.info('Deactivating privilege')
         config.data_client.deactivate_privilege(
             compact=compact,
             provider_id=provider_id,
             jurisdiction=jurisdiction,
+            license_type_abbr=license_type_abbr,
         )
         with EventBatchWriter(config.events_client) as event_writer:
             event_writer.put_event(

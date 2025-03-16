@@ -1,4 +1,7 @@
 import json
+import uuid
+from datetime import timedelta
+from unittest.mock import patch
 from urllib.parse import quote
 
 from moto import mock_aws
@@ -259,7 +262,6 @@ class TestGetProvider(TstFunction):
 
         self.assertEqual(200, resp['statusCode'])
         provider_data = json.loads(resp['body'])
-        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)
 
         # The sk for a license-update record is sensitive so we'll do an extra, pretty broad, check just to make sure
@@ -356,6 +358,40 @@ class TestGetProvider(TstFunction):
 
 @mock_aws
 class TestGetProviderSSN(TstFunction):
+    def _when_testing_rate_limiting(self, previous_attempt_count: int, provider_id: str):
+        test_email = 'test@example.com'
+        # create the test user and get their user id
+        resp = self.config.cognito_client.admin_create_user(
+            UserPoolId=self.config.user_pool_id,
+            Username=test_email,
+            UserAttributes=[
+                {'Name': 'email', 'Value': test_email},
+                {'Name': 'email_verified', 'Value': 'true'},
+            ],
+        )
+        user_id = resp['User']['Username']
+
+        now_datetime = self.config.current_standard_datetime
+        for attempt in range(previous_attempt_count):
+            self.config.rate_limiting_table.put_item(
+                Item={
+                    'pk': 'READ_SSN_REQUESTS',
+                    # separate each attempt by one minute
+                    'sk': f'TIME#{(now_datetime - timedelta(minutes=attempt)).timestamp()}#REQUEST#{uuid.uuid4()}',
+                    'compact': 'aslp',
+                    'providerId': provider_id,
+                    'staffUserId': user_id,
+                }
+            )
+
+        return user_id
+
+    def _make_ssn_request_with_unique_request_id(self, event: dict):
+        from handlers.providers import get_provider_ssn
+
+        self.mock_context.aws_request_id = uuid.uuid4()
+        return get_provider_ssn(event, self.mock_context)
+
     def test_get_provider_ssn_returns_ssn_if_caller_has_read_ssn_compact_level_scope(self):
         self._load_provider_data()
 
@@ -431,3 +467,70 @@ class TestGetProviderSSN(TstFunction):
         resp = get_provider_ssn(event, self.mock_context)
 
         self.assertEqual(403, resp['statusCode'])
+
+    def test_get_provider_ssn_throttled_and_deactivated_if_staff_user_goes_beyond_rate_limit(self):
+        """
+        The staff user has called this endpoint more than the set limit, so the endpoint throttles the user (which will
+        cause an alert to trigger from CloudWatch) and, after one more request, their account is deactivated.
+        """
+        self._load_provider_data()
+
+        test_provider_id = '89a6377e-c3a5-40e5-bca5-317ec854c570'
+        # add 4 previous calls to the endpoint
+        staff_user_id = self._when_testing_rate_limiting(previous_attempt_count=4, provider_id=test_provider_id)
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+            event['requestContext']['authorizer']['claims']['sub'] = staff_user_id
+
+        # The user has read permission for aslp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readSSN'
+        event['pathParameters'] = {'compact': 'aslp', 'providerId': test_provider_id}
+
+        # the fifth request should succeed, being right at the limit
+        resp = self._make_ssn_request_with_unique_request_id(event)
+        self.assertEqual(200, resp['statusCode'])
+        # next request should be throttled, but should not deactivate their account
+        resp = self._make_ssn_request_with_unique_request_id(event)
+        self.assertEqual(429, resp['statusCode'])
+        # assert that the user's account has not been deactivated yet.
+        user = self.config.cognito_client.admin_get_user(UserPoolId=self.config.user_pool_id, Username=staff_user_id)
+        self.assertEqual(user['Enabled'], True)
+
+        # make another request to trigger deactivation
+        resp = self._make_ssn_request_with_unique_request_id(event)
+        self.assertEqual(429, resp['statusCode'])
+
+        # assert that the user's account has been deactivated.
+        user = self.config.cognito_client.admin_get_user(UserPoolId=self.config.user_pool_id, Username=staff_user_id)
+        self.assertEqual(user['Enabled'], False)
+
+    @patch('handlers.providers.config.lambda_client', autospec=True)
+    def test_get_provider_ssn_endpoint_throttled_if_endpoint_calls_exceed_global_rate_limit(self, mock_lambda_client):
+        """
+        If this endpoint is invoked more than the set global limit within a 24-hour period, we throttle this endpoint
+        by setting its reserved concurrency to 0, to prevent a concentrated attack.
+        """
+        self._load_provider_data()
+
+        test_provider_id = '89a6377e-c3a5-40e5-bca5-317ec854c570'
+        # add 15 previous calls to the endpoint
+        staff_user_id = self._when_testing_rate_limiting(previous_attempt_count=15, provider_id=test_provider_id)
+
+        with open('../common/tests/resources/api-event.json') as f:
+            event = json.load(f)
+            event['requestContext']['authorizer']['claims']['sub'] = staff_user_id
+
+        # The user has read permission for aslp
+        event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral aslp/readSSN'
+        event['pathParameters'] = {'compact': 'aslp', 'providerId': test_provider_id}
+
+        # request should be throttled
+        self.mock_context.function_name = 'testLambdaName'
+        resp = self._make_ssn_request_with_unique_request_id(event)
+        self.assertEqual(429, resp['statusCode'])
+
+        # assert that the lambda client was called with expected parameters
+        mock_lambda_client.put_function_concurrency.assert_called_once_with(
+            FunctionName='testLambdaName', ReservedConcurrentExecutions=0
+        )

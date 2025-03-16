@@ -13,14 +13,17 @@ from aws_cdk.aws_cloudwatch import (
 )
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_events import EventBus
+from aws_cdk.aws_iam import Policy, PolicyStatement
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
+from stacks import persistent_stack as ps
+
 # Importing module level to allow lazy loading for typing
 from stacks.api_stack import cc_api
-from stacks.persistent_stack import ProviderTable, SSNTable
+from stacks.persistent_stack import ProviderTable, RateLimitingTable, SSNTable, StaffUsers
 
 from .api_model import ApiModel
 
@@ -33,10 +36,7 @@ class QueryProviders:
         method_options: MethodOptions,
         admin_method_options: MethodOptions,
         ssn_method_options: MethodOptions,
-        event_bus: EventBus,
-        data_encryption_key: IKey,
-        ssn_table: SSNTable,
-        provider_data_table: ProviderTable,
+        persistent_stack: ps.PersistentStack,
         api_model: ApiModel,
     ):
         super().__init__()
@@ -47,36 +47,41 @@ class QueryProviders:
 
         stack: Stack = Stack.of(resource)
         lambda_environment = {
-            'PROVIDER_TABLE_NAME': provider_data_table.table_name,
-            'PROV_FAM_GIV_MID_INDEX_NAME': provider_data_table.provider_fam_giv_mid_index_name,
-            'PROV_DATE_OF_UPDATE_INDEX_NAME': provider_data_table.provider_date_of_update_index_name,
-            'SSN_TABLE_NAME': ssn_table.table_name,
-            'SSN_INDEX_NAME': ssn_table.ssn_index_name,
-            'EVENT_BUS_NAME': event_bus.event_bus_name,
+            'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
+            'PROV_FAM_GIV_MID_INDEX_NAME': persistent_stack.provider_table.provider_fam_giv_mid_index_name,
+            'PROV_DATE_OF_UPDATE_INDEX_NAME': persistent_stack.provider_table.provider_date_of_update_index_name,
+            'SSN_TABLE_NAME': persistent_stack.ssn_table.table_name,
+            'SSN_INDEX_NAME': persistent_stack.ssn_table.ssn_index_name,
+            'EVENT_BUS_NAME': persistent_stack.data_event_bus.event_bus_name,
+            'RATE_LIMITING_TABLE_NAME': persistent_stack.rate_limiting_table.table_name,
+            'USER_POOL_ID': persistent_stack.staff_users.user_pool_id,
             **stack.common_env_vars,
         }
 
         self._add_query_providers(
             method_options=method_options,
-            data_encryption_key=data_encryption_key,
-            provider_data_table=provider_data_table,
+            data_encryption_key=persistent_stack.shared_encryption_key,
+            provider_data_table=persistent_stack.provider_table,
             lambda_environment=lambda_environment,
         )
         self._add_get_provider(
             method_options=method_options,
-            data_encryption_key=data_encryption_key,
-            provider_data_table=provider_data_table,
+            data_encryption_key=persistent_stack.shared_encryption_key,
+            provider_data_table=persistent_stack.provider_table,
             lambda_environment=lambda_environment,
         )
         self._add_get_provider_ssn(
             method_options=ssn_method_options,
-            ssn_table=ssn_table,
+            ssn_table=persistent_stack.ssn_table,
+            staff_user_pool=persistent_stack.staff_users,
+            rate_limiting_table=persistent_stack.rate_limiting_table,
+            provider_table=persistent_stack.provider_table,
             lambda_environment=lambda_environment,
         )
         self._add_deactivate_privilege(
             method_options=admin_method_options,
-            provider_data_table=provider_data_table,
-            event_bus=event_bus,
+            provider_data_table=persistent_stack.provider_table,
+            event_bus=persistent_stack.data_event_bus,
             lambda_environment=lambda_environment,
         )
 
@@ -218,6 +223,9 @@ class QueryProviders:
         self,
         method_options: MethodOptions,
         ssn_table: SSNTable,
+        staff_user_pool: StaffUsers,
+        rate_limiting_table: RateLimitingTable,
+        provider_table: ProviderTable,
         lambda_environment: dict,
     ):
         """Add GET /providers/{providerId}/ssn endpoint to retrieve a provider's SSN."""
@@ -225,10 +233,29 @@ class QueryProviders:
             ssn_table=ssn_table,
             lambda_environment=lambda_environment,
         )
+        # these permissions are needed to read and write items on the rate-limiting table
+        rate_limiting_table.grant_read_write_data(handler)
+        # these permissions are needed to query provider records on the provider table
+        provider_table.grant_read_data(handler)
+        # here we grant the lambda the ability to disable staff users if they exceed the rate limit
+        staff_user_pool.grant(handler, 'cognito-idp:AdminDisableUser')
         self.api.log_groups.append(handler.log_group)
 
+        NagSuppressions.add_resource_suppressions_by_path(
+            Stack.of(handler.role),
+            path=f'{handler.role.node.path}/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'The wildcard actions in this policy are scoped to the rate-limiting table and '
+                    'the provider data table.',
+                },
+            ],
+        )
+
         # Add the SSN endpoint as a sub-resource of the provider
-        self.provider_resource.add_resource('ssn').add_method(
+        self.ssn_resource = self.provider_resource.add_resource('ssn')
+        self.ssn_resource.add_method(
             'GET',
             request_validator=self.api.parameter_body_validator,
             method_responses=[
@@ -244,22 +271,28 @@ class QueryProviders:
             authorization_scopes=method_options.authorization_scopes,
         )
 
-        # Create a metric
-        metric = Metric(
+        # Create a metric to track how many times this endpoint has been invoked with a day
+        daily_read_ssn_count_metric = Metric(
             namespace='compact-connect',
             metric_name='read-ssn',
             statistic='SampleCount',
-            period=Duration.hours(1),
+            period=Duration.days(1),
             dimensions_map={'service': 'common'},
         )
 
         # We'll monitor longer access patterns to detect anomalies, over time
         # The L2 construct, Alarm, doesn't yet support Anomaly Detection as a configuration
         # so we're using the L1 construct, CfnAlarm
+        # This anomaly detector scans the count of requests to the ssn endpoint by
+        # the daily_read_ssn_count_metric and uses machine-learning and pattern recognition to
+        # establish baselines of typical usage.
+        # See https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/LogsAnomalyDetection.html
         self.ssn_anomaly_detection_alarm = CfnAlarm(
             self.api,
             'ReadSSNAnomalyAlarm',
-            alarm_description=f'{self.api.node.path} read-ssn anomaly detection',
+            alarm_description=f'{self.api.node.path} read-ssn anomaly detection. The GET provider SSN endpoint has been'
+            f'called an irregular number of times. Investigation required to ensure ssn endpoint is '
+            f'not being abused.',
             comparison_operator='GreaterThanUpperThreshold',
             evaluation_periods=1,
             treat_missing_data='notBreaching',
@@ -271,8 +304,8 @@ class QueryProviders:
                     id='m1',
                     metric_stat=CfnAlarm.MetricStatProperty(
                         metric=CfnAlarm.MetricProperty(
-                            metric_name=metric.metric_name,
-                            namespace=metric.namespace,
+                            metric_name=daily_read_ssn_count_metric.metric_name,
+                            namespace=daily_read_ssn_count_metric.namespace,
                             dimensions=[CfnAlarm.DimensionProperty(name='service', value='common')],
                         ),
                         period=3600,
@@ -283,18 +316,80 @@ class QueryProviders:
             threshold_metric_id='ad1',
         )
 
-        # We'll also set a flat maximum access rate of 5 reads per hour to alarm on
-        self.max_ssn_reads_alarm = Alarm(
-            self.api,
-            'MaxSSNReadsAlarm',
-            metric=metric,
-            threshold=5,
-            evaluation_periods=1,
-            comparison_operator=ComparisonOperator.GREATER_THAN_THRESHOLD,
-            treat_missing_data=TreatMissingData.NOT_BREACHING,
-            alarm_description=(f'{self.api.node.path} max ssn reads alarm'),
+        # Create a metric to track if any user is rate-limited while calling this endpoint
+        ssn_rate_limited_count_metric = Metric(
+            namespace='compact-connect',
+            metric_name='rate-limited-ssn-access',
+            statistic='SampleCount',
+            period=Duration.minutes(5),
+            dimensions_map={'service': 'common'},
         )
-        self.max_ssn_reads_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
+
+        # This alarm will fire if any user is rate-limited by this endpoint
+        # This will help us determine if the limit needs to be raised or detect early abuse
+        self.ssn_rate_limited_alarm = Alarm(
+            self.api,
+            'SSNReadsRateLimitedAlarm',
+            metric=ssn_rate_limited_count_metric,
+            threshold=1,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=f'{self.api.node.path} ssn reads rate-limited alarm. The GET provider SSN endpoint has '
+            f'been invoked more than an expected threshold within a 24 hour period. Investigation is required to ensure'
+            f' access is not the result of abuse.',
+        )
+        self.ssn_rate_limited_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
+
+        # Create a metric to track if ssn endpoint has been disabled due to excessive requests
+        ssn_endpoint_disabled_count_metric = Metric(
+            namespace='compact-connect',
+            metric_name='ssn-endpoint-disabled',
+            statistic='SampleCount',
+            period=Duration.minutes(5),
+            dimensions_map={'service': 'common'},
+        )
+        # This alarm will fire if the ssn endpoint hits our global threshold and is disabled (concurrency set to 0)
+        self.ssn_endpoint_disabled_alarm = Alarm(
+            self.api,
+            'SSNEndpointDisabledAlarm',
+            metric=ssn_endpoint_disabled_count_metric,
+            threshold=1,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=f'{self.api.node.path} SECURITY ALERT: SSN ENDPOINT DISABLED. The GET provider SSN '
+            'endpoint has been disabled due to excessive requests. Immediate investigation required. '
+            'Endpoint will need to be manually reactivated before any further requests can be '
+            'processed.',
+        )
+        self.ssn_endpoint_disabled_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
+
+        # Add an alarm for 4xx responses from the SSN endpoint
+        self.ssn_api_throttling_alarm = Alarm(
+            self.api,
+            'SSNApi4XXAlarm',
+            alarm_description=f'{self.api.node.path} SECURITY ALERT: Potential abuse detected - '
+            'Excessive 4xx errors triggered on GET provider SSN endpoint. '
+            'Immediate investigation required.',
+            metric=Metric(
+                namespace='AWS/ApiGateway',
+                metric_name='4XXError',
+                dimensions_map={
+                    'ApiName': self.api.rest_api_name,
+                    'Stage': self.api.deployment_stage.stage_name,
+                    'Resource': self.ssn_resource.path,
+                    'Method': 'GET',
+                },
+                statistic='Sum',
+                period=Duration.minutes(5),
+            ),
+            evaluation_periods=1,
+            threshold=100,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+        )
+        self.ssn_api_throttling_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
 
     def _get_provider_ssn_handler(
         self,
@@ -317,6 +412,20 @@ class QueryProviders:
         # Though, ssn table access is granted via resource policies on the table and key so `.grant()`
         # calls are not needed here.
 
+        # Add permission for the lambda to update its own concurrency setting
+        function_arn = self.get_provider_ssn_handler.function_arn
+        self.get_provider_ssn_handler.role.attach_inline_policy(
+            Policy(
+                self.resource,
+                'PutFunctionConcurrency',
+                statements=[
+                    PolicyStatement(
+                        actions=['lambda:PutFunctionConcurrency'],
+                        resources=[function_arn],
+                    )
+                ],
+            )
+        )
         return self.get_provider_ssn_handler
 
     def _add_deactivate_privilege(

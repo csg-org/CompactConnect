@@ -235,41 +235,73 @@ class TestQueryProvidersApi(TestApi):
             overwrite_snapshot=False,
         )
 
-    def test_synth_generates_get_provider_ssn_alarm(self):
-        """Test that the GET /providers/{providerId}/ssn alarm is configured correctly."""
+    def test_synth_generates_get_provider_ssn_alarms(self):
+        """Test that the GET /providers/{providerId}/ssn alarms are configured correctly."""
         api_stack = self.app.sandbox_stage.api_stack
         api_stack_template = Template.from_stack(api_stack)
 
         # Ensure the anomaly detection alarm is created
         alarms = api_stack_template.find_resources(CfnAlarm.CFN_RESOURCE_TYPE_NAME)
-        alarm = TestApi.get_resource_properties_by_logical_id(
+        anomaly_alarm = TestApi.get_resource_properties_by_logical_id(
             api_stack.get_logical_id(api_stack.api.v1_api.query_providers.ssn_anomaly_detection_alarm),
             alarms,
         )
 
         # The alarm actions ref change depending on sandbox vs pipeline configuration, so we'll just
         # make sure there is one action and remove it from the comparison
-        actions = alarm.pop('AlarmActions', [])
+        actions = anomaly_alarm.pop('AlarmActions', [])
         self.assertEqual(len(actions), 1)
 
         self.compare_snapshot(
-            alarm,
+            anomaly_alarm,
             'GET_PROVIDER_SSN_ANOMALY_DETECTION_ALARM_SCHEMA',
             overwrite_snapshot=False,
         )
 
-        # Ensure the max alarm is created
-        alarm = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.query_providers.max_ssn_reads_alarm.node.default_child),
+        # Ensure the ssn read rate-limited alarm is created
+        ssn_read_rate_limited_alarm = TestApi.get_resource_properties_by_logical_id(
+            api_stack.get_logical_id(api_stack.api.v1_api.query_providers.ssn_rate_limited_alarm.node.default_child),
             alarms,
         )
 
-        actions = alarm.pop('AlarmActions', [])
+        actions = ssn_read_rate_limited_alarm.pop('AlarmActions', [])
         self.assertEqual(len(actions), 1)
 
         self.compare_snapshot(
-            alarm,
-            'GET_PROVIDER_SSN_MAX_READS_ALARM_SCHEMA',
+            ssn_read_rate_limited_alarm,
+            'GET_PROVIDER_SSN_READS_RATE_LIMITED_ALARM_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+        # Ensure the ssn endpoint disabled alarm is created
+        ssn_endpoint_disabled_alarm = TestApi.get_resource_properties_by_logical_id(
+            api_stack.get_logical_id(
+                api_stack.api.v1_api.query_providers.ssn_endpoint_disabled_alarm.node.default_child
+            ),
+            alarms,
+        )
+
+        actions = ssn_endpoint_disabled_alarm.pop('AlarmActions', [])
+        self.assertEqual(len(actions), 1)
+
+        self.compare_snapshot(
+            ssn_endpoint_disabled_alarm,
+            'GET_PROVIDER_SSN_ENDPOINT_DISABLED_ALARM_SCHEMA',
+            overwrite_snapshot=False,
+        )
+
+        # Ensure the 4xx API alarm is created
+        throttling_alarm = TestApi.get_resource_properties_by_logical_id(
+            api_stack.get_logical_id(api_stack.api.v1_api.query_providers.ssn_api_throttling_alarm.node.default_child),
+            alarms,
+        )
+
+        actions = throttling_alarm.pop('AlarmActions', [])
+        self.assertEqual(len(actions), 1)
+
+        self.compare_snapshot(
+            throttling_alarm,
+            'GET_PROVIDER_SSN_4XX_ALARM_SCHEMA',
             overwrite_snapshot=False,
         )
 

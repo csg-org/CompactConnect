@@ -342,7 +342,7 @@ class TestPostPurchasePrivileges(TstFunction):
     @patch('handlers.privileges.PurchaseClient')
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-10-05T23:59:59+00:00'))
     def test_purchase_privileges_allows_existing_privilege_purchase_if_license_expiration_matches_but_is_inactive(
-            self, mock_purchase_client_constructor
+        self, mock_purchase_client_constructor
     ):
         """
         In this case, the user is attempting to purchase a privilege in kentucky twice with the same expiration date
@@ -360,7 +360,7 @@ class TestPostPurchasePrivileges(TstFunction):
         with open('../common/tests/resources/dynamo/privilege.json') as f:
             privilege_record = json.load(f)
             privilege_record['pk'] = f'{TEST_COMPACT}#PROVIDER#{TEST_PROVIDER_ID}'
-            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky#2023-10-08'
+            privilege_record['sk'] = f'{TEST_COMPACT}#PROVIDER#privilege/ky/slp#'
             # in this case, the user is purchasing the privilege for the first time
             # so the date of renewal is the same as the date of issuance
             privilege_record['dateOfRenewal'] = test_issuance_date
