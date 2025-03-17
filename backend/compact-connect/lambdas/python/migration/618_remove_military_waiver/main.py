@@ -42,22 +42,37 @@ def do_migration(_properties: dict) -> None:
                 if not provider_record.get('type'):
                     logger.info('No type defined. Skipping record.', pk=provider_record['pk'], sk=provider_record['sk'])
                     continue
+                # Prepare key for update_item
+                key = {
+                    'pk': provider_record['pk'],
+                    'sk': provider_record['sk']
+                }
+
                 if provider_record['type'] == 'provider' or provider_record['type'] == 'license':
-                    provider_record.pop('militaryWaiver', None)
+                    # Use update_item with REMOVE expression to safely remove the field
+                    update_expression = "REMOVE militaryWaiver"
+                    logger.info('Updating record', pk=provider_record['pk'], sk=provider_record['sk'])
+                    config.provider_table.update_item(
+                        Key=key,
+                        UpdateExpression=update_expression
+                    )
+                    success_count += 1
                 elif provider_record['type'] == 'licenseUpdate':
-                    provider_record['previous'].pop('militaryWaiver', None)
-                    provider_record['updatedValues'].pop('militaryWaiver', None)
+                    # For licenseUpdate, we need to remove from both previous and updatedValues objects
+                    update_expression = "REMOVE previous.militaryWaiver, updatedValues.militaryWaiver"
+                    logger.info('Updating licenseUpdate record', pk=provider_record['pk'], sk=provider_record['sk'])
+                    config.provider_table.update_item(
+                        Key=key,
+                        UpdateExpression=update_expression
+                    )
+                    success_count += 1
                 else:
                     logger.info('Skipping record', pk=provider_record['pk'], sk=provider_record['sk'])
                     continue
 
-                logger.info('Updating record', pk=provider_record['pk'], sk=provider_record['sk'])
-                config.provider_table.put_item(Item=provider_record)
-                success_count += 1
             except Exception as e:  # noqa: BLE001
                 logger.exception('Error processing record', exc_info=e)
                 error_count += 1
-
 
         # Check if we need to continue pagination
         last_evaluated_key = response.get('LastEvaluatedKey')
