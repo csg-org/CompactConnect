@@ -155,7 +155,7 @@ export class LicenseSerializer {
             privilegeId: json.privilegeId, // Privilege field only
             renewalDate: json.dateOfRenewal,
             expireDate: json.dateOfExpiration,
-            licenseType: json.licenseType, // License field only for now, will eventually be included in privileges
+            licenseType: json.licenseType,
             status: json.status,
             history: [] as Array <LicenseHistoryItem>,
         };

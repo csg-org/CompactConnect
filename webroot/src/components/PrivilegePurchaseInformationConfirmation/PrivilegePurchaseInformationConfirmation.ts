@@ -135,7 +135,7 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
     }
 
     get licenseSelectedMailingAddress(): Address {
-        return this.licenseSelected.mailingAddress || new Address();
+        return this.licenseSelected?.mailingAddress || new Address();
     }
 
     get mailingAddessStateDisplay(): string {

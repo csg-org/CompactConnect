@@ -155,20 +155,21 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
     get disabledPrivilegeStateChoices(): Array<string> {
         const disabledStateList: Array<string> = [];
         const { privilegeList } = this;
-        const bestHomeJurisdictionLicense = this.licensee?.bestHomeJurisdictionLicense();
+        const purchaseLicense = this.selectedPurchaseLicense;
 
-        if (bestHomeJurisdictionLicense) {
-            privilegeList.forEach((privilege) => {
+        if (purchaseLicense) {
+            privilegeList.filter((privilege) =>
+                (privilege.licenseType === purchaseLicense.licenseType)).forEach((privilege) => {
                 if (
                     privilege?.issueState?.abbrev
-                    && moment(privilege?.expireDate).isSameOrAfter(bestHomeJurisdictionLicense.expireDate)
+                    && moment(privilege?.expireDate).isSameOrAfter(purchaseLicense.expireDate)
                     && privilege.status === LicenseStatus.ACTIVE
                 ) {
                     disabledStateList.push(privilege?.issueState?.abbrev);
                 }
             });
 
-            disabledStateList.push(bestHomeJurisdictionLicense?.issueState?.abbrev || '');
+            disabledStateList.push(purchaseLicense?.issueState?.abbrev || '');
         }
 
         return disabledStateList;
@@ -304,6 +305,10 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
 
     get isMockPopulateEnabled(): boolean {
         return Boolean(this.$envConfig.isDevelopment);
+    }
+
+    get selectedPurchaseLicense(): License | null {
+        return this.$store.getters['user/getLicenseSelected']();
     }
 
     //
