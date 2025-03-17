@@ -10,7 +10,7 @@
   "EvaluationPeriods": 1,
   "MetricName": "staff-user-created",
   "Namespace": "compact-connect",
-  "Period": 86400,
+  "Period": 3600,
   "Statistic": "SampleCount",
   "Threshold": 5,
   "TreatMissingData": "notBreaching"
