@@ -338,13 +338,53 @@ class TestPostPurchasePrivileges(TstFunction):
         response_body = json.loads(resp['body'])
 
         self.assertEqual(
-            {'message': "Selected privilege jurisdiction 'ky' matches existing privilege jurisdiction"}, response_body
+            {
+                'message': "Selected privilege jurisdiction 'ky' matches existing privilege jurisdiction for license type"
+            },
+            response_body,
         )
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_purchase_privileges_valid_even_if_existing_privilege_for_another_license_type_has_same_expiration(
+        self, mock_purchase_client_constructor
+    ):
+        """
+        In this case, the user is attempting to purchase a privilege in kentucky for a new license type,
+        the expiration date for the other license type has not been updated since the last renewal, but the expiration
+        date for the selected license type has been updated since the last renewal. This purchase should be allowed.
+        """
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        test_license_expiration_date = '2050-01-01'
+        event = self._when_testing_provider_user_event_with_custom_claims(
+            license_expiration_date=test_license_expiration_date
+        )
+        event['body'] = _generate_test_request_body(license_type=TEST_LICENSE_TYPE)
+        # buy a privilege for the first license type
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'], resp['body'])
+
+        # now make the same call with the same jurisdiction, but for a different license type
+        # a new privilege record should be generated for that specific license type
+        self._load_license_data(expiration_date=test_license_expiration_date, license_type='audiologist')
+        event['body'] = _generate_test_request_body(license_type='audiologist')
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+
+        # check that the privilege records for ky were created for both license types
+        provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
+
+        privilege_records_license_types = set(
+            [record['licenseType'] for record in provider_records['items'] if record['type'] == 'privilege']
+        )
+        self.assertEqual({'audiologist', 'speech-language pathologist'}, privilege_records_license_types)
 
     @patch('handlers.privileges.PurchaseClient')
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-10-05T23:59:59+00:00'))
     def test_purchase_privileges_allows_existing_privilege_purchase_if_license_expiration_matches_but_is_inactive(
-            self, mock_purchase_client_constructor
+        self, mock_purchase_client_constructor
     ):
         """
         In this case, the user is attempting to purchase a privilege in kentucky twice with the same expiration date
