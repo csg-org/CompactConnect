@@ -39,6 +39,9 @@ def do_migration(_properties: dict) -> None:
         # Process each provider
         for provider_record in provider_records:
             try:
+                if not provider_record.get('type'):
+                    logger.info('No type defined. Skipping record.', pk=provider_record['pk'], sk=provider_record['sk'])
+                    continue
                 if provider_record['type'] == 'provider' or provider_record['type'] == 'license':
                     provider_record.pop('militaryWaiver', None)
                 elif provider_record['type'] == 'licenseUpdate':
@@ -52,7 +55,7 @@ def do_migration(_properties: dict) -> None:
                 config.provider_table.put_item(Item=provider_record)
                 success_count += 1
             except Exception as e:  # noqa: BLE001
-                logger.exception('Error processing provider or license record', exc_info=e)
+                logger.exception('Error processing record', exc_info=e)
                 error_count += 1
 
 
