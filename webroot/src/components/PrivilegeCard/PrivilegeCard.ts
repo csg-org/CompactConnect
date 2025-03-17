@@ -172,12 +172,8 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.privilege?.licenseeId || '';
     }
 
-    get privilegeType(): string {
-        return this.privilege?.licenseType || '';
-    }
-
     get privilegeTypeAbbrev(): string {
-        return this.privilege?.licenseTypeAbbreviation();
+        return this.privilege?.licenseTypeAbbreviation() || '';
     }
 
     //
@@ -238,14 +234,14 @@ class PrivilegeCard extends mixins(MixinForm) {
             currentCompactType: compactType,
             licenseeId,
             stateAbbrev,
-            privilegeType
+            privilegeTypeAbbrev
         } = this;
 
         await this.$store.dispatch(`users/deletePrivilegeRequest`, {
             compact: compactType,
             licenseeId,
             privilegeState: stateAbbrev,
-            licenseType: privilegeType
+            licenseType: privilegeTypeAbbrev.toLowerCase()
         }).catch((err) => {
             this.modalErrorMessage = err?.message || this.$t('common.error');
             this.isFormError = true;
