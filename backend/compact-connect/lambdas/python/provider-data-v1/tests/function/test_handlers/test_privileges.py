@@ -182,7 +182,8 @@ class TestDeactivatePrivilege(TstFunction):
         self, mock_email_service_client
     ):
         """
-        If a board admin has admin permission in the privilege jurisdiction, they can deactivate a privilege
+        If the deactivation notification to the provider fails to send, we want to ensure that the notification to
+        the state is still sent.
         """
         self._load_provider_data()
 
@@ -217,7 +218,7 @@ class TestDeactivatePrivilege(TstFunction):
         self, mock_email_service_client
     ):
         """
-        If a board admin has admin permission in the privilege jurisdiction, they can deactivate a privilege
+        If the deactivation state notification fails to send, ensure we raise an exception.
         """
         self._load_provider_data()
 
