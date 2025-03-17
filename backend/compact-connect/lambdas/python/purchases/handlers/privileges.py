@@ -216,23 +216,18 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     if home_state_selection is None:
         raise CCInternalException('No home state selection found for this user')
 
-    license_records = ProviderRecordUtility.get_records_of_type(
+    # we now validate that the license type matches one of the license types from the home state license records
+    matching_license_records = ProviderRecordUtility.get_records_of_type(
         user_provider_data['items'],
         ProviderRecordType.LICENSE,
+        _filter=lambda record: record['licenseType'] == body['licenseType']
+                                and record['jurisdiction'] == home_state_selection,
     )
 
-    # we now validate that the license type matches one of the license types from the home state license records
-    matching_license_record = next(
-        (
-            record
-            for record in license_records
-            if record['licenseType'] == body['licenseType'] and record['jurisdiction'] == home_state_selection
-        ),
-        None,
-    )
-
-    if matching_license_record is None:
+    if not matching_license_records:
         raise CCInvalidRequestException('Specified license type does not match any home state license type.')
+
+    matching_license_record = matching_license_records[0]
 
     if matching_license_record['status'] == ProviderEligibilityStatus.INACTIVE:
         raise CCInvalidRequestException('No active license found in selected home state for this user')

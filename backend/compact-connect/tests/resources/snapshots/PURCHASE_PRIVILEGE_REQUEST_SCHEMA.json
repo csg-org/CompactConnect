@@ -2,6 +2,13 @@
   "properties": {
     "licenseType": {
       "description": "The type of license the provider is purchasing a privilege for.",
+      "enum": [
+        "audiologist",
+        "speech-language pathologist",
+        "occupational therapist",
+        "occupational therapy assistant",
+        "licensed professional counselor"
+      ],
       "type": "string"
     },
     "selectedJurisdictions": {
