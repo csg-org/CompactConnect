@@ -45,6 +45,12 @@ class JurisdictionRecordSchema(BaseRecordSchema):
         required=True,
         allow_none=False,
     )
+    licenseeRegistrationEnabledForEnvironments = List(
+        String(required=True, allow_none=False, validate=OneOf(['test', 'prod'])),
+        required=True,
+        allow_none=False,
+        default=list,
+    )
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsRecordSchema(), required=True, allow_none=False
     )
