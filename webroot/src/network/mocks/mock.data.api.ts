@@ -138,6 +138,14 @@ export class DataApi {
         }));
     }
 
+    public getLicenseeSsn(compact, licenseeId) {
+        return this.wait(500).then(() => ({
+            ssn: '111-11-1111',
+            compact,
+            licenseeId,
+        }));
+    }
+
     // ========================================================================
     //                              STAFF USER API
     // ========================================================================

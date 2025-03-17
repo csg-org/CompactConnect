@@ -13,17 +13,12 @@
             "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
             "type": "string"
           },
-          "ssn": {
-            "pattern": "^[0-9]{3}-[0-9]{2}-[0-9]{4}$",
-            "type": "string"
-          },
           "npi": {
             "pattern": "^[0-9]{10}$",
             "type": "string"
           },
-          "licenseNumber": {
-            "maxLength": 100,
-            "minLength": 1,
+          "ssnLastFour": {
+            "pattern": "^[0-9]{4}$",
             "type": "string"
           },
           "givenName": {
@@ -41,17 +36,12 @@
             "minLength": 1,
             "type": "string"
           },
-          "licenseType": {
-            "enum": [
-              "audiologist",
-              "speech-language pathologist",
-              "occupational therapist",
-              "occupational therapy assistant",
-              "licensed professional counselor"
-            ],
+          "suffix": {
+            "maxLength": 100,
+            "minLength": 1,
             "type": "string"
           },
-          "status": {
+          "jurisdictionStatus": {
             "enum": [
               "active",
               "inactive"
@@ -65,6 +55,59 @@
               "coun"
             ],
             "type": "string"
+          },
+          "emailAddress": {
+            "format": "email",
+            "maxLength": 100,
+            "minLength": 5,
+            "type": "string"
+          },
+          "phoneNumber": {
+            "pattern": "^\\+[0-9]{8,15}$",
+            "type": "string"
+          },
+          "homeAddressStreet1": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "homeAddressStreet2": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "homeAddressCity": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "homeAddressState": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "homeAddressPostalCode": {
+            "maxLength": 7,
+            "minLength": 5,
+            "type": "string"
+          },
+          "birthMonthDay": {
+            "format": "date",
+            "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "type": "string"
+          },
+          "dateOfBirth": {
+            "format": "date",
+            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "type": "string"
+          },
+          "dateOfExpiration": {
+            "format": "date",
+            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "type": "string"
+          },
+          "militaryWaiver": {
+            "type": "boolean"
           },
           "licenseJurisdiction": {
             "enum": [
@@ -121,6 +164,13 @@
               "wv",
               "wi",
               "wy"
+            ],
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "inactive"
             ],
             "type": "string"
           },
@@ -185,57 +235,16 @@
             },
             "type": "array"
           },
-          "homeAddressStreet1": {
-            "maxLength": 100,
-            "minLength": 2,
-            "type": "string"
-          },
-          "homeAddressStreet2": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          },
-          "homeAddressCity": {
-            "maxLength": 100,
-            "minLength": 2,
-            "type": "string"
-          },
-          "homeAddressState": {
-            "maxLength": 100,
-            "minLength": 2,
-            "type": "string"
-          },
-          "homeAddressPostalCode": {
-            "maxLength": 7,
-            "minLength": 5,
-            "type": "string"
-          },
-          "militaryWaiver": {
-            "type": "boolean"
-          },
           "compactConnectRegisteredEmailAddress": {
             "format": "email",
+            "maxLength": 100,
+            "minLength": 5,
             "type": "string"
           },
           "cognitoSub": {
             "type": "string"
           },
-          "birthMonthDay": {
-            "format": "date",
-            "pattern": "^[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-            "type": "string"
-          },
-          "dateOfBirth": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-            "type": "string"
-          },
           "dateOfUpdate": {
-            "format": "date",
-            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
-            "type": "string"
-          },
-          "dateOfExpiration": {
             "format": "date",
             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
             "type": "string"
@@ -244,10 +253,9 @@
         "required": [
           "type",
           "providerId",
-          "ssn",
           "givenName",
           "familyName",
-          "licenseType",
+          "jurisdictionStatus",
           "status",
           "compact",
           "licenseJurisdiction",
@@ -256,7 +264,6 @@
           "homeAddressCity",
           "homeAddressState",
           "homeAddressPostalCode",
-          "dateOfBirth",
           "dateOfUpdate",
           "dateOfExpiration",
           "birthMonthDay"

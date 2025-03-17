@@ -19,7 +19,14 @@ class TestLicenseSchema(TstLambdas):
         from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 
         with open('tests/resources/api/license-post.json') as f:
-            result = LicenseIngestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **json.load(f)})
+            license_record = json.load(f)
+            # the preprocessor lambda removes the full SSN and replaces it with the last 4 digits as well as the
+            # associated provider id within the system.
+            license_record['ssnLastFour'] = license_record['ssn'][-4:]
+            license_record['providerId'] = uuid4()
+            del license_record['ssn']
+
+            result = LicenseIngestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_record})
             self.assertEqual('active', result['jurisdictionStatus'])
 
     def test_invalid_post(self):
@@ -72,11 +79,18 @@ class TestLicenseSchema(TstLambdas):
         from cc_common.data_model.schema import LicenseRecordSchema
         from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 
-        with open('tests/resources/api/license-post.json') as f:
-            license_data = LicenseIngestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **json.load(f)})
-
         with open('tests/resources/dynamo/license.json') as f:
             expected_license_record = json.load(f)
+
+        with open('tests/resources/api/license-post.json') as f:
+            license_record = json.load(f)
+            # the preprocessor lambda removes the full SSN and replaces it with the last 4 digits as well as the
+            # associated provider id within the system.
+            license_record['ssnLastFour'] = license_record['ssn'][-4:]
+            license_record['providerId'] = expected_license_record['providerId']
+            del license_record['ssn']
+            license_data = LicenseIngestSchema().load({'compact': 'aslp', 'jurisdiction': 'oh', **license_record})
+
         # Provider will normally be looked up / generated internally, not come from the client
         provider_id = expected_license_record['providerId']
 
@@ -94,7 +108,6 @@ class TestLicenseSchema(TstLambdas):
         del expected_license_record['dateOfUpdate']
         del license_record['dateOfUpdate']
 
-        self.maxDiff = None
         self.assertEqual(expected_license_record, license_record)
 
     def test_license_record_schema_sets_status_to_inactive_if_license_expired(self):
@@ -154,7 +167,6 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
 
         # Round-trip SERDE with a fixed timestamp demonstrates that our sk generation is deterministic for the same
         # input values, which is an important property for this schema.
-        self.maxDiff = None
         self.assertEqual(record, dumped_record)
 
     def test_hash_is_deterministic(self):
@@ -175,8 +187,9 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
             {
                 'type': 'licenseUpdate',
                 'providerId': uuid4(),
-                'compact': 'different',
-                'jurisdiction': 'different',
+                'compact': 'aslp',
+                'jurisdiction': 'ky',
+                'licenseType': 'speech-language pathologist',
                 # These two fields should determine the change hash:
                 'previous': loaded_record['previous'].copy(),
                 'updatedValues': loaded_record['updatedValues'].copy(),
@@ -201,8 +214,9 @@ class TestLicenseUpdateRecordSchema(TstLambdas):
         alternate_record = {
             'type': 'licenseUpdate',
             'providerId': uuid4(),
-            'compact': 'different',
-            'jurisdiction': 'different',
+            'compact': 'aslp',
+            'jurisdiction': 'ky',
+            'licenseType': 'speech-language pathologist',
             # These two fields should determine the change hash:
             'previous': loaded_record['previous'].copy(),
             'updatedValues': loaded_record['updatedValues'].copy(),

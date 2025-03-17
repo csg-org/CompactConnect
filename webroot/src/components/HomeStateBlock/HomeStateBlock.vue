@@ -8,7 +8,11 @@
 <template>
     <div class="home-state-block-container">
         <div class="home-state-img-container">
-            <img class="home-state-img" src="@assets/images/white-ellipse.svg" alt="Privilege List Logo" />
+            <img
+                class="home-icon"
+                src="@assets/icons/ico-home.svg"
+                :alt="$t('licensing.houseIcon')"
+            />
         </div>
         <div class="home-state-title">
             {{homeStateTitle}}

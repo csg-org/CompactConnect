@@ -47,22 +47,6 @@
             }"></span>
         </div>
         <div
-            class="cell ssn"
-            :class="{ 'is-sort-enabled': isSortOptionEnabled('ssn') }"
-            @click="isSortOptionEnabled('ssn') && handleSortSelect('ssn')"
-            @keyup.enter="isSortOptionEnabled('ssn') && handleSortSelect('ssn')"
-            :tabindex="(isHeaderRow && isSortOptionEnabled('ssn')) ? 0 : -1"
-            :role="(isHeaderRow) ? 'columnheader' : 'cell'"
-        >
-            <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.ssn') }}:</span>
-            {{ item.ssnMaskedPartial() }}
-            <span v-if="isSortOptionEnabled('ssn')" class="sort-icon" :class="{
-                'is-selected': isSortOptionSelected('ssn'),
-                'asc': isSortOptionAscending('ssn'),
-                'desc': isSortOptionDescending('ssn'),
-            }"></span>
-        </div>
-        <div
             class="cell state-of-license"
             :class="{ 'is-sort-enabled': isSortOptionEnabled('stateOfLicense') }"
             @click="isSortOptionEnabled('stateOfLicense') && handleSortSelect('stateOfLicense')"
@@ -71,7 +55,7 @@
             :role="(isHeaderRow) ? 'columnheader' : 'cell'"
         >
             <span v-if="$matches.phone.only" class="cell-title">{{ $t('licensing.homeState') }}:</span>
-            {{ item.licenseStatesDisplay() }}
+            {{ item.homeJurisdictionDisplay() }}
             <span v-if="isSortOptionEnabled('stateOfLicense')" class="sort-icon" :class="{
                 'is-selected': isSortOptionSelected('stateOfLicense'),
                 'asc': isSortOptionAscending('stateOfLicense'),

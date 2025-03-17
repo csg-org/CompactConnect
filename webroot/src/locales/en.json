@@ -493,7 +493,6 @@
         "license": "License",
         "licensingListTitle": "Licensing Data",
         "attestation": "Attestation",
-        "attestations": "Attestations",
         "stateProvidedEmail": "State-provided email",
         "accountEmail": "Account email",
         "searchTitle": "Begin a search",
@@ -511,6 +510,8 @@
         "recentPrivilegesTitle": "Recent privileges",
         "birthMonthDay": "Birth month-day",
         "pastPrivilegesTitle": "Past privileges",
+        "privilegeIcon": "Privilege icon",
+        "pInfoIcon": "Personal info icon",
         "licenseDetails": "License details",
         "licenseNumSymbol": "License #",
         "privilegeNumSymbol": "Privilege #",
@@ -521,6 +522,7 @@
         "noRefundsMessage": "All compact privilege purchases are final. Refunds will not be issued.",
         "ssn": "SSN",
         "ssnLastFour": "Last 4 of SSN",
+        "revealFullSsn": "Reveal full SSN",
         "incorrectInfoDisclaimer": "The information on this page was provided by your home state. If the information is incorrect, you must reach out to that state and ask them to correct it. Refer to the compact FAQ page for more information.",
         "deselectState": "Deselect state",
         "adminFee": "Administration Fee",
@@ -550,7 +552,6 @@
         "discipline": "Discipline",
         "provisionOfInformation": "Provision of true information",
         "militaryAffiliation": "Military affiliation",
-        "blackCircle": "Black circle",
         "licenseIcon": "License icon",
         "houseIcon": "House icon",
         "statusOptions": {
@@ -561,7 +562,7 @@
         "deactivate": "Deactivate",
         "deactivated": "Deactivated",
         "confirmPrivilegeDeactivate": "Are you sure you want to deactivate this privilege? This cannot be undone.",
-        "occupations": [
+        "licenseTypes": [
             {
                 "name": "Audiologist",
                 "key": "audiologist",
@@ -653,6 +654,7 @@
             "none": "None",
             "read": "Read",
             "readPrivate": "Read Private",
+            "readSsn": "Read SSN",
             "write": "Write",
             "admin": "Admin"
         },

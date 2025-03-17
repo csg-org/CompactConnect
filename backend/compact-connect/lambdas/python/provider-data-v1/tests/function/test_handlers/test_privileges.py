@@ -12,6 +12,7 @@ DEACTIVATION_HISTORY = {
     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
     'compact': 'aslp',
     'jurisdiction': 'ne',
+    'licenseType': 'speech-language pathologist',
     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
     'previous': {
         'attestations': [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
@@ -22,6 +23,7 @@ DEACTIVATION_HISTORY = {
         'compactTransactionId': '1234567890',
         'privilegeId': 'SLP-NE-1',
         'persistedStatus': 'active',
+        'licenseJurisdiction': 'oh',
     },
     'updatedValues': {'persistedStatus': 'inactive'},
 }
@@ -40,7 +42,11 @@ class TestDeactivatePrivilege(TstFunction):
 
         # The user has read permission for aslp
         event['requestContext']['authorizer']['claims']['scope'] = 'openid email aslp/readGeneral ne/aslp.readPrivate'
-        event['pathParameters'] = {'compact': 'aslp', 'providerId': expected_provider['providerId']}
+        event['pathParameters'] = {
+            'compact': 'aslp',
+            'providerId': expected_provider['providerId'],
+            'licenseType': 'aud',
+        }
 
         resp = get_provider(event, self.mock_context)
 
@@ -51,8 +57,6 @@ class TestDeactivatePrivilege(TstFunction):
         expected_provider['privileges'][0]['status'] = 'inactive'
         # Add the deactivation history
         expected_provider['privileges'][0]['history'].insert(0, DEACTIVATION_HISTORY)
-        # Remove the privilege jurisdiction from the privilege jurisdictions list
-        expected_provider['privilegeJurisdictions'] = []
         expected_provider['privileges'][0]['dateOfUpdate'] = '2024-11-08T23:59:59+00:00'
 
         body = json.loads(resp['body'])
@@ -70,9 +74,7 @@ class TestDeactivatePrivilege(TstFunction):
             'compact': 'aslp',
             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
             'jurisdiction': 'ne',
-            # NOTE: This is not currently used, but is required by the API for future compatibility with
-            # multiple license types per jurisdiction
-            'licenseType': 'audiologist',
+            'licenseType': 'slp',
         }
         event['body'] = None
 

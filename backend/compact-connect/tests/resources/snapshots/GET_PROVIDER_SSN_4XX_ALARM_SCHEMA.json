@@ -1,0 +1,31 @@
+{
+  "AlarmDescription": "Sandbox/APIStack/LicenseApi SECURITY ALERT: Potential abuse detected - Excessive 4xx errors triggered on GET provider SSN endpoint. Immediate investigation required.",
+  "ComparisonOperator": "GreaterThanOrEqualToThreshold",
+  "Dimensions": [
+    {
+      "Name": "ApiName",
+      "Value": "LicenseApi"
+    },
+    {
+      "Name": "Method",
+      "Value": "GET"
+    },
+    {
+      "Name": "Resource",
+      "Value": "/v1/compacts/{compact}/providers/{providerId}/ssn"
+    },
+    {
+      "Name": "Stage",
+      "Value": {
+        "Ref": "LicenseApiDeploymentStagejustinC1FE8AE8"
+      }
+    }
+  ],
+  "EvaluationPeriods": 1,
+  "MetricName": "4XXError",
+  "Namespace": "AWS/ApiGateway",
+  "Period": 300,
+  "Statistic": "Sum",
+  "Threshold": 100,
+  "TreatMissingData": "notBreaching"
+}

@@ -3,14 +3,12 @@ from datetime import date
 
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
+from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility
+from cc_common.data_model.schema.common import ProviderEligibilityStatus
 from cc_common.data_model.schema.compact import COMPACT_TYPE, Compact
 from cc_common.data_model.schema.compact.api import CompactOptionsResponseSchema
-from cc_common.data_model.schema.jurisdiction import (
-    JURISDICTION_TYPE,
-    Jurisdiction,
-)
+from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE, Jurisdiction
 from cc_common.data_model.schema.jurisdiction.api import JurisdictionOptionsResponseSchema
-from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationStatus
 from cc_common.exceptions import (
     CCAwsServiceException,
     CCFailedTransactionException,
@@ -86,29 +84,6 @@ def get_purchase_privilege_options(event: dict, context: LambdaContext):  # noqa
     options_response['items'] = serlialized_options
 
     return options_response
-
-
-def _determine_military_affiliation_status(provider_records: list[dict]) -> bool:
-    """
-    Determine if the provider has an active military affiliation.
-    """
-    military_affiliation_records = [record for record in provider_records if record['type'] == 'militaryAffiliation']
-    if not military_affiliation_records:
-        return False
-
-    # we only need to check the most recent military affiliation record
-    latest_military_affiliation = sorted(military_affiliation_records, key=lambda x: x['dateOfUpload'], reverse=True)[0]
-
-    if latest_military_affiliation['status'] == MilitaryAffiliationStatus.INITIALIZING.value:
-        # this only occurs if the user's military document was not processed by S3 as expected. We need
-        # to return a message to the user letting them know they need to re-upload their document
-        raise CCInvalidRequestException(
-            'Your proof of military affiliation documentation was not successfully processed. '
-            'Please return to the Military Status page and re-upload your military affiliation '
-            'documentation or end your military affiliation.'
-        )
-
-    return latest_military_affiliation['status'] == MilitaryAffiliationStatus.ACTIVE.value
 
 
 def _validate_attestations(compact: str, attestations: list[dict], has_active_military_affiliation: bool = False):
@@ -235,18 +210,32 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     # get the user's profile information to determine if they are active military
     provider_id = _get_caller_provider_id_custom_attribute(event)
     user_provider_data = config.data_client.get_provider(compact=compact_abbr, provider_id=provider_id)
-    provider_record = next((record for record in user_provider_data['items'] if record['type'] == 'provider'), None)
-    home_state_license_record = config.data_client.find_home_state_license(
-        compact=compact_abbr,
-        provider_id=provider_id,
-        licenses=[record for record in user_provider_data['items'] if record['type'] == 'license'],
+
+    license_records = ProviderRecordUtility.get_records_of_type(
+        user_provider_data['items'],
+        ProviderRecordType.LICENSE,
     )
 
-    # this should never happen, but we check just in case
-    if provider_record is None:
-        raise CCNotFoundException('Provider not found')
-    if home_state_license_record is None or home_state_license_record['status'] == 'inactive':
+    home_state_selection = ProviderRecordUtility.get_provider_home_state_selection(user_provider_data['items'])
+    if home_state_selection is None:
+        raise CCInternalException('No home state selection found for this user')
+
+    home_state_license_record = ProviderRecordUtility.find_best_license(
+        license_records=license_records,
+        home_jurisdiction=home_state_selection,
+    )
+
+    if home_state_license_record['status'] == ProviderEligibilityStatus.INACTIVE:
         raise CCInvalidRequestException('No active license found in selected home state for this user')
+
+    provider_records = ProviderRecordUtility.get_records_of_type(
+        user_provider_data['items'],
+        ProviderRecordType.PROVIDER,
+    )
+    # this should never happen, but we check just in case
+    if not provider_records:
+        raise CCNotFoundException('Provider not found')
+    provider_record = provider_records[0]
 
     license_jurisdiction = home_state_license_record['jurisdiction']
     if license_jurisdiction.lower() in selected_jurisdictions_postal_abbreviations:
@@ -265,6 +254,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             # if their latest privilege expiration date matches the license expiration date they will not
             # receive any benefit from purchasing the same privilege, since the expiration date will not change
             and privilege['dateOfExpiration'] == home_state_license_record['dateOfExpiration']
+            and privilege['persistedStatus'] == 'active'
         ):
             raise CCInvalidRequestException(
                 f"Selected privilege jurisdiction '{privilege['jurisdiction'].lower()}'"
@@ -272,7 +262,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             )
 
     license_expiration_date: date = home_state_license_record['dateOfExpiration']
-    user_active_military = _determine_military_affiliation_status(user_provider_data['items'])
+    user_active_military = ProviderRecordUtility.determine_military_affiliation_status(user_provider_data['items'])
 
     # Validate attestations are the latest versions before proceeding with the purchase
     _validate_attestations(compact_abbr, body.get('attestations', []), user_active_military)

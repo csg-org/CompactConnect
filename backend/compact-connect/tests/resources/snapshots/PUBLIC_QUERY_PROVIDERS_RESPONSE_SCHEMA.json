@@ -1,0 +1,332 @@
+{
+  "properties": {
+    "providers": {
+      "items": {
+        "properties": {
+          "type": {
+            "enum": [
+              "provider"
+            ],
+            "type": "string"
+          },
+          "providerId": {
+            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+            "type": "string"
+          },
+          "npi": {
+            "pattern": "^[0-9]{10}$",
+            "type": "string"
+          },
+          "givenName": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "middleName": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "familyName": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "suffix": {
+            "maxLength": 100,
+            "minLength": 1,
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "type": "string"
+          },
+          "compact": {
+            "enum": [
+              "aslp",
+              "octp",
+              "coun"
+            ],
+            "type": "string"
+          },
+          "licenseJurisdiction": {
+            "enum": [
+              "al",
+              "ak",
+              "az",
+              "ar",
+              "ca",
+              "co",
+              "ct",
+              "de",
+              "dc",
+              "fl",
+              "ga",
+              "hi",
+              "id",
+              "il",
+              "in",
+              "ia",
+              "ks",
+              "ky",
+              "la",
+              "me",
+              "md",
+              "ma",
+              "mi",
+              "mn",
+              "ms",
+              "mo",
+              "mt",
+              "ne",
+              "nv",
+              "nh",
+              "nj",
+              "nm",
+              "ny",
+              "nc",
+              "nd",
+              "oh",
+              "ok",
+              "or",
+              "pa",
+              "pr",
+              "ri",
+              "sc",
+              "sd",
+              "tn",
+              "tx",
+              "ut",
+              "vt",
+              "va",
+              "vi",
+              "wa",
+              "wv",
+              "wi",
+              "wy"
+            ],
+            "type": "string"
+          },
+          "privilegeJurisdictions": {
+            "items": {
+              "enum": [
+                "al",
+                "ak",
+                "az",
+                "ar",
+                "ca",
+                "co",
+                "ct",
+                "de",
+                "dc",
+                "fl",
+                "ga",
+                "hi",
+                "id",
+                "il",
+                "in",
+                "ia",
+                "ks",
+                "ky",
+                "la",
+                "me",
+                "md",
+                "ma",
+                "mi",
+                "mn",
+                "ms",
+                "mo",
+                "mt",
+                "ne",
+                "nv",
+                "nh",
+                "nj",
+                "nm",
+                "ny",
+                "nc",
+                "nd",
+                "oh",
+                "ok",
+                "or",
+                "pa",
+                "pr",
+                "ri",
+                "sc",
+                "sd",
+                "tn",
+                "tx",
+                "ut",
+                "vt",
+                "va",
+                "vi",
+                "wa",
+                "wv",
+                "wi",
+                "wy"
+              ],
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "dateOfUpdate": {
+            "format": "date",
+            "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "providerId",
+          "givenName",
+          "familyName",
+          "status",
+          "compact",
+          "licenseJurisdiction",
+          "privilegeJurisdictions"
+        ],
+        "type": "object"
+      },
+      "maxLength": 100,
+      "type": "array"
+    },
+    "pagination": {
+      "properties": {
+        "lastKey": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "prevLastKey": {
+          "maxLength": 1024,
+          "minLength": 1,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pageSize": {
+          "maximum": 100,
+          "minimum": 5,
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "query": {
+      "properties": {
+        "providerId": {
+          "description": "Internal UUID for the provider",
+          "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab]{1}[0-9a-f]{3}-[0-9a-f]{12}",
+          "type": "string"
+        },
+        "jurisdiction": {
+          "description": "Filter for providers with privilege/license in a jurisdiction",
+          "enum": [
+            "al",
+            "ak",
+            "az",
+            "ar",
+            "ca",
+            "co",
+            "ct",
+            "de",
+            "dc",
+            "fl",
+            "ga",
+            "hi",
+            "id",
+            "il",
+            "in",
+            "ia",
+            "ks",
+            "ky",
+            "la",
+            "me",
+            "md",
+            "ma",
+            "mi",
+            "mn",
+            "ms",
+            "mo",
+            "mt",
+            "ne",
+            "nv",
+            "nh",
+            "nj",
+            "nm",
+            "ny",
+            "nc",
+            "nd",
+            "oh",
+            "ok",
+            "or",
+            "pa",
+            "pr",
+            "ri",
+            "sc",
+            "sd",
+            "tn",
+            "tx",
+            "ut",
+            "vt",
+            "va",
+            "vi",
+            "wa",
+            "wv",
+            "wi",
+            "wy"
+          ],
+          "type": "string"
+        },
+        "givenName": {
+          "description": "Filter for providers with a given name",
+          "maxLength": 100,
+          "type": "string"
+        },
+        "familyName": {
+          "description": "Filter for providers with a family name",
+          "maxLength": 100,
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "sorting": {
+      "description": "How to sort results",
+      "properties": {
+        "key": {
+          "description": "The key to sort results by",
+          "enum": [
+            "dateOfUpdate",
+            "familyName"
+          ],
+          "type": "string"
+        },
+        "direction": {
+          "description": "Direction to sort results by",
+          "enum": [
+            "ascending",
+            "descending"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "key"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "providers",
+    "pagination"
+  ],
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#"
+}

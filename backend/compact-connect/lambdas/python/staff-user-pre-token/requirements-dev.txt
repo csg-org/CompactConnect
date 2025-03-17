@@ -4,9 +4,9 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/lambdas/python/staff-user-pre-token/requirements-dev.in
 #
-boto3==1.36.19
+boto3==1.37.7
     # via moto
-botocore==1.36.19
+botocore==1.37.7
     # via
     #   boto3
     #   moto
@@ -17,13 +17,13 @@ cffi==1.17.1
     # via cryptography
 charset-normalizer==3.4.1
     # via requests
-cryptography==44.0.1
+cryptography==44.0.2
     # via moto
 docker==7.1.0
     # via moto
 idna==3.10
     # via requests
-jinja2==3.1.5
+jinja2==3.1.6
     # via moto
 jmespath==1.0.1
     # via
@@ -33,7 +33,7 @@ markupsafe==3.0.2
     # via
     #   jinja2
     #   werkzeug
-moto[dynamodb,s3]==5.0.28
+moto[dynamodb,s3]==5.1.1
     # via -r compact-connect/lambdas/python/staff-user-pre-token/requirements-dev.in
 py-partiql-parser==0.6.1
     # via moto
@@ -54,7 +54,7 @@ requests==2.32.3
     #   responses
 responses==0.25.6
     # via moto
-s3transfer==0.11.2
+s3transfer==0.11.4
     # via boto3
 six==1.17.0
     # via python-dateutil

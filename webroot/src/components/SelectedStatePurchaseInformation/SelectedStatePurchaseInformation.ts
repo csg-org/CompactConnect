@@ -65,7 +65,7 @@ class SelectedStatePurchaseInformation extends mixins(MixinForm) {
     // Computed
     //
     get activeLicense(): License | null {
-        return this.licenseList?.find((license) => license.statusState === LicenseStatus.ACTIVE) || null;
+        return this.licenseList?.find((license) => license.status === LicenseStatus.ACTIVE) || null;
     }
 
     get licenseList(): Array<License> {

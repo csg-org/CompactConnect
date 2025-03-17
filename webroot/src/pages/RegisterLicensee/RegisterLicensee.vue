@@ -39,7 +39,12 @@
                         <InputText :formInput="formData.lastName" />
                         <InputText :formInput="formData.email" />
                         <InputText :formInput="formData.ssnLastFour" @input="formatSsn()" />
-                        <InputDate :formInput="formData.dob" />
+                        <InputDate
+                            :formInput="formData.dob"
+                            :yearRange="[1920, new Date().getFullYear()]"
+                            :maxDate="new Date()"
+                            :preventMinMaxNavigation="true"
+                        />
                         <InputSelect :formInput="formData.licenseState" />
                         <InputSelect :formInput="formData.licenseType" />
                         <label ref="password">

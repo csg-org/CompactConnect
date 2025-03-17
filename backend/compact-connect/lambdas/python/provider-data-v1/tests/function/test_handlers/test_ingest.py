@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 from unittest.mock import patch
 
+from cc_common.exceptions import CCNotFoundException
 from moto import mock_aws
 
 from .. import TstFunction
@@ -33,7 +34,7 @@ class TestIngest(TstFunction):
         self._ssn_table.put_item(Item=ssn_record)
         provider_id = ssn_record['providerId']
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         if omit_email:
@@ -66,7 +67,7 @@ class TestIngest(TstFunction):
         from handlers.ingest import ingest_license_message
         from handlers.providers import query_providers
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = f.read()
 
         event = {'Records': [{'messageId': '123', 'body': message}]}
@@ -120,7 +121,7 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_id = json.load(f)['providerId']
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
         # Imagine that this provider used to be licensed in ky.
         # What happens if ky uploads that inactive license?
@@ -166,7 +167,7 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_id = json.load(f)['providerId']
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
         # Imagine that this provider was just licensed in ky, but has not registered with the system (ie has not
         # picked a home state).
@@ -211,7 +212,7 @@ class TestIngest(TstFunction):
         with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
             provider_id = json.load(f)['providerId']
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
         # Imagine that this provider was just licensed in ky, and has registered with the system with a home state
         # selection of 'oh'.
@@ -240,12 +241,11 @@ class TestIngest(TstFunction):
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     @patch('handlers.ingest.EventBatchWriter', autospec=True)
     def test_existing_provider_deactivation(self, mock_event_writer):
-
         from handlers.ingest import ingest_license_message
 
         provider_id = self._with_ingested_license()
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         # What happens if their license goes inactive in a subsequent upload?
@@ -280,11 +280,11 @@ class TestIngest(TstFunction):
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
+                    'licenseType': 'speech-language pathologist',
                     'previous': {
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
@@ -339,7 +339,7 @@ class TestIngest(TstFunction):
                     ),
                     'EventBusName': 'license-data-events',
                 }
-            }
+            },
         )
 
     def test_existing_provider_renewal(self):
@@ -347,7 +347,7 @@ class TestIngest(TstFunction):
 
         provider_id = self._with_ingested_license()
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         message['detail'].update({'dateOfRenewal': '2025-03-03', 'dateOfExpiration': '2030-03-03'})
@@ -380,11 +380,11 @@ class TestIngest(TstFunction):
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
+                    'licenseType': 'speech-language pathologist',
                     'previous': {
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
@@ -429,7 +429,7 @@ class TestIngest(TstFunction):
 
         provider_id = self._with_ingested_license()
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         message['detail'].update({'familyName': 'VonSmitherton'})
@@ -461,11 +461,11 @@ class TestIngest(TstFunction):
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
+                    'licenseType': 'speech-language pathologist',
                     'previous': {
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
@@ -509,7 +509,7 @@ class TestIngest(TstFunction):
 
         provider_id = self._with_ingested_license()
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         # What happens if their license is uploaded again with no change?
@@ -549,7 +549,7 @@ class TestIngest(TstFunction):
 
         provider_id = self._with_ingested_license()
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         del message['detail']['emailAddress']
@@ -582,11 +582,11 @@ class TestIngest(TstFunction):
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
+                    'licenseType': 'speech-language pathologist',
                     'previous': {
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
@@ -629,7 +629,7 @@ class TestIngest(TstFunction):
 
         provider_id = self._with_ingested_license(omit_email=True)
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             message = json.load(f)
 
         # What happens if their email is added in a subsequent upload?
@@ -655,11 +655,11 @@ class TestIngest(TstFunction):
                     'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
                     'compact': 'aslp',
                     'jurisdiction': 'oh',
+                    'licenseType': 'speech-language pathologist',
                     'previous': {
                         'ssnLastFour': '1234',
                         'npi': '0608337260',
                         'licenseNumber': 'A0608337260',
-                        'licenseType': 'speech-language pathologist',
                         'jurisdictionStatus': 'active',
                         'givenName': 'Björk',
                         'middleName': 'Gunnar',
@@ -696,3 +696,349 @@ class TestIngest(TstFunction):
                 del hist['previous']['dateOfUpdate']
 
         self.assertEqual(expected_provider, provider_data)
+
+    def test_preprocess_license_ingest_creates_ssn_provider_record(self):
+        from handlers.ingest import preprocess_license_ingest
+
+        test_ssn = '123-12-1234'
+
+        # Before running method under test, ensure the provider ssn record does not exist
+        with self.assertRaises(CCNotFoundException):
+            self.config.data_client.get_provider_id(compact='aslp', ssn=test_ssn)
+
+        with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
+            message = json.load(f)
+            # set fixed ssn here to ensure we are checking the expected value
+            message['ssn'] = test_ssn
+
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+
+        resp = preprocess_license_ingest(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        # Find the provider's id from their ssn
+        provider_id = self.config.data_client.get_provider_id(compact='aslp', ssn=test_ssn)
+
+        # the provider_id is randomly generated, so we cannot check an exact value, just to make sure it exists
+        self.assertIsNotNone(provider_id)
+
+    def test_preprocess_license_returns_batch_item_failure_if_error_occurs(self):
+        from handlers.ingest import preprocess_license_ingest
+
+        # adding an invalid ssn here to force an exception
+        test_ssn = False
+        with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
+            message = json.load(f)
+            # set fixed ssn here to ensure we are checking the expected value
+            message['ssn'] = test_ssn
+
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+
+        resp = preprocess_license_ingest(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': [{'itemIdentifier': '123'}]}, resp)
+
+    def test_inactive_privileges_included_in_privilege_jurisdictions(self):
+        """
+        Test that inactive privileges are included in the privilegeJurisdictions list.
+        This test verifies that we include all jurisdictions a user has privileges in,
+        regardless of whether they are active or not.
+        """
+        from handlers.ingest import ingest_license_message
+
+        # The test resource provider has a license in oh and active privilege in ne
+        self._load_provider_data()
+        with open('../common/tests/resources/dynamo/provider-ssn.json') as f:
+            provider_id = json.load(f)['providerId']
+
+        # Add an inactive privilege record for this provider in a different jurisdiction (ky)
+        inactive_privilege = {
+            'pk': f'aslp#PROVIDER#{provider_id}',
+            'sk': 'aslp#PROVIDER#privilege/ky#',
+            'type': 'privilege',
+            'providerId': provider_id,
+            'compact': 'aslp',
+            'jurisdiction': 'ky',
+            'licenseType': 'speech-language pathologist',
+            'licenseJurisdiction': 'oh',
+            'dateOfIssuance': '2023-01-01',
+            'dateOfRenewal': '2023-01-01',
+            'dateOfExpiration': '2025-01-01',
+            'dateOfUpdate': '2025-01-01T12:59:59+00:00',
+            'compactTransactionId': '1234567890',
+            'compactTransactionIdGSIPK': 'COMPACT#aslp#TX#1234567890#',
+            'privilegeId': 'test-privilege-id',
+            'persistedStatus': 'inactive',  # This privilege is inactive
+            'attestations': [],
+        }
+        self.config.provider_table.put_item(Item=inactive_privilege)
+
+        # Now ingest a new license to trigger the provider record update
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        # Make a small change to trigger an update
+        message['detail']['phoneNumber'] = '+19876543210'
+
+        event = {'Records': [{'messageId': '123', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        # Get the provider data and verify that the inactive privilege jurisdiction is included
+        provider_data = self._get_provider_via_api(provider_id)
+
+        # The privilegeJurisdictions should include both the active privilege from the test setup
+        # and the inactive privilege we just added
+        self.assertEqual({'ky', 'ne'}, set(provider_data['privilegeJurisdictions']))
+
+    def test_multiple_license_types_same_jurisdiction(self):
+        """
+        Test that multiple license types in the same jurisdiction are handled correctly.
+
+        This test:
+        1. Ingests a first active license with licenseType: speech-language pathologist
+        2. For the same provider, ingests a second active license with licenseType: audiologist and a newer
+           dateOfIssuance
+        3. Verifies that both licenses are present and that the provider data was copied from the audiologist license
+        """
+        from handlers.ingest import ingest_license_message
+
+        # First, ingest a speech-language pathologist license
+        provider_id = self._with_ingested_license()
+
+        # Get the provider data after the first license ingest
+        provider_data_after_first_license = self._get_provider_via_api(provider_id)
+
+        # Verify the first license was ingested correctly
+        self.assertEqual(1, len(provider_data_after_first_license['licenses']))
+        self.assertEqual('speech-language pathologist', provider_data_after_first_license['licenses'][0]['licenseType'])
+        self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
+        self.assertEqual('Björk', provider_data_after_first_license['givenName'])
+
+        # Now ingest a second license for the same provider but with a different license type
+        # and a newer issuance date
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        # Update the message to be for an audiologist license with a newer issuance date
+        # and a different givenName to track which license is used for provider data
+        message['detail'].update(
+            {
+                'licenseType': 'audiologist',
+                'dateOfIssuance': '2020-06-06',  # Newer than the first license (2010-06-06)
+                'licenseNumber': 'B0608337260',  # Different license number
+                'givenName': 'Audrey',  # Different name to track which license is used
+            }
+        )
+
+        # Ingest the second license
+        event = {'Records': [{'messageId': '456', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        # Get the updated provider data
+        provider_data = self._get_provider_via_api(provider_id)
+
+        # Verify that both licenses are present
+        self.assertEqual(2, len(provider_data['licenses']))
+
+        # Find each license by type
+        slp_license = next(
+            (lic for lic in provider_data['licenses'] if lic['licenseType'] == 'speech-language pathologist'), None
+        )
+        aud_license = next((lic for lic in provider_data['licenses'] if lic['licenseType'] == 'audiologist'), None)
+
+        # Verify both licenses exist
+        self.assertIsNotNone(slp_license, 'Speech-language pathologist license not found')
+        self.assertIsNotNone(aud_license, 'Audiologist license not found')
+
+        # Verify license details
+        self.assertEqual('A0608337260', slp_license['licenseNumber'])
+        self.assertEqual('2010-06-06', slp_license['dateOfIssuance'])
+        self.assertEqual('oh', slp_license['jurisdiction'])
+        self.assertEqual('Björk', slp_license['givenName'])
+
+        self.assertEqual('B0608337260', aud_license['licenseNumber'])
+        self.assertEqual('2020-06-06', aud_license['dateOfIssuance'])
+        self.assertEqual('oh', aud_license['jurisdiction'])
+        self.assertEqual('Audrey', aud_license['givenName'])
+
+        # Verify that the provider data was copied from the audiologist license (newer issuance date)
+        # by checking the givenName
+        self.assertEqual('oh', provider_data['licenseJurisdiction'])
+        self.assertEqual('Audrey', provider_data['givenName'])
+        self.assertEqual('Guðmundsdóttir', provider_data['familyName'])
+
+    def test_multiple_license_types_with_home_jurisdiction(self):
+        """
+        Test that multiple license types with a home jurisdiction selection are handled correctly.
+
+        This test:
+        1. Ingests a first active license with licenseType: speech-language pathologist in 'oh'
+        2. Sets a home jurisdiction selection for 'oh'
+        3. For the same provider, ingests a second active license with licenseType: audiologist in 'ky'
+           with a newer dateOfIssuance
+        4. Verifies that both licenses are present but the provider data still comes from the 'oh' license
+           because of the home jurisdiction selection, even though the 'ky' license is newer
+        """
+        from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
+        from handlers.ingest import ingest_license_message
+
+        # First, ingest a speech-language pathologist license in 'oh'
+        provider_id = self._with_ingested_license()
+
+        # Get the provider data after the first license ingest
+        provider_data_after_first_license = self._get_provider_via_api(provider_id)
+
+        # Verify the first license was ingested correctly
+        self.assertEqual(1, len(provider_data_after_first_license['licenses']))
+        self.assertEqual('speech-language pathologist', provider_data_after_first_license['licenses'][0]['licenseType'])
+        self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
+        self.assertEqual('Björk', provider_data_after_first_license['givenName'])
+
+        # Set a home jurisdiction selection for the provider to 'oh'
+        home_jurisdiction_selection = {
+            'type': 'homeJurisdictionSelection',
+            'compact': 'aslp',
+            'providerId': provider_id,
+            'jurisdiction': 'oh',
+            'dateOfSelection': self.config.current_standard_datetime,
+        }
+
+        # Create the home jurisdiction selection record
+        schema = ProviderHomeJurisdictionSelectionRecordSchema()
+        serialized_record = schema.dump(home_jurisdiction_selection)
+        self.config.provider_table.put_item(Item=serialized_record)
+
+        # Now ingest a second license for the same provider but with a different license type
+        # in a different jurisdiction (ky) and with a newer issuance date
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        # Update the message to be for an audiologist license in 'ky' with a newer issuance date
+        # and a different givenName to track which license is used for provider data
+        message['detail'].update(
+            {
+                'licenseType': 'audiologist',
+                'jurisdiction': 'ky',  # Different jurisdiction from home selection (oh)
+                'dateOfIssuance': '2020-06-06',  # Newer than the first license (2010-06-06)
+                'licenseNumber': 'B0608337260',  # Different license number
+                'givenName': 'Audrey',  # Different name to track which license is used
+            }
+        )
+
+        # Ingest the second license
+        event = {'Records': [{'messageId': '456', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        # Get the updated provider data
+        provider_data = self._get_provider_via_api(provider_id)
+
+        # Verify that both licenses are present
+        self.assertEqual(2, len(provider_data['licenses']))
+
+        # Find each license by jurisdiction
+        oh_license = next((lic for lic in provider_data['licenses'] if lic['jurisdiction'] == 'oh'), None)
+        ky_license = next((lic for lic in provider_data['licenses'] if lic['jurisdiction'] == 'ky'), None)
+
+        # Verify both licenses exist
+        self.assertIsNotNone(oh_license, 'Ohio license not found')
+        self.assertIsNotNone(ky_license, 'Kentucky license not found')
+
+        # Verify license details
+        self.assertEqual('speech-language pathologist', oh_license['licenseType'])
+        self.assertEqual('A0608337260', oh_license['licenseNumber'])
+        self.assertEqual('2010-06-06', oh_license['dateOfIssuance'])
+        self.assertEqual('Björk', oh_license['givenName'])
+
+        self.assertEqual('audiologist', ky_license['licenseType'])
+        self.assertEqual('B0608337260', ky_license['licenseNumber'])
+        self.assertEqual('2020-06-06', ky_license['dateOfIssuance'])
+        self.assertEqual('Audrey', ky_license['givenName'])
+
+        # Verify that the provider data still comes from the Ohio license
+        # because it matches the home jurisdiction selection, even though the Kentucky license
+        # has a newer issuance date. We can verify this by checking the givenName.
+        self.assertEqual('oh', provider_data['licenseJurisdiction'])
+        self.assertEqual('Björk', provider_data['givenName'])
+        self.assertEqual('Guðmundsdóttir', provider_data['familyName'])
+
+        # Verify that the home jurisdiction selection is present in the provider data
+        self.assertIn('homeJurisdictionSelection', provider_data)
+        self.assertEqual('oh', provider_data['homeJurisdictionSelection']['jurisdiction'])
+
+    def test_multiple_license_types_different_jurisdictions(self):
+        """
+        Test that multiple license types in different jurisdictions are handled correctly.
+
+        This test:
+        1. Ingests a first active license with licenseType: speech-language pathologist in 'oh'
+        2. For the same provider, ingests a second active license with licenseType: audiologist in 'ky'
+        3. Verifies that both licenses are present and the provider data is from the most recently issued license
+        """
+        from handlers.ingest import ingest_license_message
+
+        # First, ingest a speech-language pathologist license in 'oh'
+        provider_id = self._with_ingested_license()
+
+        # Get the provider data after the first license ingest
+        provider_data_after_first_license = self._get_provider_via_api(provider_id)
+
+        # Verify the first license was ingested correctly
+        self.assertEqual(1, len(provider_data_after_first_license['licenses']))
+        self.assertEqual('speech-language pathologist', provider_data_after_first_license['licenses'][0]['licenseType'])
+        self.assertEqual('oh', provider_data_after_first_license['licenseJurisdiction'])
+        self.assertEqual('Björk', provider_data_after_first_license['givenName'])
+
+        # Now ingest a second license for the same provider but with a different license type
+        # in a different jurisdiction and a newer issuance date
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
+            message = json.load(f)
+
+        # Update the message to be for an audiologist license in 'ky' with a newer issuance date
+        # and a different givenName to track which license is used for provider data
+        message['detail'].update(
+            {
+                'licenseType': 'audiologist',
+                'jurisdiction': 'ky',
+                'dateOfIssuance': '2020-06-06',  # Newer than the first license (2010-06-06)
+                'licenseNumber': 'B0608337260',  # Different license number
+                'givenName': 'Audrey',  # Different name to track which license is used
+            }
+        )
+
+        # Ingest the second license
+        event = {'Records': [{'messageId': '456', 'body': json.dumps(message)}]}
+        resp = ingest_license_message(event, self.mock_context)
+        self.assertEqual({'batchItemFailures': []}, resp)
+
+        # Get the updated provider data
+        provider_data = self._get_provider_via_api(provider_id)
+
+        # Verify that both licenses are present
+        self.assertEqual(2, len(provider_data['licenses']))
+
+        # Find each license by jurisdiction and type
+        oh_license = next((lic for lic in provider_data['licenses'] if lic['jurisdiction'] == 'oh'), None)
+        ky_license = next((lic for lic in provider_data['licenses'] if lic['jurisdiction'] == 'ky'), None)
+
+        # Verify both licenses exist
+        self.assertIsNotNone(oh_license, 'Ohio license not found')
+        self.assertIsNotNone(ky_license, 'Kentucky license not found')
+
+        # Verify license details
+        self.assertEqual('speech-language pathologist', oh_license['licenseType'])
+        self.assertEqual('A0608337260', oh_license['licenseNumber'])
+        self.assertEqual('2010-06-06', oh_license['dateOfIssuance'])
+        self.assertEqual('Björk', oh_license['givenName'])
+
+        self.assertEqual('audiologist', ky_license['licenseType'])
+        self.assertEqual('B0608337260', ky_license['licenseNumber'])
+        self.assertEqual('2020-06-06', ky_license['dateOfIssuance'])
+        self.assertEqual('Audrey', ky_license['givenName'])
+
+        # Verify that the provider data was copied from the audiologist license in 'ky'
+        # because it has a newer issuance date. We can verify this by checking the givenName.
+        self.assertEqual('ky', provider_data['licenseJurisdiction'])
+        self.assertEqual('Audrey', provider_data['givenName'])
+        self.assertEqual('Guðmundsdóttir', provider_data['familyName'])

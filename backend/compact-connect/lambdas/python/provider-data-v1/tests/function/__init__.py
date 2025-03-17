@@ -39,8 +39,33 @@ class TstFunction(TstLambdas):
         self.create_provider_table()
         self.create_ssn_table()
         self.create_rate_limiting_table()
+        self.create_license_preprocessing_queue()
+        self.create_staff_user_pool()
 
         boto3.client('events').create_event_bus(Name=os.environ['EVENT_BUS_NAME'])
+
+        # Create a new Cognito user pool for providers
+        cognito_client = boto3.client('cognito-idp')
+        user_pool_name = 'TestProviderUserPool'
+        user_pool_response = cognito_client.create_user_pool(
+            PoolName=user_pool_name,
+            AliasAttributes=['email'],
+            UsernameAttributes=['email'],
+        )
+        os.environ['PROVIDER_USER_POOL_ID'] = user_pool_response['UserPool']['Id']
+        self._provider_user_pool_id = user_pool_response['UserPool']['Id']
+
+    def create_staff_user_pool(self):
+        # Create a new Cognito user pool
+        cognito_client = boto3.client('cognito-idp')
+        user_pool_name = 'TestUserPool'
+        user_pool_response = cognito_client.create_user_pool(
+            PoolName=user_pool_name,
+            AliasAttributes=['email'],
+            UsernameAttributes=['email'],
+        )
+        os.environ['USER_POOL_ID'] = user_pool_response['UserPool']['Id']
+        self._user_pool_id = user_pool_response['UserPool']['Id']
 
     def create_provider_table(self):
         self._provider_table = boto3.resource('dynamodb').create_table(
@@ -119,13 +144,22 @@ class TstFunction(TstLambdas):
             BillingMode='PAY_PER_REQUEST',
         )
 
+    def create_license_preprocessing_queue(self):
+        self._license_preprocessing_queue = boto3.resource('sqs').create_queue(QueueName='workflow-queue')
+        os.environ['LICENSE_PREPROCESSING_QUEUE_URL'] = self._license_preprocessing_queue.url
+
     def delete_resources(self):
         self._bucket.objects.delete()
         self._bucket.delete()
         self._provider_table.delete()
         self._ssn_table.delete()
         self._rate_limiting_table.delete()
+        self._license_preprocessing_queue.delete()
         boto3.client('events').delete_event_bus(Name=os.environ['EVENT_BUS_NAME'])
+
+        # Delete the Cognito user pool
+        cognito_client = boto3.client('cognito-idp')
+        cognito_client.delete_user_pool(UserPoolId=self._provider_user_pool_id)
 
     def _load_provider_data(self):
         """Use the canned test resources to load a basic provider to the DB"""
@@ -149,17 +183,22 @@ class TstFunction(TstLambdas):
             else:
                 self._provider_table.put_item(Item=record)
 
-    def _generate_providers(self, *, home: str, privilege: str, start_serial: int, names: tuple[tuple[str, str]] = ()):
+    def _generate_providers(
+        self, *, home: str, privilege_jurisdiction: str | None, start_serial: int, names: tuple[tuple[str, str]] = ()
+    ):
         """Generate 10 providers with one license and one privilege
         :param home: The jurisdiction for the license
-        :param privilege: The jurisdiction for the privilege
+        :param privilege_jurisdiction: The jurisdiction for the privilege
         :param start_serial: Starting number for last portion of the provider's SSN
         :param names: A list of tuples, each containing a family name and given name
         """
         from cc_common.data_model.data_client import DataClient
-        from handlers.ingest import ingest_license_message
+        from handlers.ingest import ingest_license_message, preprocess_license_ingest
 
-        with open('../common/tests/resources/ingest/message.json') as f:
+        with open('../common/tests/resources/ingest/preprocessor-sqs-message.json') as f:
+            preprocessing_sqs_message = json.load(f)
+
+        with open('../common/tests/resources/ingest/event-bridge-message.json') as f:
             ingest_message = json.load(f)
 
         name_faker = Faker(['en_US', 'ja_JP', 'es_MX'])
@@ -168,6 +207,7 @@ class TstFunction(TstLambdas):
         # Generate 10 providers, each with a license and a privilege
         for name_idx, ssn_serial in enumerate(range(start_serial, start_serial - 10, -1)):
             # So we can mutate top-level fields without messing up subsequent iterations
+            preprocessing_sqs_message_copy = json.loads(json.dumps(preprocessing_sqs_message))
             ingest_message_copy = json.loads(json.dumps(ingest_message))
 
             # Use a requested name, if provided
@@ -176,18 +216,53 @@ class TstFunction(TstLambdas):
             except IndexError:
                 family_name = name_faker.unique.last_name()
                 given_name = name_faker.unique.first_name()
-            ingest_message['detail']['familyName'] = family_name
-            ingest_message['detail']['givenName'] = given_name
-            ingest_message['detail']['middleName'] = name_faker.unique.first_name()
 
+            # Update both message copies with the same data
             ssn = f'{randint(100, 999)}-{randint(10, 99)}-{ssn_serial}'
 
-            ingest_message_copy['detail'].update(
+            # Update preprocessing message with license data including SSN
+            preprocessing_sqs_message_copy.update(
                 {
-                    'ssn': ssn,
                     'compact': 'aslp',
                     'jurisdiction': home,
-                },
+                    'licenseNumber': f'TEST-{ssn_serial}',
+                    'licenseType': 'speech-language pathologist',
+                    'status': 'active',
+                    'dateOfIssuance': '2020-01-01',
+                    'dateOfExpiration': '2050-01-01',
+                    'familyName': family_name,
+                    'givenName': given_name,
+                    'middleName': name_faker.unique.first_name(),
+                    'ssn': ssn,
+                    'dateOfBirth': '1980-01-01',
+                    'homeAddressStreet1': '123 Test St',
+                    'homeAddressCity': 'Test City',
+                    'homeAddressState': 'TS',
+                    'homeAddressPostalCode': '12345',
+                }
+            )
+
+            # Update ingest message with the same data (minus SSN which will be handled by preprocessor)
+            ingest_message_copy['detail'].update(
+                {
+                    'familyName': family_name,
+                    'givenName': given_name,
+                    'middleName': name_faker.unique.first_name(),
+                    'compact': 'aslp',
+                    'jurisdiction': home,
+                    'licenseNumber': f'TEST-{ssn_serial}',
+                    'licenseType': 'speech-language pathologist',
+                    'status': 'active',
+                    'dateOfIssuance': '2020-01-01',
+                    'dateOfExpiration': '2050-01-01',
+                    'dateOfBirth': '1980-01-01',
+                    'homeAddressStreet1': '123 Test St',
+                    'homeAddressCity': 'Test City',
+                    'homeAddressState': 'TS',
+                    'homeAddressPostalCode': '12345',
+                    # Only include last 4 of SSN in the event bus message
+                    'ssnLastFour': ssn[-4:],
+                }
             )
 
             # This gives us some variation in dateOfUpdate values to sort by
@@ -195,23 +270,63 @@ class TstFunction(TstLambdas):
                 'cc_common.config._Config.current_standard_datetime',
                 new_callable=lambda: datetime.now(tz=UTC).replace(microsecond=0) - timedelta(days=randint(1, 365)),
             ):
+                # First call the preprocessor to handle the SSN data
+                preprocess_license_ingest(
+                    {'Records': [{'messageId': '123', 'body': json.dumps(preprocessing_sqs_message_copy)}]},
+                    self.mock_context,
+                )
+                # we need to get the provider id from the ssn table so it can be used in the ingest message
+                provider_id = data_client.get_provider_id(compact='aslp', ssn=ssn)
+
+                # update the ingest message with the provider id
+                ingest_message_copy['detail']['providerId'] = provider_id
+
+                # Then call the ingest message handler to process the provider data
                 ingest_license_message(
                     {'Records': [{'messageId': '123', 'body': json.dumps(ingest_message_copy)}]},
                     self.mock_context,
                 )
+
             # Add a privilege
-            provider_id = data_client.get_provider_id(compact='aslp', ssn=ssn)
-            provider_record = data_client.get_provider(compact='aslp', provider_id=provider_id, detail=False)
-            data_client.create_provider_privileges(
+            provider_record = data_client.get_provider(
                 compact='aslp',
                 provider_id=provider_id,
-                provider_record=provider_record,
-                jurisdiction_postal_abbreviations=[privilege],
-                license_expiration_date=date(2050, 6, 6),
-                compact_transaction_id='1234567890',
-                existing_privileges=[],
-                license_type='speech-language pathologist',
-                # This attestation id/version pair is defined in the 'privilege.json' file under the
-                # common/tests/resources/dynamo directory
-                attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
-            )
+                detail=False,
+            )['items'][0]
+            if privilege_jurisdiction:
+                data_client.create_provider_privileges(
+                    compact='aslp',
+                    provider_id=provider_id,
+                    provider_record=provider_record,
+                    jurisdiction_postal_abbreviations=[privilege_jurisdiction],
+                    license_expiration_date=date(2050, 6, 6),
+                    compact_transaction_id='1234567890',
+                    existing_privileges=[],
+                    license_type='speech-language pathologist',
+                    # This attestation id/version pair is defined in the 'privilege.json' file under the
+                    # common/tests/resources/dynamo directory
+                    attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
+                )
+
+    def _create_cognito_user(self, *, email: str, attributes=None):
+        """
+        Create a Cognito user in the provider user pool.
+
+        :param email: The email address for the user
+        :param attributes: Optional additional user attributes
+        :return: The Cognito sub (user ID)
+        """
+        from cc_common.utils import get_sub_from_user_attributes
+
+        user_attributes = [{'Name': 'email', 'Value': email}, {'Name': 'email_verified', 'Value': 'true'}]
+
+        if attributes:
+            user_attributes.extend(attributes)
+
+        user_data = self.config.cognito_client.admin_create_user(
+            UserPoolId=self.config.provider_user_pool_id,
+            Username=email,
+            UserAttributes=user_attributes,
+            DesiredDeliveryMediums=['EMAIL'],
+        )
+        return get_sub_from_user_attributes(user_data['User']['Attributes'])

@@ -22,7 +22,7 @@ coverage[toml]==7.6.12
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
-cyclonedx-python-lib==8.8.0
+cyclonedx-python-lib==8.9.0
     # via pip-audit
 defusedxml==0.7.1
     # via py-serializable
@@ -72,7 +72,7 @@ pyproject-hooks==1.2.0
     # via
     #   build
     #   pip-tools
-pytest==8.3.4
+pytest==8.3.5
     # via
     #   -r compact-connect/requirements-dev.in
     #   pytest-cov
@@ -86,7 +86,7 @@ requests==2.32.3
     #   pip-audit
 rich==13.9.4
     # via pip-audit
-ruff==0.9.6
+ruff==0.9.9
     # via -r compact-connect/requirements-dev.in
 six==1.17.0
     # via python-dateutil
