@@ -10,7 +10,11 @@
         <transition name="fade-slow" mode="out-in">
             <div v-if="!hasSearched || shouldShowSearchModal" class="search-initial-container">
                 <h1 class="list-title">{{ $t('licensing.licensingListTitle') }}</h1>
-                <LicenseeSearch :searchParams="searchParams" @searchParams="handleSearch" />
+                <LicenseeSearch
+                    :searchParams="searchParams"
+                    :isPublicSearch="isPublicSearch"
+                    @searchParams="handleSearch"
+                />
             </div>
             <div v-else class="licesee-list-container">
                 <div class="list-actions-container">
@@ -65,6 +69,7 @@
                             :key="index"
                             :listId="listId"
                             :item="record"
+                            :isPublicSearch="isPublicSearch"
                         />
                     </template>
                 </ListContainer>

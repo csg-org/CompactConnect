@@ -28,6 +28,12 @@ const routes: Array<RouteConfig> = [
         beforeEnter: guards.noAuthGuard,
     },
     {
+        path: '/Search/:compact/:licenseeId',
+        name: 'LicenseeDetailPublic',
+        component: () => import(/* webpackChunkName: "search" */ '@pages/PublicLicensingDetail/PublicLicensingDetail.vue'),
+        beforeEnter: guards.noAuthGuard,
+    },
+    {
         path: '/Register',
         name: 'RegisterLicensee',
         component: () => import(/* webpackChunkName: "register" */ '@pages/RegisterLicensee/RegisterLicensee.vue'),

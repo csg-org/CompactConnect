@@ -6,7 +6,9 @@
 -->
 
 <template>
-    <h3>LicensingListPublic</h3>
+    <Section class="licensing-list-section">
+        <LicenseeList listId="licensees-public" :isPublicSearch="true" />
+    </Section>
 </template>
 
 <script lang="ts" src="./PublicLicensingList.ts"></script>

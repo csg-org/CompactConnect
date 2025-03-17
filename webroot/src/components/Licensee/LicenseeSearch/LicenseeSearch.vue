@@ -12,6 +12,15 @@
         <div class="search-subtext">{{ $t('licensing.searchSubtext') }}</div>
         <form @submit.prevent="handleSubmit" class="search-form">
             <div class="search-form-row">
+                <InputSelect
+                    v-if="enableCompactSelect"
+                    :formInput="formData.compact"
+                    class="search-input state-select"
+                    @input="updateCurrentCompact"
+                />
+                <InputSelect :formInput="formData.state" class="search-input state-select" />
+            </div>
+            <div class="search-form-row">
                 <InputText
                     :formInput="formData.firstName"
                     class="search-input first-name-input"
@@ -23,9 +32,6 @@
                     @input="customValidateLastName(true)"
                     @blur="customValidateLastName(true)"
                 />
-            </div>
-            <div class="search-form-row">
-                <InputSelect :formInput="formData.state" class="search-input state-select" />
             </div>
             <div class="search-form-row">
                 <InputSubmit
