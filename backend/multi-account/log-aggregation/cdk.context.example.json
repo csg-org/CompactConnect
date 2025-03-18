@@ -1,0 +1,11 @@
+{
+  "management_account_id": "000011112222",
+  "logs_account_id": "000011113333",
+  "region": "us-east-1",
+  "app_name": "compact-connect",
+  "data_events_bucket_prefix": "cloudtrail-data-events",
+  "tags": {
+    "Project": "CompactConnect",
+    "Environment": "Management"
+  }
+}
