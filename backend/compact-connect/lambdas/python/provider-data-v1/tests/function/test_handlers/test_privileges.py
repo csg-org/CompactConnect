@@ -170,15 +170,15 @@ class TestDeactivatePrivilege(TstFunction):
             # set persisted status to deactivated
             privilege['persistedStatus'] = 'inactive'
             self.config.provider_table.put_item(Item=privilege)
-
-        # The user has admin permission for oh
+        # calling deactivation on privilege that is already deactivated
         resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
+
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual({'message': 'Privilege already deactivated'}, json.loads(resp['body']))
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     @patch('cc_common.config._Config.email_service_client')
-    def test_deactivate_privilege_handler_still_sends_state_notification_if_provider_notification_failed_to_send(
+    def test_deactivate_privilege_handler_still_sends_jurisdiction_notification_if_provider_notification_failed_to_send(
         self, mock_email_service_client
     ):
         """

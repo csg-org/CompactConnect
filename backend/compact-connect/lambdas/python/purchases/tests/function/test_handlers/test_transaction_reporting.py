@@ -796,15 +796,13 @@ class TestGenerateTransactionReports(TstFunction):
         self.assertEqual(2, mock_email_service_client.send_jurisdiction_transaction_report_email.call_count)
 
         # Get the jurisdiction arguments from all calls
-        jurisdiction_args = [
+        jurisdiction_args = set([
             call[1]['jurisdiction']
             for call in mock_email_service_client.send_jurisdiction_transaction_report_email.call_args_list
-        ]
+        ])
 
         # Verify only OH and KY got reports
-        self.assertIn('oh', jurisdiction_args)
-        self.assertIn('ky', jurisdiction_args)
-        self.assertNotIn('xx', jurisdiction_args)
+        self.assertEqual({'oh', 'ky'}, jurisdiction_args)  # Verify only OH and KY got reports
 
     # event bridge triggers the monthly report at the first day of the month 5 mins after midnight UTC
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-01T00:05:00+00:00'))

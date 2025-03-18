@@ -10,7 +10,8 @@ const environmentVariableService = new EnvironmentVariablesService();
  * Email service for handling email notifications
  */
 export class EmailNotificationService extends BaseEmailService {
-    private async getCompactRecipients(compact: string,
+    private async getCompactRecipients(
+        compact: string,
         recipientType: RecipientType,
         specificEmails?: string[]
     ): Promise<string[]> {
@@ -32,7 +33,8 @@ export class EmailNotificationService extends BaseEmailService {
         }
     }
 
-    private async getJurisdictionRecipients(compact: string,
+    private async getJurisdictionRecipients(
+        compact: string,
         jurisdiction: string,
         recipientType: RecipientType,
         specificEmails?: string[]
@@ -53,7 +55,8 @@ export class EmailNotificationService extends BaseEmailService {
         }
     }
 
-    public async sendTransactionBatchSettlementFailureEmail(compact: string,
+    public async sendTransactionBatchSettlementFailureEmail(
+        compact: string,
         recipientType: RecipientType,
         specificEmails?: string[]
     ): Promise<void> {
