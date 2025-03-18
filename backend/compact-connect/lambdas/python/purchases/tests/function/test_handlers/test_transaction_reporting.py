@@ -802,7 +802,7 @@ class TestGenerateTransactionReports(TstFunction):
         ])
 
         # Verify only OH and KY got reports
-        self.assertEqual({'oh', 'ky'}, jurisdiction_args)  # Verify only OH and KY got reports
+        self.assertEqual({'oh', 'ky'}, jurisdiction_args)
 
     # event bridge triggers the monthly report at the first day of the month 5 mins after midnight UTC
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-01T00:05:00+00:00'))
