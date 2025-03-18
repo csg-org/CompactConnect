@@ -17,6 +17,9 @@
       "compactOperationsTeamEmails": [],
       "compactAdverseActionsNotificationEmails": [],
       "compactSummaryReportNotificationEmails": [],
+      "licenseeRegistrationEnabledForEnvironments": [
+        "test"
+      ],
       "activeEnvironments": [
         "test"
       ],
@@ -113,6 +116,9 @@
       "compactOperationsTeamEmails": [],
       "compactAdverseActionsNotificationEmails": [],
       "compactSummaryReportNotificationEmails": [],
+      "licenseeRegistrationEnabledForEnvironments": [
+        "test"
+      ],
       "activeEnvironments": [
         "test"
       ],
@@ -216,6 +222,9 @@
       "compactOperationsTeamEmails": [],
       "compactAdverseActionsNotificationEmails": [],
       "compactSummaryReportNotificationEmails": [],
+      "licenseeRegistrationEnabledForEnvironments": [
+        "test"
+      ],
       "activeEnvironments": [
         "test"
       ],
@@ -322,6 +331,9 @@
         "jurisprudenceRequirements": {
           "required": true
         },
+        "licenseeRegistrationEnabledForEnvironments": [
+          "test"
+        ],
         "activeEnvironments": [
           "test"
         ]
@@ -343,6 +355,9 @@
         "jurisprudenceRequirements": {
           "required": true
         },
+        "licenseeRegistrationEnabledForEnvironments": [
+          "test"
+        ],
         "activeEnvironments": [
           "test"
         ]
@@ -364,6 +379,9 @@
         "jurisprudenceRequirements": {
           "required": true
         },
+        "licenseeRegistrationEnabledForEnvironments": [
+          "test"
+        ],
         "activeEnvironments": [
           "test"
         ]
@@ -387,6 +405,9 @@
         "jurisprudenceRequirements": {
           "required": true
         },
+        "licenseeRegistrationEnabledForEnvironments": [
+          "test"
+        ],
         "activeEnvironments": [
           "test"
         ]
@@ -408,6 +429,9 @@
         "jurisprudenceRequirements": {
           "required": true
         },
+        "licenseeRegistrationEnabledForEnvironments": [
+          "test"
+        ],
         "activeEnvironments": [
           "test"
         ]
@@ -429,6 +453,9 @@
         "jurisprudenceRequirements": {
           "required": true
         },
+        "licenseeRegistrationEnabledForEnvironments": [
+          "test"
+        ],
         "activeEnvironments": [
           "test"
         ]

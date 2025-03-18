@@ -1,8 +1,7 @@
 import json
-
 from decimal import Decimal
-from marshmallow import ValidationError
 
+from marshmallow import ValidationError
 
 from tests import TstLambdas
 
@@ -53,6 +52,3 @@ class TestJurisdictionRecordSchema(TstLambdas):
 
         with self.assertRaises(ValidationError):
             JurisdictionRecordSchema().load(expected_jurisdiction_config.copy())
-
-
-
