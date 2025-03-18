@@ -94,7 +94,7 @@ class LicenseeList extends Vue {
     }
 
     get searchDisplayCompact(): string {
-        return this.userStore.currentCompact?.abbrev() || '';
+        return (this.isPublicSearch) ? this.userStore.currentCompact?.abbrev() || '' : '';
     }
 
     get searchDisplayFirstName(): string {

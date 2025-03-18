@@ -11,6 +11,7 @@
             class="sort-icon-container"
             @click="toggleSort"
             @keyup.enter="toggleSort"
+            tabindex="0"
         >
             <img src="@assets/icons/ico_sort.svg" class="sort-icon" alt="Toggle sort options" />
         </div>

@@ -20,6 +20,13 @@
                 <div class="list-actions-container">
                     <h1 class="list-title no-margin">{{ $t('licensing.licensingListTitle') }}</h1>
                     <div class="search-toggle-container">
+                        <button
+                            class="search-toggle"
+                            @click="toggleSearch()"
+                            tabindex="0"
+                        >
+                            {{ $t('licensing.searchLabel') }}
+                        </button>
                         <div v-if="searchDisplayAll" class="search-tag">
                             <span class="title">{{ $t('common.viewing') }}:</span>
                             <span class="search-terms">{{ searchDisplayAll }}</span>
@@ -29,13 +36,6 @@
                                 tabindex="0"
                             />
                         </div>
-                        <button
-                            class="search-toggle"
-                            @click="toggleSearch()"
-                            tabindex="0"
-                        >
-                            {{ $t('licensing.searchLabel') }}
-                        </button>
                     </div>
                 </div>
                 <ListContainer
