@@ -66,9 +66,7 @@ class SSNTable(Table):
                             'dynamodb:BatchGetItem',
                             'dynamodb:BatchWriteItem',
                             'dynamodb:PartiQL*',
-                            # We will allow Scan to open up the table for migration
-                            # TODO: Uncomment this after the migration is complete  # noqa: FIX002
-                            # 'dynamodb:Scan',
+                            'dynamodb:Scan',
                         ],
                         principals=[StarPrincipal()],
                         resources=['*'],
@@ -82,16 +80,6 @@ class SSNTable(Table):
                 ]
             ),
             **kwargs,
-        )
-
-        # This GSI turned out to not actually be helpful. We will remove it in the future.
-        # TODO: Remove this GSI after the ssn-index is fully deployed.  # noqa: FIX002
-        self.inverted_index_name = 'inverted'
-        self.add_global_secondary_index(
-            index_name=self.inverted_index_name,
-            partition_key=Attribute(name='sk', type=AttributeType.STRING),
-            sort_key=Attribute(name='pk', type=AttributeType.STRING),
-            projection_type=ProjectionType.ALL,
         )
 
         # This GSI will allow a reverse lookup of provider_id -> ssn, in addition to our current ssn -> provider_id
