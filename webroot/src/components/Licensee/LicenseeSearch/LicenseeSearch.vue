@@ -12,13 +12,14 @@
         <div v-else class="search-title">{{ $t('licensing.searchTitle') }}</div>
         <div v-if="!isPublicSearch" class="search-subtext">{{ $t('licensing.searchSubtext') }}</div>
         <form @submit.prevent="handleSubmit" class="search-form">
-            <div class="search-form-row">
+            <div class="search-form-row" v-if="enableCompactSelect">
                 <InputSelect
-                    v-if="enableCompactSelect"
                     :formInput="formData.compact"
                     class="search-input state-select"
                     @input="updateCurrentCompact"
                 />
+            </div>
+            <div class="search-form-row">
                 <InputSelect :formInput="formData.state" class="search-input state-select" />
             </div>
             <div class="search-form-row">
@@ -27,6 +28,8 @@
                     class="search-input first-name-input"
                     @input="customValidateLastName(false)"
                 />
+            </div>
+            <div class="search-form-row">
                 <InputText
                     :formInput="formData.lastName"
                     class="search-input last-name-input"
@@ -37,7 +40,7 @@
             <div class="search-form-row">
                 <InputSubmit
                     :formInput="formData.submit"
-                    :label="$t('licensing.searchLabel')"
+                    :label="$t('common.search')"
                     class="search-input search-submit"
                 />
             </div>
