@@ -40,6 +40,7 @@ class DataMigration(Construct):
             index=os.path.join(migration_dir, 'main.py'),
             lambda_dir='migration',
             handler='on_event',
+            log_retention=RetentionDays.ONE_MONTH,
             role=role,
             environment=lambda_environment,
             timeout=Duration.minutes(15),

@@ -6,13 +6,16 @@ from aws_lambda_powertools.metrics import MetricUnit
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from botocore.exceptions import ClientError
 from cc_common.config import config, logger, metrics
+from cc_common.data_model.schema.provider.api import ProviderRegistrationRequestSchema
 from cc_common.exceptions import (
     CCAccessDeniedException,
     CCAwsServiceException,
     CCInternalException,
+    CCInvalidRequestException,
     CCRateLimitingException,
 )
 from cc_common.utils import api_handler
+from marshmallow import ValidationError
 
 RECAPTCHA_ATTEMPT_METRIC_NAME = 'recaptcha-attempt'
 REGISTRATION_ATTEMPT_METRIC_NAME = 'registration-attempt'
@@ -24,8 +27,7 @@ _RECAPTCHA_SECRET = None
 def _rate_limit_exceeded(ip_address: str) -> bool:
     """Check if the IP address has exceeded the rate limit.
 
-    Returns:
-        bool: True if rate limit is exceeded, False otherwise
+    :return: True if rate limit is exceeded, False otherwise
     """
     now = config.current_standard_datetime
     window_start = now - timedelta(minutes=15)
@@ -106,7 +108,14 @@ def register_provider(event: dict, context: LambdaContext):  # noqa: ARG001 unus
     """
     # Get IP address from the request context
     source_ip = event['requestContext']['identity']['sourceIp']
-    body = json.loads(event['body'])
+
+    # Parse and validate the request body using the schema
+    try:
+        schema = ProviderRegistrationRequestSchema()
+        body = schema.loads(event['body'])
+    except ValidationError as e:
+        logger.warning('Invalid request body', errors=e.messages)
+        raise CCInvalidRequestException(f'Invalid request: {e.messages}') from e
 
     # Check rate limit before proceeding
     if _rate_limit_exceeded(source_ip):
