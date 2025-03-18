@@ -8,8 +8,9 @@
 <template>
     <div class="licensee-search-container">
         <SearchIcon class="search-icon" />
-        <div class="search-title">{{ $t('licensing.searchTitle') }}</div>
-        <div class="search-subtext">{{ $t('licensing.searchSubtext') }}</div>
+        <div v-if="isPublicSearch" class="search-title">{{ $t('licensing.searchTitlePublic') }}</div>
+        <div v-else class="search-title">{{ $t('licensing.searchTitle') }}</div>
+        <div v-if="!isPublicSearch" class="search-subtext">{{ $t('licensing.searchSubtext') }}</div>
         <form @submit.prevent="handleSubmit" class="search-form">
             <div class="search-form-row">
                 <InputSelect

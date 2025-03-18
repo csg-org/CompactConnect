@@ -496,6 +496,7 @@
         "stateProvidedEmail": "State-provided email",
         "accountEmail": "Account email",
         "searchTitle": "Begin a search",
+        "searchTitlePublic": "Verify a compact privilege",
         "searchSubtext": "Enter at least one field to search for licensing data.",
         "licenseExpiredMessage": "Your license has expired.",
         "searchLabel": "Edit search",

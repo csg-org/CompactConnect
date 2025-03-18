@@ -491,6 +491,7 @@
     "licensing": {
         "licensingListTitle": "Datos de licencia",
         "searchTitle": "Iniciar una búsqueda",
+        "searchTitlePublic": "Verificar un privilegio compacto",
         "attestation": "Atestación",
         "stateProvidedEmail": "Correo electrónico proporcionado por el estado",
         "accountEmail": "Correo electrónico de la cuenta",
