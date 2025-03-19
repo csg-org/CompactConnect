@@ -796,10 +796,12 @@ class TestGenerateTransactionReports(TstFunction):
         self.assertEqual(2, mock_email_service_client.send_jurisdiction_transaction_report_email.call_count)
 
         # Get the jurisdiction arguments from all calls
-        jurisdiction_args = set([
-            call[1]['jurisdiction']
-            for call in mock_email_service_client.send_jurisdiction_transaction_report_email.call_args_list
-        ])
+        jurisdiction_args = set(
+            [
+                call[1]['jurisdiction']
+                for call in mock_email_service_client.send_jurisdiction_transaction_report_email.call_args_list
+            ]
+        )
 
         # Verify only OH and KY got reports
         self.assertEqual({'oh', 'ky'}, jurisdiction_args)

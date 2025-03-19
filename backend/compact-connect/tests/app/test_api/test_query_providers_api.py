@@ -427,8 +427,9 @@ class TestQueryProvidersApi(TestApi):
         # Ensure the anomaly detection alarm is created
         alarms = api_stack_template.find_resources(CfnAlarm.CFN_RESOURCE_TYPE_NAME)
         deactivation_notification_failed_alarm = TestApi.get_resource_properties_by_logical_id(
-            api_stack.get_logical_id(api_stack.api.v1_api.query_providers
-                                     .privilege_deactivation_notification_failed_alarm.node.default_child),
+            api_stack.get_logical_id(
+                api_stack.api.v1_api.query_providers.privilege_deactivation_notification_failed_alarm.node.default_child
+            ),
             alarms,
         )
 

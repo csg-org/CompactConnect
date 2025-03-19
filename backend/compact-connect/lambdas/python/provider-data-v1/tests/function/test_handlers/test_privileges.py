@@ -1,9 +1,8 @@
 import json
 from datetime import datetime
 from unittest.mock import patch
+
 from aws_lambda_powertools.metrics import MetricUnit
-
-
 from cc_common.exceptions import CCInternalException
 from moto import mock_aws
 
@@ -215,7 +214,8 @@ class TestDeactivatePrivilege(TstFunction):
 
         # assert metric was sent so alert will fire
         mock_metrics.add_metric.assert_called_once_with(
-            name='privilege-deactivation-notification-failed', unit=MetricUnit.Count, value=1)
+            name='privilege-deactivation-notification-failed', unit=MetricUnit.Count, value=1
+        )
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     @patch('handlers.privileges.metrics')
@@ -238,8 +238,8 @@ class TestDeactivatePrivilege(TstFunction):
 
         # assert metric was sent
         mock_metrics.add_metric.assert_called_once_with(
-            name='privilege-deactivation-notification-failed', unit=MetricUnit.Count, value=1)
-
+            name='privilege-deactivation-notification-failed', unit=MetricUnit.Count, value=1
+        )
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_board_admin_outside_of_jurisdiction_cannot_deactivate_privilege(self):
