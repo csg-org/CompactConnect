@@ -353,9 +353,9 @@ class TestPostPurchasePrivileges(TstFunction):
         This test checks for a rare edge case where a user has two licenses which happen to have the *exact* same
         expiration date, and the user has a privilege for the first license.
 
-        If the user attempts to buy a privilege for the other license in the same jurisdiction as the first license,
-        the handler should allow the purchase, ensuring that we are only checking the existing privileges specific
-        to the license type which the user has selected.
+        If the user attempts to buy a privilege for the other license in the same jurisdiction as the privilege of the
+        first license, the handler should allow the purchase, ensuring that we are only checking the existing privileges
+        specific to the license type which the user has selected.
         """
         from handlers.privileges import post_purchase_privileges
 
