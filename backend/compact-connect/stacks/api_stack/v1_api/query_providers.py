@@ -455,6 +455,30 @@ class QueryProviders:
         license_type_resource = jurisdiction_resource.add_resource('licenseType').add_resource('{licenseType}')
         deactivate_resource = license_type_resource.add_resource('deactivate')
 
+        # Create a metric to track privilege deactivation notification failures
+        privilege_deactivation_notification_failed_metric = Metric(
+            namespace='compact-connect',
+            metric_name='privilege-deactivation-notification-failed',
+            statistic='Sum',
+            period=Duration.minutes(5),
+            dimensions_map={'service': 'common'},
+        )
+
+        # Create an alarm that will fire if any privilege deactivation notification fails
+        self.privilege_deactivation_notification_failed_alarm = Alarm(
+            self.api,
+            'PrivilegeDeactivationNotificationFailedAlarm',
+            metric=privilege_deactivation_notification_failed_metric,
+            threshold=1,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=f'{self.api.node.path} Privilege deactivation notification failed. '
+            f'One or more notifications to providers or jurisdictions failed to send during privilege deactivation. '
+            f'Investigation required to ensure all parties have been properly notified.',
+        )
+        self.privilege_deactivation_notification_failed_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
+
         deactivate_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,

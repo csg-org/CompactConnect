@@ -1,6 +1,8 @@
 import json
 from datetime import datetime
 from unittest.mock import patch
+from aws_lambda_powertools.metrics import MetricUnit
+
 
 from cc_common.exceptions import CCInternalException
 from moto import mock_aws
@@ -177,9 +179,10 @@ class TestDeactivatePrivilege(TstFunction):
         self.assertEqual({'message': 'Privilege already deactivated'}, json.loads(resp['body']))
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    @patch('handlers.privileges.metrics')
     @patch('cc_common.config._Config.email_service_client')
     def test_deactivate_privilege_handler_still_sends_jurisdiction_notification_if_provider_notification_failed_to_send(
-        self, mock_email_service_client
+        self, mock_email_service_client, mock_metrics
     ):
         """
         If the deactivation notification to the provider fails to send, we want to ensure that the notification to
@@ -191,11 +194,9 @@ class TestDeactivatePrivilege(TstFunction):
             'email failed to send'
         )
 
-        # We expect the handler to raise an exception with a message
-        with self.assertRaises(CCInternalException) as context:
-            self._request_deactivation_with_scopes('openid email ne/aslp.admin')
-
-        self.assertEqual('Privilege was deactivated, but email notification failed to send.', str(context.exception))
+        # We expect the handler to still return a 200, since the privilege was deactivated
+        resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
+        self.assertEqual(200, resp['statusCode'])
 
         # Even though the first notification failed, the handler should still have attempted to send both
         # notifications
@@ -212,10 +213,15 @@ class TestDeactivatePrivilege(TstFunction):
             provider_last_name='Guðmundsdóttir',
         )
 
+        # assert metric was sent so alert will fire
+        mock_metrics.add_metric.assert_called_once_with(
+            name='privilege-deactivation-notification-failed', unit=MetricUnit.Count, value=1)
+
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    @patch('handlers.privileges.metrics')
     @patch('cc_common.config._Config.email_service_client')
-    def test_deactivate_privilege_handler_raises_exception_if_state_notification_failed_to_send(
-        self, mock_email_service_client
+    def test_deactivate_privilege_handler_pushes_custom_metric_if_state_notification_failed_to_send(
+        self, mock_email_service_client, mock_metrics
     ):
         """
         If the deactivation state notification fails to send, ensure we raise an exception.
@@ -226,11 +232,14 @@ class TestDeactivatePrivilege(TstFunction):
             'email failed to send'
         )
 
-        # We expect the handler to raise an exception with a message
-        with self.assertRaises(CCInternalException) as context:
-            self._request_deactivation_with_scopes('openid email ne/aslp.admin')
+        # We expect the handler to still return a 200, since the privilege was deactivated
+        resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
+        self.assertEqual(200, resp['statusCode'])
 
-        self.assertEqual('Privilege was deactivated, but email notification failed to send.', str(context.exception))
+        # assert metric was sent
+        mock_metrics.add_metric.assert_called_once_with(
+            name='privilege-deactivation-notification-failed', unit=MetricUnit.Count, value=1)
+
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_board_admin_outside_of_jurisdiction_cannot_deactivate_privilege(self):

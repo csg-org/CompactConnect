@@ -418,3 +418,27 @@ class TestQueryProvidersApi(TestApi):
                 'PathPart': 'deactivate',
             },
         )
+
+    def test_synth_generates_deactivate_privilege_alarms(self):
+        """Test that the alarms are configured correctly for the privilege deactivation endpoint."""
+        api_stack = self.app.sandbox_stage.api_stack
+        api_stack_template = Template.from_stack(api_stack)
+
+        # Ensure the anomaly detection alarm is created
+        alarms = api_stack_template.find_resources(CfnAlarm.CFN_RESOURCE_TYPE_NAME)
+        deactivation_notification_failed_alarm = TestApi.get_resource_properties_by_logical_id(
+            api_stack.get_logical_id(api_stack.api.v1_api.query_providers
+                                     .privilege_deactivation_notification_failed_alarm.node.default_child),
+            alarms,
+        )
+
+        # The alarm actions ref change depending on sandbox vs pipeline configuration, so we'll just
+        # make sure there is one action and remove it from the comparison
+        actions = deactivation_notification_failed_alarm.pop('AlarmActions', [])
+        self.assertEqual(len(actions), 1)
+
+        self.compare_snapshot(
+            deactivation_notification_failed_alarm,
+            'PRIVILEGE_DEACTIVATION_NOTIFICATION_FAILURE_ALARM_SCHEMA',
+            overwrite_snapshot=False,
+        )

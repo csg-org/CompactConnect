@@ -1,7 +1,8 @@
 import json
 
+from aws_lambda_powertools.metrics import MetricUnit
 from aws_lambda_powertools.utilities.typing import LambdaContext
-from cc_common.config import config, logger
+from cc_common.config import config, logger, metrics
 from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.exceptions import CCAccessDeniedException, CCInternalException, CCInvalidRequestException
 from cc_common.utils import api_handler, authorize_compact, get_event_scopes
@@ -107,7 +108,8 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
             logger.error('Failed to send jurisdiction privilege deactivation notifications', exception=str(e))
             failed_to_send_notification = True
 
-    if failed_to_send_notification:
-        raise CCInternalException('Privilege was deactivated, but email notification failed to send.')
+        if failed_to_send_notification:
+            logger.error('One or more deactivation notifications failed to send. Pushing metric to fire alert.')
+            metrics.add_metric(name='privilege-deactivation-notification-failed', unit=MetricUnit.Count, value=1)
 
     return {'message': 'OK'}
