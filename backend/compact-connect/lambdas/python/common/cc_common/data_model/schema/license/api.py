@@ -4,7 +4,7 @@ Schema for API objects.
 """
 
 from marshmallow import ValidationError, validates_schema
-from marshmallow.fields import Boolean, Date, Email, List, Nested, Raw, String
+from marshmallow.fields import Date, Email, List, Nested, Raw, String
 from marshmallow.validate import Length
 
 from cc_common.config import config
@@ -52,7 +52,6 @@ class LicensePostRequestSchema(ForgivingSchema):
     homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
-    militaryWaiver = Boolean(required=False, allow_none=False)
     emailAddress = Email(required=False, allow_none=False, validate=Length(1, 100))
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
 
@@ -86,7 +85,6 @@ class LicenseUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
-    militaryWaiver = Boolean(required=False, allow_none=False)
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
@@ -146,5 +144,4 @@ class LicenseGeneralResponseSchema(ForgivingSchema):
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     status = ActiveInactive(required=True, allow_none=False)
-    militaryWaiver = Boolean(required=False, allow_none=False)
     history = List(Nested(LicenseUpdateGeneralResponseSchema, required=False, allow_none=False))
