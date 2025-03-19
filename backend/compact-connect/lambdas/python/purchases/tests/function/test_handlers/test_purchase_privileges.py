@@ -350,9 +350,12 @@ class TestPostPurchasePrivileges(TstFunction):
         self, mock_purchase_client_constructor
     ):
         """
-        In this case, the user is attempting to purchase a privilege in kentucky for a new license type,
-        the expiration date for the other license type has not been updated since the last renewal, but the expiration
-        date for the selected license type has been updated since the last renewal. This purchase should be allowed.
+        This test checks for a rare edge case where a user has two licenses which happen to have the *exact* same
+        expiration date, and the user has a privilege for the first license.
+
+        If the user attempts to buy a privilege for the other license in the same jurisdiction as the first license,
+        the handler should allow the purchase, ensuring that we are only checking the existing privileges specific
+        to the license type which the user has selected.
         """
         from handlers.privileges import post_purchase_privileges
 
@@ -673,7 +676,7 @@ class TestPostPurchasePrivileges(TstFunction):
     @patch('handlers.privileges.PurchaseClient')
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_post_purchase_privileges_stores_license_type_in_privilege_record(self, mock_purchase_client_constructor):
-        """Test that attestations are stored in the privilege record."""
+        """Test that license type is stored in the privilege record."""
         from handlers.privileges import post_purchase_privileges
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
@@ -684,7 +687,7 @@ class TestPostPurchasePrivileges(TstFunction):
         resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(200, resp['statusCode'], resp['body'])
 
-        # check that the privilege record for ky was created with attestations
+        # check that the privilege record for ky was created with the expected license type
         provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
         privilege_record = next(record for record in provider_records['items'] if record['type'] == 'privilege')
 
