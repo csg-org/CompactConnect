@@ -92,6 +92,38 @@ class SSNTable(Table):
             projection_type=ProjectionType.ALL,
         )
 
+        # Restrict read access to only the ssnIndex GSI
+        # Because the primary keys include SSN and data events are recorded on a CloudTrail organizaiton trail,
+        # queries outside the ssnIndex will result in SSNs being logged into the data events trail. To reduce
+        # sensitivity of the trail logs, we'll restrict read operations to only the ssnIndex, where queries
+        # by Key include provider ids, not SSNs.
+        stack = Stack.of(self)
+        self.add_to_resource_policy(
+            PolicyStatement(
+                # Deny GetItem and Query operations unless they're targeting the ssnIndex GSI
+                effect=Effect.DENY,
+                actions=[
+                    'dynamodb:GetItem',
+                    'dynamodb:Query',
+                    'dynamodb:DescribeTable',
+                    'dynamodb:GetRecords',
+                    'dynamodb:ConditionCheckItem',
+                ],
+                principals=[StarPrincipal()],
+                not_resources=[
+                    # arn:${Partition}:dynamodb:${Region}:${Account}:table/${TableName}/index/${IndexName}
+                    stack.format_arn(
+                        partition=stack.partition,
+                        service='dynamodb',
+                        region=stack.region,
+                        account=stack.account,
+                        resource='table',
+                        resource_name=f'{self.table_name}/index/{self.ssn_index_name}',
+                    ),
+                ],
+            )
+        )
+
         NagSuppressions.add_resource_suppressions(
             self,
             suppressions=[

@@ -55,7 +55,7 @@ class CloudTrailLogsBucket(Bucket):
                 principals=[ServicePrincipal('cloudtrail.amazonaws.com')],
                 actions=['s3:PutObject'],
                 resources=[self.bucket_arn, f'{self.bucket_arn}/*'],
-                conditions={'StringEquals': {'aws:PrincipalOrgID': ['${aws:ResourceOrgId}']}},
+                conditions={'StringEquals': {'aws:SourceOrgID': ['${aws:ResourceOrgId}']}},
             )
         )
 

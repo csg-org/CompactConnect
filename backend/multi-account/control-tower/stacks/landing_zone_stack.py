@@ -94,7 +94,7 @@ class LandingZoneStack(Stack):
                 # the access from working, since the account would have to be both named above and
                 # be in our organization.
                 conditions={
-                    'StringNotEquals': {
+                    'StringEquals': {
                         'aws:PrincipalOrgID': ['${aws:ResourceOrgId}']
                     }
                 }
