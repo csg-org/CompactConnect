@@ -23,5 +23,5 @@ class CompactOptionsResponseSchema(ForgivingSchema):
     compactAbbr = String(required=True, allow_none=False, validate=OneOf(config.compacts))
     compactName = String(required=True, allow_none=False)
     compactCommissionFee = Nested(CompactCommissionFeeSchema(), required=True, allow_none=False)
-    transactionFeeConfiguration = Nested(TransactionFeeConfigurationResponseSchema(), required=True, allow_none=False)
+    transactionFeeConfiguration = Nested(TransactionFeeConfigurationResponseSchema(), required=False, allow_none=False)
     type = String(required=True, allow_none=False, validate=OneOf([COMPACT_TYPE]))
