@@ -147,6 +147,10 @@ class PrivilegeCard extends mixins(MixinForm) {
         return this.$t('licensing.noDiscipline');
     }
 
+    get viewDetails(): string {
+        return this.$t('licensing.noDiscipline');
+    }
+
     get isPastExiprationDate(): boolean {
         let isPastDate = false;
 
