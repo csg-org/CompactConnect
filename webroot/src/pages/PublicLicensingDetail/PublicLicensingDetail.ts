@@ -12,19 +12,4 @@ import { Component, Vue } from 'vue-facing-decorator';
     components: {}
 })
 export default class PublicLicensingDetail extends Vue {
-    //
-    // Data
-    //
-
-    //
-    // Lifecycle
-    //
-
-    //
-    // Computed
-    //
-
-    //
-    // Methods
-    //
 }
