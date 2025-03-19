@@ -16,6 +16,7 @@ from aws_cdk.aws_events import EventBus
 from aws_cdk.aws_iam import Policy, PolicyStatement
 from aws_cdk.aws_kms import IKey
 from cdk_nag import NagSuppressions
+from common_constructs.nodejs_function import NodejsFunction
 from common_constructs.python_function import PythonFunction
 from common_constructs.stack import Stack
 
@@ -55,6 +56,7 @@ class QueryProviders:
             'EVENT_BUS_NAME': persistent_stack.data_event_bus.event_bus_name,
             'RATE_LIMITING_TABLE_NAME': persistent_stack.rate_limiting_table.table_name,
             'USER_POOL_ID': persistent_stack.staff_users.user_pool_id,
+            'EMAIL_NOTIFICATION_SERVICE_LAMBDA_NAME': persistent_stack.email_notification_service_lambda.function_name,
             **stack.common_env_vars,
         }
 
@@ -82,6 +84,7 @@ class QueryProviders:
             method_options=admin_method_options,
             provider_data_table=persistent_stack.provider_table,
             event_bus=persistent_stack.data_event_bus,
+            email_service_lambda=persistent_stack.email_notification_service_lambda,
             lambda_environment=lambda_environment,
         )
 
@@ -433,6 +436,7 @@ class QueryProviders:
         method_options: MethodOptions,
         event_bus: EventBus,
         provider_data_table: ProviderTable,
+        email_service_lambda: NodejsFunction,
         lambda_environment: dict,
     ):
         """Add POST /providers/{providerId}/privileges/jurisdiction/{jurisdiction}
@@ -440,6 +444,7 @@ class QueryProviders:
         handler = self._deactivate_privilege_handler(
             provider_data_table=provider_data_table,
             event_bus=event_bus,
+            email_service_lambda=email_service_lambda,
             lambda_environment=lambda_environment,
         )
         self.api.log_groups.append(handler.log_group)
@@ -449,6 +454,30 @@ class QueryProviders:
         jurisdiction_resource = privileges_resource.add_resource('jurisdiction').add_resource('{jurisdiction}')
         license_type_resource = jurisdiction_resource.add_resource('licenseType').add_resource('{licenseType}')
         deactivate_resource = license_type_resource.add_resource('deactivate')
+
+        # Create a metric to track privilege deactivation notification failures
+        privilege_deactivation_notification_failed_metric = Metric(
+            namespace='compact-connect',
+            metric_name='privilege-deactivation-notification-failed',
+            statistic='Sum',
+            period=Duration.minutes(5),
+            dimensions_map={'service': 'common'},
+        )
+
+        # Create an alarm that will fire if any privilege deactivation notification fails
+        self.privilege_deactivation_notification_failed_alarm = Alarm(
+            self.api,
+            'PrivilegeDeactivationNotificationFailedAlarm',
+            metric=privilege_deactivation_notification_failed_metric,
+            threshold=1,
+            evaluation_periods=1,
+            comparison_operator=ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+            treat_missing_data=TreatMissingData.NOT_BREACHING,
+            alarm_description=f'{self.api.node.path} Privilege deactivation notification failed. '
+            f'One or more notifications to providers or jurisdictions failed to send during privilege deactivation. '
+            f'Investigation required to ensure all parties have been properly notified.',
+        )
+        self.privilege_deactivation_notification_failed_alarm.add_alarm_action(SnsAction(self.api.alarm_topic))
 
         deactivate_resource.add_method(
             'POST',
@@ -470,6 +499,7 @@ class QueryProviders:
         self,
         provider_data_table: ProviderTable,
         event_bus: EventBus,
+        email_service_lambda: NodejsFunction,
         lambda_environment: dict,
     ) -> PythonFunction:
         """Create and configure the Lambda handler for deactivating a provider's privilege."""
@@ -485,6 +515,7 @@ class QueryProviders:
         )
         provider_data_table.grant_read_write_data(self.deactivate_privilege_handler)
         event_bus.grant_put_events_to(self.deactivate_privilege_handler)
+        email_service_lambda.grant_invoke(self.deactivate_privilege_handler)
 
         NagSuppressions.add_resource_suppressions_by_path(
             Stack.of(self.deactivate_privilege_handler.role),

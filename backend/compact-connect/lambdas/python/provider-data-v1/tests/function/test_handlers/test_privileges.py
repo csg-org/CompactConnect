@@ -2,6 +2,8 @@ import json
 from datetime import datetime
 from unittest.mock import patch
 
+from aws_lambda_powertools.metrics import MetricUnit
+from cc_common.exceptions import CCInternalException
 from moto import mock_aws
 
 from .. import TstFunction
@@ -81,8 +83,9 @@ class TestDeactivatePrivilege(TstFunction):
         return deactivate_privilege(event, self.mock_context)
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    @patch('cc_common.config._Config.email_service_client')
     @patch('handlers.privileges.EventBatchWriter', autospec=True)
-    def test_compact_admin_can_deactivate_privilege(self, mock_event_writer):
+    def test_compact_admin_can_deactivate_privilege(self, mock_event_writer, mock_email_service_client):  # noqa: ARG002 unused-argument
         """
         If a compact admin has admin permission in the compact, they can deactivate a privilege
         """
@@ -116,7 +119,8 @@ class TestDeactivatePrivilege(TstFunction):
         )
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
-    def test_board_admin_can_deactivate_privilege(self):
+    @patch('cc_common.config._Config.email_service_client')
+    def test_board_admin_can_deactivate_privilege(self, mock_email_service_client):  # noqa: ARG002 unused-argument
         """
         If a board admin has admin permission in the privilege jurisdiction, they can deactivate a privilege
         """
@@ -128,6 +132,114 @@ class TestDeactivatePrivilege(TstFunction):
         self.assertEqual({'message': 'OK'}, json.loads(resp['body']))
 
         self._assert_the_privilege_was_deactivated()
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    @patch('cc_common.config._Config.email_service_client')
+    def test_deactivate_privilege_handler_sends_expected_email_notifications(self, mock_email_service_client):
+        """
+        If a board admin has admin permission in the privilege jurisdiction, they can deactivate a privilege
+        """
+        self._load_provider_data()
+
+        # The user has admin permission for ne
+        resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
+        self.assertEqual(200, resp['statusCode'])
+        self.assertEqual({'message': 'OK'}, json.loads(resp['body']))
+
+        mock_email_service_client.send_provider_privilege_deactivation_email.assert_called_once_with(
+            compact='aslp',
+            provider_email='björkRegisteredEmail@example.com',
+            privilege_id='SLP-NE-1',
+        )
+        mock_email_service_client.send_jurisdiction_privilege_deactivation_email.assert_called_once_with(
+            compact='aslp',
+            jurisdiction='ne',
+            privilege_id='SLP-NE-1',
+            provider_first_name='Björk',
+            provider_last_name='Guðmundsdóttir',
+        )
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    def test_invalid_request_exception_raised_if_privilege_already_deactivated(self):
+        """
+        If a board admin does not have admin permission in the privilege jurisdiction, they cannot deactivate a
+        privilege.
+        """
+        self._load_provider_data()
+        with open('../common/tests/resources/dynamo/privilege.json') as f:
+            privilege = json.load(f)
+            # set persisted status to deactivated
+            privilege['persistedStatus'] = 'inactive'
+            self.config.provider_table.put_item(Item=privilege)
+        # calling deactivation on privilege that is already deactivated
+        resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
+
+        self.assertEqual(400, resp['statusCode'])
+        self.assertEqual({'message': 'Privilege already deactivated'}, json.loads(resp['body']))
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    @patch('handlers.privileges.metrics')
+    @patch('cc_common.config._Config.email_service_client')
+    def test_deactivate_privilege_handler_still_sends_jurisdiction_notification_if_provider_notification_failed_to_send(
+        self, mock_email_service_client, mock_metrics
+    ):
+        """
+        If the deactivation notification to the provider fails to send, we want to ensure that the notification to
+        the state is still sent.
+        """
+        self._load_provider_data()
+
+        (mock_email_service_client.send_provider_privilege_deactivation_email).side_effect = CCInternalException(
+            'email failed to send'
+        )
+
+        # We expect the handler to still return a 200, since the privilege was deactivated
+        resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
+        self.assertEqual(200, resp['statusCode'])
+
+        # Even though the first notification failed, the handler should still have attempted to send both
+        # notifications
+        mock_email_service_client.send_provider_privilege_deactivation_email.assert_called_once_with(
+            compact='aslp',
+            provider_email='björkRegisteredEmail@example.com',
+            privilege_id='SLP-NE-1',
+        )
+        mock_email_service_client.send_jurisdiction_privilege_deactivation_email.assert_called_once_with(
+            compact='aslp',
+            jurisdiction='ne',
+            privilege_id='SLP-NE-1',
+            provider_first_name='Björk',
+            provider_last_name='Guðmundsdóttir',
+        )
+
+        # assert metric was sent so alert will fire
+        mock_metrics.add_metric.assert_called_once_with(
+            name='privilege-deactivation-notification-failed', unit=MetricUnit.Count, value=1
+        )
+
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    @patch('handlers.privileges.metrics')
+    @patch('cc_common.config._Config.email_service_client')
+    def test_deactivate_privilege_handler_pushes_custom_metric_if_state_notification_failed_to_send(
+        self, mock_email_service_client, mock_metrics
+    ):
+        """
+        If the deactivation state notification fails to send, ensure we raise an exception.
+        """
+        self._load_provider_data()
+
+        (mock_email_service_client.send_jurisdiction_privilege_deactivation_email).side_effect = CCInternalException(
+            'email failed to send'
+        )
+
+        # We expect the handler to still return a 200, since the privilege was deactivated
+        resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
+        self.assertEqual(200, resp['statusCode'])
+
+        # assert metric was sent
+        mock_metrics.add_metric.assert_called_once_with(
+            name='privilege-deactivation-notification-failed', unit=MetricUnit.Count, value=1
+        )
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_board_admin_outside_of_jurisdiction_cannot_deactivate_privilege(self):

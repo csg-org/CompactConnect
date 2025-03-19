@@ -207,6 +207,101 @@ describe('EmailNotificationService', () => {
         });
     });
 
+    describe('Privilege Deactivation Provider Notification', () => {
+        it('should send provider privilege deactivation notification email with expected subject', async () => {
+            mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
+
+            await emailService.sendPrivilegeDeactivationProviderNotificationEmail(
+                'aslp',
+                ['specific@example.com'],
+                'some-privilege-id'
+            );
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['specific@example.com']
+                    },
+                    Message: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('<!DOCTYPE html>')
+                            }
+                        },
+                        Subject: {
+                            Charset: 'UTF-8',
+                            Data: 'Your Privilege some-privilege-id is Deactivated'
+                        }
+                    },
+                    Source: 'Compact Connect <noreply@example.org>'
+                }
+            );
+        });
+
+        it('should throw error when no recipients provided for provider privilege deactivation notification email', async () => {
+            await expect(emailService.sendPrivilegeDeactivationProviderNotificationEmail(
+                'aslp',
+                undefined,
+                'some-privilege-id'
+            )).rejects.toThrow('No recipients specified for provider privilege deactivation notification email');
+        });
+    });
+
+    describe('Privilege Deactivation Jurisdiction Notification', () => {
+        it('should send jurisdiction privilege deactivation notification email with expected subject', async () => {
+            mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue(SAMPLE_JURISDICTION_CONFIG);
+
+            await emailService.sendPrivilegeDeactivationJurisdictionNotificationEmail(
+                'aslp',
+                'oh',
+                'JURISDICTION_SUMMARY_REPORT',
+                'some-privilege-id',
+                'John',
+                'Doe'
+            );
+
+            expect(mockSESClient).toHaveReceivedCommandWith(
+                SendEmailCommand,
+                {
+                    Destination: {
+                        ToAddresses: ['oh-summary@example.com']
+                    },
+                    Message: {
+                        Body: {
+                            Html: {
+                                Charset: 'UTF-8',
+                                Data: expect.stringContaining('<!DOCTYPE html>')
+                            }
+                        },
+                        Subject: {
+                            Charset: 'UTF-8',
+                            Data: `A Privilege was Deactivated in the ASLP Compact`
+                        }
+                    },
+                    Source: 'Compact Connect <noreply@example.org>'
+                }
+            );
+        });
+
+        it('should throw error when no recipients found for jurisdiction privilege deactivation notification email', async () => {
+            mockJurisdictionClient.getJurisdictionConfiguration.mockResolvedValue({
+                ...SAMPLE_JURISDICTION_CONFIG,
+                jurisdictionSummaryReportNotificationEmails: []
+            });
+
+            await expect(emailService.sendPrivilegeDeactivationJurisdictionNotificationEmail(
+                'aslp',
+                'oh',
+                'JURISDICTION_SUMMARY_REPORT',
+                'some-privilege-id',
+                'John',
+                'Doe'
+            )).rejects.toThrow('No recipients found for jurisdiction oh in compact aslp');
+        });
+    });
+
     describe('Compact Transaction Report', () => {
         beforeEach(() => {
             mockCompactConfigurationClient.getCompactConfiguration.mockResolvedValue(SAMPLE_COMPACT_CONFIG);
