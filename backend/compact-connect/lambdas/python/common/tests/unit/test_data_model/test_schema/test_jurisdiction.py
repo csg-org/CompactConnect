@@ -2,6 +2,7 @@ import json
 from decimal import Decimal
 
 from marshmallow import ValidationError
+from unittest.mock import patch
 
 from tests import TstLambdas
 
@@ -52,3 +53,13 @@ class TestJurisdictionRecordSchema(TstLambdas):
 
         with self.assertRaises(ValidationError):
             JurisdictionRecordSchema().load(expected_jurisdiction_config.copy())
+
+    @patch('cc_common.config._Config.environment_name', 'sandbox')
+    def test_jurisdiction_config_accepts_sandbox_environment_names(self):
+        from cc_common.data_model.schema.jurisdiction.record import JurisdictionRecordSchema
+
+        with open('tests/resources/dynamo/jurisdiction.json') as f:
+            expected_jurisdiction_config = json.load(f, parse_float=Decimal)
+            expected_jurisdiction_config['licenseeRegistrationEnabledForEnvironments'] = ['sandbox']
+
+        JurisdictionRecordSchema().load(expected_jurisdiction_config.copy())

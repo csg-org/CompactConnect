@@ -2,6 +2,7 @@ import json
 from decimal import Decimal
 
 from marshmallow import ValidationError
+from unittest.mock import patch
 
 from tests import TstLambdas
 
@@ -52,3 +53,13 @@ class TestCompactRecordSchema(TstLambdas):
 
         with self.assertRaises(ValidationError):
             CompactRecordSchema().load(expected_compact.copy())
+
+    @patch('cc_common.config._Config.environment_name', 'sandbox')
+    def test_compact_config_accepts_sandbox_environment_names(self):
+        from cc_common.data_model.schema.compact.record import CompactRecordSchema
+
+        with open('tests/resources/dynamo/compact.json') as f:
+            expected_compact = json.load(f, parse_float=Decimal)
+            expected_compact['licenseeRegistrationEnabledForEnvironments'] = ['sandbox']
+
+        CompactRecordSchema().load(expected_compact.copy())
