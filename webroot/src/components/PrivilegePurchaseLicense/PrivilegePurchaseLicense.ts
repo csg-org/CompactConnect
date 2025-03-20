@@ -15,8 +15,8 @@ import {
 import { reactive, computed } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
-import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
+import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { FormInput } from '@/models/FormInput/FormInput.model';
