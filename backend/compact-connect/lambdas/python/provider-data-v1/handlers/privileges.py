@@ -5,15 +5,15 @@ from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger, metrics
 from cc_common.data_model.schema.common import CCPermissionsAction
 from cc_common.exceptions import CCAccessDeniedException, CCInternalException, CCInvalidRequestException
-from cc_common.utils import api_handler, authorize_compact, get_event_scopes
+from cc_common.utils import api_handler, authorize_compact_level_only_action, get_event_scopes
 from event_batch_writer import EventBatchWriter
 
 
 @api_handler
-@authorize_compact(action=CCPermissionsAction.ADMIN)
+@authorize_compact_level_only_action(action=CCPermissionsAction.ADMIN)
 def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 unused-argument
     """Deactivate a provider's privilege for a specific jurisdiction.
-    This endpoint requires admin permissions for either the compact or the jurisdiction.
+    This endpoint requires admin permissions for the compact.
 
     :param event: Standard API Gateway event, API schema documented in the CDK ApiStack
     :param LambdaContext context:
@@ -26,16 +26,6 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
     with logger.append_context_keys(
         compact=compact, provider_id=provider_id, jurisdiction=jurisdiction, license_type=license_type_abbr
     ):
-        # Get the user's scopes to check for jurisdiction-specific admin permission
-        scopes = get_event_scopes(event)
-        jurisdiction_admin_scope = f'{jurisdiction}/{compact}.{CCPermissionsAction.ADMIN}'
-        compact_admin_scope = f'{compact}/{CCPermissionsAction.ADMIN}'
-
-        # Check if user has admin permission for either the compact or the jurisdiction
-        if jurisdiction_admin_scope not in scopes and compact_admin_scope not in scopes:
-            logger.warning('Unauthorized deactivation attempt')
-            raise CCAccessDeniedException('User does not have admin permission for this jurisdiction')
-
         # Validate the license type is a supported abbreviation
         if license_type_abbr not in config.license_type_abbreviations[compact].values():
             logger.warning('Invalid license type abbreviation')
