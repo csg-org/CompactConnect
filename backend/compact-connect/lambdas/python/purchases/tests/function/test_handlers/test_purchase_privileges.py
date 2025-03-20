@@ -29,6 +29,8 @@ ALL_ATTESTATION_IDS = [
 TEST_EMAIL = 'testRegisteredEmail@example.com'
 TEST_COGNITO_SUB = '1234567890'
 
+TEST_LICENSE_TYPE = 'speech-language pathologist'
+
 
 def generate_default_attestation_list():
     return [
@@ -44,8 +46,7 @@ def generate_default_attestation_list():
 
 
 def _generate_test_request_body(
-    selected_jurisdictions: list[str] = None,
-    attestations: list[dict] = None,
+    selected_jurisdictions: list[str] = None, attestations: list[dict] = None, license_type: str = TEST_LICENSE_TYPE
 ):
     if not selected_jurisdictions:
         selected_jurisdictions = ['ky']
@@ -54,6 +55,7 @@ def _generate_test_request_body(
 
     return json.dumps(
         {
+            'licenseType': license_type,
             'selectedJurisdictions': selected_jurisdictions,
             'orderInformation': {
                 'card': {'number': '<card number>', 'expiration': '<expiration date>', 'cvv': '<cvv>'},
@@ -175,6 +177,7 @@ class TestPostPurchasePrivileges(TstFunction):
                 for jurisdiction in purchase_client_call_kwargs['selected_jurisdictions']
             ],
         )
+        self.assertEqual('slp', purchase_client_call_kwargs['license_type_abbreviation'])
         # in this test, the user had an empty list of military affiliations, so this should be false
         self.assertEqual(False, purchase_client_call_kwargs['user_active_military'])
 
@@ -336,8 +339,52 @@ class TestPostPurchasePrivileges(TstFunction):
         response_body = json.loads(resp['body'])
 
         self.assertEqual(
-            {'message': "Selected privilege jurisdiction 'ky' matches existing privilege jurisdiction"}, response_body
+            {
+                'message': "Selected privilege jurisdiction 'ky' matches existing privilege "
+                           "jurisdiction for license type"
+            },
+            response_body,
         )
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_purchase_privileges_valid_even_if_existing_privilege_for_another_license_type_has_same_expiration(
+        self, mock_purchase_client_constructor
+    ):
+        """
+        This test checks for a rare edge case where a user has two licenses which happen to have the *exact* same
+        expiration date, and the user has a privilege for the first license.
+
+        If the user attempts to buy a privilege for the other license in the same jurisdiction as the privilege of the
+        first license, the handler should allow the purchase, ensuring that we are only checking the existing privileges
+        specific to the license type which the user has selected.
+        """
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        test_license_expiration_date = '2050-01-01'
+        event = self._when_testing_provider_user_event_with_custom_claims(
+            license_expiration_date=test_license_expiration_date
+        )
+        event['body'] = _generate_test_request_body(license_type=TEST_LICENSE_TYPE)
+        # buy a privilege for the first license type
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'], resp['body'])
+
+        # now make the same call with the same jurisdiction, but for a different license type
+        # a new privilege record should be generated for that specific license type
+        self._load_license_data(expiration_date=test_license_expiration_date, license_type='audiologist')
+        event['body'] = _generate_test_request_body(license_type='audiologist')
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'])
+
+        # check that the privilege records for ky were created for both license types
+        provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
+
+        privilege_records_license_types = set(
+            [record['licenseType'] for record in provider_records['items'] if record['type'] == 'privilege']
+        )
+        self.assertEqual({'audiologist', 'speech-language pathologist'}, privilege_records_license_types)
 
     @patch('handlers.privileges.PurchaseClient')
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-10-05T23:59:59+00:00'))
@@ -471,6 +518,25 @@ class TestPostPurchasePrivileges(TstFunction):
         response_body = json.loads(resp['body'])
 
         self.assertEqual({'message': 'No active license found in selected home state for this user'}, response_body)
+
+    @patch('handlers.privileges.PurchaseClient')
+    def test_post_purchase_privileges_returns_400_if_license_type_does_not_match_any_home_state_license(
+        self, mock_purchase_client_constructor
+    ):
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims(license_status='active')
+        event['body'] = _generate_test_request_body(license_type='some-bogus-license-type')
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(400, resp['statusCode'])
+        response_body = json.loads(resp['body'])
+
+        self.assertEqual(
+            {'message': 'Specified license type does not match any home state license type.'}, response_body
+        )
 
     @patch('handlers.privileges.PurchaseClient')
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
@@ -607,6 +673,26 @@ class TestPostPurchasePrivileges(TstFunction):
         privilege_record = next(record for record in provider_records['items'] if record['type'] == 'privilege')
 
         self.assertEqual(generate_default_attestation_list(), privilege_record['attestations'])
+
+    @patch('handlers.privileges.PurchaseClient')
+    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
+    def test_post_purchase_privileges_stores_license_type_in_privilege_record(self, mock_purchase_client_constructor):
+        """Test that license type is stored in the privilege record."""
+        from handlers.privileges import post_purchase_privileges
+
+        self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
+
+        event = self._when_testing_provider_user_event_with_custom_claims(license_expiration_date='2050-01-01')
+        event['body'] = _generate_test_request_body()
+
+        resp = post_purchase_privileges(event, self.mock_context)
+        self.assertEqual(200, resp['statusCode'], resp['body'])
+
+        # check that the privilege record for ky was created with the expected license type
+        provider_records = self.config.data_client.get_provider(compact=TEST_COMPACT, provider_id=TEST_PROVIDER_ID)
+        privilege_record = next(record for record in provider_records['items'] if record['type'] == 'privilege')
+
+        self.assertEqual(TEST_LICENSE_TYPE, privilege_record['licenseType'])
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_validates_investigation_attestations(self, mock_purchase_client_constructor):

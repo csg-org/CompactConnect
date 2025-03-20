@@ -26,6 +26,7 @@ with open('cdk.json') as context_file:
     _context = json.load(context_file)['context']
 JURISDICTIONS = _context['jurisdictions']
 COMPACTS = _context['compacts']
+LICENSE_TYPES = _context['license_types']
 
 os.environ['COMPACTS'] = json.dumps(COMPACTS)
 os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
@@ -167,6 +168,16 @@ def get_staff_user_auth_headers(username: str, password: str = _TEST_STAFF_USER_
     return {
         'Authorization': 'Bearer ' + tokens['AccessToken'],
     }
+
+
+def get_license_type_abbreviation(license_type: str):
+    """
+    Gets the abbreviation for a specific license type.
+    """
+    all_license_types = []
+    for compact in LICENSE_TYPES:
+        all_license_types.extend(LICENSE_TYPES[compact])
+    return next((lt['abbreviation'] for lt in all_license_types if lt['name'] == license_type), None)
 
 
 def get_api_base_url():

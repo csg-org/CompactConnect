@@ -112,7 +112,7 @@ class TestTransformations(TstFunction):
             jurisdiction_postal_abbreviations=['ne'],
             license_expiration_date=date(2025, 4, 4),
             compact_transaction_id='1234567890',
-            existing_privileges=[],
+            existing_privileges_for_license=[],
             license_type='speech-language pathologist',
             attestations=[{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
         )

@@ -492,8 +492,13 @@ class ApiModel:
             description='Post purchase privileges request model',
             schema=JsonSchema(
                 type=JsonSchemaType.OBJECT,
-                required=['selectedJurisdictions', 'orderInformation', 'attestations'],
+                required=['licenseType', 'selectedJurisdictions', 'orderInformation', 'attestations'],
                 properties={
+                    'licenseType': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='The type of license the provider is purchasing a privilege for.',
+                        enum=self.stack.license_types,
+                    ),
                     'selectedJurisdictions': JsonSchema(
                         type=JsonSchemaType.ARRAY,
                         # setting a max length to prevent abuse
@@ -1515,6 +1520,7 @@ class ApiModel:
                         type=JsonSchemaType.STRING,
                         description='Type of license',
                         max_length=500,
+                        enum=self.stack.license_types
                     ),
                     'compact': JsonSchema(
                         type=JsonSchemaType.STRING,
