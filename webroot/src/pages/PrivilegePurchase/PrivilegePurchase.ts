@@ -6,12 +6,12 @@
 //
 
 import { Component, Vue, Watch } from 'vue-facing-decorator';
-import PrivilegePurchaseLicense from '@components/PrivilegePurchaseLicense/PrivilegePurchaseLicense.vue';
 import PrivilegePurchaseAttestation from '@components/PrivilegePurchaseAttestation/PrivilegePurchaseAttestation.vue';
 import PrivilegePurchaseInformationConfirmation from '@components/PrivilegePurchaseInformationConfirmation/PrivilegePurchaseInformationConfirmation.vue';
 import PrivilegePurchaseSelect from '@components/PrivilegePurchaseSelect/PrivilegePurchaseSelect.vue';
 import PrivilegePurchaseFinalize from '@components/PrivilegePurchaseFinalize/PrivilegePurchaseFinalize.vue';
 import PrivilegePurchaseSuccessful from '@components/PrivilegePurchaseSuccessful/PrivilegePurchaseSuccessful.vue';
+import PrivilegePurchaseLicense from '@components/PrivilegePurchaseLicense/PrivilegePurchaseLicense.vue';
 import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import { Compact } from '@models/Compact/Compact.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
