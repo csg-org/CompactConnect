@@ -93,7 +93,6 @@ describe('User model', () => {
             homeAddressPostalCode: '80302',
             givenName: 'Tyler',
             homeAddressStreet1: '1045 Pearl St',
-            militaryWaiver: true,
             dateOfBirth: '1975-01-01',
             privilegeJurisdictions: [
                 'al'
@@ -110,7 +109,6 @@ describe('User model', () => {
                     jurisdiction: 'co',
                     givenName: 'Tyler',
                     homeAddressStreet1: '1045 Pearl St',
-                    militaryWaiver: true,
                     dateOfBirth: '1975-01-01',
                     type: 'license-home',
                     dateOfIssuance: '2024-08-29',
@@ -176,7 +174,6 @@ describe('User model', () => {
             homeAddressPostalCode: '80302',
             givenName: 'Tyler',
             homeAddressStreet1: '1045 Pearl St',
-            militaryWaiver: true,
             dateOfBirth: '1975-01-01',
             privilegeJurisdictions: [
                 'al'
@@ -193,7 +190,6 @@ describe('User model', () => {
                     jurisdiction: 'co',
                     givenName: 'Tyler',
                     homeAddressStreet1: '1045 Pearl St',
-                    militaryWaiver: true,
                     dateOfBirth: '1975-01-01',
                     type: 'license-home',
                     dateOfIssuance: '2024-08-29',

@@ -858,7 +858,6 @@ describe('Licensee model', () => {
             homeAddressPostalCode: 'test-zip',
             dateOfBirth: moment().format(serverDateFormat),
             ssnLastFour: '0000',
-            militaryWaiver: true,
             licenseType: LicenseType.AUDIOLOGIST,
             licenseJurisdiction: 'co',
             privilegeJurisdictions: ['co'],

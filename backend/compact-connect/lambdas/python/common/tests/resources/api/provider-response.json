@@ -15,7 +15,6 @@
   "homeAddressCity": "Columbus",
   "homeAddressState": "oh",
   "homeAddressPostalCode": "43004",
-  "militaryWaiver": false,
   "emailAddress": "björk@example.com",
   "compactConnectRegisteredEmailAddress": "björkRegisteredEmail@example.com",
   "cognitoSub": "3408b4e8-0061-7052-bbe0-fda9a9369c80",

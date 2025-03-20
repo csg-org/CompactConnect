@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 from io import BytesIO
-from unittest.mock import patch
+from unittest.mock import call, patch
 from zipfile import ZipFile
 
 from cc_common.exceptions import CCInternalException, CCNotFoundException
@@ -149,9 +149,16 @@ def _generate_mock_transaction(
     }
 
 
-def _set_default_lambda_client_behavior(mock_lambda_client):
-    """Set the default behavior for the mock lambda client."""
-    mock_lambda_client.invoke.return_value = {
+def _set_default_email_service_client_behavior(mock_email_service_client):
+    """Set the default behavior for the mock email service client."""
+    mock_email_service_client.send_compact_transaction_report_email.return_value = {
+        'StatusCode': 200,
+        'LogResult': 'string',
+        'Payload': '{"message": "Email message sent"}',
+        'ExecutedVersion': '1',
+    }
+
+    mock_email_service_client.send_jurisdiction_transaction_report_email.return_value = {
         'StatusCode': 200,
         'LogResult': 'string',
         'Payload': '{"message": "Email message sent"}',
@@ -235,18 +242,59 @@ class TestGenerateTransactionReports(TstFunction):
                 record.update(jurisdiction)
                 self._compact_configuration_table.put_item(Item=record)
 
+    def _validate_compact_email_notification(self, mock_email_service_client, reporting_cycle, start_time, end_time):
+        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+        # Check compact report email notification
+        expected_compact_path = (
+            f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/{reporting_cycle}/'
+            f'{end_time.strftime("%Y/%m/%d")}/'
+            f'{TEST_COMPACT}-{date_range}-report.zip'
+        )
+        mock_email_service_client.send_compact_transaction_report_email.assert_called_once_with(
+            compact=TEST_COMPACT,
+            report_s3_path=expected_compact_path,
+            reporting_cycle=reporting_cycle,
+            start_date=start_time,
+            end_date=end_time,
+        )
+
+        return expected_compact_path
+
+    def _validate_jurisdiction_email_notification(
+        self, mock_email_service_client, jurisdiction, reporting_cycle, start_time, end_time
+    ):
+        date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
+
+        expected_jurisdiction_path = (
+            f'compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/'
+            f'reporting-cycle/{reporting_cycle}/{end_time.strftime("%Y/%m/%d")}/'
+            f'{jurisdiction}-{date_range}-report.zip'
+        )
+        email_service_client_calls = mock_email_service_client.send_jurisdiction_transaction_report_email.call_args_list
+        expected_call = call(
+            compact=TEST_COMPACT,
+            jurisdiction=jurisdiction,
+            report_s3_path=expected_jurisdiction_path,
+            reporting_cycle=reporting_cycle,
+            start_date=start_time,
+            end_date=end_time,
+        )
+        self.assertIn(expected_call, email_service_client_calls)
+
+        return expected_jurisdiction_path
+
     # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
-    @patch('handlers.transaction_reporting.config.lambda_client')
-    def test_generate_transaction_reports_sends_csv_with_zero_values_when_no_transactions(self, mock_lambda_client):
+    @patch('handlers.transaction_reporting.config.email_service_client')
+    def test_generate_transaction_reports_sends_csv_with_zero_values_when_no_transactions(
+        self, mock_email_service_client
+    ):
         """Test successful processing of settled transactions."""
         from handlers.transaction_reporting import generate_transaction_reports
 
-        _set_default_lambda_client_behavior(mock_lambda_client)
+        _set_default_email_service_client_behavior(mock_email_service_client)
 
         self._add_compact_configuration_data([OHIO_JURISDICTION])
-
-        # Set up mocked S3 bucket
 
         # Calculate expected date range
         # the end time should be Friday at 10:00 PM UTC
@@ -258,60 +306,11 @@ class TestGenerateTransactionReports(TstFunction):
         # Generate the reports
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
-        # Verify email notifications
-        call_args = mock_lambda_client.invoke.call_args_list
-
-        # Check compact report email
-        compact_call = call_args[0][1]
-        self.assertEqual(self.config.email_notification_service_lambda_name, compact_call['FunctionName'])
-        self.assertEqual('RequestResponse', compact_call['InvocationType'])
-
-        compact_payload = json.loads(compact_call['Payload'])
-        expected_compact_path = (
-            f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
-            f'{end_time.strftime("%Y/%m/%d")}/'
-            f'{TEST_COMPACT}-{date_range}-report.zip'
-        )
-        self.assertEqual(
-            {
-                'compact': TEST_COMPACT,
-                'recipientType': 'COMPACT_SUMMARY_REPORT',
-                'template': 'CompactTransactionReporting',
-                'templateVariables': {
-                    'reportS3Path': expected_compact_path,
-                    'reportingCycle': 'weekly',
-                    'startDate': start_time.strftime('%Y-%m-%d'),
-                    'endDate': end_time.strftime('%Y-%m-%d'),
-                },
-            },
-            compact_payload,
-        )
-
-        # Check jurisdiction report email
-        ohio_call = call_args[1][1]
-        self.assertEqual(self.config.email_notification_service_lambda_name, ohio_call['FunctionName'])
-        self.assertEqual('RequestResponse', ohio_call['InvocationType'])
-
-        ohio_payload = json.loads(ohio_call['Payload'])
-        expected_ohio_path = (
-            f'compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/oh/'
-            f'reporting-cycle/weekly/{end_time.strftime("%Y/%m/%d")}/'
-            f'oh-{date_range}-report.zip'
-        )
-        self.assertEqual(
-            {
-                'compact': TEST_COMPACT,
-                'jurisdiction': 'oh',
-                'recipientType': 'JURISDICTION_SUMMARY_REPORT',
-                'template': 'JurisdictionTransactionReporting',
-                'templateVariables': {
-                    'reportS3Path': expected_ohio_path,
-                    'reportingCycle': 'weekly',
-                    'startDate': start_time.strftime('%Y-%m-%d'),
-                    'endDate': end_time.strftime('%Y-%m-%d'),
-                },
-            },
-            ohio_payload,
+        expected_compact_path = self._validate_compact_email_notification(
+            mock_email_service_client=mock_email_service_client,
+            reporting_cycle='weekly',
+            start_time=start_time,
+            end_time=end_time,
         )
 
         # Verify S3 stored files
@@ -342,6 +341,15 @@ class TestGenerateTransactionReports(TstFunction):
                     detail_content,
                 )
 
+        # Check jurisdiction report email
+        expected_ohio_path = self._validate_jurisdiction_email_notification(
+            mock_email_service_client=mock_email_service_client,
+            jurisdiction='oh',
+            reporting_cycle='weekly',
+            start_time=start_time,
+            end_time=end_time,
+        )
+
         # Check jurisdiction report
         ohio_zip_obj = self.config.s3_client.get_object(
             Bucket=self.config.transaction_reports_bucket_name, Key=expected_ohio_path
@@ -361,12 +369,12 @@ class TestGenerateTransactionReports(TstFunction):
 
     # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
-    @patch('handlers.transaction_reporting.config.lambda_client')
-    def test_generate_report_collects_transactions_across_two_months(self, mock_lambda_client):
+    @patch('handlers.transaction_reporting.config.email_service_client')
+    def test_generate_report_collects_transactions_across_two_months(self, mock_email_service_client):
         """Test successful processing of settled transactions."""
         from handlers.transaction_reporting import generate_transaction_reports
 
-        _set_default_lambda_client_behavior(mock_lambda_client)
+        _set_default_email_service_client_behavior(mock_email_service_client)
 
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
 
@@ -398,65 +406,25 @@ class TestGenerateTransactionReports(TstFunction):
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
-        # Verify email notifications
-        calls_args = mock_lambda_client.invoke.call_args_list
-
-        # Check compact report email
-        compact_call = calls_args[0][1]
-        self.assertEqual(self.config.email_notification_service_lambda_name, compact_call['FunctionName'])
-        self.assertEqual('RequestResponse', compact_call['InvocationType'])
-
-        expected_compact_path = (
-            f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
-            f'{end_time.strftime("%Y/%m/%d")}/'
-            f'{TEST_COMPACT}-{date_range}-report.zip'
-        )
-        compact_payload = json.loads(compact_call['Payload'])
-        self.assertEqual(
-            {
-                'compact': TEST_COMPACT,
-                'recipientType': 'COMPACT_SUMMARY_REPORT',
-                'template': 'CompactTransactionReporting',
-                'templateVariables': {
-                    'reportS3Path': expected_compact_path,
-                    'reportingCycle': 'weekly',
-                    'startDate': start_time.strftime('%Y-%m-%d'),
-                    'endDate': end_time.strftime('%Y-%m-%d'),
-                },
-            },
-            compact_payload,
+        # Verify email notifications using the new pattern
+        expected_compact_path = self._validate_compact_email_notification(
+            mock_email_service_client=mock_email_service_client,
+            reporting_cycle='weekly',
+            start_time=start_time,
+            end_time=end_time,
         )
 
         # Check jurisdiction report emails
-        for idx, jurisdiction in enumerate(['ky', 'oh']):
-            jurisdiction_call = calls_args[idx + 1][1]
-            self.assertEqual(self.config.email_notification_service_lambda_name, jurisdiction_call['FunctionName'])
-            self.assertEqual('RequestResponse', jurisdiction_call['InvocationType'])
-
-            expected_jurisdiction_path = (
-                f'compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/'
-                f'reporting-cycle/weekly/{end_time.strftime("%Y/%m/%d")}/'
-                f'{jurisdiction}-{date_range}-report.zip'
-            )
-            jurisdiction_payload = json.loads(jurisdiction_call['Payload'])
-            self.assertEqual(
-                {
-                    'compact': TEST_COMPACT,
-                    'jurisdiction': jurisdiction,
-                    'recipientType': 'JURISDICTION_SUMMARY_REPORT',
-                    'template': 'JurisdictionTransactionReporting',
-                    'templateVariables': {
-                        'reportS3Path': expected_jurisdiction_path,
-                        'reportingCycle': 'weekly',
-                        'startDate': start_time.strftime('%Y-%m-%d'),
-                        'endDate': end_time.strftime('%Y-%m-%d'),
-                    },
-                },
-                jurisdiction_payload,
+        for jurisdiction in ['ky', 'oh']:
+            self._validate_jurisdiction_email_notification(
+                mock_email_service_client=mock_email_service_client,
+                jurisdiction=jurisdiction,
+                reporting_cycle='weekly',
+                start_time=start_time,
+                end_time=end_time,
             )
 
-        # Verify S3 stored files
-        # Check compact reports
+        # Verify S3 stored files for compact report
         compact_zip_obj = self.config.s3_client.get_object(
             Bucket=self.config.transaction_reports_bucket_name, Key=expected_compact_path
         )
@@ -512,12 +480,12 @@ class TestGenerateTransactionReports(TstFunction):
 
     # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
-    @patch('handlers.transaction_reporting.config.lambda_client')
-    def test_generate_report_with_multiple_privileges_in_single_transaction(self, mock_lambda_client):
+    @patch('handlers.transaction_reporting.config.email_service_client')
+    def test_generate_report_with_multiple_privileges_in_single_transaction(self, mock_email_service_client):
         """Test processing of transactions with multiple privileges in a single transaction."""
         from handlers.transaction_reporting import generate_transaction_reports
 
-        _set_default_lambda_client_behavior(mock_lambda_client)
+        _set_default_email_service_client_behavior(mock_email_service_client)
 
         self._add_compact_configuration_data(
             jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION, NEBRASKA_JURISDICTION]
@@ -541,65 +509,15 @@ class TestGenerateTransactionReports(TstFunction):
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
 
-        # Verify email notifications
-        calls_args = mock_lambda_client.invoke.call_args_list
-
-        # Check compact report email
-        compact_call = calls_args[0][1]
-        self.assertEqual(self.config.email_notification_service_lambda_name, compact_call['FunctionName'])
-        self.assertEqual('RequestResponse', compact_call['InvocationType'])
-
-        expected_compact_path = (
-            f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
-            f'{end_time.strftime("%Y/%m/%d")}/'
-            f'{TEST_COMPACT}-{date_range}-report.zip'
-        )
-        compact_payload = json.loads(compact_call['Payload'])
-        self.assertEqual(
-            {
-                'compact': TEST_COMPACT,
-                'recipientType': 'COMPACT_SUMMARY_REPORT',
-                'template': 'CompactTransactionReporting',
-                'templateVariables': {
-                    'reportS3Path': expected_compact_path,
-                    'reportingCycle': 'weekly',
-                    'startDate': start_time.strftime('%Y-%m-%d'),
-                    'endDate': end_time.strftime('%Y-%m-%d'),
-                },
-            },
-            compact_payload,
+        # Verify compact email notification
+        expected_compact_path = self._validate_compact_email_notification(
+            mock_email_service_client=mock_email_service_client,
+            reporting_cycle='weekly',
+            start_time=start_time,
+            end_time=end_time,
         )
 
-        # Check jurisdiction report emails
-        for idx, jurisdiction in enumerate(['ky', 'ne', 'oh']):
-            jurisdiction_call = calls_args[idx + 1][1]
-            self.assertEqual(self.config.email_notification_service_lambda_name, jurisdiction_call['FunctionName'])
-            self.assertEqual('RequestResponse', jurisdiction_call['InvocationType'])
-
-            expected_jurisdiction_path = (
-                f'compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/'
-                f'reporting-cycle/weekly/{end_time.strftime("%Y/%m/%d")}/'
-                f'{jurisdiction}-{date_range}-report.zip'
-            )
-            jurisdiction_payload = json.loads(jurisdiction_call['Payload'])
-            self.assertEqual(
-                {
-                    'compact': TEST_COMPACT,
-                    'jurisdiction': jurisdiction,
-                    'recipientType': 'JURISDICTION_SUMMARY_REPORT',
-                    'template': 'JurisdictionTransactionReporting',
-                    'templateVariables': {
-                        'reportS3Path': expected_jurisdiction_path,
-                        'reportingCycle': 'weekly',
-                        'startDate': start_time.strftime('%Y-%m-%d'),
-                        'endDate': end_time.strftime('%Y-%m-%d'),
-                    },
-                },
-                jurisdiction_payload,
-            )
-
-        # Verify S3 stored files
-        # Check compact reports
+        # Verify S3 stored files for compact report
         compact_zip_obj = self.config.s3_client.get_object(
             Bucket=self.config.transaction_reports_bucket_name, Key=expected_compact_path
         )
@@ -635,13 +553,16 @@ class TestGenerateTransactionReports(TstFunction):
 
         # Check jurisdiction reports
         for jurisdiction in ['ky', 'ne', 'oh']:
+            expected_jurisdiction_path = self._validate_jurisdiction_email_notification(
+                mock_email_service_client=mock_email_service_client,
+                jurisdiction=jurisdiction,
+                reporting_cycle='weekly',
+                start_time=start_time,
+                end_time=end_time,
+            )
             jurisdiction_zip_obj = self.config.s3_client.get_object(
                 Bucket=self.config.transaction_reports_bucket_name,
-                Key=(
-                    f'compact/{TEST_COMPACT}/reports/jurisdiction-transactions/jurisdiction/{jurisdiction}/'
-                    f'reporting-cycle/weekly/{end_time.strftime("%Y/%m/%d")}/'
-                    f'{jurisdiction}-{date_range}-report.zip'
-                ),
+                Key=expected_jurisdiction_path,
             )
 
             with ZipFile(BytesIO(jurisdiction_zip_obj['Body'].read())) as zip_file:
@@ -658,12 +579,12 @@ class TestGenerateTransactionReports(TstFunction):
 
     # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
-    @patch('handlers.transaction_reporting.config.lambda_client')
-    def test_generate_report_with_large_number_of_transactions_and_providers(self, mock_lambda_client):
+    @patch('handlers.transaction_reporting.config.email_service_client')
+    def test_generate_report_with_large_number_of_transactions_and_providers(self, mock_email_service_client):
         """Test processing of a large number of transactions (>500) and providers (>100)."""
         from handlers.transaction_reporting import generate_transaction_reports
 
-        _set_default_lambda_client_behavior(mock_lambda_client)
+        _set_default_email_service_client_behavior(mock_email_service_client)
 
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
 
@@ -787,12 +708,16 @@ class TestGenerateTransactionReports(TstFunction):
         self.assertIn('Compact configuration not found', str(exc_info.exception.message))
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
-    @patch('handlers.transaction_reporting.config.lambda_client')
-    def test_generate_report_raises_error_when_lambda_returns_function_error(self, mock_lambda_client):
-        """Test error handling when compact configuration is not found."""
+    @patch('handlers.transaction_reporting.config.email_service_client')
+    def test_generate_report_raises_error_when_email_service_client_raises_error(self, mock_email_service_client):
+        """Test error handling when email service client raises an exception."""
         from handlers.transaction_reporting import generate_transaction_reports
 
-        mock_lambda_client.invoke.return_value = {'FunctionError': 'Something went wrong'}
+        # Set up the mock to raise an exception
+        mock_email_service_client.send_compact_transaction_report_email.side_effect = CCInternalException(
+            'Something went wrong'
+        )
+
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
 
         with self.assertRaises(CCInternalException) as exc_info:
@@ -802,15 +727,15 @@ class TestGenerateTransactionReports(TstFunction):
 
     # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
-    @patch('handlers.transaction_reporting.config.lambda_client')
-    def test_generate_report_handles_unknown_jurisdiction(self, mock_lambda_client):
+    @patch('handlers.transaction_reporting.config.email_service_client')
+    def test_generate_report_handles_unknown_jurisdiction(self, mock_email_service_client):
         """Test handling of transactions with jurisdictions not in configuration.
 
         This is unlikely to happen in practice, but we should handle it gracefully.
         """
         from handlers.transaction_reporting import generate_transaction_reports
 
-        _set_default_lambda_client_behavior(mock_lambda_client)
+        _set_default_email_service_client_behavior(mock_email_service_client)
 
         # Calculate expected date range
         # the end time should be Friday at 10:00 PM UTC
@@ -864,30 +789,33 @@ class TestGenerateTransactionReports(TstFunction):
                     summary_content,
                 )
 
-        calls_args = mock_lambda_client.invoke.call_args_list
-
         # Verify we only sent reports for known jurisdictions
-        jurisdiction_calls = [
-            call
-            for call in calls_args[1:]
-            if json.loads(call[1]['Payload'])['template'] == 'JurisdictionTransactionReporting'
-        ]
-        self.assertEqual(2, len(jurisdiction_calls))  # Only OH and KY should get reports
+        self.assertEqual(1, mock_email_service_client.send_compact_transaction_report_email.call_count)
 
-        jurisdiction_report_payloads = [json.loads(call[1]['Payload']) for call in jurisdiction_calls]
-        reported_jurisdictions = {payload['jurisdiction'] for payload in jurisdiction_report_payloads}
-        self.assertEqual({'oh', 'ky'}, reported_jurisdictions)  # Verify only OH and KY got reports
+        # Check that we called send_jurisdiction_transaction_report_email for each known jurisdiction
+        self.assertEqual(2, mock_email_service_client.send_jurisdiction_transaction_report_email.call_count)
+
+        # Get the jurisdiction arguments from all calls
+        jurisdiction_args = set(
+            [
+                call[1]['jurisdiction']
+                for call in mock_email_service_client.send_jurisdiction_transaction_report_email.call_args_list
+            ]
+        )
+
+        # Verify only OH and KY got reports
+        self.assertEqual({'oh', 'ky'}, jurisdiction_args)
 
     # event bridge triggers the monthly report at the first day of the month 5 mins after midnight UTC
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-03-01T00:05:00+00:00'))
-    @patch('handlers.transaction_reporting.config.lambda_client')
+    @patch('handlers.transaction_reporting.config.email_service_client')
     def test_generate_monthly_report_includes_expected_settled_transactions_for_full_month_range(
-        self, mock_lambda_client
+        self, mock_email_service_client
     ):
         """Test processing monthly report with full month range for Feb 2024 (leap year)."""
         from handlers.transaction_reporting import generate_transaction_reports
 
-        _set_default_lambda_client_behavior(mock_lambda_client)
+        _set_default_email_service_client_behavior(mock_email_service_client)
 
         self._add_compact_configuration_data(
             jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION, NEBRASKA_JURISDICTION]
@@ -932,43 +860,22 @@ class TestGenerateTransactionReports(TstFunction):
 
         # Calculate expected date range
         # the display end time should be the last day of the month
-        display_end_time = '2024-02-29'
+        display_end_time = datetime.fromisoformat('2024-02-29T00:00:00+00:00')
         # the start time should be the first day of the month
-        display_start_time = '2024-02-01'
-        date_range = f'{display_start_time}--{display_end_time}'
+        display_start_time = datetime.fromisoformat('2024-02-01T00:00:00+00:00')
+        date_range = f'{display_start_time.strftime("%Y-%m-%d")}--{display_end_time.strftime("%Y-%m-%d")}'
 
         generate_transaction_reports(generate_mock_event(reporting_cycle='monthly'), self.mock_context)
 
-        # Verify email notifications
-        calls_args = mock_lambda_client.invoke.call_args_list
-
-        # Check compact report email
-        compact_call = calls_args[0][1]
-        self.assertEqual(self.config.email_notification_service_lambda_name, compact_call['FunctionName'])
-        self.assertEqual('RequestResponse', compact_call['InvocationType'])
-
-        expected_compact_path = (
-            f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/monthly/2024/02/29/'
-            f'{TEST_COMPACT}-{date_range}-report.zip'
-        )
-        compact_payload = json.loads(compact_call['Payload'])
-        self.assertEqual(
-            {
-                'compact': TEST_COMPACT,
-                'recipientType': 'COMPACT_SUMMARY_REPORT',
-                'template': 'CompactTransactionReporting',
-                'templateVariables': {
-                    'reportS3Path': expected_compact_path,
-                    'reportingCycle': 'monthly',
-                    'startDate': display_start_time,
-                    'endDate': display_end_time,
-                },
-            },
-            compact_payload,
+        # Verify email notifications using the new pattern
+        expected_compact_path = self._validate_compact_email_notification(
+            mock_email_service_client=mock_email_service_client,
+            reporting_cycle='monthly',
+            start_time=display_start_time,
+            end_time=display_end_time,
         )
 
-        # Verify S3 stored files
-        # Check compact reports
+        # Verify S3 stored files for compact report
         compact_zip_obj = self.config.s3_client.get_object(
             Bucket=self.config.transaction_reports_bucket_name, Key=expected_compact_path
         )
@@ -992,14 +899,14 @@ class TestGenerateTransactionReports(TstFunction):
 
     # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-03-08T22:00:01+00:00'))
-    @patch('handlers.transaction_reporting.config.lambda_client')
+    @patch('handlers.transaction_reporting.config.email_service_client')
     def test_generate_weekly_report_includes_expected_settled_transactions_for_full_week_range(
-        self, mock_lambda_client
+        self, mock_email_service_client
     ):
         """Test processing weekly report with full week range for Mar 2024."""
         from handlers.transaction_reporting import generate_transaction_reports
 
-        _set_default_lambda_client_behavior(mock_lambda_client)
+        _set_default_email_service_client_behavior(mock_email_service_client)
 
         self._add_compact_configuration_data(
             jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION, NEBRASKA_JURISDICTION]
@@ -1053,44 +960,22 @@ class TestGenerateTransactionReports(TstFunction):
 
         # Calculate expected date range
         # the end time should be Friday at 10:00 PM UTC
-        end_time = datetime.fromisoformat('2025-03-08T22:00:00+00:00')
+        end_time = datetime.fromisoformat('2025-03-08T22:00:01+00:00')
         # the start time should be 7 days ago at 10:00 PM UTC
         start_time = end_time - timedelta(days=7)
         date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
 
         generate_transaction_reports(generate_mock_event(reporting_cycle='weekly'), self.mock_context)
 
-        # Verify email notifications
-        calls_args = mock_lambda_client.invoke.call_args_list
-
-        # Check compact report email
-        compact_call = calls_args[0][1]
-        self.assertEqual(self.config.email_notification_service_lambda_name, compact_call['FunctionName'])
-        self.assertEqual('RequestResponse', compact_call['InvocationType'])
-
-        expected_compact_path = (
-            f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
-            f'{end_time.strftime("%Y/%m/%d")}/'
-            f'{TEST_COMPACT}-{date_range}-report.zip'
-        )
-        compact_payload = json.loads(compact_call['Payload'])
-        self.assertEqual(
-            {
-                'compact': TEST_COMPACT,
-                'recipientType': 'COMPACT_SUMMARY_REPORT',
-                'template': 'CompactTransactionReporting',
-                'templateVariables': {
-                    'reportS3Path': expected_compact_path,
-                    'reportingCycle': 'weekly',
-                    'startDate': start_time.strftime('%Y-%m-%d'),
-                    'endDate': end_time.strftime('%Y-%m-%d'),
-                },
-            },
-            compact_payload,
+        # Verify email notifications using the new pattern
+        expected_compact_path = self._validate_compact_email_notification(
+            mock_email_service_client=mock_email_service_client,
+            reporting_cycle='weekly',
+            start_time=start_time,
+            end_time=end_time,
         )
 
-        # Verify S3 stored files
-        # Check compact reports
+        # Verify S3 stored files for compact report
         compact_zip_obj = self.config.s3_client.get_object(
             Bucket=self.config.transaction_reports_bucket_name, Key=expected_compact_path
         )
@@ -1114,12 +999,12 @@ class TestGenerateTransactionReports(TstFunction):
 
     # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
-    @patch('handlers.transaction_reporting.config.lambda_client')
-    def test_generate_report_with_licensee_transaction_fees(self, mock_lambda_client):
+    @patch('handlers.transaction_reporting.config.email_service_client')
+    def test_generate_report_with_licensee_transaction_fees(self, mock_email_service_client):
         """Test processing of transactions with multiple privileges in a single transaction."""
         from handlers.transaction_reporting import generate_transaction_reports
 
-        _set_default_lambda_client_behavior(mock_lambda_client)
+        _set_default_email_service_client_behavior(mock_email_service_client)
 
         self._add_compact_configuration_data(
             jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION, NEBRASKA_JURISDICTION]
@@ -1143,14 +1028,6 @@ class TestGenerateTransactionReports(TstFunction):
         date_range = f'{start_time.strftime("%Y-%m-%d")}--{end_time.strftime("%Y-%m-%d")}'
 
         generate_transaction_reports(generate_mock_event(), self.mock_context)
-
-        # Verify email notifications
-        calls_args = mock_lambda_client.invoke.call_args_list
-
-        # Check compact report email
-        compact_call = calls_args[0][1]
-        self.assertEqual(self.config.email_notification_service_lambda_name, compact_call['FunctionName'])
-        self.assertEqual('RequestResponse', compact_call['InvocationType'])
 
         expected_compact_path = (
             f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
@@ -1196,12 +1073,12 @@ class TestGenerateTransactionReports(TstFunction):
 
     # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
-    @patch('handlers.transaction_reporting.config.lambda_client')
-    def test_generate_report_accounts_for_unknown_line_item_fees(self, mock_lambda_client):
+    @patch('handlers.transaction_reporting.config.email_service_client')
+    def test_generate_report_accounts_for_unknown_line_item_fees(self, mock_email_service_client):
         """Test processing of transactions with multiple privileges in a single transaction."""
         from handlers.transaction_reporting import generate_transaction_reports
 
-        _set_default_lambda_client_behavior(mock_lambda_client)
+        _set_default_email_service_client_behavior(mock_email_service_client)
 
         self._add_compact_configuration_data(
             jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION, NEBRASKA_JURISDICTION]
@@ -1237,14 +1114,6 @@ class TestGenerateTransactionReports(TstFunction):
             exc_info.exception.message,
         )
 
-        # Verify email notifications
-        calls_args = mock_lambda_client.invoke.call_args_list
-
-        # Check compact report email
-        compact_call = calls_args[0][1]
-        self.assertEqual(self.config.email_notification_service_lambda_name, compact_call['FunctionName'])
-        self.assertEqual('RequestResponse', compact_call['InvocationType'])
-
         expected_compact_path = (
             f'compact/{TEST_COMPACT}/reports/compact-transactions/reporting-cycle/weekly/'
             f'{end_time.strftime("%Y/%m/%d")}/'
@@ -1278,12 +1147,12 @@ class TestGenerateTransactionReports(TstFunction):
 
     # event bridge triggers the weekly report at Friday 10:00 PM UTC (5:00 PM EST)
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2025-04-05T22:00:00+00:00'))
-    @patch('handlers.transaction_reporting.config.lambda_client')
-    def test_generate_report_does_not_include_transactions_with_settlement_errors(self, mock_lambda_client):
+    @patch('handlers.transaction_reporting.config.email_service_client')
+    def test_generate_report_does_not_include_transactions_with_settlement_errors(self, mock_email_service_client):
         """Test that transactions with settlement errors are not included in the report."""
         from handlers.transaction_reporting import generate_transaction_reports
 
-        _set_default_lambda_client_behavior(mock_lambda_client)
+        _set_default_email_service_client_behavior(mock_email_service_client)
 
         self._add_compact_configuration_data(jurisdictions=[OHIO_JURISDICTION, KENTUCKY_JURISDICTION])
 
@@ -1346,6 +1215,6 @@ class TestGenerateTransactionReports(TstFunction):
                 detail_content = f.read().decode('utf-8')
                 self.assertEqual(
                     'Licensee First Name,Licensee Last Name,Licensee Id,Transaction Settlement Date UTC,State,State Fee,Administrative Fee,Collected Transaction Fee,Transaction Id,Privilege Id,Transaction Status\n'
-                    f'{mock_user["givenName"]},{mock_user["familyName"]},{mock_user["providerId"]},04-01-2025,KY,100,10.50,0,{MOCK_TRANSACTION_ID},{MOCK_PRIVILEGE_ID_MAPPING["ky"]},{TEST_TRANSACTION_SUCCESSFUL_STATUS}\n',
+                    f'{mock_user["givenName"]},{mock_user["familyName"]},{mock_user["providerId"]},04-01-2025,KY,100,10.50,0,{MOCK_TRANSACTION_ID},{MOCK_KENTUCKY_PRIVILEGE_ID},{TEST_TRANSACTION_SUCCESSFUL_STATUS}\n',
                     detail_content,
                 )

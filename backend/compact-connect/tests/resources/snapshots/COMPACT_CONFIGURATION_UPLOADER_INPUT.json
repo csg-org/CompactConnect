@@ -434,6 +434,70 @@
         ]
       }
     ],
-    "coun": []
+    "coun": [
+      {
+        "jurisdictionName": "Kentucky",
+        "postalAbbreviation": "ky",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": true,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [
+          "cloud-team-nonprod-alerts@inspiringapps.com"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "activeEnvironments": [
+          "test"
+        ]
+      },
+      {
+        "jurisdictionName": "Nebraska",
+        "postalAbbreviation": "ne",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": true,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [
+          "cloud-team-nonprod-alerts@inspiringapps.com"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "activeEnvironments": [
+          "test"
+        ]
+      },
+      {
+        "jurisdictionName": "Ohio",
+        "postalAbbreviation": "oh",
+        "jurisdictionFee": 100,
+        "militaryDiscount": {
+          "active": true,
+          "discountType": "FLAT_RATE",
+          "discountAmount": 10
+        },
+        "jurisdictionOperationsTeamEmails": [
+          "cloud-team-nonprod-alerts@inspiringapps.com"
+        ],
+        "jurisdictionAdverseActionsNotificationEmails": [],
+        "jurisdictionSummaryReportNotificationEmails": [],
+        "jurisprudenceRequirements": {
+          "required": true
+        },
+        "activeEnvironments": [
+          "test"
+        ]
+      }
+    ]
   }
 }
