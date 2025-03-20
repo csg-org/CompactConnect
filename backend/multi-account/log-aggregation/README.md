@@ -4,7 +4,7 @@ This CDK project automates the setup of log aggregation infrastructure for the C
 architecture. It includes a CloudTrail Organizational trail that logs DynamoDB data read events for tables with the
 `-DataEventsLog` suffix. That trail, however, due to the sensitive nature of the data being logged, is not normally
 readable by anyone. It is intended to be used for 'in case of emergency' forensics or for future audits, with
-future enhancements to faciliate safe reading, if necesary.
+future enhancements to faciliate safe reading, if necessary.
 
 ## Architecture
 

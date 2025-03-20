@@ -30,7 +30,6 @@ class AccessLogsBucket(Bucket):
                 ignore_public_acls=True,
                 # We have to not block public policy because our allow statements conditioned on org id appear 'public'
                 block_public_policy=False,
-                # Restricting here would block all cross-account access except by service principals
                 restrict_public_buckets=True,
             ),
             access_control=BucketAccessControl.LOG_DELIVERY_WRITE,
@@ -81,7 +80,7 @@ class AccessLogsBucket(Bucket):
             PolicyStatement(
                 effect=Effect.ALLOW,
                 principals=[StarPrincipal()],
-                actions=['s3:ReplicateDelete', 's3:ReplicateObject', 's3:ReplicateTags'],
+                actions=['s3:ReplicateObject', 's3:ReplicateTags'],
                 resources=[self.arn_for_objects('_logs/${aws:PrincipalAccount}/*')],
                 conditions={'StringEquals': {'aws:PrincipalOrgID': ['${aws:ResourceOrgId}']}},
             )

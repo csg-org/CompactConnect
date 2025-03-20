@@ -5,6 +5,9 @@ from stacks.stages import LogsAccountStage, ManagementAccountStage
 
 class LogAggregationApp(App):
     def __init__(self, *args, **kwargs):
+        """
+        An app for deploying log aggregation infrastructure across a multi-account organization.
+        """
         super().__init__(*args, **kwargs)
 
         # Get account IDs from context (all fields are required)
