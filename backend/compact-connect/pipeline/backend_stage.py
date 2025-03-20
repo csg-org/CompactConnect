@@ -74,6 +74,7 @@ class BackendStage(Stage):
                 'ReportingStack',
                 env=environment,
                 environment_context=environment_context,
+                environment_name=environment_name,
                 standard_tags=standard_tags,
                 persistent_stack=self.persistent_stack,
             )

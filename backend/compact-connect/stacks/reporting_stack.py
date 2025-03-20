@@ -19,8 +19,12 @@ from stacks import persistent_stack as ps
 
 
 class ReportingStack(AppStack):
-    def __init__(self, scope: Construct, construct_id: str, *, persistent_stack: ps.PersistentStack, **kwargs):
+    def __init__(self, scope: Construct, construct_id: str, *,
+                 environment_name: str, persistent_stack: ps.PersistentStack, **kwargs):
         super().__init__(scope, construct_id, **kwargs)
+        # add the ENVIRONMENT_NAME to the common lambda environment variables
+        self.environment_name = environment_name
+        self.common_env_vars['ENVIRONMENT_NAME'] = environment_name
         self._add_ingest_event_reporting_chain(persistent_stack)
         self._add_transaction_reporting_chain(persistent_stack)
 
