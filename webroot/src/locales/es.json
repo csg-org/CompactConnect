@@ -497,6 +497,7 @@
         "stateProvidedEmail": "Correo electrónico proporcionado por el estado",
         "accountEmail": "Correo electrónico de la cuenta",
         "searchSubtext": "Introduzca al menos un campo para buscar datos de licencia.",
+        "searchStateDisabled": "Por favor, primero seleccione un tipo de profesión",
         "searchLabel": "Editar búsqueda",
         "searchPlaceholderName": "Introducir nombre",
         "homeState": "Estado de origen",

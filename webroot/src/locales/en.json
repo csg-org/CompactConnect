@@ -499,6 +499,7 @@
         "searchTitle": "Begin a search",
         "searchTitlePublic": "Verify a compact privilege",
         "searchSubtext": "Enter at least one field to search for licensing data.",
+        "searchStateDisabled": "Please first select a profession type",
         "licenseExpiredMessage": "Your license has expired.",
         "searchLabel": "Edit search",
         "searchPlaceholderName": "Enter name",

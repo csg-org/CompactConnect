@@ -201,6 +201,11 @@ class LicenseeList extends Vue {
 
     resetSearch(): void {
         this.$store.dispatch('license/resetStoreSearch');
+
+        if (this.isPublicSearch) {
+            this.$store.dispatch('user/setCurrentCompact', null);
+        }
+
         this.toggleSearch();
     }
 

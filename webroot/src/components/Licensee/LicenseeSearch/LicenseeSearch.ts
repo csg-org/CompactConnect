@@ -125,6 +125,11 @@ class LicenseeSearch extends mixins(MixinForm) {
                 label: computed(() => this.$t('common.stateJurisdiction')),
                 valueOptions: this.stateOptions,
                 value: this.searchParams.state || '',
+                isDisabled: computed(() => {
+                    const isCompactSelected = !!this.compactType;
+
+                    return (this.enableCompactSelect) ? !isCompactSelected : false;
+                }),
             }),
             submit: new FormInput({
                 isSubmitInput: true,

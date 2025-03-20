@@ -20,7 +20,11 @@
                 />
             </div>
             <div class="search-form-row">
-                <InputSelect :formInput="formData.state" class="search-input state-select" />
+                <InputSelect
+                    :formInput="formData.state"
+                    class="search-input state-select"
+                    :title="(formData.state.isDisabled) ? $t('licensing.searchStateDisabled') : ''"
+                />
             </div>
             <div class="search-form-row">
                 <InputText
