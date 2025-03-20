@@ -310,8 +310,7 @@ class AuthorizeNetPaymentProcessorClient(PaymentProcessorClient):
         for jurisdiction in selected_jurisdictions:
             jurisdiction_name_title_case = jurisdiction.jurisdiction_name.title()
             privilege_line_item = apicontractsv1.lineItemType()
-            privilege_line_item.itemId = \
-                f'priv:{compact_configuration.compact_abbr}-{jurisdiction.postal_abbreviation}-{license_type_abbreviation}'
+            privilege_line_item.itemId = f'priv:{compact_configuration.compact_abbr}-{jurisdiction.postal_abbreviation}-{license_type_abbreviation}'  # noqa: E501
             privilege_line_item.name = f'{jurisdiction_name_title_case} Compact Privilege'
             privilege_line_item.quantity = '1'
             privilege_line_item.unitPrice = _calculate_jurisdiction_fee(jurisdiction, user_active_military)
@@ -842,7 +841,7 @@ class PurchaseClient:
         compact_configuration: Compact,
         selected_jurisdictions: list[Jurisdiction],
         license_type_abbreviation: str,
-        user_active_military: bool
+        user_active_military: bool,
     ) -> dict:
         """
         Process a charge on a credit card for a list of privileges within a compact.

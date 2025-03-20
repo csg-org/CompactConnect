@@ -91,7 +91,7 @@ def test_purchasing_privilege():
     # query for all ne related privilege records
     original_privilege_records = dynamodb_table.query(
         KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
-                               & Key('sk').begins_with(f'{compact}#PROVIDER#privilege/ne/')
+        & Key('sk').begins_with(f'{compact}#PROVIDER#privilege/ne/')
     ).get('Items', [])
     for privilege in original_privilege_records:
         # delete the privilege records

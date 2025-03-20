@@ -489,7 +489,8 @@ class DataClient:
         # as a safety precaution, we must ensure that every privilege in the list matches the license type that we
         # attempted to change privilege for
         existing_privileges_by_jurisdiction = {
-            privilege['jurisdiction']: privilege for privilege in existing_privileges_for_license_type
+            privilege['jurisdiction']: privilege
+            for privilege in existing_privileges_for_license_type
             if privilege['licenseType'] == license_type
         }
 

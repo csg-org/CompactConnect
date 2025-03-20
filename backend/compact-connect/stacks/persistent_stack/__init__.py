@@ -377,8 +377,8 @@ class PersistentStack(AppStack):
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
-                              'specific actions, Table and Key that this lambda needs access to in order to perform the'
-                              'migration.',
+                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
+                    'migration.',
                 },
             ],
         )

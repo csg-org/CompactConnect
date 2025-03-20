@@ -341,7 +341,7 @@ class TestPostPurchasePrivileges(TstFunction):
         self.assertEqual(
             {
                 'message': "Selected privilege jurisdiction 'ky' matches existing privilege "
-                           "jurisdiction for license type"
+                'jurisdiction for license type'
             },
             response_body,
         )
