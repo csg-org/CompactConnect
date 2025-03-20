@@ -19,6 +19,7 @@ class TstLambdas(TestCase):
                 'USERS_TABLE_NAME': 'users-table',
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["al", "co"]',
+                'ENVIRONMENT_NAME': 'test',
             },
         )
         # Monkey-patch config object to be sure we have it based

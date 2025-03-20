@@ -26,9 +26,7 @@ class IngestStack(AppStack):
         persistent_stack: ps.PersistentStack,
         **kwargs,
     ):
-        super().__init__(scope, construct_id, **kwargs)
-        # add the ENVIRONMENT_NAME to the common lambda environment variables
-        self.common_env_vars['ENVIRONMENT_NAME'] = environment_name
+        super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
         self._add_v1_ingest_chain(persistent_stack)
 
     def _add_v1_ingest_chain(self, persistent_stack: ps.PersistentStack):

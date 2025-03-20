@@ -20,7 +20,7 @@ class TransactionMonitoringStack(AppStack):
         persistent_stack: ps.PersistentStack,
         **kwargs,
     ):
-        super().__init__(scope, construct_id, **kwargs)
+        super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
 
         self.compact_state_machines = {}
         # we create a state machine for each compact in order to keep permissions separate

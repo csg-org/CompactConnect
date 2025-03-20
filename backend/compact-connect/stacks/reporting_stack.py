@@ -28,10 +28,7 @@ class ReportingStack(AppStack):
         persistent_stack: ps.PersistentStack,
         **kwargs,
     ):
-        super().__init__(scope, construct_id, **kwargs)
-        # add the ENVIRONMENT_NAME to the common lambda environment variables
-        self.environment_name = environment_name
-        self.common_env_vars['ENVIRONMENT_NAME'] = environment_name
+        super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
         self._add_ingest_event_reporting_chain(persistent_stack)
         self._add_transaction_reporting_chain(persistent_stack)
 

@@ -43,28 +43,19 @@ def do_migration(_properties: dict) -> None:
                     logger.info('No type defined. Skipping record.', pk=provider_record['pk'], sk=provider_record['sk'])
                     continue
                 # Prepare key for update_item
-                key = {
-                    'pk': provider_record['pk'],
-                    'sk': provider_record['sk']
-                }
+                key = {'pk': provider_record['pk'], 'sk': provider_record['sk']}
 
                 if provider_record['type'] == 'provider' or provider_record['type'] == 'license':
                     # Use update_item with REMOVE expression to safely remove the field
-                    update_expression = "REMOVE militaryWaiver"
+                    update_expression = 'REMOVE militaryWaiver'
                     logger.info('Updating record', pk=provider_record['pk'], sk=provider_record['sk'])
-                    config.provider_table.update_item(
-                        Key=key,
-                        UpdateExpression=update_expression
-                    )
+                    config.provider_table.update_item(Key=key, UpdateExpression=update_expression)
                     success_count += 1
                 elif provider_record['type'] == 'licenseUpdate':
                     # For licenseUpdate, we need to remove from both previous and updatedValues objects
-                    update_expression = "REMOVE previous.militaryWaiver, updatedValues.militaryWaiver"
+                    update_expression = 'REMOVE previous.militaryWaiver, updatedValues.militaryWaiver'
                     logger.info('Updating licenseUpdate record', pk=provider_record['pk'], sk=provider_record['sk'])
-                    config.provider_table.update_item(
-                        Key=key,
-                        UpdateExpression=update_expression
-                    )
+                    config.provider_table.update_item(Key=key, UpdateExpression=update_expression)
                     success_count += 1
                 else:
                     logger.info('Skipping record', pk=provider_record['pk'], sk=provider_record['sk'])
@@ -82,6 +73,6 @@ def do_migration(_properties: dict) -> None:
         scan_pagination = {'ExclusiveStartKey': last_evaluated_key}
 
     # Log final statistics
-    logger.info(f"Removed militaryWaiver field from {success_count} records")
+    logger.info(f'Removed militaryWaiver field from {success_count} records')
     if error_count > 0:
         raise RuntimeError('military waiver removal migration completed with errors')

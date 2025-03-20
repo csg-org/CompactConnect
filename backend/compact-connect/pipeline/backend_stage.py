@@ -52,6 +52,7 @@ class BackendStage(Stage):
             'UIStack',
             env=environment,
             environment_context=environment_context,
+            environment_name=environment_name,
             standard_tags=standard_tags,
             github_repo_string=github_repo_string,
             persistent_stack=self.persistent_stack,

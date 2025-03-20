@@ -16,6 +16,7 @@ class TstLambdas(TestCase):
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["oh", "ky", "ne"]',
                 'COMPACT_CONFIGURATION_TABLE_NAME': 'compact-configuration-table',
+                'ENVIRONMENT_NAME': 'test',
             },
         )
         # Monkey-patch config object to be sure we have it based

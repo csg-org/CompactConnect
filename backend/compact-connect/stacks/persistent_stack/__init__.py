@@ -51,7 +51,9 @@ class PersistentStack(AppStack):
         environment_context: dict,
         **kwargs,
     ) -> None:
-        super().__init__(scope, construct_id, environment_context=environment_context, **kwargs)
+        super().__init__(
+            scope, construct_id, environment_context=environment_context, environment_name=environment_name, **kwargs
+        )
         # If we delete this stack, retain the resource (orphan but prevent data loss) or destroy it (clean up)?
         removal_policy = RemovalPolicy.RETAIN if environment_name == 'prod' else RemovalPolicy.DESTROY
 
@@ -377,13 +379,13 @@ class PersistentStack(AppStack):
                 {
                     'id': 'AwsSolutions-IAM5',
                     'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
-                              'specific actions, Table and Key that this lambda needs access to in order to perform the'
-                              'migration.',
+                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
+                    'migration.',
                 },
             ],
         )
 
-    def _create_email_notification_service(self, environment_name: str) -> None:
+    def _create_email_notification_service(self) -> None:
         """This lambda is intended to be a general purpose email notification service.
 
         It can be invoked directly to send an email if the lambda is deployed in an environment that has a domain name.
@@ -409,7 +411,6 @@ class PersistentStack(AppStack):
                 'COMPACT_CONFIGURATION_TABLE_NAME': self.compact_configuration_table.table_name,
                 'TRANSACTION_REPORTS_BUCKET_NAME': self.transaction_reports_bucket.bucket_name,
                 'UI_BASE_PATH_URL': self.get_ui_base_path_url(),
-                'ENVIRONMENT_NAME': environment_name,
                 **self.common_env_vars,
             },
         )
