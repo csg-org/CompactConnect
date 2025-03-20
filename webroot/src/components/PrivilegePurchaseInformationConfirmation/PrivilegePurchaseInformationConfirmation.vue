@@ -18,7 +18,7 @@
                 <div v-if="!areFormInputsSet" class="loading-container">
                     <LoadingSpinner v-if="!userStore.isLoadingAccount" />
                 </div>
-                <div class="confirm-info-content-container" :class="{ 'right-gap': areFormInputsSet }" v-else>
+                <div v-else class="confirm-info-content-container" :class="{ 'right-gap': areFormInputsSet }">
                     <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                     <div class="personal-info-title">
                         {{$t('licensing.personalInfoTitle')}}

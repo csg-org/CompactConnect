@@ -178,7 +178,6 @@ describe('Licensee model', () => {
         expect(licensee.privilegeStatesDisplay()).to.equal('');
         expect(licensee.licenseTypeName()).to.equal('Audiologist');
         expect(licensee.canPurchasePrivileges()).to.equal(false);
-
         expect(licensee.homeJurisdictionLicenses()).to.be.an('array').with.length(0);
         expect(licensee.activeHomeJurisdictionLicenses()).to.be.an('array').with.length(0);
         expect(licensee.inactiveHomeJurisdictionLicenses()).to.be.an('array').with.length(0);
@@ -283,7 +282,6 @@ describe('Licensee model', () => {
         expect(licensee.privilegeStatesDisplay()).to.equal('');
         expect(licensee.licenseTypeName()).to.equal('Audiologist');
         expect(licensee.canPurchasePrivileges()).to.equal(true);
-
         expect(licensee.homeJurisdictionLicenses()).to.be.an('array').with.length(2);
         expect(licensee.activeHomeJurisdictionLicenses()).to.be.an('array').with.length(1);
         expect(licensee.activeHomeJurisdictionLicenses()[0].licenseNumber).to.equal('1');
@@ -534,7 +532,6 @@ describe('Licensee model', () => {
         expect(licensee.privilegeStatesAllDisplay()).to.equal('Colorado');
         expect(licensee.privilegeStatesDisplay()).to.equal('Colorado');
         expect(licensee.licenseTypeName()).to.equal('Audiologist');
-
         expect(licensee.homeJurisdictionDisplay()).to.be.equal('Colorado');
         expect(licensee.homeJurisdictionLicenses()).to.be.an('array').with.length(4);
         expect(licensee.activeHomeJurisdictionLicenses()).to.be.an('array').with.length(3);

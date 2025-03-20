@@ -20,7 +20,7 @@ export const staffAccount = {
         email: 'test@example.com',
     },
     permissions: {
-        aslp: {
+        octp: {
             actions: {
                 admin: true,
                 readPrivate: true,
@@ -53,7 +53,7 @@ export const staffAccount = {
                 },
             },
         },
-        octp: {
+        aslp: {
             actions: {
                 admin: true,
                 readPrivate: true,
@@ -136,7 +136,7 @@ export const uploadRequestData = {
 export const privilegePurchaseOptionsResponse = {
     items: [
         {
-            compactAbbr: 'aslp',
+            compactAbbr: 'octp',
             compactCommissionFee: {
                 feeType: 'FLAT_RATE',
                 feeAmount: 3.5
@@ -153,7 +153,7 @@ export const privilegePurchaseOptionsResponse = {
         {
             jurisdictionName: 'kentucky',
             postalAbbreviation: 'ky',
-            compact: 'aslp',
+            compact: 'octp',
             jurisdictionFee: 100,
             militaryDiscount: {
                 active: true,
@@ -168,7 +168,7 @@ export const privilegePurchaseOptionsResponse = {
         {
             jurisdictionName: 'nebraska',
             postalAbbreviation: 'ne',
-            compact: 'aslp',
+            compact: 'octp',
             jurisdictionFee: 100,
             militaryDiscount: {
                 active: true,
@@ -183,7 +183,7 @@ export const privilegePurchaseOptionsResponse = {
         {
             jurisdictionName: 'ohio',
             postalAbbreviation: 'oh',
-            compact: 'aslp',
+            compact: 'octp',
             jurisdictionFee: 100,
             militaryDiscount: {
                 active: true,
@@ -198,7 +198,7 @@ export const privilegePurchaseOptionsResponse = {
         {
             jurisdictionName: 'massachusetts',
             postalAbbreviation: 'ma',
-            compact: 'aslp',
+            compact: 'octp',
             jurisdictionFee: 100,
             militaryDiscount: {
                 active: false,
@@ -213,7 +213,7 @@ export const privilegePurchaseOptionsResponse = {
         {
             jurisdictionName: 'vermont',
             postalAbbreviation: 'vt',
-            compact: 'aslp',
+            compact: 'octp',
             jurisdictionFee: 100,
             militaryDiscount: {
                 active: false,
@@ -228,7 +228,7 @@ export const privilegePurchaseOptionsResponse = {
         {
             jurisdictionName: 'virginia',
             postalAbbreviation: 'va',
-            compact: 'aslp',
+            compact: 'octp',
             jurisdictionFee: 100,
             militaryDiscount: {
                 active: false,
@@ -243,7 +243,7 @@ export const privilegePurchaseOptionsResponse = {
         {
             jurisdictionName: 'colorado',
             postalAbbreviation: 'co',
-            compact: 'aslp',
+            compact: 'octp',
             jurisdictionFee: 100,
             militaryDiscount: {
                 active: false,
@@ -258,7 +258,7 @@ export const privilegePurchaseOptionsResponse = {
         {
             jurisdictionName: 'maine',
             postalAbbreviation: 'me',
-            compact: 'aslp',
+            compact: 'octp',
             jurisdictionFee: 100,
             militaryDiscount: {
                 active: false,
@@ -273,7 +273,7 @@ export const privilegePurchaseOptionsResponse = {
         {
             jurisdictionName: 'connecticut',
             postalAbbreviation: 'ct',
-            compact: 'aslp',
+            compact: 'octp',
             jurisdictionFee: 100,
             militaryDiscount: {
                 active: false,
@@ -288,7 +288,7 @@ export const privilegePurchaseOptionsResponse = {
         {
             jurisdictionName: 'rhode island',
             postalAbbreviation: 'ri',
-            compact: 'aslp',
+            compact: 'octp',
             jurisdictionFee: 100,
             militaryDiscount: {
                 active: false,
@@ -303,7 +303,7 @@ export const privilegePurchaseOptionsResponse = {
         {
             jurisdictionName: 'nevada',
             postalAbbreviation: 'nv',
-            compact: 'aslp',
+            compact: 'octp',
             jurisdictionFee: 100,
             militaryDiscount: {
                 active: false,
@@ -318,7 +318,7 @@ export const privilegePurchaseOptionsResponse = {
         {
             jurisdictionName: 'kansas',
             postalAbbreviation: 'ks',
-            compact: 'aslp',
+            compact: 'octp',
             jurisdictionFee: 100,
             militaryDiscount: {
                 active: false,
@@ -333,7 +333,7 @@ export const privilegePurchaseOptionsResponse = {
         {
             jurisdictionName: 'alaska',
             postalAbbreviation: 'ak',
-            compact: 'aslp',
+            compact: 'octp',
             jurisdictionFee: 100,
             militaryDiscount: {
                 active: false,
@@ -348,7 +348,7 @@ export const privilegePurchaseOptionsResponse = {
         {
             jurisdictionName: 'arkansas',
             postalAbbreviation: 'ar',
-            compact: 'aslp',
+            compact: 'octp',
             jurisdictionFee: 100,
             militaryDiscount: {
                 active: false,
@@ -375,7 +375,7 @@ export const licensees = {
         {
             homeJurisdictionSelection: {
                 dateOfSelection: '2025-02-19',
-                compact: 'aslp',
+                compact: 'octp',
                 providerId: '1',
                 jurisdiction: 'co',
                 type: 'homeJurisdictionSelection',
@@ -385,23 +385,25 @@ export const licensees = {
                 {
                     licenseJurisdiction: 'al',
                     dateOfExpiration: '2025-08-29',
-                    compact: 'aslp',
+                    compact: 'octp',
                     providerId: '1',
                     type: 'privilege',
                     dateOfIssuance: '2022-08-29',
                     dateOfRenewal: '2024-08-29',
                     dateOfUpdate: '2024-08-29',
+                    licenseType: 'occupational therapy assistant',
                     status: 'inactive'
                 },
                 {
                     licenseJurisdiction: 'ak',
                     dateOfExpiration: '2025-08-29',
-                    compact: 'aslp',
+                    compact: 'octp',
                     providerId: '1',
                     type: 'privilege',
                     dateOfIssuance: '2023-08-29',
                     dateOfRenewal: '2024-08-29',
                     dateOfUpdate: '2024-08-29',
+                    licenseType: 'occupational therapy assistant',
                     status: 'active',
                     history: [{
                         type: 'privilegeUpdate',
@@ -422,10 +424,11 @@ export const licensees = {
                 {
                     licenseJurisdiction: 'ar',
                     dateOfExpiration: '2026-08-29',
-                    compact: 'aslp',
+                    compact: 'octp',
                     providerId: '1',
                     type: 'privilege',
                     dateOfIssuance: '2023-08-29',
+                    licenseType: 'occupational therapy assistant',
                     dateOfRenewal: '2024-08-29',
                     dateOfUpdate: '2024-08-29',
                     status: 'active'
@@ -433,10 +436,11 @@ export const licensees = {
                 {
                     licenseJurisdiction: 'ma',
                     dateOfExpiration: '2026-08-29',
-                    compact: 'aslp',
+                    compact: 'octp',
                     providerId: '1',
                     type: 'privilege',
                     dateOfIssuance: '2023-08-29',
+                    licenseType: 'occupational therapy assistant',
                     dateOfRenewal: '2024-08-29',
                     dateOfUpdate: '2024-08-29',
                     status: 'active'
@@ -444,21 +448,22 @@ export const licensees = {
                 {
                     licenseJurisdiction: 'me',
                     dateOfExpiration: '2020-08-29',
-                    compact: 'aslp',
+                    compact: 'octp',
                     providerId: '1',
                     type: 'privilege',
                     dateOfIssuance: '2019-08-29',
+                    licenseType: 'occupational therapy assistant',
                     dateOfRenewal: '2024-08-29',
                     dateOfUpdate: '2024-08-29',
                     status: 'inactive'
                 }
             ],
             licenseJurisdiction: 'co',
-            compact: 'aslp',
+            compact: 'octp',
             homeAddressStreet2: '',
             militaryAffiliations: [{
                 affiliationType: 'militaryMember',
-                compact: 'aslp',
+                compact: 'octp',
                 dateOfUpdate: '2024-08-29',
                 dateOfUpload: '2024-08-29',
                 documentKeys: 'key',
@@ -477,10 +482,10 @@ export const licensees = {
             ],
             type: 'provider',
             ssnLastFour: '1111',
-            licenseType: 'audiologist',
+            licenseType: 'occupational therapy assistant',
             licenses: [
                 {
-                    compact: 'aslp',
+                    compact: 'octp',
                     homeAddressStreet2: '',
                     npi: '6944447281',
                     licenseNumber: 'A-944447281',
@@ -492,7 +497,7 @@ export const licensees = {
                     type: 'license-home',
                     dateOfIssuance: '2023-08-29',
                     ssnLastFour: '1111',
-                    licenseType: 'audiologist',
+                    licenseType: 'occupational therapy assistant',
                     dateOfExpiration: '2025-08-29',
                     homeAddressState: 'co',
                     providerId: '1',
@@ -504,7 +509,7 @@ export const licensees = {
                     status: 'active'
                 },
                 {
-                    compact: 'aslp',
+                    compact: 'octp',
                     homeAddressStreet2: '',
                     npi: '6944447281',
                     licenseNumber: 'A-944447281',
@@ -516,8 +521,8 @@ export const licensees = {
                     type: 'license-home',
                     dateOfIssuance: '2023-08-29',
                     ssnLastFour: '1111',
-                    licenseType: 'audiologist',
-                    dateOfExpiration: '2024-08-29',
+                    licenseType: 'occupational therapist',
+                    dateOfExpiration: '2026-08-29',
                     homeAddressState: 'co',
                     providerId: '1',
                     dateOfRenewal: '2023-08-29',
@@ -525,10 +530,10 @@ export const licensees = {
                     homeAddressCity: 'Riverside',
                     middleName: '',
                     dateOfUpdate: '2023-08-29',
-                    status: 'inactive'
+                    status: 'active'
                 },
                 {
-                    compact: 'aslp',
+                    compact: 'octp',
                     homeAddressStreet2: '',
                     licenseNumber: 'A-944447281',
                     npi: '6944447281',
@@ -540,7 +545,7 @@ export const licensees = {
                     type: 'license-home',
                     dateOfIssuance: '2024-08-29',
                     ssnLastFour: '1111',
-                    licenseType: 'audiologist',
+                    licenseType: 'occupational therapy assistant',
                     dateOfExpiration: '2024-08-29',
                     homeAddressState: 'co',
                     providerId: '1',
@@ -552,7 +557,7 @@ export const licensees = {
                     status: 'inactive'
                 },
                 {
-                    compact: 'aslp',
+                    compact: 'octp',
                     homeAddressStreet2: '',
                     licenseNumber: 'A-944447281',
                     npi: '6944447281',
@@ -564,7 +569,7 @@ export const licensees = {
                     type: 'license-home',
                     dateOfIssuance: '2023-08-29',
                     ssnLastFour: '1111',
-                    licenseType: 'audiologist',
+                    licenseType: 'occupational therapy assistant',
                     dateOfExpiration: '2024-08-29',
                     homeAddressState: 'co',
                     providerId: '1',
@@ -576,7 +581,7 @@ export const licensees = {
                     status: 'inactive'
                 },
                 {
-                    compact: 'aslp',
+                    compact: 'octp',
                     homeAddressStreet2: '',
                     licenseNumber: 'A-944447281',
                     npi: '6944447281',
@@ -588,7 +593,7 @@ export const licensees = {
                     type: 'license-home',
                     dateOfIssuance: '2024-08-29',
                     ssnLastFour: '1111',
-                    licenseType: 'audiologist',
+                    licenseType: 'occupational therapy assistant',
                     dateOfExpiration: '2023-08-29',
                     homeAddressState: 'co',
                     providerId: '1',
@@ -613,7 +618,7 @@ export const licensees = {
         {
             homeJurisdictionSelection: {
                 dateOfSelection: '2025-02-19',
-                compact: 'aslp',
+                compact: 'octp',
                 providerId: '2',
                 jurisdiction: 'co',
                 type: 'homeJurisdictionSelection',
@@ -623,7 +628,7 @@ export const licensees = {
                 {
                     licenseJurisdiction: 'al',
                     dateOfExpiration: '2024-08-29',
-                    compact: 'aslp',
+                    compact: 'octp',
                     providerId: '2',
                     type: 'privilege',
                     dateOfIssuance: '2024-08-29',
@@ -632,7 +637,7 @@ export const licensees = {
                 }
             ],
             licenseJurisdiction: 'co',
-            compact: 'aslp',
+            compact: 'octp',
             homeAddressStreet2: '',
             npi: '2522457223',
             homeAddressPostalCode: '80302',
@@ -645,10 +650,10 @@ export const licensees = {
             ],
             type: 'provider',
             ssnLastFour: '2222',
-            licenseType: 'audiologist',
+            licenseType: 'occupational therapy assistant',
             licenses: [
                 {
-                    compact: 'aslp',
+                    compact: 'octp',
                     homeAddressStreet2: '',
                     npi: '2522457223',
                     homeAddressPostalCode: '80302',
@@ -659,7 +664,7 @@ export const licensees = {
                     type: 'license-home',
                     dateOfIssuance: '2024-08-29',
                     ssnLastFour: '2222',
-                    licenseType: 'audiologist',
+                    licenseType: 'occupational therapy assistant',
                     dateOfExpiration: '2024-08-29',
                     homeAddressState: 'co',
                     providerId: '2',
@@ -684,7 +689,7 @@ export const licensees = {
         {
             homeJurisdictionSelection: {
                 dateOfSelection: '2025-02-19',
-                compact: 'aslp',
+                compact: 'octp',
                 providerId: '3',
                 jurisdiction: 'co',
                 type: 'homeJurisdictionSelection',
@@ -694,7 +699,7 @@ export const licensees = {
                 {
                     licenseJurisdiction: 'al',
                     dateOfExpiration: '2024-08-29',
-                    compact: 'aslp',
+                    compact: 'octp',
                     providerId: '3',
                     type: 'privilege',
                     dateOfIssuance: '2024-08-29',
@@ -703,7 +708,7 @@ export const licensees = {
                 }
             ],
             licenseJurisdiction: 'co',
-            compact: 'aslp',
+            compact: 'octp',
             homeAddressStreet2: '',
             npi: '6944447283',
             homeAddressPostalCode: '80301',
@@ -718,10 +723,10 @@ export const licensees = {
             ],
             type: 'provider',
             ssnLastFour: '3333',
-            licenseType: 'audiologist',
+            licenseType: 'occupational therapy assistant',
             licenses: [
                 {
-                    compact: 'aslp',
+                    compact: 'octp',
                     homeAddressStreet2: '',
                     npi: '6944447283',
                     homeAddressPostalCode: '80301',
@@ -732,7 +737,7 @@ export const licensees = {
                     type: 'license-home',
                     dateOfIssuance: '2024-08-29',
                     ssnLastFour: '3333',
-                    licenseType: 'audiologist',
+                    licenseType: 'occupational therapy assistant',
                     dateOfExpiration: '2024-08-29',
                     homeAddressState: 'co',
                     providerId: '3',
@@ -757,7 +762,7 @@ export const licensees = {
         {
             homeJurisdictionSelection: {
                 dateOfSelection: '2025-02-19',
-                compact: 'aslp',
+                compact: 'octp',
                 providerId: '4',
                 jurisdiction: 'co',
                 type: 'homeJurisdictionSelection',
@@ -767,7 +772,7 @@ export const licensees = {
                 {
                     licenseJurisdiction: 'al',
                     dateOfExpiration: '2024-08-29',
-                    compact: 'aslp',
+                    compact: 'octp',
                     providerId: '4',
                     type: 'privilege',
                     dateOfIssuance: '2023-08-29',
@@ -777,7 +782,7 @@ export const licensees = {
                 {
                     licenseJurisdiction: 'ak',
                     dateOfExpiration: '2024-08-29',
-                    compact: 'aslp',
+                    compact: 'octp',
                     providerId: '4',
                     type: 'privilege',
                     dateOfIssuance: '2023-08-29',
@@ -787,7 +792,7 @@ export const licensees = {
                 {
                     licenseJurisdiction: 'ar',
                     dateOfExpiration: '2023-08-29',
-                    compact: 'aslp',
+                    compact: 'octp',
                     providerId: '4',
                     type: 'privilege',
                     dateOfIssuance: '2023-08-29',
@@ -796,7 +801,7 @@ export const licensees = {
                 }
             ],
             licenseJurisdiction: 'co',
-            compact: 'aslp',
+            compact: 'octp',
             homeAddressStreet2: '',
             npi: '6944447281',
             homeAddressPostalCode: '',
@@ -809,10 +814,10 @@ export const licensees = {
             ],
             type: 'provider',
             ssnLastFour: '4444',
-            licenseType: 'audiologist',
+            licenseType: 'occupational therapy assistant',
             licenses: [
                 {
-                    compact: 'aslp',
+                    compact: 'octp',
                     homeAddressStreet2: '',
                     npi: '6944447281',
                     homeAddressPostalCode: '',
@@ -823,7 +828,7 @@ export const licensees = {
                     type: 'license-home',
                     dateOfIssuance: '2024-08-29',
                     ssnLastFour: '4444',
-                    licenseType: 'audiologist',
+                    licenseType: 'occupational therapy assistant',
                     dateOfExpiration: '2024-08-29',
                     homeAddressState: 'co',
                     providerId: '4',
@@ -860,7 +865,7 @@ export const users = {
                 email: 'test@example.com',
             },
             permissions: {
-                aslp: {
+                octp: {
                     actions: {
                         admin: true,
                         readPrivate: true,
@@ -893,7 +898,7 @@ export const users = {
                         },
                     },
                 },
-                octp: {
+                aslp: {
                     actions: {
                         admin: true,
                         readPrivate: true,
@@ -969,7 +974,7 @@ export const users = {
                 email: 'test1@example.com',
             },
             permissions: {
-                aslp: {
+                octp: {
                     actions: {
                         admin: false,
                         readPrivate: false,
@@ -1012,7 +1017,7 @@ export const users = {
                 email: 'test2@example.com',
             },
             permissions: {
-                aslp: {
+                octp: {
                     actions: {
                         admin: false,
                         readPrivate: false,
@@ -1038,7 +1043,7 @@ export const attestation = {
     attestationId: 'test-id',
     dateCreated: '2020-01-01',
     dateOfUpdate: '2021-12-31',
-    compact: 'aslp',
+    compact: 'octp',
     type: 'test-type',
     displayName: 'Test Attestation',
     text: 'Test Text',
