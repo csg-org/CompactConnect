@@ -137,7 +137,7 @@ class PersistentStack(AppStack):
             # if domain name is not provided, use the default cognito email settings
             user_pool_email_settings = UserPoolEmail.with_cognito()
 
-        self._create_email_notification_service(environment_name)
+        self._create_email_notification_service()
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
         staff_prefix = f'{app_name}-staff'
