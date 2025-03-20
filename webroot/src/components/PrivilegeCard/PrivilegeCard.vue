@@ -69,7 +69,7 @@
             :aria-label="viewDetails"
             class="view-details-button"
             :isTransparent="true"
-            @click="goToViewDetailsPage"
+            @click="goToPrivilegeDetailsPage"
         />
         <TransitionGroup>
             <Modal

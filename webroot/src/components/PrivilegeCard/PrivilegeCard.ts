@@ -148,7 +148,7 @@ class PrivilegeCard extends mixins(MixinForm) {
     }
 
     get viewDetails(): string {
-        return this.$t('licensing.noDiscipline');
+        return this.$t('common.viewDetails');
     }
 
     get isPastExiprationDate(): boolean {
@@ -198,6 +198,13 @@ class PrivilegeCard extends mixins(MixinForm) {
 
     togglePrivilegeActionMenu(): void {
         this.isPrivilegeActionMenuDisplayed = !this.isPrivilegeActionMenuDisplayed;
+    }
+
+    goToPrivilegeDetailsPage(): void {
+        this.$router.push({
+            name: 'PrivilegeDetail',
+            params: { compact: this.currentCompactType, privilegeId: this.privilegeId }
+        });
     }
 
     closePrivilegeActionMenu(): void {
