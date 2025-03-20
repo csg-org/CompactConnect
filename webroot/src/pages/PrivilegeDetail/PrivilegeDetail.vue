@@ -20,9 +20,7 @@
                 {{ $t('military.militaryStatusTitle') }}
             </div>
             <PrivilegeDetailBlock
-                :licensee="licensee"
-                :currentCompactType="currentCompactType"
-                :shouldShowEditButtons="true"
+                :privilege="privilege"
             />
         </div>
     </div>

@@ -29,7 +29,7 @@ export default class PrivilegeDetail extends Vue {
     // Computed
     //
     get privilegeId(): string {
-        return this.$route.prive
+        return (this.$route.params.privilegeId as string || '');
     }
 
     //

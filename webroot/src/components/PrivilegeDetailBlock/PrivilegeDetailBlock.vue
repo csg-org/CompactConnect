@@ -6,7 +6,9 @@
 -->
 
 <template>
-    <h3>PrivilegeDetailBlock</h3>
+    <div class="core-info-block">
+        <h3>PrivilegeDetailBlock</h3>
+    </div>
 </template>
 
 <script lang="ts" src="./PrivilegeDetailBlock.ts"></script>
