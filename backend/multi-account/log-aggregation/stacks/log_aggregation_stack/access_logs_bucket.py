@@ -98,17 +98,6 @@ class AccessLogsBucket(Bucket):
             )
         )
 
-        # We'll add an explicit deny for everything outside our org, just as a misconfiguration protection
-        self.add_to_resource_policy(
-            PolicyStatement(
-                effect=Effect.DENY,
-                principals=[StarPrincipal()],
-                actions=['s3:*'],
-                resources=[self.bucket_arn, self.arn_for_objects('*')],
-                conditions={'StringNotEquals': {'aws:PrincipalOrgID': ['${aws:ResourceOrgId}']}},
-            )
-        )
-
         # No deleting objects. Period.
         self.add_to_resource_policy(
             PolicyStatement(
