@@ -280,12 +280,14 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
     purchase_client = PurchaseClient()
     transaction_response = None
     try:
+        license_type_abbr = config.license_type_abbreviations[compact_abbr][matching_license_record['licenseType']]
         transaction_response = purchase_client.process_charge_for_licensee_privileges(
             licensee_id=provider_id,
             order_information=body['orderInformation'],
             compact_configuration=compact,
             selected_jurisdictions=selected_jurisdictions,
-            user_active_military=user_active_military,
+            license_type_abbreviation=license_type_abbr,
+            user_active_military=user_active_military
         )
 
         # transaction was successful, now we create privilege records for the selected jurisdictions

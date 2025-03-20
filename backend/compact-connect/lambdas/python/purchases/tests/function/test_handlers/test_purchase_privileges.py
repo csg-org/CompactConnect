@@ -177,6 +177,7 @@ class TestPostPurchasePrivileges(TstFunction):
                 for jurisdiction in purchase_client_call_kwargs['selected_jurisdictions']
             ],
         )
+        self.assertEqual('slp', purchase_client_call_kwargs['license_type_abbreviation'])
         # in this test, the user had an empty list of military affiliations, so this should be false
         self.assertEqual(False, purchase_client_call_kwargs['user_active_military'])
 

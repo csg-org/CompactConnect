@@ -12,6 +12,7 @@ from moto import mock_aws
 from .. import TstFunction
 
 TEST_COMPACT = 'aslp'
+TEST_AUD_LICENSE_TYPE_ABBR = 'aud'
 # Test transaction data
 MOCK_TRANSACTION_ID = 'mockTransactionIdPlaceholder'
 MOCK_BATCH_ID = '67890'
@@ -75,7 +76,7 @@ def _generate_mock_transaction(
     line_items = [
         {
             'description': f'Compact Privilege for {jurisdiction.upper()}',
-            'itemId': f'priv:{TEST_COMPACT}-{jurisdiction}',
+            'itemId': f'priv:{TEST_COMPACT}-{jurisdiction}-{TEST_AUD_LICENSE_TYPE_ABBR}',
             'name': f'{jurisdiction.upper()} Compact Privilege',
             # setting this as '1.0' to simulate behavior we've seen returned from authorize.net
             'quantity': '1.0',
