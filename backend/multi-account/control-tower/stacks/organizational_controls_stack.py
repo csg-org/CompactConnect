@@ -5,7 +5,7 @@ from aws_cdk.aws_iam import Effect, PolicyDocument, PolicyStatement
 from aws_cdk.aws_organizations import CfnPolicy
 from constructs import Construct
 
-from multi_account.bare_org_stack import BareOrgStack
+from stacks.bare_org_stack import BareOrgStack
 
 
 class OrganizationalControlsStack(Stack):

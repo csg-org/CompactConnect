@@ -109,3 +109,17 @@ new AWS organization that we will set up here. Have them:
 - For your Test and Production accounts:
   - Configure your CLI to use the account
   - Run `cdk bootstrap <target account>/us-east-1 --trust <deploy account> --trust-for-lookup <deploy account> --cloudformation-execution-policies 'arn:aws:iam::aws:policy/AdministratorAccess'`
+
+## Log Aggregation Setup
+
+After setting up the multi-account architecture, you can deploy the log aggregation infrastructure to enable CloudTrail logging for DynamoDB data events:
+
+1. Navigate to the `backend/multi-account/log-aggregation` directory
+2. Follow the instructions in the README.md to:
+   - Configure the `cdk.context.json` file with your account IDs
+   - Deploy the logs account resources to the Logs account
+   - Deploy the management account resources to the Management account
+
+This will set up a CloudTrail organization trail that logs read operations on DynamoDB tables with the `-DataEventsLog` suffix across all accounts in the organization.
+
+The logs will be stored in an S3 bucket in the Logs account, and the trail itself will be managed from the Management account.

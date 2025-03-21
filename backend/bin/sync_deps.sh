@@ -4,8 +4,10 @@
 )
 
 pip-sync \
-  multi-account/requirements-dev.txt \
-  multi-account/requirements.txt \
+  multi-account/control-tower/requirements-dev.txt \
+  multi-account/control-tower/requirements.txt \
+  multi-account/log-aggregation/requirements-dev.txt \
+  multi-account/log-aggregation/requirements.txt \
   compact-connect/requirements-dev.txt \
   compact-connect/requirements.txt \
   compact-connect/lambdas/python/attestations/requirements-dev.txt \
