@@ -88,27 +88,27 @@ export default class PrivilegePurchase extends Vue {
     }
 
     get isSelectLicenseRoute(): boolean {
-        return Boolean(this.routeName === 'PrivilegePurchaseSelectLicense');
+        return this.routeName === 'PrivilegePurchaseSelectLicense';
     }
 
     get isConfirmInfoRoute(): boolean {
-        return Boolean(this.routeName === 'PrivilegePurchaseInformationConfirmation');
+        return this.routeName === 'PrivilegePurchaseInformationConfirmation';
     }
 
     get isSelectPrivilegesRoute(): boolean {
-        return Boolean(this.routeName === 'PrivilegePurchaseSelect');
+        return this.routeName === 'PrivilegePurchaseSelect';
     }
 
     get isAttestationRoute(): boolean {
-        return Boolean(this.routeName === 'PrivilegePurchaseAttestation');
+        return this.routeName === 'PrivilegePurchaseAttestation';
     }
 
     get isFinalizeRoute(): boolean {
-        return Boolean(this.routeName === 'PrivilegePurchaseFinalize');
+        return this.routeName === 'PrivilegePurchaseFinalize';
     }
 
     get isPurchaseSuccessfulRoute(): boolean {
-        return Boolean(this.routeName === 'PrivilegePurchaseSuccessful');
+        return this.routeName === 'PrivilegePurchaseSuccessful';
     }
 
     get currentFlowStep(): number {
