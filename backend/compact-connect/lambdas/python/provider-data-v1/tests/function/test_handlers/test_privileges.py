@@ -120,7 +120,7 @@ class TestDeactivatePrivilege(TstFunction):
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     @patch('cc_common.config._Config.email_service_client')
-    def test_board_admin_can_deactivate_privilege(self, mock_email_service_client):  # noqa: ARG002 unused-argument
+    def test_board_admin_cannot_deactivate_privilege(self, mock_email_service_client):  # noqa: ARG002 unused-argument
         """
         If a board admin has admin permission in the privilege jurisdiction, they can deactivate a privilege
         """
@@ -128,10 +128,8 @@ class TestDeactivatePrivilege(TstFunction):
 
         # The user has admin permission for ne
         resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
-        self.assertEqual(200, resp['statusCode'])
-        self.assertEqual({'message': 'OK'}, json.loads(resp['body']))
-
-        self._assert_the_privilege_was_deactivated()
+        self.assertEqual(403, resp['statusCode'])
+        self.assertEqual({'message': 'Access denied'}, json.loads(resp['body']))
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     @patch('cc_common.config._Config.email_service_client')
@@ -142,7 +140,7 @@ class TestDeactivatePrivilege(TstFunction):
         self._load_provider_data()
 
         # The user has admin permission for ne
-        resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
+        resp = self._request_deactivation_with_scopes('openid email aslp/admin')
         self.assertEqual(200, resp['statusCode'])
         self.assertEqual({'message': 'OK'}, json.loads(resp['body']))
 
@@ -172,7 +170,7 @@ class TestDeactivatePrivilege(TstFunction):
             privilege['persistedStatus'] = 'inactive'
             self.config.provider_table.put_item(Item=privilege)
         # calling deactivation on privilege that is already deactivated
-        resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
+        resp = self._request_deactivation_with_scopes('openid email aslp/admin')
 
         self.assertEqual(400, resp['statusCode'])
         self.assertEqual({'message': 'Privilege already deactivated'}, json.loads(resp['body']))
@@ -194,7 +192,7 @@ class TestDeactivatePrivilege(TstFunction):
         )
 
         # We expect the handler to still return a 200, since the privilege was deactivated
-        resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
+        resp = self._request_deactivation_with_scopes('openid email aslp/admin')
         self.assertEqual(200, resp['statusCode'])
 
         # Even though the first notification failed, the handler should still have attempted to send both
@@ -233,25 +231,13 @@ class TestDeactivatePrivilege(TstFunction):
         )
 
         # We expect the handler to still return a 200, since the privilege was deactivated
-        resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
+        resp = self._request_deactivation_with_scopes('openid email aslp/admin')
         self.assertEqual(200, resp['statusCode'])
 
         # assert metric was sent
         mock_metrics.add_metric.assert_called_once_with(
             name='privilege-deactivation-notification-failed', unit=MetricUnit.Count, value=1
         )
-
-    @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
-    def test_board_admin_outside_of_jurisdiction_cannot_deactivate_privilege(self):
-        """
-        If a board admin does not have admin permission in the privilege jurisdiction, they cannot deactivate a
-        privilege.
-        """
-        self._load_provider_data()
-
-        # The user has admin permission for oh
-        resp = self._request_deactivation_with_scopes('openid email oh/aslp.admin')
-        self.assertEqual(403, resp['statusCode'])
 
     @patch('cc_common.config._Config.current_standard_datetime', datetime.fromisoformat('2024-11-08T23:59:59+00:00'))
     def test_non_admin_cannot_deactivate_privilege(self):
@@ -270,5 +256,5 @@ class TestDeactivatePrivilege(TstFunction):
         If a privilege is not found, the response should be a 404
         """
         # Note lack of self._load_provider_data() here - we're _not_ loading the provider in this case
-        resp = self._request_deactivation_with_scopes('openid email ne/aslp.admin')
+        resp = self._request_deactivation_with_scopes('openid email aslp/admin')
         self.assertEqual(404, resp['statusCode'])

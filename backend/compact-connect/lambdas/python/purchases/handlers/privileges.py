@@ -221,7 +221,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
         user_provider_data['items'],
         ProviderRecordType.LICENSE,
         _filter=lambda record: record['licenseType'] == body['licenseType']
-                                and record['jurisdiction'] == home_state_selection,
+        and record['jurisdiction'] == home_state_selection,
     )
 
     if not matching_license_records:
@@ -287,7 +287,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             compact_configuration=compact,
             selected_jurisdictions=selected_jurisdictions,
             license_type_abbreviation=license_type_abbr,
-            user_active_military=user_active_military
+            user_active_military=user_active_military,
         )
 
         # transaction was successful, now we create privilege records for the selected jurisdictions
