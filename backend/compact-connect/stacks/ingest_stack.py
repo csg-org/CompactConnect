@@ -77,6 +77,8 @@ class IngestStack(AppStack):
             batch_size=50,
             encryption_key=persistent_stack.shared_encryption_key,
             alarm_topic=persistent_stack.alarm_topic,
+            # If any license updates fail to ingest, we want to know about it
+            dlq_count_alarm_threshold=1,
         )
 
         ingest_rule = Rule(

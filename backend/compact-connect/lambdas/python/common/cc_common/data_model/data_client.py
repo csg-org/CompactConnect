@@ -1,3 +1,4 @@
+import json
 import time
 from datetime import date
 from urllib.parse import quote
@@ -20,6 +21,7 @@ from cc_common.data_model.schema.military_affiliation import (
 )
 from cc_common.data_model.schema.military_affiliation.record import MilitaryAffiliationRecordSchema
 from cc_common.data_model.schema.privilege.record import PrivilegeUpdateRecordSchema
+from cc_common.event_batch_writer import EventBatchWriter
 from cc_common.exceptions import (
     CCAwsServiceException,
     CCInternalException,
@@ -846,7 +848,13 @@ class DataClient:
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
     def deactivate_privilege(
-        self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str
+        self,
+        *,
+        compact: str,
+        provider_id: str,
+        jurisdiction: str,
+        license_type_abbr: str,
+        event_batch_writer: EventBatchWriter | None = None,
     ) -> None:
         """
         Deactivate a privilege for a provider in a jurisdiction.
@@ -928,5 +936,26 @@ class DataClient:
                 },
             ],
         )
+        event_entry = {
+            'Source': 'org.compactconnect.provider-data',
+            'DetailType': 'privilege.deactivation',
+            'Detail': json.dumps(
+                {
+                    'eventTime': config.current_standard_datetime.isoformat(),
+                    'compact': compact,
+                    'jurisdiction': jurisdiction,
+                    'providerId': provider_id,
+                    'licenseTypeAbbr': license_type_abbr,
+                    'privilegeId': privilege_record['privilegeId'],
+                }
+            ),
+            'EventBusName': config.event_bus_name,
+        }
+        # We'll support using a provided event batch writer to send the event to the event bus
+        if event_batch_writer:
+            event_batch_writer.put_event(Entry=event_entry)
+        else:
+            # If no event batch writer is provided, we'll use the default event bus client
+            config.events_client.put_events(Entries=[event_entry])
 
         return privilege_record

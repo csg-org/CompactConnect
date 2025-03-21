@@ -11,7 +11,9 @@ from aws_cdk.aws_cognito import (
     CfnUserPoolResourceServer,
     CfnUserPoolRiskConfigurationAttachment,
 )
+from aws_cdk.aws_events import CfnRule
 from aws_cdk.aws_lambda import CfnFunction, CfnLayerVersion
+from aws_cdk.aws_sqs import CfnQueue
 from aws_cdk.aws_ssm import CfnParameter
 
 from tests.app.base import TstAppABC
@@ -42,21 +44,23 @@ class TestPipeline(TstAppABC, TestCase):
         ):
             self._check_no_stage_annotations(stage)
 
-        for api_stack in (self.app.pipeline_stack.test_stage.api_stack, self.app.pipeline_stack.prod_stage.api_stack):
-            with self.subTest(api_stack.stack_name):
-                self._inspect_api_stack(api_stack)
-
-        self._inspect_persistent_stack(
-            self.app.pipeline_stack.test_stage.persistent_stack,
-            domain_name='app.test.compactconnect.org',
-            allow_local_ui=True,
-        )
-        self._inspect_persistent_stack(
-            self.app.pipeline_stack.prod_stage.persistent_stack, domain_name='app.compactconnect.org'
-        )
-
-        for ui_stack in (self.app.pipeline_stack.test_stage.ui_stack, self.app.pipeline_stack.prod_stage.ui_stack):
-            self._inspect_ui_stack(ui_stack)
+        for stage_name, stage in [
+            ("test", self.app.pipeline_stack.test_stage),
+            ("prod", self.app.pipeline_stack.prod_stage)
+        ]:
+            self._inspect_api_stack(stage.api_stack)
+            if stage_name == 'test':
+                self._inspect_persistent_stack(
+                    stage.persistent_stack,
+                    domain_name='app.test.compactconnect.org',
+                    allow_local_ui=True,
+                )
+            else:
+                self._inspect_persistent_stack(
+                    stage.persistent_stack, domain_name='app.compactconnect.org'
+                )
+            self._inspect_ui_stack(stage.ui_stack)
+            self._inspect_reporting_stack(stage.reporting_stack)
 
     def _when_testing_compact_resource_servers(self, persistent_stack, environment_name):
         persistent_stack_template = Template.from_stack(persistent_stack)

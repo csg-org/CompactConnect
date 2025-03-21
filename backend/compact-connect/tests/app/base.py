@@ -13,13 +13,14 @@ from aws_cdk.aws_cognito import CfnUserPool, CfnUserPoolClient
 from aws_cdk.aws_dynamodb import CfnTable
 from aws_cdk.aws_events import CfnRule
 from aws_cdk.aws_kms import CfnKey
-from aws_cdk.aws_lambda import CfnEventSourceMapping
+from aws_cdk.aws_lambda import CfnEventSourceMapping, CfnFunction
 from aws_cdk.aws_s3 import CfnBucket
 from aws_cdk.aws_sqs import CfnQueue
 from common_constructs.stack import Stack
 from pipeline import BackendStage
 from stacks.api_stack import ApiStack
 from stacks.persistent_stack import PersistentStack
+from stacks.reporting_stack import ReportingStack
 from stacks.ui_stack import UIStack
 
 
@@ -358,6 +359,76 @@ class TstAppABC(ABC):
                 },
             )
 
+    def _inspect_reporting_stack(self, reporting_stack: ReportingStack):
+
+        reporting_stack_template = Template.from_stack(reporting_stack)
+        
+        # Get logical IDs
+        lambda_logical_id = reporting_stack.get_logical_id(
+            reporting_stack.node.find_child('PrivilegeDeactivationHandler').node.default_child
+        )
+        queue_logical_id = reporting_stack.get_logical_id(
+            reporting_stack.node.find_child('PrivilegeDeactivation').node.find_child('Queue').node.default_child
+        )
+        dlq_logical_id = reporting_stack.get_logical_id(
+            reporting_stack.node.find_child('PrivilegeDeactivation').node.find_child('DLQ').node.default_child
+        )
+        
+        # Verify Lambda handler configuration
+        privilege_deactivation_handler = self.get_resource_properties_by_logical_id(
+            lambda_logical_id,
+            reporting_stack_template.find_resources(CfnFunction.CFN_RESOURCE_TYPE_NAME),
+        )
+        self.assertEqual(
+            'handlers.privileges.privilege_deactivation_message_handler', 
+            privilege_deactivation_handler['Handler']
+        )
+        
+        # Verify EventBridge rule exists with correct pattern
+        reporting_stack_template.has_resource(
+            type=CfnRule.CFN_RESOURCE_TYPE_NAME,
+            props={
+                'Properties': {
+                    'EventPattern': {
+                        'detail-type': ['privilege.deactivation']
+                    },
+                    'State': 'ENABLED',
+                    'Targets': Match.array_with([
+                        Match.object_like({
+                            'Arn': {
+                                'Fn::GetAtt': [queue_logical_id, 'Arn']
+                            },
+                            'DeadLetterConfig': {
+                                'Arn': {
+                                    'Fn::GetAtt': [dlq_logical_id, 'Arn']
+                                }
+                            },
+                            'Id': 'Target0'
+                        })
+                    ])
+                }
+            },
+        )
+        
+        # Verify DLQ alarm threshold is set to 1 (stricter than default)
+        reporting_stack_template.has_resource(
+            type='AWS::CloudWatch::Alarm',
+            props={
+                'Properties': Match.object_like({
+                    'MetricName': 'ApproximateNumberOfMessagesVisible',
+                    'Dimensions': Match.array_with([
+                        {
+                            'Name': 'QueueName',
+                            'Value': {
+                                'Fn::GetAtt': [dlq_logical_id, 'QueueName']
+                            }
+                        }
+                    ]),
+                    'Threshold': 1  # Check that threshold is 1, not default 10
+                })
+            }
+        )
+
     def _check_no_stack_annotations(self, stack: Stack):
         with self.subTest(f'Security Rules: {stack.stack_name}'):
             errors = Annotations.from_stack(stack).find_error('*', Match.string_like_regexp('.*'))
@@ -374,7 +445,7 @@ class TstAppABC(ABC):
         self._check_no_stack_annotations(stage.api_stack)
         self._check_no_stack_annotations(stage.ingest_stack)
         self._check_no_stack_annotations(stage.transaction_monitoring_stack)
-        # There is on reporting stack if no hosted zone is configured
+        # There is no reporting stack if no hosted zone is configured
         if stage.persistent_stack.hosted_zone:
             self._check_no_stack_annotations(stage.reporting_stack)
 

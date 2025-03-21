@@ -30,10 +30,11 @@ class TestSandbox(TstSandbox):
 
     def test_api_stack(self):
         self._inspect_api_stack(self.app.sandbox_stage.api_stack)
-
         self._inspect_persistent_stack(
             self.app.sandbox_stage.persistent_stack, domain_name='app.justin.compactconnect.org', allow_local_ui=True
         )
+        self._inspect_ui_stack(self.app.sandbox_stage.ui_stack)
+        self._inspect_reporting_stack(self.app.sandbox_stage.reporting_stack)
 
 
 class TestSandboxNoDomain(TstSandbox):
