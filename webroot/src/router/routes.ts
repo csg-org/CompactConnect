@@ -106,6 +106,12 @@ const routes: Array<RouteConfig> = [
         meta: { requiresAuth: true, licenseeAccess: true },
         children: [
             {
+                path: 'SelectLicense',
+                name: 'PrivilegePurchaseSelectLicense',
+                component: () => import(/* webpackChunkName: "privilegePurchase" */ '@components/PrivilegePurchaseLicense/PrivilegePurchaseLicense.vue'),
+                meta: { requiresAuth: true, licenseeAccess: true, },
+            },
+            {
                 path: 'ConfirmInfo',
                 name: 'PrivilegePurchaseInformationConfirmation',
                 component: () => import(/* webpackChunkName: "privilegePurchase" */ '@components/PrivilegePurchaseInformationConfirmation/PrivilegePurchaseInformationConfirmation.vue'),

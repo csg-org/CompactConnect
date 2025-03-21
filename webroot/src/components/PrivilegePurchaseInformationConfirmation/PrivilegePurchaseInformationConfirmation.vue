@@ -8,14 +8,17 @@
 <template>
     <div class="privileges-info-container">
         <form class="confirm-info-form" @submit.prevent="handleSubmit">
-            <div  class="confirm-info-core-container" :class="{ 'right-gap': areFormInputsSet }">
-                <h1 class="privilege-purchase-title">
-                    {{$t('licensing.privilegePurchaseTitle')}}
-                </h1>
+            <div  class="confirm-info-core-container">
+                <div class="title-row">
+                    <h1 class="privilege-purchase-title">
+                        {{$t('licensing.privilegePurchaseTitle')}}
+                    </h1>
+                    <SelectedLicenseInfo class="license-info" />
+                </div>
                 <div v-if="!areFormInputsSet" class="loading-container">
                     <LoadingSpinner v-if="!userStore.isLoadingAccount" />
                 </div>
-                <div v-else>
+                <div v-else class="confirm-info-content-container" :class="{ 'right-gap': areFormInputsSet }">
                     <MockPopulate :isEnabled="isMockPopulateEnabled" @selected="mockPopulate" />
                     <div class="personal-info-title">
                         {{$t('licensing.personalInfoTitle')}}
@@ -38,16 +41,16 @@
                     </div>
                     <div class="chunk">
                         <div class="chunk-title">{{$t('payment.streetAddress')}}</div>
-                        <div class="chunk-text">{{homeStateLicenseMailingAddress.street1}}</div>
+                        <div class="chunk-text">{{licenseSelectedMailingAddress.street1}}</div>
                     </div>
                     <div class="chunk">
                         <div class="chunk-title">{{$t('payment.streetAddress2')}}</div>
-                        <div class="chunk-text">{{homeStateLicenseMailingAddress.street2}}</div>
+                        <div class="chunk-text">{{licenseSelectedMailingAddress.street2}}</div>
                     </div>
                     <div class="chunk-row">
                         <div class="chunk in-row">
                             <div class="chunk-title">{{$t('common.city')}}</div>
-                            <div class="chunk-text">{{homeStateLicenseMailingAddress.city}}</div>
+                            <div class="chunk-text">{{licenseSelectedMailingAddress.city}}</div>
                         </div>
                         <div class="chunk in-row">
                             <div class="chunk-title">{{$t('common.state')}}</div>
@@ -55,7 +58,7 @@
                         </div>
                         <div class="chunk in-row">
                             <div class="chunk-title">{{$t('common.zipCode')}}</div>
-                            <div class="chunk-text">{{homeStateLicenseMailingAddress.zip}}</div>
+                            <div class="chunk-text">{{licenseSelectedMailingAddress.zip}}</div>
                         </div>
                     </div>
                     <div class="chunk">

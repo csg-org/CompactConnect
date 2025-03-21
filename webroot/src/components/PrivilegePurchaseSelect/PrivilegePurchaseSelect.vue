@@ -10,9 +10,12 @@
         <div class="select-privileges-container">
             <form class="privilege-form" @submit.prevent="handleSubmit">
                 <div class="select-privileges-core-container">
-                    <h1 class="select-privileges-title">
-                        {{selectPrivilegesTitleText}}
-                    </h1>
+                    <div class="title-row">
+                        <h1 class="select-privileges-title">
+                            {{selectPrivilegesTitleText}}
+                        </h1>
+                        <SelectedLicenseInfo class="license-info" />
+                    </div>
                     <LoadingSpinner v-if="isLoading"></LoadingSpinner>
                     <div v-else>
                         <MockPopulate
@@ -26,7 +29,6 @@
                                     v-for="state in stateCheckList"
                                     :key="state.label"
                                     class="state-unit"
-
                                 >
                                     <div v-if="isStateSelectDisabled(state)" class="state-select-unit">
                                         <div class="disabled-state-overlay" />

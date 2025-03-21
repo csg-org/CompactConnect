@@ -62,10 +62,16 @@ export class LicenseeUserSerializer {
 }
 
 export class LicenseeUserPurchaseSerializer {
-    static toServer({ formValues, statesSelected, attestationsSelected }): any {
+    static toServer({
+        formValues,
+        statesSelected,
+        attestationsSelected,
+        selectedPurchaseLicense
+    }): any {
         const purchaseData: any = {
             selectedJurisdictions: statesSelected,
             attestations: attestationsSelected,
+            licenseType: selectedPurchaseLicense.licenseType,
             orderInformation: {
                 card: {
                     number: formValues.creditCard.replace(/\s+/g, ''),

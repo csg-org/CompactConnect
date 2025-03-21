@@ -18,6 +18,10 @@ import { PrivilegePurchaseOption } from '@models/PrivilegePurchaseOption/Privile
 import { PurchaseFlowStep } from '@models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { PurchaseFlowState } from '@models/PurchaseFlowState/PurchaseFlowState.model';
 import { State } from '@models/State/State.model';
+import { License } from '@models/License/License.model';
+import { LicenseeUser } from '@models/LicenseeUser/LicenseeUser.model';
+import { Licensee } from '@models/Licensee/Licensee.model';
+import { Address } from '@models/Address/Address.model';
 import mutations, { MutationTypes } from './user.mutations';
 import actions from './user.actions';
 import getters from './user.getters';
@@ -774,5 +778,54 @@ describe('User Store Getters', async () => {
         const nextStep = getters.getNextNeededPurchaseFlowStep(state)();
 
         expect(nextStep).to.equal(1);
+    });
+    it('should successfully get the saved license by Id', async () => {
+        const state = {
+            purchase: new PurchaseFlowState({
+                steps: [
+                    new PurchaseFlowStep({
+                        stepNum: 0,
+                        licenseSelected: 'license-1'
+                    }),
+                ],
+            }),
+            model: new LicenseeUser({
+                licensee: new Licensee({
+                    licenses: [
+                        new License({
+                            id: 'license-1',
+                            issueState: new State({ abbrev: 'co' }),
+                            mailingAddress: new Address({
+                                street1: 'test-street1',
+                                street2: 'test-street2',
+                                city: 'test-city',
+                                state: 'co',
+                                zip: 'test-zip'
+                            }),
+                            licenseNumber: '1',
+                            status: 'active'
+                        }),
+                        new License({
+                            id: 'license-2',
+                            issueState: new State({ abbrev: 'co' }),
+                            mailingAddress: new Address({
+                                street1: 'test-street1',
+                                street2: 'test-street2',
+                                city: 'test-city',
+                                state: 'co',
+                                zip: 'test-zip'
+                            }),
+                            licenseNumber: '2',
+                            status: 'inactive'
+                        }),
+                        new License(),
+                    ],
+                })
+            })
+        };
+
+        const licenseSelected = getters.getLicenseSelected(state)();
+
+        expect(licenseSelected.licenseNumber).to.equal('1');
     });
 });
