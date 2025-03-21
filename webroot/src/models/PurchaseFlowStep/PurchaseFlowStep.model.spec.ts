@@ -6,6 +6,7 @@
 //
 import { PurchaseFlowStep } from '@models/PurchaseFlowStep/PurchaseFlowStep.model';
 import { AcceptedAttestationToSend } from '@models/AcceptedAttestationToSend/AcceptedAttestationToSend.model';
+import { License } from '@models/License/License.model';
 
 import chaiMatchPattern from 'chai-match-pattern';
 import chai from 'chai';
@@ -22,6 +23,7 @@ describe('PurchaseFlowStep model', () => {
         expect(purchaseFlowStep.stepNum).to.equal(0);
         expect(purchaseFlowStep.attestationsAccepted).to.matchPattern([]);
         expect(purchaseFlowStep.selectedPrivilegesToPurchase).to.matchPattern([]);
+        expect(purchaseFlowStep.licenseSelected).to.equal(null);
     });
     it('should create a PurchaseFlowStep with specific values', () => {
         const data = {
@@ -30,13 +32,15 @@ describe('PurchaseFlowStep model', () => {
                 attestationId: 'attestation-id',
                 version: '1'
             })],
-            selectedPrivilegesToPurchase: ['ne']
+            selectedPrivilegesToPurchase: ['ne'],
+            licenseSelected: new License()
         };
         const purchaseFlowStep = new PurchaseFlowStep(data);
 
         expect(purchaseFlowStep).to.be.an.instanceof(PurchaseFlowStep);
         expect(purchaseFlowStep.stepNum).to.equal(0);
         expect(purchaseFlowStep.attestationsAccepted[0]).to.be.an.instanceof(AcceptedAttestationToSend);
+        expect(purchaseFlowStep.licenseSelected).to.be.an.instanceof(License);
         expect(purchaseFlowStep.selectedPrivilegesToPurchase[0]).to.be.equal('ne');
     });
 });

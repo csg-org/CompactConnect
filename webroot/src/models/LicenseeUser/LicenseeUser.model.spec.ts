@@ -11,6 +11,7 @@ import {
     LicenseeUserPurchaseSerializer
 } from '@models/LicenseeUser/LicenseeUser.model';
 import { LicenseeSerializer, Licensee } from '@models/Licensee/Licensee.model';
+import { License, LicenseType } from '@models/License/License.model';
 import { AcceptedAttestationToSend } from '@models/AcceptedAttestationToSend/AcceptedAttestationToSend.model';
 import i18n from '@/i18n';
 
@@ -92,7 +93,6 @@ describe('User model', () => {
             homeAddressPostalCode: '80302',
             givenName: 'Tyler',
             homeAddressStreet1: '1045 Pearl St',
-            militaryWaiver: true,
             dateOfBirth: '1975-01-01',
             privilegeJurisdictions: [
                 'al'
@@ -109,7 +109,6 @@ describe('User model', () => {
                     jurisdiction: 'co',
                     givenName: 'Tyler',
                     homeAddressStreet1: '1045 Pearl St',
-                    militaryWaiver: true,
                     dateOfBirth: '1975-01-01',
                     type: 'license-home',
                     dateOfIssuance: '2024-08-29',
@@ -175,7 +174,6 @@ describe('User model', () => {
             homeAddressPostalCode: '80302',
             givenName: 'Tyler',
             homeAddressStreet1: '1045 Pearl St',
-            militaryWaiver: true,
             dateOfBirth: '1975-01-01',
             privilegeJurisdictions: [
                 'al'
@@ -192,7 +190,6 @@ describe('User model', () => {
                     jurisdiction: 'co',
                     givenName: 'Tyler',
                     homeAddressStreet1: '1045 Pearl St',
-                    militaryWaiver: true,
                     dateOfBirth: '1975-01-01',
                     type: 'license-home',
                     dateOfIssuance: '2024-08-29',
@@ -264,10 +261,16 @@ describe('User model', () => {
             })
         ];
 
+        const selectedPurchaseLicense = new License({
+            id: 'test-id',
+            licenseType: LicenseType.AUDIOLOGIST,
+        });
+
         const requestData = LicenseeUserPurchaseSerializer.toServer({
             statesSelected,
             formValues,
-            attestationsSelected
+            attestationsSelected,
+            selectedPurchaseLicense
         });
 
         expect(requestData.selectedJurisdictions).to.matchPattern(['ne', 'ky']);
@@ -281,6 +284,7 @@ describe('User model', () => {
         expect(requestData.orderInformation.billing.streetAddress2).to.equal(formValues.streetAddress2);
         expect(requestData.orderInformation.billing.state).to.equal(formValues.stateSelect.toUpperCase());
         expect(requestData.orderInformation.billing.zip).to.equal(formValues.zip);
+        expect(requestData.licenseType).to.equal(selectedPurchaseLicense.licenseType);
         expect(requestData.attestations.length).to.equal(2);
     });
 });

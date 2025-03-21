@@ -15,7 +15,7 @@ from pipeline.backend_stage import BackendStage
 
 class PipelineStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, *, cdk_path: str, **kwargs):
-        super().__init__(scope, construct_id, **kwargs)
+        super().__init__(scope, construct_id, environment_name='pipeline', **kwargs)
 
         # If we delete this stack, retain the resource (orphan but prevent data loss) or destroy it (clean up)?
         removal_policy = RemovalPolicy.DESTROY

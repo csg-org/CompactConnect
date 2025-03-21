@@ -22,6 +22,8 @@ MOCK_LICENSEE_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
 
 MOCK_LICENSEE_TRANSACTION_FEE_AMOUNT = 5
 
+MOCK_LICENSE_TYPE_ABBR = 'slp'
+
 # Test constants for transaction history tests
 MOCK_BATCH_ID = '12345'
 MOCK_BATCH_ID_2 = '12346'
@@ -222,6 +224,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             order_information=_generate_default_order_information(),
             compact_configuration=_generate_aslp_compact_configuration(),
             selected_jurisdictions=_generate_selected_jurisdictions(),
+            license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
             user_active_military=False,
         )
 
@@ -245,6 +248,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             order_information=_generate_default_order_information(),
             compact_configuration=_generate_aslp_compact_configuration(),
             selected_jurisdictions=_generate_selected_jurisdictions(),
+            license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
             user_active_military=False,
         )
 
@@ -294,6 +298,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             order_information=_generate_default_order_information(),
             compact_configuration=_generate_aslp_compact_configuration(),
             selected_jurisdictions=_generate_selected_jurisdictions(),
+            license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
             user_active_military=False,
         )
 
@@ -303,7 +308,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         # we check every line item of the object to ensure that the correct values are being set
         self.assertEqual(2, len(api_contract_v1_obj.transactionRequest.lineItems.lineItem))
         # first line item is the jurisdiction fee
-        self.assertEqual('priv:aslp-oh', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
+        self.assertEqual('priv:aslp-oh-slp', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
         self.assertEqual('Ohio Compact Privilege', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].name)
         self.assertEqual(100.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].unitPrice)
         self.assertEqual(1, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].quantity)
@@ -346,6 +351,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             order_information=_generate_default_order_information(),
             compact_configuration=_generate_aslp_compact_configuration(include_licensee_charges=True),
             selected_jurisdictions=_generate_selected_jurisdictions(test_jurisdictions),
+            license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
             user_active_military=False,
         )
 
@@ -355,7 +361,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         # we check every line item of the object to ensure that the correct values are being set
         self.assertEqual(4, len(api_contract_v1_obj.transactionRequest.lineItems.lineItem))
         # first line item is the jurisdiction fee
-        self.assertEqual('priv:aslp-oh', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
+        self.assertEqual('priv:aslp-oh-slp', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
         self.assertEqual('Ohio Compact Privilege', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].name)
         self.assertEqual(50.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].unitPrice)
         self.assertEqual(1, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].quantity)
@@ -363,7 +369,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             'Compact Privilege for Ohio', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].description
         )
         # the second line item is the jurisdiction fee for kentucky
-        self.assertEqual('priv:aslp-ky', api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].itemId)
+        self.assertEqual('priv:aslp-ky-slp', api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].itemId)
         self.assertEqual(
             'Kentucky Compact Privilege', api_contract_v1_obj.transactionRequest.lineItems.lineItem[1].name
         )
@@ -413,6 +419,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             order_information=_generate_default_order_information(),
             compact_configuration=_generate_aslp_compact_configuration(),
             selected_jurisdictions=_generate_selected_jurisdictions(),
+            license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
             user_active_military=False,
         )
 
@@ -439,6 +446,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
             order_information=_generate_default_order_information(),
             compact_configuration=_generate_aslp_compact_configuration(),
             selected_jurisdictions=_generate_selected_jurisdictions(),
+            license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
             user_active_military=True,
         )
 
@@ -447,7 +455,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
         # we check every line item of the object to ensure that the correct values are being set
         self.assertEqual(2, len(api_contract_v1_obj.transactionRequest.lineItems.lineItem))
         # verify jurisdiction fee line item with military discount
-        self.assertEqual('priv:aslp-oh', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
+        self.assertEqual('priv:aslp-oh-slp', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].itemId)
         self.assertEqual('Ohio Compact Privilege', api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].name)
         self.assertEqual(75.00, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].unitPrice)
         self.assertEqual(1, api_contract_v1_obj.transactionRequest.lineItems.lineItem[0].quantity)
@@ -478,6 +486,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                 order_information=_generate_default_order_information(),
                 compact_configuration=_generate_aslp_compact_configuration(),
                 selected_jurisdictions=_generate_selected_jurisdictions(),
+                license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
                 user_active_military=False,
             )
 
@@ -498,6 +507,7 @@ class TestAuthorizeDotNetPurchaseClient(TstLambdas):
                 order_information=_generate_default_order_information(),
                 compact_configuration=_generate_aslp_compact_configuration(),
                 selected_jurisdictions=_generate_selected_jurisdictions(),
+                license_type_abbreviation=MOCK_LICENSE_TYPE_ABBR,
                 user_active_military=False,
             )
 

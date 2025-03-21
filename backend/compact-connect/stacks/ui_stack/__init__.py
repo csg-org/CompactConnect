@@ -18,10 +18,13 @@ class UIStack(AppStack):
         *,
         github_repo_string: str,
         environment_context: dict,
+        environment_name: str,
         persistent_stack: PersistentStack,
         **kwargs,
     ):
-        super().__init__(scope, construct_id, environment_context=environment_context, **kwargs)
+        super().__init__(
+            scope, construct_id, environment_context=environment_context, environment_name=environment_name, **kwargs
+        )
 
         ui_bucket = Bucket(
             self,

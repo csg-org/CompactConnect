@@ -320,7 +320,7 @@ class DataClient:
         license_expiration_date: date,
         compact_transaction_id: str,
         provider_record: dict,
-        existing_privileges: list[dict],
+        existing_privileges_for_license: list[dict],
         attestations: list[dict],
         license_type: str,
     ):
@@ -337,8 +337,8 @@ class DataClient:
         :param license_expiration_date: The license expiration date
         :param compact_transaction_id: The compact transaction id
         :param provider_record: The original provider record
-        :param existing_privileges: The list of existing privileges for this user. Used to track the original issuance
-        date of the privilege.
+        :param existing_privileges_for_license: The list of existing privileges for the specified license.
+        Used to track the original issuance date of the privilege.
         :param attestations: List of attestations that were accepted when purchasing the privileges
         :param license_type: The type of license (e.g. audiologist, speech-language-pathologist)
         """
@@ -360,8 +360,9 @@ class DataClient:
                 original_privilege = next(
                     (
                         record
-                        for record in existing_privileges
+                        for record in existing_privileges_for_license
                         if record['jurisdiction'].lower() == postal_abbreviation.lower()
+                        and record['licenseType'] == license_type
                     ),
                     None,
                 )
@@ -469,7 +470,8 @@ class DataClient:
             self._rollback_privilege_transactions(
                 processed_transactions=processed_transactions,
                 provider_record=provider_record,
-                existing_privileges=existing_privileges,
+                license_type=license_type,
+                existing_privileges_for_license_type=existing_privileges_for_license,
             )
             raise CCAwsServiceException(message) from e
 
@@ -477,14 +479,19 @@ class DataClient:
         self,
         processed_transactions: list[dict],
         provider_record: dict,
-        existing_privileges: list[dict],
+        license_type: str,
+        existing_privileges_for_license_type: list[dict],
     ):
         """Roll back successful privilege transactions after a failure."""
         rollback_transactions = []
 
         # Create a lookup of existing privileges by jurisdiction
+        # as a safety precaution, we must ensure that every privilege in the list matches the license type that we
+        # attempted to change privilege for
         existing_privileges_by_jurisdiction = {
-            privilege['jurisdiction']: privilege for privilege in existing_privileges
+            privilege['jurisdiction']: privilege
+            for privilege in existing_privileges_for_license_type
+            if privilege['licenseType'] == license_type
         }
 
         # Delete all privilege update records and handle privilege records appropriately
@@ -872,7 +879,7 @@ class DataClient:
         # If already inactive, do nothing
         if privilege_record.get('persistedStatus', 'active') == 'inactive':
             logger.info('Provider already inactive. Doing nothing.')
-            return
+            raise CCInvalidRequestException('Privilege already deactivated')
 
         # Create the update record
         # Use the schema to generate the update record with proper pk/sk
@@ -922,3 +929,5 @@ class DataClient:
                 },
             ],
         )
+
+        return privilege_record

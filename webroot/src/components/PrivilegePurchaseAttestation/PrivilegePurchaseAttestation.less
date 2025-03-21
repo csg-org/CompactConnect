@@ -15,12 +15,13 @@
 
         .privilege-purchase-attestation-form-container {
             width: 100%;
-            padding: 4rem 4rem 4rem 4rem;
+            padding: 4rem 2rem;
             border-radius: 12px;
             background-color: @white;
 
             @media @tabletWidth {
                 width: 72rem;
+                padding: 4rem 4rem 4rem 4rem;
             }
 
             @media @desktopWidth {
@@ -28,8 +29,26 @@
             }
         }
 
-        .form-title {
+        .title-row {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            justify-content: space-between;
             margin-bottom: 2.4rem;
+
+            @media @tabletWidth {
+                align-items: center;
+            }
+
+            .form-title {
+                font-weight: @fontWeightBold;
+            }
+
+            .license-info {
+                min-width: 10rem;
+                margin-top: 1rem;
+                margin-left: 1rem;
+            }
         }
 
         .form-section-title {

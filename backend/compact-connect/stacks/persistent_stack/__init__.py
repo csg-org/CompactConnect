@@ -51,7 +51,9 @@ class PersistentStack(AppStack):
         environment_context: dict,
         **kwargs,
     ) -> None:
-        super().__init__(scope, construct_id, environment_context=environment_context, **kwargs)
+        super().__init__(
+            scope, construct_id, environment_context=environment_context, environment_name=environment_name, **kwargs
+        )
         # If we delete this stack, retain the resource (orphan but prevent data loss) or destroy it (clean up)?
         removal_policy = RemovalPolicy.RETAIN if environment_name == 'prod' else RemovalPolicy.DESTROY
 
@@ -135,7 +137,7 @@ class PersistentStack(AppStack):
             # if domain name is not provided, use the default cognito email settings
             user_pool_email_settings = UserPoolEmail.with_cognito()
 
-        self._create_email_notification_service(environment_name)
+        self._create_email_notification_service()
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
         staff_prefix = f'{app_name}-staff'
@@ -360,7 +362,30 @@ class PersistentStack(AppStack):
             ],
         )
 
-    def _create_email_notification_service(self, environment_name: str) -> None:
+        military_waiver_removal_migration = DataMigration(
+            self,
+            '618RemoveMilitaryWaiver',
+            migration_dir='618_remove_military_waiver',
+            lambda_environment={
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
+                **self.common_env_vars,
+            },
+        )
+        self.provider_table.grant_read_write_data(military_waiver_removal_migration)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{military_waiver_removal_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
+                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
+                    'migration.',
+                },
+            ],
+        )
+
+    def _create_email_notification_service(self) -> None:
         """This lambda is intended to be a general purpose email notification service.
 
         It can be invoked directly to send an email if the lambda is deployed in an environment that has a domain name.
@@ -386,7 +411,6 @@ class PersistentStack(AppStack):
                 'COMPACT_CONFIGURATION_TABLE_NAME': self.compact_configuration_table.table_name,
                 'TRANSACTION_REPORTS_BUCKET_NAME': self.transaction_reports_bucket.bucket_name,
                 'UI_BASE_PATH_URL': self.get_ui_base_path_url(),
-                'ENVIRONMENT_NAME': environment_name,
                 **self.common_env_vars,
             },
         )

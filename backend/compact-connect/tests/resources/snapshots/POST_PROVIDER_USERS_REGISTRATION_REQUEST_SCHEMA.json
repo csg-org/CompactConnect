@@ -91,6 +91,13 @@
     },
     "licenseType": {
       "description": "Type of license",
+      "enum": [
+        "audiologist",
+        "speech-language pathologist",
+        "occupational therapist",
+        "occupational therapy assistant",
+        "licensed professional counselor"
+      ],
       "maxLength": 500,
       "type": "string"
     },

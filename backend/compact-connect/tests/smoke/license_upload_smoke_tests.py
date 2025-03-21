@@ -78,7 +78,6 @@ def upload_licenses_record():
             'givenName': TEST_PROVIDER_GIVEN_NAME,
             'familyName': TEST_PROVIDER_FAMILY_NAME,
             'homeAddressStreet1': '123 Fake Street',
-            'militaryWaiver': False,
             'dateOfBirth': '1991-12-10',
             'dateOfIssuance': '2024-12-10',
             'ssn': MOCK_SSN,

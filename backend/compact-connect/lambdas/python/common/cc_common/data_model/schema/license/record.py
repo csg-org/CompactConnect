@@ -2,7 +2,7 @@
 from urllib.parse import quote
 
 from marshmallow import ValidationError, post_dump, post_load, pre_dump, validates_schema
-from marshmallow.fields import UUID, Boolean, Date, DateTime, Email, List, Nested, String
+from marshmallow.fields import UUID, Date, DateTime, Email, List, Nested, String
 from marshmallow.validate import Length
 
 from cc_common.config import config
@@ -92,7 +92,6 @@ class LicenseUpdateRecordPreviousSchema(StrictSchema):
     homeAddressCity = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressState = String(required=True, allow_none=False, validate=Length(2, 100))
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
-    militaryWaiver = Boolean(required=False, allow_none=False)
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
     jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
