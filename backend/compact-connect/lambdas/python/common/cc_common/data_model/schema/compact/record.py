@@ -36,9 +36,8 @@ class CompactRecordSchema(ForgivingSchema, BaseRecordSchema):
     )
     licenseeRegistrationEnabledForEnvironments = List(
         String(required=True, allow_none=False, validate=OneOf(['test', 'prod', config.environment_name])),
-        required=False,
+        required=True,
         allow_none=False,
-        default=list,
     )
 
     # Generated fields

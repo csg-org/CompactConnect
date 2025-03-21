@@ -48,8 +48,7 @@ class JurisdictionRecordSchema(ForgivingSchema, BaseRecordSchema):
     licenseeRegistrationEnabledForEnvironments = List(
         String(required=True, allow_none=False, validate=OneOf(['test', 'prod', config.environment_name])),
         required=True,
-        allow_none=False,
-        default=list,
+        allow_none=False
     )
     jurisprudenceRequirements = Nested(
         JurisdictionJurisprudenceRequirementsRecordSchema(), required=True, allow_none=False
