@@ -1,12 +1,20 @@
 import json
 from datetime import datetime
 from unittest.mock import patch
+from boto3.dynamodb.types import TypeDeserializer
+
 
 from aws_lambda_powertools.metrics import MetricUnit
 from cc_common.exceptions import CCInternalException
 from moto import mock_aws
 
 from .. import TstFunction
+
+TEST_STAFF_USER_ID = 'a4182428-d061-701c-82e5-a3d1d547d797'
+TEST_STAFF_USER_EMAIL = 'test-staff-user@example.com'
+TEST_STAFF_USER_FIRST_NAME = 'Joe'
+TEST_STAFF_USER_LAST_NAME = 'Dokes'
+TEST_NOTE = 'User does not like having this privilege.'
 
 DEACTIVATION_HISTORY = {
     'type': 'privilegeUpdate',
@@ -16,6 +24,11 @@ DEACTIVATION_HISTORY = {
     'jurisdiction': 'ne',
     'licenseType': 'speech-language pathologist',
     'dateOfUpdate': '2024-11-08T23:59:59+00:00',
+    'deactivationDetails': {
+        'note': TEST_NOTE,
+        'deactivatedByStaffUserId': TEST_STAFF_USER_ID,
+        'deactivatedByStaffUserName': f'{TEST_STAFF_USER_FIRST_NAME} {TEST_STAFF_USER_LAST_NAME}'
+    },
     'previous': {
         'attestations': [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
         'dateOfIssuance': '2016-05-05T12:59:59+00:00',
@@ -33,6 +46,26 @@ DEACTIVATION_HISTORY = {
 
 @mock_aws
 class TestDeactivatePrivilege(TstFunction):
+    def setUp(self):
+        super().setUp()
+        # add test staff user to staff user dynamodb table
+        with open('../common/tests/resources/dynamo/user.json') as f:
+            staff_user = TypeDeserializer().deserialize({'M': json.load(f)})
+            # swap out the default test values with our constants
+            staff_user.update(
+                {
+                  "pk": f"USER#{TEST_STAFF_USER_ID}",
+                  "userId": TEST_STAFF_USER_ID,
+                  "attributes": {
+                    "email": TEST_STAFF_USER_EMAIL,
+                    "givenName": TEST_STAFF_USER_FIRST_NAME,
+                    "familyName": TEST_STAFF_USER_LAST_NAME
+                    }
+                }
+            )
+            # This item is saved in its serialized form, so we have to deserialize it first
+            self.config.users_table.put_item(Item=staff_user)
+
     def _assert_the_privilege_was_deactivated(self):
         from handlers.providers import get_provider
 
@@ -72,13 +105,14 @@ class TestDeactivatePrivilege(TstFunction):
             event = json.load(f)
 
         event['requestContext']['authorizer']['claims']['scope'] = scopes
+        event['requestContext']['authorizer']['claims']['sub'] = TEST_STAFF_USER_ID
         event['pathParameters'] = {
             'compact': 'aslp',
             'providerId': '89a6377e-c3a5-40e5-bca5-317ec854c570',
             'jurisdiction': 'ne',
             'licenseType': 'slp',
         }
-        event['body'] = None
+        event['body'] = json.dumps({'deactivationNote': TEST_NOTE})
 
         return deactivate_privilege(event, self.mock_context)
 
