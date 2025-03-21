@@ -14,7 +14,7 @@ TEST_LICENSE_TYPE = 'speech-language pathologist'
 MOCK_SSN_LAST_FOUR = '1234'
 MOCK_GIVEN_NAME = 'Joe'
 MOCK_FAMILY_NAME = 'Dokes'
-MOCK_JURISDICTION_POSTAL_CODE = 'ky'
+MOCK_JURISDICTION_POSTAL_ABBR = 'ky'
 MOCK_JURISDICTION_NAME = 'Kentucky'
 MOCK_DOB = '1990-01-01'
 # this is the provider id defined in the test resource files
@@ -39,10 +39,10 @@ def generate_default_compact_config_overrides():
 def generate_default_jurisdiction_config_overrides():
     return {
         'pk': f'{TEST_COMPACT_ABBR}#CONFIGURATION',
-        'sk': f'{TEST_COMPACT_ABBR}#JURISDICTION#{MOCK_JURISDICTION_POSTAL_CODE}',
+        'sk': f'{TEST_COMPACT_ABBR}#JURISDICTION#{MOCK_JURISDICTION_POSTAL_ABBR}',
         'compact': TEST_COMPACT_ABBR,
         'jurisdictionName': MOCK_JURISDICTION_NAME,
-        'postalAbbreviation': MOCK_JURISDICTION_POSTAL_CODE,
+        'postalAbbreviation': MOCK_JURISDICTION_POSTAL_ABBR,
         'licenseeRegistrationEnabledForEnvironments': ['test'],
     }
 
@@ -56,7 +56,7 @@ def generate_test_request():
         'email': 'test@example.com',
         'partialSocial': MOCK_SSN_LAST_FOUR,
         'dob': MOCK_DOB,
-        'jurisdiction': MOCK_JURISDICTION_POSTAL_CODE,
+        'jurisdiction': MOCK_JURISDICTION_POSTAL_ABBR,
         'licenseType': TEST_LICENSE_TYPE,
     }
 
@@ -97,7 +97,7 @@ class TestProviderRegistration(TstFunction):
                     'licenseType': TEST_LICENSE_TYPE,
                     'givenName': MOCK_GIVEN_NAME,
                     'familyName': MOCK_FAMILY_NAME,
-                    'jurisdiction': MOCK_JURISDICTION_POSTAL_CODE,
+                    'jurisdiction': MOCK_JURISDICTION_POSTAL_ABBR,
                     'compact': TEST_COMPACT_ABBR,
                     'providerId': MOCK_PROVIDER_ID,
                 }
@@ -114,7 +114,7 @@ class TestProviderRegistration(TstFunction):
                 'type': 'homeJurisdictionSelection',
                 'compact': TEST_COMPACT_ABBR,
                 'providerId': MOCK_PROVIDER_ID,
-                'jurisdiction': MOCK_JURISDICTION_POSTAL_CODE,
+                'jurisdiction': MOCK_JURISDICTION_POSTAL_ABBR,
                 'dateOfSelection': datetime.fromisoformat('2024-01-01T00:00:00Z'),
             }
             serialized_record = home_jurisdiction_schema.dump(home_jurisdiction_record)
@@ -265,7 +265,7 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual('homeJurisdictionSelection', home_jurisdiction['type'])
         self.assertEqual(TEST_COMPACT_ABBR, home_jurisdiction['compact'])
         self.assertEqual(provider_data['providerId'], home_jurisdiction['providerId'])
-        self.assertEqual(MOCK_JURISDICTION_POSTAL_CODE, home_jurisdiction['jurisdiction'])
+        self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, home_jurisdiction['jurisdiction'])
         self.assertIsNotNone(home_jurisdiction['dateOfSelection'])
         self.assertIsNotNone(home_jurisdiction['dateOfUpdate'])
 
@@ -376,7 +376,7 @@ class TestProviderRegistration(TstFunction):
             'type': 'homeJurisdictionSelection',
             'compact': TEST_COMPACT_ABBR,
             'providerId': MOCK_PROVIDER_ID,
-            'jurisdiction': MOCK_JURISDICTION_POSTAL_CODE,
+            'jurisdiction': MOCK_JURISDICTION_POSTAL_ABBR,
             'dateOfSelection': datetime.fromisoformat('2024-01-01T00:00:00Z'),
         }
         serialized_record = home_jurisdiction_schema.dump(home_jurisdiction_record)
@@ -518,7 +518,7 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual('homeJurisdictionSelection', home_jurisdiction['type'])
         self.assertEqual(TEST_COMPACT_ABBR, home_jurisdiction['compact'])
         self.assertEqual(provider_data['providerId'], home_jurisdiction['providerId'])
-        self.assertEqual(MOCK_JURISDICTION_POSTAL_CODE, home_jurisdiction['jurisdiction'])
+        self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, home_jurisdiction['jurisdiction'])
         self.assertIsNotNone(home_jurisdiction['dateOfSelection'])
         self.assertIsNotNone(home_jurisdiction['dateOfUpdate'])
 
@@ -577,7 +577,7 @@ class TestProviderRegistration(TstFunction):
         self.assertEqual('homeJurisdictionSelection', home_jurisdiction['type'])
         self.assertEqual(TEST_COMPACT_ABBR, home_jurisdiction['compact'])
         self.assertEqual(provider_data['providerId'], home_jurisdiction['providerId'])
-        self.assertEqual(MOCK_JURISDICTION_POSTAL_CODE, home_jurisdiction['jurisdiction'])
+        self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, home_jurisdiction['jurisdiction'])
         self.assertIsNotNone(home_jurisdiction['dateOfSelection'])
         self.assertIsNotNone(home_jurisdiction['dateOfUpdate'])
 
