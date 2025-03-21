@@ -352,6 +352,32 @@ class ApiModel:
         )
 
     @property
+    def post_privilege_deactivation_request_model(self) -> Model:
+        """Return the post privilege deactivation request model, which should only be created once per API"""
+        if hasattr(self.api, '_v1_post_privilege_deactivation_request_model'):
+            return self.api._v1_post_privilege_deactivation_request_model
+        self.api._v1_post_privilege_deactivation_request_model = self.api.add_model(
+            'V1PostPrivilegeDeactivationRequestModel',
+            description='Post privilege deactivation request model',
+            schema=JsonSchema(
+                type=JsonSchemaType.OBJECT,
+                additional_properties=False,
+                required=['deactivationNote'],
+                properties={
+                    'deactivationNote': JsonSchema(
+                        type=JsonSchemaType.STRING,
+                        description='Note describing why the privilege is being deactivated',
+                        # setting a max file name length of 256 to prevent abuse
+                        max_length=256
+                    ),
+                },
+            ),
+        )
+
+        return self.api._v1_post_privilege_deactivation_request_model
+        
+
+    @property
     def post_provider_user_military_affiliation_request_model(self) -> Model:
         """Return the post payment processor credentials request model, which should only be created once per API"""
         if hasattr(self.api, '_v1_post_provider_user_military_affiliation_request_model'):

@@ -482,6 +482,7 @@ class QueryProviders:
         deactivate_resource.add_method(
             'POST',
             request_validator=self.api.parameter_body_validator,
+            request_models={'application/json': self.api_model.post_privilege_deactivation_request_model},
             method_responses=[
                 MethodResponse(
                     status_code='200',
