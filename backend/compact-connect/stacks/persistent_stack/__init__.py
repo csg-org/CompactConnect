@@ -153,12 +153,12 @@ class PersistentStack(AppStack):
         )
 
         # PROVIDER USER POOL MIGRATION PLAN:
-        # 1. Create the blue user pool in all environments. (Deploy 1 of 3)
+        # 1. ✓ Create the blue user pool in all environments. (Deploy 1 of 3)
         # 2. Cut over to the blue user pool by: (Deploy 2 of 3)
-        #   a. Update the API stack to use the blue user pool (just rename
+        #   a. ✓ Update the API stack to use the blue user pool (just rename
         #      self.provider_users->self.provider_users_deprecated and
         #      self.provider_users_standby->self.provider_users below)
-        #   b. Move the main provider prefix to the blue user pool (just use the provider_prefix in the other
+        #   b. ✓ Move the main provider prefix to the blue user pool (just use the provider_prefix in the other
         #      ProviderUsers constructor below)
         #   c. Deploy to all environments. You will have to manually delete the original user pool domain right before
         #      deploying to each environment. This will result in a deletion failure in the CFn events, but the overall
@@ -166,14 +166,14 @@ class PersistentStack(AppStack):
         # 3. Testers/users will need to re-register to get a new provider user in the blue user pool.
         # 4. Remove the original user pool. (Deploy 3 of 3)
 
-        # This user pool is currently in use but will be replaced with the blue user pool,
-        # once the blue user pool is deployed across all environments.
+        # This user pool is deprecated and will be removed once we've cut over to the blue user pool
+        # across all environments.
         provider_prefix = f'{app_name}-provider'
         provider_prefix = provider_prefix if environment_name == 'prod' else f'{provider_prefix}-{environment_name}'
-        self.provider_users = ProviderUsers(
+        self.provider_users_deprecated = ProviderUsers(
             self,
             'ProviderUsers',
-            cognito_domain_prefix=provider_prefix,
+            cognito_domain_prefix=None,
             environment_name=environment_name,
             environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
@@ -185,16 +185,14 @@ class PersistentStack(AppStack):
         # We explicitly export the user pool values so we can later move the API stack over to the
         # new user pool without putting our app into a cross-stack dependency 'deadly embrace':
         # https://www.endoflineblog.com/cdk-tips-03-how-to-unblock-cross-stack-references
-        self.export_value(self.provider_users.user_pool_id)
-        self.export_value(self.provider_users.user_pool_arn)
+        self.export_value(self.provider_users_deprecated.user_pool_id)
+        self.export_value(self.provider_users_deprecated.user_pool_arn)
 
-        # This user pool is not yet used but we will cut over to the new pool once it is
-        # deployed across all environments.
         # We have to use a different prefix so we don't have a naming conflict with the original user pool
-        self.provider_users_standby = ProviderUsers(
+        self.provider_users = ProviderUsers(
             self,
             'ProviderUsersBlue',
-            cognito_domain_prefix=None,
+            cognito_domain_prefix=provider_prefix,
             environment_name=environment_name,
             environment_context=environment_context,
             encryption_key=self.shared_encryption_key,
@@ -227,13 +225,13 @@ class PersistentStack(AppStack):
             self.staff_users.node.add_dependency(self.user_email_notifications.dmarc_record)
             self.provider_users.node.add_dependency(self.user_email_notifications.email_identity)
             self.provider_users.node.add_dependency(self.user_email_notifications.dmarc_record)
-            self.provider_users_standby.node.add_dependency(self.user_email_notifications.email_identity)
-            self.provider_users_standby.node.add_dependency(self.user_email_notifications.dmarc_record)
+            self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.email_identity)
+            self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.dmarc_record)
             # the verification custom resource needs to be completed before the user pools are created
             # so that the user pools will be created after the SES identity is verified
             self.staff_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
             self.provider_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
-            self.provider_users_standby.node.add_dependency(self.user_email_notifications.verification_custom_resource)
+            self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.verification_custom_resource)
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
         # Create the ssn related resources before other resources which are dependent on them
