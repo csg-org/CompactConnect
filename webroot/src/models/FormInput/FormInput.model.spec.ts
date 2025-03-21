@@ -161,7 +161,6 @@ describe('FormInput model', () => {
         expect(formInput.isFormRow).to.equal(values.isFormRow);
         expect(formInput.shouldHideLabel).to.equal(values.shouldHideMargin);
         expect(formInput.isDisabled).to.equal(true);
-        expect(formInput.maxLength()).to.equal(1);
 
         // Test methods
         formInput.blur();
@@ -180,5 +179,21 @@ describe('FormInput model', () => {
         formInput.validate();
         expect(formInput.errorMessage).to.equal('');
         expect(formInput.isValid).to.equal(true);
+    });
+    it('should create a FormInput with specific values (simple validation)', () => {
+        const values = {
+            validation: Joi.string(),
+            enforceMax: true,
+        };
+        const formInput = new FormInput(values);
+
+        // Test field defaults
+        expect(formInput).to.be.an.instanceof(FormInput);
+
+        // Test methods
+        expect(formInput.maxLength()).to.equal(-1);
+
+        formInput.enforceLength();
+        expect(formInput.value).to.equal('');
     });
 });

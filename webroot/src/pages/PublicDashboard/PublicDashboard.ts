@@ -1,5 +1,5 @@
 //
-//  Login.ts
+//  PublicDashboard.ts
 //  CompactConnect
 //
 //  Created by InspiringApps on 8/12/2024.
@@ -7,15 +7,23 @@
 
 import { Component, Vue } from 'vue-facing-decorator';
 import { AuthTypes } from '@/app.config';
+import SearchIcon from '@components/Icons/Search/Search.vue';
+import RegisterIcon from '@components/Icons/RegisterAlt/RegisterAlt.vue';
+import StaffUserIcon from '@components/Icons/StaffUser/StaffUser.vue';
+import LicenseeUserIcon from '@components/Icons/LicenseeUser/LicenseeUser.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 
 @Component({
-    name: 'Login',
+    name: 'DashboardPublic',
     components: {
-        InputButton
+        SearchIcon,
+        RegisterIcon,
+        StaffUserIcon,
+        LicenseeUserIcon,
+        InputButton,
     }
 })
-export default class Login extends Vue {
+export default class DashboardPublic extends Vue {
     //
     // Computed
     //

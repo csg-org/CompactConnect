@@ -161,10 +161,6 @@ export default class Pagination extends mixins(MixinForm) {
         this.resetPaging();
     }
 
-    @Watch('$props.listSize') handleUpdateListSize() {
-        this.resetPaging();
-    }
-
     @Watch('$props.pageSizeConfig', { deep: true }) handleUpdatePageSizeConfig() {
         this.resetPaging();
     }

@@ -1,3 +1,10 @@
+//
+//  phone.ts
+//  InspiringApps modules
+//
+//  Created by InspiringApps on 4/12/20.
+//
+
 /**
  * Receive a string of numbers and return a delimeted phone number based
  * on the delimeter argument
@@ -10,7 +17,7 @@ const singleDelimeterPhoneFormatter = (numberValue: string, numberDelimeter: str
     const delimeter = numberDelimeter || '-';
 
     // If the number value is at least three digits
-    if (numberValue.length >= 3) {
+    if (numberValue?.length >= 3) {
         // Add the post-NPA delimeter
         formattedPhoneNumber = numberValue.substring(0, 3) + delimeter;
 
@@ -23,7 +30,7 @@ const singleDelimeterPhoneFormatter = (numberValue: string, numberDelimeter: str
             // Otherwise just display the rest of the numbers unformatted
             formattedPhoneNumber += numberValue.substring(3);
         }
-    } else {
+    } else if (numberValue) {
         // Otherwise just display the numbers unformatted
         formattedPhoneNumber = numberValue;
     }
@@ -81,6 +88,7 @@ const stripPhoneNumber = (value: string): string => {
 };
 
 export {
+    singleDelimeterPhoneFormatter,
     formatPhoneNumber,
     stripPhoneNumber,
 };

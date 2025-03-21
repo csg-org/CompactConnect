@@ -14,6 +14,7 @@ import {
 } from 'vue';
 import { Component, Vue, toNative } from 'vue-facing-decorator';
 import { AuthTypes } from '@/app.config';
+import RegisterIcon from '@components/Icons/Register/Register.vue';
 import UploadIcon from '@components/Icons/Upload/Upload.vue';
 import UsersIcon from '@components/Icons/Users/Users.vue';
 import LicenseSearchIcon from '@components/Icons/LicenseSearch/LicenseSearch.vue';
@@ -42,6 +43,7 @@ export interface NavLink {
 @Component({
     name: 'PageMainNav',
     components: {
+        RegisterIcon,
         UploadIcon,
         UsersIcon,
         LicenseSearchIcon,
@@ -142,6 +144,30 @@ class PageMainNav extends Vue {
 
     get mainLinks(): Array<NavLink> {
         return reactive([
+            {
+                to: 'DashboardPublic',
+                label: computed(() => this.$t('navigation.dashboard')),
+                iconComponent: markRaw(DashboardIcon),
+                isEnabled: !this.isLoggedIn,
+                isExternal: false,
+                isExactActive: false,
+            },
+            {
+                to: 'LicneseeSearchPublic',
+                label: computed(() => this.$t('navigation.licensing')),
+                iconComponent: markRaw(LicenseSearchIcon),
+                isEnabled: !this.isLoggedIn,
+                isExternal: false,
+                isExactActive: false,
+            },
+            {
+                to: 'RegisterLicensee',
+                label: computed(() => this.$t('navigation.register')),
+                iconComponent: markRaw(RegisterIcon),
+                isEnabled: !this.isLoggedIn,
+                isExternal: false,
+                isExactActive: false,
+            },
             {
                 to: 'StateUpload',
                 params: { compact: this.currentCompact?.type },

@@ -48,6 +48,15 @@ describe('State model', () => {
         // Test methods
         expect(state.name()).to.equal('Unknown');
     });
+    it('should create a State with specific values (translation fallback)', () => {
+        const data = {};
+        const state = new State(data);
+
+        state.$tm = () => null;
+
+        // Test methods
+        expect(state.name()).to.equal('Unknown');
+    });
     it('should create a State with specific values through serializer', () => {
         const data = {
             id: 'test-id',

@@ -13,6 +13,7 @@
         flex-direction: column;
         flex-wrap: wrap;
         align-items: flex-end;
+        margin-top: 1.2rem;
 
         @media @desktopWidth {
             flex-direction: row;
@@ -25,15 +26,18 @@
             align-content: center;
             align-items: center;
             justify-content: center;
-            margin-bottom: 1.2rem;
+            width: 100%;
+            margin-top: 1.2rem;
             padding: 0.4rem 1rem;
             border-radius: @borderRadiusPillShape;
             color: @white;
             background-color: @darkBlue;
 
             @media @desktopWidth {
+                order: 1;
+                width: auto;
+                margin-top: 0;
                 margin-right: 2.4rem;
-                margin-bottom: 0;
             }
 
             .title {
@@ -46,6 +50,7 @@
 
             .search-terms-reset {
                 width: 2rem;
+                margin-left: auto;
                 padding: 0.4rem 0.2rem;
                 cursor: pointer;
                 stroke: @white;
@@ -53,7 +58,13 @@
         }
 
         .search-toggle {
+            width: 100%;
             min-height: 4.8rem;
+
+            @media @desktopWidth {
+                order: 2;
+                width: auto;
+            }
         }
     }
 }

@@ -140,9 +140,9 @@ describe('License Store Mutations', () => {
     it('should successfully update license search values', () => {
         const state = {};
         const search = {
+            compact: 'test',
             firstName: 'test',
             lastName: 'test',
-            ssn: 'test',
             state: 'test',
         };
 
@@ -153,9 +153,9 @@ describe('License Store Mutations', () => {
     it('should successfully reset license search values', () => {
         const state = {
             search: {
+                compact: 'test',
                 firstName: 'test',
                 lastName: 'test',
-                ssn: 'test',
                 state: 'test',
             },
         };
@@ -163,9 +163,9 @@ describe('License Store Mutations', () => {
         mutations[MutationTypes.STORE_RESET_SEARCH](state);
 
         expect(state.search).to.matchPattern({
+            compact: '',
             firstName: '',
             lastName: '',
-            ssn: '',
             state: '',
         });
     });
@@ -176,9 +176,9 @@ describe('License Store Mutations', () => {
             isLoading: true,
             error: new Error(),
             search: {
+                compact: 'test',
                 firstName: 'test',
                 lastName: 'test',
-                ssn: 'test',
                 state: 'test',
             },
         };
@@ -191,9 +191,9 @@ describe('License Store Mutations', () => {
             isLoading: false,
             error: null,
             search: {
+                compact: '',
                 firstName: '',
                 lastName: '',
-                ssn: '',
                 state: '',
             },
         });
@@ -239,7 +239,7 @@ describe('License Store Actions', async () => {
     it('should successfully start licensees request with previous page', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
-        const params = { getPrevPage: true };
+        const params = { getPrevPage: true, isPublic: true };
 
         await actions.getLicenseesRequest({ commit, getters, dispatch }, { params });
 

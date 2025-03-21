@@ -99,9 +99,9 @@ export default {
     },
     [MutationTypes.STORE_RESET_SEARCH]: (state: any) => {
         state.search = {
+            compact: '',
             firstName: '',
             lastName: '',
-            ssn: '',
             state: '',
         };
     },
@@ -111,9 +111,9 @@ export default {
         state.isLoading = false;
         state.error = null;
         state.search = {
+            compact: '',
             firstName: '',
             lastName: '',
-            ssn: '',
             state: '',
         };
     },

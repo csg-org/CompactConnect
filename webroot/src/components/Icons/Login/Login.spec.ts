@@ -2,15 +2,15 @@
 //  Login.spec.ts
 //  CompactConnect
 //
-//  Created by InspiringApps on 8/12/2024.
+//  Created by InspiringApps on 3/5/2025.
 //
 
 import { expect } from 'chai';
 import { mountShallow } from '@tests/helpers/setup';
-import Login from '@pages/Login/Login.vue';
+import Login from '@components/Icons/Login/Login.vue';
 
-describe('Login page', async () => {
-    it('should mount the page component', async () => {
+describe('Login component', async () => {
+    it('should mount the component', async () => {
         const wrapper = await mountShallow(Login);
 
         expect(wrapper.exists()).to.equal(true);

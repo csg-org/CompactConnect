@@ -10,12 +10,23 @@
         <transition name="fade-slow" mode="out-in">
             <div v-if="!hasSearched || shouldShowSearchModal" class="search-initial-container">
                 <h1 class="list-title">{{ $t('licensing.licensingListTitle') }}</h1>
-                <LicenseeSearch :searchParams="searchParams" @searchParams="handleSearch" />
+                <LicenseeSearch
+                    :searchParams="searchParams"
+                    :isPublicSearch="isPublicSearch"
+                    @searchParams="handleSearch"
+                />
             </div>
             <div v-else class="licesee-list-container">
                 <div class="list-actions-container">
                     <h1 class="list-title no-margin">{{ $t('licensing.licensingListTitle') }}</h1>
                     <div class="search-toggle-container">
+                        <button
+                            class="search-toggle"
+                            @click="toggleSearch()"
+                            tabindex="0"
+                        >
+                            {{ $t('licensing.searchLabel') }}
+                        </button>
                         <div v-if="searchDisplayAll" class="search-tag">
                             <span class="title">{{ $t('common.viewing') }}:</span>
                             <span class="search-terms">{{ searchDisplayAll }}</span>
@@ -25,13 +36,6 @@
                                 tabindex="0"
                             />
                         </div>
-                        <button
-                            class="search-toggle"
-                            @click="toggleSearch()"
-                            tabindex="0"
-                        >
-                            {{ $t('licensing.searchLabel') }}
-                        </button>
                     </div>
                 </div>
                 <ListContainer
@@ -65,6 +69,7 @@
                             :key="index"
                             :listId="listId"
                             :item="record"
+                            :isPublicSearch="isPublicSearch"
                         />
                     </template>
                 </ListContainer>
