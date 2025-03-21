@@ -127,9 +127,13 @@ class CompactConfigurationUpload(Construct):
             },
         )
 
+    def _is_sandbox_environment(self) -> bool:
+        """Check if the current environment is a sandbox environment."""
+        return self.node.try_get_context('sandbox') is True
+
     def _configuration_is_active_for_environment(self, environment_name: str, active_environments: list[str]) -> bool:
         """Check if the compact configuration is active in the given environment."""
-        return environment_name in active_environments or self.node.try_get_context('sandbox') is True
+        return environment_name in active_environments or self._is_sandbox_environment()
 
     def _generate_compact_configuration_json_string(self, environment_name: str, environment_context: dict) -> str:
         """Currently, all configuration for compacts and jurisdictions is hardcoded in the compact-config directory.
@@ -148,6 +152,10 @@ class CompactConfigurationUpload(Construct):
                 with open(os.path.join('compact-config', compact_config_file)) as f:
                     # convert YAML to JSON
                     formatted_compact = yaml.safe_load(f)
+                    # if running in sandbox, add the environment name to the registration list
+                    # so registration is enabled by default
+                    if self._is_sandbox_environment():
+                        formatted_compact['licenseeRegistrationEnabledForEnvironments'].append(environment_name)
                     # only include the compact configuration if it is active in the environment
                     if self._configuration_is_active_for_environment(
                         environment_name,
@@ -164,6 +172,12 @@ class CompactConfigurationUpload(Construct):
                     with open(os.path.join('compact-config', compact_abbr, jurisdiction_config_file)) as f:
                         # convert YAML to JSON
                         formatted_jurisdiction = yaml.safe_load(f)
+                        # if running in sandbox, add the environment name to the registration list
+                        # so registration is enabled by default
+                        if self._is_sandbox_environment():
+                            formatted_jurisdiction['licenseeRegistrationEnabledForEnvironments'].append(
+                                environment_name
+                            )
                         # only include the jurisdiction configuration if it is active in the environment
                         if self._configuration_is_active_for_environment(
                             environment_name,

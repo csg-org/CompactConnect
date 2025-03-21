@@ -4,7 +4,7 @@ from marshmallow.fields import List, Nested, String
 from marshmallow.validate import Length, OneOf
 
 from cc_common.config import config
-from cc_common.data_model.schema.base_record import BaseRecordSchema
+from cc_common.data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
 from cc_common.data_model.schema.compact import (
     COMPACT_TYPE,
     CompactCommissionFeeSchema,
@@ -13,7 +13,7 @@ from cc_common.data_model.schema.compact import (
 
 
 @BaseRecordSchema.register_schema(COMPACT_TYPE)
-class CompactRecordSchema(BaseRecordSchema):
+class CompactRecordSchema(ForgivingSchema, BaseRecordSchema):
     """Schema for the root compact configuration records"""
 
     _record_type = COMPACT_TYPE
@@ -31,6 +31,11 @@ class CompactRecordSchema(BaseRecordSchema):
     )
     compactSummaryReportNotificationEmails = List(
         String(required=True, allow_none=False),
+        required=True,
+        allow_none=False,
+    )
+    licenseeRegistrationEnabledForEnvironments = List(
+        String(required=True, allow_none=False, validate=OneOf(['test', 'prod', config.environment_name])),
         required=True,
         allow_none=False,
     )

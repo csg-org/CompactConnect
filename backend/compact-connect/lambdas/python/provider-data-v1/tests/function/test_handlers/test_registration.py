@@ -7,13 +7,15 @@ from moto import mock_aws
 
 from .. import TstFunction
 
-TEST_COMPACT = 'aslp'
+TEST_COMPACT_ABBR = 'aslp'
+TEST_COMPACT_NAME = 'Audiology and Speech Language Pathology'
 TEST_LICENSE_TYPE = 'speech-language pathologist'
 
 MOCK_SSN_LAST_FOUR = '1234'
 MOCK_GIVEN_NAME = 'Joe'
 MOCK_FAMILY_NAME = 'Dokes'
-MOCK_STATE = 'ky'
+MOCK_JURISDICTION_POSTAL_ABBR = 'ky'
+MOCK_JURISDICTION_NAME = 'Kentucky'
 MOCK_DOB = '1990-01-01'
 # this is the provider id defined in the test resource files
 MOCK_PROVIDER_ID = '89a6377e-c3a5-40e5-bca5-317ec854c570'
@@ -24,22 +26,49 @@ MOCK_DATETIME_STRING = '2025-01-23T08:15:00+00:00'
 MOCK_COGNITO_SUB = '3408b4e8-0061-7052-bbe0-fda9a9369c80'
 
 
+def generate_default_compact_config_overrides():
+    return {
+        'pk': f'{TEST_COMPACT_ABBR}#CONFIGURATION',
+        'sk': f'{TEST_COMPACT_ABBR}#CONFIGURATION',
+        'compactAbbr': TEST_COMPACT_ABBR,
+        'compactName': TEST_COMPACT_NAME,
+        'licenseeRegistrationEnabledForEnvironments': ['test'],
+    }
+
+
+def generate_default_jurisdiction_config_overrides():
+    return {
+        'pk': f'{TEST_COMPACT_ABBR}#CONFIGURATION',
+        'sk': f'{TEST_COMPACT_ABBR}#JURISDICTION#{MOCK_JURISDICTION_POSTAL_ABBR}',
+        'compact': TEST_COMPACT_ABBR,
+        'jurisdictionName': MOCK_JURISDICTION_NAME,
+        'postalAbbreviation': MOCK_JURISDICTION_POSTAL_ABBR,
+        'licenseeRegistrationEnabledForEnvironments': ['test'],
+    }
+
+
 def generate_test_request():
     return {
-        'compact': TEST_COMPACT,
+        'compact': TEST_COMPACT_ABBR,
         'token': 'valid_token',
         'familyName': MOCK_FAMILY_NAME,
         'givenName': MOCK_GIVEN_NAME,
         'email': 'test@example.com',
         'partialSocial': MOCK_SSN_LAST_FOUR,
         'dob': MOCK_DOB,
-        'jurisdiction': MOCK_STATE,
+        'jurisdiction': MOCK_JURISDICTION_POSTAL_ABBR,
         'licenseType': TEST_LICENSE_TYPE,
     }
 
 
 @mock_aws
 class TestProviderRegistration(TstFunction):
+    def setUp(self):
+        super().setUp()
+
+        self._load_compact_configuration(overrides=generate_default_compact_config_overrides())
+        self._load_jurisdiction_configuration(overrides=generate_default_jurisdiction_config_overrides())
+
     def _add_mock_provider_records(self, *, is_registered=False, license_data_overrides=None):
         """
         Adds mock provider and license records to the provider table with customizable data.
@@ -68,8 +97,8 @@ class TestProviderRegistration(TstFunction):
                     'licenseType': TEST_LICENSE_TYPE,
                     'givenName': MOCK_GIVEN_NAME,
                     'familyName': MOCK_FAMILY_NAME,
-                    'jurisdiction': MOCK_STATE,
-                    'compact': TEST_COMPACT,
+                    'jurisdiction': MOCK_JURISDICTION_POSTAL_ABBR,
+                    'compact': TEST_COMPACT_ABBR,
                     'providerId': MOCK_PROVIDER_ID,
                 }
             )
@@ -83,9 +112,9 @@ class TestProviderRegistration(TstFunction):
             home_jurisdiction_schema = ProviderHomeJurisdictionSelectionRecordSchema()
             home_jurisdiction_record = {
                 'type': 'homeJurisdictionSelection',
-                'compact': TEST_COMPACT,
+                'compact': TEST_COMPACT_ABBR,
                 'providerId': MOCK_PROVIDER_ID,
-                'jurisdiction': MOCK_STATE,
+                'jurisdiction': MOCK_JURISDICTION_POSTAL_ABBR,
                 'dateOfSelection': datetime.fromisoformat('2024-01-01T00:00:00Z'),
             }
             serialized_record = home_jurisdiction_schema.dump(home_jurisdiction_record)
@@ -107,6 +136,40 @@ class TestProviderRegistration(TstFunction):
             body.update(body_overrides)
         event['body'] = json.dumps(body)
         return event
+
+    @patch('handlers.registration.verify_recaptcha')
+    def test_registration_returns_400_if_compact_is_not_enabled_for_registration(self, mock_verify_recaptcha):
+        compact_config_overrides = generate_default_compact_config_overrides()
+        # in this case, no environments are enabled for registration
+        compact_config_overrides.update({'licenseeRegistrationEnabledForEnvironments': []})
+        self._load_compact_configuration(overrides=compact_config_overrides)
+        mock_verify_recaptcha.return_value = True
+        from handlers.registration import register_provider
+
+        response = register_provider(self._get_test_event(), self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertEqual(
+            {
+                'message': 'Registration is not currently available for the Audiology and '
+                + 'Speech Language Pathology compact.'
+            },
+            json.loads(response['body']),
+        )
+
+    @patch('handlers.registration.verify_recaptcha')
+    def test_registration_returns_400_if_jurisdiction_is_not_enabled_for_registration(self, mock_verify_recaptcha):
+        jurisdiction_config_overrides = generate_default_jurisdiction_config_overrides()
+        # in this case, no environments are enabled for registration
+        jurisdiction_config_overrides.update({'licenseeRegistrationEnabledForEnvironments': []})
+        self._load_jurisdiction_configuration(overrides=jurisdiction_config_overrides)
+        mock_verify_recaptcha.return_value = True
+        from handlers.registration import register_provider
+
+        response = register_provider(self._get_test_event(), self.mock_context)
+        self.assertEqual(400, response['statusCode'])
+        self.assertEqual(
+            {'message': 'Registration is not currently available for Kentucky.'}, json.loads(response['body'])
+        )
 
     @patch('handlers.registration.verify_recaptcha')
     def test_registration_returns_403_if_recaptcha_fails(self, mock_verify_recaptcha):
@@ -174,7 +237,7 @@ class TestProviderRegistration(TstFunction):
 
         # Verify all attributes match exactly what we expect (no more, no less)
         expected_attributes = {
-            'custom:compact': TEST_COMPACT,
+            'custom:compact': TEST_COMPACT_ABBR,
             'custom:providerId': provider_data['providerId'],
             'email': 'test@example.com',
             'email_verified': 'true',
@@ -195,14 +258,14 @@ class TestProviderRegistration(TstFunction):
         # Verify home jurisdiction selection record was created
         home_jurisdiction = self.config.provider_table.get_item(
             Key={
-                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data["providerId"]}',
-                'sk': f'{TEST_COMPACT}#PROVIDER#home-jurisdiction#',
+                'pk': f'{TEST_COMPACT_ABBR}#PROVIDER#{provider_data["providerId"]}',
+                'sk': f'{TEST_COMPACT_ABBR}#PROVIDER#home-jurisdiction#',
             }
         )['Item']
         self.assertEqual('homeJurisdictionSelection', home_jurisdiction['type'])
-        self.assertEqual(TEST_COMPACT, home_jurisdiction['compact'])
+        self.assertEqual(TEST_COMPACT_ABBR, home_jurisdiction['compact'])
         self.assertEqual(provider_data['providerId'], home_jurisdiction['providerId'])
-        self.assertEqual(MOCK_STATE, home_jurisdiction['jurisdiction'])
+        self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, home_jurisdiction['jurisdiction'])
         self.assertIsNotNone(home_jurisdiction['dateOfSelection'])
         self.assertIsNotNone(home_jurisdiction['dateOfUpdate'])
 
@@ -230,7 +293,7 @@ class TestProviderRegistration(TstFunction):
 
         # Verify all attributes match exactly what we expect (no more, no less)
         expected_attributes = {
-            'custom:compact': TEST_COMPACT,
+            'custom:compact': TEST_COMPACT_ABBR,
             'custom:providerId': provider_data['providerId'],
             'email': 'test@example.com',
             'email_verified': 'true',
@@ -240,11 +303,11 @@ class TestProviderRegistration(TstFunction):
         # Verify provider record was updated with registration values
         provider_record = self.config.provider_table.get_item(
             Key={
-                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data["providerId"]}',
-                'sk': f'{TEST_COMPACT}#PROVIDER',
+                'pk': f'{TEST_COMPACT_ABBR}#PROVIDER#{provider_data["providerId"]}',
+                'sk': f'{TEST_COMPACT_ABBR}#PROVIDER',
             }
         )['Item']
-        self.assertEqual(TEST_COMPACT, provider_record['compact'])
+        self.assertEqual(TEST_COMPACT_ABBR, provider_record['compact'])
         self.assertEqual(provider_data['providerId'], provider_record['providerId'])
         self.assertEqual('test@example.com', provider_record['compactConnectRegisteredEmailAddress'])
         # The user sub should match the value saved on the provider record
@@ -311,9 +374,9 @@ class TestProviderRegistration(TstFunction):
         home_jurisdiction_schema = ProviderHomeJurisdictionSelectionRecordSchema()
         home_jurisdiction_record = {
             'type': 'homeJurisdictionSelection',
-            'compact': TEST_COMPACT,
+            'compact': TEST_COMPACT_ABBR,
             'providerId': MOCK_PROVIDER_ID,
-            'jurisdiction': MOCK_STATE,
+            'jurisdiction': MOCK_JURISDICTION_POSTAL_ABBR,
             'dateOfSelection': datetime.fromisoformat('2024-01-01T00:00:00Z'),
         }
         serialized_record = home_jurisdiction_schema.dump(home_jurisdiction_record)
@@ -333,8 +396,8 @@ class TestProviderRegistration(TstFunction):
         # Verify the provider record was rolled back and the cognitoSub is not present
         provider_record = self.config.provider_table.get_item(
             Key={
-                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data["providerId"]}',
-                'sk': f'{TEST_COMPACT}#PROVIDER',
+                'pk': f'{TEST_COMPACT_ABBR}#PROVIDER#{provider_data["providerId"]}',
+                'sk': f'{TEST_COMPACT_ABBR}#PROVIDER',
             }
         ).get('Item')
         self.assertIsNone(provider_record.get('cognitoSub'))
@@ -438,7 +501,7 @@ class TestProviderRegistration(TstFunction):
 
         # Verify all attributes match exactly what we expect (no more, no less)
         expected_attributes = {
-            'custom:compact': TEST_COMPACT,
+            'custom:compact': TEST_COMPACT_ABBR,
             'custom:providerId': provider_data['providerId'],
             'email': 'test@example.com',
             'email_verified': 'true',
@@ -448,14 +511,14 @@ class TestProviderRegistration(TstFunction):
         # Verify home jurisdiction selection record was created
         home_jurisdiction = self.config.provider_table.get_item(
             Key={
-                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data["providerId"]}',
-                'sk': f'{TEST_COMPACT}#PROVIDER#home-jurisdiction#',
+                'pk': f'{TEST_COMPACT_ABBR}#PROVIDER#{provider_data["providerId"]}',
+                'sk': f'{TEST_COMPACT_ABBR}#PROVIDER#home-jurisdiction#',
             }
         )['Item']
         self.assertEqual('homeJurisdictionSelection', home_jurisdiction['type'])
-        self.assertEqual(TEST_COMPACT, home_jurisdiction['compact'])
+        self.assertEqual(TEST_COMPACT_ABBR, home_jurisdiction['compact'])
         self.assertEqual(provider_data['providerId'], home_jurisdiction['providerId'])
-        self.assertEqual(MOCK_STATE, home_jurisdiction['jurisdiction'])
+        self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, home_jurisdiction['jurisdiction'])
         self.assertIsNotNone(home_jurisdiction['dateOfSelection'])
         self.assertIsNotNone(home_jurisdiction['dateOfUpdate'])
 
@@ -497,7 +560,7 @@ class TestProviderRegistration(TstFunction):
 
         # Verify all attributes match exactly what we expect (no more, no less)
         expected_attributes = {
-            'custom:compact': TEST_COMPACT,
+            'custom:compact': TEST_COMPACT_ABBR,
             'custom:providerId': provider_data['providerId'],
             'email': 'test@example.com',
             'email_verified': 'true',
@@ -507,14 +570,14 @@ class TestProviderRegistration(TstFunction):
         # Verify home jurisdiction selection record was created
         home_jurisdiction = self.config.provider_table.get_item(
             Key={
-                'pk': f'{TEST_COMPACT}#PROVIDER#{provider_data["providerId"]}',
-                'sk': f'{TEST_COMPACT}#PROVIDER#home-jurisdiction#',
+                'pk': f'{TEST_COMPACT_ABBR}#PROVIDER#{provider_data["providerId"]}',
+                'sk': f'{TEST_COMPACT_ABBR}#PROVIDER#home-jurisdiction#',
             }
         )['Item']
         self.assertEqual('homeJurisdictionSelection', home_jurisdiction['type'])
-        self.assertEqual(TEST_COMPACT, home_jurisdiction['compact'])
+        self.assertEqual(TEST_COMPACT_ABBR, home_jurisdiction['compact'])
         self.assertEqual(provider_data['providerId'], home_jurisdiction['providerId'])
-        self.assertEqual(MOCK_STATE, home_jurisdiction['jurisdiction'])
+        self.assertEqual(MOCK_JURISDICTION_POSTAL_ABBR, home_jurisdiction['jurisdiction'])
         self.assertIsNotNone(home_jurisdiction['dateOfSelection'])
         self.assertIsNotNone(home_jurisdiction['dateOfUpdate'])
 
