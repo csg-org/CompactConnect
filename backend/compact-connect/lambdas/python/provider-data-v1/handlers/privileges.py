@@ -40,12 +40,11 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
 
         staff_user_id = event['requestContext']['authorizer']['claims']['sub']
         staff_user = config.user_client.get_user_in_compact(compact=compact, user_id=staff_user_id)
-        
+
         deactivation_details = {
             'note': deactivation_note,
             'deactivatedByStaffUserId': staff_user_id,
-            'deactivatedByStaffUserName':
-                f'{staff_user['attributes']['givenName']} {staff_user['attributes']['familyName']}',
+            'deactivatedByStaffUserName': f'{staff_user["attributes"]["givenName"]} {staff_user["attributes"]["familyName"]}',  # noqa: E501
         }
 
         logger.info('Deactivating privilege')
