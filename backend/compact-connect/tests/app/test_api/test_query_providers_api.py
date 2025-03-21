@@ -323,7 +323,6 @@ class TestQueryProvidersApi(TestApi):
 
         request_model_logical_id_capture = Capture()
 
-
         # Ensure the POST method is configured correctly
         api_stack_template.has_resource_properties(
             type=CfnMethod.CFN_RESOURCE_TYPE_NAME,

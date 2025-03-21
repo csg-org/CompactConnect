@@ -1,10 +1,9 @@
 import json
 from datetime import datetime
 from unittest.mock import patch
-from boto3.dynamodb.types import TypeDeserializer
-
 
 from aws_lambda_powertools.metrics import MetricUnit
+from boto3.dynamodb.types import TypeDeserializer
 from cc_common.exceptions import CCInternalException
 from moto import mock_aws
 
@@ -27,7 +26,7 @@ DEACTIVATION_HISTORY = {
     'deactivationDetails': {
         'note': TEST_NOTE,
         'deactivatedByStaffUserId': TEST_STAFF_USER_ID,
-        'deactivatedByStaffUserName': f'{TEST_STAFF_USER_FIRST_NAME} {TEST_STAFF_USER_LAST_NAME}'
+        'deactivatedByStaffUserName': f'{TEST_STAFF_USER_FIRST_NAME} {TEST_STAFF_USER_LAST_NAME}',
     },
     'previous': {
         'attestations': [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}],
@@ -54,13 +53,13 @@ class TestDeactivatePrivilege(TstFunction):
             # swap out the default test values with our constants
             staff_user.update(
                 {
-                  "pk": f"USER#{TEST_STAFF_USER_ID}",
-                  "userId": TEST_STAFF_USER_ID,
-                  "attributes": {
-                    "email": TEST_STAFF_USER_EMAIL,
-                    "givenName": TEST_STAFF_USER_FIRST_NAME,
-                    "familyName": TEST_STAFF_USER_LAST_NAME
-                    }
+                    'pk': f'USER#{TEST_STAFF_USER_ID}',
+                    'userId': TEST_STAFF_USER_ID,
+                    'attributes': {
+                        'email': TEST_STAFF_USER_EMAIL,
+                        'givenName': TEST_STAFF_USER_FIRST_NAME,
+                        'familyName': TEST_STAFF_USER_LAST_NAME,
+                    },
                 }
             )
             # This item is saved in its serialized form, so we have to deserialize it first
