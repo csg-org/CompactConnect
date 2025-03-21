@@ -847,7 +847,7 @@ class DataClient:
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'jurisdiction', 'license_type')
     def deactivate_privilege(
-        self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str
+        self, *, compact: str, provider_id: str, jurisdiction: str, license_type_abbr: str, deactivation_details: dict
     ) -> None:
         """
         Deactivate a privilege for a provider in a jurisdiction.
@@ -859,6 +859,7 @@ class DataClient:
         :param str provider_id: The provider to deactivate the privilege for
         :param str jurisdiction: The jurisdiction to deactivate the privilege for
         :param str license_type_abbr: The license type abbreviation to deactivate the privilege for
+        :param dict deactivation_details: The details of the deactivation to be added to the history record
         :raises CCNotFoundException: If the privilege record is not found
         """
         # Get the privilege record
@@ -891,6 +892,7 @@ class DataClient:
                 'compact': compact,
                 'jurisdiction': jurisdiction,
                 'licenseType': privilege_record['licenseType'],
+                'deactivationDetails': deactivation_details,
                 'previous': {
                     # We're relying on the schema to trim out unneeded fields
                     **privilege_record,
