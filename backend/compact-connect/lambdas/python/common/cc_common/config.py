@@ -184,6 +184,9 @@ class _Config:
 
     @property
     def user_pool_id(self):
+        """
+        Return the user pool id of the staff user pool
+        """
         return os.environ['USER_POOL_ID']
 
     @property
@@ -192,6 +195,9 @@ class _Config:
 
     @property
     def users_table_name(self):
+        """
+        Get the staff users table name
+        """
         return os.environ['USERS_TABLE_NAME']
 
     @property
