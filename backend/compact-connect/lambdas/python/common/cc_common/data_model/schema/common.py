@@ -83,7 +83,7 @@ class UpdateCategory(CCEnum):
     OTHER = 'other'
 
 
-class ProviderEligibilityStatus(CCEnum):
+class ActiveInactiveStatus(CCEnum):
     ACTIVE = 'active'
     INACTIVE = 'inactive'
 

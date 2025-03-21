@@ -2,7 +2,7 @@ from collections.abc import Callable, Iterable
 from enum import StrEnum
 
 from cc_common.config import logger
-from cc_common.data_model.schema.common import ProviderEligibilityStatus
+from cc_common.data_model.schema.common import ActiveInactiveStatus
 from cc_common.data_model.schema.military_affiliation import MilitaryAffiliationStatus
 from cc_common.data_model.schema.provider.record import ProviderRecordSchema
 from cc_common.exceptions import CCInternalException, CCInvalidRequestException
@@ -72,7 +72,7 @@ class ProviderRecordUtility:
             [
                 license_record
                 for license_record in license_records
-                if license_record['jurisdictionStatus'] == ProviderEligibilityStatus.ACTIVE
+                if license_record['jurisdictionStatus'] == ActiveInactiveStatus.ACTIVE
             ],
             key=lambda x: x['dateOfIssuance'],
             reverse=True,

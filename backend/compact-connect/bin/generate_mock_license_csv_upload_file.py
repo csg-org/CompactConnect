@@ -28,6 +28,7 @@ LICENSE_TYPES = {compact: [t['name'] for t in types] for compact, types in _cont
 os.environ['COMPACTS'] = json.dumps(COMPACTS)
 os.environ['JURISDICTIONS'] = json.dumps(JURISDICTIONS)
 
+from cc_common.data_model.schema.common import ActiveInactiveStatus  # noqa: E402
 from cc_common.data_model.schema.license.api import LicensePostRequestSchema  # noqa: E402
 
 # We'll grab three different localizations to provide a variety of names/characters
@@ -152,7 +153,7 @@ def _set_dates(license_data: dict) -> dict:
         date_of_expiry = min(date_of_renewal + timedelta(days=365), now - timedelta(days=1))
     license_data.update(
         {
-            'status': 'active' if active else 'inactive',
+            'status': ActiveInactiveStatus.ACTIVE if active else ActiveInactiveStatus.INACTIVE,
             'dateOfBirth': date_of_birth,
             'dateOfIssuance': date_of_issuance,
             'dateOfRenewal': date_of_renewal,

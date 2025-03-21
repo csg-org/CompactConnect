@@ -12,7 +12,7 @@ from cc_common.config import _Config, config, logger, metrics
 from cc_common.data_model.query_paginator import paginated_query
 from cc_common.data_model.schema import PrivilegeRecordSchema
 from cc_common.data_model.schema.base_record import SSNIndexRecordSchema
-from cc_common.data_model.schema.common import ProviderEligibilityStatus
+from cc_common.data_model.schema.common import ActiveInactiveStatus
 from cc_common.data_model.schema.home_jurisdiction.record import ProviderHomeJurisdictionSelectionRecordSchema
 from cc_common.data_model.schema.military_affiliation import (
     MilitaryAffiliationStatus,
@@ -308,7 +308,7 @@ class DataClient:
             'compactTransactionId': compact_transaction_id,
             'attestations': attestations,
             'privilegeId': privilege_id,
-            'persistedStatus': 'active',
+            'persistedStatus': ActiveInactiveStatus.ACTIVE,
         }
 
     @logger_inject_kwargs(logger, 'compact', 'provider_id', 'compact_transaction_id')
@@ -396,8 +396,8 @@ class DataClient:
                             'privilegeId': privilege_record['privilegeId'],
                             'attestations': attestations,
                             **(
-                                {'persistedStatus': ProviderEligibilityStatus.ACTIVE}
-                                if original_privilege['persistedStatus'] == ProviderEligibilityStatus.INACTIVE
+                                {'persistedStatus': ActiveInactiveStatus.ACTIVE}
+                                if original_privilege['persistedStatus'] == ActiveInactiveStatus.INACTIVE
                                 else {}
                             ),
                         },
@@ -877,7 +877,7 @@ class DataClient:
         privilege_record = privilege_record_schema.load(privilege_record)
 
         # If already inactive, do nothing
-        if privilege_record.get('persistedStatus', 'active') == 'inactive':
+        if privilege_record.get('persistedStatus', ActiveInactiveStatus.ACTIVE) == ActiveInactiveStatus.INACTIVE:
             logger.info('Provider already inactive. Doing nothing.')
             raise CCInvalidRequestException('Privilege already deactivated')
 

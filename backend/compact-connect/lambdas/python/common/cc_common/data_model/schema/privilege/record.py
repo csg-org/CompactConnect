@@ -6,7 +6,12 @@ from marshmallow.fields import UUID, Date, DateTime, List, Nested, String
 
 from cc_common.config import config
 from cc_common.data_model.schema.base_record import BaseRecordSchema, ForgivingSchema
-from cc_common.data_model.schema.common import ChangeHashMixin, ValidatesLicenseTypeMixin, ensure_value_is_datetime
+from cc_common.data_model.schema.common import (
+    ActiveInactiveStatus,
+    ChangeHashMixin,
+    ValidatesLicenseTypeMixin,
+    ensure_value_is_datetime,
+)
 from cc_common.data_model.schema.fields import ActiveInactive, Compact, Jurisdiction, UpdateType
 
 
@@ -96,13 +101,13 @@ class PrivilegeRecordSchema(BaseRecordSchema, ValidatesLicenseTypeMixin):
     def _calculate_status(self, in_data, **kwargs):
         """Determine the status of the record based on the expiration date and persistedStatus"""
         in_data['status'] = (
-            'active'
+            ActiveInactiveStatus.ACTIVE
             if (
-                in_data.get('persistedStatus', 'active') == 'active'
+                in_data.get('persistedStatus', ActiveInactiveStatus.ACTIVE) == ActiveInactiveStatus.ACTIVE
                 and date.fromisoformat(in_data['dateOfExpiration'])
                 > datetime.now(tz=config.expiration_date_resolution_timezone).date()
             )
-            else 'inactive'
+            else ActiveInactiveStatus.INACTIVE
         )
 
         return in_data

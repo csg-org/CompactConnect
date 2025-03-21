@@ -4,7 +4,7 @@ from datetime import date
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility
-from cc_common.data_model.schema.common import ProviderEligibilityStatus
+from cc_common.data_model.schema.common import ActiveInactiveStatus
 from cc_common.data_model.schema.compact import COMPACT_TYPE, Compact
 from cc_common.data_model.schema.compact.api import CompactOptionsResponseSchema
 from cc_common.data_model.schema.jurisdiction import JURISDICTION_TYPE, Jurisdiction
@@ -229,7 +229,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
 
     matching_license_record = matching_license_records[0]
 
-    if matching_license_record['status'] == ProviderEligibilityStatus.INACTIVE:
+    if matching_license_record['status'] == ActiveInactiveStatus.INACTIVE:
         raise CCInvalidRequestException('No active license found in selected home state for this user')
 
     provider_records = ProviderRecordUtility.get_records_of_type(
@@ -264,7 +264,7 @@ def post_purchase_privileges(event: dict, context: LambdaContext):  # noqa: ARG0
             # if their latest privilege expiration date matches the license expiration date they will not
             # receive any benefit from purchasing the same privilege, since the expiration date will not change
             and privilege['dateOfExpiration'] == matching_license_record['dateOfExpiration']
-            and privilege['persistedStatus'] == 'active'
+            and privilege['persistedStatus'] == ActiveInactiveStatus.ACTIVE
         ):
             raise CCInvalidRequestException(
                 f"Selected privilege jurisdiction '{privilege['jurisdiction'].lower()}'"

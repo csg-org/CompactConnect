@@ -448,7 +448,7 @@ class TestDataClient(TstFunction):
     def test_data_client_handles_large_privilege_purchase(self):
         """Test that we can process privilege purchases with more than 100 transaction items."""
         from cc_common.data_model.data_client import DataClient
-        from cc_common.data_model.schema.common import ProviderEligibilityStatus
+        from cc_common.data_model.schema.common import ActiveInactiveStatus
         from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
 
         test_data_client = DataClient(self.config)
@@ -476,7 +476,7 @@ class TestDataClient(TstFunction):
                 'dateOfExpiration': date(2024, 10, 31),
                 'dateOfUpdate': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                 'compactTransactionId': '1234567890',
-                'persistedStatus': ProviderEligibilityStatus.ACTIVE,
+                'persistedStatus': ActiveInactiveStatus.ACTIVE,
             }
             self._provider_table.put_item(Item=privilege_record_schema.dump(original_privilege))
             original_privileges.append(original_privilege)
@@ -530,7 +530,7 @@ class TestDataClient(TstFunction):
         """Test that we properly roll back when a large privilege purchase fails."""
         from botocore.exceptions import ClientError
         from cc_common.data_model.data_client import DataClient
-        from cc_common.data_model.schema.common import ProviderEligibilityStatus
+        from cc_common.data_model.schema.common import ActiveInactiveStatus
         from cc_common.data_model.schema.privilege.record import PrivilegeRecordSchema
         from cc_common.exceptions import CCAwsServiceException
 
@@ -558,7 +558,7 @@ class TestDataClient(TstFunction):
                 'dateOfExpiration': date(2024, 10, 31),
                 'dateOfUpdate': datetime(2023, 11, 8, 23, 59, 59, tzinfo=UTC),
                 'compactTransactionId': '1234567890',
-                'persistedStatus': ProviderEligibilityStatus.ACTIVE,
+                'persistedStatus': ActiveInactiveStatus.ACTIVE,
             }
             dumped_privilege = privilege_record_schema.dump(original_privilege)
             self._provider_table.put_item(Item=dumped_privilege)

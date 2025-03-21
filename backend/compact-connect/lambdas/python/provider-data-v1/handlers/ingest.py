@@ -4,7 +4,7 @@ from boto3.dynamodb.types import TypeSerializer
 from cc_common.config import config, logger
 from cc_common.data_model.provider_record_util import ProviderRecordType, ProviderRecordUtility
 from cc_common.data_model.schema import LicenseRecordSchema
-from cc_common.data_model.schema.common import ProviderEligibilityStatus, UpdateCategory
+from cc_common.data_model.schema.common import ActiveInactiveStatus, UpdateCategory
 from cc_common.data_model.schema.license.ingest import LicenseIngestSchema
 from cc_common.data_model.schema.license.record import LicenseUpdateRecordSchema
 from cc_common.exceptions import CCNotFoundException
@@ -272,7 +272,7 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
         ):
             update_type = UpdateCategory.RENEWAL
             logger.info('License renewal detected')
-    elif updated_values == {'jurisdictionStatus': ProviderEligibilityStatus.INACTIVE.value}:
+    elif updated_values == {'jurisdictionStatus': ActiveInactiveStatus.INACTIVE.value}:
         update_type = UpdateCategory.DEACTIVATION
         logger.info('License deactivation detected')
     if update_type is None:

@@ -6,10 +6,10 @@ from datetime import date, datetime
 
 from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump, pre_load
 from marshmallow.fields import UUID, DateTime, String
-from marshmallow.validate import OneOf
 
 from cc_common.config import config
-from cc_common.data_model.schema.fields import Compact, SocialSecurityNumber
+from cc_common.data_model.schema.common import ActiveInactiveStatus
+from cc_common.data_model.schema.fields import ActiveInactive, Compact, SocialSecurityNumber
 from cc_common.exceptions import CCInternalException
 
 
@@ -96,7 +96,7 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
     # This field is the actual status referenced by the system, which is determined by the expiration date
     # in addition to the jurisdictionStatus. This should never be written to the DB. It is calculated
     # whenever the record is loaded.
-    status = String(required=True, allow_none=False, validate=OneOf(['active', 'inactive']))
+    status = ActiveInactive(required=True, allow_none=False)
 
     @pre_dump
     def remove_status_field_if_present(self, in_data, **kwargs):
@@ -108,11 +108,11 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
     def _calculate_status(self, in_data, **kwargs):
         """Determine the status of the record based on the expiration date"""
         in_data['status'] = (
-            'active'
+            ActiveInactiveStatus.ACTIVE
             # licenses have a jurisdictionStatus field, but privileges do not
             # so we need to check for the existence of the field before using it
             if (
-                in_data.get('jurisdictionStatus', 'active') == 'active'
+                in_data.get('jurisdictionStatus', ActiveInactiveStatus.ACTIVE) == ActiveInactiveStatus.ACTIVE
                 and date.fromisoformat(in_data['dateOfExpiration'])
                 > datetime.now(tz=config.expiration_date_resolution_timezone).date()
             )
