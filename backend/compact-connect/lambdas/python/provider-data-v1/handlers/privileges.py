@@ -25,8 +25,9 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
 
     # Get deactivation note from request body
     try:
-        body = json.loads(event['body'])
-        deactivation_note = body['deactivationNote']
+        # TODO # make this required once the frontend is updated to pass it in # noqa: FIX002
+        body = json.loads(event.get('body', '{}'))
+        deactivation_note = body.get('deactivationNote')
     except json.JSONDecodeError as e:
         raise CCInvalidRequestException('Invalid request body') from e
 
@@ -42,7 +43,9 @@ def deactivate_privilege(event: dict, context: LambdaContext):  # noqa: ARG001 u
         staff_user = config.user_client.get_user_in_compact(compact=compact, user_id=staff_user_id)
 
         deactivation_details = {
-            'note': deactivation_note,
+            # TODO - Putting in this generic note until the front end is updated to pass in note # noqa: FIX002
+            #   This if/else check should be removed at that time
+            'note': deactivation_note if deactivation_note else 'privilege deactivated by staff user.',
             'deactivatedByStaffUserId': staff_user_id,
             'deactivatedByStaffUserName': f'{staff_user["attributes"]["givenName"]} {staff_user["attributes"]["familyName"]}',  # noqa: E501
         }
