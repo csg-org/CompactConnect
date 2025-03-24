@@ -1,7 +1,7 @@
 import json
 from unittest import TestCase
 
-from app import MultiAccountApp
+from app import ControlTowerApp
 
 
 class TestSynth(TestCase):
@@ -11,4 +11,4 @@ class TestSynth(TestCase):
         with open('cdk.context.example.json') as f:
             context.update(json.load(f))
 
-        MultiAccountApp(context=context)
+        ControlTowerApp(context=context)
