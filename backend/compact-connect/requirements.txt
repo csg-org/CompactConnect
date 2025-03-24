@@ -4,26 +4,26 @@
 #
 #    pip-compile --no-emit-index-url compact-connect/requirements.in
 #
-attrs==25.1.0
+attrs==25.3.0
     # via
     #   cattrs
     #   jsii
-aws-cdk-asset-awscli-v1==2.2.226
+aws-cdk-asset-awscli-v1==2.2.228
     # via aws-cdk-lib
 aws-cdk-asset-node-proxy-agent-v6==2.1.0
     # via aws-cdk-lib
-aws-cdk-aws-lambda-python-alpha==2.182.0a0
+aws-cdk-aws-lambda-python-alpha==2.185.0a0
     # via -r compact-connect/requirements.in
 aws-cdk-cloud-assembly-schema==40.7.0
     # via aws-cdk-lib
-aws-cdk-lib==2.182.0
+aws-cdk-lib==2.185.0
     # via
     #   -r compact-connect/requirements.in
     #   aws-cdk-aws-lambda-python-alpha
     #   cdk-nag
 cattrs==24.1.2
     # via jsii
-cdk-nag==2.35.37
+cdk-nag==2.35.54
     # via -r compact-connect/requirements.in
 constructs==10.4.2
     # via
@@ -33,7 +33,7 @@ constructs==10.4.2
     #   cdk-nag
 importlib-resources==6.5.2
     # via jsii
-jsii==1.108.0
+jsii==1.110.0
     # via
     #   aws-cdk-asset-awscli-v1
     #   aws-cdk-asset-node-proxy-agent-v6
