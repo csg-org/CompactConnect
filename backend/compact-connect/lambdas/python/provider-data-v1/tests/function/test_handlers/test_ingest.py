@@ -300,7 +300,6 @@ class TestIngest(TstFunction):
                         'homeAddressPostalCode': '43004',
                         'emailAddress': 'björk@example.com',
                         'phoneNumber': '+13213214321',
-                        'militaryWaiver': False,
                     },
                     'updatedValues': {'jurisdictionStatus': 'inactive'},
                 }
@@ -400,7 +399,6 @@ class TestIngest(TstFunction):
                         'homeAddressPostalCode': '43004',
                         'emailAddress': 'björk@example.com',
                         'phoneNumber': '+13213214321',
-                        'militaryWaiver': False,
                     },
                     'updatedValues': {
                         'dateOfRenewal': '2025-03-03',
@@ -481,7 +479,6 @@ class TestIngest(TstFunction):
                         'homeAddressPostalCode': '43004',
                         'emailAddress': 'björk@example.com',
                         'phoneNumber': '+13213214321',
-                        'militaryWaiver': False,
                     },
                     'updatedValues': {
                         'familyName': 'VonSmitherton',
@@ -602,7 +599,6 @@ class TestIngest(TstFunction):
                         'homeAddressPostalCode': '43004',
                         'emailAddress': 'björk@example.com',
                         'phoneNumber': '+13213214321',
-                        'militaryWaiver': False,
                     },
                     'updatedValues': {},
                     'removedValues': ['emailAddress'],
@@ -674,7 +670,6 @@ class TestIngest(TstFunction):
                         'homeAddressState': 'oh',
                         'homeAddressPostalCode': '43004',
                         'phoneNumber': '+13213214321',
-                        'militaryWaiver': False,
                     },
                     'updatedValues': {
                         'emailAddress': 'björk@example.com',

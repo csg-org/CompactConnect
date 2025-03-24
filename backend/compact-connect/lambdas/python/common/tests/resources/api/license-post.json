@@ -17,6 +17,5 @@
   "dateOfExpiration": "2025-04-04",
   "dateOfBirth": "1985-06-06",
   "emailAddress": "björk@example.com",
-  "phoneNumber": "+13213214321",
-  "militaryWaiver": false
+  "phoneNumber": "+13213214321"
 }

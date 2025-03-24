@@ -44,6 +44,7 @@ class ProviderUsers:
             'LICENSE_GSI_NAME': persistent_stack.provider_table.license_gsi_name,
             'PROVIDER_USER_POOL_ID': persistent_stack.provider_users.user_pool_id,
             'RATE_LIMITING_TABLE_NAME': persistent_stack.rate_limiting_table.table_name,
+            'COMPACT_CONFIGURATION_TABLE_NAME': persistent_stack.compact_configuration_table.table_name,
             **stack.common_env_vars,
         }
 
@@ -193,7 +194,7 @@ class ProviderUsers:
     def _add_provider_registration(
         self,
         provider_data_table: ProviderTable,
-        persistent_stack: ps,
+        persistent_stack: ps.PersistentStack,
         lambda_environment: dict,
     ):
         stack = Stack.of(self.provider_users_resource)
@@ -218,6 +219,7 @@ class ProviderUsers:
         )
 
         provider_data_table.grant_read_write_data(self.provider_registration_handler)
+        persistent_stack.compact_configuration_table.grant_read_data(self.provider_registration_handler)
         recaptcha_secret.grant_read(self.provider_registration_handler)
         persistent_stack.provider_users.grant(self.provider_registration_handler, 'cognito-idp:AdminCreateUser')
         persistent_stack.rate_limiting_table.grant_read_write_data(self.provider_registration_handler)

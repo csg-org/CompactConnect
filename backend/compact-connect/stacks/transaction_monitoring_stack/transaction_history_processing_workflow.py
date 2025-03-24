@@ -57,7 +57,6 @@ class TransactionHistoryProcessingWorkflow(Construct):
             environment={
                 'TRANSACTION_HISTORY_TABLE_NAME': persistent_stack.transaction_history_table.table_name,
                 'PROVIDER_TABLE_NAME': persistent_stack.provider_table.table_name,
-                'ENVIRONMENT_NAME': environment_name,
                 'COMPACT_TRANSACTION_ID_GSI_NAME': persistent_stack.provider_table.compact_transaction_gsi_name,
                 **stack.common_env_vars,
             },

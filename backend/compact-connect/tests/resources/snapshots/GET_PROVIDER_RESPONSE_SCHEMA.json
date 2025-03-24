@@ -295,9 +295,6 @@
                       "maxLength": 100,
                       "minLength": 1,
                       "type": "string"
-                    },
-                    "militaryWaiver": {
-                      "type": "boolean"
                     }
                   },
                   "required": [
@@ -408,9 +405,6 @@
                       "maxLength": 100,
                       "minLength": 1,
                       "type": "string"
-                    },
-                    "militaryWaiver": {
-                      "type": "boolean"
                     }
                   },
                   "type": "object"
@@ -525,9 +519,6 @@
             "maxLength": 100,
             "minLength": 1,
             "type": "string"
-          },
-          "militaryWaiver": {
-            "type": "boolean"
           }
         },
         "required": [
@@ -1572,9 +1563,6 @@
       "format": "date",
       "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
       "type": "string"
-    },
-    "militaryWaiver": {
-      "type": "boolean"
     },
     "licenseJurisdiction": {
       "enum": [

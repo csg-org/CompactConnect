@@ -2261,9 +2261,6 @@
             "minLength": 1,
             "type": "string"
           },
-          "militaryWaiver": {
-            "type": "boolean"
-          },
           "dateOfBirth": {
             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
             "type": "string",
@@ -2519,9 +2516,6 @@
                   "minLength": 1,
                   "type": "string"
                 },
-                "militaryWaiver": {
-                  "type": "boolean"
-                },
                 "dateOfBirth": {
                   "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
                   "type": "string",
@@ -2603,9 +2597,6 @@
                             "maxLength": 100,
                             "minLength": 2,
                             "type": "string"
-                          },
-                          "militaryWaiver": {
-                            "type": "boolean"
                           },
                           "dateOfBirth": {
                             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
@@ -2760,9 +2751,6 @@
                             "maxLength": 100,
                             "minLength": 2,
                             "type": "string"
-                          },
-                          "militaryWaiver": {
-                            "type": "boolean"
                           },
                           "dateOfBirth": {
                             "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
@@ -3944,9 +3932,6 @@
               "minLength": 2,
               "type": "string"
             },
-            "militaryWaiver": {
-              "type": "boolean"
-            },
             "dateOfBirth": {
               "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",
               "type": "string",
@@ -4561,9 +4546,6 @@
                   "maxLength": 100,
                   "minLength": 1,
                   "type": "string"
-                },
-                "militaryWaiver": {
-                  "type": "boolean"
                 },
                 "dateOfBirth": {
                   "pattern": "^[12]{1}[0-9]{3}-[01]{1}[0-9]{1}-[0-3]{1}[0-9]{1}$",

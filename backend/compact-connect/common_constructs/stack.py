@@ -16,8 +16,9 @@ class StandardTags(dict):
 
 
 class Stack(CdkStack):
-    def __init__(self, *args, standard_tags: StandardTags, **kwargs):
+    def __init__(self, *args, standard_tags: StandardTags, environment_name: str, **kwargs):
         super().__init__(*args, tags=standard_tags, **kwargs)
+        self.environment_name = environment_name
         # AWS-recommended rule sets for best practice and to help with (but not guarantee) HIPAA compliance
         Aspects.of(self).add(AwsSolutionsChecks())
         Aspects.of(self).add(HIPAASecurityChecks())
@@ -70,15 +71,17 @@ class Stack(CdkStack):
             'COMPACTS': json.dumps(self.node.get_context('compacts')),
             'JURISDICTIONS': json.dumps(self.node.get_context('jurisdictions')),
             'LICENSE_TYPES': json.dumps(self.node.get_context('license_types')),
+            'ENVIRONMENT_NAME': self.environment_name,
         }
 
 
 class AppStack(Stack):
     """A stack that is part of the main app deployment"""
 
-    def __init__(self, *args, environment_context: dict, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, environment_context: dict, environment_name: str, **kwargs):
+        super().__init__(*args, environment_name=environment_name, **kwargs)
         self.environment_context = environment_context
+        self.environment_name = environment_name
 
     @cached_property
     def hosted_zone(self) -> IHostedZone | None:

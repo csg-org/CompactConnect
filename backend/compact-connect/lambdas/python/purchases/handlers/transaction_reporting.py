@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import csv
-import json
 from datetime import datetime, timedelta
 from decimal import Decimal
 from io import BytesIO, StringIO
@@ -192,6 +191,7 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     data_client = config.data_client
     transaction_client = config.transaction_client
     compact_configuration_client = config.compact_configuration_client
+    email_service_client = config.email_service_client
 
     # Get the S3 bucket name
     bucket_name = config.transaction_reports_bucket_name
@@ -273,31 +273,21 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
     )
 
     # Send compact summary report with S3 paths
-    compact_response = config.lambda_client.invoke(
-        FunctionName=config.email_notification_service_lambda_name,
-        InvocationType='RequestResponse',
-        Payload=json.dumps(
-            {
-                'compact': compact,
-                'template': 'CompactTransactionReporting',
-                'recipientType': 'COMPACT_SUMMARY_REPORT',
-                'templateVariables': {
-                    'reportS3Path': compact_paths['report_zip'],
-                    'reportingCycle': reporting_cycle,
-                    'startDate': display_start_time.strftime('%Y-%m-%d'),
-                    'endDate': display_end_time.strftime('%Y-%m-%d'),
-                },
-            }
-        ),
-    )
-
-    if compact_response.get('FunctionError'):
+    try:
+        email_service_client.send_compact_transaction_report_email(
+            compact=compact,
+            report_s3_path=compact_paths['report_zip'],
+            reporting_cycle=reporting_cycle,
+            start_date=display_start_time,
+            end_date=display_end_time,
+        )
+    except CCInternalException as e:
         logger.error(
             'Failed to send compact summary report email',
             compact=compact,
-            error=compact_response.get('FunctionError'),
+            error=str(e),
         )
-        lambda_error_messages.append(compact_response.get('FunctionError'))
+        lambda_error_messages.append(str(e))
 
     # Store and send jurisdiction reports
     for jurisdiction, report_csv in jurisdiction_reports.items():
@@ -312,33 +302,23 @@ def generate_transaction_reports(event: dict, context: LambdaContext) -> dict:  
             bucket_name=bucket_name,
         )
 
-        jurisdiction_response = config.lambda_client.invoke(
-            FunctionName=config.email_notification_service_lambda_name,
-            InvocationType='RequestResponse',
-            Payload=json.dumps(
-                {
-                    'compact': compact,
-                    'jurisdiction': jurisdiction,
-                    'template': 'JurisdictionTransactionReporting',
-                    'recipientType': 'JURISDICTION_SUMMARY_REPORT',
-                    'templateVariables': {
-                        'reportS3Path': jurisdiction_paths['report_zip'],
-                        'reportingCycle': reporting_cycle,
-                        'startDate': display_start_time.strftime('%Y-%m-%d'),
-                        'endDate': display_end_time.strftime('%Y-%m-%d'),
-                    },
-                }
-            ),
-        )
-
-        if jurisdiction_response.get('FunctionError'):
+        try:
+            email_service_client.send_jurisdiction_transaction_report_email(
+                compact=compact,
+                jurisdiction=jurisdiction,
+                report_s3_path=jurisdiction_paths['report_zip'],
+                reporting_cycle=reporting_cycle,
+                start_date=display_start_time,
+                end_date=display_end_time,
+            )
+        except CCInternalException as e:
             logger.error(
                 'Failed to send jurisdiction report email',
                 compact=compact,
                 jurisdiction=jurisdiction,
-                error=jurisdiction_response.get('FunctionError'),
+                error=str(e),
             )
-            lambda_error_messages.append(jurisdiction_response.get('FunctionError'))
+            lambda_error_messages.append(str(e))
 
     if lambda_error_messages:
         raise CCInternalException(

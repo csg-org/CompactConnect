@@ -12,6 +12,7 @@ transactionFeeConfiguration:
 compactOperationsTeamEmails: []
 compactAdverseActionsNotificationEmails: []
 compactSummaryReportNotificationEmails: []
+licenseeRegistrationEnabledForEnvironments: ["test"]
 activeEnvironments: ["test"]
 
 attestations:

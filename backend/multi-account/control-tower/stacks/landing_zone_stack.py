@@ -1,10 +1,10 @@
 from aws_cdk import ArnFormat, RemovalPolicy, Stack
 from aws_cdk.aws_controltower import CfnLandingZone
-from aws_cdk.aws_iam import Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal
+from aws_cdk.aws_iam import AccountPrincipal, Effect, ManagedPolicy, PolicyStatement, Role, ServicePrincipal
 from aws_cdk.aws_kms import Key
 from constructs import Construct
 
-from multi_account.bare_org_stack import BareOrgStack
+from stacks.bare_org_stack import BareOrgStack
 
 
 class LandingZoneStack(Stack):
@@ -78,6 +78,27 @@ class LandingZoneStack(Stack):
                     },
                 },
             ),
+        )
+        encryption_key.add_to_resource_policy(
+            PolicyStatement(
+                sid='LogsAuditRead',
+                effect=Effect.ALLOW,
+                principals=[
+                    AccountPrincipal(bare_org_stack.audit_account.attr_account_id),
+                    AccountPrincipal(bare_org_stack.logging_account.attr_account_id),
+                ],
+                actions=['kms:Decrypt'],
+                resources=['*'],
+                # This is a secondary check - if we misconfigured something and set one of the
+                # account ids above to an account we didn't control, this org id check will prevent
+                # the access from working, since the account would have to be both named above and
+                # be in our organization.
+                conditions={
+                    'StringEquals': {
+                        'aws:PrincipalOrgID': ['${aws:ResourceOrgId}']
+                    }
+                }
+            )
         )
 
         control_tower_role = Role(

@@ -16,6 +16,7 @@ import MixinForm from '@components/Forms/_mixins/form.mixin';
 import SelectedStatePurchaseInformation from '@components/SelectedStatePurchaseInformation/SelectedStatePurchaseInformation.vue';
 import LoadingSpinner from '@components/LoadingSpinner/LoadingSpinner.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
+import SelectedLicenseInfo from '@components/SelectedLicenseInfo/SelectedLicenseInfo.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import MockPopulate from '@components/Forms/MockPopulate/MockPopulate.vue';
@@ -40,6 +41,7 @@ import moment from 'moment';
         InputButton,
         SelectedStatePurchaseInformation,
         LoadingSpinner,
+        SelectedLicenseInfo,
         MockPopulate
     }
 })
@@ -153,20 +155,21 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
     get disabledPrivilegeStateChoices(): Array<string> {
         const disabledStateList: Array<string> = [];
         const { privilegeList } = this;
-        const bestHomeJurisdictionLicense = this.licensee?.bestHomeJurisdictionLicense();
+        const purchaseLicense = this.selectedPurchaseLicense;
 
-        if (bestHomeJurisdictionLicense) {
-            privilegeList.forEach((privilege) => {
+        if (purchaseLicense) {
+            privilegeList.filter((privilege) =>
+                (privilege.licenseType === purchaseLicense.licenseType)).forEach((privilege) => {
                 if (
                     privilege?.issueState?.abbrev
-                    && moment(privilege?.expireDate).isSameOrAfter(bestHomeJurisdictionLicense.expireDate)
+                    && moment(privilege?.expireDate).isSameOrAfter(purchaseLicense.expireDate)
                     && privilege.status === LicenseStatus.ACTIVE
                 ) {
                     disabledStateList.push(privilege?.issueState?.abbrev);
                 }
             });
 
-            disabledStateList.push(bestHomeJurisdictionLicense?.issueState?.abbrev || '');
+            disabledStateList.push(purchaseLicense?.issueState?.abbrev || '');
         }
 
         return disabledStateList;
@@ -302,6 +305,10 @@ export default class PrivilegePurchaseSelect extends mixins(MixinForm) {
 
     get isMockPopulateEnabled(): boolean {
         return Boolean(this.$envConfig.isDevelopment);
+    }
+
+    get selectedPurchaseLicense(): License | null {
+        return this.$store.getters['user/getLicenseSelected']();
     }
 
     //

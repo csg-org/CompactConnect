@@ -4,6 +4,7 @@ import time
 from datetime import UTC, datetime
 
 import requests
+from boto3.dynamodb.conditions import Key
 from config import config, logger
 from smoke_common import (
     SmokeTestFailureException,
@@ -82,25 +83,29 @@ def test_purchasing_privilege():
     # Step 3: Verify a transaction id is returned in the response body.
     # Step 4: Load records for provider and verify that the privilege is added to the provider's record.
 
-    # first cleaning up user's existing privileges to start in a clean state
+    # first cleaning up user's existing 'ne' based privileges to start in a clean state
     original_provider_data = call_provider_users_me_endpoint()
-    original_privileges = original_provider_data.get('privileges')
-    if original_privileges:
-        provider_id = original_provider_data.get('providerId')
-        compact = original_provider_data.get('compact')
-        dynamodb_table = config.provider_user_dynamodb_table
-        for privilege in original_privileges:
-            privilege_pk = f'{compact}#PROVIDER#{provider_id}'
-            privilege_sk = f'{compact}#PROVIDER#privilege/{privilege["jurisdiction"]}#'
-            logger.info(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
-            dynamodb_table.delete_item(
-                Key={
-                    'pk': privilege_pk,
-                    'sk': privilege_sk,
-                }
-            )
-            # give dynamodb time to propagate
-            time.sleep(1)
+    provider_id = original_provider_data.get('providerId')
+    compact = original_provider_data.get('compact')
+    dynamodb_table = config.provider_user_dynamodb_table
+    # query for all ne related privilege records
+    original_privilege_records = dynamodb_table.query(
+        KeyConditionExpression=Key('pk').eq(f'{compact}#PROVIDER#{provider_id}')
+        & Key('sk').begins_with(f'{compact}#PROVIDER#privilege/ne/')
+    ).get('Items', [])
+    for privilege in original_privilege_records:
+        # delete the privilege records
+        privilege_pk = privilege['pk']
+        privilege_sk = privilege['sk']
+        logger.info(f'Deleting privilege record:\n{privilege_pk}\n{privilege_sk}')
+        dynamodb_table.delete_item(
+            Key={
+                'pk': privilege_pk,
+                'sk': privilege_sk,
+            }
+        )
+        # give dynamodb time to propagate
+        time.sleep(1)
 
     # Get the latest version of every attestation required for the privilege purchase
     required_attestation_ids = [
@@ -135,6 +140,8 @@ def test_purchasing_privilege():
         logger.info(f'Received attestation response for {attestation_id}: {attestation}')
         attestations_from_system.append({'attestationId': attestation_id, 'version': attestation['version']})
 
+    license_type = original_provider_data['licenses'][0]['licenseType']
+
     post_body = {
         'orderInformation': {
             'card': {
@@ -155,6 +162,7 @@ def test_purchasing_privilege():
         },
         'selectedJurisdictions': ['ne'],
         'attestations': attestations_from_system,
+        'licenseType': license_type,
     }
 
     headers = get_provider_user_auth_headers_cached()
@@ -198,11 +206,8 @@ def test_purchasing_privilege():
         if not matching_attestation_from_system:
             raise SmokeTestFailureException(f'No matching attestation found for {attestation["attestationId"]}')
         if attestation['version'] != matching_attestation_from_system['version']:
-            raise SmokeTestFailureException('Attestation version in privilege record does not match')
-        if attestation['version'] != attestations_from_system[0]['version']:
             raise SmokeTestFailureException(
-                f'Attestation {attestation["attestationId"]} version in privilege record '
-                f'does not match latest version in system'
+                'Attestation version in privilege record does not match latest version in system'
             )
 
     logger.info(f'Successfully purchased privilege record: {matching_privilege}')

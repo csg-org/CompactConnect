@@ -120,9 +120,9 @@ class TransactionClient:
 
         return all_matching_transactions
 
-    def _set_privilege_id_in_line_item(self, line_items: list[dict], item_id: str, privilege_id: str):
+    def _set_privilege_id_in_line_item(self, line_items: list[dict], item_id_prefix: str, privilege_id: str):
         for line_item in line_items:
-            if line_item.get('itemId').lower() == item_id.lower():
+            if line_item.get('itemId').lower().startswith(item_id_prefix.lower()):
                 line_item['privilegeId'] = privilege_id
 
     def add_privilege_ids_to_transactions(self, compact: str, transactions: list[dict]) -> list[dict]:
@@ -136,12 +136,13 @@ class TransactionClient:
         for transaction in transactions:
             line_items = transaction['lineItems']
             licensee_id = transaction['licenseeId']
-            # Extract jurisdictions from line items with format priv:{compact}-{jurisdiction}
+            # Extract jurisdictions from line items with format priv:{compact}-{jurisdiction}-{license type abbr}
             jurisdictions_to_process = set()
             for line_item in line_items:
                 item_id = line_item['itemId']
                 if item_id.startswith('priv:'):
-                    jurisdiction = item_id.split('-')[1].lower()
+                    parts = item_id.split('-')
+                    jurisdiction = parts[1].lower()
                     jurisdictions_to_process.add(jurisdiction)
 
             # Query for privilege records using the GSI
@@ -153,7 +154,9 @@ class TransactionClient:
 
             # Process each privilege record
             for jurisdiction in jurisdictions_to_process:
-                item_id = f'priv:{compact}-{jurisdiction}'
+                # Currently, we only support one license type per transaction when purchasing privileges
+                # so we can just use this prefix to find the matching privilege record
+                item_id_prefix = f'priv:{compact}-{jurisdiction}'
                 # find the first privilege record for the jurisdiction that matches the provider ID
                 matching_privilege = next(
                     (
@@ -171,9 +174,9 @@ class TransactionClient:
                     elif record_type == 'privilegeUpdate':
                         privilege_id = matching_privilege['previous']['privilegeId']
 
-                    # Find and update the matching line item
+                    # Find and update the matching line item(s) using prefix match
                     self._set_privilege_id_in_line_item(
-                        line_items=line_items, item_id=item_id, privilege_id=privilege_id
+                        line_items=line_items, item_id_prefix=item_id_prefix, privilege_id=privilege_id
                     )
                 else:
                     logger.error(
@@ -186,6 +189,8 @@ class TransactionClient:
                         matching_privilege_records=response.get('Items', []),
                     )
                     # we set the privilege id to UNKNOWN, so that it will be visible in the report
-                    self._set_privilege_id_in_line_item(line_items=line_items, item_id=item_id, privilege_id='UNKNOWN')
+                    self._set_privilege_id_in_line_item(
+                        line_items=line_items, item_id_prefix=item_id_prefix, privilege_id='UNKNOWN'
+                    )
 
         return transactions
