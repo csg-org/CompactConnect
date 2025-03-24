@@ -239,7 +239,18 @@ describe('License Store Actions', async () => {
     it('should successfully start licensees request with previous page', async () => {
         const commit = sinon.spy();
         const dispatch = sinon.spy();
-        const params = { getPrevPage: true, isPublic: true };
+        const params = { getPrevPage: true };
+
+        await actions.getLicenseesRequest({ commit, getters, dispatch }, { params });
+
+        expect(commit.calledOnce).to.equal(true);
+        expect(commit.firstCall.args).to.matchPattern([MutationTypes.GET_LICENSEES_REQUEST]);
+        expect(dispatch.callCount).to.equal(4);
+    });
+    it('should successfully start licensees request as public request', async () => {
+        const commit = sinon.spy();
+        const dispatch = sinon.spy();
+        const params = { isPublic: true };
 
         await actions.getLicenseesRequest({ commit, getters, dispatch }, { params });
 

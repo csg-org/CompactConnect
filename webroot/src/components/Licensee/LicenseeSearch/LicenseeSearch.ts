@@ -125,11 +125,7 @@ class LicenseeSearch extends mixins(MixinForm) {
                 label: computed(() => this.$t('common.stateJurisdiction')),
                 valueOptions: this.stateOptions,
                 value: this.searchParams.state || '',
-                isDisabled: computed(() => {
-                    const isCompactSelected = !!this.compactType;
-
-                    return (this.enableCompactSelect) ? !isCompactSelected : false;
-                }),
+                isDisabled: computed(() => this.enableCompactSelect && !this.compactType),
             }),
             submit: new FormInput({
                 isSubmitInput: true,
@@ -156,6 +152,7 @@ class LicenseeSearch extends mixins(MixinForm) {
 
         if (this.enableCompactSelect) {
             await this.$store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: selectedCompactType.value }));
+            state.value = '';
             state.valueOptions = this.stateOptions;
         }
     }
