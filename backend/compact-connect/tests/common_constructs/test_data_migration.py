@@ -13,7 +13,9 @@ class TestDataMigration(TestCase):
     def test_data_migration_synthesizes(self):
         from common_constructs.data_migration import DataMigration
 
-        app = App()
+        # Suppresses lambda bundling for tests
+        context = {'aws:cdk:bundling-stacks': []}
+        app = App(context=context)
         stack = Stack(app, 'Stack')
 
         # Create a role for the migration function
