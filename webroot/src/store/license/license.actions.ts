@@ -46,7 +46,7 @@ export default {
     getLicenseeRequest: async ({ commit, dispatch }, { compact, licenseeId, isPublic }: any) => {
         commit(MutationTypes.GET_LICENSEE_REQUEST);
 
-        const apiRequest = (isPublic) ? dataApi.getLicenseePublic : dataApi.getLicensees;
+        const apiRequest = (isPublic) ? dataApi.getLicenseePublic : dataApi.getLicensee;
 
         await apiRequest(compact, licenseeId).then((licensee) => {
             dispatch('getLicenseeSuccess', licensee);
