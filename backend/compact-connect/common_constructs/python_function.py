@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import os
 
-from aws_cdk import Duration, Stack
+from aws_cdk import DockerImage, Duration, Stack
 from aws_cdk.aws_cloudwatch import Alarm, ComparisonOperator, Stats, TreatMissingData
 from aws_cdk.aws_cloudwatch_actions import SnsAction
 from aws_cdk.aws_iam import IRole
 from aws_cdk.aws_lambda import ILayerVersion, Runtime
+from aws_cdk.aws_lambda_python_alpha import BundlingOptions, PythonLayerVersion
 from aws_cdk.aws_lambda_python_alpha import PythonFunction as CdkPythonFunction
-from aws_cdk.aws_lambda_python_alpha import PythonLayerVersion
 from aws_cdk.aws_logs import RetentionDays
 from aws_cdk.aws_sns import ITopic
 from aws_cdk.aws_ssm import StringParameter
@@ -46,6 +46,13 @@ class PythonFunction(CdkPythonFunction):
             runtime=Runtime.PYTHON_3_12,
             log_retention=log_retention,
             role=role,
+            bundling=BundlingOptions(
+                # This image is a workaround to avoid the authorizenet package being incompatible with setuptools >=78:
+                # https://github.com/AuthorizeNet/sdk-python/issues/166
+                # We've built a TEMPORARY custom builder image that downgrades setuptools to 77 for these lambdas.
+                # If this issue is not resolved soon, we'll need to find a more permanent solution.
+                image=DockerImage.from_registry('justinatinspiringapps/sam-downgraded-setuptools:build-python3.12'),
+            ),
             **defaults,
         )
         self.add_layers(self._get_common_layer())
