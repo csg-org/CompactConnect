@@ -364,7 +364,7 @@ class ApiModel:
                 additional_properties=False,
                 # TODO - this 'deactivationNote' should be set to required after frontend has been # noqa: FIX002
                 #  updated to pass it in
-                required=[],
+                # required=['deactivationNote'],
                 properties={
                     'deactivationNote': JsonSchema(
                         type=JsonSchemaType.STRING,
