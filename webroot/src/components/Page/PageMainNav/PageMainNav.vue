@@ -45,6 +45,7 @@
                     :to="{ name: link.to, params: link.params || {}}"
                     :aria-label="link.label"
                     tabindex="0"
+                    :class="{ 'router-link-active': link.isActive }"
                 >
                     <component v-if="link.iconComponent" :is="link.iconComponent" class="link-icon" />
                     <span v-if="isNavExpanded" class="link-label">{{ link.label }}</span>

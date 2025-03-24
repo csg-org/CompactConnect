@@ -43,10 +43,12 @@ export default {
         commit(MutationTypes.GET_LICENSEES_FAILURE, error);
     },
     // GET LICENSEE
-    getLicenseeRequest: async ({ commit, dispatch }, { compact, licenseeId }: any) => {
+    getLicenseeRequest: async ({ commit, dispatch }, { compact, licenseeId, isPublic }: any) => {
         commit(MutationTypes.GET_LICENSEE_REQUEST);
 
-        await dataApi.getLicensee(compact, licenseeId).then((licensee) => {
+        const apiRequest = (isPublic) ? dataApi.getLicenseePublic : dataApi.getLicensees;
+
+        await apiRequest(compact, licenseeId).then((licensee) => {
             dispatch('getLicenseeSuccess', licensee);
         }).catch((error) => {
             dispatch('getLicenseeFailure', error);
