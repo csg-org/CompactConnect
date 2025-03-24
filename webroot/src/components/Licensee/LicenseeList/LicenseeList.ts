@@ -32,6 +32,7 @@ import { State } from '@models/State/State.model';
 })
 class LicenseeList extends Vue {
     @Prop({ required: true }) protected listId!: string;
+    @Prop({ default: false }) protected isPublicSearch?: boolean;
 
     //
     // Data
@@ -92,20 +93,37 @@ class LicenseeList extends Vue {
         return this.licenseStore.search;
     }
 
+    get searchDisplayCompact(): string {
+        return (this.isPublicSearch) ? this.userStore.currentCompact?.abbrev() || '' : '';
+    }
+
     get searchDisplayFirstName(): string {
-        return this.searchParams.firstName || '';
+        const delimiter = (this.searchDisplayCompact) ? ', ' : '';
+        let displayFirstName = '';
+
+        if (this.searchParams.firstName) {
+            displayFirstName = `${delimiter}${this.searchParams.firstName}` || '';
+        }
+
+        return displayFirstName;
     }
 
     get searchDisplayLastName(): string {
-        const delimiter = (this.searchDisplayFirstName) ? ' ' : '';
+        const delimiter = (this.searchDisplayCompact && !this.searchDisplayFirstName) ? ', ' : '';
+        const subDelimiter = (this.searchDisplayFirstName) ? ' ' : '';
+        let displayLastName = '';
 
-        return `${delimiter}${this.searchParams.lastName}` || '';
+        if (this.searchParams.lastName) {
+            displayLastName = `${delimiter}${subDelimiter}${this.searchParams.lastName}` || '';
+        }
+
+        return displayLastName;
     }
 
     get searchDisplayState(): string {
         const { state } = this.searchParams;
-        const { searchDisplayFirstName, searchDisplayLastName } = this;
-        const delimiter = (searchDisplayFirstName || searchDisplayLastName) ? ', ' : '';
+        const { searchDisplayCompact, searchDisplayFirstName, searchDisplayLastName } = this;
+        const delimiter = (searchDisplayCompact || searchDisplayFirstName || searchDisplayLastName) ? ', ' : '';
         let displayState = '';
 
         if (state) {
@@ -119,12 +137,18 @@ class LicenseeList extends Vue {
 
     get searchDisplayAll(): string {
         const {
+            searchDisplayCompact,
             searchDisplayFirstName,
             searchDisplayLastName,
             searchDisplayState
         } = this;
 
-        return [searchDisplayFirstName, searchDisplayLastName, searchDisplayState].join('').trim();
+        return [
+            searchDisplayCompact,
+            searchDisplayFirstName,
+            searchDisplayLastName,
+            searchDisplayState
+        ].join('').trim();
     }
 
     get sortOptions(): Array<any> {
@@ -177,6 +201,11 @@ class LicenseeList extends Vue {
 
     resetSearch(): void {
         this.$store.dispatch('license/resetStoreSearch');
+
+        if (this.isPublicSearch) {
+            this.$store.dispatch('user/setCurrentCompact', null);
+        }
+
         this.toggleSearch();
     }
 
@@ -262,7 +291,13 @@ class LicenseeList extends Vue {
         }
 
         // Search params
-        requestConfig.compact = this.userStore.currentCompact?.type;
+        requestConfig.isPublic = this.isPublicSearch;
+
+        if (searchParams?.compact) {
+            requestConfig.compact = searchParams?.compact;
+        } else {
+            requestConfig.compact = this.userStore.currentCompact?.type;
+        }
 
         if (searchParams?.firstName) {
             requestConfig.licenseeFirstName = searchParams.firstName;

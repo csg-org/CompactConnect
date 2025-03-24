@@ -18,6 +18,7 @@ import { LicenseeSerializer } from '@models/Licensee/Licensee.model';
 import { PrivilegeAttestation, PrivilegeAttestationSerializer } from '@models/PrivilegeAttestation/PrivilegeAttestation.model';
 
 export interface RequestParamsInterfaceLocal {
+    isPublic?: boolean;
     compact?: string;
     jurisdiction?: string;
     licenseeId?: string;
@@ -197,12 +198,42 @@ export class LicenseDataApi implements DataApiInterface {
     }
 
     /**
+     * GET Licensees (Public).
+     * @param  {RequestParamsInterfaceLocal} [params={}] The request query parameters config.
+     * @return {Promise<object>}                         Response metadata + an array of licensees.
+     */
+    public async getLicenseesPublic(params: RequestParamsInterfaceLocal = {}) {
+        const requestParams: RequestParamsInterfaceRemote = this.prepRequestPostParams(params);
+        const serverReponse: any = await this.api.post(`/v1/public/compacts/${params.compact}/providers/query`, requestParams);
+        const { pagination = {}, providers } = serverReponse;
+        const { prevLastKey, lastKey } = pagination;
+        const response = {
+            prevLastKey,
+            lastKey,
+            licensees: providers.map((serverItem) => LicenseeSerializer.fromServer(serverItem)),
+        };
+
+        return response;
+    }
+
+    /**
      * GET Licensee by ID.
      * @param  {string}          licenseeId A licensee ID.
      * @return {Promise<object>}            A licensee server response.
      */
     public async getLicensee(compact: string, licenseeId: string) {
         const serverResponse: any = await this.api.get(`/v1/compacts/${compact}/providers/${licenseeId}`);
+
+        return LicenseeSerializer.fromServer(serverResponse);
+    }
+
+    /**
+     * GET Licensee by ID (Public).
+     * @param  {string}          licenseeId A licensee ID.
+     * @return {Promise<object>}            A licensee server response.
+     */
+    public async getLicenseePublic(compact: string, licenseeId: string) {
+        const serverResponse: any = await this.api.get(`/v1/public/compacts/${compact}/providers/${licenseeId}`);
 
         return LicenseeSerializer.fromServer(serverResponse);
     }

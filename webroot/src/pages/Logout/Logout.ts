@@ -52,7 +52,7 @@ export default class Logout extends Vue {
     get loginURL(): string {
         const { domain } = this.$envConfig;
 
-        return `${(domain as string)}/Login`;
+        return `${(domain as string)}/Dashboard`;
     }
 
     get hostedLogoutUriLicensee(): string {

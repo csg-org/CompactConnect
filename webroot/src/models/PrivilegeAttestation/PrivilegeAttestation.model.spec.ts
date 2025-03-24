@@ -124,7 +124,42 @@ describe('PrivilegeAttestation model', () => {
         expect(privilegeAttestation.dateUpdatedDisplay()).to.equal(
             moment(data.dateOfUpdate, serverDateFormat).format(displayDateFormat)
         );
+        expect(privilegeAttestation.textDisplay()).to.equal('test-text<br>test-text');
+    });
+    it('should create a PrivilegeAttestation with specific values through serializer (missing optional values)', () => {
+        const data = {
+            attestationId: 'test-id',
+            dateCreated: '2020-01-01',
+            dateOfUpdate: '2021-12-31',
+            compact: 'aslp',
+            type: 'test-type',
+            displayName: 'test-name',
+            text: 'test-text\ntest-text',
+            version: 'test-version',
+            locale: 'test-locale',
+        };
+        const privilegeAttestation = PrivilegeAttestationSerializer.fromServer(data);
 
+        // Test field values
+        expect(privilegeAttestation).to.be.an.instanceof(PrivilegeAttestation);
+        expect(privilegeAttestation.id).to.equal(data.attestationId);
+        expect(privilegeAttestation.dateCreated).to.equal(data.dateCreated);
+        expect(privilegeAttestation.dateUpdated).to.equal(data.dateOfUpdate);
+        expect(privilegeAttestation.compact).to.be.an.instanceof(Compact);
+        expect(privilegeAttestation.type).to.equal(data.type);
+        expect(privilegeAttestation.name).to.equal(data.displayName);
+        expect(privilegeAttestation.text).to.equal(data.text);
+        expect(privilegeAttestation.version).to.equal(data.version);
+        expect(privilegeAttestation.locale).to.equal(data.locale);
+        expect(privilegeAttestation.isRequired).to.equal(false);
+
+        // Test methods
+        expect(privilegeAttestation.dateCreatedDisplay()).to.equal(
+            moment(data.dateCreated, serverDateFormat).format(displayDateFormat)
+        );
+        expect(privilegeAttestation.dateUpdatedDisplay()).to.equal(
+            moment(data.dateOfUpdate, serverDateFormat).format(displayDateFormat)
+        );
         expect(privilegeAttestation.textDisplay()).to.equal('test-text<br>test-text');
     });
 });
