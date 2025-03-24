@@ -8,7 +8,7 @@ attrs==25.3.0
     # via
     #   cattrs
     #   jsii
-aws-cdk-asset-awscli-v1==2.2.228
+aws-cdk-asset-awscli-v1==2.2.229
     # via aws-cdk-lib
 aws-cdk-asset-node-proxy-agent-v6==2.1.0
     # via aws-cdk-lib
