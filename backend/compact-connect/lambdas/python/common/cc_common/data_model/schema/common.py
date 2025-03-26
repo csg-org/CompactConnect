@@ -88,6 +88,11 @@ class ActiveInactiveStatus(CCEnum):
     INACTIVE = 'inactive'
 
 
+class CompactEligibilityStatus(CCEnum):
+    ELIGIBLE = 'eligible'
+    INELIGIBLE = 'ineligible'
+
+
 class StaffUserStatus(CCEnum):
     ACTIVE = 'active'
     INACTIVE = 'inactive'

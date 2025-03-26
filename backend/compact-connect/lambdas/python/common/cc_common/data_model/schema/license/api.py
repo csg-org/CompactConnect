@@ -8,10 +8,12 @@ from marshmallow.fields import Date, Email, List, Nested, Raw, String
 from marshmallow.validate import Length
 
 from cc_common.config import config
-from cc_common.data_model.schema.base_record import ForgivingSchema
+from cc_common.data_model.schema.base_record import ForgivingSchema, StrictSchema
+from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
 from cc_common.data_model.schema.fields import (
     ActiveInactive,
     Compact,
+    CompactEligibility,
     ITUTE164PhoneNumber,
     Jurisdiction,
     NationalProviderIdentifier,
@@ -20,7 +22,7 @@ from cc_common.data_model.schema.fields import (
 )
 
 
-class LicensePostRequestSchema(ForgivingSchema):
+class LicensePostRequestSchema(StrictSchema):
     """
     Schema for license data as posted by a board staff-user
 
@@ -31,9 +33,13 @@ class LicensePostRequestSchema(ForgivingSchema):
     ssn = SocialSecurityNumber(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
-    # This status field is required when posting a license record. It will be transformed into the
-    # jurisdictionStatus field when the record is ingested.
-    status = ActiveInactive(required=True, allow_none=False)
+    licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
+    # The two fields below are stored in the database as fields, renamed to include 'persisted'
+    # because, when they are returned via the API, the named values are calculated based on
+    # the logic that includes the current time and the license expiration date.
+    licenseStatus = ActiveInactive(required=True, allow_none=False)
+    compactEligibility = CompactEligibility(required=True, allow_none=False)
+
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
@@ -56,10 +62,20 @@ class LicensePostRequestSchema(ForgivingSchema):
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
 
     @validates_schema
-    def validate_license_type(self, data, **kwargs):  # noqa: ARG001 unused-argument
+    def validate_license_type(self, data, **_kwargs):
         license_types = config.license_types_for_compact(data['compact'])
         if data['licenseType'] not in license_types:
             raise ValidationError({'licenseType': [f'Must be one of: {", ".join(license_types)}.']})
+
+    @validates_schema
+    def validate_compact_eligibility(self, data, **_kwargs):
+        if (
+            data['licenseStatus'] == ActiveInactiveStatus.INACTIVE
+            and data['compactEligibility'] == CompactEligibilityStatus.ELIGIBLE
+        ):
+            raise ValidationError(
+                {'compactEligibility': ['compactEligibility cannot be eligible if licenseStatus is inactive.']}
+            )
 
 
 class LicenseUpdatePreviousGeneralResponseSchema(ForgivingSchema):
@@ -87,7 +103,9 @@ class LicenseUpdatePreviousGeneralResponseSchema(ForgivingSchema):
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
-    jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
+    licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
+    persistedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    persistedCompactEligibility = CompactEligibility(required=True, allow_none=False)
 
 
 class LicenseUpdateGeneralResponseSchema(ForgivingSchema):
@@ -126,7 +144,11 @@ class LicenseGeneralResponseSchema(ForgivingSchema):
     compact = Compact(required=True, allow_none=False)
     jurisdiction = Jurisdiction(required=True, allow_none=False)
     licenseType = String(required=True, allow_none=False)
-    jurisdictionStatus = ActiveInactive(required=True, allow_none=False)
+    licenseStatusName = String(required=False, allow_none=False, validate=Length(1, 100))
+    licenseStatus = ActiveInactive(required=True, allow_none=False)
+    persistedLicenseStatus = ActiveInactive(required=True, allow_none=False)
+    compactEligibility = CompactEligibility(required=True, allow_none=False)
+    persistedCompactEligibility = CompactEligibility(required=True, allow_none=False)
     npi = NationalProviderIdentifier(required=False, allow_none=False)
     licenseNumber = String(required=False, allow_none=False, validate=Length(1, 100))
     givenName = String(required=True, allow_none=False, validate=Length(1, 100))
@@ -143,5 +165,4 @@ class LicenseGeneralResponseSchema(ForgivingSchema):
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
-    status = ActiveInactive(required=True, allow_none=False)
     history = List(Nested(LicenseUpdateGeneralResponseSchema, required=False, allow_none=False))

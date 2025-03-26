@@ -8,8 +8,8 @@ from marshmallow import EXCLUDE, RAISE, Schema, post_load, pre_dump, pre_load
 from marshmallow.fields import UUID, DateTime, String
 
 from cc_common.config import config
-from cc_common.data_model.schema.common import ActiveInactiveStatus
-from cc_common.data_model.schema.fields import ActiveInactive, Compact, SocialSecurityNumber
+from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus
+from cc_common.data_model.schema.fields import ActiveInactive, Compact, CompactEligibility, SocialSecurityNumber
 from cc_common.exceptions import CCInternalException
 
 
@@ -27,7 +27,7 @@ class ForgivingSchema(Schema):
         unknown = EXCLUDE
 
 
-class BaseRecordSchema(StrictSchema, ABC):
+class BaseRecordSchema(ForgivingSchema, ABC):
     """
     Abstract base class, common to all records in the provider data table
 
@@ -96,29 +96,47 @@ class CalculatedStatusRecordSchema(BaseRecordSchema):
     # This field is the actual status referenced by the system, which is determined by the expiration date
     # in addition to the jurisdictionStatus. This should never be written to the DB. It is calculated
     # whenever the record is loaded.
-    status = ActiveInactive(required=True, allow_none=False)
+    licenseStatus = ActiveInactive(required=True, allow_none=False)
+    compactEligibility = CompactEligibility(required=True, allow_none=False)
 
     @pre_dump
     def remove_status_field_if_present(self, in_data, **kwargs):
-        """Remove the status field before dumping to the database"""
-        in_data.pop('status', None)
+        """Remove the calculated status fields before dumping to the database"""
+        in_data.pop('licenseStatus', None)
+        in_data.pop('compactEligibility', None)
         return in_data
 
     @pre_load
-    def _calculate_status(self, in_data, **kwargs):
-        """Determine the status of the record based on the expiration date"""
-        in_data['status'] = (
+    def calculate_statuses(self, in_data, **_kwargs):
+        in_data = self._calculate_license_status(in_data)
+        return self._calculate_compact_eligibility(in_data)
+
+    def _calculate_license_status(self, in_data, **kwargs):
+        """Determine the status of the license based on the expiration date"""
+        in_data['licenseStatus'] = (
             ActiveInactiveStatus.ACTIVE
-            # licenses have a jurisdictionStatus field, but privileges do not
-            # so we need to check for the existence of the field before using it
             if (
-                in_data.get('jurisdictionStatus', ActiveInactiveStatus.ACTIVE) == ActiveInactiveStatus.ACTIVE
+                in_data['persistedLicenseStatus'] == ActiveInactiveStatus.ACTIVE
                 and date.fromisoformat(in_data['dateOfExpiration'])
                 > datetime.now(tz=config.expiration_date_resolution_timezone).date()
             )
-            else 'inactive'
+            else ActiveInactiveStatus.INACTIVE
         )
+        return in_data
 
+    def _calculate_compact_eligibility(self, in_data, **_kwargs):
+        """
+        Providers are only eligible for the compact if their home jurisdiction says they are and
+        if their license is active.
+        """
+        in_data['compactEligibility'] = (
+            CompactEligibilityStatus.ELIGIBLE
+            if (
+                in_data['persistedCompactEligibility'] == CompactEligibilityStatus.ELIGIBLE
+                and in_data['licenseStatus'] == ActiveInactiveStatus.ACTIVE
+            )
+            else CompactEligibilityStatus.INELIGIBLE
+        )
         return in_data
 
 

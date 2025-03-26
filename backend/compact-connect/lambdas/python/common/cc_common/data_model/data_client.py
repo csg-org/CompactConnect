@@ -37,21 +37,6 @@ class DataClient:
         self.ssn_index_record_schema = SSNIndexRecordSchema()
 
     @logger_inject_kwargs(logger, 'compact')
-    def get_provider_id(self, *, compact: str, ssn: str) -> str:
-        """Get all records associated with a given SSN."""
-        logger.info('Getting provider id by ssn')
-        try:
-            resp = self.config.ssn_table.get_item(
-                Key={'pk': f'{compact}#SSN#{ssn}', 'sk': f'{compact}#SSN#{ssn}'},
-                ConsistentRead=True,
-            )['Item']
-        except KeyError as e:
-            logger.info('Provider not found by SSN', exc_info=e)
-            raise CCNotFoundException('No provider found by that identifier') from e
-
-        return resp['providerId']
-
-    @logger_inject_kwargs(logger, 'compact')
     def get_or_create_provider_id(self, *, compact: str, ssn: str) -> str:
         provider_id = str(uuid4())
         # This is an 'ask forgiveness' approach to provider id assignment:

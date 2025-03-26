@@ -41,3 +41,4 @@ class LicenseCommonSchema(ForgivingSchema, ValidatesLicenseTypeMixin):
     homeAddressPostalCode = String(required=True, allow_none=False, validate=Length(5, 7))
     emailAddress = Email(required=False, allow_none=False)
     phoneNumber = ITUTE164PhoneNumber(required=False, allow_none=False)
+    jurisdictionStatusName = String(required=False, allow_none=False, validate=Length(1, 100))

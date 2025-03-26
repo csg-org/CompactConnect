@@ -88,8 +88,8 @@ def ingest_license_message(message: dict):
     # We're not using the event time here, currently, so we'll discard it
     message['detail'].pop('eventTime')
 
-    # This schema load will transform the 'status' field to 'jurisdictionStatus' for internal
-    # references, and will also validate the data.
+    # This schema load will transform the 'licenseStatus' and 'compactEligibility' fields to 'persistedLicenseStatus'
+    # and 'persistedCompactEligibility' for internal references, and will also validate the data.
     license_ingest_message = license_schema.load(message['detail'])
 
     compact = license_ingest_message['compact']
@@ -272,7 +272,7 @@ def _populate_update_record(*, existing_license: dict, updated_values: dict, rem
         ):
             update_type = UpdateCategory.RENEWAL
             logger.info('License renewal detected')
-    elif updated_values == {'jurisdictionStatus': ActiveInactiveStatus.INACTIVE.value}:
+    if updated_values.get('persistedLicenseStatus') == ActiveInactiveStatus.INACTIVE:
         update_type = UpdateCategory.DEACTIVATION
         logger.info('License deactivation detected')
     if update_type is None:

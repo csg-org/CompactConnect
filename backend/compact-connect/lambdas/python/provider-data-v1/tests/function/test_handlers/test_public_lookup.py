@@ -39,7 +39,8 @@ class TestPublicQueryProviders(TstFunction):
             expected_provider.pop('birthMonthDay')
             expected_provider.pop('compactConnectRegisteredEmailAddress')
             expected_provider.pop('dateOfExpiration')
-            expected_provider.pop('jurisdictionStatus')
+            expected_provider.pop('persistedLicenseStatus')
+            expected_provider.pop('persistedCompactEligibility')
 
         body = json.loads(resp['body'])
         self.assertEqual(
@@ -359,9 +360,9 @@ class TestPublicGetProvider(TstFunction):
             expected_provider['privileges'][0]['history'][0]['updatedValues'].pop('compactTransactionId')
             expected_provider.pop('homeJurisdictionSelection')
             expected_provider.pop('dateOfExpiration')
-            expected_provider.pop('jurisdictionStatus')
+            expected_provider.pop('persistedLicenseStatus')
+            expected_provider.pop('persistedCompactEligibility')
 
-        self.maxDiff = None
         self.assertEqual(expected_provider, provider_data)
 
         # The sk for a license-update record is sensitive so we'll do an extra, pretty broad, check just to make sure

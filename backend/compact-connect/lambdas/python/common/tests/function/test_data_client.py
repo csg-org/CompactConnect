@@ -14,36 +14,6 @@ from tests.function import TstFunction
 class TestDataClient(TstFunction):
     sample_privilege_attestations = [{'attestationId': 'jurisprudence-confirmation', 'version': '1'}]
 
-    def test_get_provider_id(self):
-        from cc_common.data_model.data_client import DataClient
-
-        with open('tests/resources/dynamo/provider-ssn.json') as f:
-            record = json.load(f)
-        provider_ssn = record['ssn']
-        expected_provider_id = record['providerId']
-
-        self._ssn_table.put_item(
-            # We'll use the schema/serializer to populate index fields for us
-            Item=record,
-        )
-
-        client = DataClient(self.config)
-
-        resp = client.get_provider_id(compact='aslp', ssn=provider_ssn)
-        # Verify that we're getting the expected provider ID
-        self.assertEqual(expected_provider_id, resp)
-
-    def test_get_provider_id_not_found(self):
-        """Provider ID not found should raise an exception"""
-        from cc_common.data_model.data_client import DataClient
-        from cc_common.exceptions import CCNotFoundException
-
-        client = DataClient(self.config)
-
-        # This SSN isn't in the DB, so it should raise an exception
-        with self.assertRaises(CCNotFoundException):
-            client.get_provider_id(compact='aslp', ssn='321-21-4321')
-
     def test_get_provider(self):
         from cc_common.data_model.data_client import DataClient
 
@@ -65,7 +35,6 @@ class TestDataClient(TstFunction):
         and throw an error if it doesn't look as expected.
         """
         from cc_common.data_model.data_client import DataClient
-        from cc_common.exceptions import CCInternalException
 
         provider_id = self._load_provider_data()
 
@@ -74,7 +43,7 @@ class TestDataClient(TstFunction):
 
         self._provider_table.put_item(
             Item={
-                # Oh, no! We've somehow put somebody's SSN in the wrong place!
+                # Oh, no! We've somehow put somebody's full SSN in the wrong place!
                 'something_unexpected': '123-12-1234',
                 **license_record,
             },
@@ -82,12 +51,13 @@ class TestDataClient(TstFunction):
 
         client = DataClient(self.config)
 
-        # This record should not be allowed out via API
-        with self.assertRaises(CCInternalException):
-            client.get_provider(
-                compact='aslp',
-                provider_id=provider_id,
-            )
+        # The field should not be allowed out via API
+        resp = client.get_provider(
+            compact='aslp',
+            provider_id=provider_id,
+        )
+        for item in resp['items']:
+            self.assertNotIn('something_unexpected', item)
 
     def _load_provider_data(self) -> str:
         with open('tests/resources/dynamo/provider.json') as f:

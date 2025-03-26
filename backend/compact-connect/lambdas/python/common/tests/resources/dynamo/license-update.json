@@ -1,6 +1,6 @@
 {
   "pk": "aslp#PROVIDER#89a6377e-c3a5-40e5-bca5-317ec854c570",
-  "sk": "aslp#PROVIDER#license/oh/slp#UPDATE#1586264399/745e7ccd253c6912b1e27c176c708395",
+  "sk": "aslp#PROVIDER#license/oh/slp#UPDATE#1586264399/519cf1a359b72aeed39b28150f6ba3f3",
   "type": "licenseUpdate",
   "updateType": "renewal",
   "providerId": "89a6377e-c3a5-40e5-bca5-317ec854c570",
@@ -27,7 +27,8 @@
     "homeAddressPostalCode": "43004",
     "emailAddress": "björk@example.com",
     "phoneNumber": "+13213214321",
-    "jurisdictionStatus": "active"
+    "persistedLicenseStatus": "active",
+    "persistedCompactEligibility": "eligible"
   },
   "updatedValues": {
     "dateOfRenewal": "2020-04-04",

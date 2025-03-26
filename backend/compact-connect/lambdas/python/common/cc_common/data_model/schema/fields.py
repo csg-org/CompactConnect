@@ -2,7 +2,7 @@ from marshmallow.fields import List, String
 from marshmallow.validate import OneOf, Regexp
 
 from cc_common.config import config
-from cc_common.data_model.schema.common import ActiveInactiveStatus, UpdateCategory
+from cc_common.data_model.schema.common import ActiveInactiveStatus, CompactEligibilityStatus, UpdateCategory
 
 
 class SocialSecurityNumber(String):
@@ -40,6 +40,11 @@ class Jurisdiction(String):
 class ActiveInactive(String):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, validate=OneOf([entry.value for entry in ActiveInactiveStatus]), **kwargs)
+
+
+class CompactEligibility(String):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, validate=OneOf([entry.value for entry in CompactEligibilityStatus]), **kwargs)
 
 
 class UpdateType(String):

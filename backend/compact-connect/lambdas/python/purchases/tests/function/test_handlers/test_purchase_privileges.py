@@ -117,13 +117,13 @@ class TestPostPurchasePrivileges(TstFunction):
     def _when_testing_provider_user_event_with_custom_claims(
         self,
         test_compact=TEST_COMPACT,
-        license_status: str = 'active',
+        eligibility: str = 'eligible',
         license_expiration_date: str = '2050-01-01',
     ):
         self._load_compact_configuration_data()
         self._load_provider_data()
         self._load_test_jurisdiction()
-        self._load_license_data(status=license_status, expiration_date=license_expiration_date)
+        self._load_license_data(eligibility=eligibility, expiration_date=license_expiration_date)
         with open('../common/tests/resources/api-event.json') as f:
             event = json.load(f)
             event['requestContext']['authorizer']['claims']['custom:providerId'] = TEST_PROVIDER_ID
@@ -510,14 +510,16 @@ class TestPostPurchasePrivileges(TstFunction):
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
 
-        event = self._when_testing_provider_user_event_with_custom_claims(license_status='inactive')
+        event = self._when_testing_provider_user_event_with_custom_claims(eligibility='ineligible')
         event['body'] = _generate_test_request_body()
 
         resp = post_purchase_privileges(event, self.mock_context)
         self.assertEqual(400, resp['statusCode'])
         response_body = json.loads(resp['body'])
 
-        self.assertEqual({'message': 'No active license found in selected home state for this user'}, response_body)
+        self.assertEqual(
+            {'message': 'Specified license type does not match any eligible licenses in the home state.'}, response_body
+        )
 
     @patch('handlers.privileges.PurchaseClient')
     def test_post_purchase_privileges_returns_400_if_license_type_does_not_match_any_home_state_license(
@@ -527,7 +529,7 @@ class TestPostPurchasePrivileges(TstFunction):
 
         self._when_purchase_client_successfully_processes_request(mock_purchase_client_constructor)
 
-        event = self._when_testing_provider_user_event_with_custom_claims(license_status='active')
+        event = self._when_testing_provider_user_event_with_custom_claims(eligibility='eligible')
         event['body'] = _generate_test_request_body(license_type='some-bogus-license-type')
 
         resp = post_purchase_privileges(event, self.mock_context)
@@ -535,7 +537,7 @@ class TestPostPurchasePrivileges(TstFunction):
         response_body = json.loads(resp['body'])
 
         self.assertEqual(
-            {'message': 'Specified license type does not match any home state license type.'}, response_body
+            {'message': 'Specified license type does not match any eligible licenses in the home state.'}, response_body
         )
 
     @patch('handlers.privileges.PurchaseClient')
