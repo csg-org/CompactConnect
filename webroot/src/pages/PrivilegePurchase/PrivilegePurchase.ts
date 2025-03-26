@@ -11,14 +11,17 @@ import PrivilegePurchaseInformationConfirmation from '@components/PrivilegePurch
 import PrivilegePurchaseSelect from '@components/PrivilegePurchaseSelect/PrivilegePurchaseSelect.vue';
 import PrivilegePurchaseFinalize from '@components/PrivilegePurchaseFinalize/PrivilegePurchaseFinalize.vue';
 import PrivilegePurchaseSuccessful from '@components/PrivilegePurchaseSuccessful/PrivilegePurchaseSuccessful.vue';
+import PrivilegePurchaseLicense from '@components/PrivilegePurchaseLicense/PrivilegePurchaseLicense.vue';
 import ProgressBar from '@components/ProgressBar/ProgressBar.vue';
 import { Compact } from '@models/Compact/Compact.model';
-import { LicenseeUser } from '@models/LicenseeUser/LicenseeUser.model';
 import { Licensee } from '@models/Licensee/Licensee.model';
+import { LicenseeUser } from '@models/LicenseeUser/LicenseeUser.model';
+import { PurchaseFlowState } from '@/models/PurchaseFlowState/PurchaseFlowState.model';
 
 @Component({
     name: 'PrivilegePurchase',
     components: {
+        PrivilegePurchaseLicense,
         PrivilegePurchaseInformationConfirmation,
         PrivilegePurchaseSelect,
         PrivilegePurchaseAttestation,
@@ -32,6 +35,7 @@ export default class PrivilegePurchase extends Vue {
     // Data
     //
     flowOrder = [
+        'PrivilegePurchaseSelectLicense',
         'PrivilegePurchaseInformationConfirmation',
         'PrivilegePurchaseSelect',
         'PrivilegePurchaseAttestation',
@@ -79,24 +83,32 @@ export default class PrivilegePurchase extends Vue {
         return this.$route?.name?.toString() || '';
     }
 
+    get purchaseFlowState(): PurchaseFlowState {
+        return this.userStore.purchase;
+    }
+
+    get isSelectLicenseRoute(): boolean {
+        return this.routeName === 'PrivilegePurchaseSelectLicense';
+    }
+
     get isConfirmInfoRoute(): boolean {
-        return Boolean(this.routeName === 'PrivilegePurchaseInformationConfirmation');
+        return this.routeName === 'PrivilegePurchaseInformationConfirmation';
     }
 
     get isSelectPrivilegesRoute(): boolean {
-        return Boolean(this.routeName === 'PrivilegePurchaseSelect');
+        return this.routeName === 'PrivilegePurchaseSelect';
     }
 
     get isAttestationRoute(): boolean {
-        return Boolean(this.routeName === 'PrivilegePurchaseAttestation');
+        return this.routeName === 'PrivilegePurchaseAttestation';
     }
 
     get isFinalizeRoute(): boolean {
-        return Boolean(this.routeName === 'PrivilegePurchaseFinalize');
+        return this.routeName === 'PrivilegePurchaseFinalize';
     }
 
     get isPurchaseSuccessfulRoute(): boolean {
-        return Boolean(this.routeName === 'PrivilegePurchaseSuccessful');
+        return this.routeName === 'PrivilegePurchaseSuccessful';
     }
 
     get currentFlowStep(): number {

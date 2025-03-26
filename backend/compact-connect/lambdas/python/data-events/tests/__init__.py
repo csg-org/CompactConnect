@@ -16,6 +16,7 @@ class TstLambdas(TestCase):
                 'DATA_EVENT_TABLE_NAME': 'data-event-table',
                 'COMPACTS': '["aslp", "octp", "coun"]',
                 'JURISDICTIONS': '["ne", "oh", "ky"]',
+                'ENVIRONMENT_NAME': 'test',
             },
         )
         # Monkey-patch config object to be sure we have it based

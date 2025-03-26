@@ -39,6 +39,7 @@ class TstFunction(TstLambdas):
         self.create_provider_table()
         self.create_ssn_table()
         self.create_rate_limiting_table()
+        self.create_compact_configuration_table()
         self.create_license_preprocessing_queue()
         self.create_staff_user_pool()
 
@@ -144,6 +145,21 @@ class TstFunction(TstLambdas):
             BillingMode='PAY_PER_REQUEST',
         )
 
+    def create_compact_configuration_table(self):
+        """Create the compact configuration table for testing."""
+        self._compact_configuration_table = boto3.resource('dynamodb').create_table(
+            AttributeDefinitions=[
+                {'AttributeName': 'pk', 'AttributeType': 'S'},
+                {'AttributeName': 'sk', 'AttributeType': 'S'},
+            ],
+            TableName=os.environ['COMPACT_CONFIGURATION_TABLE_NAME'],
+            KeySchema=[
+                {'AttributeName': 'pk', 'KeyType': 'HASH'},
+                {'AttributeName': 'sk', 'KeyType': 'RANGE'},
+            ],
+            BillingMode='PAY_PER_REQUEST',
+        )
+
     def create_license_preprocessing_queue(self):
         self._license_preprocessing_queue = boto3.resource('sqs').create_queue(QueueName='workflow-queue')
         os.environ['LICENSE_PREPROCESSING_QUEUE_URL'] = self._license_preprocessing_queue.url
@@ -153,6 +169,7 @@ class TstFunction(TstLambdas):
         self._bucket.delete()
         self._provider_table.delete()
         self._ssn_table.delete()
+        self._compact_configuration_table.delete()
         self._rate_limiting_table.delete()
         self._license_preprocessing_queue.delete()
         boto3.client('events').delete_event_bus(Name=os.environ['EVENT_BUS_NAME'])
@@ -160,6 +177,18 @@ class TstFunction(TstLambdas):
         # Delete the Cognito user pool
         cognito_client = boto3.client('cognito-idp')
         cognito_client.delete_user_pool(UserPoolId=self._provider_user_pool_id)
+
+    def _load_compact_configuration(self, overrides: dict):
+        with open('../common/tests/resources/dynamo/compact.json') as f:
+            compact_data = json.load(f, parse_float=Decimal)
+            compact_data.update(overrides)
+            self._compact_configuration_table.put_item(Item=compact_data)
+
+    def _load_jurisdiction_configuration(self, overrides: dict):
+        with open('../common/tests/resources/dynamo/jurisdiction.json') as f:
+            jurisdiction_data = json.load(f, parse_float=Decimal)
+            jurisdiction_data.update(overrides)
+            self._compact_configuration_table.put_item(Item=jurisdiction_data)
 
     def _load_provider_data(self):
         """Use the canned test resources to load a basic provider to the DB"""

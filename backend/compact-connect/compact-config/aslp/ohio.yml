@@ -12,4 +12,5 @@ jurisdictionAdverseActionsNotificationEmails: []
 jurisdictionSummaryReportNotificationEmails: []
 jurisprudenceRequirements:
     required: true
+licenseeRegistrationEnabledForEnvironments: ["test"]
 activeEnvironments: ["test"]

@@ -12,19 +12,31 @@ import guards from '@router/_guards';
 const routes: Array<RouteConfig> = [
     {
         path: '/',
-        redirect: '/Login',
+        redirect: '/Dashboard',
+        beforeEnter: guards.noAuthGuard,
+    },
+    {
+        path: '/Dashboard',
+        name: 'DashboardPublic',
+        component: () => import(/* webpackChunkName: "dashboard" */ '@pages/PublicDashboard/PublicDashboard.vue'),
+        beforeEnter: guards.noAuthGuard,
+    },
+    {
+        path: '/Search',
+        name: 'LicneseeSearchPublic',
+        component: () => import(/* webpackChunkName: "search" */ '@pages/PublicLicensingList/PublicLicensingList.vue'),
+        beforeEnter: guards.noAuthGuard,
+    },
+    {
+        path: '/Search/:compact/:licenseeId',
+        name: 'LicenseeDetailPublic',
+        component: () => import(/* webpackChunkName: "search" */ '@pages/PublicLicensingDetail/PublicLicensingDetail.vue'),
         beforeEnter: guards.noAuthGuard,
     },
     {
         path: '/Register',
         name: 'RegisterLicensee',
         component: () => import(/* webpackChunkName: "register" */ '@pages/RegisterLicensee/RegisterLicensee.vue'),
-        beforeEnter: guards.noAuthGuard,
-    },
-    {
-        path: '/Login',
-        name: 'Login',
-        component: () => import(/* webpackChunkName: "home" */ '@pages/Login/Login.vue'),
         beforeEnter: guards.noAuthGuard,
     },
     {
@@ -105,6 +117,12 @@ const routes: Array<RouteConfig> = [
         beforeEnter: guards.authGuard,
         meta: { requiresAuth: true, licenseeAccess: true },
         children: [
+            {
+                path: 'SelectLicense',
+                name: 'PrivilegePurchaseSelectLicense',
+                component: () => import(/* webpackChunkName: "privilegePurchase" */ '@components/PrivilegePurchaseLicense/PrivilegePurchaseLicense.vue'),
+                meta: { requiresAuth: true, licenseeAccess: true, },
+            },
             {
                 path: 'ConfirmInfo',
                 name: 'PrivilegePurchaseInformationConfirmation',

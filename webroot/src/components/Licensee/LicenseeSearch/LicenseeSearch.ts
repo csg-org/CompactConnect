@@ -17,11 +17,12 @@ import InputText from '@components/Forms/InputText/InputText.vue';
 import InputSelect from '@components/Forms/InputSelect/InputSelect.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
 import SearchIcon from '@components/Icons/LicenseSearchAlt/LicenseSearchAlt.vue';
-import { CompactType } from '@models/Compact/Compact.model';
+import { CompactType, CompactSerializer } from '@models/Compact/Compact.model';
 import { FormInput } from '@models/FormInput/FormInput.model';
 import Joi from 'joi';
 
 export interface LicenseSearch {
+    compact?: string;
     firstName?: string;
     lastName?: string;
     state?: string;
@@ -39,6 +40,7 @@ export interface LicenseSearch {
 })
 class LicenseeSearch extends mixins(MixinForm) {
     @Prop({ default: {}}) searchParams!: LicenseSearch;
+    @Prop({ default: false }) isPublicSearch!: boolean;
 
     //
     // Lifecycle
@@ -56,6 +58,24 @@ class LicenseeSearch extends mixins(MixinForm) {
 
     get compactType(): CompactType | null {
         return this.userStore.currentCompact?.type;
+    }
+
+    get compactOptions(): Array<any> {
+        const options = this.$tm('compacts').map((compact) => ({
+            value: compact.key,
+            name: compact.name,
+        }));
+
+        options.unshift({
+            value: '',
+            name: computed(() => this.$t('common.selectOption')),
+        });
+
+        return options;
+    }
+
+    get enableCompactSelect(): boolean {
+        return this.isPublicSearch;
     }
 
     get stateOptions(): Array<any> {
@@ -105,13 +125,36 @@ class LicenseeSearch extends mixins(MixinForm) {
                 label: computed(() => this.$t('common.stateJurisdiction')),
                 valueOptions: this.stateOptions,
                 value: this.searchParams.state || '',
+                isDisabled: computed(() => this.enableCompactSelect && !this.compactType),
             }),
             submit: new FormInput({
                 isSubmitInput: true,
                 id: 'submit',
             }),
         });
+
+        if (this.enableCompactSelect) {
+            this.formData.compact = new FormInput({
+                id: 'search-compact',
+                name: 'search-compact',
+                label: computed(() => this.$t('licensing.licenseTypeSearch')),
+                validation: Joi.string().required().messages(this.joiMessages.string),
+                valueOptions: this.compactOptions,
+                value: this.searchParams.compact || '',
+            });
+        }
+
         this.watchFormInputs(); // Important if you want automated form validation
+    }
+
+    async updateCurrentCompact(): Promise<void> {
+        const { compact: selectedCompactType, state } = this.formData;
+
+        if (this.enableCompactSelect) {
+            await this.$store.dispatch('user/setCurrentCompact', CompactSerializer.fromServer({ type: selectedCompactType.value }));
+            state.value = '';
+            state.valueOptions = this.stateOptions;
+        }
     }
 
     async handleSubmit(): Promise<void> {
@@ -122,6 +165,7 @@ class LicenseeSearch extends mixins(MixinForm) {
             this.startFormLoading();
 
             const allowedSearchProps = [
+                'compact',
                 'firstName',
                 'lastName',
                 'state'

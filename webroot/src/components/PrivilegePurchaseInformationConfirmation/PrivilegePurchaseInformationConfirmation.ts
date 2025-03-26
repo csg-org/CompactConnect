@@ -13,6 +13,7 @@ import {
 } from 'vue-facing-decorator';
 import { reactive } from 'vue';
 import MixinForm from '@components/Forms/_mixins/form.mixin';
+import SelectedLicenseInfo from '@components/SelectedLicenseInfo/SelectedLicenseInfo.vue';
 import InputButton from '@components/Forms/InputButton/InputButton.vue';
 import InputCheckbox from '@components/Forms/InputCheckbox/InputCheckbox.vue';
 import InputSubmit from '@components/Forms/InputSubmit/InputSubmit.vue';
@@ -38,6 +39,7 @@ import Joi from 'joi';
         InputButton,
         InputCheckbox,
         LoadingSpinner,
+        SelectedLicenseInfo,
         MockPopulate
     }
 })
@@ -109,7 +111,7 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
     }
 
     get licenseNumber(): string {
-        return this.licensee?.licenseNumber || '';
+        return this.licenseSelected?.licenseNumber || '';
     }
 
     get backText(): string {
@@ -120,8 +122,8 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
         return this.$t('common.cancel');
     }
 
-    get homeStateLicense(): License {
-        return this.licensee?.bestHomeJurisdictionLicense() || new License();
+    get licenseSelected(): License {
+        return this.$store.getters['user/getLicenseSelected']();
     }
 
     get homeStateText(): string {
@@ -129,15 +131,15 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
     }
 
     get licenseExpirationDate(): string {
-        return this.homeStateLicense?.expireDateDisplay() || '';
+        return this.licenseSelected?.expireDateDisplay() || '';
     }
 
-    get homeStateLicenseMailingAddress(): Address {
-        return this.homeStateLicense.mailingAddress || new Address();
+    get licenseSelectedMailingAddress(): Address {
+        return this.licenseSelected?.mailingAddress || new Address();
     }
 
     get mailingAddessStateDisplay(): string {
-        return this.homeStateLicense?.mailingAddress?.state?.abbrev?.toUpperCase() || '';
+        return this.licenseSelected?.mailingAddress?.state?.abbrev?.toUpperCase() || '';
     }
 
     get stateProvidedEmail(): string {
@@ -243,10 +245,17 @@ export default class PrivilegePurchaseInformationConfirmation extends mixins(Mix
 
     handleBackClicked() {
         if (this.currentCompactType) {
-            this.$router.push({
-                name: 'LicenseeDashboard',
-                params: { compact: this.currentCompactType }
-            });
+            if (this.licensee && this.licensee.homeJurisdictionLicenses().length > 1) {
+                this.$router.push({
+                    name: 'PrivilegePurchaseSelectLicense',
+                    params: { compact: this.currentCompactType }
+                });
+            } else {
+                this.$router.push({
+                    name: 'LicenseeDashboard',
+                    params: { compact: this.currentCompactType }
+                });
+            }
         }
     }
 

@@ -152,12 +152,14 @@ class UserPool(CdkUserPool):
         logout_urls = []
         if ui_domain_name is not None:
             logout_urls.append(f'https://{ui_domain_name}/Login')
+            logout_urls.append(f'https://{ui_domain_name}/Dashboard')
             logout_urls.append(f'https://{ui_domain_name}/Logout')
         # This toggle will allow front-end devs to point their local UI at this environment's user pool to support
         # authenticated actions.
         if environment_context.get('allow_local_ui', False):
             local_ui_port = environment_context.get('local_ui_port', '3018')
             logout_urls.append(f'http://localhost:{local_ui_port}/Login')
+            logout_urls.append(f'http://localhost:{local_ui_port}/Dashboard')
             logout_urls.append(f'http://localhost:{local_ui_port}/Logout')
         if not logout_urls:
             raise ValueError(

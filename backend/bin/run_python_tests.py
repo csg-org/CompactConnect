@@ -32,7 +32,8 @@ TEST_DIRS = (
     'compact-connect/lambdas/python/staff-users',
     'compact-connect/lambdas/python/common',
     'compact-connect',  # CDK tests
-    'multi-account',
+    'multi-account/control-tower',
+    'multi-account/log-aggregation',
 )
 
 

@@ -23,6 +23,7 @@ class LicenseeRow extends Vue {
     @Prop({ default: false }) isHeaderRow?: boolean;
     @Prop({ default: [] }) sortOptions?: Array<any>;
     @Prop({ default: () => null }) sortChange?: (selectedSortOption?: string, ascending?: boolean) => any;
+    @Prop({ default: false }) protected isPublicSearch?: boolean;
 
     //
     // Data
@@ -143,9 +144,11 @@ class LicenseeRow extends Vue {
     }
 
     navigateToDetail(licenseeId: string) {
+        const routeName = (this.isPublicSearch) ? 'LicenseeDetailPublic' : 'LicensingDetail';
+
         this.$router.push(
             {
-                name: 'LicensingDetail',
+                name: routeName,
                 params: { compact: this.userStore.currentCompact?.type, licenseeId },
             }
         );

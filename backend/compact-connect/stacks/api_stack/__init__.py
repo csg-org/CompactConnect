@@ -19,7 +19,9 @@ class ApiStack(AppStack):
         persistent_stack: ps.PersistentStack,
         **kwargs,
     ):
-        super().__init__(scope, construct_id, environment_context=environment_context, **kwargs)
+        super().__init__(
+            scope, construct_id, environment_context=environment_context, environment_name=environment_name, **kwargs
+        )
 
         security_profile = SecurityProfile[environment_context.get('security_profile', 'RECOMMENDED')]
 

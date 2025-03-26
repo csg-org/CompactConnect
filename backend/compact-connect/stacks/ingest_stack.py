@@ -17,8 +17,16 @@ from stacks import persistent_stack as ps
 
 
 class IngestStack(AppStack):
-    def __init__(self, scope: Construct, construct_id: str, *, persistent_stack: ps.PersistentStack, **kwargs):
-        super().__init__(scope, construct_id, **kwargs)
+    def __init__(
+        self,
+        scope: Construct,
+        construct_id: str,
+        *,
+        environment_name: str,
+        persistent_stack: ps.PersistentStack,
+        **kwargs,
+    ):
+        super().__init__(scope, construct_id, environment_name=environment_name, **kwargs)
         self._add_v1_ingest_chain(persistent_stack)
 
     def _add_v1_ingest_chain(self, persistent_stack: ps.PersistentStack):

@@ -9,6 +9,7 @@ Look here for continued documentation of the back-end design, as it progresses.
 - **[Data Model](#data-model)**
 - **[Attestations](#attestations)**
 - **[Transaction History Reporting](#transaction-history-reporting)**
+- **[Audit Logging](#audit-logging)**
 
 ## Compacts and Jurisdictions
 
@@ -46,7 +47,9 @@ The system implements strict controls for SSN access:
 
 1. **Dedicated SSN Table**: All SSN data is stored in a dedicated DynamoDB table with strict access controls and customer-managed KMS encryption.
 2. **Limited API Access**: Only specific API endpoints can query SSN data for staff users with the proper `readSSN` scope.
-3. **Audit Logging**: All access to SSN data is logged and monitored
+3. **Comprehensive Audit Logging**:
+   - All SSN data access through the application is logged with user identity, timestamp, and access context
+   - Direct database access is independently tracked through our secure audit logging system (see [Audit Logging](#audit-logging))
 4. **Restricted Operations**: The SSN table policy explicitly denies batch operations to prevent mass data extraction.
 
 #### SSN Role-Based Access
@@ -387,3 +390,61 @@ When a batch fails to settle, we send an email to the compact's support contacts
 > Resetting a batch doesn't really modify the batch, what it does, is it takes the transactions from the batch and puts them back into unsetttled so they settle with the next batch. Those transactions that were in the failed batch will still have the original submit date.
 
 For this reason, we use the batch settlement time as the timestamp for the transaction records we store in the transaction history table. This ensures that any transactions that are in a batch which fails to settle will eventually be processed and stored in the transaction history table.
+
+## Audit Logging
+[Back to top](#backend-design)
+
+### Overview
+
+CompactConnect implements a comprehensive audit logging system using AWS CloudTrail to track access to sensitive data, particularly DynamoDB tables containing SSNs. This system provides accountability, supports audit requirements, and enables incident investigation when needed.
+
+### Multi-Account Architecture
+
+The audit logging infrastructure is deployed across two AWS accounts for enhanced security:
+
+1. **Logs Account**: Contains secured S3 buckets for storing:
+   - CloudTrail logs from sensitive table operations
+   - Access logs from all buckets for comprehensive tracking
+
+2. **Management Account**: Hosts the CloudTrail organization trail and the KMS encryption key
+
+This separation follows security best practices and ensures that those who can access sensitive data can't modify the logs of their actions, and vice versa.
+
+### Understanding CloudTrail Organization Trail
+
+AWS CloudTrail is a service that records API calls made within an AWS account. Our implementation uses an organization trail, which provides several important capabilities:
+
+- **Cross-Account Visibility**: A single trail that captures activities across all AWS accounts in our organization
+- **Centralized Logging**: All logs are automatically sent to a central, secured location in the logs account
+- **Data Event Focus**: The trail is configured to capture specific "data events" - detailed records of when someone reads data from sensitive tables
+- **Consistent Policy**: The same logging standards are automatically applied to all accounts in the organization
+
+This approach ensures that all interactions with sensitive data are captured, regardless of which account the user is operating from.
+
+### Logging Strategy
+
+The system balances comprehensive coverage with cost efficiency:
+
+- **Selective Logging**: We focus on tables containing the most sensitive data, particularly SSNs
+- **Read Operations**: We track primarily read operations as these represent potential data exposure
+- **Opt-In Design**: Tables are explicitly marked for logging with a special suffix (-DataEventsLog)
+
+### Key Security Features
+
+Several important controls protect the integrity of the audit logs:
+
+- **Immutable Storage**: S3 buckets with versioning and support for object locks, to prevent log deletion or modification
+- **Encryption**: KMS encryption with restricted access protects log content
+- **Break-Glass Access**: A security model where even administrators need special authorization to access logs
+- **Organization-wide Visibility**: The CloudTrail is configured as an organization trail, capturing events across all accounts
+
+### Business Benefits
+
+This audit logging architecture delivers several advantages:
+
+- **Security Governance**: Supports audit requirements and security best practices
+- **Forensic Capability**: Enables detailed investigation of any potential data misuse
+- **Accountability**: Creates clear audit trails of who accessed what data and when
+- **Cost Optimization**: Intelligent storage tiering and selective logging minimize expenses
+
+The system operates automatically in the background, requiring minimal day-to-day management while providing essential security and governance capabilities.
