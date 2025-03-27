@@ -41,10 +41,31 @@
             "minLength": 1,
             "type": "string"
           },
-          "jurisdictionStatus": {
+          "licenseStatus": {
             "enum": [
               "active",
               "inactive"
+            ],
+            "type": "string"
+          },
+          "compactEligibility": {
+            "enum": [
+              "eligible",
+              "ineligible"
+            ],
+            "type": "string"
+          },
+          "persistedLicenseStatus": {
+            "enum": [
+              "active",
+              "inactive"
+            ],
+            "type": "string"
+          },
+          "persistedCompactEligibility": {
+            "enum": [
+              "eligible",
+              "ineligible"
             ],
             "type": "string"
           },
@@ -252,8 +273,10 @@
           "providerId",
           "givenName",
           "familyName",
-          "jurisdictionStatus",
-          "status",
+          "licenseStatus",
+          "compactEligibility",
+          "persistedLicenseStatus",
+          "persistedCompactEligibility",
           "compact",
           "licenseJurisdiction",
           "privilegeJurisdictions",

@@ -149,7 +149,8 @@ class ApiModel:
                         'dateOfIssuance',
                         'dateOfRenewal',
                         'dateOfExpiration',
-                        'status',
+                        'licenseStatus',
+                        'compactEligibility',
                     ],
                     additional_properties=False,
                     properties={
@@ -848,8 +849,10 @@ class ApiModel:
                 'providerId',
                 'givenName',
                 'familyName',
-                'jurisdictionStatus',
-                'status',
+                'licenseStatus',
+                'compactEligibility',
+                'persistedLicenseStatus',
+                'persistedCompactEligibility',
                 'compact',
                 'licenseJurisdiction',
                 'privilegeJurisdictions',
@@ -913,8 +916,10 @@ class ApiModel:
                             'dateOfRenewal',
                             'dateOfExpiration',
                             'birthMonthDay',
-                            'jurisdictionStatus',
-                            'status',
+                            'licenseStatus',
+                            'compactEligibility',
+                            'persistedLicenseStatus',
+                            'persistedCompactEligibility',
                             'history',
                         ],
                         properties={
@@ -933,7 +938,16 @@ class ApiModel:
                                 format='date',
                                 pattern=cc_api.YMD_FORMAT,
                             ),
-                            'jurisdictionStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+                            'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+                            'compactEligibility': JsonSchema(
+                                type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']
+                            ),
+                            'persistedLicenseStatus': JsonSchema(
+                                type=JsonSchemaType.STRING, enum=['active', 'inactive']
+                            ),
+                            'persistedCompactEligibility': JsonSchema(
+                                type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']
+                            ),
                             'ssnLastFour': JsonSchema(type=JsonSchemaType.STRING, pattern='^[0-9]{4}$'),
                             'history': JsonSchema(
                                 type=JsonSchemaType.ARRAY,
@@ -979,12 +993,30 @@ class ApiModel:
                                                 'homeAddressCity',
                                                 'homeAddressState',
                                                 'homeAddressPostalCode',
-                                                'jurisdictionStatus',
+                                                'persistedLicenseStatus',
+                                                'persistedCompactEligibility',
                                             ],
-                                            properties=self._common_license_properties,
+                                            properties={
+                                                'persistedLicenseStatus': JsonSchema(
+                                                    type=JsonSchemaType.STRING, enum=['active', 'inactive']
+                                                ),
+                                                'persistedCompactEligibility': JsonSchema(
+                                                    type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']
+                                                ),
+                                                **self._common_license_properties,
+                                            },
                                         ),
                                         'updatedValues': JsonSchema(
-                                            type=JsonSchemaType.OBJECT, properties=self._common_license_properties
+                                            type=JsonSchemaType.OBJECT,
+                                            properties={
+                                                'persistedLicenseStatus': JsonSchema(
+                                                    type=JsonSchemaType.STRING, enum=['active', 'inactive']
+                                                ),
+                                                'persistedCompactEligibility': JsonSchema(
+                                                    type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']
+                                                ),
+                                                **self._common_license_properties,
+                                            },
                                         ),
                                         'removedValues': JsonSchema(
                                             type=JsonSchemaType.ARRAY,
@@ -1160,7 +1192,9 @@ class ApiModel:
             'dateOfIssuance': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfRenewal': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
             'dateOfExpiration': JsonSchema(type=JsonSchemaType.STRING, format='date', pattern=cc_api.YMD_FORMAT),
-            'status': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+            'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+            'licenseStatusName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
+            'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
             'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', min_length=5, max_length=100),
             'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=r'^\+[0-9]{8,15}$'),
             'suffix': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
@@ -1178,7 +1212,10 @@ class ApiModel:
             'middleName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'familyName': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
             'suffix': JsonSchema(type=JsonSchemaType.STRING, min_length=1, max_length=100),
-            'jurisdictionStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+            'licenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+            'compactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
+            'persistedLicenseStatus': JsonSchema(type=JsonSchemaType.STRING, enum=['active', 'inactive']),
+            'persistedCompactEligibility': JsonSchema(type=JsonSchemaType.STRING, enum=['eligible', 'ineligible']),
             'compact': JsonSchema(type=JsonSchemaType.STRING, enum=self.stack.node.get_context('compacts')),
             'emailAddress': JsonSchema(type=JsonSchemaType.STRING, format='email', min_length=5, max_length=100),
             'phoneNumber': JsonSchema(type=JsonSchemaType.STRING, pattern=cc_api.PHONE_NUMBER_FORMAT),

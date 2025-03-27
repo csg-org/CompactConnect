@@ -233,7 +233,9 @@ class PersistentStack(AppStack):
             # so that the user pools will be created after the SES identity is verified
             self.staff_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
             self.provider_users.node.add_dependency(self.user_email_notifications.verification_custom_resource)
-            self.provider_users_deprecated.node.add_dependency(self.user_email_notifications.verification_custom_resource)
+            self.provider_users_deprecated.node.add_dependency(
+                self.user_email_notifications.verification_custom_resource
+            )
 
     def _add_data_resources(self, removal_policy: RemovalPolicy):
         # Create the ssn related resources before other resources which are dependent on them
@@ -380,6 +382,47 @@ class PersistentStack(AppStack):
                     'specific actions, Table and Key that this lambda needs access to in order to perform the'
                     'migration.',
                 },
+            ],
+        )
+
+        three_license_status_migration = DataMigration(
+            self,
+            '667ThreeLicenseStatus',
+            migration_dir='667_three_license_status_fields',
+            lambda_environment={
+                'PROVIDER_TABLE_NAME': self.provider_table.table_name,
+                **self.common_env_vars,
+            },
+            custom_resource_properties={
+                'foo': 'bar',
+            },
+        )
+        self.provider_table.grant_read_write_data(three_license_status_migration)
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            f'{three_license_status_migration.migration_function.node.path}/ServiceRole/DefaultPolicy/Resource',
+            suppressions=[
+                {
+                    'id': 'AwsSolutions-IAM5',
+                    'reason': 'This policy contains wild-carded actions and resources but they are scoped to the '
+                    'specific actions, Table and Key that this lambda needs access to in order to perform the'
+                    'migration.',
+                },
+            ],
+        )
+        QueryDefinition(
+            self,
+            'Migrations',
+            query_definition_name='Migrations/Lambdas',
+            query_string=QueryString(
+                fields=['@timestamp', 'level', 'compact', 'provider_id', 'message'],
+                filter_statements=['level in ["INFO", "WARNING", "ERROR"]'],
+                sort='@timestamp desc',
+            ),
+            log_groups=[
+                multi_license_migration.migration_function.log_group,
+                military_waiver_removal_migration.migration_function.log_group,
+                three_license_status_migration.migration_function.log_group,
             ],
         )
 
