@@ -1,0 +1,28 @@
+//
+//  PrivilegeHistory.less
+//  CompactConnect
+//
+//  Created by InspiringApps on 3/26/2025.
+//
+.history-container {
+    display: flex;
+    flex-direction: column;
+    // align-items: center;
+
+    .events {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+
+        .status-time-block {
+            position: absolute;
+            top: 0;
+            left: calc(50% - 52px);
+            height: 100%;
+        }
+
+        .event-node {
+            width: 50%;
+        }
+    }
+}

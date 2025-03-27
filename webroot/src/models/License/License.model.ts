@@ -157,15 +157,17 @@ export class LicenseSerializer {
             expireDate: json.dateOfExpiration,
             licenseType: json.licenseType,
             status: json.status,
-            history: [] as Array <LicenseHistoryItem>,
+            history: [ new LicenseHistoryItem({
+                type: 'deducedEvent ',
+                updateType: 'Privilege-purchased',
+                dateOfUpdate: json.dateOfIssuance
+            })],
         };
 
         if (Array.isArray(json.history)) {
             json.history.forEach((serverHistoryItem) => {
-                // We are only populating renewals at this time
-                if (serverHistoryItem.updateType === 'renewal') {
-                    licenseData.history.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
-                }
+                // inject expirations
+                licenseData.history.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
             });
         }
 

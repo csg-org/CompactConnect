@@ -17,7 +17,7 @@
                 @click="goBack"
             />
             <div class="privilege-detail-title">
-                {{ $t('military.militaryStatusTitle') }}
+                {{ privilegeTitle }}
             </div>
             <PrivilegeDetailBlock
                 :privilege="privilege"

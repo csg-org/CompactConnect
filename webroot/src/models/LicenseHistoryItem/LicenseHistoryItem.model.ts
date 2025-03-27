@@ -4,8 +4,10 @@
 //
 //  Created by InspiringApps on 7/2/2024.
 //
-
 import deleteUndefinedProperties from '@models/_helpers';
+// import { serverDateFormat } from '@/app.config';
+// import { dateDisplay, dateDiff } from '@models/_formatters/date';
+import { dateDisplay } from '@models/_formatters/date';
 
 // ========================================================
 // =                       Interface                      =
@@ -13,6 +15,7 @@ import deleteUndefinedProperties from '@models/_helpers';
 export interface InterfaceLicenseHistoryItem {
     type?: string | null;
     updateType?: string | null;
+    dateOfUpdate?: string | null;
     previousValues?: {
         compactTransactionId?: string | null,
         dateOfExpiration?: string | null,
@@ -32,15 +35,49 @@ export interface InterfaceLicenseHistoryItem {
 // =                        Model                         =
 // ========================================================
 export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
+    public $tm?: any = () => [];
+    public $t?: any = () => '';
     public type? = null;
     public updateType? = null;
+    public dateOfUpdate? = null;
     public previousValues? = {};
     public updatedValues? = {};
 
+
+
     constructor(data?: InterfaceLicenseHistoryItem) {
         const cleanDataObject = deleteUndefinedProperties(data);
+        const global = window as any;
+        const { $tm, $t } = global.Vue?.config?.globalProperties || {};
+
+        if ($tm) {
+            this.$tm = $tm;
+            this.$t = $t;
+        }
 
         Object.assign(this, cleanDataObject);
+    }
+
+    public dateOfUpdateDisplay(): string {
+        return dateDisplay(this.dateOfUpdate);
+    }
+
+    public isActivatingEvent(): boolean {
+        const isActivatingEvents = [];
+        return this.updateType;
+    }
+
+    public isDeactivatingEvent(): boolean {
+        return true;
+    }
+
+    public updateTypeDisplay(): string {
+        const updateType = this.updateType || '';
+        const events = this.$tm('licensing.licenseEvents') || [];
+        const event = events.find((st) => st.key === updateType);
+        const eventName = event.name || this.$t('common.stateUnknown');
+
+        return eventName;
     }
 }
 

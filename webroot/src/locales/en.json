@@ -36,6 +36,7 @@
         "saveAndClose": "Save & Close",
         "subtotal": "Subtotal",
         "total": "Total",
+        "history": "History",
         "saving": "Saving...",
         "loading": "Loading...",
         "viewing": "Viewing",
@@ -505,6 +506,7 @@
         "obtainPrivileges": "Obtain Privileges",
         "privileges": "Privileges",
         "privilege": "Privilege",
+        "privilegeSummary": "Privilege summary",
         "recentPrivilegesTitle": "Recent privileges",
         "birthMonthDay": "Birth month-day",
         "pastPrivilegesTitle": "Past privileges",
@@ -561,6 +563,24 @@
         "deactivate": "Deactivate",
         "deactivated": "Deactivated",
         "confirmPrivilegeDeactivate": "Are you sure you want to deactivate this privilege? This cannot be undone.",
+        "licenseEvents": [
+            {
+                "name": "Privilege purchased",
+                "key": "purchased"
+            },
+            {
+                "name": "Renewal",
+                "key": "renewal"
+            },
+            {
+                "name": "Expired",
+                "key": "expired"
+            },
+            {
+                "name": "Deactivation",
+                "key": "deactivation"
+            }
+        ],
         "licenseTypes": [
             {
                 "name": "Audiologist",

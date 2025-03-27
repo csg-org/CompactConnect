@@ -199,7 +199,7 @@ class PrivilegeCard extends mixins(MixinForm) {
     goToPrivilegeDetailsPage(): void {
         this.$router.push({
             name: 'PrivilegeDetail',
-            params: { compact: this.currentCompactType, privilegeId: this.privilegeId }
+            params: { compact: this.currentCompactType, privilegeId: this.privilege.id }
         });
     }
 

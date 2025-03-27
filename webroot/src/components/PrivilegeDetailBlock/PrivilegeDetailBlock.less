@@ -7,15 +7,46 @@
 .core-info-block {
     display: flex;
     flex-direction: column;
-    padding: 1rem;
+    padding: 2rem;
     border-radius: 14px;
     background-color: @white;
 
     @media @tabletWidth {
-        padding: 2rem;
+        padding: 3rem;
     }
 
     @media @desktopWidth {
         width: 69rem;
+    }
+
+    .summary {
+        padding-bottom: 1rem;
+        border-bottom: 1px solid @lightGrey;
+
+        .privilege-summary-details {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            padding: 1rem 0;
+
+            .info-item-container {
+                padding-right: 3rem;
+
+                .info-item-title {
+                    font-weight: @fontWeightBold;
+                    font-size: 1.4rem;
+                    line-height: 2.1rem;
+                }
+
+                .info-item {
+                    font-size: 1.4rem;
+                    line-height: 2.1rem;
+                }
+            }
+        }
+    }
+
+    .history {
+        padding: 2rem 0;
     }
 }
