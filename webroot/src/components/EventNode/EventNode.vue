@@ -7,13 +7,17 @@
 
 <template>
     <div class="event-node-container">
-        <div class="node" />
+        <div class="node"
+            :class="{
+                'inactive': isDeactive,
+                'active': isActive
+            }"
+        />
         <div class="event-info">
             <div class="event-date">{{eventDate}}</div>
-            <div class="event-type">{{eventType}}</div>
+            <div class="event-type">{{eventNameDisplay}}</div>
             <div class="event-detail"></div>
         </div>
-        <!-- <StatusTimeBlock class="time-block" /> -->
     </div>
 </template>
 

@@ -14,6 +14,7 @@ import {
 import EventNode from '@components/EventNode/EventNode.vue';
 import StatusTimeBlock from '@components/StatusTimeBlock/StatusTimeBlock.vue';
 import { License } from '@models/License/License.model';
+import moment from 'moment';
 
 @Component({
     name: 'PrivilegeHistory',
@@ -43,22 +44,45 @@ class PrivilegeHistory extends Vue {
 
     get preppedEvents(): any {
         const preppedEvents = [] as Array <any>;
-        // const curStatus = false;
 
         this.events.forEach((event, i) => {
-            console.log('event', event);
-
-            let isStart = i === 1 ? true : false;
+            let isStart = false;
             let isEnd = false;
 
-            if () {
-
+            if (i === 0) {
+                isStart = true;
+            } else if ((event.isActivatingEvent() && this.events[i - 1].isDeactivatingEvent())
+            || (event.isDeactivatingEvent() && this.events[i - 1].isActivatingEvent())) {
+                isStart = true;
             }
 
-            preppedEvents.push(event);
+            if (i === this.events.length - 1) {
+                isEnd = false;
+            } else if ((event.isActivatingEvent() && this.events[i + 1].isDeactivatingEvent())
+            || (event.isDeactivatingEvent() && this.events[i + 1].isActivatingEvent())) {
+                isEnd = true;
+            }
+
+            preppedEvents.push({ event, isEnd, isStart });
         });
 
         return preppedEvents;
+    }
+
+    get daysUntilExpiration(): number {
+        return moment(this.privilege?.expireDate).diff(moment(), 'days');
+    }
+
+    get isExpirationUpcoming(): boolean {
+        return this.daysUntilExpiration < 90;
+    }
+
+    get isExpired(): boolean {
+        return this.privilege?.isExpired() || false;
+    }
+
+    get expText(): string {
+        return `${this.$t('licensing.expiringIn')} ${this.daysUntilExpiration} ${this.$t('common.days')}`;
     }
 
     //

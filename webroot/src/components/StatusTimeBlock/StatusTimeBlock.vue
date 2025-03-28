@@ -6,7 +6,28 @@
 -->
 
 <template>
-    <div class="status-time-block-container"></div>
+    <div
+        class="status-time-block-container"
+        :class="{
+            'inactive': isDeactive,
+            'active': isActive,
+            'start': isStart,
+            'end': isEnd,
+        }"
+    >
+        <div
+            :class="{
+                'inactive': isDeactive,
+                'active': isActive,
+                'start': isStart,
+                'end': isEnd,
+                'last': isLast
+            }"
+            class="status-time-block-color"
+        >
+            <span v-if="isStart">{{status}}</span>
+        </div>
+    </div>
 </template>
 
 <script lang="ts" src="./StatusTimeBlock.ts"></script>

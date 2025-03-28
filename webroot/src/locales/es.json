@@ -25,10 +25,12 @@
         "remove": "Eliminar",
         "reset": "Restablecer",
         "invite": "Invitar",
+        "today": "Hoy",
         "save": "Guardar",
         "sendInvite": "Enviar invitación",
         "toggleNav": "Alternar menú de navegación",
         "saveChanges": "Guardar cambios",
+        "days": "dias",
         "submit": "Enviar",
         "clear": "Borrar",
         "subtotal": "Total parcial",
@@ -480,6 +482,7 @@
         "streetAddress2": "Dirección 2",
         "completePurchase": "Finalizar compra",
         "expirationDate": "Fecha de vencimiento",
+        "expiration": "Vencimiento",
         "continueToPurchase": "Continuar comprando",
         "compactPrivilegeStateFee": "Quota Estatal de Privilegio Compacto",
         "compactCommissionFee": "Tarifa Administrativa",
@@ -562,6 +565,25 @@
         "deactivate": "Desactivar",
         "deactivated": "Desactivado",
         "confirmPrivilegeDeactivate": "¿Está seguro de que desea desactivar este privilegio? No es posible deshacer esta acción.",
+        "expiringIn": "Expirando en",
+        "licenseEvents": [
+            {
+                "name": "Privilegio comprado",
+                "key": "purchased"
+            },
+            {
+                "name": "Renovación",
+                "key": "renewal"
+            },
+            {
+                "name": "Expirado",
+                "key": "expired"
+            },
+            {
+                "name": "Desactivación",
+                "key": "deactivation"
+            }
+        ],
         "licenseTypes": [
             {
                 "name": "Audiólogo",

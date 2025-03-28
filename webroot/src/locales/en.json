@@ -24,8 +24,10 @@
         "remove": "Remove",
         "reset": "Reset",
         "invite": "Invite",
+        "today": "Today",
         "save": "Save",
         "saveChanges": "Save changes",
+        "days": "days",
         "sendInvite": "Send invite",
         "toggleNav": "Toggle nav menu",
         "submit": "Submit",
@@ -536,6 +538,7 @@
         "state": "State",
         "issued": "Issued",
         "expirationDate": "Expiration date",
+        "expiration": "Expiration",
         "expireDate": "Expire Date",
         "expires": "Expires",
         "selectPrivileges": "Select privileges",
@@ -563,6 +566,7 @@
         "deactivate": "Deactivate",
         "deactivated": "Deactivated",
         "confirmPrivilegeDeactivate": "Are you sure you want to deactivate this privilege? This cannot be undone.",
+        "expiringIn": "Expiring in",
         "licenseEvents": [
             {
                 "name": "Privilege purchased",

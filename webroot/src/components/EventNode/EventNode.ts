@@ -11,14 +11,10 @@ import {
     toNative,
     Prop
 } from 'vue-facing-decorator';
-import StatusTimeBlock from '@components/StatusTimeBlock/StatusTimeBlock.vue';
 import { LicenseHistoryItem } from '@models/LicenseHistoryItem/LicenseHistoryItem.model';
 
 @Component({
-    name: 'EventNode',
-    components: {
-        StatusTimeBlock
-    }
+    name: 'EventNode'
 })
 class EventNode extends Vue {
     // PROPS
@@ -39,8 +35,16 @@ class EventNode extends Vue {
         return this.event?.dateOfUpdateDisplay() || '';
     }
 
-    get eventType(): string {
-        return this.event?.updateType || '';
+    get eventNameDisplay(): string {
+        return this.event?.updateTypeDisplay() || '';
+    }
+
+    get isActive() {
+        return this.event?.isActivatingEvent();
+    }
+
+    get isDeactive() {
+        return this.event?.isDeactivatingEvent();
     }
 
     //

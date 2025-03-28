@@ -14,7 +14,7 @@ import { dateDisplay } from '@models/_formatters/date';
 // ========================================================
 export interface InterfaceLicenseHistoryItem {
     type?: string | null;
-    updateType?: string | null;
+    updateType?: string;
     dateOfUpdate?: string | null;
     previousValues?: {
         compactTransactionId?: string | null,
@@ -38,12 +38,10 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
     public $tm?: any = () => [];
     public $t?: any = () => '';
     public type? = null;
-    public updateType? = null;
+    public updateType? = '';
     public dateOfUpdate? = null;
     public previousValues? = {};
     public updatedValues? = {};
-
-
 
     constructor(data?: InterfaceLicenseHistoryItem) {
         const cleanDataObject = deleteUndefinedProperties(data);
@@ -63,12 +61,15 @@ export class LicenseHistoryItem implements InterfaceLicenseHistoryItem {
     }
 
     public isActivatingEvent(): boolean {
-        const isActivatingEvents = [];
-        return this.updateType;
+        const activatingEvents = [ 'purchased', 'renewal' ];
+
+        return activatingEvents.some((event) => (this.updateType && event === this.updateType));
     }
 
     public isDeactivatingEvent(): boolean {
-        return true;
+        const deactivatingEvents = ['expired', 'deactivation'];
+
+        return deactivatingEvents.some((event) => (this.updateType && event === this.updateType));
     }
 
     public updateTypeDisplay(): string {

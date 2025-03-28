@@ -158,8 +158,8 @@ export class LicenseSerializer {
             licenseType: json.licenseType,
             status: json.status,
             history: [ new LicenseHistoryItem({
-                type: 'deducedEvent ',
-                updateType: 'Privilege-purchased',
+                type: 'fabricatedEvent ',
+                updateType: 'purchased',
                 dateOfUpdate: json.dateOfIssuance
             })],
         };
@@ -167,8 +167,30 @@ export class LicenseSerializer {
         if (Array.isArray(json.history)) {
             json.history.forEach((serverHistoryItem) => {
                 // inject expirations
+                const serializedHistoryItem = LicenseHistoryItemSerializer.fromServer(serverHistoryItem);
+                const { updateType, previousValues, dateOfUpdate } = serializedHistoryItem;
+                const { dateOfExpiration } = previousValues as any;
+
+                if (updateType === 'renewal'
+                    && (previousValues as any)?.dateOfExpiration
+                    && dateOfUpdate && (moment(dateOfUpdate)).isAfter(moment(dateOfExpiration))) {
+                    licenseData.history.push(new LicenseHistoryItem({
+                        type: 'fabricatedEvent ',
+                        updateType: 'expired',
+                        dateOfUpdate: dateOfExpiration
+                    }));
+                }
+
                 licenseData.history.push(LicenseHistoryItemSerializer.fromServer(serverHistoryItem));
             });
+
+            if ((moment()).isAfter(moment(json.dateOfExpiration))) {
+                licenseData.history.push(new LicenseHistoryItem({
+                    type: 'fabricatedEvent ',
+                    updateType: 'expired',
+                    dateOfUpdate: json.dateOfExpiration
+                }));
+            }
         }
 
         return new License(licenseData);

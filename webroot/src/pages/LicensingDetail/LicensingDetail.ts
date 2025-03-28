@@ -36,8 +36,7 @@ export default class LicensingDetail extends Vue {
     //
     isPersonalInfoCollapsed = false;
     isLicensesCollapsed = false;
-    isRecentPrivsCollapsed = false;
-    isPastPrivsCollapsed = false;
+    isPrivsCollapsed = false;
     licenseeFullSsnLoading = false;
     licenseeFullSsn = '';
     licenseeFullSsnError = '';
@@ -174,12 +173,8 @@ export default class LicensingDetail extends Vue {
         return `${city}${delim}${stateAbbrev} ${zip}`.trim();
     }
 
-    get recentPrivilegesTitle(): string {
+    get privilegesTitle(): string {
         return this.$t('licensing.recentPrivilegesTitle');
-    }
-
-    get pastPrivilegesTitle(): string {
-        return this.$t('licensing.pastPrivilegesTitle');
     }
 
     get licenseDetails(): string {
@@ -196,23 +191,6 @@ export default class LicensingDetail extends Vue {
 
     get homeState(): string {
         return this.licensee?.homeJurisdiction?.name() || '';
-    }
-
-    get pastPrivilegeList(): Array<License> {
-        const privilegeList: Array<License> = [];
-
-        this.licenseePrivileges.forEach((privilege) => {
-            privilege.history?.forEach((historyItem: any) => {
-                privilegeList.push(new License({
-                    ...privilege,
-                    expireDate: historyItem.previousValues?.dateOfExpiration || null,
-                    issueDate: historyItem.previousValues?.dateOfIssuance || null,
-                    status: LicenseStatus.INACTIVE
-                }));
-            });
-        });
-
-        return privilegeList;
     }
 
     //
@@ -236,12 +214,8 @@ export default class LicensingDetail extends Vue {
         this.isLicensesCollapsed = !this.isLicensesCollapsed;
     }
 
-    toggleRecentPrivsCollapsed(): void {
-        this.isRecentPrivsCollapsed = !this.isRecentPrivsCollapsed;
-    }
-
-    togglePastPrivsCollapsed(): void {
-        this.isPastPrivsCollapsed = !this.isPastPrivsCollapsed;
+    togglePrivsCollapsed(): void {
+        this.isPrivsCollapsed = !this.isPrivsCollapsed;
     }
 
     sortingChange(): boolean {

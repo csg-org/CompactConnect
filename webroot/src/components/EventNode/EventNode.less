@@ -7,13 +7,21 @@
 .event-node-container {
     display: flex;
     flex-direction: row;
-    min-height: 6rem;
+    min-height: 8rem;
+    padding-bottom: 1rem;
 
     .node {
         width: 14px;
         height: 14px;
         border-radius: 14px;
-        background-color: @black;
+
+        &.inactive {
+            background-color: @midRed;
+        }
+
+        &.active {
+            background-color: @midGreen;
+        }
     }
 
     .event-info {

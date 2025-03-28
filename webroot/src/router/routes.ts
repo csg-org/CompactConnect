@@ -96,7 +96,7 @@ const routes: Array<RouteConfig> = [
         path: '/:compact/Privilege/:privilegeId',
         name: 'PrivilegeDetail',
         component: () => import(/* webpackChunkName: "militaryStatusUpdate" */ '@pages/PrivilegeDetail/PrivilegeDetail.vue'),
-        meta: { requiresAuth: true, licenseeAccess: true, },
+        meta: { requiresAuth: true, licenseeAccess: true, staffAccess: true },
     },
     {
         path: '/:compact/MilitaryStatus/Update',

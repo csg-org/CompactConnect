@@ -5,7 +5,51 @@
 //  Created by InspiringApps on 3/21/2025.
 //
 .status-time-block-container {
-    width: 60px;
-    border-right: 2px solid black;
-    background-color: @lightGrey;
+    width: 120px;
+
+    &.start {
+        padding-top: 3px;
+    }
+
+    // &.end {
+    //     padding-bottom: 2px;
+    // }
+
+    &.inactive {
+        border-right: 2px solid @midRed;
+    }
+
+    &.active {
+        border-right: 2px solid green;
+    }
+    // border-right: 2px solid black;
+    // background-color: @lightGrey;
+    .status-time-block-color {
+        height: 100%;
+
+        &.start {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            border-top-left-radius: 5px;
+        }
+
+        &.end {
+            justify-content: center;
+            border-bottom-left-radius: 5px;
+        }
+
+        &.last {
+            justify-content: center;
+        }
+
+        &.inactive {
+            background-color: @veryLightRed;
+        }
+
+        &.active {
+            background-color: @veryLightGreen;
+        }
+    }
 }
